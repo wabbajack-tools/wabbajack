@@ -13,6 +13,7 @@ namespace Wabbajack
         {
             var compiler = new Compiler("c:\\Mod Organizer 2", msg => Console.WriteLine(msg), (msg, id, prog) => Console.WriteLine(msg));
             compiler.LoadArchives();
+            compiler.MO2Profile = "Lexy's Legacy of The Dragonborn Special Edition";
             compiler.Compile();
 
         }

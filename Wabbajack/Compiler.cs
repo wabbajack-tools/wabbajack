@@ -29,6 +29,16 @@ namespace Wabbajack
             }
         }
 
+        public string MO2Profile;
+
+        public string MO2ProfileDir
+        {
+            get
+            {
+                return Path.Combine(MO2Folder, MO2Profile);
+            }
+        }
+
         public Action<string> Log_Fn { get; }
         public Action<string, long, long> Progress_Function { get; }
 
@@ -49,6 +59,8 @@ namespace Wabbajack
             MO2Ini = Path.Combine(MO2Folder, "ModOrganizer.ini").LoadIniFile();
             GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
         }
+
+       
 
         public void LoadArchives()
         {
@@ -155,12 +167,93 @@ namespace Wabbajack
                 IgnoreStartsWith("logs\\"),
                 IgnoreStartsWith("downloads\\"),
                 IgnoreStartsWith("webcache\\"),
+                IgnoreStartsWith("nxmhandler."),
                 IgnoreEndsWith(".pyc"),
+                IgnoreOtherProfiles(),
+                IncludeThisProfile(),
                 // Ignore the ModOrganizer.ini file it contains info created by MO2 on startup
                 IgnoreStartsWith("ModOrganizer.ini"),
                 IgnoreRegex(Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
+                IncludeModIniData(),
                 DirectMatch(),
+
+                // If we have no match at this point for a game folder file, skip them, we can't do anything about them
+                IgnoreGameFiles(),
                 DropAll()
+            };
+        }
+
+        private Func<RawSourceFile, Directive> IncludeModIniData()
+        {
+            return source =>
+            {
+                if (source.Path.StartsWith("mods\\") && source.Path.EndsWith("\\meta.ini"))
+                {
+                    var e = source.EvolveTo<InlineFile>();
+                    e.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                    return e;
+                }
+                return null;
+            };
+        }
+
+        private Func<RawSourceFile, Directive> IgnoreGameFiles()
+        {
+            var start_dir = Consts.GameFolderFilesDir + "\\";
+            return source =>
+            {
+                if (source.Path.StartsWith(start_dir))
+                {
+                    var i = source.EvolveTo<IgnoredDirectly>();
+                    i.Reason = "Default game file";
+                    return i;
+                }
+                return null;
+            };
+        }
+
+        private Func<RawSourceFile, Directive> IncludeThisProfile()
+        {
+            var correct_profile = Path.Combine("profiles", MO2Profile) + "\\";
+            return source =>
+            {
+                if (source.Path.StartsWith(correct_profile))
+                {
+                    byte[] data;
+                    if (source.Path.EndsWith("\\modlist.txt"))
+                        data = ReadAndCleanModlist(source.AbsolutePath);
+                    else
+                        data = File.ReadAllBytes(source.AbsolutePath);
+
+                    var e = source.EvolveTo<InlineFile>();
+                    e.SourceData = data.ToBase64();
+                    return e;
+                }
+                return null;
+            };
+        }
+
+        private byte[] ReadAndCleanModlist(string absolutePath)
+        {
+            var lines = File.ReadAllLines(absolutePath);
+            lines = (from line in lines
+                     where !(line.StartsWith("-") && !line.EndsWith("_separator"))
+                     select line).ToArray();
+            return Encoding.UTF8.GetBytes(String.Join("\r\n", lines));
+        }
+
+        private Func<RawSourceFile, Directive> IgnoreOtherProfiles()
+        {
+            var correct_profile = Path.Combine("profiles", MO2Profile) + "\\";
+            return source =>
+            {
+                if (source.Path.StartsWith("profiles\\") && !source.Path.StartsWith(correct_profile))
+                {
+                    var c = source.EvolveTo<IgnoredDirectly>();
+                    c.Reason = "File not for this profile";
+                    return c;
+                }
+                return null;
             };
         }
 
