@@ -1,0 +1,21 @@
+﻿<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>SevenZipExtractor</id>
+    <version>1.0.12</version>
+    <title>SevenZipExtractor</title>
+    <authors>Eugene Sichkar, Alexander Selishchev, @matortheeternal, Hajin Jang, Artem Tarasov, Jose Pineiro, Raphael Stoeckli</authors>
+    <owners>Alexander Selishchev</owners>
+    <projectUrl>https://github.com/adoconnection/SevenZipExtractor</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>C# wrapper for 7z.dll (included)</description>
+    <releaseNotes></releaseNotes>
+    <copyright>Copyright 2018</copyright>
+    <tags>7Zip APM Arj BZip2 Cab Chm Compound Cpio CramFS Deb Dll Dmg Exe Fat Flv GZip Hfs Iso Lzh Lzma Lzma86 Mach-O Mbr Mub Nsis Ntfs Ppmd Rar Rar5 Rpm Split SquashFS Swf Swfc Tar TE Udf UEFIc UEFIs Vhd Wim Xar XZ Z Zip</tags>
+  </metadata>
+  <files>
+    <file src="7zDll\x86\7z.dll" target="build\7zDll\x86\" />
+    <file src="7zDll\x64\7z.dll" target="build\7zDll\x64\" />
+    <file src="SevenZipExtractor.targets" target="build\SevenZipExtractor.targets" />
+  </files>
+</package>

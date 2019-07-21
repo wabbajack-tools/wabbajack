@@ -1,0 +1,107 @@
+<!--
+ *
+ * WARNING: This MSBuild file requires MSBuild 4.0 features.
+ * 
+ * Based on System.Data.SQLite.Core.targets, written by Joe Mistachkin and David Archer.
+ * Released to the public domain, use at your own risk!
+ *
+-->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+  ******************************************************************************
+  **                          Load Per-User Settings                          **
+  ******************************************************************************
+  -->
+  
+  <!--
+    Create "SevenZipExtractor.Dll.Exclude" file in project directory 
+    to disable copying precompiled zlib binaries.
+  -->
+  <PropertyGroup>
+    <Exclude7zDll Condition="Exists('$(MSBuildProjectDirectory)\SevenZipExtractor.Dll.Exclude')">true</Exclude7zDll>
+  </PropertyGroup>
+
+ <!--
+  ******************************************************************************
+  **                           7z.dll Library Build Items                     **
+  ******************************************************************************
+  -->
+
+  <ItemGroup>
+    <DllFiles Condition="'$(Exclude7zDll)' != 'true' And 
+                                  '$(MSBuildThisFileDirectory)' != '' And
+                                   HasTrailingSlash('$(MSBuildThisFileDirectory)')"
+                        Include="$(MSBuildThisFileDirectory)7zDll\**\7z.dll" />
+  </ItemGroup>
+
+  <!--
+  ******************************************************************************
+  **                          7z.dll Library Content Items                    **
+  ******************************************************************************
+  -->
+
+  <ItemGroup Condition="'@(DllFiles)' != ''">
+    <None Include="@(DllFiles)">
+      <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!--
+  ******************************************************************************
+  **                          7z.dll Library Build Targets                    **
+  ******************************************************************************
+  -->
+
+  <Target Name="CopyDllFiles"
+          Condition="'$(CopyDllFiles)' != 'false' And
+                     '$(OutDir)' != '' And
+                     HasTrailingSlash('$(OutDir)') And
+                     Exists('$(OutDir)')"
+          Inputs="@(DllFiles)"
+          Outputs="@(DllFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')">
+    <!--
+        NOTE: Copy "zlibwapi.dll" and all related files, for every
+              architecture that we support, to the build output directory.
+    -->
+    <Copy SourceFiles="@(DllFiles)"
+          DestinationFiles="@(DllFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+
+  <!--
+  ******************************************************************************
+  -->
+
+  <Target Name="CleanDllFiles"
+          Condition="'$(CleanDllFiles)' != 'false' And
+                     '$(OutDir)' != '' And
+                     HasTrailingSlash('$(OutDir)') And
+                     Exists('$(OutDir)')">
+    <!--
+        NOTE: Delete "zlibwapi.dll" and all related files, for every
+              architecture that we support, from the build output directory.
+    -->
+    <Delete Files="@(DllFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+
+  <!--
+  ******************************************************************************
+  **                        7z.dll Library Build Properties                   **
+  ******************************************************************************
+  -->
+
+  <PropertyGroup>
+    <PostBuildEventDependsOn>
+      $(PostBuildEventDependsOn);
+      CopyDllFiles;
+    </PostBuildEventDependsOn>
+    <BuildDependsOn>
+      $(BuildDependsOn);
+      CopyDllFiles;
+    </BuildDependsOn>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      CleanDllFiles;
+    </CleanDependsOn>
+  </PropertyGroup>
+</Project>

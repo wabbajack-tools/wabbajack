@@ -3,3 +3,12 @@
 ################################################################################
 
 /.vs/Wabbajack
+/BSA.Tools/bin/Debug/netstandard2.0
+/BSA.Tools/obj
+/packages
+/SevenZipExtractor/bin/Debug
+/SevenZipExtractor/obj/Debug
+/Wabbajack/bin/Debug
+/Wabbajack/obj/Debug
+/Wabbajack.Common/bin/Debug
+/Wabbajack.Common/obj/Debug
