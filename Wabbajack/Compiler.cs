@@ -1,9 +1,11 @@
 ﻿using Murmur;
+using Newtonsoft.Json;
 using SevenZipExtractor;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -29,6 +31,25 @@ namespace Wabbajack
             }
         }
 
+        internal void PatchExecutable()
+        {
+
+            var data = JsonConvert.SerializeObject(InstallDirectives).BZip2String();
+            var executable = Assembly.GetExecutingAssembly().Location;
+            var out_path = Path.Combine(Path.GetDirectoryName(executable), "out.exe");
+            File.Copy(executable, out_path, true);
+            using(var os = File.OpenWrite(out_path))
+            using(var bw = new BinaryWriter(os))
+            {
+                long orig_pos = os.Length;
+                os.Position = os.Length;
+                bw.Write(data.LongLength);
+                bw.Write(data);
+                bw.Write(orig_pos);
+                bw.Write(Encoding.ASCII.GetBytes(Consts.ModPackMagic));
+            }
+        }
+
         public string MO2Profile;
 
         public string MO2ProfileDir
@@ -41,6 +62,9 @@ namespace Wabbajack
 
         public Action<string> Log_Fn { get; }
         public Action<string, long, long> Progress_Function { get; }
+        public List<Directive> InstallDirectives { get; private set; }
+        public List<Archive> SelectedArchives { get; private set; }
+
 
         public List<IndexedArchive> IndexedArchives;
 
@@ -49,6 +73,14 @@ namespace Wabbajack
             if (args.Length > 0)
                 msg = String.Format(msg, args);
             Log_Fn(msg);
+        }
+
+        private void Error(string msg, params object[] args)
+        {
+            if (args.Length > 0)
+                msg = String.Format(msg, args);
+            Log_Fn(msg);
+            throw new Exception(msg);
         }
 
         public Compiler(string mo2_folder, Action<string> log_fn, Action<string, long, long> progress_function)
@@ -82,7 +114,11 @@ namespace Wabbajack
 
                 var ini_name = file + ".meta";
                 if (ini_name.FileExists())
+                {
                     info.IniData = ini_name.LoadIniFile();
+                    info.Meta = File.ReadAllText(ini_name);
+                }
+
                 return info;
             }
 
@@ -140,9 +176,68 @@ namespace Wabbajack
             foreach (var file in nomatch)
                 Info("     {0}", file.To);
 
+            InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
+
+            GatherArchives();
+
             results.ToJSON("out.json");
 
         }
+
+        private void GatherArchives()
+        {
+            var archives = IndexedArchives.GroupBy(a => a.Hash).ToDictionary(k => k.Key, k => k.First());
+
+            var shas = InstallDirectives.OfType<FromArchive>()
+                                        .Select(a => a.ArchiveHash)
+                                        .Distinct();
+
+            SelectedArchives = shas.Select(sha => ResolveArchive(sha, archives)).ToList();
+
+        }
+
+        private Archive ResolveArchive(string sha, Dictionary<string, IndexedArchive> archives)
+        {
+            if(archives.TryGetValue(sha, out var found))
+            {
+                if (found.IniData == null)
+                    Error("No download metadata found for {0}, please use MO2 to query info or add a .meta file and try again.", found.Name);
+                var general = found.IniData.General;
+                if (general == null)
+                    Error("No General section in mod metadata found for {0}, please use MO2 to query info or add the info and try again.", found.Name);
+
+                Archive result;
+
+                if (general.modID != null && general.fileID != null && general.gameName != null)
+                {
+                    result = new NexusMod() {
+                        GameName = general.gameName,
+                        FileID = general.fileID,
+                        ModID = general.modID};
+                }
+                else if (general.directURL != null)
+                {
+                    result = new DirectURLArchive()
+                    {
+                        URL = general.directURL
+                    };
+                }
+                else
+                {
+                    Error("No way to handle archive {0} but it's required by the modpack", found.Name);
+                    return null;
+                }
+
+                result.Name = found.Name;
+                result.Hash = found.Hash;
+                result.Meta = found.Meta;
+
+                return result;
+            }
+            Error("No match found for Archive sha: {0} this shouldn't happen", sha);
+            return null;
+        }
+
 
         private Directive RunStack(IEnumerable<Func<RawSourceFile, Directive>> stack, RawSourceFile source)
         {
@@ -176,10 +271,35 @@ namespace Wabbajack
                 IgnoreRegex(Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
                 IncludeModIniData(),
                 DirectMatch(),
+                IncludePatches(),
 
                 // If we have no match at this point for a game folder file, skip them, we can't do anything about them
                 IgnoreGameFiles(),
                 DropAll()
+            };
+        }
+
+        private Func<RawSourceFile, Directive> IncludePatches()
+        {
+            var indexed = (from archive in IndexedArchives
+                           from entry in archive.Entries
+                           select new { archive = archive, entry = entry })
+                           .GroupBy(e => Path.GetFileName(e.entry.Path))
+                           .ToDictionary(e => e.Key);
+
+            return source =>
+            {
+                if (indexed.TryGetValue(Path.GetFileName(source.Path), out var value))
+                {
+                    var found = value.First();
+
+                    var e = source.EvolveTo<PatchedFromArchive>();
+                    e.From = found.entry.Path;
+                    e.ArchiveHash = found.archive.Hash;
+                    e.To = source.Path;
+                    return e;
+                }
+                return null;
             };
         }
 

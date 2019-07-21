@@ -9,5 +9,6 @@ namespace Wabbajack.Common
     public static class Consts
     {
         public static string GameFolderFilesDir = "Game Folder Files";
+        public static string ModPackMagic = "Celebration!, Cheese for Everyone!";
     }
 }

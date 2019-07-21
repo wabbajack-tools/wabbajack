@@ -1,4 +1,5 @@
-﻿using IniParser;
+﻿using ICSharpCode.SharpZipLib.BZip2;
+using IniParser;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -82,6 +83,41 @@ namespace Wabbajack.Common
         public static string RelativeTo(this string file, string folder)
         {
             return file.Substring(folder.Length + 1);
+        }
+
+        /// <summary>
+        /// Returns the string compressed via BZip2
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static byte[] BZip2String(this string data)
+        {
+            using (var os = new MemoryStream())
+            {
+                using (var bz = new BZip2OutputStream(os))
+                {
+                    using (var bw = new BinaryWriter(bz))
+                        bw.Write(data);
+                }
+                return os.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Returns the string compressed via BZip2
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static string BZip2String(this byte[] data)
+        {
+            using (var s = new MemoryStream(data))
+            {
+                using (var bz = new BZip2InputStream(s))
+                {
+                    using (var bw = new BinaryReader(bz))
+                        return bw.ReadString();
+                }
+            }
         }
 
     }

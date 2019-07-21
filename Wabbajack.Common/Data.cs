@@ -94,7 +94,7 @@ namespace Wabbajack.Common
         public string From;
     }
 
-    public class PatchedArchive : FromArchive
+    public class PatchedFromArchive : FromArchive
     {
         /// <summary>
         /// The file to apply to the source file to patch it
@@ -112,6 +112,18 @@ namespace Wabbajack.Common
         /// Human friendly name of this archive
         /// </summary>
         public string Name;
+
+        /// <summary>
+        /// Meta INI for the downloaded archive
+        /// </summary>
+        public string Meta;
+    }
+
+    public class NexusMod : Archive
+    {
+        public string GameName;
+        public string ModID;
+        public string FileID;
     }
 
     /// <summary>
@@ -157,6 +169,7 @@ namespace Wabbajack.Common
     {
         public dynamic IniData;
         public string Name;
+        public string Meta;
     }
 
     /// <summary>
