@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack", "Wabbajack\Wabbajack.csproj", "{1649CAB3-6F8E-4F2E-844C-931BD4B61233}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Common", "Wabbajack.Common\Wabbajack.Common.csproj", "{B3F3FB6E-B9EB-4F49-9875-D78578BC7AE5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BSA.Tools", "BSA.Tools\BSA.Tools.csproj", "{B6389807-EA59-4633-B42B-A85F52FEC135}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SevenZipExtractor", "SevenZipExtractor\SevenZipExtractor.csproj", "{8AA97F58-5044-4BBA-B8D9-A74B6947A660}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack", "Wabbajack\Wabbajack.csproj", "{33602679-8484-40C7-A10C-774DFF5D8314}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{1649CAB3-6F8E-4F2E-844C-931BD4B61233}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1649CAB3-6F8E-4F2E-844C-931BD4B61233}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1649CAB3-6F8E-4F2E-844C-931BD4B61233}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1649CAB3-6F8E-4F2E-844C-931BD4B61233}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B3F3FB6E-B9EB-4F49-9875-D78578BC7AE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B3F3FB6E-B9EB-4F49-9875-D78578BC7AE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3F3FB6E-B9EB-4F49-9875-D78578BC7AE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -33,6 +29,10 @@ Global
 		{8AA97F58-5044-4BBA-B8D9-A74B6947A660}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8AA97F58-5044-4BBA-B8D9-A74B6947A660}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8AA97F58-5044-4BBA-B8D9-A74B6947A660}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33602679-8484-40C7-A10C-774DFF5D8314}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33602679-8484-40C7-A10C-774DFF5D8314}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33602679-8484-40C7-A10C-774DFF5D8314}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33602679-8484-40C7-A10C-774DFF5D8314}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

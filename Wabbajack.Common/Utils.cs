@@ -129,5 +129,59 @@ namespace Wabbajack.Common
             }
         }
 
+        public static List<TR> PMap<TI, TR>(this IEnumerable<TI> coll, Func<TI, TR> f)
+        {
+            var tasks = coll.Select(i =>
+            {
+                TaskCompletionSource<TR> tc = new TaskCompletionSource<TR>();
+                WorkQueue.QueueTask(() =>
+                {
+                    try
+                    {
+                        tc.SetResult(f(i));
+                    }
+                    catch (Exception ex)
+                    {
+                        tc.SetException(ex);
+                    }
+                });
+                return tc.Task;
+            }).ToList();
+
+            return tasks.Select(t =>
+            {
+                t.Wait();
+                return t.Result;
+            }).ToList();
+        }
+
+        public static void PMap<TI>(this IEnumerable<TI> coll, Action<TI> f)
+        {
+            var tasks = coll.Select(i =>
+            {
+                TaskCompletionSource<bool> tc = new TaskCompletionSource<bool>();
+                WorkQueue.QueueTask(() =>
+                {
+                    try
+                    {
+                        f(i);
+                        tc.SetResult(true);
+                    }
+                    catch (Exception ex)
+                    {
+                        tc.SetException(ex);
+                    }
+                });
+                return tc.Task;
+            }).ToList();
+
+            tasks.Select(t =>
+            {
+                t.Wait();
+                return t.Result;
+            }).ToList();
+            return;
+        }
+
     }
 }

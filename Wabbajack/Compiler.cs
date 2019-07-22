@@ -1,5 +1,4 @@
-﻿using Murmur;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using SevenZipExtractor;
 using System;
 using System.Collections.Generic;
@@ -24,31 +23,15 @@ namespace Wabbajack
         public dynamic MO2Ini { get; }
         public string GamePath { get; }
 
-        public string MO2DownloadsFolder {
+        public string MO2DownloadsFolder
+        {
             get
             {
                 return Path.Combine(MO2Folder, "downloads");
             }
         }
 
-        internal void PatchExecutable()
-        {
 
-            var data = JsonConvert.SerializeObject(InstallDirectives).BZip2String();
-            var executable = Assembly.GetExecutingAssembly().Location;
-            var out_path = Path.Combine(Path.GetDirectoryName(executable), "out.exe");
-            File.Copy(executable, out_path, true);
-            using(var os = File.OpenWrite(out_path))
-            using(var bw = new BinaryWriter(os))
-            {
-                long orig_pos = os.Length;
-                os.Position = os.Length;
-                bw.Write(data.LongLength);
-                bw.Write(data);
-                bw.Write(orig_pos);
-                bw.Write(Encoding.ASCII.GetBytes(Consts.ModPackMagic));
-            }
-        }
 
         public string MO2Profile;
 
@@ -61,7 +44,6 @@ namespace Wabbajack
         }
 
         public Action<string> Log_Fn { get; }
-        public Action<string, long, long> Progress_Function { get; }
         public List<Directive> InstallDirectives { get; private set; }
         public List<Archive> SelectedArchives { get; private set; }
         public List<RawSourceFile> AllFiles { get; private set; }
@@ -75,6 +57,14 @@ namespace Wabbajack
             Log_Fn(msg);
         }
 
+        public void Status(string msg, params object[] args)
+        {
+            if (args.Length > 0)
+                msg = String.Format(msg, args);
+            WorkQueue.Report(msg, 0);
+        }
+
+
         private void Error(string msg, params object[] args)
         {
             if (args.Length > 0)
@@ -83,24 +73,21 @@ namespace Wabbajack
             throw new Exception(msg);
         }
 
-        public Compiler(string mo2_folder, Action<string> log_fn, Action<string, long, long> progress_function)
+        public Compiler(string mo2_folder, Action<string> log_fn)
         {
             MO2Folder = mo2_folder;
             Log_Fn = log_fn;
-            Progress_Function = progress_function;
             MO2Ini = Path.Combine(MO2Folder, "ModOrganizer.ini").LoadIniFile();
             GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
         }
 
-       
+
 
         public void LoadArchives()
         {
             IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
                                .Where(file => SupportedArchives.Contains(Path.GetExtension(file)))
-                               .AsParallel()
-                               .Select(file => LoadArchive(file))
-                               .ToList();
+                               .PMap(file => LoadArchive(file));
         }
 
         private IndexedArchive LoadArchive(string file)
@@ -109,6 +96,7 @@ namespace Wabbajack
 
             if (metaname.FileExists() && new FileInfo(metaname).LastWriteTime >= new FileInfo(file).LastWriteTime)
             {
+                Status("Loading Archive Index for {0}", Path.GetFileName(file));
                 var info = metaname.FromJSON<IndexedArchive>();
                 info.Name = Path.GetFileName(file);
                 info.AbsolutePath = file;
@@ -125,6 +113,7 @@ namespace Wabbajack
 
             using (var ar = new ArchiveFile(file))
             {
+                Status("Indexing {0}", Path.GetFileName(file));
                 var streams = new Dictionary<string, (SHA256Managed, long)>();
                 ar.Extract(entry => {
                     if (entry.IsFolder) return null;
@@ -170,7 +159,8 @@ namespace Wabbajack
 
             var stack = MakeStack();
 
-            var results = AllFiles.AsParallel().Select(f => RunStack(stack, f)).ToList();
+            Info("Running Compilation Stack");
+            var results = AllFiles.PMap(f => RunStack(stack, f)).ToList();
 
             var nomatch = results.OfType<NoMatch>();
             Info("No match for {0} files", nomatch.Count());
@@ -181,9 +171,9 @@ namespace Wabbajack
 
             GatherArchives();
             BuildPatches();
-
-            results.ToJSON("out.json");
-
+            PatchExecutable();
+            
+            Info("Done Building Modpack");
         }
 
 
@@ -198,13 +188,13 @@ namespace Wabbajack
 
             Info("Patching building patches from {0} archives", groups.Count);
             var absolute_paths = AllFiles.ToDictionary(e => e.Path, e => e.AbsolutePath);
-            Parallel.ForEach(groups, group => BuildArchivePatches(group.Key, group, absolute_paths));
+            groups.PMap(group => BuildArchivePatches(group.Key, group, absolute_paths));
 
             if (InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.Patch == null) != null)
             {
                 Error("Missing patches after generation, this should not happen");
             }
-                  
+
         }
 
         private void BuildArchivePatches(string archive_sha, IEnumerable<PatchedFromArchive> group, Dictionary<string, string> absolute_paths)
@@ -212,22 +202,23 @@ namespace Wabbajack
             var archive = IndexedArchives.First(a => a.Hash == archive_sha);
             var paths = group.Select(g => g.From).ToHashSet();
             var streams = new Dictionary<string, MemoryStream>();
-            Info("Etracting Patch Files from {0}", archive.Name);
+            Status("Etracting Patch Files from {0}", archive.Name);
             // First we fetch the source files from the input archive
             using (var a = new ArchiveFile(archive.AbsolutePath))
             {
                 a.Extract(entry =>
                 {
-                if (!paths.Contains(entry.FileName)) return null;
+                    if (!paths.Contains(entry.FileName)) return null;
 
-                var result = new MemoryStream();
-                streams.Add(entry.FileName, result);
-                return result;
+                    var result = new MemoryStream();
+                    streams.Add(entry.FileName, result);
+                    return result;
                 }, false);
             }
 
             var extracted = streams.ToDictionary(k => k.Key, v => v.Value.ToArray());
             // Now Create the patches
+            Status("Building Patches for {0}", archive.Name);
             Parallel.ForEach(group, entry =>
             {
                 Info("Patching {0}", entry.To);
@@ -259,7 +250,7 @@ namespace Wabbajack
 
         private Archive ResolveArchive(string sha, Dictionary<string, IndexedArchive> archives)
         {
-            if(archives.TryGetValue(sha, out var found))
+            if (archives.TryGetValue(sha, out var found))
             {
                 if (found.IniData == null)
                     Error("No download metadata found for {0}, please use MO2 to query info or add a .meta file and try again.", found.Name);
@@ -271,10 +262,12 @@ namespace Wabbajack
 
                 if (general.modID != null && general.fileID != null && general.gameName != null)
                 {
-                    result = new NexusMod() {
+                    result = new NexusMod()
+                    {
                         GameName = general.gameName,
                         FileID = general.fileID,
-                        ModID = general.modID};
+                        ModID = general.modID
+                    };
                 }
                 else if (general.directURL != null)
                 {
@@ -302,6 +295,7 @@ namespace Wabbajack
 
         private Directive RunStack(IEnumerable<Func<RawSourceFile, Directive>> stack, RawSourceFile source)
         {
+            Status("Compiling {0}", source.Path);
             return (from f in stack
                     let result = f(source)
                     where result != null
@@ -475,7 +469,7 @@ namespace Wabbajack
                 var result = source.EvolveTo<NoMatch>();
                 result.Reason = "No Match in Stack";
                 return result;
-                };
+            };
         }
 
         private Func<RawSourceFile, Directive> DirectMatch()
@@ -488,7 +482,6 @@ namespace Wabbajack
 
             return source =>
             {
-                Info("Hashing {0}", source.Path);
                 if (indexed.TryGetValue(source.Hash, out var found))
                 {
                     var result = source.EvolveTo<FromArchive>();
@@ -517,6 +510,25 @@ namespace Wabbajack
                 }
                 return null;
             };
+        }
+
+        internal void PatchExecutable()
+        {
+            var data = JsonConvert.SerializeObject(InstallDirectives).BZip2String();
+            var executable = Assembly.GetExecutingAssembly().Location;
+            var out_path = Path.Combine(Path.GetDirectoryName(executable), MO2Profile + ".exe");
+            Info("Patching Executable {0}", Path.GetFileName(out_path));
+            File.Copy(executable, out_path, true);
+            using (var os = File.OpenWrite(out_path))
+            using (var bw = new BinaryWriter(os))
+            {
+                long orig_pos = os.Length;
+                os.Position = os.Length;
+                bw.Write(data.LongLength);
+                bw.Write(data);
+                bw.Write(orig_pos);
+                bw.Write(Encoding.ASCII.GetBytes(Consts.ModPackMagic));
+            }
         }
     }
 }
