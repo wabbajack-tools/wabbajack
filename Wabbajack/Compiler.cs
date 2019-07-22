@@ -64,7 +64,7 @@ namespace Wabbajack
         public Action<string, long, long> Progress_Function { get; }
         public List<Directive> InstallDirectives { get; private set; }
         public List<Archive> SelectedArchives { get; private set; }
-
+        public List<RawSourceFile> AllFiles { get; private set; }
 
         public List<IndexedArchive> IndexedArchives;
 
@@ -111,6 +111,7 @@ namespace Wabbajack
             {
                 var info = metaname.FromJSON<IndexedArchive>();
                 info.Name = Path.GetFileName(file);
+                info.AbsolutePath = file;
 
                 var ini_name = file + ".meta";
                 if (ini_name.FileExists())
@@ -163,13 +164,13 @@ namespace Wabbajack
                                       .Where(p => p.FileExists())
                                       .Select(p => new RawSourceFile() { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)), AbsolutePath = p });
 
-            var all_files = mo2_files.Concat(game_files).ToList();
+            AllFiles = mo2_files.Concat(game_files).ToList();
 
-            Info("Found {0} files to build into mod list", all_files.Count);
+            Info("Found {0} files to build into mod list", AllFiles.Count);
 
             var stack = MakeStack();
 
-            var results = all_files.AsParallel().Select(f => RunStack(stack, f)).ToList();
+            var results = AllFiles.AsParallel().Select(f => RunStack(stack, f)).ToList();
 
             var nomatch = results.OfType<NoMatch>();
             Info("No match for {0} files", nomatch.Count());
@@ -179,8 +180,68 @@ namespace Wabbajack
             InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
 
             GatherArchives();
+            BuildPatches();
 
             results.ToJSON("out.json");
+
+        }
+
+
+        /// <summary>
+        /// Fills in the Patch fields in files that require them
+        /// </summary>
+        private void BuildPatches()
+        {
+            var groups = InstallDirectives.OfType<PatchedFromArchive>()
+                                          .GroupBy(p => p.ArchiveHash)
+                                          .ToList();
+
+            Info("Patching building patches from {0} archives", groups.Count);
+            var absolute_paths = AllFiles.ToDictionary(e => e.Path, e => e.AbsolutePath);
+            Parallel.ForEach(groups, group => BuildArchivePatches(group.Key, group, absolute_paths));
+
+            if (InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.Patch == null) != null)
+            {
+                Error("Missing patches after generation, this should not happen");
+            }
+                  
+        }
+
+        private void BuildArchivePatches(string archive_sha, IEnumerable<PatchedFromArchive> group, Dictionary<string, string> absolute_paths)
+        {
+            var archive = IndexedArchives.First(a => a.Hash == archive_sha);
+            var paths = group.Select(g => g.From).ToHashSet();
+            var streams = new Dictionary<string, MemoryStream>();
+            Info("Etracting Patch Files from {0}", archive.Name);
+            // First we fetch the source files from the input archive
+            using (var a = new ArchiveFile(archive.AbsolutePath))
+            {
+                a.Extract(entry =>
+                {
+                if (!paths.Contains(entry.FileName)) return null;
+
+                var result = new MemoryStream();
+                streams.Add(entry.FileName, result);
+                return result;
+                }, false);
+            }
+
+            var extracted = streams.ToDictionary(k => k.Key, v => v.Value.ToArray());
+            // Now Create the patches
+            Parallel.ForEach(group, entry =>
+            {
+                Info("Patching {0}", entry.To);
+                var ss = extracted[entry.From];
+                using (var origin = new MemoryStream(ss))
+                using (var dest = File.OpenRead(absolute_paths[entry.To]))
+                using (var output = new MemoryStream())
+                {
+                    var a = origin.ReadAll();
+                    var b = dest.ReadAll();
+                    BSDiff.Create(a, b, output);
+                    entry.Patch = output.ToArray().ToBase64();
+                }
+            });
 
         }
 

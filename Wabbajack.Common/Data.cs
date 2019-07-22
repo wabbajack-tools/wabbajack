@@ -170,6 +170,7 @@ namespace Wabbajack.Common
         public dynamic IniData;
         public string Name;
         public string Meta;
+        public string AbsolutePath;
     }
 
     /// <summary>

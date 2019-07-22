@@ -120,5 +120,14 @@ namespace Wabbajack.Common
             }
         }
 
+        public static byte[] ReadAll(this Stream ins)
+        {
+            using (var ms = new MemoryStream())
+            {
+                ins.CopyTo(ms);
+                return ms.ToArray();
+            }
+        }
+
     }
 }
