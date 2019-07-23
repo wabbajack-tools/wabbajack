@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,6 +45,16 @@ namespace Wabbajack.Common
         }
 
         /// <summary>
+        /// Returns data from a base64 stream
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static byte[] FromBase64(this string data)
+        {
+            return Convert.FromBase64String(data);
+        }
+
+        /// <summary>
         /// Executes the action for every item in coll
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -73,6 +84,11 @@ namespace Wabbajack.Common
         public static T FromJSON<T>(this string filename)
         {
             return JsonConvert.DeserializeObject<T>(File.ReadAllText(filename));
+        }
+        public static T FromJSON<T>(this Stream data)
+        {
+            var s = Encoding.UTF8.GetString(data.ReadAll());
+            return JsonConvert.DeserializeObject<T>(s);
         }
 
         public static bool FileExists(this string filename)
@@ -181,6 +197,26 @@ namespace Wabbajack.Common
                 return t.Result;
             }).ToList();
             return;
+        }
+
+        public static HttpResponseMessage GetSync(this HttpClient client, string url)
+        {
+            var result = client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            result.Wait();
+            return result.Result;
+        }
+        public static string GetStringSync(this HttpClient client, string url)
+        {
+            var result = client.GetStringAsync(url);
+            result.Wait();
+            return result.Result;
+        }
+
+        public static Stream GetStreamSync(this HttpClient client, string url)
+        {
+            var result = client.GetStreamAsync(url);
+            result.Wait();
+            return result.Result;
         }
 
     }

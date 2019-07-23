@@ -15,7 +15,7 @@ namespace Wabbajack
 {
     public class Compiler
     {
-        public static HashSet<string> SupportedArchives = new HashSet<string>() { ".zip", ".rar", ".7z", ".7zip" };
+
 
 
         public string MO2Folder;
@@ -39,7 +39,7 @@ namespace Wabbajack
         {
             get
             {
-                return Path.Combine(MO2Folder, MO2Profile);
+                return Path.Combine(MO2Folder, "profiles", MO2Profile);
             }
         }
 
@@ -47,6 +47,7 @@ namespace Wabbajack
         public List<Directive> InstallDirectives { get; private set; }
         public List<Archive> SelectedArchives { get; private set; }
         public List<RawSourceFile> AllFiles { get; private set; }
+        public ModList ModList { get; private set; }
 
         public List<IndexedArchive> IndexedArchives;
 
@@ -86,7 +87,7 @@ namespace Wabbajack
         public void LoadArchives()
         {
             IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
-                               .Where(file => SupportedArchives.Contains(Path.GetExtension(file)))
+                               .Where(file => Consts.SupportedArchives.Contains(Path.GetExtension(file)))
                                .PMap(file => LoadArchive(file));
         }
 
@@ -171,9 +172,29 @@ namespace Wabbajack
 
             GatherArchives();
             BuildPatches();
+
+            ModList = new ModList()
+            {
+                Archives = SelectedArchives,
+                Directives = InstallDirectives
+            };
+
             PatchExecutable();
-            
+
+            ResetMembers();
+
             Info("Done Building Modpack");
+        }
+
+        /// <summary>
+        /// Clear references to lists that hold a lot of data.
+        /// </summary>
+        private void ResetMembers()
+        {
+            AllFiles = null;
+            IndexedArchives = null;
+            InstallDirectives = null;
+            SelectedArchives = null;
         }
 
 
@@ -320,6 +341,7 @@ namespace Wabbajack
                 IgnoreStartsWith("nxmhandler."),
                 IgnoreEndsWith(".pyc"),
                 IgnoreOtherProfiles(),
+                IgnoreDisabledMods(),
                 IncludeThisProfile(),
                 // Ignore the ModOrganizer.ini file it contains info created by MO2 on startup
                 IgnoreStartsWith("ModOrganizer.ini"),
@@ -331,6 +353,24 @@ namespace Wabbajack
                 // If we have no match at this point for a game folder file, skip them, we can't do anything about them
                 IgnoreGameFiles(),
                 DropAll()
+            };
+        }
+
+        private Func<RawSourceFile, Directive> IgnoreDisabledMods()
+        {
+            var disabled_mods = File.ReadAllLines(Path.Combine(MO2ProfileDir, "modlist.txt"))
+                                    .Where(line => line.StartsWith("-") && !line.EndsWith("_separator"))
+                                    .Select(line => Path.Combine("mods", line.Substring(1)))
+                                    .ToList();
+            return source =>
+            {
+                if (disabled_mods.FirstOrDefault(mod => source.Path.StartsWith(mod)) != null)
+                {
+                    var r = source.EvolveTo<IgnoredDirectly>();
+                    r.Reason = "Disabled Mod";
+                    return r;
+                }
+                return null;
             };
         }
 
@@ -514,7 +554,7 @@ namespace Wabbajack
 
         internal void PatchExecutable()
         {
-            var data = JsonConvert.SerializeObject(InstallDirectives).BZip2String();
+            var data = JsonConvert.SerializeObject(ModList).BZip2String();
             var executable = Assembly.GetExecutingAssembly().Location;
             var out_path = Path.Combine(Path.GetDirectoryName(executable), MO2Profile + ".exe");
             Info("Patching Executable {0}", Path.GetFileName(out_path));

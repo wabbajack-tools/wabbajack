@@ -78,8 +78,24 @@ namespace Wabbajack
             }
             BuildFolderStructure();
             InstallArchives();
+            InstallIncludedFiles();
 
             Info("Installation complete! You may exit the program.");
+        }
+
+        private void InstallIncludedFiles()
+        {
+            Info("Writing inline files");
+            ModList.Directives
+                   .OfType<InlineFile>()
+                   .PMap(directive =>
+                   {
+                       Status("Writing included file {0}", directive.To);
+                       var out_path = Path.Combine(Outputfolder, directive.To);
+                       if (File.Exists(out_path)) File.Delete(out_path);
+
+                       File.WriteAllBytes(out_path, directive.SourceData.FromBase64());
+                   });
         }
 
         private void BuildFolderStructure()

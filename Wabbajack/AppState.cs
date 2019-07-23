@@ -73,7 +73,7 @@ namespace Wabbajack
                         Dirty = false;
                     }
                 }
-                Thread.Sleep(250);
+                Thread.Sleep(1000);
             }
         }
 
