@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using Wabbajack.Common;
 
 namespace Wabbajack
@@ -290,6 +291,30 @@ namespace Wabbajack
                         ModID = general.modID
                     };
                 }
+                else if (general.directURL != null && general.directURL.StartsWith("https://www.dropbox.com/"))
+                {
+                    var uri = new UriBuilder((string)general.directURL);
+                    var query = HttpUtility.ParseQueryString(uri.Query);
+
+                    if (query.GetValues("dl").Count() > 0)
+                        query.Remove("dl");
+
+                    query.Set("dl", "1");
+
+                    uri.Query = query.ToString();
+
+                    result = new DirectURLArchive()
+                    {
+                        URL = uri.ToString()
+                    };
+                }
+                else if (general.directURL != null && general.directURL.StartsWith("https://www.moddb.com/downloads/start"))
+                {
+                    result = new MODDBArchive()
+                    {
+                        URL = general.directURL
+                    };
+                }
                 else if (general.directURL != null)
                 {
                     result = new DirectURLArchive()
@@ -338,13 +363,15 @@ namespace Wabbajack
                 IgnoreStartsWith("logs\\"),
                 IgnoreStartsWith("downloads\\"),
                 IgnoreStartsWith("webcache\\"),
-                IgnoreStartsWith("nxmhandler."),
                 IgnoreEndsWith(".pyc"),
                 IgnoreOtherProfiles(),
                 IgnoreDisabledMods(),
                 IncludeThisProfile(),
                 // Ignore the ModOrganizer.ini file it contains info created by MO2 on startup
                 IgnoreStartsWith("ModOrganizer.ini"),
+                IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Data")),
+                IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Papyrus Compiler")),
+                IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Skyrim")),
                 IgnoreRegex(Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
                 IncludeModIniData(),
                 DirectMatch(),

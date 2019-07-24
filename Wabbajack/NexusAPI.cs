@@ -39,9 +39,9 @@ namespace Wabbajack
             };
 
             _websocket.Connect();
-            _websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"Wabbajack\"}");
+            _websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \""+ Consts.AppName+"\"}");
 
-            Process.Start($"https://www.nexusmods.com/sso?id={guid}&application=Wabbajack");
+            Process.Start($"https://www.nexusmods.com/sso?id={guid}&application=" + Consts.AppName);
 
             api_key.Task.Wait();
             var result = api_key.Task.Result;
@@ -59,7 +59,7 @@ namespace Wabbajack
             _baseHttpClient.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
             _baseHttpClient.DefaultRequestHeaders.Add("apikey", apikey);
             _baseHttpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-            _baseHttpClient.DefaultRequestHeaders.Add("Application-Name", "Wabbajack");
+            _baseHttpClient.DefaultRequestHeaders.Add("Application-Name", Consts.AppName);
             _baseHttpClient.DefaultRequestHeaders.Add("Application-Version", $"{Assembly.GetEntryAssembly().GetName().Version}");
             return _baseHttpClient;
         }

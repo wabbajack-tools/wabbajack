@@ -32,8 +32,10 @@ namespace Wabbajack
             new Thread(() =>
             {
                 compiler.LoadArchives();
-                compiler.MO2Profile = "Lexy's Legacy of The Dragonborn Special Edition";
+                compiler.MO2Profile = "Basic Graphics and Fixes";
                 compiler.Compile();
+
+                compiler.ModList.ToJSON("C:\\tmp\\modpack.json");
 
                 var installer = new Installer(compiler.ModList, "c:\\tmp\\install\\", msg => context.LogMsg(msg));
                 installer.Install();

@@ -19,9 +19,11 @@ namespace Wabbajack.Common
             get
             {
                 var platformType = Environment.Is64BitOperatingSystem ? "x64" : "x86";
-                var headerString = $"Wabbajack/{Assembly.GetEntryAssembly().GetName().Version} ({Environment.OSVersion.VersionString}; {platformType}) {RuntimeInformation.FrameworkDescription}";
+                var headerString = $"{AppName}/{Assembly.GetEntryAssembly().GetName().Version} ({Environment.OSVersion.VersionString}; {platformType}) {RuntimeInformation.FrameworkDescription}";
                 return headerString;
             }
         }
+
+        public static String AppName = "Automaton";
     }
 }

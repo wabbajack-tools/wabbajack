@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 
@@ -203,6 +204,10 @@ namespace Wabbajack
                     var url = NexusAPI.GetNexusDownloadLink(archive as NexusMod, NexusAPIKey);
                     DownloadURLDirect(archive, url);
                 }
+                else if (archive is MODDBArchive)
+                {
+                    DownloadModDBArchive(archive, (archive as MODDBArchive).URL);
+                }
                 else if (archive is DirectURLArchive)
                 {
                     DownloadURLDirect(archive, (archive as DirectURLArchive).URL);
@@ -212,6 +217,15 @@ namespace Wabbajack
 
                 }
             });
+        }
+
+        private void DownloadModDBArchive(Archive archive, string url)
+        {
+            var client = new HttpClient();
+            var result = client.GetStringSync(url);
+            var regex = new Regex("https:\\/\\/www\\.moddb\\.com\\/downloads\\/mirror\\/.*(?=\\\")");
+            var match = regex.Match(result);
+            DownloadURLDirect(archive, match.Value);
         }
 
         private void DownloadURLDirect(Archive archive, string url)
@@ -225,7 +239,10 @@ namespace Wabbajack
             var stream = response.Content.ReadAsStreamAsync();
             stream.Wait();
 
-            var header = response.Content.Headers.GetValues("Content-Length").FirstOrDefault();
+            string header = "1";
+            if (response.Content.Headers.Contains("Content-Length"))
+                header = response.Content.Headers.GetValues("Content-Length").FirstOrDefault();
+
             long content_size = header != null ? long.Parse(header) : 1;
 
             var output_path = Path.Combine(DownloadFolder, archive.Name);
