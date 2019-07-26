@@ -12,8 +12,10 @@ namespace Wabbajack.Common
     {
         public static string GameFolderFilesDir = "Game Folder Files";
         public static string ModPackMagic = "Celebration!, Cheese for Everyone!";
+        public static string BSACreationDir = "TEMP_BSA_FILES";
 
         public static HashSet<string> SupportedArchives = new HashSet<string>() { ".zip", ".rar", ".7z", ".7zip" };
+        public static HashSet<string> SupportedBSAs = new HashSet<string>() { ".bsa", ".ba2" };
 
         public static String UserAgent {
             get

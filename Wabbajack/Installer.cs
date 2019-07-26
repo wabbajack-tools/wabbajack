@@ -31,6 +31,7 @@ namespace Wabbajack
         public ModList ModList { get; }
         public Action<string> Log_Fn { get; }
         public Dictionary<string, string> HashedArchives { get; private set; }
+
         public string NexusAPIKey { get; private set; }
 
         public void Info(string msg, params object[] args)
@@ -199,24 +200,35 @@ namespace Wabbajack
         {
             missing.PMap(archive =>
             {
-                if (archive is NexusMod)
-                {
-                    var url = NexusAPI.GetNexusDownloadLink(archive as NexusMod, NexusAPIKey);
-                    DownloadURLDirect(archive, url);
-                }
-                else if (archive is MODDBArchive)
-                {
-                    DownloadModDBArchive(archive, (archive as MODDBArchive).URL);
-                }
-                else if (archive is DirectURLArchive)
-                {
-                    DownloadURLDirect(archive, (archive as DirectURLArchive).URL);
-                }
-                else
-                {
+                switch (archive) {
+                    case NexusMod a:
+                        var url = NexusAPI.GetNexusDownloadLink(a as NexusMod, NexusAPIKey);
+                        DownloadURLDirect(archive, url);
+                        break;
+                    case GoogleDriveMod a:
+                        DownloadGoogleDriveArchive(a);
+                        break;
+                    case MODDBArchive a:
+                        DownloadModDBArchive(archive, (archive as MODDBArchive).URL);
+                        break;
+                    case DirectURLArchive a:
+                        DownloadURLDirect(archive, (archive as DirectURLArchive).URL);
+                        break;
+                    default:
+                        break;
 
-                }
+            }
             });
+        }
+
+        private void DownloadGoogleDriveArchive(GoogleDriveMod a)
+        {
+            var initial_url = $"https://drive.google.com/uc?id={a.Id}&export=download";
+            var client = new HttpClient();
+            var result = client.GetStringSync(initial_url);
+            var regex = new Regex("(?<=/uc\\?export=download&amp;confirm=).*(?=;id=)");
+            var confirm = regex.Match(result);
+            DownloadURLDirect(a, $"https://drive.google.com/uc?export=download&confirm={confirm}&id={a.Id}", client);
         }
 
         private void DownloadModDBArchive(Archive archive, string url)
@@ -228,10 +240,12 @@ namespace Wabbajack
             DownloadURLDirect(archive, match.Value);
         }
 
-        private void DownloadURLDirect(Archive archive, string url)
+        private void DownloadURLDirect(Archive archive, string url, HttpClient client = null)
         {
-            HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
+            if (client == null) {
+                client = new HttpClient();
+                client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
+            }
             long total_read = 0;
             int buffer_size = 1024 * 32;
 

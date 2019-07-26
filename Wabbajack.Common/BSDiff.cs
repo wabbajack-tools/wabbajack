@@ -31,6 +31,11 @@
     IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
     POSSIBILITY OF SUCH DAMAGE.
     */
+
+    /* 
+     * Includes fixes from https://github.com/mendsley/bsdiff/pull/12/files 
+     * translated from C to C# to prevent stack overflows.
+     */
     public class BSDiff
     {
         /// <summary>
@@ -444,7 +449,23 @@
             }
             else
             {
-                int x = v[I[start + len / 2] + h];
+                int y, z, j, k, x, tmp;
+                j = start + len / 2;
+                k = start + len - 1;
+                x = v[I[j] + h];
+                y = v[I[start] + h];
+                z = v[I[k] + h];
+                if (len > 40)
+                {  /* Big array: Pseudomedian of 9 */
+                    tmp = len / 8;
+                    x = median3(x, v[I[j - tmp] + h], v[I[j + tmp] + h]);
+                    y = median3(y, v[I[start + tmp] + h], v[I[start + tmp + tmp] + h]);
+                    z = median3(z, v[I[k - tmp] + h], v[I[k - tmp - tmp] + h]);
+                };  /* Else medium array: Pseudomedian of 3 */
+                x = median3(x, y, z);
+
+                //int x = v[I[start + len / 2] + h];
+
                 int jj = 0;
                 int kk = 0;
                 for (int i2 = start; i2 < start + len; i2++)
@@ -458,8 +479,8 @@
                 kk += jj;
 
                 int i = start;
-                int j = 0;
-                int k = 0;
+                j = 0;
+                k = 0;
                 while (i < jj)
                 {
                     if (v[I[i] + h] < x)
@@ -652,5 +673,12 @@
 
         const long c_fileSignature = 0x3034464649445342L;
         const int c_headerSize = 32;
+
+
+        private static int median3(int a, int b, int c)
+        {
+            return (((a) < (b)) ? ((b) < (c) ? (b) : ((a) < (c) ? (c) : (a))) : ((b) > (c) ? (b) : ((a) > (c) ? (c) : (a))));
+        }
+        
     }
 }

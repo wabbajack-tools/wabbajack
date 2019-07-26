@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -25,6 +26,7 @@ namespace Wabbajack
         public MainWindow()
         {
             InitializeComponent();
+
             var context = new AppState(Dispatcher, "Building");
             WorkQueue.Init((id, msg, progress) => context.SetProgress(id, msg, progress));
 
@@ -32,12 +34,13 @@ namespace Wabbajack
             new Thread(() =>
             {
                 compiler.LoadArchives();
-                compiler.MO2Profile = "Basic Graphics and Fixes";
+                compiler.MO2Profile = "DEV"; //"Basic Graphics and Fixes";
                 compiler.Compile();
 
                 compiler.ModList.ToJSON("C:\\tmp\\modpack.json");
-
-                var installer = new Installer(compiler.ModList, "c:\\tmp\\install\\", msg => context.LogMsg(msg));
+                var modlist = compiler.ModList;
+                compiler = null;
+                var installer = new Installer(modlist, "c:\\tmp\\install\\", msg => context.LogMsg(msg));
                 installer.Install();
 
             }).Start();

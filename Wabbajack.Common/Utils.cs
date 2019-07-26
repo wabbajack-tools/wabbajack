@@ -34,6 +34,12 @@ namespace Wabbajack.Common
 
         }
 
+        public static string SHA256(this byte[] data)
+        {
+            return new SHA256Managed().ComputeHash(data).ToBase64();
+
+        }
+
         /// <summary>
         /// Returns a Base64 encoding of these bytes
         /// </summary>
@@ -167,6 +173,8 @@ namespace Wabbajack.Common
             return tasks.Select(t =>
             {
                 t.Wait();
+                if (t.IsFaulted)
+                    throw t.Exception;
                 return t.Result;
             }).ToList();
         }

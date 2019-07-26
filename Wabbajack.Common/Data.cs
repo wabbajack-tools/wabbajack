@@ -20,6 +20,10 @@ namespace Wabbajack.Common
                 _hash = AbsolutePath.FileSHA256();
                 return _hash;
             }
+            set
+            {
+                _hash = value;
+            }
         }
 
         public T EvolveTo<T>() where T : Directive, new()
@@ -94,6 +98,17 @@ namespace Wabbajack.Common
         public string From;
     }
 
+    public class CreateBSA : Directive
+    {
+        public string TempID;
+        public string IsCompressed;
+        public uint Version;
+        public Int32 Type;
+
+        public uint FileFlags { get; set; }
+        public bool Compress { get; set; }
+    }
+
     public class PatchedFromArchive : FromArchive
     {
         /// <summary>
@@ -113,7 +128,6 @@ namespace Wabbajack.Common
         /// </summary>
         public string Name;
 
-        /// <summary>
         /// Meta INI for the downloaded archive
         /// </summary>
         public string Meta;
@@ -124,6 +138,11 @@ namespace Wabbajack.Common
         public string GameName;
         public string ModID;
         public string FileID;
+    }
+
+    public class GoogleDriveMod : Archive
+    {
+        public string Id;
     }
 
     /// <summary>
