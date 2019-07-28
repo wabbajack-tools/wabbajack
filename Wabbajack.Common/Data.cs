@@ -104,9 +104,11 @@ namespace Wabbajack.Common
         public string IsCompressed;
         public uint Version;
         public Int32 Type;
+        public bool ShareData;
 
         public uint FileFlags { get; set; }
         public bool Compress { get; set; }
+        public uint ArchiveFlags { get; set; }
     }
 
     public class PatchedFromArchive : FromArchive

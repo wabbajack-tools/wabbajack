@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SevenZipExtractor", "SevenZ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack", "Wabbajack\Wabbajack.csproj", "{33602679-8484-40C7-A10C-774DFF5D8314}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compression.BSA", "Compression.BSA\Compression.BSA.csproj", "{FF5D892F-8FF4-44FC-8F7F-CD58F307AD1B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compression.BSA.Test", "Compression.BSA.Test\Compression.BSA.Test.csproj", "{BA2CFEA1-072B-42D6-822A-8C6D0E3AE5D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{33602679-8484-40C7-A10C-774DFF5D8314}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33602679-8484-40C7-A10C-774DFF5D8314}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33602679-8484-40C7-A10C-774DFF5D8314}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF5D892F-8FF4-44FC-8F7F-CD58F307AD1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF5D892F-8FF4-44FC-8F7F-CD58F307AD1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF5D892F-8FF4-44FC-8F7F-CD58F307AD1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF5D892F-8FF4-44FC-8F7F-CD58F307AD1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA2CFEA1-072B-42D6-822A-8C6D0E3AE5D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA2CFEA1-072B-42D6-822A-8C6D0E3AE5D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA2CFEA1-072B-42D6-822A-8C6D0E3AE5D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA2CFEA1-072B-42D6-822A-8C6D0E3AE5D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

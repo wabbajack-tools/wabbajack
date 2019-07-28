@@ -39,6 +39,7 @@ namespace Wabbajack
 
                 compiler.ModList.ToJSON("C:\\tmp\\modpack.json");
                 var modlist = compiler.ModList;
+                var create = modlist.Directives.OfType<CreateBSA>().ToList();
                 compiler = null;
                 var installer = new Installer(modlist, "c:\\tmp\\install\\", msg => context.LogMsg(msg));
                 installer.Install();

@@ -1,4 +1,5 @@
-﻿using SevenZipExtractor;
+﻿using BSA.Tools;
+using SevenZipExtractor;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using static BSA.Tools.libbsarch;
 
 namespace Wabbajack
 {
@@ -81,8 +83,48 @@ namespace Wabbajack
             BuildFolderStructure();
             InstallArchives();
             InstallIncludedFiles();
+            BuildBSAs();
 
             Info("Installation complete! You may exit the program.");
+        }
+
+        private void BuildBSAs()
+        {
+            var bsas = ModList.Directives.OfType<CreateBSA>().ToList();
+            Info("Building {0} bsa files");
+
+            bsas.Do(bsa =>
+            {
+                Status($"Building {bsa.To}");
+                var source_dir = Path.Combine(Outputfolder, Consts.BSACreationDir, bsa.TempID);
+                using (var entries = new EntryList())
+                {
+                    var source_files = Directory.EnumerateFiles(source_dir, "*", SearchOption.AllDirectories)
+                                                .Select(e => e.Substring(source_dir.Length + 1))
+                                                .ToList();
+
+                    source_files.Do(name => entries.Add(name));
+
+                    using (var a = new BSAFile())
+                    {
+
+                        a.Create(Path.Combine(Outputfolder, bsa.To), (bsa_archive_type_t)bsa.Type, entries);
+                        a.FileFlags = bsa.FileFlags;
+                        a.ArchiveFlags = bsa.ArchiveFlags;
+                        a.ShareData = bsa.ShareData;
+
+
+                        source_files.Do(e =>
+                        {
+                            a.AddFile(e, File.ReadAllBytes(Path.Combine(source_dir, e)));
+                        });
+
+                        a.Save();
+
+                    }
+                }
+            });
+
         }
 
         private void InstallIncludedFiles()

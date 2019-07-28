@@ -1,6 +1,7 @@
 ﻿using BSA.Tools;
 using Newtonsoft.Json;
 using SevenZipExtractor;
+using SharpCompress.Archives;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -250,6 +251,21 @@ namespace Wabbajack
                 }, false);
             }
 
+            /*
+            using (var a = ArchiveFactory.Open(archive.AbsolutePath))
+            {
+                foreach (var entry in a.Entries)
+                {
+                    var path = entry.Key.Replace("/", "\\");
+                    if (!paths.Contains(path)) continue;
+                    var result = new MemoryStream();
+                    streams.Add(path, result);
+                    Info("Extracting {0}", path);
+                    using (var stream = entry.OpenEntryStream())
+                        stream.CopyTo(result);
+                }
+            }*/
+
             var extracted = streams.ToDictionary(k => k.Key, v => v.Value.ToArray());
             // Now Create the patches
             Status("Building Patches for {0}", archive.Name);
@@ -486,12 +502,14 @@ namespace Wabbajack
                 {
                     directive = new CreateBSA()
                     {
-                        To = source.Path,       
+                        To = source.Path,
                         TempID = id,
                         Version = bsa.Version,
                         Type = (int)bsa.Type,
                         FileFlags = bsa.FileFlags,
-                        Compress = bsa.Compress
+                        ArchiveFlags = bsa.ArchiveFlags,
+                        Compress = bsa.Compress,
+                        ShareData = bsa.ShareData
                     };
                 };
 
@@ -528,7 +546,7 @@ namespace Wabbajack
         {
             var disabled_mods = File.ReadAllLines(Path.Combine(MO2ProfileDir, "modlist.txt"))
                                     .Where(line => line.StartsWith("-") && !line.EndsWith("_separator"))
-                                    .Select(line => Path.Combine("mods", line.Substring(1)))
+                                    .Select(line => Path.Combine("mods", line.Substring(1)) + "\\")
                                     .ToList();
             return source =>
             {
