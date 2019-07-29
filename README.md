@@ -5,6 +5,9 @@ a program to automatically recreate the contents of the folder on another machin
 files or syncing data between the source and destination machine. The end result is a program that recrate a modlist on a computer while respecting the
 rights of the game publisher and the mod authors. 
 
+### Socal Links
+[Discord](https://discord.gg/zgbrkmA)
+
 ### How it works
 At a technical level the process is as follows.
 
