@@ -45,6 +45,14 @@ namespace Compression.BSA.Test
                         
                         w.Build("c:\\tmp\\built.bsa");
 
+                        Equal(a.Files.Count(), w.Files.Count());
+                        Equal(a.Files.Select(f => f.Path).ToHashSet(), w.Files.Select(f => f.Path).ToHashSet());
+
+                        foreach (var pair in Enumerable.Zip(a.Files, w.Files, (ai, bi) => (ai, bi)))
+                        {
+                            Equal(pair.ai.Path, pair.bi.Path);
+                        }
+
                     }
 
                     using (var b = new BSAReader("c:\\tmp\\built.bsa"))
@@ -59,11 +67,11 @@ namespace Compression.BSA.Test
                         foreach (var pair in Enumerable.Zip(a.Files, b.Files, (ai, bi) => (ai, bi)))
                         {
                             idx ++;
-                            Console.WriteLine($"   - {pair.ai.Path}");
+                            //Console.WriteLine($"   - {pair.ai.Path}");
                             Equal(pair.ai.Path, pair.bi.Path);
                             Equal(pair.ai.Compressed, pair.bi.Compressed);
                             Equal(pair.ai.Size, pair.bi.Size);
-                            //Equal(pair.ai.GetData(), pair.bi.GetData());
+                            Equal(pair.ai.GetData(), pair.bi.GetData());
 
                         }
                     }
@@ -72,6 +80,19 @@ namespace Compression.BSA.Test
             }
         }
 
+        private static void Equal(HashSet<string> a, HashSet<string> b)
+        {
+            Equal(a.Count, b.Count);
+
+            foreach (var itm in a)
+                Equal(b.Contains(itm));
+
+        }
+
+        private static void Equal(bool v)
+        {
+            if (!v) throw new InvalidDataException("False");
+        }
 
         public static void Equal(uint a, uint b)
         {

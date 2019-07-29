@@ -80,7 +80,7 @@ namespace Compression.BSA
             return GetBSAHash(Path.ChangeExtension(name, null), Path.GetExtension(name));
         }
 
-        private static ulong GetBSAHash(string name, string ext)
+        public static ulong GetBSAHash(this string name, string ext)
         {
             name = name.ToLowerInvariant();
             ext = ext.ToLowerInvariant();

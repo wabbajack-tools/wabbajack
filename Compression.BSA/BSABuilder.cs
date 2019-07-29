@@ -30,6 +30,14 @@ namespace Compression.BSA
             _offset = 0x24;
         }
 
+        public IEnumerable<FileEntry> Files
+        {
+            get
+            {
+                return _files;
+            }
+        }
+
         public ArchiveFlags ArchiveFlags
         {
             get
@@ -193,12 +201,29 @@ namespace Compression.BSA
     public class FolderRecordBuilder
     {
         internal IEnumerable<FileEntry> _files;
+        private string _name;
         internal BSABuilder _bsa;
         internal ulong _hash;
         internal uint _fileCount;
         internal byte[] _nameBytes;
         internal uint _recordSize;
         internal ulong _offset;
+
+        public ulong Hash
+        {
+            get
+            {
+                return _hash;
+            }
+        }
+
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+        }
 
         public ulong SelfSize
         {
@@ -230,8 +255,10 @@ namespace Compression.BSA
         public FolderRecordBuilder(BSABuilder bsa, string folderName, IEnumerable<FileEntry> files)
         {
             _files = files.OrderBy(f => f._hash);
+            _name = folderName.ToLowerInvariant();
             _bsa = bsa;
-            _hash = folderName.GetBSAHash();
+            // Folders don't have extensions, so let's make sure we cut it out
+            _hash = _name.GetBSAHash("");
             _fileCount = (uint)files.Count();
             _nameBytes = folderName.ToBZString();
             _recordSize = sizeof(ulong) + sizeof(uint) + sizeof(uint);
@@ -299,9 +326,11 @@ namespace Compression.BSA
             if (_bsa.HeaderType == VersionType.SSE)
             {
                 var r = new MemoryStream();
-                var w = LZ4Stream.Encode(r);
-                (new MemoryStream(_rawData)).CopyTo(w);
+                using (var w = LZ4Stream.Encode(r))
+                    (new MemoryStream(_rawData)).CopyTo(w);
+
                 _rawData = r.ToArray();
+
             }
         }
 
@@ -333,6 +362,20 @@ namespace Compression.BSA
             set
             {
                 _flipCompression = value;
+            }
+        }
+
+        public ulong Hash { get
+            {
+                return _hash;
+            }
+        }
+
+        public FolderRecordBuilder Folder
+        {
+            get
+            {
+                return _folder;
             }
         }
 

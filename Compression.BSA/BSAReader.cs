@@ -218,6 +218,13 @@ namespace Compression.BSA
         }
 
         public string Name { get; private set; }
+        public ulong Hash
+        {
+            get
+            {
+                return _nameHash;
+            }
+        }
 
         internal void LoadFileRecordBlock(BSAReader bsa, BinaryReader src)
         {
@@ -293,7 +300,22 @@ namespace Compression.BSA
                 return _size;
             }
         }
-        
+
+        public ulong Hash {
+            get
+            {
+                return _hash;
+            }
+        }
+
+        public FolderRecord Folder
+        {
+            get
+            {
+                return _folder;
+            } 
+        }
+
         public void CopyDataTo(Stream output)
         {
             using (var in_file = File.OpenRead(_bsa._fileName))
@@ -314,6 +336,10 @@ namespace Compression.BSA
                     var original_size = rdr.ReadUInt32();
                     if (_bsa.HeaderType == VersionType.SSE)
                     {
+                        var settings = new LZ4DecoderSettings()
+                        {
+                            ExtraMemory = 1024 * 1024  * 8
+                        };
                         var r = LZ4Stream.Decode(rdr.BaseStream);
                         r.CopyTo(output);
                     }
