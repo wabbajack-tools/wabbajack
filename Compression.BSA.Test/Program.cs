@@ -10,11 +10,19 @@ namespace Compression.BSA.Test
     class Program
     {
         const string TestDir = "c:\\Mod Organizer 2\\mods";
+        const string TempDir = "c:\\tmp\\out";
         static void Main(string[] args)
         {
-            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.bsa", SearchOption.AllDirectories).Skip(2))
+            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.bsa", SearchOption.AllDirectories).Skip(16))
             {
                 Console.WriteLine($"From {bsa}");
+                Console.WriteLine("Cleaning Output Dir");
+                if (Directory.Exists(TempDir))
+                {
+                    Directory.Delete(TempDir, true);
+                }
+                Directory.CreateDirectory(TempDir);
+
                 using (var a = new BSAReader(bsa))
                 {
 
@@ -45,6 +53,7 @@ namespace Compression.BSA.Test
                         
                         w.Build("c:\\tmp\\built.bsa");
 
+                        // Sanity Checks
                         Equal(a.Files.Count(), w.Files.Count());
                         Equal(a.Files.Select(f => f.Path).ToHashSet(), w.Files.Select(f => f.Path).ToHashSet());
 

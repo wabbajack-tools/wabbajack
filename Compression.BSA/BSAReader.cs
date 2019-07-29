@@ -336,10 +336,6 @@ namespace Compression.BSA
                     var original_size = rdr.ReadUInt32();
                     if (_bsa.HeaderType == VersionType.SSE)
                     {
-                        var settings = new LZ4DecoderSettings()
-                        {
-                            ExtraMemory = 1024 * 1024  * 8
-                        };
                         var r = LZ4Stream.Decode(rdr.BaseStream);
                         r.CopyTo(output);
                     }
