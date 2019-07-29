@@ -1,4 +1,5 @@
-﻿using K4os.Compression.LZ4.Streams;
+﻿using K4os.Compression.LZ4;
+using K4os.Compression.LZ4.Streams;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -108,8 +109,17 @@ namespace Compression.BSA
             }
         }
 
+        public bool HasNameBlobs
+        {
+            get
+            {
+                return (_archiveFlags & 0x100) > 0;
+            }
+        }
+
         public void Build(string outputName)
         {
+            RegenFolderRecords();
             if (File.Exists(outputName)) File.Delete(outputName);
 
             using (var fs = File.OpenWrite(outputName))
@@ -128,13 +138,32 @@ namespace Compression.BSA
                 wtr.Write(_totalFileNameLength); // totalFileNameLength
                 wtr.Write(_fileFlags);
 
-                uint idx = 0;
                 foreach (var folder in _folders)
                 {
-                    folder.WriteFolderRecord(wtr, idx);
-                    idx += 1;
+                    folder.WriteFolderRecord(wtr);
                 }
 
+                foreach(var folder in _folders)
+                {
+                    if (HasFolderNames)
+                        wtr.Write(folder._nameBytes);
+                    foreach (var file in folder._files)
+                    {
+                        file.WriteFileRecord(wtr);
+                    }
+                }
+
+                foreach(var file in _files)
+                {
+                    wtr.Write(file._nameBytes);
+                }
+
+                foreach(var file in _files)
+                {
+                    file.WriteData(wtr);
+                }
+
+     
             }
         }
 
@@ -144,6 +173,15 @@ namespace Compression.BSA
                              .Select(f => new FolderRecordBuilder(this, f.Key, f.ToList()))
                              .OrderBy(f => f._hash)
                              .ToList();
+
+            foreach (var folder in _folders)
+                foreach (var file in folder._files)
+                    file._folder = folder;
+
+            _files = (from folder in _folders
+                      from file in folder._files
+                      orderby folder._hash, file._hash
+                      select file).ToList();
         }
 
         public void Dispose()
@@ -191,7 +229,7 @@ namespace Compression.BSA
 
         public FolderRecordBuilder(BSABuilder bsa, string folderName, IEnumerable<FileEntry> files)
         {
-            _files = files;
+            _files = files.OrderBy(f => f._hash);
             _bsa = bsa;
             _hash = folderName.GetBSAHash();
             _fileCount = (uint)files.Count();
@@ -199,8 +237,9 @@ namespace Compression.BSA
             _recordSize = sizeof(ulong) + sizeof(uint) + sizeof(uint);
         }
 
-        public void WriteFolderRecord(BinaryWriter wtr, uint idx)
+        public void WriteFolderRecord(BinaryWriter wtr)
         {
+            var idx = _bsa._folders.IndexOf(this);
             _offset = (ulong)wtr.BaseStream.Position;
             _offset += (ulong)_bsa._folders.Skip((int)idx).Select(f => (long)f.SelfSize).Sum();
             _offset += _bsa._totalFileNameLength;
@@ -216,21 +255,14 @@ namespace Compression.BSA
             }
         }
 
-        public void WriteFileRecordBlocks(BinaryWriter wtr)
-        {
-            if (_bsa.HasFolderNames)
-            {
-                wtr.Write(_nameBytes);
-                foreach (var file in _files)
-                    file.WriteFileRecord(wtr);
-            }
-        }
     }
 
     public class FileEntry
     {
+        internal FolderRecordBuilder _folder;
         internal BSABuilder _bsa;
         internal string _path;
+        internal string _name;
         internal string _filenameSource;
         internal Stream _bytesSource;
         internal bool _flipCompression;
@@ -240,13 +272,15 @@ namespace Compression.BSA
         internal byte[] _pathBytes;
         internal byte[] _rawData;
         internal int _originalSize;
+        private long _offsetOffset;
 
         public FileEntry(BSABuilder bsa, string path, Stream src, bool flipCompression)
         {
             _bsa = bsa;
             _path = path.ToLowerInvariant();
-            _hash = _path.GetBSAHash();
-            _nameBytes = System.IO.Path.GetFileName(_path).ToTermString();
+            _name = System.IO.Path.GetFileName(_path);
+            _hash = _name.GetBSAHash();
+            _nameBytes = _name.ToTermString();
             _pathBytes = _path.ToTermString();
             _flipCompression = flipCompression;
 
@@ -282,8 +316,6 @@ namespace Compression.BSA
             }
         }
 
-        
-
         public string Path
         {
             get
@@ -305,8 +337,42 @@ namespace Compression.BSA
         }
 
         internal void WriteFileRecord(BinaryWriter wtr)
+
         {
             wtr.Write(_hash);
+            if (_flipCompression)
+                wtr.Write((uint)_rawData.Length | (0x1 << 30));
+            else
+                wtr.Write((uint)_rawData.Length);
+
+            _offsetOffset = wtr.BaseStream.Position;
+            wtr.Write((uint)0xDEADBEEF);
+        }
+
+        internal void WriteData(BinaryWriter wtr)
+        {
+            uint offset = (uint)wtr.BaseStream.Position;
+            wtr.BaseStream.Position = _offsetOffset;
+            wtr.Write((uint)offset);
+            wtr.BaseStream.Position = offset;
+
+            if (Compressed)
+            {
+                if (_bsa.HasNameBlobs)
+                {
+                    wtr.Write(_path.ToBSString());
+                }
+                wtr.Write((uint)_originalSize);
+                wtr.Write(_rawData);
+            }
+            else
+            {
+                if (_bsa.HasNameBlobs)
+                {
+                    wtr.Write(_path.ToBSString());
+                }
+                wtr.Write(_rawData);
+            }
         }
     }
 }

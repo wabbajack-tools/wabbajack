@@ -322,7 +322,26 @@ namespace Compression.BSA
                         
                     }
                 }
+                else
+                {
+                    string _name;
+                    int file_size = _size;
+                    if (_bsa.HasNameBlobs)
+                    {
+                        var name_size = rdr.ReadByte();
+                        file_size -= name_size + 1;
+                        rdr.BaseStream.Position = _offset + 1 + name_size;
+                    }
+                    rdr.BaseStream.CopyToLimit(output, Size);
+                }
             }
+        }
+
+        public byte[] GetData()
+        {
+            var ms = new MemoryStream();
+            CopyDataTo(ms);
+            return ms.ToArray();
         }
 
 

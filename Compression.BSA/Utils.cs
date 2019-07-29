@@ -41,7 +41,22 @@ namespace Compression.BSA
             var b = Windows1251.GetBytes(val);
             var b2 = new byte[b.Length + 2];
             b.CopyTo(b2, 1);
-            b[0] = (byte)b.Length;
+            b2[0] = (byte)(b.Length + 1);
+            return b2;
+        }
+
+        /// <summary>
+        /// Returns bytes for unterminated string with a count at the start
+        /// </summary>
+        /// <param name="val"></param>
+        /// <returns></returns>
+        public static byte[] ToBSString(this string val)
+        {
+            var b = Windows1251.GetBytes(val);
+            var b2 = new byte[b.Length + 1];
+            b.CopyTo(b2, 1);
+            b2[0] = (byte)b.Length;
+
             return b2;
         }
 
@@ -106,6 +121,18 @@ namespace Compression.BSA
             }
 
             return (((ulong)(hash2 + hash3)) << 32) + hash1;
+        }
+
+        public static void CopyToLimit(this Stream frm, Stream tw, int limit)
+        {
+            byte[] buff = new byte[1024];
+            while (limit > 0)
+            {
+                int to_read = Math.Min(buff.Length, limit);
+                int read = frm.Read(buff, 0, to_read);
+                tw.Write(buff, 0, read);
+                limit -= read;
+            }
         }
     }
 }
