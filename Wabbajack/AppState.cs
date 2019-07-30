@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -9,7 +10,7 @@ using Wabbajack.Common;
 
 namespace Wabbajack
 {
-    internal class AppState
+    internal class AppState : INotifyPropertyChanged
     {
         public class CPUStatus
         {
@@ -22,11 +23,46 @@ namespace Wabbajack
 
         private Dispatcher dispatcher;
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void OnPropertyChanged(string name)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
         public ObservableCollection<string> Log { get; }
         public ObservableCollection<CPUStatus> Status { get; }
-        
 
-        public String Mode { get; set; }
+
+        private string _mode;
+        public string Mode
+        {
+            get
+            {
+                return _mode;
+            }
+            set
+            {
+                _mode = value;
+                OnPropertyChanged("Mode");
+            }
+        }
+
+
+        private string _modListName;
+        public string ModListName
+        {
+            get
+            {
+                return _modListName;
+            }
+            set
+            {
+                _modListName = value;
+                OnPropertyChanged("ModListName");
+            }
+        }
+
 
         private List<CPUStatus> InternalStatus { get; }
         public string LogFile { get; private set; }

@@ -28,14 +28,23 @@ namespace Wabbajack
             InitializeComponent();
 
             var context = new AppState(Dispatcher, "Building");
+            this.DataContext = context;
+
             WorkQueue.Init((id, msg, progress) => context.SetProgress(id, msg, progress));
 
             var compiler = new Compiler("c:\\Mod Organizer 2", msg => context.LogMsg(msg));
+
+            compiler.MO2Profile = "DEV"; //"Basic Graphics and Fixes";
+            context.ModListName = compiler.MO2Profile;
+            context.Mode = "Building";
+
+
             new Thread(() =>
             {
                 compiler.LoadArchives();
-                compiler.MO2Profile = "DEV"; //"Basic Graphics and Fixes";
                 compiler.Compile();
+
+
 
                 compiler.ModList.ToJSON("C:\\tmp\\modpack.json");
                 var modlist = compiler.ModList;
@@ -47,7 +56,6 @@ namespace Wabbajack
             }).Start();
 
 
-            this.DataContext = context;
 
         }
     }
