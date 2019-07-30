@@ -1,4 +1,4 @@
-﻿using BSA.Tools;
+﻿using Compression.BSA;
 using Newtonsoft.Json;
 using SevenZipExtractor;
 using SharpCompress.Archives;
@@ -295,13 +295,10 @@ namespace Wabbajack
                 var bsa_id = to.Split('\\')[1];
                 var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsa_id);
 
-                using (var a = new BSAFile(Path.Combine(MO2Folder, bsa.To)))
+                using (var a = new BSAReader(Path.Combine(MO2Folder, bsa.To)))
                 {
-                    var file = a.Entries.First(e => e.Filename == Path.Combine(to.Split('\\').Skip(2).ToArray()));
-                    using (var data = file.GetFileData())
-                    {
-                        return data.ToByteArray();
-                    }
+                    var file = a.Files.First(e => e.Path == Path.Combine(to.Split('\\').Skip(2).ToArray()));
+                    return file.GetData();
                 }
                                            
             }
@@ -498,18 +495,15 @@ namespace Wabbajack
                 };
 
                 CreateBSA directive;
-                using (var bsa = new BSAFile(source.AbsolutePath))
+                using (var bsa = new BSAReader(source.AbsolutePath))
                 {
                     directive = new CreateBSA()
                     {
                         To = source.Path,
                         TempID = id,
-                        Version = bsa.Version,
-                        Type = (int)bsa.Type,
-                        FileFlags = bsa.FileFlags,
-                        ArchiveFlags = bsa.ArchiveFlags,
-                        Compress = bsa.Compress,
-                        ShareData = bsa.ShareData
+                        Type = (uint)bsa.HeaderType,
+                        FileFlags = (uint)bsa.FileFlags,
+                        ArchiveFlags = (uint)bsa.ArchiveFlags,
                     };
                 };
 
@@ -527,16 +521,14 @@ namespace Wabbajack
         {
             Status($"Hashing BSA: {absolutePath}");
             var results = new List<(string, string)>();
-            using (var a = new BSAFile(absolutePath))
+            using (var a = new BSAReader(absolutePath))
             {
-                foreach (var entry in a.Entries)
+                foreach (var entry in a.Files)
                 {
-                    Status($"Hashing BSA: {absolutePath} - {entry.Filename}");
+                    Status($"Hashing BSA: {absolutePath} - {entry.Path}");
 
-                    using (var data = entry.GetFileData())
-                    {
-                        results.Add((entry.Filename, data.ToByteArray().SHA256()));
-                    };
+                    var data = entry.GetData();
+                    results.Add((entry.Path, data.SHA256()));
                 }
             }
             return results;

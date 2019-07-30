@@ -103,7 +103,7 @@ namespace Wabbajack.Common
         public string TempID;
         public string IsCompressed;
         public uint Version;
-        public Int32 Type;
+        public uint Type;
         public bool ShareData;
 
         public uint FileFlags { get; set; }

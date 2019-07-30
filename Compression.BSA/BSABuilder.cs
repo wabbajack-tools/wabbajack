@@ -11,6 +11,7 @@ namespace Compression.BSA
 {
     public class BSABuilder : IDisposable
     {
+        internal LZ4Level _compressionLevel;
         internal byte[] _fileId;
         internal uint _version;
         internal uint _offset;
@@ -26,6 +27,7 @@ namespace Compression.BSA
 
         public BSABuilder()
         {
+            _compressionLevel = LZ4Level.L10_OPT;
             _fileId = Encoding.ASCII.GetBytes("BSA\0");
             _offset = 0x24;
         }
@@ -326,7 +328,7 @@ namespace Compression.BSA
             if (_bsa.HeaderType == VersionType.SSE)
             {
                 var r = new MemoryStream();
-                using (var w = LZ4Stream.Encode(r))
+                using (var w = LZ4Stream.Encode(r, new LZ4EncoderSettings() { CompressionLevel = _bsa._compressionLevel })) 
                     (new MemoryStream(_rawData)).CopyTo(w);
 
                 _rawData = r.ToArray();

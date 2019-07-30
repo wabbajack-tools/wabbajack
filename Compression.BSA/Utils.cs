@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Compression.BSA
 {
-    public static class Utils
+    internal static class Utils
     {
         private static Encoding Windows1251 = Encoding.GetEncoding(1251);
         public static string ReadStringLen(this BinaryReader rdr)

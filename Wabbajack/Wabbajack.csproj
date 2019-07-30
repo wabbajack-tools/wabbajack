@@ -117,9 +117,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BSA.Tools\BSA.Tools.csproj">
-      <Project>{b6389807-ea59-4633-b42b-a85f52fec135}</Project>
-      <Name>BSA.Tools</Name>
+    <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj">
+      <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
+      <Name>Compression.BSA</Name>
     </ProjectReference>
     <ProjectReference Include="..\SevenZipExtractor\SevenZipExtractor.csproj">
       <Project>{8aa97f58-5044-4bba-b8d9-a74b6947a660}</Project>

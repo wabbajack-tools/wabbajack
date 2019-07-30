@@ -66,10 +66,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BSA.Tools\BSA.Tools.csproj">
-      <Project>{b6389807-ea59-4633-b42b-a85f52fec135}</Project>
-      <Name>BSA.Tools</Name>
-    </ProjectReference>
     <ProjectReference Include="..\SevenZipExtractor\SevenZipExtractor.csproj">
       <Project>{8aa97f58-5044-4bba-b8d9-a74b6947a660}</Project>
       <Name>SevenZipExtractor</Name>

@@ -8,6 +8,7 @@ rights of the game publisher and the mod authors.
 ### Socal Links
 [Discord](https://discord.gg/zgbrkmA)
 
+
 ### How it works
 At a technical level the process is as follows.
 

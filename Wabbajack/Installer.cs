@@ -1,4 +1,4 @@
-﻿using BSA.Tools;
+﻿using Compression.BSA;
 using SevenZipExtractor;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Wabbajack.Common;
-using static BSA.Tools.libbsarch;
 
 namespace Wabbajack
 {
@@ -91,37 +90,34 @@ namespace Wabbajack
         private void BuildBSAs()
         {
             var bsas = ModList.Directives.OfType<CreateBSA>().ToList();
-            Info("Building {0} bsa files");
+            Info($"Building {bsas.Count} bsa files");
 
             bsas.Do(bsa =>
             {
                 Status($"Building {bsa.To}");
                 var source_dir = Path.Combine(Outputfolder, Consts.BSACreationDir, bsa.TempID);
-                using (var entries = new EntryList())
+                var source_files = Directory.EnumerateFiles(source_dir, "*", SearchOption.AllDirectories)
+                                            .Select(e => e.Substring(source_dir.Length + 1))
+                                            .ToList();
+
+                using (var a = new BSABuilder())
                 {
-                    var source_files = Directory.EnumerateFiles(source_dir, "*", SearchOption.AllDirectories)
-                                                .Select(e => e.Substring(source_dir.Length + 1))
-                                                .ToList();
 
-                    source_files.Do(name => entries.Add(name));
+                    //a.Create(Path.Combine(Outputfolder, bsa.To), (bsa_archive_type_t)bsa.Type, entries);
+                    a.HeaderType = (VersionType)bsa.Type;
+                    a.FileFlags = (FileFlags)bsa.FileFlags;
+                    a.ArchiveFlags = (ArchiveFlags)bsa.ArchiveFlags;
 
-                    using (var a = new BSAFile())
+                    source_files.PMap(f =>
                     {
+                        Status($"Adding {f} to BSA");
+                        using (var fs = File.OpenRead(Path.Combine(source_dir, f)))
+                            a.AddFile(f, fs);
+                    });
 
-                        a.Create(Path.Combine(Outputfolder, bsa.To), (bsa_archive_type_t)bsa.Type, entries);
-                        a.FileFlags = bsa.FileFlags;
-                        a.ArchiveFlags = bsa.ArchiveFlags;
-                        a.ShareData = bsa.ShareData;
+                    Info($"Writing {bsa.To}");
+                    a.Build(Path.Combine(Outputfolder, bsa.To));
 
-
-                        source_files.Do(e =>
-                        {
-                            a.AddFile(e, File.ReadAllBytes(Path.Combine(source_dir, e)));
-                        });
-
-                        a.Save();
-
-                    }
                 }
             });
 
