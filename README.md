@@ -2,11 +2,12 @@
 
 The general idea behind this program is fairly simple. Given a Mod Organizer 2 folder and profile, generate list of instructions that will allow
 a program to automatically recreate the contents of the folder on another machine. Think of it as replication, but without ever distributing copyrighted
-files or syncing data between the source and destination machine. The end result is a program that recrate a modlist on a computer while respecting the
+files or syncing data between the source and destination machine. The end result is a program that recreate a modlist on a computer while respecting the
 rights of the game publisher and the mod authors. 
 
-### Socal Links
+### Social Links
 [Discord](https://discord.gg/zgbrkmA)
+[Patreon] (https://www.patreon.com/user?u=11907933)
 
 
 ### How it works

@@ -269,7 +269,7 @@ namespace Wabbajack
             var extracted = streams.ToDictionary(k => k.Key, v => v.Value.ToArray());
             // Now Create the patches
             Status("Building Patches for {0}", archive.Name);
-            Parallel.ForEach(group, entry =>
+            group.PMap(entry =>
             {
                 Info("Patching {0}", entry.To);
                 var ss = extracted[entry.From];

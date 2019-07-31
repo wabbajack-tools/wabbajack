@@ -133,7 +133,6 @@ namespace Wabbajack
 
         internal void ConfigureForInstall(string modlist)
         {
-            MessageBox.Show("Hello, world!");
             _modList = modlist.FromJSONString<ModList>();
             Mode = "Installing";
             ModListName = _modList.Name;
