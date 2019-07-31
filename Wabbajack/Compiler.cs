@@ -732,7 +732,8 @@ namespace Wabbajack
 
         internal void PatchExecutable()
         {
-            var data = JsonConvert.SerializeObject(ModList).BZip2String();
+            var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto };
+            var data = JsonConvert.SerializeObject(ModList, settings).BZip2String();
             var executable = Assembly.GetExecutingAssembly().Location;
             var out_path = Path.Combine(Path.GetDirectoryName(executable), MO2Profile + ".exe");
             Info("Patching Executable {0}", Path.GetFileName(out_path));

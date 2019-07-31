@@ -5,6 +5,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 using Wabbajack.Common;
 
@@ -48,8 +50,11 @@ namespace Wabbajack
             }
         }
 
-
+        private string _mo2Folder;
         private string _modListName;
+        private ModList _modList;
+        private string _location;
+
         public string ModListName
         {
             get
@@ -60,6 +65,19 @@ namespace Wabbajack
             {
                 _modListName = value;
                 OnPropertyChanged("ModListName");
+            }
+        }
+
+        public string Location
+        {
+            get
+            {
+                return _location;
+            }
+            set
+            {
+                _location = value;
+                OnPropertyChanged("Location");
             }
         }
 
@@ -113,6 +131,16 @@ namespace Wabbajack
             }
         }
 
+        internal void ConfigureForInstall(string modlist)
+        {
+            MessageBox.Show("Hello, world!");
+            _modList = modlist.FromJSONString<ModList>();
+            Mode = "Installing";
+            ModListName = _modList.Name;
+            Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+        }
+
         public void LogMsg(string msg)
         {
             dispatcher.Invoke(() => Log.Add(msg));
@@ -132,6 +160,104 @@ namespace Wabbajack
                 }
 
                 InternalStatus[id] = new CPUStatus() { ID = id, Msg = msg, Progress = progress };
+            }
+        }
+
+        private ICommand _changePath;
+        public ICommand ChangePath
+        {
+            get
+            {
+                if (_changePath == null)
+                {
+                    _changePath = new LambdaCommand(() => true, () => this.ExecuteChangePath());
+                }
+                return _changePath;
+            }
+        }
+
+        private void ExecuteChangePath()
+        {
+            if (Mode == "Installing")
+            {
+                var ofd = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
+                ofd.Description = "Select Installation Directory";
+                ofd.UseDescriptionForTitle = true;
+                if (ofd.ShowDialog() == true)
+                {
+                    Location = ofd.SelectedPath;
+                }
+            }
+            else
+            {
+                var fsd = new Ookii.Dialogs.Wpf.VistaOpenFileDialog();
+                fsd.Title = "Select a ModOrganizer modlist.txt file";
+                fsd.Filter = "modlist.txt|modlist.txt";
+                if (fsd.ShowDialog() == true)
+                {
+                    Location = fsd.FileName;
+                    ConfigureForBuild();
+                }
+            }
+        }
+
+        private void ConfigureForBuild()
+        {
+            var profile_folder = Path.GetDirectoryName(Location);
+            var mo2folder = Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
+            if (!File.Exists(Path.Combine(mo2folder, "ModOrganizer.exe")))
+                LogMsg($"Error! No ModOrganizer2.exe found in {mo2folder}");
+
+            var profile_name = Path.GetFileName(profile_folder);
+            ModListName = profile_name;
+            Mode = "Building";
+            _mo2Folder = mo2folder;
+        }
+
+        private ICommand _begin;
+        public ICommand Begin
+        {
+            get
+            {
+                if (_begin == null)
+                {
+                    _begin = new LambdaCommand(() => true, () => this.ExecuteBegin());
+                }
+                return _begin;
+            }
+        }
+
+        private void ExecuteBegin()
+        {
+            if (Mode == "Installing")
+            {
+                var installer = new Installer(_modList, Location, msg => this.LogMsg(msg));
+                var th = new Thread(() =>
+                {
+                    try
+                    {
+                        installer.Install();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMsg(ex.ToString());
+                        LogMsg(ex.StackTrace);
+                    }
+                });
+                th.Priority = ThreadPriority.BelowNormal;
+                th.Start();
+            }
+            else
+            {
+                var compiler = new Compiler(_mo2Folder, msg => LogMsg(msg));
+                compiler.MO2Profile = ModListName;
+                var th = new Thread(() =>
+                {
+                    compiler.LoadArchives();
+                    compiler.Compile();
+                });
+                th.Priority = ThreadPriority.BelowNormal;
+                th.Start();
             }
         }
     }

@@ -87,9 +87,19 @@ namespace Wabbajack.Common
             File.WriteAllText(filename, JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings() {TypeNameHandling = TypeNameHandling.Auto}));
         }
 
+        public static string ToJSON<T>(this T obj)
+        {
+            return JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+        }
+
         public static T FromJSON<T>(this string filename)
         {
-            return JsonConvert.DeserializeObject<T>(File.ReadAllText(filename));
+            return JsonConvert.DeserializeObject<T>(File.ReadAllText(filename), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+        }
+
+        public static T FromJSONString<T>(this string data)
+        {
+            return JsonConvert.DeserializeObject<T>(data, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
         }
         public static T FromJSON<T>(this Stream data)
         {

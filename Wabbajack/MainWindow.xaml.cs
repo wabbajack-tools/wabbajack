@@ -25,38 +25,62 @@ namespace Wabbajack
     {
         public MainWindow()
         {
+            var args = Environment.GetCommandLineArgs();
+            bool DebugMode = false;
+            string MO2Folder = null, InstallFolder = null, MO2Profile = null;
+
+            if (args.Length > 1)
+            {
+                DebugMode = true;
+                MO2Folder = args[1];
+                MO2Profile = args[2];
+                InstallFolder = args[3];
+            }
+
             InitializeComponent();
 
             var context = new AppState(Dispatcher, "Building");
             this.DataContext = context;
-
             WorkQueue.Init((id, msg, progress) => context.SetProgress(id, msg, progress));
 
-            var compiler = new Compiler("c:\\Mod Organizer 2", msg => context.LogMsg(msg));
 
-            compiler.MO2Profile = "DEV"; //"Basic Graphics and Fixes";
-            context.ModListName = compiler.MO2Profile;
-            context.Mode = "Building";
-
-
-            new Thread(() =>
+            if (DebugMode)
             {
-                compiler.LoadArchives();
-                compiler.Compile();
+                new Thread(() =>
+                {
+                    var compiler = new Compiler(MO2Folder, msg => context.LogMsg(msg));
 
+                    compiler.MO2Profile = MO2Profile;
+                    context.ModListName = compiler.MO2Profile;
 
+                    context.Mode = "Building";
+                    compiler.LoadArchives();
+                    compiler.Compile();
 
-                compiler.ModList.ToJSON("C:\\tmp\\modpack.json");
-                var modlist = compiler.ModList;
-                var create = modlist.Directives.OfType<CreateBSA>().ToList();
-                compiler = null;
-                var installer = new Installer(modlist, "c:\\tmp\\install\\", msg => context.LogMsg(msg));
-                installer.Install();
+                    var modlist = compiler.ModList.ToJSON();
+                    compiler = null;
 
-            }).Start();
+                    context.ConfigureForInstall(modlist);
 
+                }).Start();
+            }
+            else
+            {
+                new Thread(() =>
+                {
+                    var modlist = Installer.CheckForModPack();
+                    context.LogMsg($"Modlist returned {modlist != null}");
 
+                    if (modlist == null)
+                    {
+                    }
+                    else
+                    {
+                        context.ConfigureForInstall(modlist);
+                    }
+                }).Start();
 
+            }
         }
     }
 }

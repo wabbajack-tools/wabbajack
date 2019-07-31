@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -345,6 +346,33 @@ namespace Wabbajack
             File.WriteAllText(cache, Utils.FileSHA256(e));
             return HashArchive(e);
 
+        }
+
+        public static string CheckForModPack()
+        {
+            using (var s = File.OpenRead(Assembly.GetExecutingAssembly().Location))
+            {
+                var magic_bytes = Encoding.ASCII.GetBytes(Consts.ModPackMagic);
+                s.Position = s.Length - magic_bytes.Length;
+                using (var br = new BinaryReader(s))
+                {
+                    var bytes = br.ReadBytes(magic_bytes.Length);
+                    var magic = Encoding.ASCII.GetString(bytes);
+                    if (magic != Consts.ModPackMagic)
+                    {
+
+                        return null;
+                    }
+
+                    s.Position = s.Length - magic_bytes.Length - 8;
+                    var start_pos = br.ReadInt64();
+                    s.Position = start_pos;
+                    long length = br.ReadInt64();
+
+                    return br.ReadBytes((int)length).BZip2String();
+
+                }
+            }
         }
 
     }
