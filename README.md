@@ -6,8 +6,8 @@ files or syncing data between the source and destination machine. The end result
 rights of the game publisher and the mod authors. 
 
 ### Social Links
-[Discord](https://discord.gg/zgbrkmA)
-[Patreon] (https://www.patreon.com/user?u=11907933)
+- [Discord](https://discord.gg/zgbrkmA)
+- [Patreon] (https://www.patreon.com/user?u=11907933) Check this page for updates and to vote on features
 
 
 ### How it works
@@ -66,6 +66,14 @@ Wabbajack can currently install from many different file hosting sources. Curren
 * Google Drive
 * MEGA
 * ModDB
+
+### FAQ
+
+**Why does each modpack install another copy of Mod Organizer 2**
+
+Self-contained folders are a cleaner abstraction than dumping tons of modlists into the same set of folders. It's easy to uninstall a modlist (simply delete the folder),
+and MO2 really isn't designed to support lots of disparate modlists. For example if two modlists both wanted a given texture mod, but different options they would
+somehow have to keep the names of their mods separate. MO2 isn't that big of an app, so there's really no reason not to install a new copy for each modlist.
 
 
 ### License & Copyright
