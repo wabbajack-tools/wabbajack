@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -153,6 +154,9 @@ namespace Wabbajack.Common
     public class DirectURLArchive : Archive
     {
         public string URL;
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public List<string> Headers;
     }
 
     /// <summary>
@@ -174,6 +178,13 @@ namespace Wabbajack.Common
     /// Archive that comes from MODDB
     /// </summary>
     public class MODDBArchive : DirectURLArchive
+    {
+    }
+
+    /// <summary>
+    /// Archive that comes from MediaFire
+    /// </summary>
+    public class MediaFireArchive : DirectURLArchive
     {
     }
 

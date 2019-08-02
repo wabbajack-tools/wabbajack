@@ -69,12 +69,41 @@ Wabbajack can currently install from many different file hosting sources. Curren
 
 ### FAQ
 
-**Why does each modpack install another copy of Mod Organizer 2**
+**Why does each modpack install another copy of Mod Organizer 2?**
 
 Self-contained folders are a cleaner abstraction than dumping tons of modlists into the same set of folders. It's easy to uninstall a modlist (simply delete the folder),
 and MO2 really isn't designed to support lots of disparate modlists. For example if two modlists both wanted a given texture mod, but different options they would
 somehow have to keep the names of their mods separate. MO2 isn't that big of an app, so there's really no reason not to install a new copy for each modlist.
 
+**Why don't I see any mods when I open Mod Organizer 2 after install?**
+
+Make sure you selected the "Portable" mode when starting MO2 for the first time. In addition, make sure you haven't installed MO2 in a non-portable way on the same box. 
+Really, always use "Portable Mode" it's cleaner and there really isn't a reason not too do so. Make the data self-contained. It's cleaner that way.
+
+**Will Wabbajack ever support Vortex/other mod managers?**
+
+I'll be honest, I don't use anything but MO2, so I probably won't write the code. If someone were to write a patch for the functionality
+I wouldn't throw away the code, but it would have to be done in a way that was relatively seamless for users. Since Wabbajack treats all files in the same way
+it doesn't know what mod manager a user is using. This means that if the modlist creator used Vortex all users of the modlist would have to use Vortex. This doesn't seem
+optimal. It's possible perhaps, but it's at the bottom of the priority list. 
+
+**Where is the modlist? Why am I just given an .exe?**
+
+When Wabbajack creates a modlist, as a final step it copies itself (the wabbajack.exe) and tacks onto the end of the file the modlist data, and a few bits
+of magic text. When Wabbajack starts it looks at itself to see if it has this extra data tacked on to the end of the executable. If the data is found the app kicks
+into installation mode. This means that Wabbajack acts a lot like a self-extracting installer. 
+
+**Do you know that some mod authors don't like their mods being automatically installed?**
+
+Yes, I've heard this, but they chose to host their data on a public site. And no, they don't have the right to dictate what HTTP client is used to download a file. 
+We're using official Nexus APIs for nexus downloads, so any downloads Wabbajack performs are correctly tracked, and MO2 encourages users to endorse mods. It's 2019, we can
+have better tools than manually clicking links.
+
+**How does Wabbajack differ from Automaton?**
+
+I (halgari) used to be a developer working on Automaton. Sadly development was moving a bit too slowly for my liking, and I realized that a complete rewrite would allow the
+implementation of some really nice features (like BSA packing). As such I made the decision to strike out on my own and make an app that worked first, and then make it pretty.
+The end result is an app with a ton of features, and a less than professional UI. But that's my motto when coding "make it work, then make it pretty". 
 
 ### License & Copyright
 

@@ -179,7 +179,10 @@ namespace Wabbajack
             foreach (var file in nomatch)
                 Info("     {0}", file.To);
             if (nomatch.Count() > 0)
-                Error("Exiting due to no way to compile these files");
+            {
+                Info("Exiting due to no way to compile these files");
+                return;
+            }
 
             InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
 
@@ -372,12 +375,28 @@ namespace Wabbajack
                         URL = general.directURL
                     };
                 }
+                else if (general.directURL != null && general.directURL.StartsWith("http://www.mediafire.com/file/"))
+                {
+                    Error("Mediafire links are not currently supported");
+                    return null;
+                    /*result = new MediaFireArchive()
+                    {
+                        URL = general.directURL
+                    };*/
+                }
                 else if (general.directURL != null)
                 {
-                    result = new DirectURLArchive()
+                    
+                    var tmp = new DirectURLArchive()
                     {
                         URL = general.directURL
                     };
+                    if (general.directURLHeaders != null)
+                    {
+                        tmp.Headers = new List<string>();
+                        tmp.Headers.AddRange(general.directURLHeaders.Split('|'));
+                    }
+                    result = tmp;
                 }
                 else
                 {
@@ -686,6 +705,7 @@ namespace Wabbajack
             return source => {
                 var result = source.EvolveTo<NoMatch>();
                 result.Reason = "No Match in Stack";
+                Info($"No match for: {source.Path}");
                 return result;
             };
         }
@@ -698,14 +718,31 @@ namespace Wabbajack
                            .GroupBy(e => e.entry.Hash)
                            .ToDictionary(e => e.Key);
 
+            var mod_inis = Directory.EnumerateDirectories(Path.Combine(MO2Folder, "mods"))
+                                    .Select(f =>
+                                    {
+                                        var mod_name = Path.GetFileName(f);
+                                        var meta_path = Path.Combine(f, "meta.ini");
+                                        if (File.Exists(meta_path))
+                                            return (mod_name, meta_path.LoadIniFile());
+                                        return (null, null);
+                                    })
+                                    .Where(f => f.Item2 != null)
+                                    .ToDictionary(f => f.Item1, f => f.Item2);
+
             return source =>
             {
                 if (indexed.TryGetValue(source.Hash, out var found))
                 {
                     var result = source.EvolveTo<FromArchive>();
-                    var match = found.FirstOrDefault(f => Path.GetFileName(f.entry.Path) == Path.GetFileName(source.Path));
+
+                    var match = found.Where(f => Path.GetFileName(f.entry.Path) == Path.GetFileName(source.Path))
+                                     .OrderByDescending(f => new FileInfo(f.archive.AbsolutePath).LastWriteTime)
+                                     .FirstOrDefault();
+
                     if (match == null)
-                        match = found.First();
+                        match = found.OrderByDescending(f => new FileInfo(f.archive.AbsolutePath).LastWriteTime)
+                                     .FirstOrDefault();
 
                     result.ArchiveHash = match.archive.Hash;
                     result.From = match.entry.Path;

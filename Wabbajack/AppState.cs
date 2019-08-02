@@ -237,10 +237,14 @@ namespace Wabbajack
                     {
                         installer.Install();
                     }
+                    catch (AggregateException ex)
+                    {
+                        LogMsg(ex.StackTrace);
+                        LogMsg(ex.InnerException.ToString());
+                    }
                     catch (Exception ex)
                     {
-                        LogMsg(ex.ToString());
-                        LogMsg(ex.StackTrace);
+                        LogMsg($"{ex.Message} - Can't continue");
                     }
                 });
                 th.Priority = ThreadPriority.BelowNormal;

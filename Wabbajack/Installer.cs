@@ -241,7 +241,17 @@ namespace Wabbajack
             {
                 switch (archive) {
                     case NexusMod a:
-                        var url = NexusAPI.GetNexusDownloadLink(a as NexusMod, NexusAPIKey);
+                        Info($"Downloading Nexus Archive - {archive.Name} - {a.GameName} - {a.ModID} - {a.FileID}");
+                        string url;
+                        try
+                        {
+                            url = NexusAPI.GetNexusDownloadLink(a as NexusMod, NexusAPIKey);
+                        }
+                        catch (Exception ex)
+                        {
+                            Info($"{a.Name} - Error Getting Nexus Download URL - {ex.Message}");
+                            return;
+                        }
                         DownloadURLDirect(archive, url);
                         break;
                     case GoogleDriveMod a:
@@ -250,14 +260,26 @@ namespace Wabbajack
                     case MODDBArchive a:
                         DownloadModDBArchive(archive, (archive as MODDBArchive).URL);
                         break;
+                    case MediaFireArchive a:
+                        DownloadMediaFireArchive(archive, a.URL);
+                        break;
                     case DirectURLArchive a:
-                        DownloadURLDirect(archive, (archive as DirectURLArchive).URL);
+                        DownloadURLDirect(archive, a.URL, headers:a.Headers);
                         break;
                     default:
                         break;
 
             }
             });
+        }
+
+        private void DownloadMediaFireArchive(Archive a, string url)
+        {
+            var client = new HttpClient();
+            var result = client.GetStringSync(url);
+            var regex = new Regex("(?<= href =\\\").*\\.mediafire\\.com.*(?=\\\")");
+            var confirm = regex.Match(result);
+            DownloadURLDirect(a, confirm.ToString(), client);
         }
 
         private void DownloadGoogleDriveArchive(GoogleDriveMod a)
@@ -279,47 +301,66 @@ namespace Wabbajack
             DownloadURLDirect(archive, match.Value);
         }
 
-        private void DownloadURLDirect(Archive archive, string url, HttpClient client = null)
+        private void DownloadURLDirect(Archive archive, string url, HttpClient client = null, List<string> headers = null)
         {
-            if (client == null) {
-                client = new HttpClient();
-                client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
-            }
-            long total_read = 0;
-            int buffer_size = 1024 * 32;
-
-            var response = client.GetSync(url);
-            var stream = response.Content.ReadAsStreamAsync();
-            stream.Wait();
-
-            string header = "1";
-            if (response.Content.Headers.Contains("Content-Length"))
-                header = response.Content.Headers.GetValues("Content-Length").FirstOrDefault();
-
-            long content_size = header != null ? long.Parse(header) : 1;
-
-            var output_path = Path.Combine(DownloadFolder, archive.Name);
-
-            if (output_path.FileExists())
-                File.Delete(output_path);
-
-            using (var webs = stream.Result)
-            using (var fs = File.OpenWrite(output_path))
+            try
             {
-                var buffer = new byte[buffer_size];
-                while (true)
+                if (client == null)
                 {
-                    var read = webs.Read(buffer, 0, buffer_size);
-                    if (read == 0) break;
-                    Status((int)(total_read * 100 / content_size), "Downloading {0}", archive.Name);
-
-                    fs.Write(buffer, 0, read);
-                    total_read += read;
-
+                    client = new HttpClient();
+                    client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
                 }
+
+                if (headers != null) {
+                    foreach (var header in headers)
+                    {
+                        var idx = header.IndexOf(':');
+                        var k = header.Substring(0, idx);
+                        var v = header.Substring(idx + 1);
+                        client.DefaultRequestHeaders.Add(k, v);
+                    }
+                }
+
+                long total_read = 0;
+                int buffer_size = 1024 * 32;
+
+                var response = client.GetSync(url);
+                var stream = response.Content.ReadAsStreamAsync();
+                stream.Wait();
+
+                string header_var = "1";
+                if (response.Content.Headers.Contains("Content-Length"))
+                    header_var = response.Content.Headers.GetValues("Content-Length").FirstOrDefault();
+
+                long content_size = header_var != null ? long.Parse(header_var) : 1;
+
+                var output_path = Path.Combine(DownloadFolder, archive.Name);
+
+                if (output_path.FileExists())
+                    File.Delete(output_path);
+
+                using (var webs = stream.Result)
+                using (var fs = File.OpenWrite(output_path))
+                {
+                    var buffer = new byte[buffer_size];
+                    while (true)
+                    {
+                        var read = webs.Read(buffer, 0, buffer_size);
+                        if (read == 0) break;
+                        Status((int)(total_read * 100 / content_size), "Downloading {0}", archive.Name);
+
+                        fs.Write(buffer, 0, read);
+                        total_read += read;
+
+                    }
+                }
+                Status("Hashing {0}", archive.Name);
+                HashArchive(output_path);
             }
-            Status("Hashing {0}", archive.Name);
-            HashArchive(output_path);
+            catch (Exception ex)
+            {
+                Info($"{archive.Name} - Error downloading from: {url}");
+            }
         }
 
         private object GetNexusAPIKey()

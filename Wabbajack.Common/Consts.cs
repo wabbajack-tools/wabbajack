@@ -26,6 +26,6 @@ namespace Wabbajack.Common
             }
         }
 
-        public static String AppName = "Vortex";
+        public static String AppName = "Wabbajack";
     }
 }
