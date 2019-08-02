@@ -81,6 +81,23 @@ namespace Wabbajack
             }
         }
 
+        private int _queueProgress;
+        public int QueueProgress
+        {
+            get
+            {
+                return _queueProgress;
+            }
+            set
+            {
+                if (value != _queueProgress)
+                {
+                    _queueProgress = value;
+                    OnPropertyChanged("QueueProgress");
+                }
+            }
+        }
+
 
         private List<CPUStatus> InternalStatus { get; }
         public string LogFile { get; private set; }
@@ -160,6 +177,12 @@ namespace Wabbajack
 
                 InternalStatus[id] = new CPUStatus() { ID = id, Msg = msg, Progress = progress };
             }
+        }
+
+        public void SetQueueSize(int max, int current)
+        {
+            var total = current * 100 / max;
+            QueueProgress = total;
         }
 
         private ICommand _changePath;

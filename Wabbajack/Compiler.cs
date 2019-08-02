@@ -159,6 +159,7 @@ namespace Wabbajack
                                       .Where(p => p.FileExists())
                                       .Select(p => new RawSourceFile() { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)), AbsolutePath = p });
 
+            Info("Searching for mod files");
             AllFiles = mo2_files.Concat(game_files).ToList();
 
             Info("Found {0} files to build into mod list", AllFiles.Count);
@@ -192,7 +193,8 @@ namespace Wabbajack
             ModList = new ModList()
             {
                 Archives = SelectedArchives,
-                Directives = InstallDirectives
+                Directives = InstallDirectives,
+                Name = MO2Profile
             };
 
             PatchExecutable();

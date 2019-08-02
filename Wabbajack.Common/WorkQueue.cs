@@ -15,9 +15,10 @@ namespace Wabbajack.Common
         [ThreadStatic]
         private static int CpuId;
 
-        public static void Init(Action<int, string, int> report_function)
+        public static void Init(Action<int, string, int> report_function, Action<int, int> report_queue_size)
         {
             ReportFunction = report_function;
+            ReportQueueSize = report_queue_size;
             ThreadCount = Environment.ProcessorCount;
             StartThreads();
         }
@@ -59,7 +60,15 @@ namespace Wabbajack.Common
         }
 
         public static Action<int, string, int> ReportFunction { get; private set; }
+        public static Action<int, int> ReportQueueSize { get; private set; }
         public static int ThreadCount { get; private set; }
         public static List<Thread> Threads { get; private set; }
+        public static int MaxQueueSize;
+        public static int CurrentQueueSize;
+
+        internal static void ReportNow()
+        {
+            ReportQueueSize(MaxQueueSize, CurrentQueueSize);
+        }
     }
 }

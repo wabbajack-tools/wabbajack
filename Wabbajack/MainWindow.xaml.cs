@@ -41,7 +41,8 @@ namespace Wabbajack
 
             var context = new AppState(Dispatcher, "Building");
             this.DataContext = context;
-            WorkQueue.Init((id, msg, progress) => context.SetProgress(id, msg, progress));
+            WorkQueue.Init((id, msg, progress) => context.SetProgress(id, msg, progress),
+                           (max, current) => context.SetQueueSize(max, current));
 
 
             if (DebugMode)
@@ -69,8 +70,6 @@ namespace Wabbajack
                 new Thread(() =>
                 {
                     var modlist = Installer.CheckForModPack();
-                    context.LogMsg($"Modlist returned {modlist != null}");
-
                     if (modlist == null)
                     {
                     }

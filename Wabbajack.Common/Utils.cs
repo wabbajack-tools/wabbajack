@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Wabbajack.Common
@@ -163,6 +164,10 @@ namespace Wabbajack.Common
 
         public static List<TR> PMap<TI, TR>(this IEnumerable<TI> coll, Func<TI, TR> f)
         {
+            var colllst = coll.ToList();
+            WorkQueue.MaxQueueSize = colllst.Count;
+            WorkQueue.CurrentQueueSize = 0;
+
             var tasks = coll.Select(i =>
             {
                 TaskCompletionSource<TR> tc = new TaskCompletionSource<TR>();
@@ -176,6 +181,8 @@ namespace Wabbajack.Common
                     {
                         tc.SetException(ex);
                     }
+                    Interlocked.Increment(ref WorkQueue.CurrentQueueSize);
+                    WorkQueue.ReportNow();
                 });
                 return tc.Task;
             }).ToList();
