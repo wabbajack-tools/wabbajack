@@ -22,7 +22,21 @@ continuum).
    * For other files (ENBSeries, SKSE, SRO, etc.) Look at the [`RECIPES.md`](https://github.com/halgari/wabbajack/blob/master/RECIPES.md) file
    * for instructions specific to your file source.
 3) Now load Wabbajack, and point it to the `\<MO2 Folder>\mods\<your profile>\modlist.txt` file. 
-4) Click "B
+4) Click `Begin`.
+5) Wabbajack will start by indexing all your downloaded archives. This will take some time on most machines as the application
+has to performa `SHA-256` hash on every file in every archive. However the results of this operation are cached, so you'll only need 
+to do this once for every downloaded file.
+6) Once completed, Wabbajack will collect the files required for the modpack install and begin running them through the compilation stack.
+7) If all goes well, you should see a new `<your profile name>.exe` file next to `Wabbajack.exe` that you just ran. This new `.exe` is the one
+you want to hand out as a auto modlist installer.
+
+### Installing a ModList
+
+1) Get a modlist installer, it's a `.exe` file that was created by Wabbajack
+2) Run the `.exe`, the install folder defaults to the same folder as the executable, change it if you want.
+3) Click `Begin` to start installation. At some point you will be prompted for SSO authorization on the Nexus, files
+will be auto installed and downloaded
+4) After installation has completed, run `Mod Organizer 2.exe`, select `Portable` and your game type.
 
 ### How it works
 At a technical level the process is as follows.

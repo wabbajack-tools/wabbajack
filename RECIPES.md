@@ -69,6 +69,8 @@ Both files come from the nexus.
 3) Copy the Part 2 archive into the `downloads` folder in MO2
 4) Use MO2 to `Query Info` on the Part 2 file
 
+#### SSEdit BethINI
+
 #### Skyrim Realistic Overhaul
 SRO is only stored on the ModDB servers
 

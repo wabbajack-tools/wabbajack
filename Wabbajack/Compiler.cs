@@ -468,6 +468,8 @@ namespace Wabbajack
                 IgnoreEndsWith(".txt"),
                 // Don't know why, but this seems to get copied around a bit
                 IgnoreEndsWith("HavokBehaviorPostProcess.exe"),
+                // Theme file MO2 downloads somehow
+                IgnoreEndsWith("splash.png"),
                 DropAll()
             };
         }
