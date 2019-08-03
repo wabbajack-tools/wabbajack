@@ -214,6 +214,9 @@ namespace Wabbajack
                     var to_file = Path.Combine(Outputfolder, to_patch.To);
                     MemoryStream old_data = new MemoryStream(File.ReadAllBytes(to_file));
 
+                    // Remove the file we're about to patch
+                    File.Delete(to_file);
+
                     // Patch it
                     using (var out_stream = File.OpenWrite(to_file))
                     {
