@@ -9,6 +9,20 @@ rights of the game publisher and the mod authors.
 - [Discord](https://discord.gg/zgbrkmA)
 - [Patreon] (https://www.patreon.com/user?u=11907933) Check this page for updates and to vote on features
 
+### Creating a ModList Installer
+
+1) Download Wabbajack and install it somewhere outside of your normal Mod Organizer 2 folder
+(otherwise Wabbajack will try to figure out how to install itself and that might cuase a collapse in the time-space
+continuum).
+2) Make sure every archive you used in your MO2 profile has some sort of download information attached. 
+   * If the file was downloaded via MO2 you're good, no extra work is needed
+   * If the file was downloaded manually from the Nexus, copy it into the MO2 downloads folder, go back to MO2
+   * and go to the `downloads` tab. Find the file and click `Query Info` from the right-click menu. MO2 should find
+   the download info for you
+   * For other files (ENBSeries, SKSE, SRO, etc.) Look at the [`RECIPES.md`](https://github.com/halgari/wabbajack/blob/master/RECIPES.md) file
+   * for instructions specific to your file source.
+3) Now load Wabbajack, and point it to the `\<MO2 Folder>\mods\<your profile>\modlist.txt` file. 
+4) Click "B
 
 ### How it works
 At a technical level the process is as follows.
