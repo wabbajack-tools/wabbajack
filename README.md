@@ -69,6 +69,10 @@ Wabbajack can currently install from many different file hosting sources. Curren
 
 ### FAQ
 
+**How do I get Wabbjack to handle mods from `X`**
+
+Look at the `RECIPES.md` file, we keep a knowledgebase of how to deal with given types of mods in that file.
+
 **Why does each modpack install another copy of Mod Organizer 2?**
 
 Self-contained folders are a cleaner abstraction than dumping tons of modlists into the same set of folders. It's easy to uninstall a modlist (simply delete the folder),
