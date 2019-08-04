@@ -353,6 +353,13 @@ namespace Wabbajack
                         Id = match.ToString()
                     };
                 }
+                else if (general.directURL != null && general.directURL.StartsWith(Consts.MegaPrefix))
+                {
+                    result = new MEGAArchive()
+                    {
+                        URL = general.directURL
+                    };
+                }
                 else if (general.directURL != null && general.directURL.StartsWith("https://www.dropbox.com/"))
                 {
                     var uri = new UriBuilder((string)general.directURL);

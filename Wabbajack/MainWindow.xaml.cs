@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -25,6 +26,7 @@ namespace Wabbajack
     {
         public MainWindow()
         {
+
             var args = Environment.GetCommandLineArgs();
             bool DebugMode = false;
             string MO2Folder = null, InstallFolder = null, MO2Profile = null;
@@ -40,9 +42,11 @@ namespace Wabbajack
             InitializeComponent();
 
             var context = new AppState(Dispatcher, "Building");
+            SetupHandlers(context);
             this.DataContext = context;
             WorkQueue.Init((id, msg, progress) => context.SetProgress(id, msg, progress),
                            (max, current) => context.SetQueueSize(max, current));
+
 
 
             if (DebugMode)
@@ -80,6 +84,24 @@ namespace Wabbajack
                 }).Start();
 
             }
+        }
+
+        private AppState _state;
+        private void SetupHandlers(AppState state)
+        {
+            _state = state;
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(AppHandler);
+        }
+
+        private void AppHandler(object sender, UnhandledExceptionEventArgs e)
+        {
+            _state.LogMsg("Uncaught error:");
+            _state.LogMsg(Utils.ExceptionToString((Exception)e.ExceptionObject));
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            Application.Current.Shutdown();
         }
     }
 }

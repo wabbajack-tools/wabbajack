@@ -84,5 +84,29 @@ namespace Wabbajack
 
         }
 
+
+        public class UserStatus
+        {
+            public string user_id;
+            public string key;
+            public string name;
+            public bool is_premium;
+            public bool is_supporter;
+            public string email;
+            public string profile_url;
+        }
+
+        
+        public static UserStatus GetUserStatus(string apikey)
+        {
+            var url = "https://api.nexusmods.com/v1/users/validate.json";
+            var client = BaseNexusClient(apikey);
+
+            using (var s = client.GetStreamSync(url))
+            {
+                return s.FromJSON<UserStatus>();
+            }
+        }
+
     }
 }

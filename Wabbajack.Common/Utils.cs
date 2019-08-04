@@ -3,6 +3,7 @@ using IniParser;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -242,6 +243,29 @@ namespace Wabbajack.Common
             var result = client.GetStreamAsync(url);
             result.Wait();
             return result.Result;
+        }
+
+        public static string ExceptionToString(this Exception ex)
+        {
+            StringBuilder sb = new StringBuilder();
+            while (ex != null)
+            {
+                sb.AppendLine(ex.Message);
+                var st = new StackTrace(ex, true);
+                foreach (var frame in st.GetFrames())
+                {
+                    sb.AppendLine($"{frame.GetFileName()}:{frame.GetMethod().Name}:{frame.GetFileLineNumber()}:{frame.GetFileColumnNumber()}");
+                }
+                ex = ex.InnerException;
+            }
+
+
+            return sb.ToString();
+        }
+
+        public static void CrashDump(Exception e)
+        {
+            File.WriteAllText($"{DateTime.Now.ToString("yyyyMMddTHHmmss_crash_log.txt")}", ExceptionToString(e));
         }
 
     }

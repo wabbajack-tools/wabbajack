@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Wabbajack"
         mc:Ignorable="d"
         Title="Wabbajack" Height="700" Width="800"
-        Style="{StaticResource {x:Type Window}}" Icon="square_transparent_icon.ico" WindowStyle="ToolWindow">
+        Style="{StaticResource {x:Type Window}}" Icon="square_transparent_icon.ico" WindowStyle="ToolWindow" Closing="Window_Closing">
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>

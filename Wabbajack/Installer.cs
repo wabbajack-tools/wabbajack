@@ -1,4 +1,5 @@
-﻿using Compression.BSA;
+﻿using CG.Web.MegaApiClient;
+using Compression.BSA;
 using SevenZipExtractor;
 using System;
 using System.Collections.Generic;
@@ -235,13 +236,27 @@ namespace Wabbajack
             Info("Getting Nexus API Key, if a browser appears, please accept");
             NexusAPIKey = NexusAPI.GetNexusAPIKey();
 
+            var user_status = NexusAPI.GetUserStatus(NexusAPIKey);
+
+            if (!user_status.is_premium) {
+                Info($"Automated installs with Wabbajack requires a premium nexus account. {user_status.name} is not a premium account");
+                return;
+            }
+
             DownloadMissingArchives(missing);
+            return;
         }
 
         private void DownloadMissingArchives(List<Archive> missing)
         {
             missing.PMap(archive =>
             {
+                Info($"Downloading {archive.Name}");
+                var output_path = Path.Combine(DownloadFolder, archive.Name);
+
+                if (output_path.FileExists())
+                    File.Delete(output_path);
+
                 switch (archive) {
                     case NexusMod a:
                         Info($"Downloading Nexus Archive - {archive.Name} - {a.GameName} - {a.ModID} - {a.FileID}");
@@ -256,6 +271,9 @@ namespace Wabbajack
                             return;
                         }
                         DownloadURLDirect(archive, url);
+                        break;
+                    case MEGAArchive a:
+                        DownloadMegaArchive(a);
                         break;
                     case GoogleDriveMod a:
                         DownloadGoogleDriveArchive(a);
@@ -283,6 +301,19 @@ namespace Wabbajack
             var regex = new Regex("(?<= href =\\\").*\\.mediafire\\.com.*(?=\\\")");
             var confirm = regex.Match(result);
             DownloadURLDirect(a, confirm.ToString(), client);
+        }
+
+        private void DownloadMegaArchive(MEGAArchive m)
+        {
+            var client = new MegaApiClient();
+            Status("Logging into MEGA (as anonymous)");
+            client.LoginAnonymous();
+            var file_link = new Uri(m.URL);
+            var node = client.GetNodeFromLink(file_link);
+            Status("Downloading MEGA file: {0}", m.Name);
+
+            var output_path = Path.Combine(DownloadFolder, m.Name);
+            client.DownloadFile(file_link, output_path);
         }
 
         private void DownloadGoogleDriveArchive(GoogleDriveMod a)
@@ -329,7 +360,19 @@ namespace Wabbajack
 
                 var response = client.GetSync(url);
                 var stream = response.Content.ReadAsStreamAsync();
-                stream.Wait();
+                try
+                {
+                    stream.Wait();
+                }
+                catch (Exception ex)
+                {
+
+                };
+                if (stream.IsFaulted)
+                {
+                    Info($"While downloading {url} - {Utils.ExceptionToString(stream.Exception)}");
+                    return;
+                }
 
                 string header_var = "1";
                 if (response.Content.Headers.Contains("Content-Length"))
@@ -338,9 +381,7 @@ namespace Wabbajack
                 long content_size = header_var != null ? long.Parse(header_var) : 1;
 
                 var output_path = Path.Combine(DownloadFolder, archive.Name);
-
-                if (output_path.FileExists())
-                    File.Delete(output_path);
+;
 
                 using (var webs = stream.Result)
                 using (var fs = File.OpenWrite(output_path))
