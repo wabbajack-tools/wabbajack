@@ -108,5 +108,36 @@ namespace Wabbajack
             }
         }
 
+        public class NexusFileInfo
+        {
+            public ulong file_id;
+            public string name;
+            public string version;
+            public ulong category_id;
+            public string category_name;
+            public bool is_primary;
+            public ulong size;
+            public string file_name;
+            public ulong uploaded_timestamp;
+            public DateTime uploaded_time;
+            public string mod_version;
+            public string external_virus_scan_url;
+            public string description;
+            public ulong size_kb;
+            public string changelog_html;
+        }
+
+
+        public static NexusFileInfo GetFileInfo(NexusMod mod, string apikey)
+        {
+            var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/files/{mod.FileID}.json";
+            var client = BaseNexusClient(apikey);
+
+            using (var s = client.GetStreamSync(url))
+            {
+                return s.FromJSON<NexusFileInfo>();
+            }
+        }
+
     }
 }

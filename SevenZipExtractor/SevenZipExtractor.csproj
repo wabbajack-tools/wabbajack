@@ -56,6 +56,7 @@
     <Compile Include="SevenZipInterface.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="7z.dll.gz" />
     <None Include="SevenZipExtractor.nuspec">
       <SubType>Designer</SubType>
     </None>

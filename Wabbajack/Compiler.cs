@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using Wabbajack.Common;
+using static Wabbajack.NexusAPI;
 
 namespace Wabbajack
 {
@@ -49,6 +50,8 @@ namespace Wabbajack
 
         public Action<string> Log_Fn { get; }
         public List<Directive> InstallDirectives { get; private set; }
+        public string NexusKey { get; private set; }
+        internal UserStatus User { get; private set; }
         public List<Archive> SelectedArchives { get; private set; }
         public List<RawSourceFile> AllFiles { get; private set; }
         public ModList ModList { get; private set; }
@@ -187,6 +190,15 @@ namespace Wabbajack
 
             InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
 
+            NexusKey = NexusAPI.GetNexusAPIKey();
+            User = NexusAPI.GetUserStatus(NexusKey);
+            
+            if (!User.is_premium)
+            {
+                Info($"User {User.name} is not a premium Nexus user, cannot continue");
+            }
+           
+
             GatherArchives();
             BuildPatches();
 
@@ -319,7 +331,7 @@ namespace Wabbajack
                                         .Select(a => a.ArchiveHash)
                                         .Distinct();
 
-            SelectedArchives = shas.Select(sha => ResolveArchive(sha, archives)).ToList();
+            SelectedArchives = shas.PMap(sha => ResolveArchive(sha, archives));
 
         }
 
@@ -343,6 +355,16 @@ namespace Wabbajack
                         FileID = general.fileID,
                         ModID = general.modID
                     };
+                    Status($"Getting Nexus info for {found.Name}");
+                    try
+                    {
+                        var info = NexusAPI.GetFileInfo((NexusMod)result, NexusKey);
+                    }
+                    catch (Exception ex)
+                    {
+                        Error($"Unable to resolve {found.Name} on the Nexus was the file removed?");
+                    }
+
                 }
                 else if (general.directURL != null && general.directURL.StartsWith("https://drive.google.com"))
                 {

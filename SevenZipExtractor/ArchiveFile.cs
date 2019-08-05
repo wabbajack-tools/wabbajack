@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace SevenZipExtractor
@@ -262,8 +264,13 @@ namespace SevenZipExtractor
             return result;
         }
 
+        private static object _lockobj = new object();
+        private static string _staticLibraryFilePath;
+
         private void InitializeAndValidateLibrary()
         {
+            this.libraryFilePath = SetupLibrary();
+
             if (string.IsNullOrWhiteSpace(this.libraryFilePath))
             {
                 string currentArchitecture = IntPtr.Size == 4 ? "x86" : "x64"; // magic check
@@ -304,6 +311,28 @@ namespace SevenZipExtractor
             {
                 throw new SevenZipException("Unable to initialize SevenZipHandle", e);
             }
+        }
+
+        private static string SetupLibrary()
+        {
+            var zpath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "7z-x64.dll");
+            if (_staticLibraryFilePath == null)
+            {
+                lock (_lockobj)
+                {
+                    if (_staticLibraryFilePath == null)
+                    {
+                        using (var s = Assembly.GetExecutingAssembly().GetManifestResourceStream("SevenZipExtractor.7z.dll.gz"))
+                        using (var fs = File.OpenWrite(zpath))
+                        using (var gz = new GZipStream(s, CompressionMode.Decompress))
+                        {
+                            gz.CopyTo(fs);
+                        }
+                        _staticLibraryFilePath = zpath;
+                    }
+                }
+            }
+            return _staticLibraryFilePath;
         }
 
         private bool GuessFormatFromExtension(string fileExtension, out SevenZipFormat format)

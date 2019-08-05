@@ -1,3 +1,10 @@
 ﻿<Weavers xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="FodyWeavers.xsd">
-  <Costura />
+  <Costura>
+    <Unmanaged64Assemblies>
+    7z
+	</Unmanaged64Assemblies>
+	<PreloadOrder>
+	7z
+	</PreloadOrder>
+  </Costura>
 </Weavers>
