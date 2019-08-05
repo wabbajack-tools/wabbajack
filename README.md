@@ -7,7 +7,7 @@ rights of the game publisher and the mod authors.
 
 ### Social Links
 - [Discord](https://discord.gg/zgbrkmA)
-- [Patreon] (https://www.patreon.com/user?u=11907933) Check this page for updates and to vote on features
+- [Patreon](https://www.patreon.com/user?u=11907933) Check this page for updates and to vote on features
 
 ### Creating a ModList Installer
 
@@ -19,7 +19,7 @@ continuum).
    * If the file was downloaded manually from the Nexus, copy it into the MO2 downloads folder, go back to MO2
    * and go to the `downloads` tab. Find the file and click `Query Info` from the right-click menu. MO2 should find
    the download info for you
-   * For other files (ENBSeries, SKSE, SRO, etc.) Look at the [`RECIPES.md`](https://github.com/halgari/wabbajack/blob/master/RECIPES.md) file
+   * For other files (ENBSeries, SKSE, SRO, etc.) Look at the [`RECIPES.md`] file
    * for instructions specific to your file source.
 3) Now load Wabbajack, and point it to the `\<MO2 Folder>\mods\<your profile>\modlist.txt` file. 
 4) Click `Begin`.
@@ -76,7 +76,7 @@ Currently the Resolution stack looks like this:
 22) Ignore `HavockBehaviourPostProcess.exe` this seems to get copied around by tools for some reason
 23) Error for any file that survives to this point. 
 
-So as you can see we handle a lot of possible install situations. See the section on `Creating a Modpack` for information on working with the installer
+So as you can see we handle a lot of possible install situations. See the section on [`Creating a Modpack`](README.md#Creating_a_ModList_Installer) for information on working with the installer
 
 ### Patches
 Wabbajack can create binary patches for files that have been modified after installation. This could be `.esp` files that have been cleaned or patched. Or
@@ -99,7 +99,7 @@ Wabbajack can currently install from many different file hosting sources. Curren
 
 **How do I get Wabbjack to handle mods from `X`**
 
-Look at the `RECIPES.md` file, we keep a knowledgebase of how to deal with given types of mods in that file.
+Look at the [`RECIPES.md`] file, we keep a knowledgebase of how to deal with given types of mods in that file.
 
 **Why does each modpack install another copy of Mod Organizer 2?**
 
@@ -143,3 +143,4 @@ All original code in Wabbajack is given freely via the GPL3 license. Parts of Wa
 retain their original copyrights. Note: Wabbajack installers contain code from Wabbajack. Therefore, selling of modlist files is strictly forbidden. As is hosting 
 the files behind any sort of paywall. You recieved this tool free of charge, respect this by giving freely as you were given. 
 
+[`RECIPES.md`]: https://github.com/halgari/wabbajack/blob/master/RECIPES.md
