@@ -1,6 +1,5 @@
 ﻿using CG.Web.MegaApiClient;
 using Compression.BSA;
-using SevenZipExtractor;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,6 +35,7 @@ namespace Wabbajack
         public Dictionary<string, string> HashedArchives { get; private set; }
 
         public string NexusAPIKey { get; private set; }
+        public bool IgnoreMissingFiles { get; internal set; }
 
         public void Info(string msg, params object[] args)
         {
@@ -79,7 +79,14 @@ namespace Wabbajack
             {
                 foreach (var a in missing)
                     Info("Unable to download {0}", a.Name);
-                Error("Cannot continue, was unable to download one or more archives");
+                if (IgnoreMissingFiles)
+                {
+                    Info("Missing some archives, but continuing anyways at the request of the user");
+                }
+                else
+                {
+                    Error("Cannot continue, was unable to download one or more archives");
+                }
             }
             BuildFolderStructure();
             InstallArchives();
@@ -102,6 +109,7 @@ namespace Wabbajack
                                             .Select(e => e.Substring(source_dir.Length + 1))
                                             .ToList();
 
+                if(source_files.Count > 0)
                 using (var a = new BSABuilder())
                 {
 
@@ -155,14 +163,17 @@ namespace Wabbajack
         private void InstallArchives()
         {
             Info("Installing Archives");
+            Info("Grouping Install Files");
             var grouped = ModList.Directives
                                  .OfType<FromArchive>()
                                  .GroupBy(e => e.ArchiveHash)
                                  .ToDictionary(k => k.Key);
             var archives = ModList.Archives
-                                  .Select(a => new { Archive = a, AbsolutePath = HashedArchives[a.Hash] })
+                                  .Select(a => new { Archive = a, AbsolutePath = HashedArchives.GetOrDefault(a.Hash) })
+                                  .Where(a => a.AbsolutePath != null)
                                   .ToList();
 
+            Info("Installing Archives");
             archives.PMap(a => InstallArchive(a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
 
         }
@@ -173,20 +184,17 @@ namespace Wabbajack
             var files = grouping.GroupBy(e => e.From)
                                 .ToDictionary(e => e.Key);
 
-            using (var a = new ArchiveFile(absolutePath))
+            FileExtractor.Extract(absolutePath, entry =>
             {
-                a.Extract(entry =>
+                if (files.TryGetValue(entry.Name, out var directives))
                 {
-                    if (files.TryGetValue(entry.FileName, out var directives))
-                    {
-                        var directive = directives.First();
-                        var absolute = Path.Combine(Outputfolder, directive.To);
-                        if (absolute.FileExists()) File.Delete(absolute);
-                        return File.OpenWrite(absolute);
-                    }
-                    return null;
-                });
-            }
+                    var directive = directives.First();
+                    var absolute = Path.Combine(Outputfolder, directive.To);
+                    if (absolute.FileExists()) File.Delete(absolute);
+                    return File.OpenWrite(absolute);
+                }
+                return null;
+            });
 
             Status("Copying duplicated files for {0}", archive.Name);
 

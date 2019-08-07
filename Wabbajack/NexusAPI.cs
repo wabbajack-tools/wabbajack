@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -66,6 +67,7 @@ namespace Wabbajack
 
         public static string GetNexusDownloadLink(NexusMod archive, string apikey)
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             var client = BaseNexusClient(apikey);
             string url;
             string get_url_link = String.Format("https://api.nexusmods.com/v1/games/{0}/mods/{1}/files/{2}/download_link.json",

@@ -268,5 +268,11 @@ namespace Wabbajack.Common
             File.WriteAllText($"{DateTime.Now.ToString("yyyyMMddTHHmmss_crash_log.txt")}", ExceptionToString(e));
         }
 
+        public static V GetOrDefault<K, V>(this IDictionary<K, V> dict, K key)
+        {
+            if (dict.TryGetValue(key, out V v)) return v;
+            return default(V);
+        }
+
     }
 }

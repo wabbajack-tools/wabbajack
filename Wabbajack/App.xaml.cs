@@ -13,5 +13,6 @@ namespace Wabbajack
     /// </summary>
     public partial class App : Application
     {
+
     }
 }

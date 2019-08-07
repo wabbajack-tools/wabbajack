@@ -412,6 +412,7 @@ namespace SevenZipExtractor
         public virtual void Seek(long offset, uint seekOrigin, IntPtr newPosition)
         {
             long Position = (uint) this.BaseStream.Seek(offset, (SeekOrigin) seekOrigin);
+
             if (newPosition != IntPtr.Zero)
             {
                 Marshal.WriteInt64(newPosition, Position);
@@ -431,79 +432,6 @@ namespace SevenZipExtractor
         }
     }
 
-    // Can close base stream after period of inactivity and reopen it when needed.
-    // Useful for long opened archives (prevent locking archive file on disk).
-    internal class InStreamTimedWrapper : StreamWrapper, ISequentialInStream, IInStream
-    {
-        private string BaseStreamFileName;
-        private long BaseStreamLastPosition;
-        private Timer CloseTimer;
-
-        private const int KeepAliveInterval = 10 * 1000; // 10 sec
-
-        public InStreamTimedWrapper(Stream baseStream)
-            : base(baseStream)
-        {
-            if ((this.BaseStream is FileStream) && !this.BaseStream.CanWrite && this.BaseStream.CanSeek)
-            {
-                this.BaseStreamFileName = ((FileStream) this.BaseStream).Name;
-                this.CloseTimer = new Timer(new TimerCallback(this.CloseStream), null, KeepAliveInterval, Timeout.Infinite);
-            }
-        }
-
-        private void CloseStream(object state)
-        {
-            if (this.CloseTimer != null)
-            {
-                this.CloseTimer.Dispose();
-                this.CloseTimer = null;
-            }
-
-            if (this.BaseStream != null)
-            {
-                if (this.BaseStream.CanSeek)
-                {
-                    this.BaseStreamLastPosition = this.BaseStream.Position;
-                }
-                this.BaseStream.Close();
-                this.BaseStream = null;
-            }
-        }
-
-        protected void ReopenStream()
-        {
-            if (this.BaseStream == null)
-            {
-                if (this.BaseStreamFileName != null)
-                {
-                    this.BaseStream = new FileStream(this.BaseStreamFileName, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    this.BaseStream.Position = this.BaseStreamLastPosition;
-                    this.CloseTimer = new Timer(new TimerCallback(this.CloseStream), null, KeepAliveInterval, Timeout.Infinite);
-                }
-                else
-                {
-                    throw new ObjectDisposedException("StreamWrapper");
-                }
-            }
-            else if (this.CloseTimer != null)
-            {
-                this.CloseTimer.Change(KeepAliveInterval, Timeout.Infinite);
-            }
-        }
-
-        public uint Read(byte[] data, uint size)
-        {
-            this.ReopenStream();
-            return (uint) this.BaseStream.Read(data, 0, (int) size);
-        }
-
-        public override void Seek(long offset, uint seekOrigin, IntPtr newPosition)
-        {
-            this.ReopenStream();
-            base.Seek(offset, seekOrigin, newPosition);
-        }
-    }
-
     internal class OutStreamWrapper : StreamWrapper, ISequentialOutStream, IOutStream
     {
         public OutStreamWrapper(Stream baseStream) : base(baseStream)
@@ -519,10 +447,12 @@ namespace SevenZipExtractor
         public int Write(byte[] data, uint size, IntPtr processedSize)
         {
             this.BaseStream.Write(data, 0, (int) size);
+
             if (processedSize != IntPtr.Zero)
             {
                 Marshal.WriteInt32(processedSize, (int) size);
             }
+
             return 0;
         }
     }

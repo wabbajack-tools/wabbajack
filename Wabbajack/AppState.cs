@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SevenZipExtractor;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -47,6 +48,31 @@ namespace Wabbajack
             {
                 _mode = value;
                 OnPropertyChanged("Mode");
+            }
+        }
+
+        private bool _ignoreMissingFiles = false;
+        public bool IgnoreMissingFiles
+        {
+            get
+            {
+                return _ignoreMissingFiles;
+            }
+            set
+            {
+                if (value)
+                {
+                    if (MessageBox.Show("Setting this value could result in broken installations. \n Are you sure you want to continue?", "Ignore Missing Files?", MessageBoxButton.OKCancel, MessageBoxImage.Warning)
+                        == MessageBoxResult.OK)
+                    {
+                        _ignoreMissingFiles = value;
+                    }
+                }
+                else
+                {
+                    _ignoreMissingFiles = value;
+                }
+                OnPropertyChanged("IgnoreMissingFiles");
             }
         }
 
@@ -104,6 +130,7 @@ namespace Wabbajack
 
         public AppState(Dispatcher d, String mode)
         {
+            ArchiveFile.SetupLibrary();
             LogFile = Assembly.GetExecutingAssembly().Location + ".log";
 
             if (LogFile.FileExists())
@@ -254,6 +281,7 @@ namespace Wabbajack
             if (Mode == "Installing")
             {
                 var installer = new Installer(_modList, Location, msg => this.LogMsg(msg));
+                installer.IgnoreMissingFiles = IgnoreMissingFiles;
                 var th = new Thread(() =>
                 {
                     try
@@ -267,6 +295,8 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
+                        LogMsg(ex.StackTrace);
+                        LogMsg(ex.InnerException.ToString());
                         LogMsg($"{ex.Message} - Can't continue");
                     }
                 });
@@ -276,11 +306,21 @@ namespace Wabbajack
             else
             {
                 var compiler = new Compiler(_mo2Folder, msg => LogMsg(msg));
+                compiler.IgnoreMissingFiles = IgnoreMissingFiles;
                 compiler.MO2Profile = ModListName;
                 var th = new Thread(() =>
                 {
-                    compiler.LoadArchives();
-                    compiler.Compile();
+                    try
+                    {
+                        compiler.LoadArchives();
+                        compiler.Compile();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogMsg(ex.StackTrace);
+                        LogMsg(ex.InnerException.ToString());
+                        LogMsg($"{ex.Message} - Can't continue");
+                    }
                 });
                 th.Priority = ThreadPriority.BelowNormal;
                 th.Start();

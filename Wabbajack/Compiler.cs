@@ -1,6 +1,5 @@
 ﻿using Compression.BSA;
 using Newtonsoft.Json;
-using SevenZipExtractor;
 using SharpCompress.Archives;
 using System;
 using System.Collections.Concurrent;
@@ -27,6 +26,8 @@ namespace Wabbajack
 
         public dynamic MO2Ini { get; }
         public string GamePath { get; }
+
+        public bool IgnoreMissingFiles { get; set; }
 
         public string MO2DownloadsFolder
         {
@@ -120,36 +121,31 @@ namespace Wabbajack
                 return info;
             }
 
-            using (var ar = new ArchiveFile(file))
+            Status("Indexing {0}", Path.GetFileName(file));
+            var streams = new Dictionary<string, (SHA256Managed, long)>();
+            FileExtractor.Extract(file, entry => {
+                var sha = new SHA256Managed();
+                var os = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write);
+                streams.Add(entry.Name, (sha, (long)entry.Size));
+                return os;
+            });
+
+            var indexed = new IndexedArchiveCache();
+            indexed.Hash = file.FileSHA256();
+            indexed.Entries = streams.Select(entry =>
             {
-                Status("Indexing {0}", Path.GetFileName(file));
-                var streams = new Dictionary<string, (SHA256Managed, long)>();
-                ar.Extract(entry => {
-                    if (entry.IsFolder) return null;
-
-                    var sha = new SHA256Managed();
-                    var os = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write);
-                    streams.Add(entry.FileName, (sha, (long)entry.Size));
-                    return os;
-                });
-
-                var indexed = new IndexedArchiveCache();
-                indexed.Hash = file.FileSHA256();
-                indexed.Entries = streams.Select(entry =>
+                return new IndexedEntry()
                 {
-                    return new IndexedEntry()
-                    {
-                        Hash = entry.Value.Item1.Hash.ToBase64(),
-                        Size = (long)entry.Value.Item2,
-                        Path = entry.Key
-                    };
-                }).ToList();
+                    Hash = entry.Value.Item1.Hash.ToBase64(),
+                    Size = (long)entry.Value.Item2,
+                    Path = entry.Key
+                };
+            }).ToList();
 
-                streams.Do(e => e.Value.Item1.Dispose());
+            streams.Do(e => e.Value.Item1.Dispose());
 
-                indexed.ToJSON(metaname);
-                return LoadArchive(file);
-            }
+            indexed.ToJSON(metaname);
+            return LoadArchive(file);
         }
 
         public void Compile()
@@ -184,8 +180,14 @@ namespace Wabbajack
                 Info("     {0}", file.To);
             if (nomatch.Count() > 0)
             {
-                Info("Exiting due to no way to compile these files");
-                return;
+                if (IgnoreMissingFiles)
+                {
+                    Info("Continuing even though files were missing at the request of the user.");
+                }
+                else {
+                    Info("Exiting due to no way to compile these files");
+                    return;
+                }
             }
 
             InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
@@ -256,17 +258,14 @@ namespace Wabbajack
             var streams = new Dictionary<string, MemoryStream>();
             Status($"Extracting {paths.Count} patch files from {archive.Name}");
             // First we fetch the source files from the input archive
-            using (var a = new ArchiveFile(archive.AbsolutePath))
+            FileExtractor.Extract(archive.AbsolutePath, entry =>
             {
-                a.Extract(entry =>
-                {
-                    if (!paths.Contains(entry.FileName)) return null;
+                if (!paths.Contains(entry.Name)) return null;
 
-                    var result = new MemoryStream();
-                    streams.Add(entry.FileName, result);
-                    return result;
-                }, false);
-            }
+                var result = new MemoryStream();
+                streams.Add(entry.Name, result);
+                return result;
+            }, false);
 
             /*
             using (var a = ArchiveFactory.Open(archive.AbsolutePath))
@@ -286,6 +285,7 @@ namespace Wabbajack
             var extracted = streams.ToDictionary(k => k.Key, v => v.Value.ToArray());
             // Now Create the patches
             Status("Building Patches for {0}", archive.Name);
+            Info("Building Patches for {0}", archive.Name);
             group.PMap(entry =>
             {
                 Info("Patching {0}", entry.To);

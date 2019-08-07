@@ -97,48 +97,6 @@ namespace SevenZipExtractor
             });
         }
 
-        public void Extract(Func<Entry, Stream> getOutputStream, bool leave_open = false)
-        {
-            IList<Stream> fileStreams = new List<Stream>();
-
-            try
-            {
-                foreach (Entry entry in Entries)
-                {
-                    Stream outputStream = getOutputStream(entry);
-
-                    if (outputStream == null) // outputStream = null means SKIP
-                    {
-                        fileStreams.Add(null);
-                        continue;
-                    }
-
-                    if (entry.IsFolder)
-                    {
-                        fileStreams.Add(null);
-                        continue;
-                    }
-
-                    fileStreams.Add(outputStream);
-                }
-
-                this.archive.Extract(null, 0xFFFFFFFF, 0, new ArchiveStreamsCallback(fileStreams));
-            }
-            finally
-            {
-                if (!leave_open)
-                {
-                    foreach (Stream stream in fileStreams)
-                    {
-                        if (stream != null)
-                        {
-                            stream.Dispose();
-                        }
-                    }
-                }
-            }
-        }
-
         public void Extract(Func<Entry, string> getOutputPath) 
         {
             IList<Stream> fileStreams = new List<Stream>();
@@ -181,6 +139,48 @@ namespace SevenZipExtractor
                     if (stream != null)
                     {
                         stream.Dispose();
+                    }
+                }
+            }
+        }
+
+        public void Extract(Func<Entry, Stream> getOutputStream, bool leave_open = false)
+        {
+            IList<Stream> fileStreams = new List<Stream>();
+
+            try
+            {
+                foreach (Entry entry in Entries)
+                {
+                    Stream outputStream = getOutputStream(entry);
+
+                    if (outputStream == null) // outputStream = null means SKIP
+                    {
+                        fileStreams.Add(null);
+                        continue;
+                    }
+
+                    if (entry.IsFolder)
+                    {
+                        fileStreams.Add(null);
+                        continue;
+                    }
+
+                    fileStreams.Add(outputStream);
+                }
+
+                this.archive.Extract(null, 0xFFFFFFFF, 0, new ArchiveStreamsCallback(fileStreams));
+            }
+            finally
+            {
+                if (!leave_open)
+                {
+                    foreach (Stream stream in fileStreams)
+                    {
+                        if (stream != null)
+                        {
+                            stream.Dispose();
+                        }
                     }
                 }
             }
@@ -264,13 +264,9 @@ namespace SevenZipExtractor
             return result;
         }
 
-        private static object _lockobj = new object();
-        private static string _staticLibraryFilePath;
-
         private void InitializeAndValidateLibrary()
         {
-            this.libraryFilePath = SetupLibrary();
-
+            SetupLibrary();
             if (string.IsNullOrWhiteSpace(this.libraryFilePath))
             {
                 string currentArchitecture = IntPtr.Size == 4 ? "x86" : "x64"; // magic check
@@ -313,7 +309,10 @@ namespace SevenZipExtractor
             }
         }
 
-        private static string SetupLibrary()
+        private static string _staticLibraryFilePath = null;
+        private static object _lockobj = new object();
+
+        public static string SetupLibrary()
         {
             var zpath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "7z-x64.dll");
             if (_staticLibraryFilePath == null)
