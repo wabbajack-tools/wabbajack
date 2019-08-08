@@ -100,16 +100,26 @@ namespace Wabbajack
                                .PMap(file => LoadArchive(file));
         }
 
+
+        private const int ARCHIVE_CONTENTS_VERSION = 1;
         private IndexedArchive LoadArchive(string file)
         {
+        TOP:
             string metaname = file + ".archive_contents";
 
             if (metaname.FileExists() && new FileInfo(metaname).LastWriteTime >= new FileInfo(file).LastWriteTime)
             {
                 Status("Loading Archive Index for {0}", Path.GetFileName(file));
                 var info = metaname.FromJSON<IndexedArchive>();
+                if (info.Version != ARCHIVE_CONTENTS_VERSION)
+                {
+                    File.Delete(metaname);
+                    goto TOP;
+                }
+
                 info.Name = Path.GetFileName(file);
                 info.AbsolutePath = file;
+
 
                 var ini_name = file + ".meta";
                 if (ini_name.FileExists())
@@ -121,16 +131,44 @@ namespace Wabbajack
                 return info;
             }
 
+            IndexArchive(file).ToJSON(metaname);
+            goto TOP;
+        }
+
+        private bool IsArchiveFile(string name)
+        {
+            var ext = Path.GetExtension(name);
+            if (ext == ".bsa" || Consts.SupportedArchives.Contains(ext))
+                return true;
+            return false;
+        }
+
+        private IndexedArchiveCache IndexArchive(string file)
+        {
             Status("Indexing {0}", Path.GetFileName(file));
             var streams = new Dictionary<string, (SHA256Managed, long)>();
-            FileExtractor.Extract(file, entry => {
+            var inner_archives = new Dictionary<string, string>();
+            FileExtractor.Extract(file, entry =>
+            {
+                Stream inner;
+                if (IsArchiveFile(entry.Name))
+                {
+                    var name = Path.GetTempFileName() + Path.GetExtension(entry.Name);
+                    inner_archives.Add(entry.Name, name);
+                    inner = File.OpenWrite(name);
+                }
+                else
+                {
+                    inner = Stream.Null;
+                }
                 var sha = new SHA256Managed();
-                var os = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write);
+                var os = new CryptoStream(inner, sha, CryptoStreamMode.Write);
                 streams.Add(entry.Name, (sha, (long)entry.Size));
                 return os;
             });
 
             var indexed = new IndexedArchiveCache();
+            indexed.Version = ARCHIVE_CONTENTS_VERSION;
             indexed.Hash = file.FileSHA256();
             indexed.Entries = streams.Select(entry =>
             {
@@ -144,8 +182,18 @@ namespace Wabbajack
 
             streams.Do(e => e.Value.Item1.Dispose());
 
-            indexed.ToJSON(metaname);
-            return LoadArchive(file);
+            if (inner_archives.Count > 0)
+            {
+                var result = inner_archives.Select(archive =>
+                {
+                    return (archive.Key, IndexArchive(archive.Value));
+                }).ToDictionary(e => e.Key, e => e.Item2);
+                indexed.InnerArchives = result;
+
+                inner_archives.Do(e => File.Delete(e.Value));
+            }
+
+            return indexed;
         }
 
         public void Compile()

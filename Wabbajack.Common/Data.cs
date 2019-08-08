@@ -194,7 +194,11 @@ namespace Wabbajack.Common
     public class IndexedArchiveCache
     {
         public string Hash;
+        public int Version;
         public List<IndexedEntry> Entries;
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public Dictionary<string, IndexedArchiveCache> InnerArchives;
     }
 
     public class IndexedArchive : IndexedArchiveCache
