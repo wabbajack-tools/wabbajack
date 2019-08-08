@@ -267,21 +267,6 @@ namespace Wabbajack
                 return result;
             }, false);
 
-            /*
-            using (var a = ArchiveFactory.Open(archive.AbsolutePath))
-            {
-                foreach (var entry in a.Entries)
-                {
-                    var path = entry.Key.Replace("/", "\\");
-                    if (!paths.Contains(path)) continue;
-                    var result = new MemoryStream();
-                    streams.Add(path, result);
-                    Info("Extracting {0}", path);
-                    using (var stream = entry.OpenEntryStream())
-                        stream.CopyTo(result);
-                }
-            }*/
-
             var extracted = streams.ToDictionary(k => k.Key, v => v.Value.ToArray());
             // Now Create the patches
             Status("Building Patches for {0}", archive.Name);
@@ -358,7 +343,7 @@ namespace Wabbajack
                     Status($"Getting Nexus info for {found.Name}");
                     try
                     {
-                        var info = NexusAPI.GetFileInfo((NexusMod)result, NexusKey);
+                        var link = NexusAPI.GetNexusDownloadLink((NexusMod)result, NexusKey);
                     }
                     catch (Exception ex)
                     {
