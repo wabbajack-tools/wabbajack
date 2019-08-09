@@ -166,7 +166,7 @@ namespace Wabbajack
             Info("Grouping Install Files");
             var grouped = ModList.Directives
                                  .OfType<FromArchive>()
-                                 .GroupBy(e => e.ArchiveHash)
+                                 .GroupBy(e => e.ArchiveHashPath[0])
                                  .ToDictionary(k => k.Key);
             var archives = ModList.Archives
                                   .Select(a => new { Archive = a, AbsolutePath = HashedArchives.GetOrDefault(a.Hash) })
@@ -181,12 +181,13 @@ namespace Wabbajack
         private void InstallArchive(Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
         {
             Status("Extracting {0}", archive.Name);
-            var files = grouping.GroupBy(e => e.From)
+            var files = grouping.GroupBy(e => e.FullPath)
                                 .ToDictionary(e => e.Key);
 
-            FileExtractor.Extract(absolutePath, entry =>
+            FileExtractor.DeepExtract(absolutePath, files.Select(f => f.Value.First()),
+            (fe, entry) =>
             {
-                if (files.TryGetValue(entry.Name, out var directives))
+                if (files.TryGetValue(fe.FullPath, out var directives))
                 {
                     var directive = directives.First();
                     var absolute = Path.Combine(Outputfolder, directive.To);

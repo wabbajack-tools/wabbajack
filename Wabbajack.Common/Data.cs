@@ -92,11 +92,26 @@ namespace Wabbajack.Common
         /// <summary>
         /// MurMur3 hash of the archive this file comes from
         /// </summary>
-        public string ArchiveHash;
+        public string[] ArchiveHashPath;
         /// <summary>
         /// The relative path of the file in the archive
         /// </summary>
         public string From;
+
+        private string _fullPath = null;
+        [JsonIgnore]
+        public string FullPath
+        {
+            get
+            {
+                if (_fullPath == null) {
+                    var path = ArchiveHashPath.ToList();
+                    path.Add(From);
+                    _fullPath = String.Join("|", path);
+                }
+                return _fullPath;
+            }
+        }
     }
 
     public class CreateBSA : Directive
@@ -207,6 +222,7 @@ namespace Wabbajack.Common
         public string Name;
         public string Meta;
         public string AbsolutePath;
+        public List<string> HashPath;
     }
 
     /// <summary>
@@ -226,6 +242,11 @@ namespace Wabbajack.Common
         /// Size of the file (uncompressed)
         /// </summary>
         public long Size;
+    }
+
+    public class IndexedArchiveEntry : IndexedEntry
+    {
+        public string[] HashPath;
     }
 
     /// <summary>

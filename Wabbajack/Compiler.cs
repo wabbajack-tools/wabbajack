@@ -60,6 +60,8 @@ namespace Wabbajack
 
         public List<IndexedArchive> IndexedArchives;
 
+        public List<IndexedArchiveEntry> IndexedFiles { get; private set; }
+
         public void Info(string msg, params object[] args)
         {
             if (args.Length > 0)
@@ -98,6 +100,43 @@ namespace Wabbajack
             IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
                                .Where(file => Consts.SupportedArchives.Contains(Path.GetExtension(file)))
                                .PMap(file => LoadArchive(file));
+            IndexedFiles = FlattenFiles(IndexedArchives);
+            Info($"Found {IndexedFiles.Count} files in archives");
+        }
+
+        private List<IndexedArchiveEntry> FlattenFiles(IEnumerable<IndexedArchive> archives)
+        {
+            return archives.PMap(e => FlattenArchiveEntries(e, null, new string[0]))
+                           .SelectMany(e => e)
+                           .ToList();
+        }
+
+        private IEnumerable<IndexedArchiveEntry> FlattenArchiveEntries(IndexedArchiveCache archive, string name, string[] path)
+        {
+            var new_path = new string[path.Length + 1];
+            Array.Copy(path, 0, new_path, 0, path.Length);
+            new_path[path.Length] = path.Length == 0 ? archive.Hash : name;
+
+            foreach (var e in archive.Entries)
+            {
+                yield return new IndexedArchiveEntry()
+                {
+                    Path = e.Path,
+                    Size = e.Size,
+                    Hash = e.Hash,
+                    HashPath = new_path
+                };
+            }
+            if (archive.InnerArchives != null) {
+                foreach (var inner in archive.InnerArchives)
+                {
+                    foreach (var entry in FlattenArchiveEntries(inner.Value, inner.Key, new_path))
+                    {
+                        yield return entry;
+                    }
+                }
+            }
+
         }
 
 
@@ -285,7 +324,7 @@ namespace Wabbajack
         private void BuildPatches()
         {
             var groups = InstallDirectives.OfType<PatchedFromArchive>()
-                                          .GroupBy(p => p.ArchiveHash)
+                                          .GroupBy(p => p.ArchiveHashPath[0])
                                           .ToList();
 
             Info("Patching building patches from {0} archives", groups.Count);
@@ -302,17 +341,19 @@ namespace Wabbajack
         private void BuildArchivePatches(string archive_sha, IEnumerable<PatchedFromArchive> group, Dictionary<string, string> absolute_paths)
         {
             var archive = IndexedArchives.First(a => a.Hash == archive_sha);
-            var paths = group.Select(g => g.From).ToHashSet();
+            var paths = group.Select(g => g.FullPath).ToHashSet();
             var streams = new Dictionary<string, MemoryStream>();
             Status($"Extracting {paths.Count} patch files from {archive.Name}");
             // First we fetch the source files from the input archive
-            FileExtractor.Extract(archive.AbsolutePath, entry =>
+
+            FileExtractor.DeepExtract(archive.AbsolutePath, group, (fe, entry) => 
             {
-                if (!paths.Contains(entry.Name)) return null;
+                if (!paths.Contains(fe.FullPath)) return null;
 
                 var result = new MemoryStream();
-                streams.Add(entry.Name, result);
+                streams.Add(fe.FullPath, result);
                 return result;
+
             }, false);
 
             var extracted = streams.ToDictionary(k => k.Key, v => v.Value.ToArray());
@@ -322,7 +363,7 @@ namespace Wabbajack
             group.PMap(entry =>
             {
                 Info("Patching {0}", entry.To);
-                var ss = extracted[entry.From];
+                var ss = extracted[entry.FullPath];
                 using (var origin = new MemoryStream(ss))
                 using (var output = new MemoryStream())
                 {
@@ -358,10 +399,11 @@ namespace Wabbajack
 
         private void GatherArchives()
         {
+            Info($"Building a list of archives based on the files required");
             var archives = IndexedArchives.GroupBy(a => a.Hash).ToDictionary(k => k.Key, k => k.First());
 
             var shas = InstallDirectives.OfType<FromArchive>()
-                                        .Select(a => a.ArchiveHash)
+                                        .Select(a => a.ArchiveHashPath[0])
                                         .Distinct();
 
             SelectedArchives = shas.PMap(sha => ResolveArchive(sha, archives));
@@ -639,9 +681,11 @@ namespace Wabbajack
 
         private Func<RawSourceFile, Directive> IncludePatches()
         {
-            var indexed = (from archive in IndexedArchives
-                           from entry in archive.Entries
-                           select new { archive = archive, entry = entry })
+            var archive_shas = IndexedArchives.GroupBy(e => e.Hash)
+                                  .ToDictionary(e => e.Key);
+            var indexed = (from entry in IndexedFiles
+                           select new { archive = archive_shas[entry.HashPath[0]].First(),
+                                        entry = entry })
                            .GroupBy(e => Path.GetFileName(e.entry.Path).ToLower())
                            .ToDictionary(e => e.Key);
 
@@ -653,7 +697,7 @@ namespace Wabbajack
 
                     var e = source.EvolveTo<PatchedFromArchive>();
                     e.From = found.entry.Path;
-                    e.ArchiveHash = found.archive.Hash;
+                    e.ArchiveHashPath = found.entry.HashPath;
                     e.To = source.Path;
                     return e;
                 }
@@ -778,9 +822,12 @@ namespace Wabbajack
 
         private Func<RawSourceFile, Directive> DirectMatch()
         {
-            var indexed = (from archive in IndexedArchives
-                           from entry in archive.Entries
-                           select new { archive = archive, entry = entry })
+            var archive_shas = IndexedArchives.GroupBy(e => e.Hash)
+                                              .ToDictionary(e => e.Key);
+
+            var indexed = (from entry in IndexedFiles
+                           select new { archive = archive_shas[entry.HashPath[0]].First(),
+                                        entry = entry })
                            .GroupBy(e => e.entry.Hash)
                            .ToDictionary(e => e.Key);
 
@@ -810,7 +857,7 @@ namespace Wabbajack
                         match = found.OrderByDescending(f => new FileInfo(f.archive.AbsolutePath).LastWriteTime)
                                      .FirstOrDefault();
 
-                    result.ArchiveHash = match.archive.Hash;
+                    result.ArchiveHashPath = match.entry.HashPath;
                     result.From = match.entry.Path;
                     return result;
                 }
