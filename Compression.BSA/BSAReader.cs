@@ -251,7 +251,7 @@ namespace Compression.BSA
         private int _offset;
         private FolderRecord _folder;
         private string _name;
-        private uint _originalSize;
+        private uint? _originalSize;
 
         public FileRecord(BSAReader bsa, FolderRecord folderRecord, BinaryReader src)
         {
@@ -296,8 +296,33 @@ namespace Compression.BSA
         {
             get
             {
-                if (Compressed) return (int)_originalSize;
+                if (Compressed)
+                {
+                    if (_originalSize == null)
+                        LoadOriginalSize();
+                    return (int)_originalSize;
+                }
                 return _size;
+            }
+        }
+
+        private void LoadOriginalSize()
+        {
+            using (var in_file = File.OpenRead(_bsa._fileName))
+            using (var rdr = new BinaryReader(in_file))
+            {
+                rdr.BaseStream.Position = _offset;
+                string _name;
+                int file_size = _size;
+                if (_bsa.HasNameBlobs)
+                {
+                    var name_size = rdr.ReadByte();
+                    file_size -= name_size + 1;
+                    rdr.BaseStream.Position = _offset + 1 + name_size;
+                }
+
+                _originalSize = rdr.ReadUInt32();
+
             }
         }
 
