@@ -279,6 +279,8 @@ namespace Wabbajack
 
             InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
 
+            Info("Getting nexus api_key please click authorize if a browser window appears");
+
             NexusKey = NexusAPI.GetNexusAPIKey();
             User = NexusAPI.GetUserStatus(NexusKey);
             

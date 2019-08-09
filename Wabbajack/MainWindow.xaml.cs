@@ -42,6 +42,7 @@ namespace Wabbajack
             InitializeComponent();
 
             var context = new AppState(Dispatcher, "Building");
+            context.LogMsg($"Wabbajack Build - {ThisAssembly.Git.Sha}");
             SetupHandlers(context);
             this.DataContext = context;
             WorkQueue.Init((id, msg, progress) => context.SetProgress(id, msg, progress),
