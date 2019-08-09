@@ -366,7 +366,7 @@ namespace Compression.BSA
                     }
                     else
                     {
-                        
+                        throw new NotImplementedException("Compressed Skyrim LE archives not yet implemented");
                     }
                 }
                 else
@@ -379,7 +379,7 @@ namespace Compression.BSA
                         file_size -= name_size + 1;
                         rdr.BaseStream.Position = _offset + 1 + name_size;
                     }
-                    rdr.BaseStream.CopyToLimit(output, Size);
+                    rdr.BaseStream.CopyToLimit(output, file_size);
                 }
             }
         }
