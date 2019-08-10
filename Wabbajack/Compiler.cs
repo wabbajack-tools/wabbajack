@@ -561,6 +561,7 @@ namespace Wabbajack
                 IncludeModIniData(),
                 DirectMatch(),
                 IncludePatches(),
+                IncludeDummyESPs(),
 
                 DeconstructBSAs(),
 
@@ -577,6 +578,35 @@ namespace Wabbajack
                 // Theme file MO2 downloads somehow
                 IgnoreEndsWith("splash.png"),
                 DropAll()
+            };
+        }
+
+
+        /// <summary>
+        /// Some tools like the Cathedral Asset Optimizer will create dummy ESPs whos only existance is to make
+        /// sure a BSA with the same name is loaded. We don't have a good way to detect these, but if an ESP is 
+        /// less than 100 bytes in size and shares a name with a BSA it's a pretty good chance that it's a dummy
+        /// and the contents are generated. 
+        /// </summary>
+        /// <returns></returns>
+        private Func<RawSourceFile, Directive> IncludeDummyESPs()
+        {
+            return source =>
+            {
+                if (Path.GetExtension(source.AbsolutePath) == ".esp")
+                {
+                    var bsa = Path.Combine(Path.GetDirectoryName(source.AbsolutePath), Path.GetFileNameWithoutExtension(source.AbsolutePath) + ".bsa");
+                    var bsa_textures = Path.Combine(Path.GetDirectoryName(source.AbsolutePath), Path.GetFileNameWithoutExtension(source.AbsolutePath) + " - Textures.bsa");
+                    var esp_size = new FileInfo(source.AbsolutePath).Length;
+                    if (esp_size <= 100 && (File.Exists(bsa) || File.Exists(bsa_textures)))
+                    {
+                        var inline = source.EvolveTo<InlineFile>();
+                        inline.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                        return inline;
+                    }
+                }
+
+                return null;
             };
         }
 
