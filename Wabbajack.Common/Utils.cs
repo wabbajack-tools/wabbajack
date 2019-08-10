@@ -169,6 +169,8 @@ namespace Wabbajack.Common
             WorkQueue.MaxQueueSize = colllst.Count;
             WorkQueue.CurrentQueueSize = 0;
 
+            int remaining_tasks = colllst.Count;
+
             var tasks = coll.Select(i =>
             {
                 TaskCompletionSource<TR> tc = new TaskCompletionSource<TR>();
@@ -183,10 +185,21 @@ namespace Wabbajack.Common
                         tc.SetException(ex);
                     }
                     Interlocked.Increment(ref WorkQueue.CurrentQueueSize);
+                    Interlocked.Decrement(ref remaining_tasks);
                     WorkQueue.ReportNow();
                 });
                 return tc.Task;
             }).ToList();
+
+            // To avoid thread starvation, we'll start to help out in the work queue
+            if (WorkQueue.WorkerThread)
+            while(remaining_tasks > 0)
+            {
+                if(WorkQueue.Queue.TryTake(out var a, 500))
+                {
+                    a();
+                }
+            }
 
             return tasks.Select(t =>
             {
@@ -199,29 +212,11 @@ namespace Wabbajack.Common
 
         public static void PMap<TI>(this IEnumerable<TI> coll, Action<TI> f)
         {
-            var tasks = coll.Select(i =>
+            coll.PMap<TI, bool>(i =>
             {
-                TaskCompletionSource<bool> tc = new TaskCompletionSource<bool>();
-                WorkQueue.QueueTask(() =>
-                {
-                    try
-                    {
-                        f(i);
-                        tc.SetResult(true);
-                    }
-                    catch (Exception ex)
-                    {
-                        tc.SetException(ex);
-                    }
-                });
-                return tc.Task;
-            }).ToList();
-
-            tasks.Select(t =>
-            {
-                t.Wait();
-                return t.Result;
-            }).ToList();
+                f(i);
+                return false;
+            });
             return;
         }
 
