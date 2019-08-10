@@ -10,10 +10,13 @@ namespace Wabbajack.Common
 {
     public class WorkQueue
     {
-        private static BlockingCollection<Action> Queue = new BlockingCollection<Action>();
+        internal static BlockingCollection<Action> Queue = new BlockingCollection<Action>();
 
         [ThreadStatic]
         private static int CpuId;
+
+        [ThreadStatic]
+        internal static bool WorkerThread;
 
         public static void Init(Action<int, string, int> report_function, Action<int, int> report_queue_size)
         {
@@ -40,6 +43,7 @@ namespace Wabbajack.Common
         private static void ThreadBody(int idx)
         {
             CpuId = idx;
+            WorkerThread = true;
 
             while(true)
             {
