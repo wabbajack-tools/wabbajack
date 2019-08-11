@@ -57,6 +57,7 @@ namespace Wabbajack
         public List<RawSourceFile> AllFiles { get; private set; }
         public ModList ModList { get; private set; }
         public ConcurrentBag<Directive> ExtraFiles { get; private set; }
+        public Dictionary<string, dynamic> ModInis { get; private set; }
 
         public List<IndexedArchive> IndexedArchives;
 
@@ -252,6 +253,18 @@ namespace Wabbajack
 
             ExtraFiles = new ConcurrentBag<Directive>();
 
+            ModInis = Directory.EnumerateDirectories(Path.Combine(MO2Folder, "mods"))
+                               .Select(f =>
+                        {
+                            var mod_name = Path.GetFileName(f);
+                            var meta_path = Path.Combine(f, "meta.ini");
+                            if (File.Exists(meta_path))
+                                return (mod_name, meta_path.LoadIniFile());
+                            return (null, null);
+                        })
+                        .Where(f => f.Item2 != null)
+                        .ToDictionary(f => f.Item1, f => f.Item2);
+
             var stack = MakeStack();
 
             Info("Running Compilation Stack");
@@ -373,6 +386,7 @@ namespace Wabbajack
                     var b = LoadDataForTo(entry.To, absolute_paths);
                     BSDiff.Create(a, b, output);
                     entry.Patch = output.ToArray().ToBase64();
+                    Info($"Patch size {entry.Patch.Length} for {entry.To}");
                 }
             });
 
@@ -435,7 +449,7 @@ namespace Wabbajack
                     Status($"Getting Nexus info for {found.Name}");
                     try
                     {
-                        var link = NexusAPI.GetNexusDownloadLink((NexusMod)result, NexusKey);
+                       // var link = NexusAPI.GetNexusDownloadLink((NexusMod)result, NexusKey);
                     }
                     catch (Exception ex)
                     {
@@ -560,6 +574,7 @@ namespace Wabbajack
                 IgnoreRegex(Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
                 IncludeModIniData(),
                 DirectMatch(),
+                IncludeTaggedFiles(),
                 IncludePatches(),
                 IncludeDummyESPs(),
 
@@ -578,6 +593,43 @@ namespace Wabbajack
                 // Theme file MO2 downloads somehow
                 IgnoreEndsWith("splash.png"),
                 DropAll()
+            };
+        }
+
+
+        /// <summary>
+        /// If a user includes WABBAJACK_INCLUDE directly in the notes or comments of a mod, the contents of that 
+        /// mod will be inlined into the installer. USE WISELY.
+        /// </summary>
+        /// <returns></returns>
+        private Func<RawSourceFile, Directive> IncludeTaggedFiles()
+        {
+            var include_directly = ModInis.Where(kv => {
+                var general = kv.Value.General;
+                if (general.notes != null && general.notes.Contains(Consts.WABBAJACK_INCLUDE))
+                    return true;
+                if (general.comments != null && general.comments.Contains(Consts.WABBAJACK_INCLUDE))
+                    return true;
+                return false;
+                }).Select(kv => $"mods\\{kv.Key}\\");
+
+
+            return source =>
+            {
+
+                if (source.Path.StartsWith("mods"))
+                {
+                    foreach (var modpath in include_directly)
+                    {
+                        if (source.Path.StartsWith(modpath))
+                        {
+                            var result = source.EvolveTo<InlineFile>();
+                            result.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                            return result;
+                        }
+                    }
+                }
+                return null;
             };
         }
 
@@ -682,13 +734,13 @@ namespace Wabbajack
             var results = new List<(string, string)>();
             using (var a = new BSAReader(absolutePath))
             {
-                foreach (var entry in a.Files)
+                a.Files.PMap(entry =>
                 {
                     Status($"Hashing BSA: {absolutePath} - {entry.Path}");
 
                     var data = entry.GetData();
                     results.Add((entry.Path, data.SHA256()));
-                }
+                });
             }
             return results;
         }
@@ -863,17 +915,7 @@ namespace Wabbajack
                            .GroupBy(e => e.entry.Hash)
                            .ToDictionary(e => e.Key);
 
-            var mod_inis = Directory.EnumerateDirectories(Path.Combine(MO2Folder, "mods"))
-                                    .Select(f =>
-                                    {
-                                        var mod_name = Path.GetFileName(f);
-                                        var meta_path = Path.Combine(f, "meta.ini");
-                                        if (File.Exists(meta_path))
-                                            return (mod_name, meta_path.LoadIniFile());
-                                        return (null, null);
-                                    })
-                                    .Where(f => f.Item2 != null)
-                                    .ToDictionary(f => f.Item1, f => f.Item2);
+
 
             return source =>
             {

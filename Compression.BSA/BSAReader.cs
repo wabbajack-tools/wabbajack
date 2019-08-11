@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using K4os.Compression.LZ4.Streams;
+using lz4;
 
 namespace Compression.BSA
 {
@@ -359,10 +359,13 @@ namespace Compression.BSA
                     }
 
                     var original_size = rdr.ReadUInt32();
+                    file_size -= 4;
                     if (_bsa.HeaderType == VersionType.SSE)
                     {
-                        var r = LZ4Stream.Decode(rdr.BaseStream);
-                        r.CopyTo(output);
+                        using (var dc = LZ4Stream.CreateDecompressor(output, LZ4StreamMode.Write, true))
+                        {
+                            rdr.BaseStream.CopyToLimit(dc, file_size);
+                        }
                     }
                     else
                     {

@@ -131,6 +131,9 @@ namespace Wabbajack
                 }
             });
 
+            Info($"Removing temp folder {Consts.BSACreationDir}");
+            Directory.Delete(Path.Combine(Outputfolder, Consts.BSACreationDir), true);
+
         }
 
         private void InstallIncludedFiles()
@@ -265,6 +268,7 @@ namespace Wabbajack
 
                 if (output_path.FileExists())
                     File.Delete(output_path);
+
 
                 switch (archive) {
                     case NexusMod a:

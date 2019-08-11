@@ -9,11 +9,11 @@ namespace Compression.BSA.Test
 {
     class Program
     {
-        const string TestDir = "c:\\Mod Organizer 2\\mods";
+        const string TestDir = "d:\\Personal YASHEd\\mods";
         const string TempDir = "c:\\tmp\\out";
         static void Main(string[] args)
         {
-            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.bsa", SearchOption.AllDirectories))
+            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.bsa", SearchOption.AllDirectories).Skip(3))
             {
                 Console.WriteLine($"From {bsa}");
                 Console.WriteLine("Cleaning Output Dir");
@@ -84,7 +84,7 @@ namespace Compression.BSA.Test
 
                         }
                     }
-                    //break;
+                    break;
                 }
             }
         }

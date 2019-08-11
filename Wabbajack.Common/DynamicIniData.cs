@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Wabbajack.Common
 {
@@ -46,6 +47,10 @@ namespace Wabbajack.Common
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
             result = _coll[binder.Name];
+            if (result is string)
+            {
+                result = Regex.Unescape(((string)result).Trim('"'));
+            }
             return true;
         }
     }

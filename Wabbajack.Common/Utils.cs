@@ -166,8 +166,8 @@ namespace Wabbajack.Common
         public static List<TR> PMap<TI, TR>(this IEnumerable<TI> coll, Func<TI, TR> f)
         {
             var colllst = coll.ToList();
-            WorkQueue.MaxQueueSize = colllst.Count;
-            WorkQueue.CurrentQueueSize = 0;
+            Interlocked.Add(ref WorkQueue.MaxQueueSize, colllst.Count);
+            //WorkQueue.CurrentQueueSize = 0;
 
             int remaining_tasks = colllst.Count;
 
@@ -199,6 +199,12 @@ namespace Wabbajack.Common
                 {
                     a();
                 }
+            }
+
+            if (WorkQueue.CurrentQueueSize == WorkQueue.MaxQueueSize)
+            {
+                WorkQueue.MaxQueueSize = 0;
+                WorkQueue.MaxQueueSize = 0;
             }
 
             return tasks.Select(t =>

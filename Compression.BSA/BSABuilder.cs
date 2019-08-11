@@ -1,5 +1,4 @@
-﻿using K4os.Compression.LZ4;
-using K4os.Compression.LZ4.Streams;
+﻿using lz4;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +10,6 @@ namespace Compression.BSA
 {
     public class BSABuilder : IDisposable
     {
-        internal LZ4Level _compressionLevel;
         internal byte[] _fileId;
         internal uint _version;
         internal uint _offset;
@@ -27,7 +25,6 @@ namespace Compression.BSA
 
         public BSABuilder()
         {
-            _compressionLevel = LZ4Level.L10_OPT;
             _fileId = Encoding.ASCII.GetBytes("BSA\0");
             _offset = 0x24;
         }
@@ -299,6 +296,7 @@ namespace Compression.BSA
         internal ulong _hash;
         internal byte[] _nameBytes;
         internal byte[] _pathBytes;
+        private byte[] _pathBSBytes;
         internal byte[] _rawData;
         internal int _originalSize;
         private long _offsetOffset;
@@ -311,6 +309,7 @@ namespace Compression.BSA
             _hash = _name.GetBSAHash();
             _nameBytes = _name.ToTermString();
             _pathBytes = _path.ToTermString();
+            _pathBSBytes = _path.ToBSString();
             _flipCompression = flipCompression;
 
             var ms = new MemoryStream();
@@ -328,8 +327,13 @@ namespace Compression.BSA
             if (_bsa.HeaderType == VersionType.SSE)
             {
                 var r = new MemoryStream();
-                using (var w = LZ4Stream.Encode(r, new LZ4EncoderSettings() { CompressionLevel = _bsa._compressionLevel })) 
-                    (new MemoryStream(_rawData)).CopyTo(w);
+
+                using (var f = LZ4Stream.CreateCompressor(r, LZ4StreamMode.Write, LZ4FrameBlockMode.Independent, LZ4FrameBlockSize.Max4MB, LZ4FrameChecksumMode.Content,
+                                                         highCompression: true, leaveInnerStreamOpen: true))
+                {
+                    
+                    new MemoryStream(_rawData).CopyTo(f);
+                }
 
                 _rawData = r.ToArray();
 
@@ -385,10 +389,19 @@ namespace Compression.BSA
 
         {
             wtr.Write(_hash);
+            var size = _rawData.Length;
+            if (_bsa.HasNameBlobs)
+            {
+                size += _pathBSBytes.Length;
+            }
+            if (Compressed)
+            {
+                size += 4;
+            }
             if (_flipCompression)
-                wtr.Write((uint)_rawData.Length | (0x1 << 30));
+                wtr.Write((uint)size | (0x1 << 30));
             else
-                wtr.Write((uint)_rawData.Length);
+                wtr.Write((uint)size);
 
             _offsetOffset = wtr.BaseStream.Position;
             wtr.Write((uint)0xDEADBEEF);
@@ -405,7 +418,7 @@ namespace Compression.BSA
             {
                 if (_bsa.HasNameBlobs)
                 {
-                    wtr.Write(_path.ToBSString());
+                    wtr.Write(_pathBSBytes);
                 }
                 wtr.Write((uint)_originalSize);
                 wtr.Write(_rawData);
@@ -414,7 +427,7 @@ namespace Compression.BSA
             {
                 if (_bsa.HasNameBlobs)
                 {
-                    wtr.Write(_path.ToBSString());
+                    wtr.Write(_pathBSBytes);
                 }
                 wtr.Write(_rawData);
             }
