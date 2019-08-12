@@ -563,6 +563,7 @@ namespace Wabbajack
                 IgnoreStartsWith("webcache\\"),
                 IgnoreStartsWith("overwrite\\"),
                 IgnoreEndsWith(".pyc"),
+                IgnoreEndsWith(".log"),
                 IgnoreOtherProfiles(),
                 IgnoreDisabledMods(),
                 IncludeThisProfile(),
@@ -575,10 +576,10 @@ namespace Wabbajack
                 IncludeModIniData(),
                 DirectMatch(),
                 IncludeTaggedFiles(),
+                DeconstructBSAs(), // Deconstruct BSAs before building patches so we don't generate massive patch files
                 IncludePatches(),
                 IncludeDummyESPs(),
 
-                DeconstructBSAs(),
 
                 // If we have no match at this point for a game folder file, skip them, we can't do anything about them
                 IgnoreGameFiles(),
