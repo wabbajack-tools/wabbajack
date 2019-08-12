@@ -1,10 +1,10 @@
-﻿using lz4;
+﻿using K4os.Compression.LZ4;
+using K4os.Compression.LZ4.Streams;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Compression.BSA
 {
@@ -327,13 +327,8 @@ namespace Compression.BSA
             if (_bsa.HeaderType == VersionType.SSE)
             {
                 var r = new MemoryStream();
-
-                using (var f = LZ4Stream.CreateCompressor(r, LZ4StreamMode.Write, LZ4FrameBlockMode.Independent, LZ4FrameBlockSize.Max4MB, LZ4FrameChecksumMode.Content,
-                                                         highCompression: true, leaveInnerStreamOpen: true))
-                {
-                    
-                    new MemoryStream(_rawData).CopyTo(f);
-                }
+                using (var w = LZ4Stream.Encode(r, new LZ4EncoderSettings() { CompressionLevel = LZ4Level.L10_OPT}))
+                    (new MemoryStream(_rawData)).CopyTo(w);
 
                 _rawData = r.ToArray();
 
