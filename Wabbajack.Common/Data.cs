@@ -33,6 +33,11 @@ namespace Wabbajack.Common
             v.To = Path;
             return v;
         }
+
+        public void LoadHashFromCache(HashCache cache)
+        {
+            _hash = cache.HashFile(AbsolutePath);
+        }
     }
 
     public class ModList
@@ -172,6 +177,14 @@ namespace Wabbajack.Common
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public List<string> Headers;
+    }
+
+    /// <summary>
+    /// A URL that cannot be downloaded automatically and has to be downloaded by hand
+    /// </summary>
+    public class ManualURLArchive : Archive
+    {
+        public string URL;
     }
 
     /// <summary>

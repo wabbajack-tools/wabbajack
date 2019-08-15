@@ -269,6 +269,24 @@ namespace Wabbajack.Common
             File.WriteAllText($"{DateTime.Now.ToString("yyyyMMddTHHmmss_crash_log.txt")}", ExceptionToString(e));
         }
 
+        public static IEnumerable<T> DistinctBy<T, V>(this IEnumerable<T> vs, Func<T, V> select)
+        {
+            HashSet<V> set = new HashSet<V>();
+            foreach (var v in vs) {
+                var key = select(v);
+                if (set.Contains(key)) continue;
+                yield return v;
+            }
+
+        }
+
+        public static T Last<T>(this T[] a)
+        {
+            if (a == null || a.Length == 0)
+                throw new InvalidDataException("null or empty array");
+            return a[a.Length - 1];
+        }
+
         public static V GetOrDefault<K, V>(this IDictionary<K, V> dict, K key)
         {
             if (dict.TryGetValue(key, out V v)) return v;
