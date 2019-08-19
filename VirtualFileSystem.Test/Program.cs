@@ -11,10 +11,11 @@ namespace VirtualFileSystem.Test
     {
         static void Main(string[] args)
         {
+            Utils.SetLoggerFn(s => Console.WriteLine(s));
+            Utils.SetStatusFn((s, i) => Console.WriteLine(s));
             WorkQueue.Init((a, b, c) => { return; },
                            (a, b) => { return; });
-            var vfs = new VirtualFileSystem();
-            vfs.AddRoot(@"D:\MO2 Instances\Mod Organizer 2", s => Console.WriteLine(s));
+            VirtualFileSystem.VFS.AddRoot(@"D:\MO2 Instances\Mod Organizer 2");
         }
     }
 }

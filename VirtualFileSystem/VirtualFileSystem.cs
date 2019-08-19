@@ -4,24 +4,117 @@ using Newtonsoft.Json;
 using SevenZipExtractor;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Wabbajack.Common;
 
 namespace VirtualFileSystem
 {
     public class VirtualFileSystem
     {
-        private Dictionary<string, VirtualFile> _files = new Dictionary<string, VirtualFile>();
-        internal string _stagedRoot;
 
-        public VirtualFileSystem()
+        internal static string _stagedRoot;
+        public static VirtualFileSystem VFS;
+        private Dictionary<string, VirtualFile> _files = new Dictionary<string, VirtualFile>();
+
+
+        public static string RootFolder { get; }
+        public Dictionary<string, IEnumerable<VirtualFile>> HashIndex { get; private set; }
+
+        static VirtualFileSystem()
         {
-            _stagedRoot = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "vfs_staged_files");
+            VFS = new VirtualFileSystem();
+            RootFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            _stagedRoot = Path.Combine(RootFolder, "vfs_staged_files");
+            if (Directory.Exists(_stagedRoot))
+                Directory.Delete(_stagedRoot, true);
+
             Directory.CreateDirectory(_stagedRoot);
+           
+        }
+
+        public VirtualFileSystem ()
+        {
+            LoadFromDisk();
+        }
+
+        private void LoadFromDisk()
+        {
+            Utils.Log("Loading VFS Cache");
+            if (!File.Exists("vfs_cache.bson")) return;
+            _files = "vfs_cache.bson".FromBSON<IEnumerable<VirtualFile>>(root_is_array:true).ToDictionary(f => f.FullPath);
+            CleanDB();
+        }
+
+        public void SyncToDisk()
+        {
+            lock(this)
+            {
+                _files.Values.OfType<VirtualFile>().ToBSON("vfs_cache.bson");
+            }
+        }
+
+
+        public void Purge(VirtualFile f)
+        {
+            var path = f.FullPath + "|";
+            lock (this)
+            {
+                _files.Values
+                      .Where(v => v.FullPath.StartsWith(path) || v.FullPath == f.FullPath)
+                      .ToList()
+                      .Do(r => {
+                          _files.Remove(r.FullPath);
+                          });
+            }
+        }
+
+        public void Add(VirtualFile f)
+        {
+            lock (this)
+            {
+                if (_files.ContainsKey(f.FullPath))
+                    Purge(f);
+                _files.Add(f.FullPath, f);
+            }
+        }
+
+        public VirtualFile Lookup(string f)
+        {
+            lock (this)
+            {
+                if (_files.TryGetValue(f, out var found))
+                    return found;
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Remove any orphaned files in the DB.
+        /// </summary>
+        private void CleanDB()
+        {
+            Utils.Log("Cleaning VFS cache");
+            lock (this)
+            {
+                _files.Values
+                     .Where(f =>
+                     {
+                         if (f.IsConcrete)
+                             return !File.Exists(f.StagedPath);
+                         while (f.ParentPath != null)
+                         {
+                             if (Lookup(f.ParentPath) == null)
+                                 return true;
+                             f = Lookup(f.ParentPath);
+                         }
+                         return false;
+                     })
+                     .ToList()
+                     .Do(f => _files.Remove(f.FullPath));
+            }
         }
 
         /// <summary>
@@ -29,42 +122,50 @@ namespace VirtualFileSystem
         /// and every archive examined.
         /// </summary>
         /// <param name="path"></param>
-        public void AddRoot(string path, Action<string> status)
+        public void AddRoot(string path)
         {
-            IndexPath(path, status);
+            IndexPath(path);
+            RefreshIndexes();
         }
 
-        private void SyncToDisk()
+        private void RefreshIndexes()
         {
-            lock (this)
+            Utils.Log("Building Hash Index");
+            lock(this)
             {
-                _files.Values.ToList().ToJSON("vfs_cache.json");
+                HashIndex = _files.Values
+                                  .GroupBy(f => f.Hash)
+                                  .ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>)f);
             }
         }
 
-        private void IndexPath(string path, Action<string> status)
+        private void IndexPath(string path)
         {
             Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
                      .PMap(f => UpdateFile(f));
+            SyncToDisk();
         }
 
         private void UpdateFile(string f)
         {
         TOP:
-            Console.WriteLine(f);
             var lv = Lookup(f);
             if (lv == null)
             {
-                lv = new VirtualFile(this)
+                Utils.Log($"Analyzing {0}");
+
+                lv = new VirtualFile()
                 {
                     Paths = new string[] { f }
                 };
-                this[f] = lv;
+
                 lv.Analyze();
+                Add(lv);
                 if (lv.IsArchive)
                 {
                     UpdateArchive(lv);
                 }
+                // Upsert after extraction incase extraction fails
             }
             if (lv.IsOutdated)
             {
@@ -80,11 +181,11 @@ namespace VirtualFileSystem
                 var new_path = new string[f.Paths.Length + 1];
                 f.Paths.CopyTo(new_path, 0);
                 new_path[f.Paths.Length] = e;
-                var nf = new VirtualFile(this)
+                var nf = new VirtualFile()
                 {
                     Paths = new_path,
                 };
-                this[nf.FullPath] = nf;
+                Add(nf);
                 return nf;
                 }).ToList();
 
@@ -93,12 +194,14 @@ namespace VirtualFileSystem
             // Analyze them
             new_files.Do(file => file.Analyze());
             // Recurse into any archives in this archive
-            new_files.Where(file => file.IsArchive).Do(file => UpdateArchive(f));
+            new_files.Where(file => file.IsArchive).Do(file => UpdateArchive(file));
             // Unstage the file
             new_files.Where(file => file.IsStaged).Do(file => file.Unstage());
 
+            f.FinishedIndexing = true;
             SyncToDisk();
 
+            Utils.Log($"{_files.Count} docs in VFS cache");
         }
 
         private void Stage(IEnumerable<VirtualFile> files)
@@ -121,28 +224,11 @@ namespace VirtualFileSystem
             }
         }
 
-        internal VirtualFile Lookup(string path)
-        {
-            lock(this)
-            {
-                if (_files.TryGetValue(path, out VirtualFile value))
-                    return value;
-                return null;
-            }
-        }
-
         public VirtualFile this[string path]
         {
             get
             {
                 return Lookup(path);
-            }
-            set
-            {
-                lock(this)
-                {
-                    _files[path] = value;
-                }
             }
         }
 
@@ -182,52 +268,33 @@ namespace VirtualFileSystem
             }
 
         }
-
-
-
-        /// <summary>
-        /// Remove all cached data for this file and if it is a top level archive, any sub-files.
-        /// </summary>
-        /// <param name="file"></param>
-        internal void Purge(VirtualFile file)
-        {
-            lock(this)
-            {
-                // Remove the file
-                _files.Remove(file.FullPath);
-
-                // If required, remove sub-files
-                if (file.IsArchive)
-                {
-                    string prefix = file.FullPath + "|";
-                    _files.Where(f => f.Key.StartsWith(prefix)).ToList().Do(f => _files.Remove(f.Key));
-                }
-            }
-        }
     }
 
-    [JsonObject(MemberSerialization.OptIn)]
+
+    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
     public class VirtualFile
     {
         [JsonProperty]
-        public string[] Paths;
+        public string[] Paths { get; set; }
         [JsonProperty]
-        public string Hash;
+        public string Hash { get; set; }
         [JsonProperty]
-        public long Size;
+        public long Size { get; set; }
         [JsonProperty]
-        public DateTime LastModifiedUTC;
+        public ulong LastModified { get; set; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public bool? FinishedIndexing { get; set; }
+
 
         private string _fullPath;
-        private VirtualFileSystem _vfs;
 
-        public VirtualFile(VirtualFileSystem vfs)
+        public VirtualFile()
         {
-            _vfs = vfs;
         }
 
-        [JsonIgnore]
         private string _stagedPath;
+
 
         public string FullPath
         {
@@ -247,6 +314,7 @@ namespace VirtualFileSystem
             }
         }
 
+     
 
 
         /// <summary>
@@ -257,7 +325,7 @@ namespace VirtualFileSystem
             get
             {
                 if (Paths.Length == 0) return null;
-                return _vfs[Paths[0]];
+                return VirtualFileSystem.VFS[Paths[0]];
             }
         }
 
@@ -265,8 +333,8 @@ namespace VirtualFileSystem
         {
             get
             {
-                if (Paths.Length == 0) return null;
-                return _vfs[String.Join("|", Paths.Take(Paths.Length - 1))];
+                if (ParentPath == null) return null;
+                return VirtualFileSystem.VFS.Lookup(ParentPath);
             }
         }
 
@@ -279,7 +347,7 @@ namespace VirtualFileSystem
                     _isArchive = FileExtractor.CanExtract(Extension);
                 return (bool)_isArchive;
             }
-        } 
+        }
 
         public bool IsStaged
         {
@@ -319,7 +387,7 @@ namespace VirtualFileSystem
             var fio = new FileInfo(StagedPath);
             Size = fio.Length;
             Hash = Utils.FileSHA256(StagedPath);
-            LastModifiedUTC = fio.LastWriteTimeUtc;
+            LastModified = fio.LastWriteTime.ToMilliseconds();
         }
 
 
@@ -337,7 +405,7 @@ namespace VirtualFileSystem
 
         internal string GenerateStagedName()
         {
-            _stagedPath = Path.Combine(_vfs._stagedRoot, Guid.NewGuid().ToString() + Path.GetExtension(Paths.Last()));
+            _stagedPath = Path.Combine(VirtualFileSystem._stagedRoot, Guid.NewGuid().ToString() + Path.GetExtension(Paths.Last()));
             return _stagedPath;
         }
 
@@ -359,12 +427,25 @@ namespace VirtualFileSystem
                 if (IsStaged)
                 {
                     var fi = new FileInfo(StagedPath);
-                    if (fi.LastWriteTimeUtc != LastModifiedUTC || fi.Length != Size)
+                    if (fi.LastWriteTime.ToMilliseconds() != LastModified || fi.Length != Size)
                         return true;
+                    if (IsArchive)
+                        if (!FinishedIndexing ?? true)
+                            return true;
                 }
                 return false;
             }
                 
+        }
+
+        private string _parentPath;
+        public string ParentPath 
+        {
+          get {
+                if (_parentPath == null && !IsConcrete)
+                    _parentPath = String.Join("|", Paths.Take(Paths.Length - 1));
+                return _parentPath;
+          }
         }
     }
 
