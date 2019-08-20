@@ -274,7 +274,9 @@ namespace VFS
 
         public StagingGroup StageWith(IEnumerable<VirtualFile> files)
         {
-            return new StagingGroup(files);
+            var grp = new StagingGroup(files);
+            grp.Stage();
+            return grp;
         }
 
         public VirtualFile this[string path]
@@ -330,7 +332,7 @@ namespace VFS
         public VirtualFile FileForArchiveHashPath(string[] archiveHashPath)
         {
             var archive = HashIndex[archiveHashPath[0]].Where(a => a.IsArchive).OrderByDescending(a => a.LastModified).First();
-            string fullPath = HashIndex[archiveHashPath[0]] + "|" + String.Join("|", archiveHashPath.Skip(1));
+            string fullPath = archive.FullPath + "|" + String.Join("|", archiveHashPath.Skip(1));
             return Lookup(fullPath);
         }
     }

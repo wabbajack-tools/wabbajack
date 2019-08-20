@@ -720,7 +720,7 @@ namespace Wabbajack
         {
             var indexed = IndexedFiles.Values
                                       .SelectMany(f => f)
-                                      .GroupBy(f => Path.GetFileName(f.Paths.Last()))
+                                      .GroupBy(f => Path.GetFileName(f.Paths.Last()).ToLower())
                                       .ToDictionary(f => f.Key);
 
             return source =>
