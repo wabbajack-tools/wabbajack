@@ -140,6 +140,7 @@ namespace VFS
             {
                 _files.Values
                       .Select(f => f.ParentPath)
+                      .Where(s => s != null)
                       .Where(s => !_files.ContainsKey(s))
                       .ToHashSet()
                       .Do(s =>
@@ -252,7 +253,10 @@ namespace VFS
 
         public void Stage(IEnumerable<VirtualFile> files)
         {
-            var grouped = files.GroupBy(f => f.ParentArchive)
+            var grouped = files.SelectMany(f => f.FilesInPath)
+                               .Distinct()
+                               .Where(f => f.ParentArchive != null)
+                               .GroupBy(f => f.ParentArchive)
                                .OrderBy(f => f.Key == null ? 0 : f.Key.Paths.Length)
                                .ToList();
 
@@ -564,6 +568,16 @@ namespace VFS
             var path_copy = (string[])Paths.Clone();
             path_copy[0] = VirtualFileSystem.VFS.Lookup(Paths[0]).Hash;
             return path_copy;
+        }
+
+        public IEnumerable<VirtualFile> FilesInPath
+        {
+            get {
+                return Enumerable.Range(1, Paths.Length)
+                                 .Select(i => Paths.Take(i))
+                                 .Select(path => VirtualFileSystem.VFS.Lookup(String.Join("|", path)));
+                                    
+            }
         }
     }
 

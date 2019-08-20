@@ -117,8 +117,8 @@ namespace Wabbajack
         {
             HashedArchives.Do(a => VFS.AddKnown(new VirtualFile()
             {
-                Paths = new string[] { a.Key },
-                Hash = a.Value
+                Paths = new string[] { a.Value },
+                Hash = a.Key
             }));
             VFS.RefreshIndexes();
 
@@ -127,7 +127,7 @@ namespace Wabbajack
                    .OfType<FromArchive>()
                    .Do(f =>
                    {
-                       var updated_path = new string[f.ArchiveHashPath.Length + 1];
+                       var updated_path = new string[f.ArchiveHashPath.Length];
                        f.ArchiveHashPath.CopyTo(updated_path, 0);
                        updated_path[0] = VFS.HashIndex[updated_path[0]].Where(e => e.IsConcrete).First().FullPath;
                        VFS.AddKnown(new VirtualFile() { Paths = updated_path });
@@ -174,8 +174,11 @@ namespace Wabbajack
                 }
             });
 
-            Info($"Removing temp folder {Consts.BSACreationDir}");
-            Directory.Delete(Path.Combine(Outputfolder, Consts.BSACreationDir), true);
+            if (Directory.Exists(Consts.BSACreationDir))
+            {
+                Info($"Removing temp folder {Consts.BSACreationDir}");
+                Directory.Delete(Path.Combine(Outputfolder, Consts.BSACreationDir), true);
+            }
 
         }
 
