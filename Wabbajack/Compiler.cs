@@ -137,17 +137,21 @@ namespace Wabbajack
 
         public void Compile()
         {
+            Info($"Indexing {MO2Folder}");
             VFS.AddRoot(MO2Folder);
+            Info($"Indexing {GamePath}");
             VFS.AddRoot(GamePath);
 
             var mo2_files = Directory.EnumerateFiles(MO2Folder, "*", SearchOption.AllDirectories)
                                      .Where(p => p.FileExists())
-                                     .Select(p => new RawSourceFile(VFS.Lookup(p)));
+                                     .Select(p => new RawSourceFile(VFS.Lookup(p)) { Path = p.RelativeTo(MO2Folder)});
 
             var game_files = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                                       .Where(p => p.FileExists())
                                       .Select(p => new RawSourceFile(VFS.Lookup(p)) { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))});
 
+
+            Info($"Indexing Archives");
             IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
                                        .Where(f => Consts.SupportedArchives.Contains(Path.GetExtension(f)))
                                        .Where(f => File.Exists(f + ".meta"))
@@ -159,7 +163,10 @@ namespace Wabbajack
                                        })
                                        .ToList();
 
-            IndexedFiles = IndexedArchives.SelectMany(f => VFS.FilesInArchive(f.File))
+            Info($"Indexing Files");
+            IndexedFiles = IndexedArchives.PMap(f => { Status($"Finding files in {Path.GetFileName(f.File.FullPath)}");
+                                                       return VFS.FilesInArchive(f.File); })
+                                          .SelectMany(fs => fs)
                                           .OrderByDescending(f => f.TopLevelArchive.LastModified)
                                           .GroupBy(f => f.Hash)
                                           .ToDictionary(f => f.Key, f => f.AsEnumerable());

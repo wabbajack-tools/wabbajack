@@ -130,6 +130,7 @@ namespace Wabbajack
 
         public AppState(Dispatcher d, String mode)
         {
+            _startTime = DateTime.Now;
             ArchiveFile.SetupLibrary();
             LogFile = Assembly.GetExecutingAssembly().Location + ".log";
 
@@ -186,6 +187,7 @@ namespace Wabbajack
 
         public void LogMsg(string msg)
         {
+            msg = $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}";
             dispatcher.Invoke(() => Log.Add(msg));
             lock (dispatcher) {
                 File.AppendAllText(LogFile, msg + "\r\n");
@@ -264,6 +266,8 @@ namespace Wabbajack
         }
 
         private ICommand _begin;
+        private DateTime _startTime;
+
         public ICommand Begin
         {
             get

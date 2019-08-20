@@ -68,12 +68,9 @@ namespace VFS
         public IList<VirtualFile> FilesInArchive(VirtualFile f)
         {
             var path = f.FullPath + "|";
-            lock (this)
-            {
-                return _files.Values
-                             .Where(v => v.FullPath.StartsWith(path))
-                             .ToList();
-            }
+            return _files.Values
+                            .Where(v => v.FullPath.StartsWith(path))
+                            .ToList();
         }
 
 
@@ -358,8 +355,21 @@ namespace VFS
     [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
     public class VirtualFile
     {
+        public string[] _paths;
         [JsonProperty]
-        public string[] Paths { get; set; }
+        public string[] Paths
+        {
+            get
+            {
+                return _paths;
+            }
+            set
+            {
+                for (int idx = 0; idx < value.Length; idx += 1)
+                    value[idx] = String.Intern(value[idx]);
+                _paths = value;
+            }
+        }
         [JsonProperty]
         public string Hash { get; set; }
         [JsonProperty]
