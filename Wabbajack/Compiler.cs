@@ -1,6 +1,5 @@
 ﻿using Compression.BSA;
 using Newtonsoft.Json;
-using SharpCompress.Archives;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,10 +9,10 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Web;
 using Wabbajack.Common;
 using static Wabbajack.NexusAPI;
+using VFS;
 
 namespace Wabbajack
 {
@@ -59,9 +58,26 @@ namespace Wabbajack
         public ConcurrentBag<Directive> ExtraFiles { get; private set; }
         public Dictionary<string, dynamic> ModInis { get; private set; }
 
-        public List<IndexedArchive> IndexedArchives;
+        public VirtualFileSystem VFS
+        {
+            get
+            {
+                return VirtualFileSystem.VFS;
+            }
 
-        public List<IndexedArchiveEntry> IndexedFiles { get; private set; }
+        }
+
+        public List<IndexedArchive> IndexedArchives { get; private set; }
+        public Dictionary<string, IEnumerable<VirtualFile>> IndexedFiles { get; private set; }
+
+        public class IndexedFileMatch
+        {
+            public IndexedArchive Archive;
+            public IndexedArchiveEntry Entry;
+            public DateTime LastModified;
+        }
+
+        public Dictionary<string, IEnumerable<IndexedFileMatch>> DirectMatchIndex;
 
         public void Info(string msg, params object[] args)
         {
@@ -94,85 +110,21 @@ namespace Wabbajack
             GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
         }
 
-
-
-        public void LoadArchives()
-        {
-            IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
-                               .Where(file => Consts.SupportedArchives.Contains(Path.GetExtension(file)))
-                               .PMap(file => LoadArchive(file));
-            IndexedFiles = FlattenFiles(IndexedArchives);
-            Info($"Found {IndexedFiles.Count} files in archives");
-        }
-
-        private List<IndexedArchiveEntry> FlattenFiles(IEnumerable<IndexedArchive> archives)
-        {
-            return archives.PMap(e => FlattenArchiveEntries(e, null, new string[0]))
-                           .SelectMany(e => e)
-                           .ToList();
-        }
-
-        private IEnumerable<IndexedArchiveEntry> FlattenArchiveEntries(IndexedArchiveCache archive, string name, string[] path)
-        {
-            var new_path = new string[path.Length + 1];
-            Array.Copy(path, 0, new_path, 0, path.Length);
-            new_path[path.Length] = path.Length == 0 ? archive.Hash : name;
-
-            foreach (var e in archive.Entries)
-            {
-                yield return new IndexedArchiveEntry()
-                {
-                    Path = e.Path,
-                    Size = e.Size,
-                    Hash = e.Hash,
-                    HashPath = new_path
-                };
-            }
-            if (archive.InnerArchives != null) {
-                foreach (var inner in archive.InnerArchives)
-                {
-                    foreach (var entry in FlattenArchiveEntries(inner.Value, inner.Key, new_path))
-                    {
-                        yield return entry;
-                    }
-                }
-            }
-
-        }
-
-
-        private const int ARCHIVE_CONTENTS_VERSION = 1;
         private IndexedArchive LoadArchive(string file)
         {
-        TOP:
-            string metaname = file + ".archive_contents";
+            var info = new IndexedArchive();
+            info.File = VFS.Lookup(file);
 
-            if (metaname.FileExists() && new FileInfo(metaname).LastWriteTime >= new FileInfo(file).LastWriteTime)
+            info.Name = Path.GetFileName(file);
+
+            var ini_name = file + ".meta";
+            if (ini_name.FileExists())
             {
-                Status("Loading Archive Index for {0}", Path.GetFileName(file));
-                var info = metaname.FromJSON<IndexedArchive>();
-                if (info.Version != ARCHIVE_CONTENTS_VERSION)
-                {
-                    File.Delete(metaname);
-                    goto TOP;
-                }
-
-                info.Name = Path.GetFileName(file);
-                info.AbsolutePath = file;
-
-
-                var ini_name = file + ".meta";
-                if (ini_name.FileExists())
-                {
-                    info.IniData = ini_name.LoadIniFile();
-                    info.Meta = File.ReadAllText(ini_name);
-                }
-
-                return info;
+                info.IniData = ini_name.LoadIniFile();
+                info.Meta = File.ReadAllText(ini_name);
             }
 
-            IndexArchive(file).ToJSON(metaname);
-            goto TOP;
+            return info;
         }
 
         private bool IsArchiveFile(string name)
@@ -183,70 +135,44 @@ namespace Wabbajack
             return false;
         }
 
-        private IndexedArchiveCache IndexArchive(string file)
-        {
-            Status("Indexing {0}", Path.GetFileName(file));
-            var streams = new Dictionary<string, (SHA256Managed, long)>();
-            var inner_archives = new Dictionary<string, string>();
-            FileExtractor.Extract(file, entry =>
-            {
-                Stream inner;
-                if (IsArchiveFile(entry.Name))
-                {
-                    var name = Path.GetTempFileName() + Path.GetExtension(entry.Name);
-                    inner_archives.Add(entry.Name, name);
-                    inner = File.OpenWrite(name);
-                }
-                else
-                {
-                    inner = Stream.Null;
-                }
-                var sha = new SHA256Managed();
-                var os = new CryptoStream(inner, sha, CryptoStreamMode.Write);
-                streams.Add(entry.Name, (sha, (long)entry.Size));
-                return os;
-            });
-
-            var indexed = new IndexedArchiveCache();
-            indexed.Version = ARCHIVE_CONTENTS_VERSION;
-            indexed.Hash = file.FileSHA256();
-            indexed.Entries = streams.Select(entry =>
-            {
-                return new IndexedEntry()
-                {
-                    Hash = entry.Value.Item1.Hash.ToBase64(),
-                    Size = (long)entry.Value.Item2,
-                    Path = entry.Key
-                };
-            }).ToList();
-
-            streams.Do(e => e.Value.Item1.Dispose());
-
-            if (inner_archives.Count > 0)
-            {
-                var result = inner_archives.Select(archive =>
-                {
-                    return (archive.Key, IndexArchive(archive.Value));
-                }).ToDictionary(e => e.Key, e => e.Item2);
-                indexed.InnerArchives = result;
-
-                inner_archives.Do(e => File.Delete(e.Value));
-            }
-
-            return indexed;
-        }
-
         public void Compile()
         {
+            Info($"Indexing {MO2Folder}");
+            VFS.AddRoot(MO2Folder);
+            Info($"Indexing {GamePath}");
+            VFS.AddRoot(GamePath);
+
             var mo2_files = Directory.EnumerateFiles(MO2Folder, "*", SearchOption.AllDirectories)
                                      .Where(p => p.FileExists())
-                                     .Select(p => new RawSourceFile() { Path = p.RelativeTo(MO2Folder), AbsolutePath = p });
+                                     .Select(p => new RawSourceFile(VFS.Lookup(p)) { Path = p.RelativeTo(MO2Folder)});
 
             var game_files = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                                       .Where(p => p.FileExists())
-                                      .Select(p => new RawSourceFile() { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)), AbsolutePath = p });
+                                      .Select(p => new RawSourceFile(VFS.Lookup(p)) { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))});
+
+
+            Info($"Indexing Archives");
+            IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
+                                       .Where(f => Consts.SupportedArchives.Contains(Path.GetExtension(f)))
+                                       .Where(f => File.Exists(f + ".meta"))
+                                       .Select(f => new IndexedArchive()
+                                       {
+                                           File = VFS.Lookup(f),
+                                           IniData = (f + ".meta").LoadIniFile(),
+                                           Meta = File.ReadAllText(f + ".meta")
+                                       })
+                                       .ToList();
+
+            Info($"Indexing Files");
+            IndexedFiles = IndexedArchives.PMap(f => { Status($"Finding files in {Path.GetFileName(f.File.FullPath)}");
+                                                       return VFS.FilesInArchive(f.File); })
+                                          .SelectMany(fs => fs)
+                                          .OrderByDescending(f => f.TopLevelArchive.LastModified)
+                                          .GroupBy(f => f.Hash)
+                                          .ToDictionary(f => f.Key, f => f.AsEnumerable());
 
             Info("Searching for mod files");
+
             AllFiles = mo2_files.Concat(game_files).ToList();
 
             Info("Found {0} files to build into mod list", AllFiles.Count);
@@ -326,7 +252,6 @@ namespace Wabbajack
         private void ResetMembers()
         {
             AllFiles = null;
-            IndexedArchives = null;
             InstallDirectives = null;
             SelectedArchives = null;
             ExtraFiles = null;
@@ -355,40 +280,25 @@ namespace Wabbajack
 
         private void BuildArchivePatches(string archive_sha, IEnumerable<PatchedFromArchive> group, Dictionary<string, string> absolute_paths)
         {
-            var archive = IndexedArchives.First(a => a.Hash == archive_sha);
-            var paths = group.Select(g => g.FullPath).ToHashSet();
-            var streams = new Dictionary<string, MemoryStream>();
-            Status($"Extracting {paths.Count} patch files from {archive.Name}");
-            // First we fetch the source files from the input archive
-
-            FileExtractor.DeepExtract(archive.AbsolutePath, group, (fe, entry) => 
+            var archive = VFS.HashIndex[archive_sha];
+            using (var files = VFS.StageWith(group.Select(g => VFS.FileForArchiveHashPath(g.ArchiveHashPath))))
             {
-                if (!paths.Contains(fe.FullPath)) return null;
-
-                var result = new MemoryStream();
-                streams.Add(fe.FullPath, result);
-                return result;
-
-            }, false);
-
-            var extracted = streams.ToDictionary(k => k.Key, v => v.Value.ToArray());
-            // Now Create the patches
-            Status("Building Patches for {0}", archive.Name);
-            Info("Building Patches for {0}", archive.Name);
-            group.PMap(entry =>
-            {
-                Info("Patching {0}", entry.To);
-                var ss = extracted[entry.FullPath];
-                using (var origin = new MemoryStream(ss))
-                using (var output = new MemoryStream())
+                var by_path = files.GroupBy(f => string.Join("|", f.Paths.Skip(1))).ToDictionary(f => f.Key, f => f.First());
+                // Now Create the patches
+                group.PMap(entry =>
                 {
-                    var a = origin.ReadAll();
-                    var b = LoadDataForTo(entry.To, absolute_paths);
-                    BSDiff.Create(a, b, output);
-                    entry.Patch = output.ToArray().ToBase64();
-                    Info($"Patch size {entry.Patch.Length} for {entry.To}");
-                }
-            });
+                    Info("Patching {0}", entry.To);
+                    using (var origin = by_path[string.Join("|", entry.ArchiveHashPath.Skip(1))].OpenRead())
+                    using (var output = new MemoryStream())
+                    {
+                        var a = origin.ReadAll();
+                        var b = LoadDataForTo(entry.To, absolute_paths);
+                        BSDiff.Create(a, b, output);
+                        entry.Patch = output.ToArray().ToBase64();
+                        Info($"Patch size {entry.Patch.Length} for {entry.To}");
+                    }
+                });
+            }
 
         }
 
@@ -416,17 +326,20 @@ namespace Wabbajack
         private void GatherArchives()
         {
             Info($"Building a list of archives based on the files required");
-            var archives = IndexedArchives.GroupBy(a => a.Hash).ToDictionary(k => k.Key, k => k.First());
 
             var shas = InstallDirectives.OfType<FromArchive>()
                                         .Select(a => a.ArchiveHashPath[0])
                                         .Distinct();
 
+            var archives = IndexedArchives.OrderByDescending(f => f.File.LastModified)
+                                          .GroupBy(f => f.File.Hash)
+                                          .ToDictionary(f => f.Key, f => f.First());
+
             SelectedArchives = shas.PMap(sha => ResolveArchive(sha, archives));
 
         }
 
-        private Archive ResolveArchive(string sha, Dictionary<string, IndexedArchive> archives)
+        private Archive ResolveArchive(string sha, IDictionary<string, IndexedArchive> archives)
         {
             if (archives.TryGetValue(sha, out var found))
             {
@@ -520,6 +433,13 @@ namespace Wabbajack
                     }
                     result = tmp;
                 }
+                else if (general.manualURL != null)
+                {
+                    result = new ManualURLArchive()
+                    {
+                        URL = general.manualURL.ToString()
+                    };
+                }
                 else
                 {
                     Error("No way to handle archive {0} but it's required by the modpack", found.Name);
@@ -527,7 +447,7 @@ namespace Wabbajack
                 }
 
                 result.Name = found.Name;
-                result.Hash = found.Hash;
+                result.Hash = found.File.Hash;
                 result.Meta = found.Meta;
 
                 return result;
@@ -540,10 +460,12 @@ namespace Wabbajack
         private Directive RunStack(IEnumerable<Func<RawSourceFile, Directive>> stack, RawSourceFile source)
         {
             Status("Compiling {0}", source.Path);
-            return (from f in stack
-                    let result = f(source)
-                    where result != null
-                    select result).First();
+            foreach (var f in stack)
+            {
+                var result = f(source);
+                if (result != null) return result;
+            }
+            throw new InvalidDataException("Data fell out of the compilation stack");
         }
 
 
@@ -562,6 +484,7 @@ namespace Wabbajack
                 IgnoreStartsWith("downloads\\"),
                 IgnoreStartsWith("webcache\\"),
                 IgnoreStartsWith("overwrite\\"),
+                IgnorePathContains("temporary_logs"),
                 IgnoreEndsWith(".pyc"),
                 IgnoreEndsWith(".log"),
                 IgnoreOtherProfiles(),
@@ -575,10 +498,10 @@ namespace Wabbajack
                 IgnoreRegex(Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
                 IncludeModIniData(),
                 DirectMatch(),
-                IncludeTaggedFiles(),
                 DeconstructBSAs(), // Deconstruct BSAs before building patches so we don't generate massive patch files
                 IncludePatches(),
                 IncludeDummyESPs(),
+                IncludeTaggedFiles(),
 
 
                 // If we have no match at this point for a game folder file, skip them, we can't do anything about them
@@ -594,6 +517,22 @@ namespace Wabbajack
                 // Theme file MO2 downloads somehow
                 IgnoreEndsWith("splash.png"),
                 DropAll()
+            };
+        }
+
+        private Func<RawSourceFile, Directive> IgnorePathContains(string v)
+        {
+            v = $"\\{v.Trim('\\')}\\";
+            var reason = $"Ignored because path contains {v}";
+            return source =>
+            {
+                if (source.Path.Contains(v))
+                {
+                    var result = source.EvolveTo<IgnoredDirectly>();
+                    result.Reason = reason;
+                    return result;
+                }
+                return null;
             };
         }
 
@@ -672,6 +611,15 @@ namespace Wabbajack
         /// <returns></returns>
         private Func<RawSourceFile, Directive> DeconstructBSAs()
         {
+            var include_directly = ModInis.Where(kv => {
+                var general = kv.Value.General;
+                if (general.notes != null && general.notes.Contains(Consts.WABBAJACK_INCLUDE))
+                    return true;
+                if (general.comments != null && general.comments.Contains(Consts.WABBAJACK_INCLUDE))
+                    return true;
+                return false;
+            }).Select(kv => $"mods\\{kv.Key}\\");
+
             var microstack = new List<Func<RawSourceFile, Directive>>()
             {
                 DirectMatch(),
@@ -679,20 +627,36 @@ namespace Wabbajack
                 DropAll()
             };
 
+            var microstack_with_include = new List<Func<RawSourceFile, Directive>>()
+            {
+                DirectMatch(),
+                IncludePatches(),
+                IncludeALL()
+            };
+
+
             return source =>
             {
                 if (!Consts.SupportedBSAs.Contains(Path.GetExtension(source.Path))) return null;
 
-                var hashed = HashBSA(source.AbsolutePath);
+                bool default_include = false;
+                if (source.Path.StartsWith("mods"))
+                {
+                    foreach (var modpath in include_directly)
+                    {
+                        if (source.Path.StartsWith(modpath))
+                        {
+                            default_include = true;
+                            break;
+                        }
+                    }
+                }
 
-                var source_files = hashed.Select(e => new RawSourceFile() {
-                    Hash = e.Item2,
-                    Path = e.Item1,
-                    AbsolutePath = e.Item1
-                });
+                var source_files = source.File.FileInArchive;
 
+                var stack = default_include ? microstack_with_include : microstack;
 
-                var matches = source_files.Select(e => RunStack(microstack, e));
+                var matches = source_files.PMap(e => RunStack(stack, new RawSourceFile(e)));
 
                 var id = Guid.NewGuid().ToString();
 
@@ -724,26 +688,14 @@ namespace Wabbajack
             };
         }
 
-        /// <summary>
-        /// Given a BSA on disk, index it and return a dictionary of SHA256 -> filename
-        /// </summary>
-        /// <param name="absolutePath"></param>
-        /// <returns></returns>
-        private List<(string, string)> HashBSA(string absolutePath)
+        private Func<RawSourceFile, Directive> IncludeALL()
         {
-            Status($"Hashing BSA: {absolutePath}");
-            var results = new List<(string, string)>();
-            using (var a = new BSAReader(absolutePath))
+            return source =>
             {
-                a.Files.PMap(entry =>
-                {
-                    Status($"Hashing BSA: {absolutePath} - {entry.Path}");
-
-                    var data = entry.GetData();
-                    results.Add((entry.Path, data.SHA256()));
-                });
-            }
-            return results;
+                var inline = source.EvolveTo<InlineFile>();
+                inline.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                return inline;
+            };
         }
 
         private Func<RawSourceFile, Directive> IgnoreDisabledMods()
@@ -766,23 +718,20 @@ namespace Wabbajack
 
         private Func<RawSourceFile, Directive> IncludePatches()
         {
-            var archive_shas = IndexedArchives.GroupBy(e => e.Hash)
-                                  .ToDictionary(e => e.Key);
-            var indexed = (from entry in IndexedFiles
-                           select new { archive = archive_shas[entry.HashPath[0]].First(),
-                                        entry = entry })
-                           .GroupBy(e => Path.GetFileName(e.entry.Path).ToLower())
-                           .ToDictionary(e => e.Key);
+            var indexed = IndexedFiles.Values
+                                      .SelectMany(f => f)
+                                      .GroupBy(f => Path.GetFileName(f.Paths.Last()).ToLower())
+                                      .ToDictionary(f => f.Key);
 
             return source =>
             {
                 if (indexed.TryGetValue(Path.GetFileName(source.Path.ToLower()), out var value))
                 {
+                    // TODO: Improve this
                     var found = value.First();
 
                     var e = source.EvolveTo<PatchedFromArchive>();
-                    e.From = found.entry.Path;
-                    e.ArchiveHashPath = found.entry.HashPath;
+                    e.ArchiveHashPath = found.MakeRelativePaths();
                     e.To = source.Path;
                     return e;
                 }
@@ -907,33 +856,21 @@ namespace Wabbajack
 
         private Func<RawSourceFile, Directive> DirectMatch()
         {
-            var archive_shas = IndexedArchives.GroupBy(e => e.Hash)
-                                              .ToDictionary(e => e.Key);
-
-            var indexed = (from entry in IndexedFiles
-                           select new { archive = archive_shas[entry.HashPath[0]].First(),
-                                        entry = entry })
-                           .GroupBy(e => e.entry.Hash)
-                           .ToDictionary(e => e.Key);
-
-
 
             return source =>
             {
-                if (indexed.TryGetValue(source.Hash, out var found))
+                if (IndexedFiles.TryGetValue(source.Hash, out var found))
                 {
                     var result = source.EvolveTo<FromArchive>();
 
-                    var match = found.Where(f => Path.GetFileName(f.entry.Path) == Path.GetFileName(source.Path))
-                                     .OrderByDescending(f => new FileInfo(f.archive.AbsolutePath).LastWriteTime)
+                    var match = found.Where(f => Path.GetFileName(f.Paths[0]) == Path.GetFileName(source.Path))
                                      .FirstOrDefault();
 
                     if (match == null)
-                        match = found.OrderByDescending(f => new FileInfo(f.archive.AbsolutePath).LastWriteTime)
-                                     .FirstOrDefault();
+                        match = found.FirstOrDefault();
 
-                    result.ArchiveHashPath = match.entry.HashPath;
-                    result.From = match.entry.Path;
+                    result.ArchiveHashPath = match.MakeRelativePaths();
+
                     return result;
                 }
                 return null;

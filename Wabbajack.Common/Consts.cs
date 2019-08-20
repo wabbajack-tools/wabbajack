@@ -30,5 +30,6 @@ namespace Wabbajack.Common
         public static string WABBAJACK_INCLUDE = "WABBAJACK_INCLUDE";
 
         public static String AppName = "Wabbajack";
+        public static string HashCacheName = "Wabbajack.hash_cache";
     }
 }

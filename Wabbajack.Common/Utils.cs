@@ -1,6 +1,7 @@
 ﻿using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Bson;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,7 +17,28 @@ namespace Wabbajack.Common
 {
     public static class Utils
     {
+        private static Action<string> _loggerFn;
+        private static Action<string, int> _statusFn;
 
+        public static void SetLoggerFn(Action<string> f)
+        {
+            _loggerFn = f;
+        }
+
+        public static void SetStatusFn(Action<string, int> f)
+        {
+            _statusFn = f;
+        }
+
+        public static void Log(string msg)
+        {
+            _loggerFn?.Invoke(msg);
+        }
+
+        public static void Status(string msg, int progress = 0)
+        {
+            _statusFn?.Invoke(msg, progress);
+        }
       
 
         /// <summary>
@@ -89,6 +111,22 @@ namespace Wabbajack.Common
             File.WriteAllText(filename, JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings() {TypeNameHandling = TypeNameHandling.Auto}));
         }
 
+        public static void ToBSON<T>(this T obj, string filename)
+        {
+            using(var fo = File.OpenWrite(filename))
+            using(var br = new BsonDataWriter(fo))
+            {
+                fo.SetLength(0);
+                var serializer = JsonSerializer.Create(new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                serializer.Serialize(br, obj);
+            }
+        }
+
+        public static ulong ToMilliseconds(this DateTime date)
+        {
+            return (ulong)(date - new DateTime(1970, 1, 1)).TotalMilliseconds;
+        }
+
         public static string ToJSON<T>(this T obj)
         {
             return JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
@@ -97,6 +135,17 @@ namespace Wabbajack.Common
         public static T FromJSON<T>(this string filename)
         {
             return JsonConvert.DeserializeObject<T>(File.ReadAllText(filename), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+        }
+
+        public static T FromBSON<T>(this string filename, bool root_is_array = false)
+        {
+            using (var fo = File.OpenRead(filename))
+            using (var br = new BsonDataReader(fo, readRootValueAsArray: root_is_array, DateTimeKind.Local))
+            {
+                var serializer = JsonSerializer.Create(new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                return serializer.Deserialize<T>(br);
+            }
+            
         }
 
         public static T FromJSONString<T>(this string data)
@@ -267,6 +316,24 @@ namespace Wabbajack.Common
         public static void CrashDump(Exception e)
         {
             File.WriteAllText($"{DateTime.Now.ToString("yyyyMMddTHHmmss_crash_log.txt")}", ExceptionToString(e));
+        }
+
+        public static IEnumerable<T> DistinctBy<T, V>(this IEnumerable<T> vs, Func<T, V> select)
+        {
+            HashSet<V> set = new HashSet<V>();
+            foreach (var v in vs) {
+                var key = select(v);
+                if (set.Contains(key)) continue;
+                yield return v;
+            }
+
+        }
+
+        public static T Last<T>(this T[] a)
+        {
+            if (a == null || a.Length == 0)
+                throw new InvalidDataException("null or empty array");
+            return a[a.Length - 1];
         }
 
         public static V GetOrDefault<K, V>(this IDictionary<K, V> dict, K key)

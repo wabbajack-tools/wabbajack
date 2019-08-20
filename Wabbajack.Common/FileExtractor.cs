@@ -108,11 +108,24 @@ namespace Wabbajack.Common
             }
         }
 
+        /// <summary>
+        /// Returns true if the given extension type can be extracted
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        public static bool CanExtract(string v)
+        {
+            return Consts.SupportedArchives.Contains(v) || v == ".bsa";
+        }
 
+        // Probably replace this with VFS?
+        /*
         public static void DeepExtract(string file, IEnumerable<FromArchive> files, Func<FromArchive, Entry, Stream> fnc, bool leave_open = false, int depth = 1)
         {
             // Files we need to extract at this level
-            var files_for_level = files.Where(f => f.ArchiveHashPath.Length == depth).ToDictionary(e => e.From);
+            var files_for_level = files.Where(f => f.ArchiveHashPath.Length == depth)
+                                       .GroupBy(e => e.From)
+                                       .ToDictionary(e => e.Key);
             // Archives we need to extract at this level
             var archives_for_level = files.Where(f => f.ArchiveHashPath.Length > depth)
                                           .GroupBy(f => f.ArchiveHashPath[depth])
@@ -127,12 +140,21 @@ namespace Wabbajack.Common
 
                 if (files_for_level.TryGetValue(e.Name, out var fe))
                 {
-                    a = fnc(fe, e);
+                    foreach (var inner_fe in fe)
+                    {
+                        var str = fnc(inner_fe, e);
+                        if (str == null) continue;
+                        a = new SplittingStream(a, false, fnc(inner_fe, e), leave_open);
+                    }
                 }
                 
                 if (archives_for_level.TryGetValue(e.Name, out var archive))
                 {
                     var name = Path.GetTempFileName() + Path.GetExtension(e.Name);
+                    if (disk_archives.ContainsKey(e.Name))
+                    {
+
+                    }
                     disk_archives.Add(e.Name, name);
                     b = File.OpenWrite(name);
                 }
@@ -148,6 +170,8 @@ namespace Wabbajack.Common
                 DeepExtract(archive.Value, archives_for_level[archive.Key], fnc, leave_open, depth + 1);
                 File.Delete(archive.Value);
             }
+
         }
+        */
     }
 }
