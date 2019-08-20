@@ -78,10 +78,8 @@
   <ItemGroup>
     <Compile Include="BSDiff.cs" />
     <Compile Include="Consts.cs" />
-    <Compile Include="Data.cs" />
     <Compile Include="DynamicIniData.cs" />
     <Compile Include="FileExtractor.cs" />
-    <Compile Include="HashCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SplittingStream.cs" />
     <Compile Include="Utils.cs" />

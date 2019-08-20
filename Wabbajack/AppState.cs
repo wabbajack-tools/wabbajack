@@ -312,7 +312,6 @@ namespace Wabbajack
                 {
                     try
                     {
-                        compiler.LoadArchives();
                         compiler.Compile();
                     }
                     catch (Exception ex)

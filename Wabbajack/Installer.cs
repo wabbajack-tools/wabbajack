@@ -9,12 +9,21 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using VFS;
 using Wabbajack.Common;
 
 namespace Wabbajack
 {
     public class Installer
     {
+        public VirtualFileSystem VFS
+        {
+            get
+            {
+                return VirtualFileSystem.VFS;
+            }
+        }
+
         public Installer(ModList mod_list, string output_folder, Action<string> log_fn)
         {
             Outputfolder = output_folder;
@@ -88,12 +97,46 @@ namespace Wabbajack
                     Error("Cannot continue, was unable to download one or more archives");
                 }
             }
+
+            PrimeVFS();
+
             BuildFolderStructure();
             InstallArchives();
             InstallIncludedFiles();
             BuildBSAs();
 
             Info("Installation complete! You may exit the program.");
+        }
+
+        
+        /// <summary>
+        /// We don't want to make the installer index all the archives, that's just a waste of time, so instead
+        /// we'll pass just enough information to VFS to let it know about the files we have.
+        /// </summary>
+        private void PrimeVFS()
+        {
+            HashedArchives.Do(a => VFS.AddKnown(new VirtualFile()
+            {
+                Paths = new string[] { a.Key },
+                Hash = a.Value
+            }));
+            VFS.RefreshIndexes();
+
+
+            ModList.Directives
+                   .OfType<FromArchive>()
+                   .Do(f =>
+                   {
+                       var updated_path = new string[f.ArchiveHashPath.Length + 1];
+                       f.ArchiveHashPath.CopyTo(updated_path, 0);
+                       updated_path[0] = VFS.HashIndex[updated_path[0]].Where(e => e.IsConcrete).First().FullPath;
+                       VFS.AddKnown(new VirtualFile() { Paths = updated_path });
+                   });
+
+            VFS.BackfillMissing();
+
+                
+
         }
 
         private void BuildBSAs()
@@ -187,18 +230,18 @@ namespace Wabbajack
             var files = grouping.GroupBy(e => e.FullPath)
                                 .ToDictionary(e => e.Key);
 
-            FileExtractor.DeepExtract(absolutePath, files.Select(f => f.Value.First()),
-            (fe, entry) =>
+
+            var vfiles = files.Select(g =>
             {
-                if (files.TryGetValue(fe.FullPath, out var directives))
-                {
-                    var directive = directives.First();
-                    var absolute = Path.Combine(Outputfolder, directive.To);
-                    if (absolute.FileExists()) File.Delete(absolute);
-                    return File.OpenWrite(absolute);
-                }
-                return null;
-            });
+                var first_file = g.Value.First();
+                var file = VFS.FileForArchiveHashPath(first_file.ArchiveHashPath);
+                file.StagedPath = first_file.To;
+                return file;
+            }).ToList();
+
+            VFS.Stage(vfiles);
+
+            vfiles.Do(f => f.StagedPath = null);
 
             Status("Copying duplicated files for {0}", archive.Name);
 

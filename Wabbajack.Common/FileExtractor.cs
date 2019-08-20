@@ -118,6 +118,8 @@ namespace Wabbajack.Common
             return Consts.SupportedArchives.Contains(v) || v == ".bsa";
         }
 
+        // Probably replace this with VFS?
+        /*
         public static void DeepExtract(string file, IEnumerable<FromArchive> files, Func<FromArchive, Entry, Stream> fnc, bool leave_open = false, int depth = 1)
         {
             // Files we need to extract at this level
@@ -168,6 +170,8 @@ namespace Wabbajack.Common
                 DeepExtract(archive.Value, archives_for_level[archive.Key], fnc, leave_open, depth + 1);
                 File.Delete(archive.Value);
             }
+
         }
+        */
     }
 }

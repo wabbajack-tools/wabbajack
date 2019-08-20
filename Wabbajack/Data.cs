@@ -4,27 +4,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VFS;
 
-namespace Wabbajack.Common
+namespace Wabbajack
 {
-    public class RawSourceFile
+    public class RawSourceFile 
     {
-        public string AbsolutePath;
+        public RawSourceFile(VirtualFile file)
+        {
+            File = file;
+        }
+
+        public string AbsolutePath
+        {
+            get
+            {
+                return File.StagedPath;
+            }
+        }
+        
         public string Path;
 
-        private string _hash;
+        public VirtualFile File { get; private set; }
+
         public string Hash
         {
             get
             {
-                if (_hash != null) return _hash;
-                _hash = AbsolutePath.FileSHA256();
-                return _hash;
+                return File.Hash;
             }
-            set
-            {
-                _hash = value;
-            }
+
         }
 
         public T EvolveTo<T>() where T : Directive, new()
@@ -32,11 +41,6 @@ namespace Wabbajack.Common
             var v = new T();
             v.To = Path;
             return v;
-        }
-
-        public void LoadHashFromCache(HashCache cache)
-        {
-            _hash = cache.HashFile(AbsolutePath);
         }
     }
 
@@ -98,10 +102,9 @@ namespace Wabbajack.Common
         /// MurMur3 hash of the archive this file comes from
         /// </summary>
         public string[] ArchiveHashPath;
-        /// <summary>
-        /// The relative path of the file in the archive
-        /// </summary>
-        public string From;
+
+        [JsonIgnore]
+        public VirtualFile FromFile;
 
         private string _fullPath = null;
         [JsonIgnore]
@@ -110,9 +113,7 @@ namespace Wabbajack.Common
             get
             {
                 if (_fullPath == null) {
-                    var path = ArchiveHashPath.ToList();
-                    path.Add(From);
-                    _fullPath = String.Join("|", path);
+                    _fullPath = String.Join("|", ArchiveHashPath);
                 }
                 return _fullPath;
             }
@@ -216,26 +217,12 @@ namespace Wabbajack.Common
     {
     }
 
-    /// <summary>
-    /// The indexed contents of an archive
-    /// </summary>
-    public class IndexedArchiveCache
-    {
-        public string Hash;
-        public int Version;
-        public List<IndexedEntry> Entries;
-
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public Dictionary<string, IndexedArchiveCache> InnerArchives;
-    }
-
-    public class IndexedArchive : IndexedArchiveCache
+    public class IndexedArchive
     {
         public dynamic IniData;
         public string Name;
         public string Meta;
-        public string AbsolutePath;
-        public List<string> HashPath;
+        public VirtualFile File { get; internal set; }
     }
 
     /// <summary>

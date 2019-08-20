@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Wabbajack.Common;
 
 namespace VirtualFileSystem.Test
@@ -15,7 +11,7 @@ namespace VirtualFileSystem.Test
             Utils.SetStatusFn((s, i) => Console.WriteLine(s));
             WorkQueue.Init((a, b, c) => { return; },
                            (a, b) => { return; });
-            VirtualFileSystem.VFS.AddRoot(@"D:\MO2 Instances\Mod Organizer 2");
+            VFS.VirtualFileSystem.VFS.AddRoot(@"D:\MO2 Instances\Mod Organizer 2");
         }
     }
 }

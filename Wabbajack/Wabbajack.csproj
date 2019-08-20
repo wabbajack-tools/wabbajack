@@ -139,6 +139,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Data.cs" />
     <Compile Include="LambdaCommand.cs" />
     <Compile Include="Themes\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Themes\TreeViewItemExtensions.cs" />
@@ -199,6 +200,10 @@
     <ProjectReference Include="..\SevenZipExtractor\SevenZipExtractor.csproj">
       <Project>{8aa97f58-5044-4bba-b8d9-a74b6947a660}</Project>
       <Name>SevenZipExtractor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\VirtualFileSystem\VirtualFileSystem.csproj">
+      <Project>{5128b489-bc28-4f66-9f0b-b4565af36cbc}</Project>
+      <Name>VirtualFileSystem</Name>
     </ProjectReference>
     <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj">
       <Project>{b3f3fb6e-b9eb-4f49-9875-d78578bc7ae5}</Project>

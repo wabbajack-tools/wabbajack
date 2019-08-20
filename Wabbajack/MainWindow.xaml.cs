@@ -48,6 +48,9 @@ namespace Wabbajack
             WorkQueue.Init((id, msg, progress) => context.SetProgress(id, msg, progress),
                            (max, current) => context.SetQueueSize(max, current));
 
+            Utils.SetLoggerFn(s => context.LogMsg(s));
+            Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
+
 
 
             if (DebugMode)
@@ -60,7 +63,6 @@ namespace Wabbajack
                     context.ModListName = compiler.MO2Profile;
 
                     context.Mode = "Building";
-                    compiler.LoadArchives();
                     compiler.Compile();
 
                     var modlist = compiler.ModList.ToJSON();
