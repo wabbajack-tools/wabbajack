@@ -51,7 +51,10 @@ namespace Wabbajack.Common
                     stream.Write(data, 0, data.Length);
 
                     if (!leave_open)
-                        stream.Dispose();
+                    {
+                        stream.Flush();
+                        stream.Close();
+                    }
                 }
             }
         }

@@ -121,9 +121,13 @@ namespace VFS
                      {
                          if (f.IsConcrete)
                              return !File.Exists(f.StagedPath);
+                         if (f.Hash == null)
+                             return true;
                          while (f.ParentPath != null)
                          {
                              if (Lookup(f.ParentPath) == null)
+                                 return true;
+                             if (f.Hash == null)
                                  return true;
                              f = Lookup(f.ParentPath);
                          }

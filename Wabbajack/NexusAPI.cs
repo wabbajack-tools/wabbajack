@@ -82,6 +82,7 @@ namespace Wabbajack
         private static string ConvertGameName(string gameName)
         {
             if (gameName == "SkyrimSE") return "skyrimspecialedition";
+            if (gameName == "FalloutNV") return "newvegas";
             return gameName;
 
         }

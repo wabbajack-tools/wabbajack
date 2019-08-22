@@ -298,7 +298,7 @@ namespace Wabbajack
                     {
                         while (ex.InnerException != null) ex = ex.InnerException;
                         LogMsg(ex.StackTrace);
-                        LogMsg(ex.InnerException.ToString());
+                        LogMsg(ex.ToString());
                         LogMsg($"{ex.Message} - Can't continue");
                     }
                 });
@@ -320,7 +320,7 @@ namespace Wabbajack
                     {
                         while (ex.InnerException != null) ex = ex.InnerException;
                         LogMsg(ex.StackTrace);
-                        LogMsg(ex.InnerException.ToString());
+                        LogMsg(ex.ToString());
                         LogMsg($"{ex.Message} - Can't continue");
                     }
                 });
