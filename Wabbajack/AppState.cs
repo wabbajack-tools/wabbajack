@@ -210,6 +210,8 @@ namespace Wabbajack
 
         public void SetQueueSize(int max, int current)
         {
+            if (max == 0)
+                max = 1;
             var total = current * 100 / max;
             QueueProgress = total;
         }
@@ -292,13 +294,9 @@ namespace Wabbajack
                     {
                         installer.Install();
                     }
-                    catch (AggregateException ex)
-                    {
-                        LogMsg(ex.StackTrace);
-                        LogMsg(ex.InnerException.ToString());
-                    }
                     catch (Exception ex)
                     {
+                        while (ex.InnerException != null) ex = ex.InnerException;
                         LogMsg(ex.StackTrace);
                         LogMsg(ex.InnerException.ToString());
                         LogMsg($"{ex.Message} - Can't continue");
@@ -320,6 +318,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
+                        while (ex.InnerException != null) ex = ex.InnerException;
                         LogMsg(ex.StackTrace);
                         LogMsg(ex.InnerException.ToString());
                         LogMsg($"{ex.Message} - Can't continue");

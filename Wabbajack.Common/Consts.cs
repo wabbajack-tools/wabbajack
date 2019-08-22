@@ -16,7 +16,7 @@ namespace Wabbajack.Common
         public static string MegaPrefix = "https://mega.nz/#!";
 
         public static HashSet<string> SupportedArchives = new HashSet<string>() { ".zip", ".rar", ".7z", ".7zip" };
-        public static HashSet<string> SupportedBSAs = new HashSet<string>() { ".bsa", ".ba2" };
+        public static HashSet<string> SupportedBSAs = new HashSet<string>() { ".bsa" };
 
         public static String UserAgent {
             get

@@ -158,6 +158,7 @@ namespace Wabbajack
                                        .Select(f => new IndexedArchive()
                                        {
                                            File = VFS.Lookup(f),
+                                           Name = Path.GetFileName(f),
                                            IniData = (f + ".meta").LoadIniFile(),
                                            Meta = File.ReadAllText(f + ".meta")
                                        })
@@ -362,7 +363,7 @@ namespace Wabbajack
                     Status($"Getting Nexus info for {found.Name}");
                     try
                     {
-                       // var link = NexusAPI.GetNexusDownloadLink((NexusMod)result, NexusKey);
+                       var link = NexusAPI.GetNexusDownloadLink((NexusMod)result, NexusKey);
                     }
                     catch (Exception ex)
                     {
@@ -481,6 +482,7 @@ namespace Wabbajack
             return new List<Func<RawSourceFile, Directive>>()
             {
                 IgnoreStartsWith("logs\\"),
+                IncludeRegex("^downloads\\\\.*\\.meta"),
                 IgnoreStartsWith("downloads\\"),
                 IgnoreStartsWith("webcache\\"),
                 IgnoreStartsWith("overwrite\\"),
@@ -843,6 +845,23 @@ namespace Wabbajack
                 return null;
             };
         }
+
+
+        private Func<RawSourceFile, Directive> IncludeRegex(string pattern)
+        {
+            var regex = new Regex(pattern);
+            return source =>
+            {
+                if (regex.IsMatch(source.Path))
+                {
+                    var result = source.EvolveTo<InlineFile>();
+                    result.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                    return result;
+                }
+                return null;
+            };
+        }
+
 
         private Func<RawSourceFile, Directive> DropAll()
         {

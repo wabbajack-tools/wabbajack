@@ -229,7 +229,7 @@ namespace Wabbajack
 
         private void InstallArchive(Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
         {
-            Status("Extracting {0}", archive.Name);
+            Status($"Extracting {archive.Name}");
             var files = grouping.GroupBy(e => e.FullPath)
                                 .ToDictionary(e => e.Key);
 
