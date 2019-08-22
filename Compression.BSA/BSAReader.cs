@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Compression.LZ4.Streams;
 
 namespace Compression.BSA
@@ -10,7 +11,7 @@ namespace Compression.BSA
     public enum VersionType : uint
     {
         TES4 = 0x67,
-        FO3 = 0x68,
+        FO3 = 0x68, // FO3, FNV, TES5
         SSE = 0x69,
         FO4 = 0x01
     };
@@ -251,7 +252,11 @@ namespace Compression.BSA
         private int _offset;
         private FolderRecord _folder;
         private string _name;
-        private uint? _originalSize;
+        private uint _originalSize;
+        private uint _dataSize;
+        private uint _onDiskSize;
+        private string _nameBlob;
+        private long _dataOffset;
 
         public FileRecord(BSAReader bsa, FolderRecord folderRecord, BinaryReader src)
         {
@@ -265,9 +270,36 @@ namespace Compression.BSA
             else
                 _size = size;
 
+            if (Compressed)
+                _size -= 4;
+
             _offset = src.ReadInt32();
 
             _folder = folderRecord;
+
+            var old_pos = src.BaseStream.Position;
+
+            src.BaseStream.Position = _offset;
+
+            if (bsa.HasNameBlobs)
+                _nameBlob = src.ReadStringLenNoTerm();
+
+            if (Compressed)
+                _originalSize = src.ReadUInt32();
+
+            _onDiskSize = (uint)(_size - (_nameBlob == null ? 0 : _nameBlob.Length + 1));
+
+            if (Compressed)
+            {
+                _dataSize = _originalSize;
+                _onDiskSize -= 4;
+            }
+            else
+                _dataSize = _onDiskSize;
+
+            _dataOffset = src.BaseStream.Position;
+
+            src.BaseStream.Position = old_pos;
         }
 
         internal void LoadFileRecord(BSAReader bsaReader, FolderRecord folder, FileRecord file, BinaryReader rdr)
@@ -296,13 +328,7 @@ namespace Compression.BSA
         {
             get
             {
-                if (Compressed)
-                {
-                    if (_originalSize == null)
-                        LoadOriginalSize();
-                    return (int)_originalSize;
-                }
-                return _size;
+                return (int)_dataSize;
             }
         }
 
@@ -341,46 +367,42 @@ namespace Compression.BSA
             } 
         }
 
+        public bool FlipCompression { get => _compressedFlag; }
+
         public void CopyDataTo(Stream output)
         {
             using (var in_file = File.OpenRead(_bsa._fileName))
             using (var rdr = new BinaryReader(in_file))
             {
-                rdr.BaseStream.Position = _offset;
-                if (Compressed)
-                {
-                    string _name;
-                    int file_size = _size;
-                    if (_bsa.HasNameBlobs)
-                    {
-                        var name_size = rdr.ReadByte();
-                        file_size -= name_size + 1;
-                        rdr.BaseStream.Position = _offset + 1 + name_size;
-                    }
+                rdr.BaseStream.Position = _dataOffset;
 
-                    var original_size = rdr.ReadUInt32();
-                    file_size -= 4;
-                    if (_bsa.HeaderType == VersionType.SSE)
+                if (_bsa.HeaderType == VersionType.SSE)
+                {
+
+                    if (Compressed)
                     {
                         var r = LZ4Stream.Decode(rdr.BaseStream);
-                        r.CopyTo(output);
+                        r.CopyToLimit(output, (int)_onDiskSize);
+
                     }
                     else
                     {
-                        throw new NotImplementedException("Compressed Skyrim LE archives not yet implemented");
+                        rdr.BaseStream.CopyToLimit(output, (int)_onDiskSize);
                     }
                 }
                 else
                 {
-                    string _name;
-                    int file_size = _size;
-                    if (_bsa.HasNameBlobs)
+
+                    if (Compressed)
                     {
-                        var name_size = rdr.ReadByte();
-                        file_size -= name_size + 1;
-                        rdr.BaseStream.Position = _offset + 1 + name_size;
+                        using (var z = new InflaterInputStream(rdr.BaseStream))
+                            z.CopyToLimit(output, (int)_originalSize);
+
                     }
-                    rdr.BaseStream.CopyToLimit(output, file_size);
+                    else
+                    {
+                        rdr.BaseStream.CopyToLimit(output, (int)_onDiskSize);
+                    }
                 }
             }
         }

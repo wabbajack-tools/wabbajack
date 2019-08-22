@@ -7,13 +7,20 @@ namespace Compression.BSA
 {
     internal static class Utils
     {
-        private static Encoding Windows1251 = Encoding.GetEncoding(1251);
+        private static Encoding Windows1251 = Encoding.UTF7;// Encoding.GetEncoding(1251);
 
         public static string ReadStringLen(this BinaryReader rdr)
         {
             var len = rdr.ReadByte();
             var bytes = rdr.ReadBytes(len - 1);
             rdr.ReadByte();
+            return Windows1251.GetString(bytes);
+        }
+
+        public static string ReadStringLenNoTerm(this BinaryReader rdr)
+        {
+            var len = rdr.ReadByte();
+            var bytes = rdr.ReadBytes(len);
             return Windows1251.GetString(bytes);
         }
 
@@ -53,7 +60,7 @@ namespace Compression.BSA
         /// <returns></returns>
         public static byte[] ToBSString(this string val)
         {
-            var b = Windows1251.GetBytes(val);
+            var b = Encoding.ASCII.GetBytes(val);
             var b2 = new byte[b.Length + 1];
             b.CopyTo(b2, 1);
             b2[0] = (byte)b.Length;
@@ -134,6 +141,7 @@ namespace Compression.BSA
                 tw.Write(buff, 0, read);
                 limit -= read;
             }
+            tw.Flush();
         }
     }
 }

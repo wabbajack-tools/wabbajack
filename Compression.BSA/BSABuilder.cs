@@ -1,4 +1,5 @@
-﻿using K4os.Compression.LZ4;
+﻿using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using K4os.Compression.LZ4;
 using K4os.Compression.LZ4.Streams;
 using System;
 using System.Collections.Generic;
@@ -73,7 +74,7 @@ namespace Compression.BSA
             }
         }
 
-        public void AddFile(string path, Stream src, bool flipCompression = false)
+        public FileEntry AddFile(string path, Stream src, bool flipCompression = false)
         {
             FileEntry r = new FileEntry(this, path, src, flipCompression);
 
@@ -81,6 +82,7 @@ namespace Compression.BSA
             {
                 _files.Add(r);
             }
+            return r;
         }
 
         public IEnumerable<string> FolderNames
@@ -176,10 +178,12 @@ namespace Compression.BSA
 
         public void RegenFolderRecords()
         {
-            _folders = _files.GroupBy(f => Path.GetDirectoryName(f.Path).ToLowerInvariant())
+            _folders = _files.GroupBy(f => Path.GetDirectoryName(f.Path.ToLowerInvariant()))
                              .Select(f => new FolderRecordBuilder(this, f.Key, f.ToList()))
                              .OrderBy(f => f._hash)
                              .ToList();
+
+            var lnk = _files.Where(f => f.Path.EndsWith(".lnk")).FirstOrDefault();
 
             foreach (var folder in _folders)
                 foreach (var file in folder._files)
@@ -279,6 +283,14 @@ namespace Compression.BSA
                 wtr.Write((uint)0); // unk
                 wtr.Write((ulong)_offset); // offset
             }
+            else if (_bsa.HeaderType == VersionType.FO3 || _bsa.HeaderType == VersionType.TES4)
+            {
+                wtr.Write((uint)_offset);
+            }
+            else
+            {
+                throw new NotImplementedException($"Cannot write to BSAs of type {_bsa.HeaderType}");
+            }
         }
 
     }
@@ -331,7 +343,18 @@ namespace Compression.BSA
                     (new MemoryStream(_rawData)).CopyTo(w);
 
                 _rawData = r.ToArray();
+            }
+            else if (_bsa.HeaderType == VersionType.FO3 || _bsa.HeaderType == VersionType.TES4)
+            {
+                var r = new MemoryStream();
+                using (var w = new DeflaterOutputStream(r))
+                    (new MemoryStream(_rawData)).CopyTo(w);
 
+                _rawData = r.ToArray();
+            }
+            else
+            {
+                throw new NotImplementedException($"Can't compress data for {_bsa.HeaderType} BSAs.");
             }
         }
 
@@ -359,10 +382,6 @@ namespace Compression.BSA
             get
             {
                 return _flipCompression;
-            }
-            set
-            {
-                _flipCompression = value;
             }
         }
 
@@ -409,21 +428,19 @@ namespace Compression.BSA
             wtr.Write((uint)offset);
             wtr.BaseStream.Position = offset;
 
+            if (_bsa.HasNameBlobs)
+            {
+                wtr.Write(_pathBSBytes);
+            }
+
             if (Compressed)
             {
-                if (_bsa.HasNameBlobs)
-                {
-                    wtr.Write(_pathBSBytes);
-                }
+
                 wtr.Write((uint)_originalSize);
                 wtr.Write(_rawData);
             }
             else
             {
-                if (_bsa.HasNameBlobs)
-                {
-                    wtr.Write(_pathBSBytes);
-                }
                 wtr.Write(_rawData);
             }
         }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ICSharpCode.SharpZipLib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,11 +10,11 @@ namespace Compression.BSA.Test
 {
     class Program
     {
-        const string TestDir = "d:\\Personal YASHEd\\mods";
+        const string TestDir = "d:\\MO2 Instances\\Mod Organizer 2 - LE";
         const string TempDir = "c:\\tmp\\out";
         static void Main(string[] args)
         {
-            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.bsa", SearchOption.AllDirectories).Skip(3))
+            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.bsa", SearchOption.AllDirectories).Skip(2))
             {
                 Console.WriteLine($"From {bsa}");
                 Console.WriteLine("Cleaning Output Dir");
@@ -23,19 +24,24 @@ namespace Compression.BSA.Test
                 }
                 Directory.CreateDirectory(TempDir);
 
+                Console.WriteLine($"Reading {bsa}");
                 using (var a = new BSAReader(bsa))
                 {
 
                     Parallel.ForEach(a.Files, file =>
                     {
-                        var abs_name = Path.Combine("c:\\tmp\\out", file.Path);
+                        var abs_name = Path.Combine(TempDir, file.Path);
 
                         if (!Directory.Exists(Path.GetDirectoryName(abs_name)))
                             Directory.CreateDirectory(Path.GetDirectoryName(abs_name));
 
                         using (var fs = File.OpenWrite(abs_name))
                             file.CopyDataTo(fs);
+                        Equal((long)file.Size, new FileInfo(abs_name).Length);
                     });
+
+
+                    Console.WriteLine($"Building {bsa}");
 
                     using (var w = new BSABuilder())
                     {
@@ -47,7 +53,9 @@ namespace Compression.BSA.Test
                         {
                             var abs_path = Path.Combine("c:\\tmp\\out", file.Path);
                             using (var str = File.OpenRead(abs_path))
-                                w.AddFile(file.Path, str);
+                            {
+                                var entry = w.AddFile(file.Path, str, file.FlipCompression);
+                            }
 
                         });
                         
@@ -57,13 +65,20 @@ namespace Compression.BSA.Test
                         Equal(a.Files.Count(), w.Files.Count());
                         Equal(a.Files.Select(f => f.Path).ToHashSet(), w.Files.Select(f => f.Path).ToHashSet());
 
+                        /*foreach (var pair in Enumerable.Zip(a.Files, w.Files, (ai, bi) => (ai, bi)))
+                        {
+                            Console.WriteLine($"{pair.ai.Path},  {pair.ai.Hash},  {pair.bi.Path}, {pair.bi.Hash}");
+                        }*/
+
                         foreach (var pair in Enumerable.Zip(a.Files, w.Files, (ai, bi) => (ai, bi)))
                         {
                             Equal(pair.ai.Path, pair.bi.Path);
+                            Equal(pair.ai.Hash, pair.bi.Hash);
                         }
 
                     }
 
+                    Console.WriteLine($"Verifying {bsa}");
                     using (var b = new BSAReader("c:\\tmp\\built.bsa"))
                     {
                         Console.WriteLine($"Performing A/B tests on {bsa}");
@@ -84,7 +99,6 @@ namespace Compression.BSA.Test
 
                         }
                     }
-                    break;
                 }
             }
         }
@@ -104,6 +118,20 @@ namespace Compression.BSA.Test
         }
 
         public static void Equal(uint a, uint b)
+        {
+            if (a == b) return;
+
+            throw new InvalidDataException($"{a} != {b}");
+        }
+
+        public static void Equal(long a, long b)
+        {
+            if (a == b) return;
+
+            throw new InvalidDataException($"{a} != {b}");
+        }
+
+        public static void Equal(ulong a, ulong b)
         {
             if (a == b) return;
 
