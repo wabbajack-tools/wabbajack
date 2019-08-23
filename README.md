@@ -38,7 +38,7 @@ let's do a rundown of all the supported features:
   * Any tools installed in the MO2 folder. Want your users to have BethIni or xEdit? Just put them in a folder inside the MO2 install folder
   * ENBseries files that exist in the game folder
   * SKSE install
-* The following situations are automatically detected and handled by the automated binary patcher
+* The following situations are automatically detected and handled by the automated binary patcher (not an exhaustive list)
   * ESP cleaning
   * form 44 conversion
   * ESP to ESL conversion
@@ -47,8 +47,8 @@ let's do a rundown of all the supported features:
   * (really any ESP modifications are handled)
   * Mesh fixing
   * Texture compression / fixing
-* The following BSA operations are detected by extracting or creating BSAs via Wabbajack's custom BSA routines
-  * BSA Extraction
+  The following BSA operations are detected by extracting or creating BSAs via Wabbajack's custom BSA routines
+  * BSA Unpacking
   * BSA Creation (packing loose files)
   * BSA repacking (unpacking, fixing files and repacking)
 
