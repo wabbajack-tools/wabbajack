@@ -60,6 +60,8 @@ That being said, there are some cases where we would need to do a bit more work 
 * binary patching of non-bsa huge files. 256MB is the largest size Wabbajack can currently handle with the binary patcher
 
 ### Creating a ModList Installer
+Overview video (https://www.youtube.com/watch?v=5Fwr0Chtcuc)[https://www.youtube.com/watch?v=5Fwr0Chtcuc]
+
 
 1) Download Wabbajack and install it somewhere outside of your normal Mod Organizer 2 folder
 (otherwise Wabbajack will try to figure out how to install itself and that might cuase a collapse in the time-space
