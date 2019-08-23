@@ -9,6 +9,56 @@ rights of the game publisher and the mod authors.
 - [Discord](https://discord.gg/zgbrkmA)
 - [Patreon](https://www.patreon.com/user?u=11907933) Check this page for updates and to vote on features
 
+### What Wabbajack can do
+At this point you may be wondering how much of a complex modlist Wabbajack can handle. At this point it's more about what Wabbajack *can't* handle, but
+let's do a rundown of all the supported features:
+
+* Support for the following games is tested on a regular basis
+  * Fallout 4
+  * Fallout New Vegas
+  * Skyrim SE
+  * Skyrim LE
+* Support for automatic downloads from the following sources
+  * Nexus Mods (Premium accounts only)
+  * Dropbox
+  * Google Drive
+  * Mega
+  * ModDB
+  * Direct URLs (with custom header support)
+* Support the following archive types
+  * .zip
+  * .7z
+  * .rar
+* The following mod installation types are supported
+  * Files installed with our without fomod isntallers
+  * Manually installed mods
+  * Renamed/deleted/moved files are detected and handled
+  * Multiple mods installed into the same mod folder
+  * A mod split across multiple mod folders
+  * Any tools installed in the MO2 folder. Want your users to have BethIni or xEdit? Just put them in a folder inside the MO2 install folder
+  * ENBseries files that exist in the game folder
+  * SKSE install
+* The following situations are automatically detected and handled by the automated binary patcher
+  * ESP cleaning
+  * form 44 conversion
+  * ESP to ESL conversion
+  * Adding masters
+  * Dummy ESPs created by CAO
+  * (really any ESP modifications are handled)
+  * Mesh fixing
+  * Texture compression / fixing
+* The following BSA operations are detected by extracting or creating BSAs via Wabbajack's custom BSA routines
+  * BSA Extraction
+  * BSA Creation (packing loose files)
+  * BSA repacking (unpacking, fixing files and repacking)
+
+
+That being said, there are some cases where we would need to do a bit more work to develop:
+* Manually downloaded files
+* LL Files (currently no plans to implement)
+* esp to esm conversion (there are hacks for this)
+* binary patching of non-bsa huge files. 256MB is the largest size Wabbajack can currently handle with the binary patcher
+
 ### Creating a ModList Installer
 
 1) Download Wabbajack and install it somewhere outside of your normal Mod Organizer 2 folder
@@ -53,10 +103,13 @@ install that specific file.
 Currently the Resolution stack looks like this:
 
 1) Ignore the contents of `logs\`
+1) Directly include .meta files int the `downloads\` folder
 2) Ignore the contents of `downloads\`
 3) Ignore the contents of `webcache\`
 4) Ignore the contents of `overwrite\`
+6) Ignore any files with `temporary_logs` as a folder in the path
 5) Ignore `.pyc` files
+8) Ignore `.log` files
 6) Ignore any files in `profiles` that are not for the selected MO2 profile
 7) Ignore any disabled mods
 8) Include any profile settings for the selected profile by including them directly in the modlist
@@ -67,13 +120,15 @@ Currently the Resolution stack looks like this:
 13) Ignore any BSAs in the game folder
 14) Include all meta.ini files from all (selected) mods 
 15) Include archive and file meta information for any file that matches a file in an archive directly via a SHA256 comparison
+19) Rip apart any `.bsa` files and run a mini resolution stack on the contents to figure out how to build the .bsa from the input files
 16) Generate patches for files that may have been modified after being installed from an archive (see section on Patching for more info)
-17) Deconstruct BSAs to see if they can be created by generating a BSA from assembing files and patches from archives
+21) Include dummy ESPs directly into the modlist
 18) Ignore files in the game directory
 19) Ignore .ini files
 20) Ignore .html files (normally these are logs)
 21) Ignore .txt files
 22) Ignore `HavockBehaviourPostProcess.exe` this seems to get copied around by tools for some reason
+27) Ignore `splash.png` it's created for some games (like FO4) by MO2
 23) Error for any file that survives to this point. 
 
 So as you can see we handle a lot of possible install situations. See the section on [`Creating a Modpack`](README.md#Creating_a_ModList_Installer) for information on working with the installer
@@ -84,16 +139,6 @@ it could be meshes and textures that have been optimized to work better in a giv
 is copied directly into the modlist instructions. However! It is important to note that the patch file is 100% useless without the source file. So original + patch = final_file
 without the original file, the final file cannot be recrated. This allows us to distribute arbitrary changes without violating copyrights as we do not copy 
 copyrighted material. Instead we copy instructions on how to modify the copyrighted material. 
-
-### Archive Sources
-Wabbajack can currently install from many different file hosting sources. Currently these consist of:
-
-* Nexus Mods - Only Premium accounts, this restriction will not change. They host a lot of files and support the community, respect the service they provide.
-* HTTP Servers - Bare HTTP downloads are supported, additional headers can also be passed to the server
-* Dropbox
-* Google Drive
-* MEGA
-* ModDB
 
 ### FAQ
 

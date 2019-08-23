@@ -61,6 +61,10 @@ directURL=http://enbdev.com/enbseries_skyrimse_v0390.zip
 directURLHeaders=Referer:http://enbdev.com/download_mod_tesskyrimse.html
 ```
 
+**NOTE:** The author of ENBSeries has a habbit of updating the program without changing the version number. If you get
+install errors stating that the hash of the downloaded file wasn't what was expected, update your ENBSeries to the latest
+version and recompile the modlist.
+
 #### SSE Engine Fixes
 Both files come from the nexus. 
 
