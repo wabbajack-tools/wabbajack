@@ -136,8 +136,7 @@ So as you can see we handle a lot of possible install situations. See the sectio
 ### Patches
 Wabbajack can create binary patches for files that have been modified after installation. This could be `.esp` files that have been cleaned or patched. Or
 it could be meshes and textures that have been optimized to work better in a given game. In any case a BSDiff file is generated. The output of this process 
-is copied directly into the modlist instructions. However! It is important to note that the patch file is 100% useless without the source file. So original + patch = final_file
-without the original file, the final file cannot be recrated. This allows us to distribute arbitrary changes without violating copyrights as we do not copy 
+is copied directly into the modlist instructions. However! It is important to note that the patch file is 100% useless without the source file. So `original + patch = final_file`. Without the original file, the final file cannot be recrated. This allows us to distribute arbitrary changes without violating copyrights as we do not copy 
 copyrighted material. Instead we copy instructions on how to modify the copyrighted material. 
 
 ### FAQ
@@ -182,6 +181,15 @@ I (halgari) used to be a developer working on Automaton. Sadly development was m
 implementation of some really nice features (like BSA packing). As such I made the decision to strike out on my own and make an app that worked first, and then make it pretty.
 The end result is an app with a ton of features, and a less than professional UI. But that's my motto when coding "make it work, then make it pretty". 
 
+## Thanks to 
+Our tester and Discord members who encourage development and help test the builds. 
+
+### Patreon Supporters
+#### Daedra level Patreon Supporters
+* Ancalgon
+#### Patreon Supporters
+* Druwski
+
 ### License & Copyright
 
 All original code in Wabbajack is given freely via the GPL3 license. Parts of Wabbajack use libraries that carry their own Open Sources licenses, those parts 
@@ -189,3 +197,4 @@ retain their original copyrights. Note: Wabbajack installers contain code from W
 the files behind any sort of paywall. You recieved this tool free of charge, respect this by giving freely as you were given. 
 
 [`RECIPES.md`]: https://github.com/halgari/wabbajack/blob/master/RECIPES.md
+
