@@ -382,7 +382,7 @@ namespace Compression.BSA
                     if (Compressed)
                     {
                         var r = LZ4Stream.Decode(rdr.BaseStream);
-                        r.CopyToLimit(output, (int)_onDiskSize);
+                        r.CopyToLimit(output, (int)_originalSize);
 
                     }
                     else

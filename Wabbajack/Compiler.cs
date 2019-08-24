@@ -487,6 +487,8 @@ namespace Wabbajack
                 IgnoreStartsWith("webcache\\"),
                 IgnoreStartsWith("overwrite\\"),
                 IgnorePathContains("temporary_logs"),
+                IgnorePathContains("GPUCache"),
+                IgnorePathContains("SSEEdit Cache"),
                 IgnoreEndsWith(".pyc"),
                 IgnoreEndsWith(".log"),
                 IgnoreOtherProfiles(),

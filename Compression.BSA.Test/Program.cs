@@ -10,7 +10,7 @@ namespace Compression.BSA.Test
 {
     class Program
     {
-        const string TestDir = "d:\\MO2 Instances\\Mod Organizer 2 - LE";
+        const string TestDir = "d:\\MO2 Instances\\";
         const string TempDir = "c:\\tmp\\out";
         static void Main(string[] args)
         {
