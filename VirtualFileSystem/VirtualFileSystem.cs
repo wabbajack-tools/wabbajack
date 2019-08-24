@@ -19,6 +19,7 @@ namespace VFS
         public static VirtualFileSystem VFS;
         private Dictionary<string, VirtualFile> _files = new Dictionary<string, VirtualFile>();
         private bool _disableDiskCache;
+        private volatile bool _isSyncing;
 
         public static string RootFolder { get; }
         public Dictionary<string, IEnumerable<VirtualFile>> HashIndex { get; private set; }
@@ -59,9 +60,20 @@ namespace VFS
         public void SyncToDisk()
         {
             if (!_disableDiskCache)
-            lock(this)
             {
-                _files.Values.OfType<VirtualFile>().ToBSON("vfs_cache.bson");
+                Utils.Status("Syncing VFS Cache");
+                lock (this)
+                {
+                    try
+                    {
+                        _isSyncing = true;
+                        _files.Values.OfType<VirtualFile>().ToBSON("vfs_cache.bson");
+                    }
+                    finally
+                    {
+                        _isSyncing = false;
+                    }
+                }
             }
         }
 
@@ -252,7 +264,9 @@ namespace VFS
             new_files.Where(file => file.IsStaged).Do(file => file.Unstage());
 
             f.FinishedIndexing = true;
-            SyncToDisk();
+
+            if (!_isSyncing)
+                SyncToDisk();
         }
 
         public void Stage(IEnumerable<VirtualFile> files)
