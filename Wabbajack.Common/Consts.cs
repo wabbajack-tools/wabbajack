@@ -11,6 +11,7 @@ namespace Wabbajack.Common
     public static class Consts
     {
         public static string GameFolderFilesDir = "Game Folder Files";
+        public static string LOOTFolderFilesDir = "LOOT Config Files";
         public static string ModPackMagic = "Celebration!, Cheese for Everyone!";
         public static string BSACreationDir = "TEMP_BSA_FILES";
         public static string MegaPrefix = "https://mega.nz/#!";

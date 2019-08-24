@@ -150,6 +150,15 @@ namespace Wabbajack
                                       .Where(p => p.FileExists())
                                       .Select(p => new RawSourceFile(VFS.Lookup(p)) { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))});
 
+            var loot_path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LOOT");
+
+            Info($"Indexing {loot_path}");
+            VFS.AddRoot(loot_path);
+
+            var loot_files = Directory.EnumerateFiles(loot_path, "userlist.yaml", SearchOption.AllDirectories)
+                                      .Where(p => p.FileExists())
+                                      .Select(p => new RawSourceFile(VFS.Lookup(p)) { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(loot_path)) });
+
 
             Info($"Indexing Archives");
             IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
@@ -174,7 +183,9 @@ namespace Wabbajack
 
             Info("Searching for mod files");
 
-            AllFiles = mo2_files.Concat(game_files).ToList();
+            AllFiles = mo2_files.Concat(game_files)
+                                .Concat(loot_files)
+                                .ToList();
 
             Info("Found {0} files to build into mod list", AllFiles.Count);
 
@@ -496,6 +507,7 @@ namespace Wabbajack
                 IncludeThisProfile(),
                 // Ignore the ModOrganizer.ini file it contains info created by MO2 on startup
                 IncludeStubbedMO2Ini(),
+                IncludeLootFiles(),
                 IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Data")),
                 IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Papyrus Compiler")),
                 IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Skyrim")),
@@ -521,6 +533,22 @@ namespace Wabbajack
                 // Theme file MO2 downloads somehow
                 IgnoreEndsWith("splash.png"),
                 DropAll()
+            };
+        }
+
+        private Func<RawSourceFile, Directive> IncludeLootFiles()
+        {
+            var prefix = Consts.LOOTFolderFilesDir + "\\";
+            return source =>
+            {
+
+                if (source.Path.StartsWith(prefix))
+                {
+                    var result = source.EvolveTo<InlineFile>();
+                    result.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                    return result;
+                }
+                return null;
             };
         }
 
