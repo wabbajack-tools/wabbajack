@@ -363,7 +363,7 @@ namespace Wabbajack
                     Status($"Getting Nexus info for {found.Name}");
                     try
                     {
-                       var link = NexusAPI.GetNexusDownloadLink((NexusMod)result, NexusKey);
+                       var link = NexusAPI.GetNexusDownloadLink((NexusMod)result, NexusKey, true);
                     }
                     catch (Exception ex)
                     {

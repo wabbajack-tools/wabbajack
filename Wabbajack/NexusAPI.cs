@@ -65,8 +65,10 @@ namespace Wabbajack
             return _baseHttpClient;
         }
 
-        public static string GetNexusDownloadLink(NexusMod archive, string apikey)
+        public static string GetNexusDownloadLink(NexusMod archive, string apikey, bool cache=true)
         {
+            if (cache && TryGetCachedLink(archive, apikey, out string result)) return result;
+
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             var client = BaseNexusClient(apikey);
             string url;
@@ -77,6 +79,24 @@ namespace Wabbajack
                 url = s.FromJSON<List<DownloadLink>>().First().URI;
                 return url;
             }
+        }
+
+        private static bool TryGetCachedLink(NexusMod archive, string apikey, out string result)
+        {
+            if (!(Directory.Exists(Consts.NexusCacheDirectory)))
+                Directory.CreateDirectory(Consts.NexusCacheDirectory);
+
+
+            string path = Path.Combine(Consts.NexusCacheDirectory, $"link-{archive.GameName}-{archive.ModID}-{archive.FileID}.txt");
+            if (!File.Exists(path) || DateTime.Now - new FileInfo(path).LastWriteTime > new TimeSpan(24, 0, 0))
+            {
+                File.Delete(path);
+                result = GetNexusDownloadLink(archive, apikey, false);
+                File.WriteAllText(path, result);
+                return true;
+            }
+            result = File.ReadAllText(path);
+            return true;
         }
 
         private static string ConvertGameName(string gameName)

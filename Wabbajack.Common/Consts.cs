@@ -27,6 +27,8 @@ namespace Wabbajack.Common
             }
         }
 
+        public static string NexusCacheDirectory = "nexus_link_cache";
+
         public static string WABBAJACK_INCLUDE = "WABBAJACK_INCLUDE";
 
         public static String AppName = "Wabbajack";
