@@ -1,5 +1,6 @@
 ﻿using CG.Web.MegaApiClient;
 using Compression.BSA;
+using Ookii.Dialogs.Wpf;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -45,6 +46,7 @@ namespace Wabbajack
 
         public string NexusAPIKey { get; private set; }
         public bool IgnoreMissingFiles { get; internal set; }
+        public string GameFolder { get; private set; }
 
         public void Info(string msg, params object[] args)
         {
@@ -79,6 +81,12 @@ namespace Wabbajack
             Directory.CreateDirectory(Outputfolder);
             Directory.CreateDirectory(DownloadFolder);
 
+            if (ModList.Directives.OfType<RemappedInlineFile>().FirstOrDefault() != null && !LocateGameFolder())
+            {
+                Info("Stopping installation because game folder was not selected");
+                return;
+            }
+
             HashArchives();
             DownloadArchives();
             HashArchives();
@@ -108,7 +116,20 @@ namespace Wabbajack
             Info("Installation complete! You may exit the program.");
         }
 
-        
+        private bool LocateGameFolder()
+        {
+            var vf = new VistaFolderBrowserDialog();
+            vf.Description = "Please Locate Your Game Installation Path";
+            vf.UseDescriptionForTitle = true;
+            if (vf.ShowDialog() == true)
+            {
+                GameFolder = vf.SelectedPath;
+                return true;
+            }
+            return false;
+        }
+
+
         /// <summary>
         /// We don't want to make the installer index all the archives, that's just a waste of time, so instead
         /// we'll pass just enough information to VFS to let it know about the files we have.
@@ -192,9 +213,31 @@ namespace Wabbajack
                        Status("Writing included file {0}", directive.To);
                        var out_path = Path.Combine(Outputfolder, directive.To);
                        if (File.Exists(out_path)) File.Delete(out_path);
-
-                       File.WriteAllBytes(out_path, directive.SourceData.FromBase64());
+                       if (directive is RemappedInlineFile)
+                       {
+                           WriteRemappedFile((RemappedInlineFile)directive); 
+                       }
+                       else
+                       {
+                           File.WriteAllBytes(out_path, directive.SourceData.FromBase64());
+                       }
                    });
+        }
+
+        private void WriteRemappedFile(RemappedInlineFile directive)
+        {
+            var data = Encoding.UTF8.GetString(directive.SourceData.FromBase64());
+
+            data = data.Replace(Consts.GAME_PATH_MAGIC_BACK, GameFolder);
+            data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, GameFolder.Replace("\\", "\\\\"));
+            data = data.Replace(Consts.GAME_PATH_MAGIC_FORWARD, GameFolder.Replace("\\", "/"));
+
+            data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, Outputfolder);
+            data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK, Outputfolder.Replace("\\", "\\\\"));
+            data = data.Replace(Consts.MO2_PATH_MAGIC_FORWARD, Outputfolder.Replace("\\", "/"));
+
+            File.WriteAllText(Path.Combine(Outputfolder, directive.To), data);
+            return;
         }
 
         private void BuildFolderStructure()

@@ -96,6 +96,13 @@ namespace Wabbajack
         public string SourceData;
     }
 
+    /// <summary>
+    /// A file that has the game and MO2 folders remapped on installation
+    /// </summary>
+    public class RemappedInlineFile : InlineFile
+    {
+    }
+
     public class FromArchive : Directive
     {
         /// <summary>

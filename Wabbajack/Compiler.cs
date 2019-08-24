@@ -495,7 +495,7 @@ namespace Wabbajack
                 IgnoreDisabledMods(),
                 IncludeThisProfile(),
                 // Ignore the ModOrganizer.ini file it contains info created by MO2 on startup
-                IgnoreStartsWith("ModOrganizer.ini"),
+                IncludeStubbedMO2Ini(),
                 IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Data")),
                 IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Papyrus Compiler")),
                 IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Skyrim")),
@@ -522,6 +522,35 @@ namespace Wabbajack
                 IgnoreEndsWith("splash.png"),
                 DropAll()
             };
+        }
+
+        private Func<RawSourceFile, Directive> IncludeStubbedMO2Ini()
+        {
+            return source =>
+            {
+                if (source.Path == "ModOrganizer.ini")
+                {
+                    return RemapIni(source, GamePath);
+                }
+                return null;
+            };
+        }
+
+        private Directive RemapIni(RawSourceFile source, string gamePath)
+        {
+            var data = File.ReadAllText(source.AbsolutePath);
+
+            data = data.Replace(GamePath, Consts.GAME_PATH_MAGIC_BACK);
+            data = data.Replace(GamePath.Replace("\\", "\\\\"), Consts.GAME_PATH_MAGIC_DOUBLE_BACK);
+            data = data.Replace(GamePath.Replace("\\", "/"), Consts.GAME_PATH_MAGIC_FORWARD);
+
+            data = data.Replace(MO2Folder, Consts.MO2_PATH_MAGIC_BACK);
+            data = data.Replace(MO2Folder.Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
+            data = data.Replace(MO2Folder.Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
+            var result = source.EvolveTo<RemappedInlineFile>();
+            result.SourceData = Encoding.UTF8.GetBytes(data).ToBase64();
+            return result;
+
         }
 
         private Func<RawSourceFile, Directive> IgnorePathContains(string v)
