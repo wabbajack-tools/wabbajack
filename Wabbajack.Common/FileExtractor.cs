@@ -1,12 +1,16 @@
 ﻿using Compression.BSA;
 using ICSharpCode.SharpZipLib.Zip;
-using SevenZipExtractor;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
 namespace Wabbajack.Common
 {
@@ -14,7 +18,20 @@ namespace Wabbajack.Common
     {
         static FileExtractor()
         {
-            _7ZipLock = new object ();
+            ExtractResource("Wabbajack.Common.7z.dll.gz", "7z.dll");
+            ExtractResource("Wabbajack.Common.7z.exe.gz", "7z.exe");
+        }
+
+        private static void ExtractResource(string from, string to)
+        {
+            if (File.Exists(to))
+                File.Delete(to);
+
+            using (var ous = File.OpenWrite(to))
+            using (var ins = new GZipInputStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(from)))
+            {
+                ins.CopyTo(ous);
+            }
         }
 
         public class Entry
@@ -23,103 +40,75 @@ namespace Wabbajack.Common
             public ulong Size;
         }
 
-        public static void Extract(string file, Func<Entry, Stream> f, bool leave_open = false)
+       
+        public static void ExtractAll(string source, string dest)
         {
-            if (Path.GetExtension(file) == ".bsa")
-            {
-                ExtractAsBSA(file, f, leave_open);
-            }
-            else if (Path.GetExtension(file) == ".zip")
-            {
-                ExtractViaNetZip(file, f, leave_open);
+            if (source.EndsWith(".bsa")) { 
+                ExtractAllWithBSA(source, dest);
             }
             else
             {
-                ExtractVia7Zip(file, f, leave_open);
+                ExtractAllWith7Zip(source, dest);
             }
         }
 
-        private static void ExtractAsBSA(string file, Func<Entry, Stream> f, bool leave_open)
+        private static void ExtractAllWithBSA(string source, string dest)
         {
-            using (var ar = new BSAReader(file))
+            using (var arch = new BSAReader(source))
             {
-                foreach (var entry in ar.Files)
+                arch.Files.PMap(f =>
                 {
-                    var stream = f(new Entry()
-                    {
-                        Name = entry.Path,
-                        Size = (ulong)entry.Size
-                    });
-                    if (stream == null) continue;
+                    var path = f.Path;
+                    if (f.Path.StartsWith("\\"))
+                        path = f.Path.Substring(1);
+                    Utils.Status($"Extracting {path}");
+                    var out_path = Path.Combine(dest, path);
+                    var parent = Path.GetDirectoryName(out_path);
 
-                    var data = entry.GetData();
-                    stream.Write(data, 0, data.Length);
+                    if (!Directory.Exists(parent))
+                        Directory.CreateDirectory(parent);
 
-                    if (!leave_open)
+                    using (var fs = File.OpenWrite(out_path))
                     {
-                        stream.Flush();
-                        stream.Close();
+                        f.CopyDataTo(fs);
                     }
-                }
+                });
             }
         }
 
-
-        private static void ExtractVia7Zip(string file, Func<Entry, Stream> f, bool leave_open)
+        private static void ExtractAllWith7Zip(string source, string dest)
         {
-            // 7Zip uses way too much memory so for now, let's limit it a bit
-            lock(_7ZipLock)
-            using (var af = new ArchiveFile(file))
+            Utils.Log($"Extracting {Path.GetFileName(source)}");
+
+            var info = new ProcessStartInfo
             {
-                af.Extract(entry =>
-                {
-                    if (entry.IsFolder) return null;
-                    return f(new Entry()
-                    {
-                        Name = entry.FileName,
-                        Size = entry.Size
-                    });
-                }, leave_open);
+                FileName = "7z.exe",
+                Arguments = $"x -o\"{dest}\" \"{source}\"",
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                
+            };
+
+            var p = new Process
+            {
+                StartInfo = info,
+            };
+
+            p.Start();
+            p.PriorityClass = ProcessPriorityClass.BelowNormal;
+
+            p.WaitForExit();
+            if (p.ExitCode != 0)
+            {
+                Utils.Log(p.StandardOutput.ReadToEnd());
+                Utils.Log($"Extraction error extracting {source}");
             }
+                
         }
 
-        private const int ZIP_BUFFER_SIZE = 1024 * 8;
-        private static object _7ZipLock;
-
-        private static void ExtractViaNetZip(string file, Func<Entry, Stream> f, bool leave_open)
-        {
-            using (var s = new ZipFile(File.OpenRead(file)))
-            {
-                s.IsStreamOwner = true;
-                s.UseZip64 = UseZip64.On;
-
-                if (s.OfType<ZipEntry>().FirstOrDefault(e => !e.CanDecompress) != null)
-                {
-                    ExtractVia7Zip(file, f, leave_open);
-                    return;
-                }
-
-                foreach (ZipEntry entry in s)
-                {
-                    if (!entry.IsFile) continue;
-                    var stream = f(new Entry()
-                    {
-                        Name = entry.Name.Replace('/', '\\'),
-                        Size = (ulong)entry.Size
-                    });
-
-                    if (stream == null) continue;
-
-                    using (var instr = s.GetInputStream(entry))
-                    {
-                        instr.CopyTo(stream);
-                    }
-
-                    if (!leave_open) stream.Dispose();
-
-                }
-            }
-        }
 
         /// <summary>
         /// Returns true if the given extension type can be extracted
@@ -131,60 +120,5 @@ namespace Wabbajack.Common
             return Consts.SupportedArchives.Contains(v) || v == ".bsa";
         }
 
-        // Probably replace this with VFS?
-        /*
-        public static void DeepExtract(string file, IEnumerable<FromArchive> files, Func<FromArchive, Entry, Stream> fnc, bool leave_open = false, int depth = 1)
-        {
-            // Files we need to extract at this level
-            var files_for_level = files.Where(f => f.ArchiveHashPath.Length == depth)
-                                       .GroupBy(e => e.From)
-                                       .ToDictionary(e => e.Key);
-            // Archives we need to extract at this level
-            var archives_for_level = files.Where(f => f.ArchiveHashPath.Length > depth)
-                                          .GroupBy(f => f.ArchiveHashPath[depth])
-                                          .ToDictionary(f => f.Key);
-
-            var disk_archives = new Dictionary<string, string>();
-
-            Extract(file, e =>
-            {
-                Stream a = Stream.Null;
-                Stream b = Stream.Null;
-
-                if (files_for_level.TryGetValue(e.Name, out var fe))
-                {
-                    foreach (var inner_fe in fe)
-                    {
-                        var str = fnc(inner_fe, e);
-                        if (str == null) continue;
-                        a = new SplittingStream(a, false, fnc(inner_fe, e), leave_open);
-                    }
-                }
-                
-                if (archives_for_level.TryGetValue(e.Name, out var archive))
-                {
-                    var name = Path.GetTempFileName() + Path.GetExtension(e.Name);
-                    if (disk_archives.ContainsKey(e.Name))
-                    {
-
-                    }
-                    disk_archives.Add(e.Name, name);
-                    b = File.OpenWrite(name);
-                }
-
-                if (a == null && b == null) return null;
-
-                return new SplittingStream(a, leave_open, b, false);
-
-            });
-
-            foreach (var archive in disk_archives)
-            {
-                DeepExtract(archive.Value, archives_for_level[archive.Key], fnc, leave_open, depth + 1);
-                File.Delete(archive.Value);
-            }
-
-        }
-        */
     }
 }

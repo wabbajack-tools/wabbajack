@@ -1,7 +1,6 @@
 ﻿using Compression.BSA;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
-using SevenZipExtractor;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,9 +29,33 @@ namespace VFS
             RootFolder = ".\\";
             _stagedRoot = Path.Combine(RootFolder, "vfs_staged_files");
             if (Directory.Exists(_stagedRoot))
-                Directory.Delete(_stagedRoot, true);
+                DeleteDirectory(_stagedRoot);
 
             Directory.CreateDirectory(_stagedRoot);
+        }
+
+        private static void DeleteDirectory(string path)
+        {
+            foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
+            {
+                File.SetAttributes(file, FileAttributes.Normal);
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (Exception ex)
+                {
+                    Utils.Log(ex.ToString());
+                }
+            }
+            try { 
+                Directory.Delete(path, true);
+            }
+            catch (Exception ex)
+            {
+                Utils.Log(ex.ToString());
+            }
+
         }
 
         public VirtualFileSystem ()
@@ -93,6 +116,7 @@ namespace VFS
                         using (var fs = File.OpenWrite("vfs_cache.bin_new"))
                         using (var bw = new BinaryWriter(fs))
                         {
+                            Utils.Log($"Syncing VFS to Disk: {_files.Count} entries");
                             foreach (var f in _files.Values)
                             {
                                 f.Write(bw);
@@ -276,7 +300,20 @@ namespace VFS
 
         private void UpdateArchive(VirtualFile f)
         {
-            var entries = GetArchiveEntryNames(f);
+            if (!f.IsStaged)
+                throw new InvalidDataException("Can't analyze an unstaged file");
+
+            var tmp_dir = Path.Combine(_stagedRoot, Guid.NewGuid().ToString());
+            Utils.Status($"Extracting Archive {Path.GetFileName(f.StagedPath)}");
+
+            FileExtractor.ExtractAll(f.StagedPath, tmp_dir);
+
+
+            Utils.Status($"Updating Archive {Path.GetFileName(f.StagedPath)}");
+
+            var entries = Directory.EnumerateFiles(tmp_dir, "*", SearchOption.AllDirectories)
+                                   .Select(path => path.RelativeTo(tmp_dir));
+
             var new_files = entries.Select(e => {
                 var new_path = new string[f.Paths.Length + 1];
                 f.Paths.CopyTo(new_path, 0);
@@ -285,26 +322,31 @@ namespace VFS
                 {
                     Paths = new_path,
                 };
+                nf._stagedPath = Path.Combine(tmp_dir, e);
                 Add(nf);
                 return nf;
                 }).ToList();
 
-            // Stage the files in the archive
-            Stage(new_files);
             // Analyze them
-            new_files.Do(file => file.Analyze());
+            new_files.PMap(file =>
+            {
+                Utils.Status($"Analyzing {Path.GetFileName(file.StagedPath)}");
+                file.Analyze();
+            });
             // Recurse into any archives in this archive
             new_files.Where(file => file.IsArchive).Do(file => UpdateArchive(file));
-            // Unstage the file
-            new_files.Where(file => file.IsStaged).Do(file => file.Unstage());
 
             f.FinishedIndexing = true;
 
             if (!_isSyncing)
                 SyncToDisk();
+
+            Utils.Status("Cleaning Directory");
+            DeleteDirectory(tmp_dir);
+
         }
 
-        public void Stage(IEnumerable<VirtualFile> files)
+        public Action Stage(IEnumerable<VirtualFile> files)
         {
             var grouped = files.SelectMany(f => f.FilesInPath)
                                .Distinct()
@@ -313,18 +355,25 @@ namespace VFS
                                .OrderBy(f => f.Key == null ? 0 : f.Key.Paths.Length)
                                .ToList();
 
+            List<string> Paths = new List<string>();
+
             foreach (var group in grouped)
             {
-                var indexed = group.ToDictionary(e => e.Paths[group.Key.Paths.Length]);
-                FileExtractor.Extract(group.Key.StagedPath, e =>
-                {
-                    if (indexed.TryGetValue(e.Name, out var file))
-                    {
-                        return File.OpenWrite(file.GenerateStagedName());
-                    }
-                    return null;
-                });
+                var tmp_path = Path.Combine(_stagedRoot, Guid.NewGuid().ToString());
+                FileExtractor.ExtractAll(group.Key.StagedPath, tmp_path);
+
+                foreach (var file in group)
+                    file._stagedPath = Path.Combine(tmp_path, file.Paths[group.Key.Paths.Length]);
+
             }
+
+            return () =>
+            {
+                Paths.Do(p =>
+                {
+                    if (Directory.Exists(p)) DeleteDirectory(p);
+                });
+            };
         }
 
         
@@ -372,12 +421,14 @@ namespace VFS
                 }
             }
             
+            /*
             using (var e = new ArchiveFile(file.StagedPath))
             {
                 return e.Entries
                         .Where(f => !f.IsFolder)
                         .Select(f => f.FileName).ToList();
-            }
+            }*/
+            return null;
 
         }
 
@@ -446,7 +497,7 @@ namespace VFS
         {
         }
 
-        private string _stagedPath;
+        internal string _stagedPath;
 
 
         public string FullPath
@@ -541,7 +592,7 @@ namespace VFS
         internal void Analyze()
         {
             if (!IsStaged)
-                throw new InvalidDataException("Cannot analzye a unstaged file");
+                throw new InvalidDataException("Cannot analyze an unstaged file");
 
             var fio = new FileInfo(StagedPath);
             Size = fio.Length;
@@ -639,6 +690,7 @@ namespace VFS
             bw.Write(Hash ?? "");
             bw.Write(Size);
             bw.Write(LastModified);
+            bw.Write(FinishedIndexing ?? false);
         }
 
         public static VirtualFile Read(BinaryReader rdr)
@@ -646,11 +698,17 @@ namespace VFS
             var vf = new VirtualFile();
             var full_path = rdr.ReadString();
             vf.Paths = full_path.Split('|');
+
+            for (int x = 0; x < vf.Paths.Length; x++)
+                vf.Paths[x] = String.Intern(vf.Paths[x]);
+
             vf._fullPath = full_path;
             vf.Hash = rdr.ReadString();
             if (vf.Hash == "") vf.Hash = null;
             vf.Size = rdr.ReadInt64();
             vf.LastModified = rdr.ReadUInt64();
+            vf.FinishedIndexing = rdr.ReadBoolean();
+            if (vf.FinishedIndexing == false) vf.FinishedIndexing = null;
             return vf;
 
         }

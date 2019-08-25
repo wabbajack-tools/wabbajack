@@ -1,5 +1,4 @@
-﻿using SevenZipExtractor;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -131,7 +130,6 @@ namespace Wabbajack
         public AppState(Dispatcher d, String mode)
         {
             _startTime = DateTime.Now;
-            ArchiveFile.SetupLibrary();
             LogFile = Assembly.GetExecutingAssembly().Location + ".log";
 
             if (LogFile.FileExists())

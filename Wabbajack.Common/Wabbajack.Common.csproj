@@ -86,6 +86,8 @@
     <Compile Include="WorkQueue.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="7z.dll.gz" />
+    <EmbeddedResource Include="7z.exe.gz" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -93,10 +95,10 @@
       <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
       <Name>Compression.BSA</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SevenZipExtractor\SevenZipExtractor.csproj">
-      <Project>{8aa97f58-5044-4bba-b8d9-a74b6947a660}</Project>
-      <Name>SevenZipExtractor</Name>
-    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="7z.dll" />
+    <Content Include="7z.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

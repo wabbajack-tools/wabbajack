@@ -197,10 +197,6 @@
       <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
       <Name>Compression.BSA</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SevenZipExtractor\SevenZipExtractor.csproj">
-      <Project>{8aa97f58-5044-4bba-b8d9-a74b6947a660}</Project>
-      <Name>SevenZipExtractor</Name>
-    </ProjectReference>
     <ProjectReference Include="..\VirtualFileSystem\VirtualFileSystem.csproj">
       <Project>{5128b489-bc28-4f66-9f0b-b4565af36cbc}</Project>
       <Name>VirtualFileSystem</Name>

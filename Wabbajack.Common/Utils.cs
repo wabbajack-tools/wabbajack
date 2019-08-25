@@ -52,10 +52,25 @@ namespace Wabbajack.Common
             using (var o = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write))
             {
                 using (var i = File.OpenRead(file))
-                    i.CopyTo(o);
+                    i.CopyToWithStatus(new FileInfo(file).Length, o,  $"Hashing {Path.GetFileName(file)}");
             }
             return sha.Hash.ToBase64();
 
+        }
+
+        public static void CopyToWithStatus(this Stream istream, long maxSize, Stream ostream, string status)
+        {
+            var buffer = new byte[1024 * 64];
+            if (maxSize == 0) maxSize = 1;
+            long total_read = 0;
+            while (true)
+            {
+                int read = istream.Read(buffer, 0, buffer.Length);
+                if (read == 0) break;
+                total_read += read;
+                ostream.Write(buffer, 0, read);
+                Status(status, (int)(total_read * 100 / maxSize));
+            }
         }
 
         public static string SHA256(this byte[] data)
@@ -94,6 +109,17 @@ namespace Wabbajack.Common
         {
             foreach (var i in coll) f(i);
         }
+
+        public static void DoIndexed<T>(this IEnumerable<T> coll, Action<int, T> f)
+        {
+            int idx = 0;
+            foreach (var i in coll)
+            {
+                f(idx, i);
+                idx += 1;
+            }
+        }
+
 
         /// <summary>
         /// Loads INI data from the given filename and returns a dynamic type that
