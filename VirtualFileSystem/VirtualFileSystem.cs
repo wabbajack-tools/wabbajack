@@ -45,11 +45,30 @@ namespace VFS
             try
             {
                 Utils.Log("Loading VFS Cache");
-                if (!File.Exists("vfs_cache.bson")) return;
-                _files = "vfs_cache.bson".FromBSON<IEnumerable<VirtualFile>>(root_is_array: true).ToDictionary(f => f.FullPath);
+                if (!File.Exists("vfs_cache.bin")) return;
+                _files = new Dictionary<string, VirtualFile>();
+
+                try
+                {
+                    using (var fs = File.OpenRead("vfs_cache.bin"))
+                    using (var br = new BinaryReader(fs))
+                    {
+                        while (true)
+                        {
+
+                            var fr = VirtualFile.Read(br);
+                            _files.Add(fr.FullPath, fr);
+                        }
+                    }
+                }
+                catch (EndOfStreamException ex)
+                {
+                }
+
+
                 CleanDB();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Utils.Log($"Purging cache due to {ex}");
                 File.Delete("vfs_cache.bson");
@@ -67,7 +86,23 @@ namespace VFS
                     try
                     {
                         _isSyncing = true;
-                        _files.Values.OfType<VirtualFile>().ToBSON("vfs_cache.bson");
+
+                        if (File.Exists("vfs_cache.bin_new"))
+                            File.Delete("vfs_cache.bin_new");
+
+                        using (var fs = File.OpenWrite("vfs_cache.bin_new"))
+                        using (var bw = new BinaryWriter(fs))
+                        {
+                            foreach (var f in _files.Values)
+                            {
+                                f.Write(bw);
+                            }
+                        }
+
+                        if (File.Exists("vfs_cache.bin"))
+                            File.Delete("vfs_cache.bin");
+
+                        File.Move("vfs_cache.bin_new", "vfs_cache.bin");
                     }
                     finally
                     {
@@ -596,6 +631,28 @@ namespace VFS
                                  .Select(path => VirtualFileSystem.VFS.Lookup(String.Join("|", path)));
                                     
             }
+        }
+
+        public void Write(BinaryWriter bw)
+        {
+            bw.Write(FullPath);
+            bw.Write(Hash ?? "");
+            bw.Write(Size);
+            bw.Write(LastModified);
+        }
+
+        public static VirtualFile Read(BinaryReader rdr)
+        {
+            var vf = new VirtualFile();
+            var full_path = rdr.ReadString();
+            vf.Paths = full_path.Split('|');
+            vf._fullPath = full_path;
+            vf.Hash = rdr.ReadString();
+            if (vf.Hash == "") vf.Hash = null;
+            vf.Size = rdr.ReadInt64();
+            vf.LastModified = rdr.ReadUInt64();
+            return vf;
+
         }
     }
 
