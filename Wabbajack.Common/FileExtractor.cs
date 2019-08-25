@@ -12,6 +12,11 @@ namespace Wabbajack.Common
 {
     public class FileExtractor
     {
+        static FileExtractor()
+        {
+            _7ZipLock = new object ();
+        }
+
         public class Entry
         {
             public string Name;
@@ -59,8 +64,11 @@ namespace Wabbajack.Common
             }
         }
 
+
         private static void ExtractVia7Zip(string file, Func<Entry, Stream> f, bool leave_open)
         {
+            // 7Zip uses way too much memory so for now, let's limit it a bit
+            lock(_7ZipLock)
             using (var af = new ArchiveFile(file))
             {
                 af.Extract(entry =>
@@ -76,6 +84,8 @@ namespace Wabbajack.Common
         }
 
         private const int ZIP_BUFFER_SIZE = 1024 * 8;
+        private static object _7ZipLock;
+
         private static void ExtractViaNetZip(string file, Func<Entry, Stream> f, bool leave_open)
         {
             using (var s = new ZipFile(File.OpenRead(file)))
