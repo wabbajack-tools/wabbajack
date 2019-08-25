@@ -205,6 +205,7 @@ namespace Wabbajack
 
             var stack = MakeStack();
 
+
             Info("Running Compilation Stack");
             var results = AllFiles.PMap(f => RunStack(stack, f)).ToList();
 
@@ -363,26 +364,7 @@ namespace Wabbajack
 
                 Archive result;
 
-                if (general.modID != null && general.fileID != null && general.gameName != null)
-                {
-                    result = new NexusMod()
-                    {
-                        GameName = general.gameName,
-                        FileID = general.fileID,
-                        ModID = general.modID
-                    };
-                    Status($"Getting Nexus info for {found.Name}");
-                    try
-                    {
-                       var link = NexusAPI.GetNexusDownloadLink((NexusMod)result, NexusKey, true);
-                    }
-                    catch (Exception ex)
-                    {
-                        Error($"Unable to resolve {found.Name} on the Nexus was the file removed?");
-                    }
-
-                }
-                else if (general.directURL != null && general.directURL.StartsWith("https://drive.google.com"))
+                if (general.directURL != null && general.directURL.StartsWith("https://drive.google.com"))
                 {
                     var regex = new Regex("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*");
                     var match = regex.Match(general.directURL);
@@ -451,6 +433,25 @@ namespace Wabbajack
                     {
                         URL = general.manualURL.ToString()
                     };
+                }
+                else if (general.modID != null && general.fileID != null && general.gameName != null)
+                {
+                    result = new NexusMod()
+                    {
+                        GameName = general.gameName,
+                        FileID = general.fileID,
+                        ModID = general.modID
+                    };
+                    Status($"Getting Nexus info for {found.Name}");
+                    try
+                    {
+                        var link = NexusAPI.GetNexusDownloadLink((NexusMod)result, NexusKey, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        Error($"Unable to resolve {found.Name} on the Nexus was the file removed?");
+                    }
+
                 }
                 else
                 {
@@ -532,9 +533,39 @@ namespace Wabbajack
                 IgnoreEndsWith("HavokBehaviorPostProcess.exe"),
                 // Theme file MO2 downloads somehow
                 IgnoreEndsWith("splash.png"),
+
+                PatchStockESMs(),
+
                 DropAll()
             };
         }
+
+        private Func<RawSourceFile, Directive> PatchStockESMs()
+        {
+            return source =>
+            {
+                string filename = Path.GetFileName(source.Path);
+                string game_file = Path.Combine(GamePath, "Data", filename);
+                if (Consts.GameESMs.Contains(filename) && source.Path.StartsWith("mods\\") && File.Exists(game_file))
+                {
+                    Info($"A ESM named {filename} was found in a mod that shares a name with a core game ESMs, it is assumed this is a cleaned ESM and it will be binary patched.");
+                    var result = source.EvolveTo<CleanedESM>();
+                    result.SourceESMHash = VFS.Lookup(game_file).Hash;
+
+                    Status($"Generating patch of {filename}");
+                    using (var ms = new MemoryStream()) {
+                        BSDiff.Create(File.ReadAllBytes(game_file), File.ReadAllBytes(source.AbsolutePath), ms);
+                        result.SourceData = ms.ToArray().ToBase64();
+                    }
+                    Info($"Generated a {result.SourceData.Length} byte patch for {filename}");
+
+                    return result;
+                }
+                return null;
+            };
+        }
+            
+
 
         private Func<RawSourceFile, Directive> IncludeLootFiles()
         {

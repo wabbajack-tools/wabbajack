@@ -43,5 +43,7 @@ namespace Wabbajack.Common
 
         public static String AppName = "Wabbajack";
         public static string HashCacheName = "Wabbajack.hash_cache";
+
+        public static HashSet<string> GameESMs = new HashSet<string>() { "Skyrim.esm", "Update.esm", "Dawnguard.esm", "HearthFires.esm", "Dragonborn.esm" };
     }
 }

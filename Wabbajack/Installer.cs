@@ -217,11 +217,37 @@ namespace Wabbajack
                        {
                            WriteRemappedFile((RemappedInlineFile)directive); 
                        }
+                       else if (directive is CleanedESM)
+                       {
+                           GenerateCleanedESM((CleanedESM)directive);
+                       }
                        else
                        {
                            File.WriteAllBytes(out_path, directive.SourceData.FromBase64());
                        }
                    });
+        }
+
+        private void GenerateCleanedESM(CleanedESM directive)
+        {
+            var filename = Path.GetFileName(directive.To);
+            var game_file = Path.Combine(GameFolder, "Data", filename);
+            Info($"Generating cleaned ESM for {filename}");
+            if (!File.Exists(game_file))
+            {
+                throw new InvalidDataException($"Missing {filename} at {game_file}");
+            }
+            Status($"Hashing game version of {filename}");
+            var sha = Utils.FileSHA256(game_file);
+            if (sha != directive.SourceESMHash)
+                throw new InvalidDataException($"Cannot patch {filename} from the game folder hashes don't match have you already cleaned the file?");
+
+            var patch_data = directive.SourceData.FromBase64();
+            var to_file = Path.Combine(Outputfolder, directive.To);
+            Status($"Patching {filename}");
+            using (var output = File.OpenWrite(to_file)) {
+                BSDiff.Apply(File.OpenRead(game_file), () => new MemoryStream(patch_data), output);
+            }
         }
 
         private void WriteRemappedFile(RemappedInlineFile directive)

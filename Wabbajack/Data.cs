@@ -96,6 +96,11 @@ namespace Wabbajack
         public string SourceData;
     }
 
+    public class CleanedESM : InlineFile
+    {
+        public string SourceESMHash;
+    }
+
     /// <summary>
     /// A file that has the game and MO2 folders remapped on installation
     /// </summary>
