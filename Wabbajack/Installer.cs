@@ -299,35 +299,27 @@ namespace Wabbajack
         private void InstallArchive(Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
         {
             Status($"Extracting {archive.Name}");
-            var files = grouping.GroupBy(e => e.FullPath)
-                                .ToDictionary(e => e.Key);
 
-
-            var vfiles = files.Select(g =>
+            var vfiles = grouping.Select(g =>
             {
-                var first_file = g.Value.First();
-                var file = VFS.FileForArchiveHashPath(first_file.ArchiveHashPath);
-                file.StagedPath = first_file.To;
-                return file;
+                var file = VFS.FileForArchiveHashPath(g.ArchiveHashPath);
+                g.FromFile = file;
+                return g;
             }).ToList();
 
-            VFS.Stage(vfiles);
+            var on_finish = VFS.Stage(vfiles.Select(f => f.FromFile).Distinct());
 
-            vfiles.Do(f => f.StagedPath = null);
 
-            Status("Copying duplicated files for {0}", archive.Name);
+            Status("Copying files for {0}", archive.Name);
 
-            foreach (var dups in files.Where(e => e.Value.Count() > 1).Select(v => v.Value))
+            vfiles.DoIndexed((idx, file) =>
             {
-                var ffrom = dups.First();
-                var from_path = Path.Combine(Outputfolder, ffrom.To);
-                foreach (var to in dups.Skip(1))
-                {
-                    var to_path = Path.Combine(Outputfolder, to.To);
-                    if (to_path.FileExists()) File.Delete(to_path);
-                    File.Copy(from_path, to_path);
-                }
-            };
+                Status($"Installing files", idx * 100 / vfiles.Count);
+                File.Copy(file.FromFile.StagedPath, Path.Combine(Outputfolder, file.To));
+            });
+
+            Status("Unstaging files");
+            on_finish();
 
             // Now patch all the files from this archive
             foreach (var to_patch in grouping.OfType<PatchedFromArchive>())
