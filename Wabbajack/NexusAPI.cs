@@ -162,5 +162,25 @@ namespace Wabbajack
             }
         }
 
+        public static EndorsementResponse EndorseMod(NexusMod mod, string apikey)
+        {
+            Utils.Status($"Endorsing ${mod.GameName} - ${mod.ModID}");
+            var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/endorse.json";
+            var client = BaseNexusClient(apikey);
+
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>() {{"value", "\"\""}});
+
+            using (var s = client.PostStreamSync(url, content))
+            {
+                return s.FromJSON<EndorsementResponse>();
+            }
+        }
+
+    }
+
+    public class EndorsementResponse
+    {
+        public string message;
+        public string status;
     }
 }

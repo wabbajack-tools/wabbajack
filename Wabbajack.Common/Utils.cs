@@ -321,6 +321,15 @@ namespace Wabbajack.Common
             return result.Result;
         }
 
+        public static Stream PostStreamSync(this HttpClient client, string url, HttpContent content)
+        {
+            var result = client.PostAsync(url, content);
+            result.Wait();
+            var stream = result.Result.Content.ReadAsStreamAsync();
+            stream.Wait();
+            return stream.Result;
+        }
+
         public static string ExceptionToString(this Exception ex)
         {
             StringBuilder sb = new StringBuilder();

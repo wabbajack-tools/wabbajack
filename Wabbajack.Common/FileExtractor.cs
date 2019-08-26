@@ -89,7 +89,6 @@ namespace Wabbajack.Common
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                
             };
 
             var p = new Process
@@ -98,6 +97,7 @@ namespace Wabbajack.Common
             };
 
             p.Start();
+            ChildProcessTracker.AddProcess(p);
             p.PriorityClass = ProcessPriorityClass.BelowNormal;
 
             p.WaitForExit();

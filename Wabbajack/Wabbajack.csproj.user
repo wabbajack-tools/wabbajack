@@ -20,4 +20,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <StartArguments>"c:\Mod Organizer 2" "Nexus SSO Test" "c:\tmp\validate"</StartArguments>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug %28no commandargs%29|x64'">
+    <StartWorkingDirectory>c:\tmp\vstmp</StartWorkingDirectory>
+  </PropertyGroup>
 </Project>

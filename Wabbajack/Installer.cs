@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 using VFS;
 using Wabbajack.Common;
 
@@ -114,6 +115,38 @@ namespace Wabbajack
             BuildBSAs();
 
             Info("Installation complete! You may exit the program.");
+            AskToEndorse();
+        }
+
+        private void AskToEndorse()
+        {
+            var mods = ModList.Directives
+                .OfType<NexusMod>()
+                .GroupBy(f => (f.GameName, f.ModID))
+                .Select(mod => mod.First())
+                .ToArray();
+
+            var result = MessageBox.Show(
+                $"Installation has completed, but you have installed ${mods.Length} from the Nexus, would you like to" +
+                " endorse these mods to show support to the authors? It will only take a few moments.", "Endorse Mods?",
+                MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            // Shuffle mods so that if we hit a API limit we don't always miss the same mods
+            var r = new Random();
+            for (var i = 0; i < mods.Length; i++)
+            {
+                var a = r.Next(mods.Length);
+                var b = r.Next(mods.Length);
+                var tmp = mods[a];
+                mods[a] = mods[b];
+                mods[b] = tmp;
+            }
+
+            mods.PMap(mod => NexusAPI.EndorseMod(mod, NexusAPIKey));
+            Info("Done! You may now exit the application!");
+
         }
 
         private bool LocateGameFolder()
@@ -314,7 +347,7 @@ namespace Wabbajack
 
             vfiles.DoIndexed((idx, file) =>
             {
-                Status($"Installing files", idx * 100 / vfiles.Count);
+                Utils.Status($"Installing files", idx * 100 / vfiles.Count);
                 File.Copy(file.FromFile.StagedPath, Path.Combine(Outputfolder, file.To));
             });
 

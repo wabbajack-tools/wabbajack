@@ -972,11 +972,12 @@ namespace Wabbajack
                 {
                     var result = source.EvolveTo<FromArchive>();
 
-                    var match = found.Where(f => Path.GetFileName(f.Paths[0]) == Path.GetFileName(source.Path))
+                    var match = found.Where(f => Path.GetFileName(f.Paths[f.Paths.Length - 1]) == Path.GetFileName(source.Path))
+                                     .OrderBy(f => f.Paths.Length)
                                      .FirstOrDefault();
 
                     if (match == null)
-                        match = found.FirstOrDefault();
+                        match = found.OrderBy(f => f.Paths.Length).FirstOrDefault();
 
                     result.ArchiveHashPath = match.MakeRelativePaths();
 
