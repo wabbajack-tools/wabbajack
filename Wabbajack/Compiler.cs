@@ -440,7 +440,8 @@ namespace Wabbajack
                     {
                         GameName = general.gameName,
                         FileID = general.fileID,
-                        ModID = general.modID
+                        ModID = general.modID,
+                        Version = general.version ?? "0.0.0.0"
                     };
                     Status($"Getting Nexus info for {found.Name}");
                     try

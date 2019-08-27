@@ -79,6 +79,7 @@ namespace Wabbajack
 
         public void Install()
         {
+
             Directory.CreateDirectory(Outputfolder);
             Directory.CreateDirectory(DownloadFolder);
 
@@ -120,14 +121,14 @@ namespace Wabbajack
 
         private void AskToEndorse()
         {
-            var mods = ModList.Directives
+            var mods = ModList.Archives
                 .OfType<NexusMod>()
                 .GroupBy(f => (f.GameName, f.ModID))
                 .Select(mod => mod.First())
                 .ToArray();
 
             var result = MessageBox.Show(
-                $"Installation has completed, but you have installed ${mods.Length} from the Nexus, would you like to" +
+                $"Installation has completed, but you have installed {mods.Length} from the Nexus, would you like to" +
                 " endorse these mods to show support to the authors? It will only take a few moments.", "Endorse Mods?",
                 MessageBoxButton.YesNo, MessageBoxImage.Question);
 
@@ -144,7 +145,11 @@ namespace Wabbajack
                 mods[b] = tmp;
             }
 
-            mods.PMap(mod => NexusAPI.EndorseMod(mod, NexusAPIKey));
+            mods.PMap(mod =>
+            {
+                var er = NexusAPI.EndorseMod(mod, NexusAPIKey);
+                Utils.Log($"Endorsed {mod.GameName} - {mod.ModID} - Result: {er.message}");
+            });
             Info("Done! You may now exit the application!");
 
         }

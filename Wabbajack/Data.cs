@@ -174,6 +174,7 @@ namespace Wabbajack
         public string GameName;
         public string ModID;
         public string FileID;
+        public string Version;
     }
 
     public class GoogleDriveMod : Archive

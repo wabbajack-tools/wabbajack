@@ -168,7 +168,7 @@ namespace Wabbajack
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/endorse.json";
             var client = BaseNexusClient(apikey);
 
-            var content = new FormUrlEncodedContent(new Dictionary<string, string>() {{"value", "\"\""}});
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>() {{"version", mod.Version}});
 
             using (var s = client.PostStreamSync(url, content))
             {
