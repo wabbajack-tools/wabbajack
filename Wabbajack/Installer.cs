@@ -83,10 +83,19 @@ namespace Wabbajack
             Directory.CreateDirectory(Outputfolder);
             Directory.CreateDirectory(DownloadFolder);
 
-            if (ModList.Directives.OfType<RemappedInlineFile>().FirstOrDefault() != null && !LocateGameFolder())
+            if (ModList.Directives.OfType<RemappedInlineFile>().FirstOrDefault() != null ||
+                ModList.Directives.OfType<CleanedESM>().FirstOrDefault() != null)
             {
-                Info("Stopping installation because game folder was not selected");
-                return;
+                MessageBox.Show(
+                    "In order to do a proper install Wabbajack needs to know where your game folder resides. This is most likely " +
+                    "somewhere in one of your Steam folders. Please select this folder on the next screen." +
+                    "Note: This is not the install location where Mod Organizer 2 will be installed. ",
+                    "Select your Game Folder", MessageBoxButton.OK);
+                if (!LocateGameFolder())
+                {
+                    Info("Stopping installation because game folder was not selected");
+                    return;
+                }
             }
 
             HashArchives();
