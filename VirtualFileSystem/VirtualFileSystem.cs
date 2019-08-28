@@ -8,6 +8,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Wabbajack.Common;
+using Directory = Alphaleonis.Win32.Filesystem.Directory;
+using File = Alphaleonis.Win32.Filesystem.File;
+using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace VFS
 {
@@ -26,7 +30,7 @@ namespace VFS
         static VirtualFileSystem()
         {
             VFS = new VirtualFileSystem();
-            RootFolder = ".\\";
+            RootFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             _stagedRoot = Path.Combine(RootFolder, "vfs_staged_files");
             if (Directory.Exists(_stagedRoot))
                 DeleteDirectory(_stagedRoot);

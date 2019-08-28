@@ -3,12 +3,12 @@ using ICSharpCode.SharpZipLib.Zip;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using ICSharpCode.SharpZipLib.GZip;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
@@ -98,7 +98,11 @@ namespace Wabbajack.Common
 
             p.Start();
             ChildProcessTracker.AddProcess(p);
-            p.PriorityClass = ProcessPriorityClass.BelowNormal;
+            try
+            {
+                p.PriorityClass = ProcessPriorityClass.BelowNormal;
+            }
+            catch (Exception) { }
 
             p.WaitForExit();
             if (p.ExitCode != 0)

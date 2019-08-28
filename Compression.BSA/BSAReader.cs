@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Compression.LZ4.Streams;
+using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
 {

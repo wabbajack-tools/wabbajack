@@ -749,9 +749,14 @@ namespace Wabbajack
 
                 var stack = default_include ? microstack_with_include : microstack;
 
-                var matches = source_files.PMap(e => RunStack(stack, new RawSourceFile(e)));
-
                 var id = Guid.NewGuid().ToString();
+
+                var matches = source_files.PMap(e => RunStack(stack, new RawSourceFile(e)
+                {
+                    Path = Path.Combine(Consts.BSACreationDir, id, e.Paths.Last())
+
+                }));
+
 
                 foreach (var match in matches)
                 {
@@ -759,7 +764,6 @@ namespace Wabbajack
                     {
                         Error($"File required for BSA creation doesn't exist: {match.To}");
                     }
-                    match.To = Path.Combine(Consts.BSACreationDir, id, match.To);
                     ExtraFiles.Add(match);
                 };
 
@@ -818,7 +822,7 @@ namespace Wabbajack
 
             return source =>
             {
-                if (indexed.TryGetValue(Path.GetFileName(source.Path.ToLower()), out var value))
+                if (indexed.TryGetValue(Path.GetFileName(source.File.Paths.Last().ToLower()), out var value))
                 {
                     // TODO: Improve this
                     var found = value.First();

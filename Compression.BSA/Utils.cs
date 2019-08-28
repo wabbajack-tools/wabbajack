@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Compression.BSA
 {
