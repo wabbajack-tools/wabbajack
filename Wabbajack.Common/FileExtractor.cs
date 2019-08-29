@@ -83,7 +83,7 @@ namespace Wabbajack.Common
             var info = new ProcessStartInfo
             {
                 FileName = "7z.exe",
-                Arguments = $"x -o\"{dest}\" \"{source}\"",
+                Arguments = $"x -bsp1 -y -o\"{dest}\" \"{source}\"",
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -104,6 +104,28 @@ namespace Wabbajack.Common
             }
             catch (Exception) { }
 
+            var name = Path.GetFileName(source);
+            try
+            {
+                while (!p.HasExited)
+                {
+                    var line = p.StandardOutput.ReadLine();
+                    if (line == null)
+                        break;
+                    int percent = 0;
+                    if (line.Length > 4 && line[3] == '%')
+                    {
+                        Int32.TryParse(line.Substring(0, 3), out percent);
+                        Utils.Status($"Extracting {name} - {line.Trim()}", percent);
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
             p.WaitForExit();
             if (p.ExitCode != 0)
             {
@@ -112,7 +134,6 @@ namespace Wabbajack.Common
             }
                 
         }
-
 
         /// <summary>
         /// Returns true if the given extension type can be extracted

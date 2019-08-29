@@ -10,7 +10,7 @@ namespace Wabbajack.Common
 {
     public class WorkQueue
     {
-        internal static BlockingCollection<Action> Queue = new BlockingCollection<Action>();
+        internal static BlockingCollection<Action> Queue = new BlockingCollection<Action>(new ConcurrentStack<Action>());
 
         [ThreadStatic]
         private static int CpuId;

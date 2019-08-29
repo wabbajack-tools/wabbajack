@@ -7,11 +7,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Configuration;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using File = Alphaleonis.Win32.Filesystem.File;
+using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Common
 {
@@ -299,6 +303,21 @@ namespace Wabbajack.Common
                 return false;
             });
             return;
+        }
+
+        public static void DoProgress<T>(this IEnumerable<T> coll, String msg, Action<T> f)
+        {
+            var lst = coll.ToList();
+            lst.DoIndexed((idx, i) =>
+            {
+                Status(msg, idx * 100 / lst.Count);
+                f(i);
+            });
+        }
+
+        public static void OnQueue(Action f)
+        {
+            new List<bool>().Do(_ => f());
         }
 
         public static HttpResponseMessage GetSync(this HttpClient client, string url)

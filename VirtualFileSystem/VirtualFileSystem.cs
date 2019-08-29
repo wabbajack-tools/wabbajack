@@ -7,8 +7,11 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.AccessControl;
+using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
+using DirectoryInfo = Alphaleonis.Win32.Filesystem.DirectoryInfo;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -32,33 +35,49 @@ namespace VFS
             VFS = new VirtualFileSystem();
             RootFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             _stagedRoot = Path.Combine(RootFolder, "vfs_staged_files");
-            if (Directory.Exists(_stagedRoot))
-                DeleteDirectory(_stagedRoot);
+            Utils.OnQueue(() =>
+            {
+                if (Directory.Exists(_stagedRoot))
+                    DeleteDirectory(_stagedRoot);
+            });
 
             Directory.CreateDirectory(_stagedRoot);
         }
 
         private static void DeleteDirectory(string path)
         {
-            foreach (var file in Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories))
-            {
-                File.SetAttributes(file, FileAttributes.Normal);
-                try
+            Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
+                .DoProgress("Cleaning VFS Files", file =>
                 {
-                    File.Delete(file);
-                }
-                catch (Exception ex)
+                    try
+                    {
+                        var fi = new FileInfo(file);
+                        fi.Attributes &= ~FileAttributes.ReadOnly;
+                        File.Delete(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.Log(ex.ToString());
+                    }
+                });
+
+            Directory.EnumerateDirectories(path, DirectoryEnumerationOptions.Recursive)
+                .DoProgress("Cleaning VFS Folders", folder =>
                 {
-                    Utils.Log(ex.ToString());
-                }
-            }
-            try { 
-                Directory.Delete(path, true);
-            }
-            catch (Exception ex)
-            {
-                Utils.Log(ex.ToString());
-            }
+                    try
+                    {
+                        if (!Directory.Exists(folder))
+                            return;
+                        var di = new DirectoryInfo(folder);
+                        di.Attributes &= ~FileAttributes.ReadOnly;
+                        Directory.Delete(path, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.Log(ex.ToString());
+                    }
+                });
+            
 
         }
 
@@ -365,7 +384,7 @@ namespace VFS
             {
                 var tmp_path = Path.Combine(_stagedRoot, Guid.NewGuid().ToString());
                 FileExtractor.ExtractAll(group.Key.StagedPath, tmp_path);
-
+                Paths.Add(tmp_path);
                 foreach (var file in group)
                     file._stagedPath = Path.Combine(tmp_path, file.Paths[group.Key.Paths.Length]);
 
