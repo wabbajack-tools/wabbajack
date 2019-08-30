@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -106,6 +107,20 @@ namespace Wabbajack
             }
         }
 
+        private string _htmlReport;
+        public Visibility ShowReportButton => _htmlReport == null ? Visibility.Collapsed : Visibility.Visible;
+
+        public string HTMLReport
+        {
+            get { return _htmlReport; }
+            set
+            {
+                _htmlReport = value;
+                OnPropertyChanged("HTMLReport");
+                OnPropertyChanged("ShowReportButton");
+            }
+        }
+
         private int _queueProgress;
         public int QueueProgress
         {
@@ -179,6 +194,7 @@ namespace Wabbajack
             _modList = modlist.FromJSONString<ModList>();
             Mode = "Installing";
             ModListName = _modList.Name;
+            HTMLReport = _modList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
         }
@@ -280,6 +296,27 @@ namespace Wabbajack
             }
         }
 
+        private ICommand _showReportCommand;
+        public ICommand ShowReportCommand
+        {
+            get
+            {
+                if (_showReportCommand == null)
+                {
+                    _showReportCommand = new LambdaCommand(() => true, () => this.ShowReport());
+                }
+                return _showReportCommand;
+            }
+        }
+        
+        private void ShowReport()
+        {
+            var file = Path.GetTempFileName() + ".html";
+            File.WriteAllText(file, HTMLReport);
+            Process.Start(file);
+        }
+
+
         private void ExecuteBegin()
         {
             if (Mode == "Installing")
@@ -313,6 +350,10 @@ namespace Wabbajack
                     try
                     {
                         compiler.Compile();
+                        if (compiler.ModList != null && compiler.ModList.ReportHTML != null)
+                        {
+                            HTMLReport = compiler.ModList.ReportHTML;
+                        }
                     }
                     catch (Exception ex)
                     {

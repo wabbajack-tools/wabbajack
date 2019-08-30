@@ -99,12 +99,11 @@ namespace Wabbajack
             return true;
         }
 
-        private static string ConvertGameName(string gameName)
+        public static string ConvertGameName(string gameName)
         {
             if (gameName == "SkyrimSE") return "skyrimspecialedition";
             if (gameName == "FalloutNV") return "newvegas";
-            return gameName;
-
+            return gameName.ToLower();
         }
 
 
@@ -161,6 +160,32 @@ namespace Wabbajack
                 return s.FromJSON<NexusFileInfo>();
             }
         }
+
+        public class ModInfo
+        {
+            public string author;
+            public string uploaded_by;
+            public string uploaded_users_profile_url;
+        }
+
+        public static ModInfo GetModInfo(NexusMod archive, string apikey)
+        {
+            string path = Path.Combine(Consts.NexusCacheDirectory, $"mod-info-{archive.GameName}-{archive.ModID}.json");
+            if (File.Exists(path))
+                return path.FromJSON<ModInfo>();
+
+
+            var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(archive.GameName)}/mods/{archive.ModID}.json";
+            var client = BaseNexusClient(apikey);
+
+            using (var s = client.GetStreamSync(url))
+            {
+                var result =  s.FromJSON<ModInfo>();
+                result.ToJSON(path);
+                return result;
+            }
+        }
+
 
         public static EndorsementResponse EndorseMod(NexusMod mod, string apikey)
         {

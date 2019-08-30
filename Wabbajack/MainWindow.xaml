@@ -17,6 +17,7 @@
             <RowDefinition></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0, 16, 0, 16">
             <TextBlock Text="{Binding Mode}" FontSize="16" FontWeight="Bold"></TextBlock>
@@ -68,7 +69,8 @@
         <TextBlock Text="Log:" Grid.Row="4" FontSize="14" Margin="0, 16, 0, 8"></TextBlock>
         <ListBox local:AutoScrollBehavior.ScrollOnNewItem="True" Grid.Row ="5" ItemsSource="{Binding Log}">
         </ListBox>
-        <Button Content="Begin" Grid.Row="6" Height="30" Command="{Binding Begin}"></Button>
-        <CheckBox Content="Ignore Missing Files" Grid.Row="7" Height="20" IsChecked="{Binding IgnoreMissingFiles}"></CheckBox>
+        <Button Content="View Modlist Contents" Grid.Row="6" Height="30" Visibility="{Binding ShowReportButton}" Command="{Binding ShowReportCommand}"></Button>
+        <Button Content="Begin" Grid.Row="7" Height="30" Command="{Binding Begin}"></Button>
+        <CheckBox Content="Ignore Missing Files" Grid.Row="8" Height="20" IsChecked="{Binding IgnoreMissingFiles}"></CheckBox>
     </Grid>
 </Window>

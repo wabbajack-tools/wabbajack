@@ -68,6 +68,11 @@ namespace Wabbajack
         /// Archives required by this modlist
         /// </summary>
         public List<Archive> Archives;
+
+        /// <summary>
+        /// Content Report in HTML form
+        /// </summary>
+        public string ReportHTML;
     }
 
     public class Directive
@@ -175,6 +180,9 @@ namespace Wabbajack
         public string ModID;
         public string FileID;
         public string Version;
+        public string UploaderProfile;
+        public string UploadedBy;
+        public string Author;
     }
 
     public class GoogleDriveMod : Archive

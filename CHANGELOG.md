@@ -3,6 +3,9 @@
 #### Version 0.9 - ????
 * Added log information for when modlists start parsing during installation
 * Check all links during mod list creation
+* Generate a installation report during compilation
+* Show the report after compiling
+* Added a button to view the report before installing
 
 #### Version 0.8.1 - 8/29/2019
 * Fixed a bug that was causing VFS temp folders not to be cleaned

@@ -3,13 +3,16 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
+using CommonMark;
 using Wabbajack.Common;
 using static Wabbajack.NexusAPI;
 using VFS;
@@ -252,11 +255,31 @@ namespace Wabbajack
                 Name = MO2Profile
             };
 
+            GenerateReport();
             PatchExecutable();
-
+            
             ResetMembers();
 
+            ShowReport();
+
             Info("Done Building Modpack");
+        }
+        private void ShowReport()
+        {
+            var file = Path.GetTempFileName() + ".html";
+            File.WriteAllText(file, ModList.ReportHTML);
+            Process.Start(file);
+        }
+
+        private void GenerateReport()
+        {
+            using (var fs = File.OpenWrite($"{ModList.Name}.md"))
+            {
+                fs.SetLength(0);
+                using (var reporter = new ReportBuilder(fs))
+                    reporter.Build(ModList);
+            }
+            ModList.ReportHTML = CommonMarkConverter.Convert(File.ReadAllText($"{ModList.Name}.md"));
         }
 
         /// <summary>
@@ -436,13 +459,18 @@ namespace Wabbajack
                 }
                 else if (general.modID != null && general.fileID != null && general.gameName != null)
                 {
-                    result = new NexusMod()
+                    var nm = new NexusMod()
                     {
                         GameName = general.gameName,
                         FileID = general.fileID,
                         ModID = general.modID,
                         Version = general.version ?? "0.0.0.0"
                     };
+                    var info = NexusAPI.GetModInfo(nm, NexusKey);
+                    nm.Author = info.author;
+                    nm.UploadedBy = info.uploaded_by;
+                    nm.UploaderProfile = info.uploaded_users_profile_url;
+                    result = nm;
                 }
                 else
                 {
@@ -552,7 +580,7 @@ namespace Wabbajack
 
                     Status($"Generating patch of {filename}");
                     using (var ms = new MemoryStream()) {
-                        BSDiff.Create(File.ReadAllBytes(game_file), File.ReadAllBytes(source.AbsolutePath), ms);
+                        //BSDiff.Create(File.ReadAllBytes(game_file), File.ReadAllBytes(source.AbsolutePath), ms);
                         result.SourceData = ms.ToArray().ToBase64();
                     }
                     Info($"Generated a {result.SourceData.Length} byte patch for {filename}");
