@@ -443,16 +443,6 @@ namespace Wabbajack
                         ModID = general.modID,
                         Version = general.version ?? "0.0.0.0"
                     };
-                    Status($"Getting Nexus info for {found.Name}");
-                    try
-                    {
-                        var link = NexusAPI.GetNexusDownloadLink((NexusMod)result, NexusKey, true);
-                    }
-                    catch (Exception ex)
-                    {
-                        Error($"Unable to resolve {found.Name} on the Nexus was the file removed?");
-                    }
-
                 }
                 else
                 {
@@ -463,6 +453,13 @@ namespace Wabbajack
                 result.Name = found.Name;
                 result.Hash = found.File.Hash;
                 result.Meta = found.Meta;
+
+                Info($"Checking link for {found.Name}");
+
+                var installer = new Installer(null, "", s=>Utils.Log(s));
+                installer.NexusAPIKey = NexusKey;
+                if (!installer.DownloadArchive(result, false))
+                    Error($"Unable to resolve link for {found.Name}. If this is hosted on the nexus the file may have been removed.");
 
                 return result;
             }

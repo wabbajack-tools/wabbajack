@@ -65,7 +65,7 @@ namespace Wabbajack
             return _baseHttpClient;
         }
 
-        public static string GetNexusDownloadLink(NexusMod archive, string apikey, bool cache=true)
+        public static string GetNexusDownloadLink(NexusMod archive, string apikey, bool cache=false)
         {
             if (cache && TryGetCachedLink(archive, apikey, out string result)) return result;
 

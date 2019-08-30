@@ -45,7 +45,7 @@ namespace Wabbajack
         public Action<string> Log_Fn { get; }
         public Dictionary<string, string> HashedArchives { get; private set; }
 
-        public string NexusAPIKey { get; private set; }
+        public string NexusAPIKey { get; set; }
         public bool IgnoreMissingFiles { get; internal set; }
         public string GameFolder { get; private set; }
 
@@ -413,52 +413,62 @@ namespace Wabbajack
             return;
         }
 
-        private void DownloadMissingArchives(List<Archive> missing)
+        private void DownloadMissingArchives(List<Archive> missing, bool download=true)
         {
             missing.PMap(archive =>
             {
                 Info($"Downloading {archive.Name}");
                 var output_path = Path.Combine(DownloadFolder, archive.Name);
 
-                if (output_path.FileExists())
-                    File.Delete(output_path);
+                if (download)
+                    if (output_path.FileExists())
+                        File.Delete(output_path);
 
+                return DownloadArchive(archive, download);
+            });
+        }
 
-                switch (archive) {
+        public bool DownloadArchive(Archive archive, bool download)
+        {
+            try
+            {
+                switch (archive)
+                {
                     case NexusMod a:
-                        Info($"Downloading Nexus Archive - {archive.Name} - {a.GameName} - {a.ModID} - {a.FileID}");
                         string url;
                         try
                         {
-                            url = NexusAPI.GetNexusDownloadLink(a as NexusMod, NexusAPIKey);
+                            url = NexusAPI.GetNexusDownloadLink(a as NexusMod, NexusAPIKey, !download);
+                            if (!download) return true;
                         }
                         catch (Exception ex)
                         {
                             Info($"{a.Name} - Error Getting Nexus Download URL - {ex.Message}");
-                            return;
+                            return false;
                         }
+                        Info($"Downloading Nexus Archive - {archive.Name} - {a.GameName} - {a.ModID} - {a.FileID}");
                         DownloadURLDirect(archive, url);
-                        break;
+                        return true;
                     case MEGAArchive a:
-                        DownloadMegaArchive(a);
-                        break;
+                        return DownloadMegaArchive(a, download);
                     case GoogleDriveMod a:
-                        DownloadGoogleDriveArchive(a);
-                        break;
+                        return DownloadGoogleDriveArchive(a, download);
                     case MODDBArchive a:
-                        DownloadModDBArchive(archive, (archive as MODDBArchive).URL);
-                        break;
+                        return DownloadModDBArchive(archive, (archive as MODDBArchive).URL, download);
                     case MediaFireArchive a:
-                        DownloadMediaFireArchive(archive, a.URL);
-                        break;
+                        return false;
+                        //return DownloadMediaFireArchive(archive, a.URL, download);
                     case DirectURLArchive a:
-                        DownloadURLDirect(archive, a.URL, headers:a.Headers);
-                        break;
-                    default:
-                        break;
-
+                        return DownloadURLDirect(archive, a.URL, headers: a.Headers, download: download);
+                }
             }
-            });
+            catch (Exception ex)
+            {
+                Utils.Log($"Download error for file {archive.Name}");
+                Utils.Log(ex.ToString());
+                return false;
+            }
+            return false;
         }
 
         private void DownloadMediaFireArchive(Archive a, string url)
@@ -470,39 +480,41 @@ namespace Wabbajack
             DownloadURLDirect(a, confirm.ToString(), client);
         }
 
-        private void DownloadMegaArchive(MEGAArchive m)
+        private bool DownloadMegaArchive(MEGAArchive m, bool download)
         {
             var client = new MegaApiClient();
             Status("Logging into MEGA (as anonymous)");
             client.LoginAnonymous();
             var file_link = new Uri(m.URL);
             var node = client.GetNodeFromLink(file_link);
+            if (!download) return true;
             Status("Downloading MEGA file: {0}", m.Name);
 
             var output_path = Path.Combine(DownloadFolder, m.Name);
             client.DownloadFile(file_link, output_path);
+            return true;
         }
 
-        private void DownloadGoogleDriveArchive(GoogleDriveMod a)
+        private bool DownloadGoogleDriveArchive(GoogleDriveMod a, bool download)
         {
             var initial_url = $"https://drive.google.com/uc?id={a.Id}&export=download";
             var client = new HttpClient();
             var result = client.GetStringSync(initial_url);
             var regex = new Regex("(?<=/uc\\?export=download&amp;confirm=).*(?=;id=)");
             var confirm = regex.Match(result);
-            DownloadURLDirect(a, $"https://drive.google.com/uc?export=download&confirm={confirm}&id={a.Id}", client);
+            return DownloadURLDirect(a, $"https://drive.google.com/uc?export=download&confirm={confirm}&id={a.Id}", client, download: download);
         }
 
-        private void DownloadModDBArchive(Archive archive, string url)
+        private bool DownloadModDBArchive(Archive archive, string url, bool download)
         {
             var client = new HttpClient();
             var result = client.GetStringSync(url);
             var regex = new Regex("https:\\/\\/www\\.moddb\\.com\\/downloads\\/mirror\\/.*(?=\\\")");
             var match = regex.Match(result);
-            DownloadURLDirect(archive, match.Value);
+            return DownloadURLDirect(archive, match.Value, download: download);
         }
 
-        private void DownloadURLDirect(Archive archive, string url, HttpClient client = null, List<string> headers = null)
+        private bool DownloadURLDirect(Archive archive, string url, HttpClient client = null, bool download = true, List<string> headers = null)
         {
             try
             {
@@ -533,13 +545,15 @@ namespace Wabbajack
                 }
                 catch (Exception ex)
                 {
-
                 };
                 if (stream.IsFaulted)
                 {
                     Info($"While downloading {url} - {Utils.ExceptionToString(stream.Exception)}");
-                    return;
+                    return false;
                 }
+
+                if (!download)
+                    return true;
 
                 string header_var = "1";
                 if (response.Content.Headers.Contains("Content-Length"))
@@ -567,16 +581,13 @@ namespace Wabbajack
                 }
                 Status("Hashing {0}", archive.Name);
                 HashArchive(output_path);
+                return true;
             }
             catch (Exception ex)
             {
                 Info($"{archive.Name} - Error downloading from: {url}");
+                return false;
             }
-        }
-
-        private object GetNexusAPIKey()
-        {
-            throw new NotImplementedException();
         }
 
         private void HashArchives()
@@ -585,7 +596,6 @@ namespace Wabbajack
                                       .Where(e => Consts.SupportedArchives.Contains(Path.GetExtension(e)))
                                       .PMap(e => (HashArchive(e), e))
                                       .ToDictionary(e => e.Item1, e => e.Item2);
-
         }
 
         private string HashArchive(string e)
@@ -597,11 +607,11 @@ namespace Wabbajack
             Status("Hashing {0}", Path.GetFileName(e));
             File.WriteAllText(cache, Utils.FileSHA256(e));
             return HashArchive(e);
-
         }
 
         public static string CheckForModPack()
         {
+            Utils.Log("Looking for attached modlist");
             using (var s = File.OpenRead(Assembly.GetExecutingAssembly().Location))
             {
                 var magic_bytes = Encoding.ASCII.GetBytes(Consts.ModPackMagic);
@@ -621,7 +631,10 @@ namespace Wabbajack
                     s.Position = start_pos;
                     long length = br.ReadInt64();
 
-                    return br.ReadBytes((int)length).BZip2String();
+                    Utils.Log("Modlist found, loading...");
+                    var list = br.ReadBytes((int)length).BZip2String();
+                    Utils.Log("Modlist loaded.");
+                    return list;
 
                 }
             }

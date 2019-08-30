@@ -1,5 +1,18 @@
 ### Changelog
 
+#### Version 0.9 - ????
+* Added log information for when modlists start parsing during installation
+* Check all links during mod list creation
+
+#### Version 0.8.1 - 8/29/2019
+* Fixed a bug that was causing VFS temp folders not to be cleaned
+* 7zip Extraction code now shows a progress bar
+* Told 7zip not to ask for permission before overwriting a file (should fix the hanging installer problem)
+* Fixed several places where we were using long-path incompatible file routines
+* Changed the work queue from FIFO to LIFO which results in depth-first work instead of breadth-first
+TLDR: We now fully analyze a single archive before moving on to the next.
+  
+
 #### Version 0.8 - 8/26/2019
 * Mod folders that contain ESMs with names matching the Skyrim core ESMs are assumed to be cleaned versions of the core
 game mods, and will be patched from the ESMs found in the game folder. **Note:** if you have also cleaned the files in the Skyrim
