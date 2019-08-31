@@ -580,7 +580,7 @@ namespace Wabbajack
 
                     Status($"Generating patch of {filename}");
                     using (var ms = new MemoryStream()) {
-                        //BSDiff.Create(File.ReadAllBytes(game_file), File.ReadAllBytes(source.AbsolutePath), ms);
+                        BSDiff.Create(File.ReadAllBytes(game_file), File.ReadAllBytes(source.AbsolutePath), ms);
                         result.SourceData = ms.ToArray().ToBase64();
                     }
                     Info($"Generated a {result.SourceData.Length} byte patch for {filename}");
