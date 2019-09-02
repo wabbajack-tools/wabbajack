@@ -76,7 +76,7 @@ namespace Wabbajack
             var files = lst.Directives.OrderBy(d => d.To).ToList();
             Text($"\n\n### Install Plan of ({files.Count}) files");
             Text($"(ignoring files that are directly copied from archives or listed in the patches section above)");
-            foreach (var directive in files)
+            foreach (var directive in files.OrderBy(f => f.GetType().Name).ThenByDescending(f => f.To))
             {
                 switch (directive)
                 {
@@ -87,7 +87,7 @@ namespace Wabbajack
                         NoWrapText($"* `{i.To}` by applying a patch to a game ESM ({i.SourceESMHash})");
                         break;
                     case RemappedInlineFile i:
-                        NoWrapText($"* `{i.To}` by remapping the contents of a inline file");
+                        NoWrapText($"* `{i.To}` by remapping the contents of an inline file");
                         break;
                     case InlineFile i:
                         NoWrapText($"* `{i.To}` from `{i.SourceData.Length}` byte file included in modlist");

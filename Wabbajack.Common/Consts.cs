@@ -16,8 +16,8 @@ namespace Wabbajack.Common
         public static string BSACreationDir = "TEMP_BSA_FILES";
         public static string MegaPrefix = "https://mega.nz/#!";
 
-        public static HashSet<string> SupportedArchives = new HashSet<string>() { ".zip", ".rar", ".7z", ".7zip" };
-        public static HashSet<string> SupportedBSAs = new HashSet<string>() { ".bsa" };
+        public static HashSet<string> SupportedArchives = new HashSet<string> { ".zip", ".rar", ".7z", ".7zip" };
+        public static HashSet<string> SupportedBSAs = new HashSet<string> { ".bsa" };
 
         public static String UserAgent {
             get
@@ -27,6 +27,8 @@ namespace Wabbajack.Common
                 return headerString;
             }
         }
+
+        public static HashSet<string> ConfigFileExtensions = new HashSet<string> {".json", ".ini", ".yml"};
 
         public static string NexusCacheDirectory = "nexus_link_cache";
 
@@ -45,5 +47,6 @@ namespace Wabbajack.Common
         public static string HashCacheName = "Wabbajack.hash_cache";
 
         public static HashSet<string> GameESMs = new HashSet<string>() { "Skyrim.esm", "Update.esm", "Dawnguard.esm", "HearthFires.esm", "Dragonborn.esm" };
+        public static string WABBAJACK_ALWAYS_ENABLE = "WABBAJACK_ALWAYS_ENABLE";
     }
 }

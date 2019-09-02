@@ -534,7 +534,7 @@ namespace Wabbajack
                 IgnoreDisabledMods(),
                 IncludeThisProfile(),
                 // Ignore the ModOrganizer.ini file it contains info created by MO2 on startup
-                IncludeStubbedMO2Ini(),
+                IncludeStubbedConfigFiles(),
                 IncludeLootFiles(),
                 IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Data")),
                 IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Papyrus Compiler")),
@@ -610,21 +610,22 @@ namespace Wabbajack
             };
         }
 
-        private Func<RawSourceFile, Directive> IncludeStubbedMO2Ini()
+        private Func<RawSourceFile, Directive> IncludeStubbedConfigFiles()
         {
             return source =>
             {
-                if (source.Path == "ModOrganizer.ini")
+                if (Consts.ConfigFileExtensions.Contains(Path.GetExtension(source.Path)))
                 {
-                    return RemapIni(source, GamePath);
+                    return RemapFile(source, GamePath);
                 }
                 return null;
             };
         }
 
-        private Directive RemapIni(RawSourceFile source, string gamePath)
+        private Directive RemapFile(RawSourceFile source, string gamePath)
         {
             var data = File.ReadAllText(source.AbsolutePath);
+            var original_data = data;
 
             data = data.Replace(GamePath, Consts.GAME_PATH_MAGIC_BACK);
             data = data.Replace(GamePath.Replace("\\", "\\\\"), Consts.GAME_PATH_MAGIC_DOUBLE_BACK);
@@ -633,6 +634,8 @@ namespace Wabbajack
             data = data.Replace(MO2Folder, Consts.MO2_PATH_MAGIC_BACK);
             data = data.Replace(MO2Folder.Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
             data = data.Replace(MO2Folder.Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
+            if (data == original_data)
+                return null;
             var result = source.EvolveTo<RemappedInlineFile>();
             result.SourceData = Encoding.UTF8.GetBytes(data).ToBase64();
             return result;
@@ -823,9 +826,12 @@ namespace Wabbajack
 
         private Func<RawSourceFile, Directive> IgnoreDisabledMods()
         {
+            var always_enabled = ModInis.Where(f => IsAlwaysEnabled(f.Value)).Select(f => f.Key).ToHashSet();
             var disabled_mods = File.ReadAllLines(Path.Combine(MO2ProfileDir, "modlist.txt"))
                                     .Where(line => line.StartsWith("-") && !line.EndsWith("_separator"))
-                                    .Select(line => Path.Combine("mods", line.Substring(1)) + "\\")
+                                    .Select(line => line.Substring(1))
+                                    .Where(line => !always_enabled.Contains(line))
+                                    .Select(line => Path.Combine("mods", line + "\\"))
                                     .ToList();
             return source =>
             {
@@ -837,6 +843,19 @@ namespace Wabbajack
                 }
                 return null;
             };
+        }
+
+        private static bool IsAlwaysEnabled(dynamic data)
+        {
+            if (data == null)
+                return false;
+            if (data.General != null && data.General.notes != null &&
+                data.General.notes.Contains(Consts.WABBAJACK_ALWAYS_ENABLE))
+                return true;
+            if (data.General != null && data.General.comments != null &&
+                data.General.notes.Contains(Consts.WABBAJACK_ALWAYS_ENABLE))
+                return true;
+            return false;
         }
 
         private Func<RawSourceFile, Directive> IncludePatches()

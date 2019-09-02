@@ -135,6 +135,11 @@ Currently the Resolution stack looks like this:
 
 So as you can see we handle a lot of possible install situations. See the section on [`Creating a Modpack`](README.md#Creating_a_ModList_Installer) for information on working with the installer
 
+### Wabbajack Flags
+The if the following words are found in a mod's notes or comments they trigger special behavior in Wabbajack.
+* `WABBAJACK_INCLUDE` - All the files int he mod will be inlined into the installer
+* `WABBAJAC_ALWAYS_ENABLE` - The mod's files will be considered by the compiler even if the mod is disabled in the profile 
+
 ### Patches
 Wabbajack can create binary patches for files that have been modified after installation. This could be `.esp` files that have been cleaned or patched. Or
 it could be meshes and textures that have been optimized to work better in a given game. In any case a BSDiff file is generated. The output of this process 
