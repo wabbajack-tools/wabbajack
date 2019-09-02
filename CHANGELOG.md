@@ -6,6 +6,9 @@
 * Generate a installation report during compilation
 * Show the report after compiling
 * Added a button to view the report before installing
+* Added support for non-archive files in downloads and installation. You can now provide a link directly to a file
+that is copied directly into a modfile (commonly used for `SSE Terrain Tamriel.esm`)
+* Fix crash caused by multiple downloads with the same SHA256
 
 #### Version 0.8.1 - 8/29/2019
 * Fixed a bug that was causing VFS temp folders not to be cleaned
