@@ -595,6 +595,9 @@ namespace Wabbajack
             HashedArchives = Directory.EnumerateFiles(DownloadFolder)
                                       .Where(e => Consts.SupportedArchives.Contains(Path.GetExtension(e)))
                                       .PMap(e => (HashArchive(e), e))
+                                      .OrderByDescending(e => File.GetLastWriteTime(e.Item2))
+                                      .GroupBy(e => e.Item1)
+                                      .Select(e => e.First())
                                       .ToDictionary(e => e.Item1, e => e.Item2);
         }
 
