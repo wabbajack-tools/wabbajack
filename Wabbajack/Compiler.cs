@@ -165,7 +165,6 @@ namespace Wabbajack
 
             Info($"Indexing Archives");
             IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
-                                       .Where(f => Consts.SupportedArchives.Contains(Path.GetExtension(f)))
                                        .Where(f => File.Exists(f + ".meta"))
                                        .Select(f => new IndexedArchive()
                                        {
@@ -179,7 +178,9 @@ namespace Wabbajack
             Info($"Indexing Files");
             IndexedFiles = IndexedArchives.PMap(f => { Status($"Finding files in {Path.GetFileName(f.File.FullPath)}");
                                                        return VFS.FilesInArchive(f.File); })
+                
                                           .SelectMany(fs => fs)
+                                          .Concat(IndexedArchives.Select(f => f.File))
                                           .OrderByDescending(f => f.TopLevelArchive.LastModified)
                                           .GroupBy(f => f.Hash)
                                           .ToDictionary(f => f.Key, f => f.AsEnumerable());

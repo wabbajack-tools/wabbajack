@@ -593,7 +593,7 @@ namespace Wabbajack
         private void HashArchives()
         {
             HashedArchives = Directory.EnumerateFiles(DownloadFolder)
-                                      .Where(e => Consts.SupportedArchives.Contains(Path.GetExtension(e)))
+                                      .Where(e => !e.EndsWith(".sha"))
                                       .PMap(e => (HashArchive(e), e))
                                       .OrderByDescending(e => File.GetLastWriteTime(e.Item2))
                                       .GroupBy(e => e.Item1)

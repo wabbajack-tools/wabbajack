@@ -462,6 +462,9 @@ namespace VFS
         /// <returns></returns>
         public VirtualFile FileForArchiveHashPath(string[] archiveHashPath)
         {
+            if (archiveHashPath.Length == 1)
+                return HashIndex[archiveHashPath[0]].First();
+
             var archive = HashIndex[archiveHashPath[0]].Where(a => a.IsArchive).OrderByDescending(a => a.LastModified).First();
             string fullPath = archive.FullPath + "|" + String.Join("|", archiveHashPath.Skip(1));
             return Lookup(fullPath);
