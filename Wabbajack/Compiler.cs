@@ -113,6 +113,8 @@ namespace Wabbajack
             GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
         }
 
+        public HashSet<string> SelectedProfiles { get; set; } = new HashSet<string>();
+
         private IndexedArchive LoadArchive(string file)
         {
             var info = new IndexedArchive();
@@ -140,6 +142,16 @@ namespace Wabbajack
 
         public void Compile()
         {
+            Info($"Looking for other profiles");
+            var other_profiles_path = Path.Combine(MO2ProfileDir, "otherprofiles.txt");
+            if (File.Exists(other_profiles_path))
+            {
+                SelectedProfiles = File.ReadAllLines(other_profiles_path).ToHashSet();
+                SelectedProfiles.Add(MO2Profile);
+            }
+
+            Info($"Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
+
             Info($"Indexing {MO2Folder}");
             VFS.AddRoot(MO2Folder);
             Info($"Indexing {GamePath}");
@@ -827,21 +839,21 @@ namespace Wabbajack
         private Func<RawSourceFile, Directive> IgnoreDisabledMods()
         {
             var always_enabled = ModInis.Where(f => IsAlwaysEnabled(f.Value)).Select(f => f.Key).ToHashSet();
-            var disabled_mods = File.ReadAllLines(Path.Combine(MO2ProfileDir, "modlist.txt"))
-                                    .Where(line => line.StartsWith("-") && !line.EndsWith("_separator"))
-                                    .Select(line => line.Substring(1))
-                                    .Where(line => !always_enabled.Contains(line))
-                                    .Select(line => Path.Combine("mods", line + "\\"))
-                                    .ToList();
+
+            var all_enabled_mods = SelectedProfiles
+                .SelectMany(p => File.ReadAllLines(Path.Combine(MO2Folder, "profiles", p, "modlist.txt")))
+                .Where(line => line.StartsWith("+") || line.EndsWith("_separator"))
+                .Select(line => line.Substring(1))
+                .Concat(always_enabled)
+                .Select(line => Path.Combine("mods", line) + "\\")
+                .ToList();
+                
             return source =>
             {
-                if (disabled_mods.FirstOrDefault(mod => source.Path.StartsWith(mod)) != null)
-                {
-                    var r = source.EvolveTo<IgnoredDirectly>();
-                    r.Reason = "Disabled Mod";
-                    return r;
-                }
-                return null;
+                if (!source.Path.StartsWith("mods") || all_enabled_mods.Any(mod => source.Path.StartsWith(mod))) return null;
+                var r = source.EvolveTo<IgnoredDirectly>();
+                r.Reason = "Disabled Mod";
+                return r;
             };
         }
 
@@ -912,10 +924,11 @@ namespace Wabbajack
 
         private Func<RawSourceFile, Directive> IncludeThisProfile()
         {
-            var correct_profile = Path.Combine("profiles", MO2Profile) + "\\";
+            var correct_profiles = SelectedProfiles.Select(p => Path.Combine("profiles", p) + "\\").ToList();
+
             return source =>
             {
-                if (source.Path.StartsWith(correct_profile))
+                if (correct_profiles.Any(p => source.Path.StartsWith(p)))
                 {
                     byte[] data;
                     if (source.Path.EndsWith("\\modlist.txt"))
@@ -942,13 +955,20 @@ namespace Wabbajack
 
         private Func<RawSourceFile, Directive> IgnoreOtherProfiles()
         {
-            var correct_profile = Path.Combine("profiles", MO2Profile) + "\\";
+            var profiles = SelectedProfiles
+                .Select(p => Path.Combine("profiles", p) + "\\")
+                .ToList();
+
             return source =>
             {
-                if (source.Path.StartsWith("profiles\\") && !source.Path.StartsWith(correct_profile))
+                if (source.Path.StartsWith("profiles\\"))
                 {
+                    if (profiles.Any(profile => !source.Path.StartsWith(profile)))
+                    {
+                        return null;
+                    }
                     var c = source.EvolveTo<IgnoredDirectly>();
-                    c.Reason = "File not for this profile";
+                    c.Reason = "File not for selected profiles";
                     return c;
                 }
                 return null;

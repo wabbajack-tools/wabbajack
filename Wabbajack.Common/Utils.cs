@@ -56,7 +56,7 @@ namespace Wabbajack.Common
             using (var o = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write))
             {
                 using (var i = File.OpenRead(file))
-                    i.CopyToWithStatus(new FileInfo(file).Length, o,  $"Hashing {Path.GetFileName(file)}");
+                    i.CopyToWithStatus(new FileInfo(file).Length, o, $"Hashing {Path.GetFileName(file)}");
             }
             return sha.Hash.ToBase64();
 

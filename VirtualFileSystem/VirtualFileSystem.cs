@@ -624,6 +624,7 @@ namespace VFS
             Size = fio.Length;
             Hash = Utils.FileSHA256(StagedPath);
             LastModified = fio.LastWriteTime.ToMilliseconds();
+
         }
 
 
