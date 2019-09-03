@@ -31,12 +31,19 @@ namespace Wabbajack
 
         public bool IgnoreMissingFiles { get; set; }
 
+        private string _mo2DownloadsFolder;
         public string MO2DownloadsFolder
         {
             get
             {
+                if (_mo2DownloadsFolder != null) return _mo2DownloadsFolder;
+                if (MO2Ini != null)
+                    if (MO2Ini.Settings != null)
+                        if (MO2Ini.Settings.download_directory != null)
+                            return MO2Ini.Settings.download_directory.Replace("/", "\\");
                 return Path.Combine(MO2Folder, "downloads");
             }
+            set => _mo2DownloadsFolder = value;
         }
 
 
@@ -156,6 +163,9 @@ namespace Wabbajack
             VFS.AddRoot(MO2Folder);
             Info($"Indexing {GamePath}");
             VFS.AddRoot(GamePath);
+
+            Info($"Indexing {MO2DownloadsFolder}");
+            VFS.AddRoot(MO2DownloadsFolder);
 
             var mo2_files = Directory.EnumerateFiles(MO2Folder, "*", SearchOption.AllDirectories)
                                      .Where(p => p.FileExists())
@@ -497,7 +507,7 @@ namespace Wabbajack
 
                 Info($"Checking link for {found.Name}");
 
-                var installer = new Installer(null, "", s=>Utils.Log(s));
+                var installer = new Installer(null, "", Utils.Log);
                 installer.NexusAPIKey = NexusKey;
                 if (!installer.DownloadArchive(result, false))
                     Error($"Unable to resolve link for {found.Name}. If this is hosted on the nexus the file may have been removed.");
@@ -530,7 +540,7 @@ namespace Wabbajack
         private IEnumerable<Func<RawSourceFile, Directive>> MakeStack()
         {
             Info("Generating compilation stack");
-            return new List<Func<RawSourceFile, Directive>>()
+            return new List<Func<RawSourceFile, Directive>>
             {
                 IgnoreStartsWith("logs\\"),
                 IncludeRegex("^downloads\\\\.*\\.meta"),
@@ -646,6 +656,11 @@ namespace Wabbajack
             data = data.Replace(MO2Folder, Consts.MO2_PATH_MAGIC_BACK);
             data = data.Replace(MO2Folder.Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
             data = data.Replace(MO2Folder.Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
+
+            data = data.Replace(MO2DownloadsFolder, Consts.DOWNLOAD_PATH_MAGIC_BACK);
+            data = data.Replace(MO2DownloadsFolder.Replace("\\", "\\\\"), Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK);
+            data = data.Replace(MO2DownloadsFolder.Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD);
+
             if (data == original_data)
                 return null;
             var result = source.EvolveTo<RemappedInlineFile>();

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Wabbajack"
         mc:Ignorable="d"
-        Title="Wabbajack" Height="700" Width="800"
+        Title="Wabbajack" Height="800" Width="800"
         Style="{StaticResource {x:Type Window}}" Icon="square_transparent_icon.ico" WindowStyle="ToolWindow" Closing="Window_Closing">
     <Grid Margin="16">
         <Grid.RowDefinitions>
@@ -30,9 +30,17 @@
                 <ColumnDefinition Width="*"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <Label Content="Location:" Grid.Column="0"></Label>
-            <TextBox Grid.Column="1" Text="{Binding Location}"></TextBox>
-            <Button Content="Select" MinWidth="80" Grid.Column="2" Command="{Binding ChangePath}"></Button>
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition MinHeight="10"></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            <Label Grid.Row="0" Content="MO2 Location:" Grid.Column="0"></Label>
+            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Location}"></TextBox>
+            <Button Grid.Row="0" Content="Select" MinWidth="80" Grid.Column="2" Command="{Binding ChangePath}"></Button>
+            <Label Grid.Row="2" Content="Download Location:" Grid.Column="0"></Label>
+            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DownloadLocation}"></TextBox>
+            <Button Grid.Row="2" Content="Select" MinWidth="80" Grid.Column="2" Command="{Binding ChangeDownloadPath}"></Button>
         </Grid>
         <ListBox Grid.Row ="2" ItemsSource="{Binding Status}" Width="Auto" HorizontalAlignment="Stretch">
             <ListBox.ItemTemplate>

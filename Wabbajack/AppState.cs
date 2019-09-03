@@ -80,6 +80,7 @@ namespace Wabbajack
         private string _modListName;
         private ModList _modList;
         private string _location;
+        private string _downloadLocation;
 
         public string ModListName
         {
@@ -104,6 +105,19 @@ namespace Wabbajack
             {
                 _location = value;
                 OnPropertyChanged("Location");
+            }
+        }
+
+        public string DownloadLocation
+        {
+            get
+            {
+                return _downloadLocation;
+            }
+            set
+            {
+                _downloadLocation = value;
+                OnPropertyChanged("DownloadLocation");
             }
         }
 
@@ -243,6 +257,19 @@ namespace Wabbajack
             }
         }
 
+        private ICommand _changeDownloadPath;
+        public ICommand ChangeDownloadPath
+        {
+            get
+            {
+                if (_changeDownloadPath == null)
+                {
+                    _changeDownloadPath = new LambdaCommand(() => true, () => this.ExecuteChangeDownloadPath());
+                }
+                return _changeDownloadPath;
+            }
+        }
+
         private void ExecuteChangePath()
         {
             if (Mode == "Installing")
@@ -268,6 +295,17 @@ namespace Wabbajack
             }
         }
 
+        private void ExecuteChangeDownloadPath()
+        {
+            var ofd = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
+            ofd.Description = "Select a location for MO2 downloads";
+            ofd.UseDescriptionForTitle = true;
+            if (ofd.ShowDialog() == true)
+            {
+                DownloadLocation = ofd.SelectedPath;
+            }
+        }
+
         private void ConfigureForBuild()
         {
             var profile_folder = Path.GetDirectoryName(Location);
@@ -278,6 +316,10 @@ namespace Wabbajack
             var profile_name = Path.GetFileName(profile_folder);
             ModListName = profile_name;
             Mode = "Building";
+
+            var tmp_compiler = new Compiler(mo2folder, Utils.Log);
+            DownloadLocation = tmp_compiler.MO2DownloadsFolder;
+
             _mo2Folder = mo2folder;
         }
 
@@ -323,6 +365,7 @@ namespace Wabbajack
             {
                 var installer = new Installer(_modList, Location, msg => this.LogMsg(msg));
                 installer.IgnoreMissingFiles = IgnoreMissingFiles;
+                installer.DownloadFolder = DownloadLocation;
                 var th = new Thread(() =>
                 {
                     try

@@ -13,6 +13,8 @@ that is copied directly into a modfile (commonly used for `SSE Terrain Tamriel.e
 * All `.json`, `.ini`, and `.yaml` files that contain remappable paths are now inlined and remapped.
 * If Wabbajack finds a file called `otherprofiles.txt` inside the compile'd profile's folder. Then that file is assumed
 to be a list of other profiles to be included in the install. This list should be the name of a profile, one name per line. 
+* Can now set the download folder both during compilation and installation.
+* Any config files pointing to the download folder are remapped.
 
 #### Version 0.8.1 - 8/29/2019
 * Fixed a bug that was causing VFS temp folders not to be cleaned

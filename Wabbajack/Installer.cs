@@ -18,6 +18,8 @@ namespace Wabbajack
 {
     public class Installer
     {
+        private string _downloadsFolder;
+
         public VirtualFileSystem VFS
         {
             get
@@ -36,10 +38,8 @@ namespace Wabbajack
         public string Outputfolder { get; }
         public string DownloadFolder
         {
-            get
-            {
-                return Path.Combine(Outputfolder, "downloads");
-            }
+            get => _downloadsFolder ?? Path.Combine(Outputfolder, "downloads");
+            set => _downloadsFolder = value;
         }
         public ModList ModList { get; }
         public Action<string> Log_Fn { get; }
@@ -309,8 +309,11 @@ namespace Wabbajack
             data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK, Outputfolder.Replace("\\", "\\\\"));
             data = data.Replace(Consts.MO2_PATH_MAGIC_FORWARD, Outputfolder.Replace("\\", "/"));
 
+            data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_BACK, DownloadFolder);
+            data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK, DownloadFolder.Replace("\\", "\\\\"));
+            data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_FORWARD, DownloadFolder.Replace("\\", "/"));
+
             File.WriteAllText(Path.Combine(Outputfolder, directive.To), data);
-            return;
         }
 
         private void BuildFolderStructure()
