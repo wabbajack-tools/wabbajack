@@ -9,7 +9,7 @@
 * Added support for non-archive files in downloads and installation. You can now provide a link directly to a file
 that is copied directly into a modfile (commonly used for `SSE Terrain Tamriel.esm`)
 * Fix crash caused by multiple downloads with the same SHA256
-* Putting `WABBAJACK_ALWAYS_INCLUDE` on a mod's notes/comments will cause it to always be included in the modlist, even if disabled
+* Putting `WABBAJACK_ALWAYS_ENABLE` on a mod's notes/comments will cause it to always be included in the modlist, even if disabled
 * All `.json`, `.ini`, and `.yaml` files that contain remappable paths are now inlined and remapped.
 * If Wabbajack finds a file called `otherprofiles.txt` inside the compiled profile's folder. Then that file is assumed
 to be a list of other profiles to be included in the install. This list should be the name of a profile, one name per line. 
