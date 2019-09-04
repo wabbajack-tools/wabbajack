@@ -34,6 +34,7 @@ namespace VFS
         {
             VFS = new VirtualFileSystem();
             RootFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+
             _stagedRoot = Path.Combine(RootFolder, "vfs_staged_files");
             Utils.OnQueue(() =>
             {

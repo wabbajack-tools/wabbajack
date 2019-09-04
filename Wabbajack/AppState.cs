@@ -158,6 +158,17 @@ namespace Wabbajack
 
         public AppState(Dispatcher d, String mode)
         {
+            if (Assembly.GetEntryAssembly().Location.ToLower().Contains("\\downloads\\"))
+            {
+                MessageBox.Show(
+                    "This app seems to be running inside a folder called `Downloads`, such folders are often highly monitored by Antivirus software and they can often" +
+                    "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your `Downloads` folder and then restart the app.",
+                    "Cannot run inside `Downloads`",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Environment.Exit(1);
+            }
+
             _startTime = DateTime.Now;
             LogFile = Assembly.GetExecutingAssembly().Location + ".log";
 
