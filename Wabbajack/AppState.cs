@@ -292,6 +292,8 @@ namespace Wabbajack
                 if (ofd.ShowDialog() == true)
                 {
                     Location = ofd.SelectedPath;
+                    if (_downloadLocation == null)
+                        DownloadLocation = Path.Combine(Location, "downloads");
                 }
             }
             else

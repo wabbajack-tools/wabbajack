@@ -63,6 +63,7 @@ namespace VFS
                 });
 
             Directory.EnumerateDirectories(path, DirectoryEnumerationOptions.Recursive)
+                .OrderByDescending(d => d.Length)
                 .DoProgress("Cleaning VFS Folders", folder =>
                 {
                     try

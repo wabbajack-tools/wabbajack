@@ -83,6 +83,19 @@ namespace Wabbajack
             Directory.CreateDirectory(Outputfolder);
             Directory.CreateDirectory(DownloadFolder);
 
+            if (Directory.Exists(Path.Combine(Outputfolder, "mods")))
+            {
+                if (MessageBox.Show("There already appears to be a Mod Organize 2 install in this folder, are you sure you wish to continue" +
+                                " with installation? If you do, you may render both your existing install and the new modlist inoperable.",
+                                "Existing MO2 installation in install folder",
+                                MessageBoxButton.YesNo,
+                                MessageBoxImage.Exclamation) == MessageBoxResult.No)
+                    Utils.Log("Existing installation at the request of the user, existing mods folder found.");
+                    return;
+                
+
+            }
+ 
             if (ModList.Directives.OfType<RemappedInlineFile>().FirstOrDefault() != null ||
                 ModList.Directives.OfType<CleanedESM>().FirstOrDefault() != null)
             {
