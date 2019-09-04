@@ -12,6 +12,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
+using System.Windows.Documents;
 using CommonMark;
 using Wabbajack.Common;
 using static Wabbajack.NexusAPI;
@@ -585,7 +586,20 @@ namespace Wabbajack
 
                 PatchStockESMs(),
 
+                IncludeAllConfigs(),
+
                 DropAll()
+            };
+        }
+
+        private Func<RawSourceFile, Directive> IncludeAllConfigs()
+        {
+            return source =>
+            {
+                if (!Consts.ConfigFileExtensions.Contains(Path.GetExtension(source.Path))) return null;
+                var result = source.EvolveTo<InlineFile>();
+                result.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                return result;
             };
         }
 

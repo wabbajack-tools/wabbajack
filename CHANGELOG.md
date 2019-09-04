@@ -17,6 +17,7 @@ to be a list of other profiles to be included in the install. This list should b
 * Any config files pointing to the download folder are remapped.
 * Refuse to run inside `downloads` folders (anti-virus watches these files too closely and it can cause VFS issues)
 * Refuse to run if MO2 is on the system installed in non-portable mode (otherwise broken installs may result) 
+* Config files that don't otherwise match a rule are inlined into the modlist
 
 #### Version 0.8.1 - 8/29/2019
 * Fixed a bug that was causing VFS temp folders not to be cleaned
