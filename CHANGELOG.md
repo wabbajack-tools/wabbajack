@@ -16,6 +16,7 @@ to be a list of other profiles to be included in the install. This list should b
 * Can now set the download folder both during compilation and installation.
 * Any config files pointing to the download folder are remapped.
 * Refuse to run inside `downloads` folders (anti-virus watches these files too closely and it can cause VFS issues)
+* Refuse to run if MO2 is on the system installed in non-portable mode (otherwise broken installs may result) 
 
 #### Version 0.8.1 - 8/29/2019
 * Fixed a bug that was causing VFS temp folders not to be cleaned
@@ -24,6 +25,7 @@ to be a list of other profiles to be included in the install. This list should b
 * Fixed several places where we were using long-path incompatible file routines
 * Changed the work queue from FIFO to LIFO which results in depth-first work instead of breadth-first
 TLDR: We now fully analyze a single archive before moving on to the next.
+
   
 
 #### Version 0.8 - 8/26/2019

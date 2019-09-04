@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows;
@@ -161,12 +162,25 @@ namespace Wabbajack
             if (Assembly.GetEntryAssembly().Location.ToLower().Contains("\\downloads\\"))
             {
                 MessageBox.Show(
-                    "This app seems to be running inside a folder called `Downloads`, such folders are often highly monitored by Antivirus software and they can often" +
+                    "This app seems to be running inside a folder called `Downloads`, such folders are often highly monitored by Antivirus software and they can often " +
                     "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your `Downloads` folder and then restart the app.",
                     "Cannot run inside `Downloads`",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
                 Environment.Exit(1);
+            }
+
+            if (Directory.EnumerateDirectories(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ModOrganizer"))
+                .Any(f => !f.EndsWith("\\cache")))
+            {
+                MessageBox.Show(
+                    "You seem to have a installed copy of Mod Organizer 2 on your system. Wabbajack requires that Mod Organizer 2 be run in `Portable` mode. " +
+                    "Unfortunately it is impossible to have both portable and non-portable versions of MO2 on the same system at the same time. Pleas uninstall Mod Organizer 2 " +
+                    "and use only portable (archive) versions with Wabbajack. If you get this message after uninstalling MO2, be sure to delete the folders in `AppData\\Local\\Mod Organizer`",
+                    "Cannot run with non-portable MO2 installed.",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Environment.Exit(2);
             }
 
             _startTime = DateTime.Now;
