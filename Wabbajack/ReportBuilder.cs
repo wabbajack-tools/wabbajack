@@ -44,23 +44,31 @@ namespace Wabbajack
             Text($"#### Download Summary ({lst.Archives.Count} archives)");
             foreach (var archive in SortArchives(lst.Archives))
             {
+                var hash = archive.Hash.FromBase64().ToHEX();
                 switch (archive)
                 {
                     case NexusMod m:
                         var profile = m.UploaderProfile.Replace("/games/", "/"+NexusAPI.ConvertGameName(m.GameName).ToLower()+"/");
-                        NoWrapText($"* [{m.UploadedBy}]({profile}) - [{m.Name}](http://nexusmods.com/{NexusAPI.ConvertGameName(m.GameName)}/mods/{m.ModID})");
+                        NoWrapText($"* [{m.Name}](http://nexusmods.com/{NexusAPI.ConvertGameName(m.GameName)}/mods/{m.ModID})");
+                        NoWrapText($"    * Author : [{m.UploadedBy}]({profile})");
+                        NoWrapText($"    * Version : {m.Version}");
+                        NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
                         break;
                     case MODDBArchive m:
                         NoWrapText($"* MODDB - [{m.Name}]({m.URL})");
+                        NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
                         break;
                     case MEGAArchive m:
                         NoWrapText($"* MEGA - [{m.Name}]({m.URL})");
+                        NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
                         break;
                     case GoogleDriveMod m:
                         NoWrapText($"* GoogleDrive - [{m.Name}](https://drive.google.com/uc?id={m.Id}&export=download)");
+                        NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
                         break;
                     case DirectURLArchive m:
                         NoWrapText($"* URL - [{m.Name} - {m.URL}]({m.URL})");
+                        NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
                         break;
                 }
             }

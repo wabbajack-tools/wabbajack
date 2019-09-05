@@ -20,6 +20,8 @@ to be a list of other profiles to be included in the install. This list should b
 * Config files that don't otherwise match a rule are inlined into the modlist
 * Warn users before installing into an existing MO2 install folder (prevents unintentional data loss from overwriting existing data #24)
 * Fix for read only folder deletion bug (#23)
+* Include version numbers and SHAs in the install report
+* Removed option to endorse mods, Nexus devs mentioned it was of questionable worth, I (halgari) agree
 
 #### Version 0.8.1 - 8/29/2019
 * Fixed a bug that was causing VFS temp folders not to be cleaned

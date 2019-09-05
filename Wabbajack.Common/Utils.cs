@@ -93,6 +93,16 @@ namespace Wabbajack.Common
             return Convert.ToBase64String(data);
         }
 
+        public static string ToHEX(this byte[] bytes)
+        {
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                builder.Append(bytes[i].ToString("x2"));
+            }
+            return builder.ToString();
+        }
+
         /// <summary>
         /// Returns data from a base64 stream
         /// </summary>

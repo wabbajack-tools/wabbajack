@@ -138,7 +138,9 @@ namespace Wabbajack
             BuildBSAs();
 
             Info("Installation complete! You may exit the program.");
-            AskToEndorse();
+            // Removed until we decide if we want this functionality
+            // Nexus devs weren't sure this was a good idea, I (halgari) agree.
+            //AskToEndorse();
         }
 
         private void AskToEndorse()
