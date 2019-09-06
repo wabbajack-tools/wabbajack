@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version 0.9 - ????
+#### Version 0.9 - 9/5/2019
 * Added log information for when modlists start parsing during installation
 * Check all links during mod list creation
 * Generate a installation report during compilation
