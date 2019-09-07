@@ -152,11 +152,12 @@ namespace Wabbajack
         {
             Info($"Looking for other profiles");
             var other_profiles_path = Path.Combine(MO2ProfileDir, "otherprofiles.txt");
+            SelectedProfiles = new HashSet<string>();
             if (File.Exists(other_profiles_path))
             {
                 SelectedProfiles = File.ReadAllLines(other_profiles_path).ToHashSet();
-                SelectedProfiles.Add(MO2Profile);
             }
+            SelectedProfiles.Add(MO2Profile);
 
             Info($"Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
 
