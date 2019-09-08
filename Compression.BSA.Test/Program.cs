@@ -10,7 +10,7 @@ namespace Compression.BSA.Test
 {
     class Program
     {
-        const string TestDir = @"D:\Personal YASHed\";
+        const string TestDir = @"D:\MO2 Instances\";
         const string TempDir = "c:\\tmp\\out";
         static void Main(string[] args)
         {

@@ -249,7 +249,7 @@ namespace Compression.BSA
         private BSAReader _bsa;
         private ulong _hash;
         private bool _compressedFlag;
-        private int _size;
+        private uint _size;
         private uint _offset;
         private FolderRecord _folder;
         private string _name;
@@ -263,7 +263,7 @@ namespace Compression.BSA
         {
             _bsa = bsa;
             _hash = src.ReadUInt64();
-            var size = src.ReadInt32();
+            var size = src.ReadUInt32();
             _compressedFlag = (size & (0x1 << 30)) > 0;
 
             if (_compressedFlag)
@@ -275,7 +275,6 @@ namespace Compression.BSA
                 _size -= 4;
 
             _offset = src.ReadUInt32();
-
             _folder = folderRecord;
 
             var old_pos = src.BaseStream.Position;
@@ -285,6 +284,7 @@ namespace Compression.BSA
             if (bsa.HasNameBlobs)
                 _nameBlob = src.ReadStringLenNoTerm(bsa.HeaderType);
 
+            
             if (Compressed)
                 _originalSize = src.ReadUInt32();
 
@@ -312,6 +312,7 @@ namespace Compression.BSA
         {
             get
             {
+                if (string.IsNullOrEmpty(_folder.Name)) return _name;
                 return _folder.Name + "\\" + _name;
             }
         }
@@ -330,26 +331,6 @@ namespace Compression.BSA
             get
             {
                 return (int)_dataSize;
-            }
-        }
-
-        private void LoadOriginalSize()
-        {
-            using (var in_file = File.OpenRead(_bsa._fileName))
-            using (var rdr = new BinaryReader(in_file))
-            {
-                rdr.BaseStream.Position = _offset;
-                string _name;
-                int file_size = _size;
-                if (_bsa.HasNameBlobs)
-                {
-                    var name_size = rdr.ReadByte();
-                    file_size -= name_size + 1;
-                    rdr.BaseStream.Position = _offset + 1 + name_size;
-                }
-
-                _originalSize = rdr.ReadUInt32();
-
             }
         }
 

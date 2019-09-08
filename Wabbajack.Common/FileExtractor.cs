@@ -43,12 +43,21 @@ namespace Wabbajack.Common
        
         public static void ExtractAll(string source, string dest)
         {
-            if (source.EndsWith(".bsa")) { 
-                ExtractAllWithBSA(source, dest);
-            }
-            else
+            try
             {
-                ExtractAllWith7Zip(source, dest);
+                if (source.EndsWith(".bsa"))
+                {
+                    ExtractAllWithBSA(source, dest);
+                }
+                else
+                {
+                    ExtractAllWith7Zip(source, dest);
+                }
+            }
+            catch (Exception ex)
+            {
+                Utils.Log($"Error while extracting {source}");
+                throw ex;
             }
         }
 

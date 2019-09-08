@@ -19,6 +19,12 @@ namespace Compression.BSA
         public static string ReadStringLen(this BinaryReader rdr, VersionType version)
         {
             var len = rdr.ReadByte();
+            if (len == 0)
+            {
+                //rdr.ReadByte();
+                return "";
+            }
+
             var bytes = rdr.ReadBytes(len - 1);
             rdr.ReadByte();
             return GetEncoding(version).GetString(bytes);
@@ -99,7 +105,11 @@ namespace Compression.BSA
         {
             name = name.ToLowerInvariant();
             ext = ext.ToLowerInvariant();
-            var hashBytes = new byte[]
+
+            if (string.IsNullOrEmpty(name))
+                return 0;
+
+            var hashBytes = new[]
             {
                 (byte)(name.Length == 0 ? '\0' : name[name.Length - 1]),
                 (byte)(name.Length < 3 ? '\0' : name[name.Length - 2]),
