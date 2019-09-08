@@ -1,5 +1,16 @@
 ### Changelog
 
+#### Version 0.9.2 - ???
+* Fixed a bug with BSA string encoding
+* Fixed another profile issue confirmed that they are properly included now
+* Log when the executable is being generated
+* Fixed a integer overflow resulting in a crash in very large BSA reading
+* Fix a bug in BSA string encoding
+
+#### Version 0.9.1 - 9/5/2019
+* Fixed a bug where having only one profile selected would result in no profiles being selected
+
+
 #### Version 0.9 - 9/5/2019
 * Added log information for when modlists start parsing during installation
 * Check all links during mod list creation

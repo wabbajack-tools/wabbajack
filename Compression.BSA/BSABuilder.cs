@@ -265,7 +265,7 @@ namespace Compression.BSA
             // Folders don't have extensions, so let's make sure we cut it out
             _hash = _name.GetBSAHash("");
             _fileCount = (uint)files.Count();
-            _nameBytes = folderName.ToBZString();
+            _nameBytes = folderName.ToBZString(_bsa.HeaderType);
             _recordSize = sizeof(ulong) + sizeof(uint) + sizeof(uint);
         }
 
@@ -321,8 +321,8 @@ namespace Compression.BSA
             _path = path.ToLowerInvariant();
             _name = System.IO.Path.GetFileName(_path);
             _hash = _name.GetBSAHash();
-            _nameBytes = _name.ToTermString();
-            _pathBytes = _path.ToTermString();
+            _nameBytes = _name.ToTermString(bsa.HeaderType);
+            _pathBytes = _path.ToTermString(bsa.HeaderType);
             _pathBSBytes = _path.ToBSString();
             _flipCompression = flipCompression;
 

@@ -232,7 +232,7 @@ namespace Compression.BSA
         {
             if (bsa.HasFolderNames)
             {
-                Name = src.ReadStringLen();
+                Name = src.ReadStringLen(bsa.HeaderType);
             }
 
             _files = new List<FileRecord>();
@@ -250,7 +250,7 @@ namespace Compression.BSA
         private ulong _hash;
         private bool _compressedFlag;
         private int _size;
-        private int _offset;
+        private uint _offset;
         private FolderRecord _folder;
         private string _name;
         private uint _originalSize;
@@ -274,7 +274,7 @@ namespace Compression.BSA
             if (Compressed)
                 _size -= 4;
 
-            _offset = src.ReadInt32();
+            _offset = src.ReadUInt32();
 
             _folder = folderRecord;
 
@@ -283,7 +283,7 @@ namespace Compression.BSA
             src.BaseStream.Position = _offset;
 
             if (bsa.HasNameBlobs)
-                _nameBlob = src.ReadStringLenNoTerm();
+                _nameBlob = src.ReadStringLenNoTerm(bsa.HeaderType);
 
             if (Compressed)
                 _originalSize = src.ReadUInt32();
@@ -305,7 +305,7 @@ namespace Compression.BSA
 
         internal void LoadFileRecord(BSAReader bsaReader, FolderRecord folder, FileRecord file, BinaryReader rdr)
         {
-            _name = rdr.ReadStringTerm();
+            _name = rdr.ReadStringTerm(_bsa.HeaderType);
         }
 
         public string Path

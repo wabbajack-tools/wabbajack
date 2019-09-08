@@ -8,24 +8,30 @@ namespace Compression.BSA
 {
     internal static class Utils
     {
-        private static Encoding Windows1251 = Encoding.UTF7;// Encoding.GetEncoding(1251);
+        private static Encoding Windows1252 = Encoding.GetEncoding(1252);
+        private static Encoding GetEncoding(VersionType version)
+        {
+            if (version == VersionType.SSE)
+                return Windows1252;
+            return Encoding.UTF7;
+        }
 
-        public static string ReadStringLen(this BinaryReader rdr)
+        public static string ReadStringLen(this BinaryReader rdr, VersionType version)
         {
             var len = rdr.ReadByte();
             var bytes = rdr.ReadBytes(len - 1);
             rdr.ReadByte();
-            return Windows1251.GetString(bytes);
+            return GetEncoding(version).GetString(bytes);
         }
 
-        public static string ReadStringLenNoTerm(this BinaryReader rdr)
+        public static string ReadStringLenNoTerm(this BinaryReader rdr, VersionType version)
         {
             var len = rdr.ReadByte();
             var bytes = rdr.ReadBytes(len);
-            return Windows1251.GetString(bytes);
+            return GetEncoding(version).GetString(bytes);
         }
 
-        public static string ReadStringTerm(this BinaryReader rdr)
+        public static string ReadStringTerm(this BinaryReader rdr, VersionType version)
         {
             List<byte> acc = new List<byte>();
             while (true)
@@ -36,7 +42,7 @@ namespace Compression.BSA
 
                 acc.Add(c);
             }
-            return Windows1251.GetString(acc.ToArray());
+            return GetEncoding(version).GetString(acc.ToArray());
         }
 
 
@@ -45,9 +51,9 @@ namespace Compression.BSA
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
-        public static byte[] ToBZString(this string val)
+        public static byte[] ToBZString(this string val, VersionType version)
         {
-            var b = Windows1251.GetBytes(val);
+            var b = GetEncoding(version).GetBytes(val);
             var b2 = new byte[b.Length + 2];
             b.CopyTo(b2, 1);
             b2[0] = (byte)(b.Length + 1);
@@ -74,9 +80,9 @@ namespace Compression.BSA
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
-        public static byte[] ToTermString(this string val)
+        public static byte[] ToTermString(this string val, VersionType version)
         {
-            var b = Windows1251.GetBytes(val);
+            var b = GetEncoding(version).GetBytes(val);
             var b2 = new byte[b.Length + 1];
             b.CopyTo(b2, 0);
             b[0] = (byte)b.Length;

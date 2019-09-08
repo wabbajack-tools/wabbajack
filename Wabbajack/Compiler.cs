@@ -993,7 +993,7 @@ namespace Wabbajack
             {
                 if (source.Path.StartsWith("profiles\\"))
                 {
-                    if (profiles.Any(profile => !source.Path.StartsWith(profile)))
+                    if (profiles.Any(profile => source.Path.StartsWith(profile)))
                     {
                         return null;
                     }
@@ -1104,6 +1104,7 @@ namespace Wabbajack
 
         internal void PatchExecutable()
         {
+            Utils.Log("Exporting Installer");
             var settings = new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto };
             var data = JsonConvert.SerializeObject(ModList, settings).BZip2String();
             var executable = Assembly.GetExecutingAssembly().Location;

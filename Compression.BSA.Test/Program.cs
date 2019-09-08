@@ -10,11 +10,11 @@ namespace Compression.BSA.Test
 {
     class Program
     {
-        const string TestDir = "d:\\MO2 Instances\\";
+        const string TestDir = @"D:\Personal YASHed\";
         const string TempDir = "c:\\tmp\\out";
         static void Main(string[] args)
         {
-            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.bsa", SearchOption.AllDirectories).Skip(2))
+            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.bsa", SearchOption.AllDirectories).Skip(0))
             {
                 Console.WriteLine($"From {bsa}");
                 Console.WriteLine("Cleaning Output Dir");
@@ -59,7 +59,7 @@ namespace Compression.BSA.Test
 
                         });
                         
-                        w.Build("c:\\tmp\\built.bsa");
+                        w.Build("c:\\tmp\\tmp.bsa");
 
                         // Sanity Checks
                         Equal(a.Files.Count(), w.Files.Count());
@@ -79,7 +79,7 @@ namespace Compression.BSA.Test
                     }
 
                     Console.WriteLine($"Verifying {bsa}");
-                    using (var b = new BSAReader("c:\\tmp\\built.bsa"))
+                    using (var b = new BSAReader("c:\\tmp\\tmp.bsa"))
                     {
                         Console.WriteLine($"Performing A/B tests on {bsa}");
                         Equal((uint)a.ArchiveFlags, (uint)b.ArchiveFlags);

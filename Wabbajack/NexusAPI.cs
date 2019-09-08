@@ -170,6 +170,9 @@ namespace Wabbajack
 
         public static ModInfo GetModInfo(NexusMod archive, string apikey)
         {
+            if (!Directory.Exists(Consts.NexusCacheDirectory))
+                Directory.CreateDirectory(Consts.NexusCacheDirectory);
+
             string path = Path.Combine(Consts.NexusCacheDirectory, $"mod-info-{archive.GameName}-{archive.ModID}.json");
             if (File.Exists(path))
                 return path.FromJSON<ModInfo>();

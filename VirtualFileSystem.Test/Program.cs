@@ -11,7 +11,7 @@ namespace VirtualFileSystem.Test
             Utils.SetStatusFn((s, i) => Console.WriteLine(s));
             WorkQueue.Init((a, b, c) => { return; },
                            (a, b) => { return; });
-            VFS.VirtualFileSystem.VFS.AddRoot(@"D:\MO2 Instances\Mod Organizer 2");
+            VFS.VirtualFileSystem.VFS.AddRoot(@"D:\tmp\Interesting NPCs SSE 3.42\Data");
         }
     }
 }
