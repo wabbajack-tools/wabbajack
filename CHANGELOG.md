@@ -6,6 +6,7 @@
 * Log when the executable is being generated
 * Fixed a integer overflow resulting in a crash in very large BSA reading
 * Fix a bug in BSA string encoding
+* Add human friendly filesizes to the download header and file info sections in the Install Report
 
 #### Version 0.9.1 - 9/5/2019
 * Fixed a bug where having only one profile selected would result in no profiles being selected

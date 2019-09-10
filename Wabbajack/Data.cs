@@ -172,6 +172,8 @@ namespace Wabbajack
         /// Meta INI for the downloaded archive
         /// </summary>
         public string Meta;
+
+        public long Size;
     }
 
     public class NexusMod : Archive

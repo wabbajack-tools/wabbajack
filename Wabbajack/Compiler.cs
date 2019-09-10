@@ -506,6 +506,7 @@ namespace Wabbajack
                 result.Name = found.Name;
                 result.Hash = found.File.Hash;
                 result.Meta = found.Meta;
+                result.Size = found.File.Size;
 
                 Info($"Checking link for {found.Name}");
 

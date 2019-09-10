@@ -406,5 +406,16 @@ namespace Wabbajack.Common
             return default(V);
         }
 
+        private static string[] Suffix = { "B", "KB", "MB", "GB", "TB", "PB", "EB" }; //Longs run out around EB
+        public static string ToFileSizeString(this long byteCount)
+        {
+            if (byteCount == 0)
+                return "0" + Suffix[0];
+            long bytes = Math.Abs(byteCount);
+            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
+            return (Math.Sign(byteCount) * num).ToString() + Suffix[place];
+        }
+
     }
 }

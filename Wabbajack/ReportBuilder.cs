@@ -41,7 +41,7 @@ namespace Wabbajack
         public void Build(ModList lst)
         {
             Text($"### {lst.Name} - Installation Summary");
-            Text($"#### Download Summary ({lst.Archives.Count} archives)");
+            Text($"#### Download Summary ({lst.Archives.Count} archives - {lst.Archives.Sum(a => a.Size).ToFileSizeString()})");
             foreach (var archive in SortArchives(lst.Archives))
             {
                 var hash = archive.Hash.FromBase64().ToHEX();
@@ -52,25 +52,23 @@ namespace Wabbajack
                         NoWrapText($"* [{m.Name}](http://nexusmods.com/{NexusAPI.ConvertGameName(m.GameName)}/mods/{m.ModID})");
                         NoWrapText($"    * Author : [{m.UploadedBy}]({profile})");
                         NoWrapText($"    * Version : {m.Version}");
-                        NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
                         break;
                     case MODDBArchive m:
                         NoWrapText($"* MODDB - [{m.Name}]({m.URL})");
-                        NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
                         break;
                     case MEGAArchive m:
                         NoWrapText($"* MEGA - [{m.Name}]({m.URL})");
-                        NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
                         break;
                     case GoogleDriveMod m:
                         NoWrapText($"* GoogleDrive - [{m.Name}](https://drive.google.com/uc?id={m.Id}&export=download)");
-                        NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
                         break;
                     case DirectURLArchive m:
                         NoWrapText($"* URL - [{m.Name} - {m.URL}]({m.URL})");
-                        NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
                         break;
                 }
+                NoWrapText($"    * Size : {archive.Size.ToFileSizeString()}");
+                NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
+
             }
             Text($"\n\n");
             var patched = lst.Directives.OfType<PatchedFromArchive>().OrderBy(p => p.To).ToList();
