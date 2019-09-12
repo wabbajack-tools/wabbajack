@@ -630,18 +630,18 @@ namespace Wabbajack
             return HashArchive(e);
         }
 
-        public static string CheckForModPack()
+        public static string CheckForModList()
         {
             Utils.Log("Looking for attached modlist");
             using (var s = File.OpenRead(Assembly.GetExecutingAssembly().Location))
             {
-                var magic_bytes = Encoding.ASCII.GetBytes(Consts.ModPackMagic);
+                var magic_bytes = Encoding.ASCII.GetBytes(Consts.ModListMagic);
                 s.Position = s.Length - magic_bytes.Length;
                 using (var br = new BinaryReader(s))
                 {
                     var bytes = br.ReadBytes(magic_bytes.Length);
                     var magic = Encoding.ASCII.GetString(bytes);
-                    if (magic != Consts.ModPackMagic)
+                    if (magic != Consts.ModListMagic)
                     {
 
                         return null;

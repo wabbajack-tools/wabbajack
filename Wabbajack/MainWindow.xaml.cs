@@ -76,7 +76,7 @@ namespace Wabbajack
             {
                 new Thread(() =>
                 {
-                    var modlist = Installer.CheckForModPack();
+                    var modlist = Installer.CheckForModList();
                     if (modlist == null)
                     {
                         Utils.Log("No Modlist found, running in Compiler mode.");
