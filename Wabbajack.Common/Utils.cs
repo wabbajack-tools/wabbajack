@@ -312,7 +312,6 @@ namespace Wabbajack.Common
                 f(i);
                 return false;
             });
-            return;
         }
 
         public static void DoProgress<T>(this IEnumerable<T> coll, String msg, Action<T> f)
@@ -417,5 +416,44 @@ namespace Wabbajack.Common
             return (Math.Sign(byteCount) * num).ToString() + Suffix[place];
         }
 
+        public static void CreatePatch(byte[] a, byte[] b, Stream output)
+        {
+            var data_a = a.SHA256().FromBase64().ToHEX();
+            var data_b = b.SHA256().FromBase64().ToHEX();
+            var cache_file = Path.Combine("patch_cache", $"{data_a}_{data_b}.patch");
+            if (!Directory.Exists("patch_cache"))
+                Directory.CreateDirectory("patch_cache");
+
+            while (true)
+            {
+                if (File.Exists(cache_file))
+                {
+                    using (var f = File.OpenRead(cache_file))
+                    {
+                        f.CopyTo(output);
+                    }
+                }
+                else
+                {
+                    var tmp_name = Path.Combine("patch_cache", Guid.NewGuid() + ".tmp");
+
+                    using (var f = File.OpenWrite(tmp_name))
+                    {
+                        BSDiff.Create(a, b, f);
+                    }
+
+                    File.Move(tmp_name, cache_file);
+                    continue;
+                }
+
+                break;
+            }
+        }
+
+        public static void TryGetPatch(string foundHash, string fileHash, out string ePatch)
+        {
+            var patch_name = Path.Combine("patch_cache", $"{foundHash.FromBase64().ToHEX()}_{fileHash.FromBase64().ToHEX()}.patch");
+            ePatch = File.Exists(patch_name) ? File.ReadAllBytes(patch_name).ToBase64() : null;
+        }
     }
 }

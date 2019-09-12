@@ -7,6 +7,10 @@
 * Fixed a integer overflow resulting in a crash in very large BSA reading
 * Fix a bug in BSA string encoding
 * Add human friendly filesizes to the download header and file info sections in the Install Report
+* Improve compilation times by caching BSDiff patches
+* Detect when VFS root folders don't exist
+* Only reauth against the Nexus every 3 days (instead of 12 hours)
+* Optimize executable patching by switching to .NET serialization and LZ4 compression
 
 #### Version 0.9.1 - 9/5/2019
 * Fixed a bug where having only one profile selected would result in no profiles being selected

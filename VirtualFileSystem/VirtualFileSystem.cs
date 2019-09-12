@@ -272,6 +272,7 @@ namespace VFS
         /// <param name="path"></param>
         public void AddRoot(string path)
         {
+            if (!Directory.Exists(path)) return;
             IndexPath(path);
             RefreshIndexes();
         }
@@ -615,7 +616,7 @@ namespace VFS
         }
 
         /// <summary>
-        /// Calulate the file's SHA, size and last modified
+        /// Calculate the file's SHA, size and last modified
         /// </summary>
         internal void Analyze()
         {

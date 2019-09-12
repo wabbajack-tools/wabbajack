@@ -63,25 +63,33 @@ namespace Wabbajack.Common
 
         private static void ExtractAllWithBSA(string source, string dest)
         {
-            using (var arch = new BSAReader(source))
+            try
             {
-                arch.Files.PMap(f =>
+                using (var arch = new BSAReader(source))
                 {
-                    var path = f.Path;
-                    if (f.Path.StartsWith("\\"))
-                        path = f.Path.Substring(1);
-                    Utils.Status($"Extracting {path}");
-                    var out_path = Path.Combine(dest, path);
-                    var parent = Path.GetDirectoryName(out_path);
-
-                    if (!Directory.Exists(parent))
-                        Directory.CreateDirectory(parent);
-
-                    using (var fs = File.OpenWrite(out_path))
+                    arch.Files.PMap(f =>
                     {
-                        f.CopyDataTo(fs);
-                    }
-                });
+                        var path = f.Path;
+                        if (f.Path.StartsWith("\\"))
+                            path = f.Path.Substring(1);
+                        Utils.Status($"Extracting {path}");
+                        var out_path = Path.Combine(dest, path);
+                        var parent = Path.GetDirectoryName(out_path);
+
+                        if (!Directory.Exists(parent))
+                            Directory.CreateDirectory(parent);
+
+                        using (var fs = File.OpenWrite(out_path))
+                        {
+                            f.CopyDataTo(fs);
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Utils.Log($"While Extracting {source}");
+                throw ex;
             }
         }
 

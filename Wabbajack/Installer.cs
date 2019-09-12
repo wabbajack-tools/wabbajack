@@ -7,10 +7,14 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using K4os.Compression.LZ4.Encoders;
+using K4os.Compression.LZ4.Streams;
 using VFS;
 using Wabbajack.Common;
 
@@ -630,7 +634,7 @@ namespace Wabbajack
             return HashArchive(e);
         }
 
-        public static string CheckForModPack()
+        public static ModList CheckForModPack()
         {
             Utils.Log("Looking for attached modlist");
             using (var s = File.OpenRead(Assembly.GetExecutingAssembly().Location))
@@ -650,13 +654,14 @@ namespace Wabbajack
                     s.Position = s.Length - magic_bytes.Length - 8;
                     var start_pos = br.ReadInt64();
                     s.Position = start_pos;
-                    long length = br.ReadInt64();
-
                     Utils.Log("Modlist found, loading...");
-                    var list = br.ReadBytes((int)length).BZip2String();
-                    Utils.Log("Modlist loaded.");
-                    return list;
-
+                    using (var dc = LZ4Stream.Decode(br.BaseStream, leaveOpen: true))
+                    {
+                        IFormatter formatter = new BinaryFormatter();
+                        var list = formatter.Deserialize(dc);
+                        Utils.Log("Modlist loaded.");
+                        return (ModList)list;
+                    }
                 }
             }
         }
