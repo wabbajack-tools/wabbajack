@@ -146,6 +146,7 @@ namespace Compression.BSA
         {
             _fileName = filename;
 
+
         }
 
         public BSAReader(Stream stream)

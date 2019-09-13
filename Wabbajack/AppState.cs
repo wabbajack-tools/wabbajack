@@ -215,9 +215,9 @@ namespace Wabbajack
             }
         }
 
-        internal void ConfigureForInstall(string modlist)
+        internal void ConfigureForInstall(ModList modlist)
         {
-            _modList = modlist.FromJSONString<ModList>();
+            _modList = modlist;
             Mode = "Installing";
             ModListName = _modList.Name;
             HTMLReport = _modList.ReportHTML;

@@ -68,7 +68,7 @@ namespace Wabbajack
                     var modlist = compiler.ModList.ToJSON();
                     compiler = null;
 
-                    context.ConfigureForInstall(modlist);
+                    //context.ConfigureForInstall(modlist);
 
                 }).Start();
             }

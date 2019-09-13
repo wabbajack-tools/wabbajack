@@ -272,6 +272,7 @@ namespace VFS
         /// <param name="path"></param>
         public void AddRoot(string path)
         {
+            if (!Directory.Exists(path)) return;
             IndexPath(path);
             RefreshIndexes();
         }
@@ -471,6 +472,11 @@ namespace VFS
             string fullPath = archive.FullPath + "|" + String.Join("|", archiveHashPath.Skip(1));
             return Lookup(fullPath);
         }
+
+        public IDictionary<VirtualFile, IEnumerable<VirtualFile>> GroupedByArchive()
+        {
+            return _files.Values.GroupBy(f => f.TopLevelArchive).ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>)f);
+        }
     }
 
     public class StagingGroup : List<VirtualFile>, IDisposable
@@ -615,7 +621,7 @@ namespace VFS
         }
 
         /// <summary>
-        /// Calulate the file's SHA, size and last modified
+        /// Calculate the file's SHA, size and last modified
         /// </summary>
         internal void Analyze()
         {

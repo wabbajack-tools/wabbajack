@@ -19,7 +19,7 @@ namespace Wabbajack
         public static string GetNexusAPIKey()
         {
             FileInfo fi = new FileInfo("nexus.key_cache");
-            if (fi.Exists && fi.LastWriteTime > DateTime.Now.AddHours(-12))
+            if (fi.Exists && fi.LastWriteTime > DateTime.Now.AddHours(-72))
             {
                 return File.ReadAllText("nexus.key_cache");
             }

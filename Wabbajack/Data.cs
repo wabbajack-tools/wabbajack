@@ -1,9 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VFS;
 
 namespace Wabbajack
@@ -44,20 +41,13 @@ namespace Wabbajack
         }
     }
 
+    [Serializable]
     public class ModList
     {
         /// <summary>
         /// Name of the ModList
         /// </summary>
         public string Name;
-        /// <summary>
-        /// Author of the Mod List
-        /// </summary>
-        public string Author;
-        /// <summary>
-        /// Version of this Mod List
-        /// </summary>
-        public string Version;
 
         /// <summary>
         /// Install directives
@@ -75,6 +65,7 @@ namespace Wabbajack
         public string ReportHTML;
     }
 
+    [Serializable]
     public class Directive
     {
         /// <summary>
@@ -83,16 +74,19 @@ namespace Wabbajack
         public string To;
     }
 
+    [Serializable]
     public class IgnoredDirectly : Directive
     {
         public string Reason;
     }
 
+    [Serializable]
     public class NoMatch : IgnoredDirectly
     {
 
     }
 
+    [Serializable]
     public class InlineFile : Directive
     {
         /// <summary>
@@ -101,6 +95,7 @@ namespace Wabbajack
         public string SourceData;
     }
 
+    [Serializable]
     public class CleanedESM : InlineFile
     {
         public string SourceESMHash;
@@ -109,10 +104,12 @@ namespace Wabbajack
     /// <summary>
     /// A file that has the game and MO2 folders remapped on installation
     /// </summary>
+    [Serializable]
     public class RemappedInlineFile : InlineFile
     {
     }
 
+    [Serializable]
     public class FromArchive : Directive
     {
         /// <summary>
@@ -121,9 +118,11 @@ namespace Wabbajack
         public string[] ArchiveHashPath;
 
         [JsonIgnore]
+        [NonSerialized]
         public VirtualFile FromFile;
 
         private string _fullPath = null;
+
         [JsonIgnore]
         public string FullPath
         {
@@ -137,6 +136,7 @@ namespace Wabbajack
         }
     }
 
+    [Serializable]
     public class CreateBSA : Directive
     {
         public string TempID;
@@ -150,14 +150,16 @@ namespace Wabbajack
         public uint ArchiveFlags { get; set; }
     }
 
+    [Serializable]
     public class PatchedFromArchive : FromArchive
     {
         /// <summary>
         /// The file to apply to the source file to patch it
         /// </summary>
-        public string Patch;
+        public byte[] Patch;
     }
 
+    [Serializable]
     public class Archive
     {
         /// <summary>
@@ -176,6 +178,7 @@ namespace Wabbajack
         public long Size;
     }
 
+    [Serializable]
     public class NexusMod : Archive
     {
         public string GameName;
@@ -187,6 +190,7 @@ namespace Wabbajack
         public string Author;
     }
 
+    [Serializable]
     public class GoogleDriveMod : Archive
     {
         public string Id;
@@ -195,6 +199,7 @@ namespace Wabbajack
     /// <summary>
     /// URL that can be downloaded directly without any additional options
     /// </summary>
+    [Serializable]
     public class DirectURLArchive : Archive
     {
         public string URL;
@@ -206,6 +211,7 @@ namespace Wabbajack
     /// <summary>
     /// A URL that cannot be downloaded automatically and has to be downloaded by hand
     /// </summary>
+    [Serializable]
     public class ManualURLArchive : Archive
     {
         public string URL;
@@ -214,6 +220,7 @@ namespace Wabbajack
     /// <summary>
     /// An archive that requires additional HTTP headers.
     /// </summary>
+    [Serializable]
     public class DirectURLArchiveEx : DirectURLArchive
     {
         public Dictionary<string, string> Headers;
@@ -222,6 +229,7 @@ namespace Wabbajack
     /// <summary>
     /// Archive that comes from MEGA
     /// </summary>
+    [Serializable]
     public class MEGAArchive : DirectURLArchive
     {
     }
@@ -229,6 +237,7 @@ namespace Wabbajack
     /// <summary>
     /// Archive that comes from MODDB
     /// </summary>
+    [Serializable]
     public class MODDBArchive : DirectURLArchive
     {
     }
@@ -236,10 +245,12 @@ namespace Wabbajack
     /// <summary>
     /// Archive that comes from MediaFire
     /// </summary>
+    [Serializable]
     public class MediaFireArchive : DirectURLArchive
     {
     }
 
+    [Serializable]
     public class IndexedArchive
     {
         public dynamic IniData;
@@ -251,6 +262,7 @@ namespace Wabbajack
     /// <summary>
     /// A archive entry
     /// </summary>
+    [Serializable]
     public class IndexedEntry
     {
         /// <summary>
@@ -267,6 +279,7 @@ namespace Wabbajack
         public long Size;
     }
 
+    [Serializable]
     public class IndexedArchiveEntry : IndexedEntry
     {
         public string[] HashPath;
@@ -275,6 +288,7 @@ namespace Wabbajack
     /// <summary>
     /// Data found inside a BSA file in an archive
     /// </summary>
+    [Serializable]
     public class BSAIndexedEntry : IndexedEntry
     {
         /// <summary>
