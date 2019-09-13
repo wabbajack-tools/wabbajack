@@ -398,7 +398,7 @@ namespace Wabbajack
                     Status("Patching {0}", Path.GetFileName(to_patch.To));
                     // Read in the patch data
 
-                    var patch_data = to_patch.Patch.FromBase64();
+                    var patch_data = to_patch.Patch;
 
                     var to_file = Path.Combine(Outputfolder, to_patch.To);
                     MemoryStream old_data = new MemoryStream(File.ReadAllBytes(to_file));

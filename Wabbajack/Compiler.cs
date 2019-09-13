@@ -156,10 +156,12 @@ namespace Wabbajack
                 .ToList();
 
             Info("Indexing Files");
-            IndexedFiles = IndexedArchives.PMap(f =>
+            var grouped = VFS.GroupedByArchive();
+            IndexedFiles = IndexedArchives.Select(f =>
                 {
-                    Status($"Finding files in {Path.GetFileName(f.File.FullPath)}");
-                    return VFS.FilesInArchive(f.File);
+                    if (grouped.TryGetValue(f.File, out var result))
+                        return result;
+                    return new List<VirtualFile>();
                 })
                 .SelectMany(fs => fs)
                 .Concat(IndexedArchives.Select(f => f.File))
@@ -316,7 +318,7 @@ namespace Wabbajack
                         var a = origin.ReadAll();
                         var b = LoadDataForTo(entry.To, absolute_paths);
                         Utils.CreatePatch(a, b, output);
-                        entry.Patch = output.ToArray().ToBase64();
+                        entry.Patch = output.ToArray();
                         Info($"Patch size {entry.Patch.Length} for {entry.To}");
                     }
                 });
@@ -553,11 +555,25 @@ namespace Wabbajack
                 // Theme file MO2 downloads somehow
                 IgnoreEndsWith("splash.png"),
 
+                IgnoreWabbajackInstallCruft(),
+
                 PatchStockESMs(),
 
                 IncludeAllConfigs(),
 
                 DropAll()
+            };
+        }
+
+        private Func<RawSourceFile, Directive> IgnoreWabbajackInstallCruft()
+        {
+            var cruft_files = new HashSet<string> {"7z.dll", "7z.exe", "vfs_staged_files\\", "nexus.key_cache", "patch_cache\\", Consts.NexusCacheDirectory + "\\"};
+            return source =>
+            {
+                if (!cruft_files.Any(f => source.Path.StartsWith(f))) return null;
+                var result = source.EvolveTo<IgnoredDirectly>();
+                result.Reason = "Wabbajack Cruft file";
+                return result;
             };
         }
 

@@ -472,6 +472,11 @@ namespace VFS
             string fullPath = archive.FullPath + "|" + String.Join("|", archiveHashPath.Skip(1));
             return Lookup(fullPath);
         }
+
+        public IDictionary<VirtualFile, IEnumerable<VirtualFile>> GroupedByArchive()
+        {
+            return _files.Values.GroupBy(f => f.TopLevelArchive).ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>)f);
+        }
     }
 
     public class StagingGroup : List<VirtualFile>, IDisposable

@@ -450,10 +450,10 @@ namespace Wabbajack.Common
             }
         }
 
-        public static void TryGetPatch(string foundHash, string fileHash, out string ePatch)
+        public static void TryGetPatch(string foundHash, string fileHash, out byte[] ePatch)
         {
             var patch_name = Path.Combine("patch_cache", $"{foundHash.FromBase64().ToHEX()}_{fileHash.FromBase64().ToHEX()}.patch");
-            ePatch = File.Exists(patch_name) ? File.ReadAllBytes(patch_name).ToBase64() : null;
+            ePatch = File.Exists(patch_name) ? File.ReadAllBytes(patch_name) : null;
         }
     }
 }
