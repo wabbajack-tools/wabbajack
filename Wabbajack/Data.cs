@@ -1,37 +1,24 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using VFS;
 
 namespace Wabbajack
 {
-    public class RawSourceFile 
+    public class RawSourceFile
     {
+        public string Path;
+
         public RawSourceFile(VirtualFile file)
         {
             File = file;
         }
 
-        public string AbsolutePath
-        {
-            get
-            {
-                return File.StagedPath;
-            }
-        }
-        
-        public string Path;
+        public string AbsolutePath => File.StagedPath;
 
-        public VirtualFile File { get; private set; }
+        public VirtualFile File { get; }
 
-        public string Hash
-        {
-            get
-            {
-                return File.Hash;
-            }
-
-        }
+        public string Hash => File.Hash;
 
         public T EvolveTo<T>() where T : Directive, new()
         {
@@ -45,22 +32,22 @@ namespace Wabbajack
     public class ModList
     {
         /// <summary>
-        /// Name of the ModList
-        /// </summary>
-        public string Name;
-
-        /// <summary>
-        /// Install directives
-        /// </summary>
-        public List<Directive> Directives;
-
-        /// <summary>
-        /// Archives required by this modlist
+        ///     Archives required by this modlist
         /// </summary>
         public List<Archive> Archives;
 
         /// <summary>
-        /// Content Report in HTML form
+        ///     Install directives
+        /// </summary>
+        public List<Directive> Directives;
+
+        /// <summary>
+        ///     Name of the ModList
+        /// </summary>
+        public string Name;
+
+        /// <summary>
+        ///     Content Report in HTML form
         /// </summary>
         public string ReportHTML;
     }
@@ -69,7 +56,7 @@ namespace Wabbajack
     public class Directive
     {
         /// <summary>
-        /// location the file will be copied to, relative to the install path.
+        ///     location the file will be copied to, relative to the install path.
         /// </summary>
         public string To;
     }
@@ -83,14 +70,13 @@ namespace Wabbajack
     [Serializable]
     public class NoMatch : IgnoredDirectly
     {
-
     }
 
     [Serializable]
     public class InlineFile : Directive
     {
         /// <summary>
-        /// Data that will be written as-is to the destination location;
+        ///     Data that will be written as-is to the destination location;
         /// </summary>
         public string SourceData;
     }
@@ -102,7 +88,7 @@ namespace Wabbajack
     }
 
     /// <summary>
-    /// A file that has the game and MO2 folders remapped on installation
+    ///     A file that has the game and MO2 folders remapped on installation
     /// </summary>
     [Serializable]
     public class RemappedInlineFile : InlineFile
@@ -112,25 +98,21 @@ namespace Wabbajack
     [Serializable]
     public class FromArchive : Directive
     {
+        private string _fullPath;
+
         /// <summary>
-        /// MurMur3 hash of the archive this file comes from
+        ///     MurMur3 hash of the archive this file comes from
         /// </summary>
         public string[] ArchiveHashPath;
 
-        [JsonIgnore]
-        [NonSerialized]
-        public VirtualFile FromFile;
-
-        private string _fullPath = null;
+        [JsonIgnore] [NonSerialized] public VirtualFile FromFile;
 
         [JsonIgnore]
         public string FullPath
         {
             get
             {
-                if (_fullPath == null) {
-                    _fullPath = String.Join("|", ArchiveHashPath);
-                }
+                if (_fullPath == null) _fullPath = string.Join("|", ArchiveHashPath);
                 return _fullPath;
             }
         }
@@ -139,11 +121,11 @@ namespace Wabbajack
     [Serializable]
     public class CreateBSA : Directive
     {
-        public string TempID;
         public string IsCompressed;
-        public uint Version;
-        public uint Type;
         public bool ShareData;
+        public string TempID;
+        public uint Type;
+        public uint Version;
 
         public uint FileFlags { get; set; }
         public bool Compress { get; set; }
@@ -153,8 +135,10 @@ namespace Wabbajack
     [Serializable]
     public class PatchedFromArchive : FromArchive
     {
+        public string Hash;
+
         /// <summary>
-        /// The file to apply to the source file to patch it
+        ///     The file to apply to the source file to patch it
         /// </summary>
         public byte[] Patch;
     }
@@ -163,17 +147,18 @@ namespace Wabbajack
     public class Archive
     {
         /// <summary>
-        /// MurMur3 Hash of the archive
+        ///     MurMur3 Hash of the archive
         /// </summary>
         public string Hash;
-        /// <summary>
-        /// Human friendly name of this archive
-        /// </summary>
-        public string Name;
 
         /// Meta INI for the downloaded archive
         /// </summary>
         public string Meta;
+
+        /// <summary>
+        ///     Human friendly name of this archive
+        /// </summary>
+        public string Name;
 
         public long Size;
     }
@@ -181,13 +166,13 @@ namespace Wabbajack
     [Serializable]
     public class NexusMod : Archive
     {
+        public string Author;
+        public string FileID;
         public string GameName;
         public string ModID;
-        public string FileID;
-        public string Version;
-        public string UploaderProfile;
         public string UploadedBy;
-        public string Author;
+        public string UploaderProfile;
+        public string Version;
     }
 
     [Serializable]
@@ -197,19 +182,19 @@ namespace Wabbajack
     }
 
     /// <summary>
-    /// URL that can be downloaded directly without any additional options
+    ///     URL that can be downloaded directly without any additional options
     /// </summary>
     [Serializable]
     public class DirectURLArchive : Archive
     {
-        public string URL;
-
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public List<string> Headers;
+
+        public string URL;
     }
 
     /// <summary>
-    /// A URL that cannot be downloaded automatically and has to be downloaded by hand
+    ///     A URL that cannot be downloaded automatically and has to be downloaded by hand
     /// </summary>
     [Serializable]
     public class ManualURLArchive : Archive
@@ -218,7 +203,7 @@ namespace Wabbajack
     }
 
     /// <summary>
-    /// An archive that requires additional HTTP headers.
+    ///     An archive that requires additional HTTP headers.
     /// </summary>
     [Serializable]
     public class DirectURLArchiveEx : DirectURLArchive
@@ -227,7 +212,7 @@ namespace Wabbajack
     }
 
     /// <summary>
-    /// Archive that comes from MEGA
+    ///     Archive that comes from MEGA
     /// </summary>
     [Serializable]
     public class MEGAArchive : DirectURLArchive
@@ -235,7 +220,7 @@ namespace Wabbajack
     }
 
     /// <summary>
-    /// Archive that comes from MODDB
+    ///     Archive that comes from MODDB
     /// </summary>
     [Serializable]
     public class MODDBArchive : DirectURLArchive
@@ -243,7 +228,7 @@ namespace Wabbajack
     }
 
     /// <summary>
-    /// Archive that comes from MediaFire
+    ///     Archive that comes from MediaFire
     /// </summary>
     [Serializable]
     public class MediaFireArchive : DirectURLArchive
@@ -254,27 +239,29 @@ namespace Wabbajack
     public class IndexedArchive
     {
         public dynamic IniData;
-        public string Name;
         public string Meta;
+        public string Name;
         public VirtualFile File { get; internal set; }
     }
 
     /// <summary>
-    /// A archive entry
+    ///     A archive entry
     /// </summary>
     [Serializable]
     public class IndexedEntry
     {
         /// <summary>
-        /// Path in the archive to this file
-        /// </summary>
-        public string Path;
-        /// <summary>
-        /// MurMur3 hash of this file
+        ///     MurMur3 hash of this file
         /// </summary>
         public string Hash;
+
         /// <summary>
-        /// Size of the file (uncompressed)
+        ///     Path in the archive to this file
+        /// </summary>
+        public string Path;
+
+        /// <summary>
+        ///     Size of the file (uncompressed)
         /// </summary>
         public long Size;
     }
@@ -286,13 +273,13 @@ namespace Wabbajack
     }
 
     /// <summary>
-    /// Data found inside a BSA file in an archive
+    ///     Data found inside a BSA file in an archive
     /// </summary>
     [Serializable]
     public class BSAIndexedEntry : IndexedEntry
     {
         /// <summary>
-        /// MurMur3 hash of the BSA this file comes from
+        ///     MurMur3 hash of the BSA this file comes from
         /// </summary>
         public string BSAHash;
     }

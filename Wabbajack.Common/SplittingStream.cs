@@ -1,18 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Wabbajack.Common
 {
     public class SplittingStream : Stream
     {
-        private Stream _a;
-        private Stream _b;
-        private bool _leave_a_open;
-        private bool _leave_b_open;
+        private readonly Stream _a;
+        private readonly Stream _b;
+        private readonly bool _leave_a_open;
+        private readonly bool _leave_b_open;
+
+        public SplittingStream(Stream a, bool leave_a_open, Stream b, bool leave_b_open)
+        {
+            _a = a;
+            _b = b;
+            _leave_a_open = leave_a_open;
+            _leave_b_open = leave_b_open;
+        }
 
         public override bool CanRead => false;
 
@@ -22,14 +26,10 @@ namespace Wabbajack.Common
 
         public override long Length => throw new NotImplementedException();
 
-        public override long Position { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-        public SplittingStream(Stream a, bool leave_a_open, Stream b, bool leave_b_open)
+        public override long Position
         {
-            _a = a;
-            _b = b;
-            _leave_a_open = leave_a_open;
-            _leave_b_open = leave_b_open;
+            get => throw new NotImplementedException();
+            set => throw new NotImplementedException();
         }
 
         public override void Flush()

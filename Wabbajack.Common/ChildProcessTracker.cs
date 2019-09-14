@@ -1,36 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Wabbajack.Common
 {
     /// <summary>
-    /// Allows processes to be automatically killed if this parent process unexpectedly quits.
-    /// This feature requires Windows 8 or greater. On Windows 7, nothing is done.</summary>
-    /// <remarks>References:
-    ///  https://stackoverflow.com/a/4657392/386091
-    ///  https://stackoverflow.com/a/9164742/386091 </remarks>
+    ///     Allows processes to be automatically killed if this parent process unexpectedly quits.
+    ///     This feature requires Windows 8 or greater. On Windows 7, nothing is done.
+    /// </summary>
+    /// <remarks>
+    ///     References:
+    ///     https://stackoverflow.com/a/4657392/386091
+    ///     https://stackoverflow.com/a/9164742/386091
+    /// </remarks>
     public static class ChildProcessTracker
     {
-        /// <summary>
-        /// Add the process to be tracked. If our current process is killed, the child processes
-        /// that we are tracking will be automatically killed, too. If the child process terminates
-        /// first, that's fine, too.</summary>
-        /// <param name="process"></param>
-        public static void AddProcess(Process process)
-        {
-            if (s_jobHandle != IntPtr.Zero)
-            {
-                bool success = AssignProcessToJobObject(s_jobHandle, process.Handle);
-                if (!success && !process.HasExited)
-                    throw new Win32Exception();
-            }
-        }
+        // Windows will automatically close any open job handles when our process terminates.
+        //  This can be verified by using SysInternals' Handle utility. When the job handle
+        //  is closed, the child processes will be killed.
+        private static readonly IntPtr s_jobHandle;
 
         static ChildProcessTracker()
         {
@@ -45,7 +34,7 @@ namespace Wabbajack.Common
             // The job name is optional (and can be null) but it helps with diagnostics.
             //  If it's not null, it has to be unique. Use SysInternals' Handle command-line
             //  utility: handle -a ChildProcessTracker
-            string jobName = "ChildProcessTracker" + Process.GetCurrentProcess().Id;
+            var jobName = "ChildProcessTracker" + Process.GetCurrentProcess().Id;
             s_jobHandle = CreateJobObject(IntPtr.Zero, jobName);
 
             var info = new JOBOBJECT_BASIC_LIMIT_INFORMATION();
@@ -58,17 +47,15 @@ namespace Wabbajack.Common
             var extendedInfo = new JOBOBJECT_EXTENDED_LIMIT_INFORMATION();
             extendedInfo.BasicLimitInformation = info;
 
-            int length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
-            IntPtr extendedInfoPtr = Marshal.AllocHGlobal(length);
+            var length = Marshal.SizeOf(typeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
+            var extendedInfoPtr = Marshal.AllocHGlobal(length);
             try
             {
                 Marshal.StructureToPtr(extendedInfo, extendedInfoPtr, false);
 
                 if (!SetInformationJobObject(s_jobHandle, JobObjectInfoType.ExtendedLimitInformation,
-                    extendedInfoPtr, (uint)length))
-                {
+                    extendedInfoPtr, (uint) length))
                     throw new Win32Exception();
-                }
             }
             finally
             {
@@ -76,20 +63,31 @@ namespace Wabbajack.Common
             }
         }
 
+        /// <summary>
+        ///     Add the process to be tracked. If our current process is killed, the child processes
+        ///     that we are tracking will be automatically killed, too. If the child process terminates
+        ///     first, that's fine, too.
+        /// </summary>
+        /// <param name="process"></param>
+        public static void AddProcess(Process process)
+        {
+            if (s_jobHandle != IntPtr.Zero)
+            {
+                var success = AssignProcessToJobObject(s_jobHandle, process.Handle);
+                if (!success && !process.HasExited)
+                    throw new Win32Exception();
+            }
+        }
+
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-        static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string name);
+        private static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string name);
 
         [DllImport("kernel32.dll")]
-        static extern bool SetInformationJobObject(IntPtr job, JobObjectInfoType infoType,
+        private static extern bool SetInformationJobObject(IntPtr job, JobObjectInfoType infoType,
             IntPtr lpJobObjectInfo, uint cbJobObjectInfoLength);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
-
-        // Windows will automatically close any open job handles when our process terminates.
-        //  This can be verified by using SysInternals' Handle utility. When the job handle
-        //  is closed, the child processes will be killed.
-        private static readonly IntPtr s_jobHandle;
+        private static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
     }
 
     public enum JobObjectInfoType
@@ -106,15 +104,15 @@ namespace Wabbajack.Common
     [StructLayout(LayoutKind.Sequential)]
     public struct JOBOBJECT_BASIC_LIMIT_INFORMATION
     {
-        public Int64 PerProcessUserTimeLimit;
-        public Int64 PerJobUserTimeLimit;
+        public long PerProcessUserTimeLimit;
+        public long PerJobUserTimeLimit;
         public JOBOBJECTLIMIT LimitFlags;
         public UIntPtr MinimumWorkingSetSize;
         public UIntPtr MaximumWorkingSetSize;
-        public UInt32 ActiveProcessLimit;
-        public Int64 Affinity;
-        public UInt32 PriorityClass;
-        public UInt32 SchedulingClass;
+        public uint ActiveProcessLimit;
+        public long Affinity;
+        public uint PriorityClass;
+        public uint SchedulingClass;
     }
 
     [Flags]
@@ -126,12 +124,12 @@ namespace Wabbajack.Common
     [StructLayout(LayoutKind.Sequential)]
     public struct IO_COUNTERS
     {
-        public UInt64 ReadOperationCount;
-        public UInt64 WriteOperationCount;
-        public UInt64 OtherOperationCount;
-        public UInt64 ReadTransferCount;
-        public UInt64 WriteTransferCount;
-        public UInt64 OtherTransferCount;
+        public ulong ReadOperationCount;
+        public ulong WriteOperationCount;
+        public ulong OtherOperationCount;
+        public ulong ReadTransferCount;
+        public ulong WriteTransferCount;
+        public ulong OtherTransferCount;
     }
 
     [StructLayout(LayoutKind.Sequential)]
