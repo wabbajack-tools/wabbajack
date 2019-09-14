@@ -5,16 +5,16 @@ namespace Wabbajack
 {
     internal class LambdaCommand : ICommand
     {
-        private Action _execute;
-        private Func<bool> _canExecute;
-
-        public event EventHandler CanExecuteChanged;
+        private readonly Func<bool> _canExecute;
+        private readonly Action _execute;
 
         public LambdaCommand(Func<bool> canExecute, Action execute)
         {
             _execute = execute;
             _canExecute = canExecute;
         }
+
+        public event EventHandler CanExecuteChanged;
 
         public bool CanExecute(object parameter)
         {

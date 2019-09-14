@@ -1,18 +1,17 @@
-﻿using ICSharpCode.SharpZipLib.BZip2;
-using IniParser;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Configuration;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.BZip2;
+using IniParser;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Bson;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -23,6 +22,8 @@ namespace Wabbajack.Common
     {
         private static Action<string> _loggerFn;
         private static Action<string, int> _statusFn;
+
+        private static readonly string[] Suffix = {"B", "KB", "MB", "GB", "TB", "PB", "EB"}; //Longs run out around EB
 
         public static void SetLoggerFn(Action<string> f)
         {
@@ -43,10 +44,10 @@ namespace Wabbajack.Common
         {
             _statusFn?.Invoke(msg, progress);
         }
-      
+
 
         /// <summary>
-        /// MurMur3 hashes the file pointed to by this string
+        ///     MurMur3 hashes the file pointed to by this string
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
@@ -56,10 +57,12 @@ namespace Wabbajack.Common
             using (var o = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write))
             {
                 using (var i = File.OpenRead(file))
+                {
                     i.CopyToWithStatus(new FileInfo(file).Length, o, $"Hashing {Path.GetFileName(file)}");
+                }
             }
-            return sha.Hash.ToBase64();
 
+            return sha.Hash.ToBase64();
         }
 
         public static void CopyToWithStatus(this Stream istream, long maxSize, Stream ostream, string status)
@@ -69,22 +72,21 @@ namespace Wabbajack.Common
             long total_read = 0;
             while (true)
             {
-                int read = istream.Read(buffer, 0, buffer.Length);
+                var read = istream.Read(buffer, 0, buffer.Length);
                 if (read == 0) break;
                 total_read += read;
                 ostream.Write(buffer, 0, read);
-                Status(status, (int)(total_read * 100 / maxSize));
+                Status(status, (int) (total_read * 100 / maxSize));
             }
         }
 
         public static string SHA256(this byte[] data)
         {
             return new SHA256Managed().ComputeHash(data).ToBase64();
-
         }
 
         /// <summary>
-        /// Returns a Base64 encoding of these bytes
+        ///     Returns a Base64 encoding of these bytes
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -95,16 +97,13 @@ namespace Wabbajack.Common
 
         public static string ToHEX(this byte[] bytes)
         {
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < bytes.Length; i++)
-            {
-                builder.Append(bytes[i].ToString("x2"));
-            }
+            var builder = new StringBuilder();
+            for (var i = 0; i < bytes.Length; i++) builder.Append(bytes[i].ToString("x2"));
             return builder.ToString();
         }
 
         /// <summary>
-        /// Returns data from a base64 stream
+        ///     Returns data from a base64 stream
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -114,7 +113,7 @@ namespace Wabbajack.Common
         }
 
         /// <summary>
-        /// Executes the action for every item in coll
+        ///     Executes the action for every item in coll
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="coll"></param>
@@ -126,7 +125,7 @@ namespace Wabbajack.Common
 
         public static void DoIndexed<T>(this IEnumerable<T> coll, Action<int, T> f)
         {
-            int idx = 0;
+            var idx = 0;
             foreach (var i in coll)
             {
                 f(idx, i);
@@ -136,8 +135,8 @@ namespace Wabbajack.Common
 
 
         /// <summary>
-        /// Loads INI data from the given filename and returns a dynamic type that
-        /// can use . operators to navigate the INI.
+        ///     Loads INI data from the given filename and returns a dynamic type that
+        ///     can use . operators to navigate the INI.
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
@@ -148,50 +147,57 @@ namespace Wabbajack.Common
 
         public static void ToJSON<T>(this T obj, string filename)
         {
-            File.WriteAllText(filename, JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings() {TypeNameHandling = TypeNameHandling.Auto}));
+            File.WriteAllText(filename,
+                JsonConvert.SerializeObject(obj, Formatting.Indented,
+                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto}));
         }
 
         public static void ToBSON<T>(this T obj, string filename)
         {
-            using(var fo = File.OpenWrite(filename))
-            using(var br = new BsonDataWriter(fo))
+            using (var fo = File.OpenWrite(filename))
+            using (var br = new BsonDataWriter(fo))
             {
                 fo.SetLength(0);
-                var serializer = JsonSerializer.Create(new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                var serializer = JsonSerializer.Create(new JsonSerializerSettings
+                    {TypeNameHandling = TypeNameHandling.Auto});
                 serializer.Serialize(br, obj);
             }
         }
 
         public static ulong ToMilliseconds(this DateTime date)
         {
-            return (ulong)(date - new DateTime(1970, 1, 1)).TotalMilliseconds;
+            return (ulong) (date - new DateTime(1970, 1, 1)).TotalMilliseconds;
         }
 
         public static string ToJSON<T>(this T obj)
         {
-            return JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+            return JsonConvert.SerializeObject(obj, Formatting.Indented,
+                new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
         }
 
         public static T FromJSON<T>(this string filename)
         {
-            return JsonConvert.DeserializeObject<T>(File.ReadAllText(filename), new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+            return JsonConvert.DeserializeObject<T>(File.ReadAllText(filename),
+                new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
         }
 
         public static T FromBSON<T>(this string filename, bool root_is_array = false)
         {
             using (var fo = File.OpenRead(filename))
-            using (var br = new BsonDataReader(fo, readRootValueAsArray: root_is_array, DateTimeKind.Local))
+            using (var br = new BsonDataReader(fo, root_is_array, DateTimeKind.Local))
             {
-                var serializer = JsonSerializer.Create(new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+                var serializer = JsonSerializer.Create(new JsonSerializerSettings
+                    {TypeNameHandling = TypeNameHandling.Auto});
                 return serializer.Deserialize<T>(br);
             }
-            
         }
 
         public static T FromJSONString<T>(this string data)
         {
-            return JsonConvert.DeserializeObject<T>(data, new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.Auto });
+            return JsonConvert.DeserializeObject<T>(data,
+                new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
         }
+
         public static T FromJSON<T>(this Stream data)
         {
             var s = Encoding.UTF8.GetString(data.ReadAll());
@@ -209,7 +215,7 @@ namespace Wabbajack.Common
         }
 
         /// <summary>
-        /// Returns the string compressed via BZip2
+        ///     Returns the string compressed via BZip2
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -220,14 +226,17 @@ namespace Wabbajack.Common
                 using (var bz = new BZip2OutputStream(os))
                 {
                     using (var bw = new BinaryWriter(bz))
+                    {
                         bw.Write(data);
+                    }
                 }
+
                 return os.ToArray();
             }
         }
 
         /// <summary>
-        /// Returns the string compressed via BZip2
+        ///     Returns the string compressed via BZip2
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
@@ -238,7 +247,9 @@ namespace Wabbajack.Common
                 using (var bz = new BZip2InputStream(s))
                 {
                     using (var bw = new BinaryReader(bz))
+                    {
                         return bw.ReadString();
+                    }
                 }
             }
         }
@@ -258,11 +269,11 @@ namespace Wabbajack.Common
             Interlocked.Add(ref WorkQueue.MaxQueueSize, colllst.Count);
             //WorkQueue.CurrentQueueSize = 0;
 
-            int remaining_tasks = colllst.Count;
+            var remaining_tasks = colllst.Count;
 
             var tasks = coll.Select(i =>
             {
-                TaskCompletionSource<TR> tc = new TaskCompletionSource<TR>();
+                var tc = new TaskCompletionSource<TR>();
                 WorkQueue.QueueTask(() =>
                 {
                     try
@@ -273,6 +284,7 @@ namespace Wabbajack.Common
                     {
                         tc.SetException(ex);
                     }
+
                     Interlocked.Increment(ref WorkQueue.CurrentQueueSize);
                     Interlocked.Decrement(ref remaining_tasks);
                     WorkQueue.ReportNow();
@@ -282,13 +294,9 @@ namespace Wabbajack.Common
 
             // To avoid thread starvation, we'll start to help out in the work queue
             if (WorkQueue.WorkerThread)
-            while(remaining_tasks > 0)
-            {
-                if(WorkQueue.Queue.TryTake(out var a, 500))
-                {
-                    a();
-                }
-            }
+                while (remaining_tasks > 0)
+                    if (WorkQueue.Queue.TryTake(out var a, 500))
+                        a();
 
             if (WorkQueue.CurrentQueueSize == WorkQueue.MaxQueueSize)
             {
@@ -307,14 +315,14 @@ namespace Wabbajack.Common
 
         public static void PMap<TI>(this IEnumerable<TI> coll, Action<TI> f)
         {
-            coll.PMap<TI, bool>(i =>
+            coll.PMap(i =>
             {
                 f(i);
                 return false;
             });
         }
 
-        public static void DoProgress<T>(this IEnumerable<T> coll, String msg, Action<T> f)
+        public static void DoProgress<T>(this IEnumerable<T> coll, string msg, Action<T> f)
         {
             var lst = coll.ToList();
             lst.DoIndexed((idx, i) =>
@@ -335,6 +343,7 @@ namespace Wabbajack.Common
             result.Wait();
             return result.Result;
         }
+
         public static string GetStringSync(this HttpClient client, string url)
         {
             var result = client.GetStringAsync(url);
@@ -360,15 +369,14 @@ namespace Wabbajack.Common
 
         public static string ExceptionToString(this Exception ex)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             while (ex != null)
             {
                 sb.AppendLine(ex.Message);
                 var st = new StackTrace(ex, true);
                 foreach (var frame in st.GetFrames())
-                {
-                    sb.AppendLine($"{frame.GetFileName()}:{frame.GetMethod().Name}:{frame.GetFileLineNumber()}:{frame.GetFileColumnNumber()}");
-                }
+                    sb.AppendLine(
+                        $"{frame.GetFileName()}:{frame.GetMethod().Name}:{frame.GetFileLineNumber()}:{frame.GetFileColumnNumber()}");
                 ex = ex.InnerException;
             }
 
@@ -383,13 +391,13 @@ namespace Wabbajack.Common
 
         public static IEnumerable<T> DistinctBy<T, V>(this IEnumerable<T> vs, Func<T, V> select)
         {
-            HashSet<V> set = new HashSet<V>();
-            foreach (var v in vs) {
+            var set = new HashSet<V>();
+            foreach (var v in vs)
+            {
                 var key = select(v);
                 if (set.Contains(key)) continue;
                 yield return v;
             }
-
         }
 
         public static T Last<T>(this T[] a)
@@ -401,19 +409,18 @@ namespace Wabbajack.Common
 
         public static V GetOrDefault<K, V>(this IDictionary<K, V> dict, K key)
         {
-            if (dict.TryGetValue(key, out V v)) return v;
-            return default(V);
+            if (dict.TryGetValue(key, out var v)) return v;
+            return default;
         }
 
-        private static string[] Suffix = { "B", "KB", "MB", "GB", "TB", "PB", "EB" }; //Longs run out around EB
         public static string ToFileSizeString(this long byteCount)
         {
             if (byteCount == 0)
                 return "0" + Suffix[0];
-            long bytes = Math.Abs(byteCount);
-            int place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
-            double num = Math.Round(bytes / Math.Pow(1024, place), 1);
-            return (Math.Sign(byteCount) * num).ToString() + Suffix[place];
+            var bytes = Math.Abs(byteCount);
+            var place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+            var num = Math.Round(bytes / Math.Pow(1024, place), 1);
+            return Math.Sign(byteCount) * num + Suffix[place];
         }
 
         public static void CreatePatch(byte[] a, byte[] b, Stream output)
@@ -452,7 +459,8 @@ namespace Wabbajack.Common
 
         public static void TryGetPatch(string foundHash, string fileHash, out byte[] ePatch)
         {
-            var patch_name = Path.Combine("patch_cache", $"{foundHash.FromBase64().ToHEX()}_{fileHash.FromBase64().ToHEX()}.patch");
+            var patch_name = Path.Combine("patch_cache",
+                $"{foundHash.FromBase64().ToHEX()}_{fileHash.FromBase64().ToHEX()}.patch");
             ePatch = File.Exists(patch_name) ? File.ReadAllBytes(patch_name) : null;
         }
     }

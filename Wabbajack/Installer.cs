@@ -1,7 +1,4 @@
-﻿using CG.Web.MegaApiClient;
-using Compression.BSA;
-using Ookii.Dialogs.Wpf;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,10 +8,11 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
-using K4os.Compression.LZ4.Encoders;
+using CG.Web.MegaApiClient;
+using Compression.BSA;
 using K4os.Compression.LZ4.Streams;
+using Ookii.Dialogs.Wpf;
 using VFS;
 using Wabbajack.Common;
 
@@ -24,14 +22,6 @@ namespace Wabbajack
     {
         private string _downloadsFolder;
 
-        public VirtualFileSystem VFS
-        {
-            get
-            {
-                return VirtualFileSystem.VFS;
-            }
-        }
-
         public Installer(ModList mod_list, string output_folder, Action<string> log_fn)
         {
             Outputfolder = output_folder;
@@ -39,12 +29,16 @@ namespace Wabbajack
             Log_Fn = log_fn;
         }
 
+        public VirtualFileSystem VFS => VirtualFileSystem.VFS;
+
         public string Outputfolder { get; }
+
         public string DownloadFolder
         {
             get => _downloadsFolder ?? Path.Combine(Outputfolder, "downloads");
             set => _downloadsFolder = value;
         }
+
         public ModList ModList { get; }
         public Action<string> Log_Fn { get; }
         public Dictionary<string, string> HashedArchives { get; private set; }
@@ -56,50 +50,49 @@ namespace Wabbajack
         public void Info(string msg, params object[] args)
         {
             if (args.Length > 0)
-                msg = String.Format(msg, args);
+                msg = string.Format(msg, args);
             Log_Fn(msg);
         }
 
         public void Status(string msg, params object[] args)
         {
             if (args.Length > 0)
-                msg = String.Format(msg, args);
+                msg = string.Format(msg, args);
             WorkQueue.Report(msg, 0);
         }
 
         public void Status(int progress, string msg, params object[] args)
         {
             if (args.Length > 0)
-                msg = String.Format(msg, args);
+                msg = string.Format(msg, args);
             WorkQueue.Report(msg, progress);
         }
+
         private void Error(string msg, params object[] args)
         {
             if (args.Length > 0)
-                msg = String.Format(msg, args);
+                msg = string.Format(msg, args);
             Log_Fn(msg);
             throw new Exception(msg);
         }
 
         public void Install()
         {
-
             Directory.CreateDirectory(Outputfolder);
             Directory.CreateDirectory(DownloadFolder);
 
             if (Directory.Exists(Path.Combine(Outputfolder, "mods")))
             {
-                if (MessageBox.Show("There already appears to be a Mod Organize 2 install in this folder, are you sure you wish to continue" +
-                                " with installation? If you do, you may render both your existing install and the new modlist inoperable.",
-                                "Existing MO2 installation in install folder",
-                                MessageBoxButton.YesNo,
-                                MessageBoxImage.Exclamation) == MessageBoxResult.No)
+                if (MessageBox.Show(
+                        "There already appears to be a Mod Organize 2 install in this folder, are you sure you wish to continue" +
+                        " with installation? If you do, you may render both your existing install and the new modlist inoperable.",
+                        "Existing MO2 installation in install folder",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Exclamation) == MessageBoxResult.No)
                     Utils.Log("Existing installation at the request of the user, existing mods folder found.");
-                    return;
-                
-
+                return;
             }
- 
+
             if (ModList.Directives.OfType<RemappedInlineFile>().FirstOrDefault() != null ||
                 ModList.Directives.OfType<CleanedESM>().FirstOrDefault() != null)
             {
@@ -125,13 +118,9 @@ namespace Wabbajack
                 foreach (var a in missing)
                     Info("Unable to download {0}", a.Name);
                 if (IgnoreMissingFiles)
-                {
                     Info("Missing some archives, but continuing anyways at the request of the user");
-                }
                 else
-                {
                     Error("Cannot continue, was unable to download one or more archives");
-                }
             }
 
             PrimeVFS();
@@ -179,7 +168,6 @@ namespace Wabbajack
                 Utils.Log($"Endorsed {mod.GameName} - {mod.ModID} - Result: {er.message}");
             });
             Info("Done! You may now exit the application!");
-
         }
 
         private bool LocateGameFolder()
@@ -192,38 +180,36 @@ namespace Wabbajack
                 GameFolder = vf.SelectedPath;
                 return true;
             }
+
             return false;
         }
 
 
         /// <summary>
-        /// We don't want to make the installer index all the archives, that's just a waste of time, so instead
-        /// we'll pass just enough information to VFS to let it know about the files we have.
+        ///     We don't want to make the installer index all the archives, that's just a waste of time, so instead
+        ///     we'll pass just enough information to VFS to let it know about the files we have.
         /// </summary>
         private void PrimeVFS()
         {
-            HashedArchives.Do(a => VFS.AddKnown(new VirtualFile()
+            HashedArchives.Do(a => VFS.AddKnown(new VirtualFile
             {
-                Paths = new string[] { a.Value },
+                Paths = new[] {a.Value},
                 Hash = a.Key
             }));
             VFS.RefreshIndexes();
 
 
             ModList.Directives
-                   .OfType<FromArchive>()
-                   .Do(f =>
-                   {
-                       var updated_path = new string[f.ArchiveHashPath.Length];
-                       f.ArchiveHashPath.CopyTo(updated_path, 0);
-                       updated_path[0] = VFS.HashIndex[updated_path[0]].Where(e => e.IsConcrete).First().FullPath;
-                       VFS.AddKnown(new VirtualFile() { Paths = updated_path });
-                   });
+                .OfType<FromArchive>()
+                .Do(f =>
+                {
+                    var updated_path = new string[f.ArchiveHashPath.Length];
+                    f.ArchiveHashPath.CopyTo(updated_path, 0);
+                    updated_path[0] = VFS.HashIndex[updated_path[0]].Where(e => e.IsConcrete).First().FullPath;
+                    VFS.AddKnown(new VirtualFile {Paths = updated_path});
+                });
 
             VFS.BackfillMissing();
-
-                
-
         }
 
         private void BuildBSAs()
@@ -236,29 +222,29 @@ namespace Wabbajack
                 Status($"Building {bsa.To}");
                 var source_dir = Path.Combine(Outputfolder, Consts.BSACreationDir, bsa.TempID);
                 var source_files = Directory.EnumerateFiles(source_dir, "*", SearchOption.AllDirectories)
-                                            .Select(e => e.Substring(source_dir.Length + 1))
-                                            .ToList();
+                    .Select(e => e.Substring(source_dir.Length + 1))
+                    .ToList();
 
-                if(source_files.Count > 0)
-                using (var a = new BSABuilder())
-                {
-
-                    //a.Create(Path.Combine(Outputfolder, bsa.To), (bsa_archive_type_t)bsa.Type, entries);
-                    a.HeaderType = (VersionType)bsa.Type;
-                    a.FileFlags = (FileFlags)bsa.FileFlags;
-                    a.ArchiveFlags = (ArchiveFlags)bsa.ArchiveFlags;
-
-                    source_files.PMap(f =>
+                if (source_files.Count > 0)
+                    using (var a = new BSABuilder())
                     {
-                        Status($"Adding {f} to BSA");
-                        using (var fs = File.OpenRead(Path.Combine(source_dir, f)))
-                            a.AddFile(f, fs);
-                    });
+                        //a.Create(Path.Combine(Outputfolder, bsa.To), (bsa_archive_type_t)bsa.Type, entries);
+                        a.HeaderType = (VersionType) bsa.Type;
+                        a.FileFlags = (FileFlags) bsa.FileFlags;
+                        a.ArchiveFlags = (ArchiveFlags) bsa.ArchiveFlags;
 
-                    Info($"Writing {bsa.To}");
-                    a.Build(Path.Combine(Outputfolder, bsa.To));
+                        source_files.PMap(f =>
+                        {
+                            Status($"Adding {f} to BSA");
+                            using (var fs = File.OpenRead(Path.Combine(source_dir, f)))
+                            {
+                                a.AddFile(f, fs);
+                            }
+                        });
 
-                }
+                        Info($"Writing {bsa.To}");
+                        a.Build(Path.Combine(Outputfolder, bsa.To));
+                    }
             });
 
             if (Directory.Exists(Consts.BSACreationDir))
@@ -266,32 +252,25 @@ namespace Wabbajack
                 Info($"Removing temp folder {Consts.BSACreationDir}");
                 Directory.Delete(Path.Combine(Outputfolder, Consts.BSACreationDir), true);
             }
-
         }
 
         private void InstallIncludedFiles()
         {
             Info("Writing inline files");
             ModList.Directives
-                   .OfType<InlineFile>()
-                   .PMap(directive =>
-                   {
-                       Status("Writing included file {0}", directive.To);
-                       var out_path = Path.Combine(Outputfolder, directive.To);
-                       if (File.Exists(out_path)) File.Delete(out_path);
-                       if (directive is RemappedInlineFile)
-                       {
-                           WriteRemappedFile((RemappedInlineFile)directive); 
-                       }
-                       else if (directive is CleanedESM)
-                       {
-                           GenerateCleanedESM((CleanedESM)directive);
-                       }
-                       else
-                       {
-                           File.WriteAllBytes(out_path, directive.SourceData.FromBase64());
-                       }
-                   });
+                .OfType<InlineFile>()
+                .PMap(directive =>
+                {
+                    Status("Writing included file {0}", directive.To);
+                    var out_path = Path.Combine(Outputfolder, directive.To);
+                    if (File.Exists(out_path)) File.Delete(out_path);
+                    if (directive is RemappedInlineFile)
+                        WriteRemappedFile((RemappedInlineFile) directive);
+                    else if (directive is CleanedESM)
+                        GenerateCleanedESM((CleanedESM) directive);
+                    else
+                        File.WriteAllBytes(out_path, directive.SourceData.FromBase64());
+                });
         }
 
         private void GenerateCleanedESM(CleanedESM directive)
@@ -299,19 +278,18 @@ namespace Wabbajack
             var filename = Path.GetFileName(directive.To);
             var game_file = Path.Combine(GameFolder, "Data", filename);
             Info($"Generating cleaned ESM for {filename}");
-            if (!File.Exists(game_file))
-            {
-                throw new InvalidDataException($"Missing {filename} at {game_file}");
-            }
+            if (!File.Exists(game_file)) throw new InvalidDataException($"Missing {filename} at {game_file}");
             Status($"Hashing game version of {filename}");
-            var sha = Utils.FileSHA256(game_file);
+            var sha = game_file.FileSHA256();
             if (sha != directive.SourceESMHash)
-                throw new InvalidDataException($"Cannot patch {filename} from the game folder hashes don't match have you already cleaned the file?");
+                throw new InvalidDataException(
+                    $"Cannot patch {filename} from the game folder hashes don't match have you already cleaned the file?");
 
             var patch_data = directive.SourceData.FromBase64();
             var to_file = Path.Combine(Outputfolder, directive.To);
             Status($"Patching {filename}");
-            using (var output = File.OpenWrite(to_file)) {
+            using (var output = File.OpenWrite(to_file))
+            {
                 BSDiff.Apply(File.OpenRead(game_file), () => new MemoryStream(patch_data), output);
             }
         }
@@ -339,12 +317,13 @@ namespace Wabbajack
         {
             Info("Building Folder Structure");
             ModList.Directives
-                   .Select(d => Path.Combine(Outputfolder, Path.GetDirectoryName(d.To)))
-                   .ToHashSet()
-                   .Do(f => {
-                       if (Directory.Exists(f)) return;
-                       Directory.CreateDirectory(f);
-                   });
+                .Select(d => Path.Combine(Outputfolder, Path.GetDirectoryName(d.To)))
+                .ToHashSet()
+                .Do(f =>
+                {
+                    if (Directory.Exists(f)) return;
+                    Directory.CreateDirectory(f);
+                });
         }
 
         private void InstallArchives()
@@ -352,17 +331,16 @@ namespace Wabbajack
             Info("Installing Archives");
             Info("Grouping Install Files");
             var grouped = ModList.Directives
-                                 .OfType<FromArchive>()
-                                 .GroupBy(e => e.ArchiveHashPath[0])
-                                 .ToDictionary(k => k.Key);
+                .OfType<FromArchive>()
+                .GroupBy(e => e.ArchiveHashPath[0])
+                .ToDictionary(k => k.Key);
             var archives = ModList.Archives
-                                  .Select(a => new { Archive = a, AbsolutePath = HashedArchives.GetOrDefault(a.Hash) })
-                                  .Where(a => a.AbsolutePath != null)
-                                  .ToList();
+                .Select(a => new {Archive = a, AbsolutePath = HashedArchives.GetOrDefault(a.Hash)})
+                .Where(a => a.AbsolutePath != null)
+                .ToList();
 
             Info("Installing Archives");
             archives.PMap(a => InstallArchive(a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
-
         }
 
         private void InstallArchive(Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
@@ -383,7 +361,7 @@ namespace Wabbajack
 
             vfiles.DoIndexed((idx, file) =>
             {
-                Utils.Status($"Installing files", idx * 100 / vfiles.Count);
+                Utils.Status("Installing files", idx * 100 / vfiles.Count);
                 File.Copy(file.FromFile.StagedPath, Path.Combine(Outputfolder, file.To));
             });
 
@@ -392,7 +370,6 @@ namespace Wabbajack
 
             // Now patch all the files from this archive
             foreach (var to_patch in grouping.OfType<PatchedFromArchive>())
-            {
                 using (var patch_stream = new MemoryStream())
                 {
                     Status("Patching {0}", Path.GetFileName(to_patch.To));
@@ -401,7 +378,7 @@ namespace Wabbajack
                     var patch_data = to_patch.Patch;
 
                     var to_file = Path.Combine(Outputfolder, to_patch.To);
-                    MemoryStream old_data = new MemoryStream(File.ReadAllBytes(to_file));
+                    var old_data = new MemoryStream(File.ReadAllBytes(to_file));
 
                     // Remove the file we're about to patch
                     File.Delete(to_file);
@@ -413,12 +390,10 @@ namespace Wabbajack
                     }
 
                     Status($"Verifying Patch {Path.GetFileName(to_patch.To)}");
-                    var result_sha = Utils.FileSHA256(to_file);
+                    var result_sha = to_file.FileSHA256();
                     if (result_sha != to_patch.Hash)
                         throw new InvalidDataException($"Invalid Hash for {to_patch.To} after patching");
                 }
-
-            }
         }
 
         private void DownloadArchives()
@@ -431,16 +406,17 @@ namespace Wabbajack
 
             var user_status = NexusAPI.GetUserStatus(NexusAPIKey);
 
-            if (!user_status.is_premium) {
-                Info($"Automated installs with Wabbajack requires a premium nexus account. {user_status.name} is not a premium account");
+            if (!user_status.is_premium)
+            {
+                Info(
+                    $"Automated installs with Wabbajack requires a premium nexus account. {user_status.name} is not a premium account");
                 return;
             }
 
             DownloadMissingArchives(missing);
-            return;
         }
 
-        private void DownloadMissingArchives(List<Archive> missing, bool download=true)
+        private void DownloadMissingArchives(List<Archive> missing, bool download = true)
         {
             missing.PMap(archive =>
             {
@@ -465,7 +441,7 @@ namespace Wabbajack
                         string url;
                         try
                         {
-                            url = NexusAPI.GetNexusDownloadLink(a as NexusMod, NexusAPIKey, !download);
+                            url = NexusAPI.GetNexusDownloadLink(a, NexusAPIKey, !download);
                             if (!download) return true;
                         }
                         catch (Exception ex)
@@ -473,6 +449,7 @@ namespace Wabbajack
                             Info($"{a.Name} - Error Getting Nexus Download URL - {ex.Message}");
                             return false;
                         }
+
                         Info($"Downloading Nexus Archive - {archive.Name} - {a.GameName} - {a.ModID} - {a.FileID}");
                         DownloadURLDirect(archive, url);
                         return true;
@@ -484,7 +461,7 @@ namespace Wabbajack
                         return DownloadModDBArchive(archive, (archive as MODDBArchive).URL, download);
                     case MediaFireArchive a:
                         return false;
-                        //return DownloadMediaFireArchive(archive, a.URL, download);
+                    //return DownloadMediaFireArchive(archive, a.URL, download);
                     case DirectURLArchive a:
                         return DownloadURLDirect(archive, a.URL, headers: a.Headers, download: download);
                 }
@@ -495,6 +472,7 @@ namespace Wabbajack
                 Utils.Log(ex.ToString());
                 return false;
             }
+
             return false;
         }
 
@@ -529,7 +507,8 @@ namespace Wabbajack
             var result = client.GetStringSync(initial_url);
             var regex = new Regex("(?<=/uc\\?export=download&amp;confirm=).*(?=;id=)");
             var confirm = regex.Match(result);
-            return DownloadURLDirect(a, $"https://drive.google.com/uc?export=download&confirm={confirm}&id={a.Id}", client, download: download);
+            return DownloadURLDirect(a, $"https://drive.google.com/uc?export=download&confirm={confirm}&id={a.Id}",
+                client, download);
         }
 
         private bool DownloadModDBArchive(Archive archive, string url, bool download)
@@ -541,7 +520,8 @@ namespace Wabbajack
             return DownloadURLDirect(archive, match.Value, download: download);
         }
 
-        private bool DownloadURLDirect(Archive archive, string url, HttpClient client = null, bool download = true, List<string> headers = null)
+        private bool DownloadURLDirect(Archive archive, string url, HttpClient client = null, bool download = true,
+            List<string> headers = null)
         {
             try
             {
@@ -551,7 +531,7 @@ namespace Wabbajack
                     client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
                 }
 
-                if (headers != null) {
+                if (headers != null)
                     foreach (var header in headers)
                     {
                         var idx = header.IndexOf(':');
@@ -559,10 +539,9 @@ namespace Wabbajack
                         var v = header.Substring(idx + 1);
                         client.DefaultRequestHeaders.Add(k, v);
                     }
-                }
 
                 long total_read = 0;
-                int buffer_size = 1024 * 32;
+                var buffer_size = 1024 * 32;
 
                 var response = client.GetSync(url);
                 var stream = response.Content.ReadAsStreamAsync();
@@ -572,24 +551,26 @@ namespace Wabbajack
                 }
                 catch (Exception ex)
                 {
-                };
+                }
+
+                ;
                 if (stream.IsFaulted)
                 {
-                    Info($"While downloading {url} - {Utils.ExceptionToString(stream.Exception)}");
+                    Info($"While downloading {url} - {stream.Exception.ExceptionToString()}");
                     return false;
                 }
 
                 if (!download)
                     return true;
 
-                string header_var = "1";
+                var header_var = "1";
                 if (response.Content.Headers.Contains("Content-Length"))
                     header_var = response.Content.Headers.GetValues("Content-Length").FirstOrDefault();
 
-                long content_size = header_var != null ? long.Parse(header_var) : 1;
+                var content_size = header_var != null ? long.Parse(header_var) : 1;
 
                 var output_path = Path.Combine(DownloadFolder, archive.Name);
-;
+                ;
 
                 using (var webs = stream.Result)
                 using (var fs = File.OpenWrite(output_path))
@@ -599,13 +580,13 @@ namespace Wabbajack
                     {
                         var read = webs.Read(buffer, 0, buffer_size);
                         if (read == 0) break;
-                        Status((int)(total_read * 100 / content_size), "Downloading {0}", archive.Name);
+                        Status((int) (total_read * 100 / content_size), "Downloading {0}", archive.Name);
 
                         fs.Write(buffer, 0, read);
                         total_read += read;
-
                     }
                 }
+
                 Status("Hashing {0}", archive.Name);
                 HashArchive(output_path);
                 return true;
@@ -620,12 +601,12 @@ namespace Wabbajack
         private void HashArchives()
         {
             HashedArchives = Directory.EnumerateFiles(DownloadFolder)
-                                      .Where(e => !e.EndsWith(".sha"))
-                                      .PMap(e => (HashArchive(e), e))
-                                      .OrderByDescending(e => File.GetLastWriteTime(e.Item2))
-                                      .GroupBy(e => e.Item1)
-                                      .Select(e => e.First())
-                                      .ToDictionary(e => e.Item1, e => e.Item2);
+                .Where(e => !e.EndsWith(".sha"))
+                .PMap(e => (HashArchive(e), e))
+                .OrderByDescending(e => File.GetLastWriteTime(e.Item2))
+                .GroupBy(e => e.Item1)
+                .Select(e => e.First())
+                .ToDictionary(e => e.Item1, e => e.Item2);
         }
 
         private string HashArchive(string e)
@@ -635,7 +616,7 @@ namespace Wabbajack
                 return File.ReadAllText(cache);
 
             Status("Hashing {0}", Path.GetFileName(e));
-            File.WriteAllText(cache, Utils.FileSHA256(e));
+            File.WriteAllText(cache, e.FileSHA256());
             return HashArchive(e);
         }
 
@@ -650,11 +631,7 @@ namespace Wabbajack
                 {
                     var bytes = br.ReadBytes(magic_bytes.Length);
                     var magic = Encoding.ASCII.GetString(bytes);
-                    if (magic != Consts.ModPackMagic)
-                    {
-
-                        return null;
-                    }
+                    if (magic != Consts.ModPackMagic) return null;
 
                     s.Position = s.Length - magic_bytes.Length - 8;
                     var start_pos = br.ReadInt64();
@@ -665,11 +642,10 @@ namespace Wabbajack
                         IFormatter formatter = new BinaryFormatter();
                         var list = formatter.Deserialize(dc);
                         Utils.Log("Modlist loaded.");
-                        return (ModList)list;
+                        return (ModList) list;
                     }
                 }
             }
         }
-
     }
 }

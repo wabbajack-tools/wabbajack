@@ -4,160 +4,47 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Ookii.Dialogs.Wpf;
 using Wabbajack.Common;
 
 namespace Wabbajack
 {
     internal class AppState : INotifyPropertyChanged
     {
-        public class CPUStatus
-        {
-            public int Progress { get; internal set; }
-            public string Msg { get; internal set; }
-            public int ID { get; internal set; }
-        }
+        private ICommand _begin;
 
-        public volatile bool Dirty;
+        private ICommand _changeDownloadPath;
 
-        private Dispatcher dispatcher;
+        private ICommand _changePath;
+        private string _downloadLocation;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        private string _htmlReport;
 
-        public void OnPropertyChanged(string name)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+        private bool _ignoreMissingFiles;
+        private string _location;
 
-        public ObservableCollection<string> Log { get; }
-        public ObservableCollection<CPUStatus> Status { get; }
+        private string _mo2Folder;
 
 
         private string _mode;
-        public string Mode
-        {
-            get
-            {
-                return _mode;
-            }
-            set
-            {
-                _mode = value;
-                OnPropertyChanged("Mode");
-            }
-        }
-
-        private bool _ignoreMissingFiles = false;
-        public bool IgnoreMissingFiles
-        {
-            get
-            {
-                return _ignoreMissingFiles;
-            }
-            set
-            {
-                if (value)
-                {
-                    if (MessageBox.Show("Setting this value could result in broken installations. \n Are you sure you want to continue?", "Ignore Missing Files?", MessageBoxButton.OKCancel, MessageBoxImage.Warning)
-                        == MessageBoxResult.OK)
-                    {
-                        _ignoreMissingFiles = value;
-                    }
-                }
-                else
-                {
-                    _ignoreMissingFiles = value;
-                }
-                OnPropertyChanged("IgnoreMissingFiles");
-            }
-        }
-
-        private string _mo2Folder;
-        private string _modListName;
         private ModList _modList;
-        private string _location;
-        private string _downloadLocation;
-
-        public string ModListName
-        {
-            get
-            {
-                return _modListName;
-            }
-            set
-            {
-                _modListName = value;
-                OnPropertyChanged("ModListName");
-            }
-        }
-
-        public string Location
-        {
-            get
-            {
-                return _location;
-            }
-            set
-            {
-                _location = value;
-                OnPropertyChanged("Location");
-            }
-        }
-
-        public string DownloadLocation
-        {
-            get
-            {
-                return _downloadLocation;
-            }
-            set
-            {
-                _downloadLocation = value;
-                OnPropertyChanged("DownloadLocation");
-            }
-        }
-
-        private string _htmlReport;
-        public Visibility ShowReportButton => _htmlReport == null ? Visibility.Collapsed : Visibility.Visible;
-
-        public string HTMLReport
-        {
-            get { return _htmlReport; }
-            set
-            {
-                _htmlReport = value;
-                OnPropertyChanged("HTMLReport");
-                OnPropertyChanged("ShowReportButton");
-            }
-        }
+        private string _modListName;
 
         private int _queueProgress;
-        public int QueueProgress
-        {
-            get
-            {
-                return _queueProgress;
-            }
-            set
-            {
-                if (value != _queueProgress)
-                {
-                    _queueProgress = value;
-                    OnPropertyChanged("QueueProgress");
-                }
-            }
-        }
 
+        private ICommand _showReportCommand;
+        private readonly DateTime _startTime;
 
-        private List<CPUStatus> InternalStatus { get; }
-        public string LogFile { get; private set; }
+        public volatile bool Dirty;
 
-        public AppState(Dispatcher d, String mode)
+        private readonly Dispatcher dispatcher;
+
+        public AppState(Dispatcher d, string mode)
         {
             if (Assembly.GetEntryAssembly().Location.ToLower().Contains("\\downloads\\"))
             {
@@ -189,28 +76,164 @@ namespace Wabbajack
             th.Start();
         }
 
+        public ObservableCollection<string> Log { get; }
+        public ObservableCollection<CPUStatus> Status { get; }
+
+        public string Mode
+        {
+            get => _mode;
+            set
+            {
+                _mode = value;
+                OnPropertyChanged("Mode");
+            }
+        }
+
+        public bool IgnoreMissingFiles
+        {
+            get => _ignoreMissingFiles;
+            set
+            {
+                if (value)
+                {
+                    if (MessageBox.Show(
+                            "Setting this value could result in broken installations. \n Are you sure you want to continue?",
+                            "Ignore Missing Files?", MessageBoxButton.OKCancel, MessageBoxImage.Warning)
+                        == MessageBoxResult.OK)
+                        _ignoreMissingFiles = value;
+                }
+                else
+                {
+                    _ignoreMissingFiles = value;
+                }
+
+                OnPropertyChanged("IgnoreMissingFiles");
+            }
+        }
+
+        public string ModListName
+        {
+            get => _modListName;
+            set
+            {
+                _modListName = value;
+                OnPropertyChanged("ModListName");
+            }
+        }
+
+        public string Location
+        {
+            get => _location;
+            set
+            {
+                _location = value;
+                OnPropertyChanged("Location");
+            }
+        }
+
+        public string DownloadLocation
+        {
+            get => _downloadLocation;
+            set
+            {
+                _downloadLocation = value;
+                OnPropertyChanged("DownloadLocation");
+            }
+        }
+
+        public Visibility ShowReportButton => _htmlReport == null ? Visibility.Collapsed : Visibility.Visible;
+
+        public string HTMLReport
+        {
+            get => _htmlReport;
+            set
+            {
+                _htmlReport = value;
+                OnPropertyChanged("HTMLReport");
+                OnPropertyChanged("ShowReportButton");
+            }
+        }
+
+        public int QueueProgress
+        {
+            get => _queueProgress;
+            set
+            {
+                if (value != _queueProgress)
+                {
+                    _queueProgress = value;
+                    OnPropertyChanged("QueueProgress");
+                }
+            }
+        }
+
+
+        private List<CPUStatus> InternalStatus { get; }
+        public string LogFile { get; }
+
+        public ICommand ChangePath
+        {
+            get
+            {
+                if (_changePath == null) _changePath = new LambdaCommand(() => true, () => ExecuteChangePath());
+                return _changePath;
+            }
+        }
+
+        public ICommand ChangeDownloadPath
+        {
+            get
+            {
+                if (_changeDownloadPath == null)
+                    _changeDownloadPath = new LambdaCommand(() => true, () => ExecuteChangeDownloadPath());
+                return _changeDownloadPath;
+            }
+        }
+
+        public ICommand Begin
+        {
+            get
+            {
+                if (_begin == null) _begin = new LambdaCommand(() => true, () => ExecuteBegin());
+                return _begin;
+            }
+        }
+
+        public ICommand ShowReportCommand
+        {
+            get
+            {
+                if (_showReportCommand == null) _showReportCommand = new LambdaCommand(() => true, () => ShowReport());
+                return _showReportCommand;
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void OnPropertyChanged(string name)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        }
+
         private void UpdateLoop()
         {
             while (true)
             {
                 if (Dirty)
-                {
                     lock (InternalStatus)
                     {
                         var data = InternalStatus.ToArray();
                         dispatcher.Invoke(() =>
                         {
-                            for (int idx = 0; idx < data.Length; idx += 1)
-                            {
+                            for (var idx = 0; idx < data.Length; idx += 1)
                                 if (idx >= Status.Count)
                                     Status.Add(data[idx]);
                                 else if (Status[idx] != data[idx])
                                     Status[idx] = data[idx];
-                            }
                         });
                         Dirty = false;
                     }
-                }
+
                 Thread.Sleep(1000);
             }
         }
@@ -222,14 +245,14 @@ namespace Wabbajack
             ModListName = _modList.Name;
             HTMLReport = _modList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
         }
 
         public void LogMsg(string msg)
         {
             msg = $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}";
             dispatcher.Invoke(() => Log.Add(msg));
-            lock (dispatcher) {
+            lock (dispatcher)
+            {
                 File.AppendAllText(LogFile, msg + "\r\n");
             }
         }
@@ -239,12 +262,9 @@ namespace Wabbajack
             lock (InternalStatus)
             {
                 Dirty = true;
-                while (id >= InternalStatus.Count)
-                {
-                    InternalStatus.Add(new CPUStatus());
-                }
+                while (id >= InternalStatus.Count) InternalStatus.Add(new CPUStatus());
 
-                InternalStatus[id] = new CPUStatus() { ID = id, Msg = msg, Progress = progress };
+                InternalStatus[id] = new CPUStatus {ID = id, Msg = msg, Progress = progress};
             }
         }
 
@@ -256,37 +276,11 @@ namespace Wabbajack
             QueueProgress = total;
         }
 
-        private ICommand _changePath;
-        public ICommand ChangePath
-        {
-            get
-            {
-                if (_changePath == null)
-                {
-                    _changePath = new LambdaCommand(() => true, () => this.ExecuteChangePath());
-                }
-                return _changePath;
-            }
-        }
-
-        private ICommand _changeDownloadPath;
-        public ICommand ChangeDownloadPath
-        {
-            get
-            {
-                if (_changeDownloadPath == null)
-                {
-                    _changeDownloadPath = new LambdaCommand(() => true, () => this.ExecuteChangeDownloadPath());
-                }
-                return _changeDownloadPath;
-            }
-        }
-
         private void ExecuteChangePath()
         {
             if (Mode == "Installing")
             {
-                var ofd = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
+                var ofd = new VistaFolderBrowserDialog();
                 ofd.Description = "Select Installation Directory";
                 ofd.UseDescriptionForTitle = true;
                 if (ofd.ShowDialog() == true)
@@ -298,7 +292,7 @@ namespace Wabbajack
             }
             else
             {
-                var fsd = new Ookii.Dialogs.Wpf.VistaOpenFileDialog();
+                var fsd = new VistaOpenFileDialog();
                 fsd.Title = "Select a ModOrganizer modlist.txt file";
                 fsd.Filter = "modlist.txt|modlist.txt";
                 if (fsd.ShowDialog() == true)
@@ -311,13 +305,10 @@ namespace Wabbajack
 
         private void ExecuteChangeDownloadPath()
         {
-            var ofd = new Ookii.Dialogs.Wpf.VistaFolderBrowserDialog();
+            var ofd = new VistaFolderBrowserDialog();
             ofd.Description = "Select a location for MO2 downloads";
             ofd.UseDescriptionForTitle = true;
-            if (ofd.ShowDialog() == true)
-            {
-                DownloadLocation = ofd.SelectedPath;
-            }
+            if (ofd.ShowDialog() == true) DownloadLocation = ofd.SelectedPath;
         }
 
         private void ConfigureForBuild()
@@ -337,34 +328,6 @@ namespace Wabbajack
             _mo2Folder = mo2folder;
         }
 
-        private ICommand _begin;
-        private DateTime _startTime;
-
-        public ICommand Begin
-        {
-            get
-            {
-                if (_begin == null)
-                {
-                    _begin = new LambdaCommand(() => true, () => this.ExecuteBegin());
-                }
-                return _begin;
-            }
-        }
-
-        private ICommand _showReportCommand;
-        public ICommand ShowReportCommand
-        {
-            get
-            {
-                if (_showReportCommand == null)
-                {
-                    _showReportCommand = new LambdaCommand(() => true, () => this.ShowReport());
-                }
-                return _showReportCommand;
-            }
-        }
-        
         private void ShowReport()
         {
             var file = Path.GetTempFileName() + ".html";
@@ -377,7 +340,7 @@ namespace Wabbajack
         {
             if (Mode == "Installing")
             {
-                var installer = new Installer(_modList, Location, msg => this.LogMsg(msg));
+                var installer = new Installer(_modList, Location, msg => LogMsg(msg));
                 installer.IgnoreMissingFiles = IgnoreMissingFiles;
                 installer.DownloadFolder = DownloadLocation;
                 var th = new Thread(() =>
@@ -408,9 +371,7 @@ namespace Wabbajack
                     {
                         compiler.Compile();
                         if (compiler.ModList != null && compiler.ModList.ReportHTML != null)
-                        {
                             HTMLReport = compiler.ModList.ReportHTML;
-                        }
                     }
                     catch (Exception ex)
                     {
@@ -423,6 +384,13 @@ namespace Wabbajack
                 th.Priority = ThreadPriority.BelowNormal;
                 th.Start();
             }
+        }
+
+        public class CPUStatus
+        {
+            public int Progress { get; internal set; }
+            public string Msg { get; internal set; }
+            public int ID { get; internal set; }
         }
     }
 }

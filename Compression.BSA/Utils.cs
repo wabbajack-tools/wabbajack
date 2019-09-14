@@ -8,7 +8,8 @@ namespace Compression.BSA
 {
     internal static class Utils
     {
-        private static Encoding Windows1252 = Encoding.GetEncoding(1252);
+        private static readonly Encoding Windows1252 = Encoding.GetEncoding(1252);
+
         private static Encoding GetEncoding(VersionType version)
         {
             if (version == VersionType.SSE)
@@ -20,10 +21,8 @@ namespace Compression.BSA
         {
             var len = rdr.ReadByte();
             if (len == 0)
-            {
                 //rdr.ReadByte();
                 return "";
-            }
 
             var bytes = rdr.ReadBytes(len - 1);
             rdr.ReadByte();
@@ -39,7 +38,7 @@ namespace Compression.BSA
 
         public static string ReadStringTerm(this BinaryReader rdr, VersionType version)
         {
-            List<byte> acc = new List<byte>();
+            var acc = new List<byte>();
             while (true)
             {
                 var c = rdr.ReadByte();
@@ -48,12 +47,13 @@ namespace Compression.BSA
 
                 acc.Add(c);
             }
+
             return GetEncoding(version).GetString(acc.ToArray());
         }
 
 
         /// <summary>
-        /// Returns bytes for a \0 terminated string
+        ///     Returns bytes for a \0 terminated string
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
@@ -62,12 +62,12 @@ namespace Compression.BSA
             var b = GetEncoding(version).GetBytes(val);
             var b2 = new byte[b.Length + 2];
             b.CopyTo(b2, 1);
-            b2[0] = (byte)(b.Length + 1);
+            b2[0] = (byte) (b.Length + 1);
             return b2;
         }
 
         /// <summary>
-        /// Returns bytes for unterminated string with a count at the start
+        ///     Returns bytes for unterminated string with a count at the start
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
@@ -76,13 +76,13 @@ namespace Compression.BSA
             var b = Encoding.ASCII.GetBytes(val);
             var b2 = new byte[b.Length + 1];
             b.CopyTo(b2, 1);
-            b2[0] = (byte)b.Length;
+            b2[0] = (byte) b.Length;
 
             return b2;
         }
 
         /// <summary>
-        /// Returns bytes for a \0 terminated string prefixed by a length
+        ///     Returns bytes for a \0 terminated string prefixed by a length
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
@@ -91,7 +91,7 @@ namespace Compression.BSA
             var b = GetEncoding(version).GetBytes(val);
             var b2 = new byte[b.Length + 1];
             b.CopyTo(b2, 0);
-            b[0] = (byte)b.Length;
+            b[0] = (byte) b.Length;
             return b2;
         }
 
@@ -111,10 +111,10 @@ namespace Compression.BSA
 
             var hashBytes = new[]
             {
-                (byte)(name.Length == 0 ? '\0' : name[name.Length - 1]),
-                (byte)(name.Length < 3 ? '\0' : name[name.Length - 2]),
-                (byte)name.Length,
-                (byte)name[0]
+                (byte) (name.Length == 0 ? '\0' : name[name.Length - 1]),
+                (byte) (name.Length < 3 ? '\0' : name[name.Length - 2]),
+                (byte) name.Length,
+                (byte) name[0]
             };
             var hash1 = BitConverter.ToUInt32(hashBytes, 0);
             switch (ext)
@@ -134,32 +134,26 @@ namespace Compression.BSA
             }
 
             uint hash2 = 0;
-            for (var i = 1; i < name.Length - 2; i++)
-            {
-                hash2 = hash2 * 0x1003f + (byte)name[i];
-            }
+            for (var i = 1; i < name.Length - 2; i++) hash2 = hash2 * 0x1003f + (byte) name[i];
 
             uint hash3 = 0;
-            for (var i = 0; i < ext.Length; i++)
-            {
-                hash3 = hash3 * 0x1003f + (byte)ext[i];
-            }
+            for (var i = 0; i < ext.Length; i++) hash3 = hash3 * 0x1003f + (byte) ext[i];
 
-            return (((ulong)(hash2 + hash3)) << 32) + hash1;
+            return ((ulong) (hash2 + hash3) << 32) + hash1;
         }
 
         public static void CopyToLimit(this Stream frm, Stream tw, int limit)
         {
-            byte[] buff = new byte[1024];
+            var buff = new byte[1024];
             while (limit > 0)
             {
-                int to_read = Math.Min(buff.Length, limit);
-                int read = frm.Read(buff, 0, to_read);
+                var to_read = Math.Min(buff.Length, limit);
+                var read = frm.Read(buff, 0, to_read);
                 tw.Write(buff, 0, read);
                 limit -= read;
             }
+
             tw.Flush();
         }
     }
 }
-

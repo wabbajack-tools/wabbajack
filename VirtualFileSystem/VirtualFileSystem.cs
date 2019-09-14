@@ -1,17 +1,13 @@
-﻿using Compression.BSA;
-using ICSharpCode.SharpZipLib.Zip;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.AccessControl;
-using Alphaleonis.Win32.Filesystem;
+using Compression.BSA;
+using ICSharpCode.SharpZipLib.Zip;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
-using DirectoryInfo = Alphaleonis.Win32.Filesystem.DirectoryInfo;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -20,15 +16,11 @@ namespace VFS
 {
     public class VirtualFileSystem
     {
-
         internal static string _stagedRoot;
         public static VirtualFileSystem VFS;
-        private Dictionary<string, VirtualFile> _files = new Dictionary<string, VirtualFile>();
         private bool _disableDiskCache;
+        private Dictionary<string, VirtualFile> _files = new Dictionary<string, VirtualFile>();
         private volatile bool _isSyncing;
-
-        public static string RootFolder { get; }
-        public Dictionary<string, IEnumerable<VirtualFile>> HashIndex { get; private set; }
 
         static VirtualFileSystem()
         {
@@ -45,40 +37,38 @@ namespace VFS
             Directory.CreateDirectory(_stagedRoot);
         }
 
+        public VirtualFileSystem()
+        {
+            LoadFromDisk();
+        }
+
+        public static string RootFolder { get; }
+        public Dictionary<string, IEnumerable<VirtualFile>> HashIndex { get; private set; }
+
+        public VirtualFile this[string path] => Lookup(path);
+
         private static void DeleteDirectory(string path, bool recursive = true)
         {
             if (recursive)
             {
                 var subfolders = Directory.GetDirectories(path);
-                foreach (var s in subfolders)
-                {
-                    DeleteDirectory(s, recursive);
-                }
+                foreach (var s in subfolders) DeleteDirectory(s, recursive);
             }
+
             var files = Directory.GetFiles(path);
             foreach (var f in files)
-            {
                 try
                 {
                     var attr = File.GetAttributes(f);
                     if ((attr & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
-                    {
                         File.SetAttributes(f, attr ^ FileAttributes.ReadOnly);
-                    }
                     File.Delete(f);
                 }
                 catch (IOException)
                 {
                 }
-            }
+
             Directory.Delete(path, true);
-
-
-        }
-
-        public VirtualFileSystem ()
-        {
-            LoadFromDisk();
         }
 
         private void LoadFromDisk()
@@ -96,7 +86,6 @@ namespace VFS
                     {
                         while (true)
                         {
-
                             var fr = VirtualFile.Read(br);
                             _files.Add(fr.FullPath, fr);
                         }
@@ -135,10 +124,7 @@ namespace VFS
                         using (var bw = new BinaryWriter(fs))
                         {
                             Utils.Log($"Syncing VFS to Disk: {_files.Count} entries");
-                            foreach (var f in _files.Values)
-                            {
-                                f.Write(bw);
-                            }
+                            foreach (var f in _files.Values) f.Write(bw);
                         }
 
                         if (File.Exists("vfs_cache.bin"))
@@ -158,8 +144,8 @@ namespace VFS
         {
             var path = f.FullPath + "|";
             return _files.Values
-                            .Where(v => v.FullPath.StartsWith(path))
-                            .ToList();
+                .Where(v => v.FullPath.StartsWith(path))
+                .ToList();
         }
 
 
@@ -169,11 +155,9 @@ namespace VFS
             lock (this)
             {
                 _files.Values
-                      .Where(v => v.FullPath.StartsWith(path) || v.FullPath == f.FullPath)
-                      .ToList()
-                      .Do(r => {
-                          _files.Remove(r.FullPath);
-                          });
+                    .Where(v => v.FullPath.StartsWith(path) || v.FullPath == f.FullPath)
+                    .ToList()
+                    .Do(r => { _files.Remove(r.FullPath); });
             }
         }
 
@@ -198,7 +182,7 @@ namespace VFS
         }
 
         /// <summary>
-        /// Remove any orphaned files in the DB.
+        ///     Remove any orphaned files in the DB.
         /// </summary>
         private void CleanDB()
         {
@@ -206,51 +190,49 @@ namespace VFS
             lock (this)
             {
                 _files.Values
-                     .Where(f =>
-                     {
-                         if (f.IsConcrete)
-                             return !File.Exists(f.StagedPath);
-                         if (f.Hash == null)
-                             return true;
-                         while (f.ParentPath != null)
-                         {
-                             if (Lookup(f.ParentPath) == null)
-                                 return true;
-                             if (f.Hash == null)
-                                 return true;
-                             f = Lookup(f.ParentPath);
-                         }
-                         return false;
-                     })
-                     .ToList()
-                     .Do(f => _files.Remove(f.FullPath));
+                    .Where(f =>
+                    {
+                        if (f.IsConcrete)
+                            return !File.Exists(f.StagedPath);
+                        if (f.Hash == null)
+                            return true;
+                        while (f.ParentPath != null)
+                        {
+                            if (Lookup(f.ParentPath) == null)
+                                return true;
+                            if (f.Hash == null)
+                                return true;
+                            f = Lookup(f.ParentPath);
+                        }
+
+                        return false;
+                    })
+                    .ToList()
+                    .Do(f => _files.Remove(f.FullPath));
             }
         }
 
         public void BackfillMissing()
         {
-            lock(this)
+            lock (this)
             {
                 _files.Values
-                      .Select(f => f.ParentPath)
-                      .Where(s => s != null)
-                      .Where(s => !_files.ContainsKey(s))
-                      .ToHashSet()
-                      .Do(s =>
-                      {
-                          AddKnown(new VirtualFile() { Paths = s.Split('|') });
-                      });
+                    .Select(f => f.ParentPath)
+                    .Where(s => s != null)
+                    .Where(s => !_files.ContainsKey(s))
+                    .ToHashSet()
+                    .Do(s => { AddKnown(new VirtualFile {Paths = s.Split('|')}); });
             }
         }
 
         /// <summary>
-        /// Add a known file to the index, bit of a hack as we won't assume that all the fields for the archive are filled in. 
-        /// you will need to manually update the SHA hash when you are done adding files, by calling `RefreshIndexes`
+        ///     Add a known file to the index, bit of a hack as we won't assume that all the fields for the archive are filled in.
+        ///     you will need to manually update the SHA hash when you are done adding files, by calling `RefreshIndexes`
         /// </summary>
         /// <param name="virtualFile"></param>
         public void AddKnown(VirtualFile virtualFile)
         {
-            lock(this)
+            lock (this)
             {
                 // We don't know enough about these files to be able to store them in the disk cache 
                 _disableDiskCache = true;
@@ -259,8 +241,8 @@ namespace VFS
         }
 
         /// <summary>
-        /// Adds the root path to the filesystem. This may take quite some time as every file in the folder will be hashed,
-        /// and every archive examined.
+        ///     Adds the root path to the filesystem. This may take quite some time as every file in the folder will be hashed,
+        ///     and every archive examined.
         /// </summary>
         /// <param name="path"></param>
         public void AddRoot(string path)
@@ -273,11 +255,11 @@ namespace VFS
         public void RefreshIndexes()
         {
             Utils.Log("Building Hash Index");
-            lock(this)
+            lock (this)
             {
                 HashIndex = _files.Values
-                                  .GroupBy(f => f.Hash)
-                                  .ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>)f);
+                    .GroupBy(f => f.Hash)
+                    .ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>) f);
             }
         }
 
@@ -291,25 +273,23 @@ namespace VFS
 
         private void UpdateFile(string f)
         {
-        TOP:
+            TOP:
             var lv = Lookup(f);
             if (lv == null)
             {
                 Utils.Status($"Analyzing {f}");
 
-                lv = new VirtualFile()
+                lv = new VirtualFile
                 {
-                    Paths = new string[] { f }
+                    Paths = new[] {f}
                 };
 
                 lv.Analyze();
                 Add(lv);
-                if (lv.IsArchive)
-                {
-                    UpdateArchive(lv);
-                }
+                if (lv.IsArchive) UpdateArchive(lv);
                 // Upsert after extraction incase extraction fails
             }
+
             if (lv.IsOutdated)
             {
                 Purge(lv);
@@ -331,20 +311,21 @@ namespace VFS
             Utils.Status($"Updating Archive {Path.GetFileName(f.StagedPath)}");
 
             var entries = Directory.EnumerateFiles(tmp_dir, "*", SearchOption.AllDirectories)
-                                   .Select(path => path.RelativeTo(tmp_dir));
+                .Select(path => path.RelativeTo(tmp_dir));
 
-            var new_files = entries.Select(e => {
+            var new_files = entries.Select(e =>
+            {
                 var new_path = new string[f.Paths.Length + 1];
                 f.Paths.CopyTo(new_path, 0);
                 new_path[f.Paths.Length] = e;
-                var nf = new VirtualFile()
+                var nf = new VirtualFile
                 {
-                    Paths = new_path,
+                    Paths = new_path
                 };
                 nf._stagedPath = Path.Combine(tmp_dir, e);
                 Add(nf);
                 return nf;
-                }).ToList();
+            }).ToList();
 
             // Analyze them
             new_files.PMap(file =>
@@ -362,19 +343,18 @@ namespace VFS
 
             Utils.Status("Cleaning Directory");
             DeleteDirectory(tmp_dir);
-
         }
 
         public Action Stage(IEnumerable<VirtualFile> files)
         {
             var grouped = files.SelectMany(f => f.FilesInPath)
-                               .Distinct()
-                               .Where(f => f.ParentArchive != null)
-                               .GroupBy(f => f.ParentArchive)
-                               .OrderBy(f => f.Key == null ? 0 : f.Key.Paths.Length)
-                               .ToList();
+                .Distinct()
+                .Where(f => f.ParentArchive != null)
+                .GroupBy(f => f.ParentArchive)
+                .OrderBy(f => f.Key == null ? 0 : f.Key.Paths.Length)
+                .ToList();
 
-            List<string> Paths = new List<string>();
+            var Paths = new List<string>();
 
             foreach (var group in grouped)
             {
@@ -383,7 +363,6 @@ namespace VFS
                 Paths.Add(tmp_path);
                 foreach (var file in group)
                     file._stagedPath = Path.Combine(tmp_path, file.Paths[group.Key.Paths.Length]);
-
             }
 
             return () =>
@@ -395,7 +374,6 @@ namespace VFS
             };
         }
 
-        
 
         public StagingGroup StageWith(IEnumerable<VirtualFile> files)
         {
@@ -404,42 +382,30 @@ namespace VFS
             return grp;
         }
 
-        public VirtualFile this[string path]
-        {
-            get
-            {
-                return Lookup(path);
-            }
-        }
-
         internal List<string> GetArchiveEntryNames(VirtualFile file)
         {
             if (!file.IsStaged)
                 throw new InvalidDataException("File is not staged");
 
-            if (file.Extension == ".bsa") {
+            if (file.Extension == ".bsa")
                 using (var ar = new BSAReader(file.StagedPath))
                 {
                     return ar.Files.Select(f => f.Path).ToList();
                 }
-            }
+
             if (file.Extension == ".zip")
-            {
                 using (var s = new ZipFile(File.OpenRead(file.StagedPath)))
                 {
                     s.IsStreamOwner = true;
                     s.UseZip64 = UseZip64.On;
 
                     if (s.OfType<ZipEntry>().FirstOrDefault(e => !e.CanDecompress) == null)
-                    {
                         return s.OfType<ZipEntry>()
-                                .Where(f => f.IsFile)
-                                .Select(f => f.Name.Replace('/', '\\'))
-                                .ToList();
-                    }
+                            .Where(f => f.IsFile)
+                            .Select(f => f.Name.Replace('/', '\\'))
+                            .ToList();
                 }
-            }
-            
+
             /*
             using (var e = new ArchiveFile(file.StagedPath))
             {
@@ -448,11 +414,10 @@ namespace VFS
                         .Select(f => f.FileName).ToList();
             }*/
             return null;
-
         }
 
         /// <summary>
-        /// Given a path that starts with a HASH, return the Virtual file referenced
+        ///     Given a path that starts with a HASH, return the Virtual file referenced
         /// </summary>
         /// <param name="archiveHashPath"></param>
         /// <returns></returns>
@@ -461,14 +426,16 @@ namespace VFS
             if (archiveHashPath.Length == 1)
                 return HashIndex[archiveHashPath[0]].First();
 
-            var archive = HashIndex[archiveHashPath[0]].Where(a => a.IsArchive).OrderByDescending(a => a.LastModified).First();
-            string fullPath = archive.FullPath + "|" + String.Join("|", archiveHashPath.Skip(1));
+            var archive = HashIndex[archiveHashPath[0]].Where(a => a.IsArchive).OrderByDescending(a => a.LastModified)
+                .First();
+            var fullPath = archive.FullPath + "|" + string.Join("|", archiveHashPath.Skip(1));
             return Lookup(fullPath);
         }
 
         public IDictionary<VirtualFile, IEnumerable<VirtualFile>> GroupedByArchive()
         {
-            return _files.Values.GroupBy(f => f.TopLevelArchive).ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>)f);
+            return _files.Values.GroupBy(f => f.TopLevelArchive)
+                .ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>) f);
         }
     }
 
@@ -492,39 +459,35 @@ namespace VFS
     [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
     public class VirtualFile
     {
+        private string _fullPath;
+
+        private bool? _isArchive;
+
+        private string _parentPath;
         public string[] _paths;
+
+        internal string _stagedPath;
+
         [JsonProperty]
         public string[] Paths
         {
-            get
-            {
-                return _paths;
-            }
+            get => _paths;
             set
             {
-                for (int idx = 0; idx < value.Length; idx += 1)
-                    value[idx] = String.Intern(value[idx]);
+                for (var idx = 0; idx < value.Length; idx += 1)
+                    value[idx] = string.Intern(value[idx]);
                 _paths = value;
             }
         }
-        [JsonProperty]
-        public string Hash { get; set; }
-        [JsonProperty]
-        public long Size { get; set; }
-        [JsonProperty]
-        public ulong LastModified { get; set; }
+
+        [JsonProperty] public string Hash { get; set; }
+
+        [JsonProperty] public long Size { get; set; }
+
+        [JsonProperty] public ulong LastModified { get; set; }
 
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool? FinishedIndexing { get; set; }
-
-
-        private string _fullPath;
-
-        public VirtualFile()
-        {
-        }
-
-        internal string _stagedPath;
 
 
         public string FullPath
@@ -532,24 +495,16 @@ namespace VFS
             get
             {
                 if (_fullPath != null) return _fullPath;
-                _fullPath = String.Join("|", Paths);
+                _fullPath = string.Join("|", Paths);
                 return _fullPath;
             }
         }
 
-        public string Extension
-        {
-            get
-            {
-                return Path.GetExtension(Paths.Last());
-            }
-        }
-
-     
+        public string Extension => Path.GetExtension(Paths.Last());
 
 
         /// <summary>
-        /// If this file is in an archive, return the Archive File, otherwise return null.
+        ///     If this file is in an archive, return the Archive File, otherwise return null.
         /// </summary>
         public VirtualFile TopLevelArchive
         {
@@ -569,14 +524,13 @@ namespace VFS
             }
         }
 
-        private bool? _isArchive;
         public bool IsArchive
         {
             get
             {
                 if (_isArchive == null)
                     _isArchive = FileExtractor.CanExtract(Extension);
-                return (bool)_isArchive;
+                return (bool) _isArchive;
             }
         }
 
@@ -606,58 +560,10 @@ namespace VFS
             }
         }
 
-        public FileStream OpenRead()
-        {
-            if (!IsStaged)
-                throw new InvalidDataException("File is not staged, cannot open");
-            return File.OpenRead(_stagedPath);
-        }
-
         /// <summary>
-        /// Calculate the file's SHA, size and last modified
+        ///     Returns true if this file always exists on-disk, and doesn't need to be staged.
         /// </summary>
-        internal void Analyze()
-        {
-            if (!IsStaged)
-                throw new InvalidDataException("Cannot analyze an unstaged file");
-
-            var fio = new FileInfo(StagedPath);
-            Size = fio.Length;
-            Hash = Utils.FileSHA256(StagedPath);
-            LastModified = fio.LastWriteTime.ToMilliseconds();
-
-        }
-
-
-        /// <summary>
-        /// Delete the temoporary file associated with this file
-        /// </summary>
-        internal void Unstage()
-        {
-            if (IsStaged && !IsConcrete)
-            {
-                File.Delete(_stagedPath);
-                _stagedPath = null;
-            }
-        }
-
-        internal string GenerateStagedName()
-        {
-            if (_stagedPath != null) return _stagedPath;
-            _stagedPath = Path.Combine(VirtualFileSystem._stagedRoot, Guid.NewGuid().ToString() + Path.GetExtension(Paths.Last()));
-            return _stagedPath;
-        }
-
-        /// <summary>
-        /// Returns true if this file always exists on-disk, and doesn't need to be staged.
-        /// </summary>
-        public bool IsConcrete
-        {
-            get
-            {
-                return Paths.Length == 1;
-            }
-        }
+        public bool IsConcrete => Paths.Length == 1;
 
         public bool IsOutdated
         {
@@ -672,44 +578,79 @@ namespace VFS
                         if (!FinishedIndexing ?? true)
                             return true;
                 }
+
                 return false;
             }
-                
         }
 
-        private string _parentPath;
-        public string ParentPath 
-        {
-          get {
-                if (_parentPath == null && !IsConcrete)
-                    _parentPath = String.Join("|", Paths.Take(Paths.Length - 1));
-                return _parentPath;
-          }
-        }
-
-        public IEnumerable<VirtualFile> FileInArchive
+        public string ParentPath
         {
             get
             {
-                return VirtualFileSystem.VFS.FilesInArchive(this);
+                if (_parentPath == null && !IsConcrete)
+                    _parentPath = string.Join("|", Paths.Take(Paths.Length - 1));
+                return _parentPath;
             }
+        }
+
+        public IEnumerable<VirtualFile> FileInArchive => VirtualFileSystem.VFS.FilesInArchive(this);
+
+        public IEnumerable<VirtualFile> FilesInPath
+        {
+            get
+            {
+                return Enumerable.Range(1, Paths.Length)
+                    .Select(i => Paths.Take(i))
+                    .Select(path => VirtualFileSystem.VFS.Lookup(string.Join("|", path)));
+            }
+        }
+
+        public FileStream OpenRead()
+        {
+            if (!IsStaged)
+                throw new InvalidDataException("File is not staged, cannot open");
+            return File.OpenRead(_stagedPath);
+        }
+
+        /// <summary>
+        ///     Calculate the file's SHA, size and last modified
+        /// </summary>
+        internal void Analyze()
+        {
+            if (!IsStaged)
+                throw new InvalidDataException("Cannot analyze an unstaged file");
+
+            var fio = new FileInfo(StagedPath);
+            Size = fio.Length;
+            Hash = StagedPath.FileSHA256();
+            LastModified = fio.LastWriteTime.ToMilliseconds();
+        }
+
+
+        /// <summary>
+        ///     Delete the temoporary file associated with this file
+        /// </summary>
+        internal void Unstage()
+        {
+            if (IsStaged && !IsConcrete)
+            {
+                File.Delete(_stagedPath);
+                _stagedPath = null;
+            }
+        }
+
+        internal string GenerateStagedName()
+        {
+            if (_stagedPath != null) return _stagedPath;
+            _stagedPath = Path.Combine(VirtualFileSystem._stagedRoot, Guid.NewGuid() + Path.GetExtension(Paths.Last()));
+            return _stagedPath;
         }
 
         public string[] MakeRelativePaths()
         {
-            var path_copy = (string[])Paths.Clone();
+            var path_copy = (string[]) Paths.Clone();
             path_copy[0] = VirtualFileSystem.VFS.Lookup(Paths[0]).Hash;
             return path_copy;
-        }
-
-        public IEnumerable<VirtualFile> FilesInPath
-        {
-            get {
-                return Enumerable.Range(1, Paths.Length)
-                                 .Select(i => Paths.Take(i))
-                                 .Select(path => VirtualFileSystem.VFS.Lookup(String.Join("|", path)));
-                                    
-            }
         }
 
         public void Write(BinaryWriter bw)
@@ -727,8 +668,8 @@ namespace VFS
             var full_path = rdr.ReadString();
             vf.Paths = full_path.Split('|');
 
-            for (int x = 0; x < vf.Paths.Length; x++)
-                vf.Paths[x] = String.Intern(vf.Paths[x]);
+            for (var x = 0; x < vf.Paths.Length; x++)
+                vf.Paths[x] = string.Intern(vf.Paths[x]);
 
             vf._fullPath = full_path;
             vf.Hash = rdr.ReadString();
@@ -738,9 +679,6 @@ namespace VFS
             vf.FinishedIndexing = rdr.ReadBoolean();
             if (vf.FinishedIndexing == false) vf.FinishedIndexing = null;
             return vf;
-
         }
     }
-
-
 }

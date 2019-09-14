@@ -6,79 +6,81 @@
         xmlns:local="clr-namespace:Wabbajack"
         mc:Ignorable="d"
         Title="Wabbajack" Height="800" Width="800"
-        Style="{StaticResource {x:Type Window}}" Icon="square_transparent_icon.ico" WindowStyle="ToolWindow" Closing="Window_Closing">
+        Style="{StaticResource {x:Type Window}}" Icon="square_transparent_icon.ico" WindowStyle="ToolWindow"
+        Closing="Window_Closing">
     <Grid Margin="16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition></RowDefinition>
-            <RowDefinition Height="10"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+            <RowDefinition Height="10" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0, 16, 0, 16">
-            <TextBlock Text="{Binding Mode}" FontSize="16" FontWeight="Bold"></TextBlock>
-            <TextBlock Text=" : " FontSize="16"></TextBlock>
-            <TextBlock Text="{Binding ModListName}" FontSize="16"></TextBlock>
+            <TextBlock Text="{Binding Mode}" FontSize="16" FontWeight="Bold" />
+            <TextBlock Text=" : " FontSize="16" />
+            <TextBlock Text="{Binding ModListName}" FontSize="16" />
         </StackPanel>
         <Grid HorizontalAlignment="Stretch" Grid.Row="1" Margin="0, 10, 0, 10">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="*"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition></RowDefinition>
-                <RowDefinition MinHeight="10"></RowDefinition>
-                <RowDefinition></RowDefinition>
+                <RowDefinition />
+                <RowDefinition MinHeight="10" />
+                <RowDefinition />
             </Grid.RowDefinitions>
-            <Label Grid.Row="0" Content="MO2 Location:" Grid.Column="0"></Label>
-            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Location}"></TextBox>
-            <Button Grid.Row="0" Content="Select" MinWidth="80" Grid.Column="2" Command="{Binding ChangePath}"></Button>
-            <Label Grid.Row="2" Content="Download Location:" Grid.Column="0"></Label>
-            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DownloadLocation}"></TextBox>
-            <Button Grid.Row="2" Content="Select" MinWidth="80" Grid.Column="2" Command="{Binding ChangeDownloadPath}"></Button>
+            <Label Grid.Row="0" Content="MO2 Location:" Grid.Column="0" />
+            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Location}" />
+            <Button Grid.Row="0" Content="Select" MinWidth="80" Grid.Column="2" Command="{Binding ChangePath}" />
+            <Label Grid.Row="2" Content="Download Location:" Grid.Column="0" />
+            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DownloadLocation}" />
+            <Button Grid.Row="2" Content="Select" MinWidth="80" Grid.Column="2" Command="{Binding ChangeDownloadPath}" />
         </Grid>
-        <ListBox Grid.Row ="2" ItemsSource="{Binding Status}" Width="Auto" HorizontalAlignment="Stretch">
+        <ListBox Grid.Row="2" ItemsSource="{Binding Status}" Width="Auto" HorizontalAlignment="Stretch">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid HorizontalAlignment="Stretch">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                            <ColumnDefinition Width="Auto"></ColumnDefinition>
-                            <ColumnDefinition Width="Auto" ></ColumnDefinition>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress, Mode=OneTime}" Width="100" Grid.Column="0">
+                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress, Mode=OneTime}" Width="100"
+                                     Grid.Column="0">
                             <ProgressBar.Style>
                                 <Style TargetType="ProgressBar">
-                                    <Setter Property="Visibility" Value="Visible"></Setter>
+                                    <Setter Property="Visibility" Value="Visible" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding Progress}" Value="0">
-                                            <Setter Property="Visibility" Value="Collapsed"></Setter>
+                                            <Setter Property="Visibility" Value="Collapsed" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </ProgressBar.Style>
                         </ProgressBar>
-                        <TextBlock Text=" CPU " Grid.Column="1"></TextBlock>
-                        <TextBlock Text="{Binding ID}" Grid.Column="2"></TextBlock>
-                        <TextBlock Text=" - " Grid.Column="3"></TextBlock>
-                        <TextBlock Text="{Binding Msg}" Grid.Column="4"></TextBlock>
+                        <TextBlock Text=" CPU " Grid.Column="1" />
+                        <TextBlock Text="{Binding ID}" Grid.Column="2" />
+                        <TextBlock Text=" - " Grid.Column="3" />
+                        <TextBlock Text="{Binding Msg}" Grid.Column="4" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <ProgressBar Grid.Row="3" Value="{Binding QueueProgress}" Minimum="0" Maximum="100" Background="#444444"></ProgressBar>
-        <TextBlock Text="Log:" Grid.Row="4" FontSize="14" Margin="0, 16, 0, 8"></TextBlock>
-        <ListBox local:AutoScrollBehavior.ScrollOnNewItem="True" Grid.Row ="5" ItemsSource="{Binding Log}">
-        </ListBox>
-        <Button Content="View Modlist Contents" Grid.Row="6" Height="30" Visibility="{Binding ShowReportButton}" Command="{Binding ShowReportCommand}"></Button>
-        <Button Content="Begin" Grid.Row="7" Height="30" Command="{Binding Begin}"></Button>
-        <CheckBox Content="Ignore Missing Files" Grid.Row="8" Height="20" IsChecked="{Binding IgnoreMissingFiles}"></CheckBox>
+        <ProgressBar Grid.Row="3" Value="{Binding QueueProgress}" Minimum="0" Maximum="100" Background="#444444" />
+        <TextBlock Text="Log:" Grid.Row="4" FontSize="14" Margin="0, 16, 0, 8" />
+        <ListBox local:AutoScrollBehavior.ScrollOnNewItem="True" Grid.Row="5" ItemsSource="{Binding Log}" />
+        <Button Content="View Modlist Contents" Grid.Row="6" Height="30" Visibility="{Binding ShowReportButton}"
+                Command="{Binding ShowReportCommand}" />
+        <Button Content="Begin" Grid.Row="7" Height="30" Command="{Binding Begin}" />
+        <CheckBox Content="Ignore Missing Files" Grid.Row="8" Height="20" IsChecked="{Binding IgnoreMissingFiles}" />
     </Grid>
 </Window>

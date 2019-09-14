@@ -1,16 +1,9 @@
-﻿using Compression.BSA;
-using ICSharpCode.SharpZipLib.Zip;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Net;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using Compression.BSA;
 using ICSharpCode.SharpZipLib.GZip;
-using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 
 namespace Wabbajack.Common
 {
@@ -34,25 +27,15 @@ namespace Wabbajack.Common
             }
         }
 
-        public class Entry
-        {
-            public string Name;
-            public ulong Size;
-        }
 
-       
         public static void ExtractAll(string source, string dest)
         {
             try
             {
                 if (source.EndsWith(".bsa"))
-                {
                     ExtractAllWithBSA(source, dest);
-                }
                 else
-                {
                     ExtractAllWith7Zip(source, dest);
-                }
             }
             catch (Exception ex)
             {
@@ -105,12 +88,12 @@ namespace Wabbajack.Common
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
-                CreateNoWindow = true,
+                CreateNoWindow = true
             };
 
             var p = new Process
             {
-                StartInfo = info,
+                StartInfo = info
             };
 
             p.Start();
@@ -119,7 +102,9 @@ namespace Wabbajack.Common
             {
                 p.PriorityClass = ProcessPriorityClass.BelowNormal;
             }
-            catch (Exception) { }
+            catch (Exception)
+            {
+            }
 
             var name = Path.GetFileName(source);
             try
@@ -129,18 +114,16 @@ namespace Wabbajack.Common
                     var line = p.StandardOutput.ReadLine();
                     if (line == null)
                         break;
-                    int percent = 0;
+                    var percent = 0;
                     if (line.Length > 4 && line[3] == '%')
                     {
-                        Int32.TryParse(line.Substring(0, 3), out percent);
+                        int.TryParse(line.Substring(0, 3), out percent);
                         Utils.Status($"Extracting {name} - {line.Trim()}", percent);
                     }
-
                 }
             }
             catch (Exception ex)
             {
-
             }
 
             p.WaitForExit();
@@ -149,11 +132,10 @@ namespace Wabbajack.Common
                 Utils.Log(p.StandardOutput.ReadToEnd());
                 Utils.Log($"Extraction error extracting {source}");
             }
-                
         }
 
         /// <summary>
-        /// Returns true if the given extension type can be extracted
+        ///     Returns true if the given extension type can be extracted
         /// </summary>
         /// <param name="v"></param>
         /// <returns></returns>
@@ -162,5 +144,10 @@ namespace Wabbajack.Common
             return Consts.SupportedArchives.Contains(v) || v == ".bsa";
         }
 
+        public class Entry
+        {
+            public string Name;
+            public ulong Size;
+        }
     }
 }

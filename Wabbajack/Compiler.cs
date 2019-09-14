@@ -11,12 +11,9 @@ using System.Text.RegularExpressions;
 using System.Web;
 using CommonMark;
 using Compression.BSA;
-using ICSharpCode.SharpZipLib.BZip2;
 using K4os.Compression.LZ4;
 using K4os.Compression.LZ4.Streams;
-using Microsoft.SqlServer.Server;
 using Newtonsoft.Json;
-using SharpCompress.Compressors.BZip2;
 using VFS;
 using Wabbajack.Common;
 using static Wabbajack.NexusAPI;
@@ -567,7 +564,11 @@ namespace Wabbajack
 
         private Func<RawSourceFile, Directive> IgnoreWabbajackInstallCruft()
         {
-            var cruft_files = new HashSet<string> {"7z.dll", "7z.exe", "vfs_staged_files\\", "nexus.key_cache", "patch_cache\\", Consts.NexusCacheDirectory + "\\"};
+            var cruft_files = new HashSet<string>
+            {
+                "7z.dll", "7z.exe", "vfs_staged_files\\", "nexus.key_cache", "patch_cache\\",
+                Consts.NexusCacheDirectory + "\\"
+            };
             return source =>
             {
                 if (!cruft_files.Any(f => source.Path.StartsWith(f))) return null;
@@ -882,8 +883,8 @@ namespace Wabbajack
         }
 
         /// <summary>
-        /// This matches files based purely on filename, and then creates a binary patch.
-        /// In practice this is fine, because a single file tends to only come from one archive.
+        ///     This matches files based purely on filename, and then creates a binary patch.
+        ///     In practice this is fine, because a single file tends to only come from one archive.
         /// </summary>
         /// <returns></returns>
         private Func<RawSourceFile, Directive> IncludePatches()
@@ -906,7 +907,6 @@ namespace Wabbajack
                 e.Hash = source.File.Hash;
                 Utils.TryGetPatch(found.Hash, source.File.Hash, out e.Patch);
                 return e;
-
             };
         }
 
@@ -1120,8 +1120,11 @@ namespace Wabbajack
                 //bw.Write(data);
                 var formatter = new BinaryFormatter();
 
-                using (var compressed = LZ4Stream.Encode(bw.BaseStream, new LZ4EncoderSettings { CompressionLevel = LZ4Level.L10_OPT }, true))
+                using (var compressed = LZ4Stream.Encode(bw.BaseStream,
+                    new LZ4EncoderSettings {CompressionLevel = LZ4Level.L10_OPT}, true))
+                {
                     formatter.Serialize(compressed, ModList);
+                }
 
                 bw.Write(orig_pos);
                 bw.Write(Encoding.ASCII.GetBytes(Consts.ModPackMagic));

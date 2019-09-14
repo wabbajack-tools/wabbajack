@@ -2,28 +2,15 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
 namespace Wabbajack
 {
-    class AutoScrollBehavior
+    internal class AutoScrollBehavior
     {
-        static readonly Dictionary<ListBox, Capture> Associations =
-               new Dictionary<ListBox, Capture>();
-
-        public static bool GetScrollOnNewItem(DependencyObject obj)
-        {
-            return (bool)obj.GetValue(ScrollOnNewItemProperty);
-        }
-
-        public static void SetScrollOnNewItem(DependencyObject obj, bool value)
-        {
-            obj.SetValue(ScrollOnNewItemProperty, value);
-        }
+        private static readonly Dictionary<ListBox, Capture> Associations =
+            new Dictionary<ListBox, Capture>();
 
         public static readonly DependencyProperty ScrollOnNewItemProperty =
             DependencyProperty.RegisterAttached(
@@ -32,13 +19,23 @@ namespace Wabbajack
                 typeof(AutoScrollBehavior),
                 new UIPropertyMetadata(false, OnScrollOnNewItemChanged));
 
+        public static bool GetScrollOnNewItem(DependencyObject obj)
+        {
+            return (bool) obj.GetValue(ScrollOnNewItemProperty);
+        }
+
+        public static void SetScrollOnNewItem(DependencyObject obj, bool value)
+        {
+            obj.SetValue(ScrollOnNewItemProperty, value);
+        }
+
         public static void OnScrollOnNewItemChanged(
             DependencyObject d,
             DependencyPropertyChangedEventArgs e)
         {
             var listBox = d as ListBox;
             if (listBox == null) return;
-            bool oldValue = (bool)e.OldValue, newValue = (bool)e.NewValue;
+            bool oldValue = (bool) e.OldValue, newValue = (bool) e.NewValue;
             if (newValue == oldValue) return;
             if (newValue)
             {
@@ -60,57 +57,54 @@ namespace Wabbajack
 
         private static void ListBox_ItemsSourceChanged(object sender, EventArgs e)
         {
-            var listBox = (ListBox)sender;
+            var listBox = (ListBox) sender;
             if (Associations.ContainsKey(listBox))
                 Associations[listBox].Dispose();
             Associations[listBox] = new Capture(listBox);
         }
 
-        static void ListBox_Unloaded(object sender, RoutedEventArgs e)
+        private static void ListBox_Unloaded(object sender, RoutedEventArgs e)
         {
-            var listBox = (ListBox)sender;
+            var listBox = (ListBox) sender;
             if (Associations.ContainsKey(listBox))
                 Associations[listBox].Dispose();
             listBox.Unloaded -= ListBox_Unloaded;
         }
 
-        static void ListBox_Loaded(object sender, RoutedEventArgs e)
+        private static void ListBox_Loaded(object sender, RoutedEventArgs e)
         {
-            var listBox = (ListBox)sender;
+            var listBox = (ListBox) sender;
             var incc = listBox.Items as INotifyCollectionChanged;
             if (incc == null) return;
             listBox.Loaded -= ListBox_Loaded;
             Associations[listBox] = new Capture(listBox);
         }
 
-        class Capture : IDisposable
+        private class Capture : IDisposable
         {
-            private readonly ListBox listBox;
             private readonly INotifyCollectionChanged incc;
+            private readonly ListBox listBox;
 
             public Capture(ListBox listBox)
             {
                 this.listBox = listBox;
                 incc = listBox.ItemsSource as INotifyCollectionChanged;
-                if (incc != null)
-                {
-                    incc.CollectionChanged += incc_CollectionChanged;
-                }
-            }
-
-            void incc_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-            {
-                if (e.Action == NotifyCollectionChangedAction.Add)
-                {
-                    listBox.ScrollIntoView(e.NewItems[0]);
-                    listBox.SelectedItem = e.NewItems[0];
-                }
+                if (incc != null) incc.CollectionChanged += incc_CollectionChanged;
             }
 
             public void Dispose()
             {
                 if (incc != null)
                     incc.CollectionChanged -= incc_CollectionChanged;
+            }
+
+            private void incc_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+            {
+                if (e.Action == NotifyCollectionChangedAction.Add)
+                {
+                    listBox.ScrollIntoView(e.NewItems[0]);
+                    listBox.SelectedItem = e.NewItems[0];
+                }
             }
         }
     }

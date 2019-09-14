@@ -1,16 +1,13 @@
-﻿using IniParser;
-using IniParser.Model;
-using System;
-using System.Collections.Generic;
-using System.Dynamic;
-using System.Text;
+﻿using System.Dynamic;
 using System.Text.RegularExpressions;
+using IniParser;
+using IniParser.Model;
 
 namespace Wabbajack.Common
 {
     public class DynamicIniData : DynamicObject
     {
-        private IniData value;
+        private readonly IniData value;
 
         public DynamicIniData(IniData value) //
         {
@@ -35,24 +32,20 @@ namespace Wabbajack.Common
         }
     }
 
-    class SectionData : DynamicObject
+    internal class SectionData : DynamicObject
     {
-        private KeyDataCollection _coll;
+        private readonly KeyDataCollection _coll;
 
         public SectionData(KeyDataCollection coll)
         {
-            this._coll = coll;
+            _coll = coll;
         }
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
             result = _coll[binder.Name];
-            if (result is string)
-            {
-                result = Regex.Unescape(((string)result).Trim('"'));
-            }
+            if (result is string) result = Regex.Unescape(((string) result).Trim('"'));
             return true;
         }
     }
-
 }
