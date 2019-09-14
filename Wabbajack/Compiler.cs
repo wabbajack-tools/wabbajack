@@ -903,6 +903,7 @@ namespace Wabbajack
                 var e = source.EvolveTo<PatchedFromArchive>();
                 e.ArchiveHashPath = found.MakeRelativePaths();
                 e.To = source.Path;
+                e.Hash = source.File.Hash;
                 Utils.TryGetPatch(found.Hash, source.File.Hash, out e.Patch);
                 return e;
 

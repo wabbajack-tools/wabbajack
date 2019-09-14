@@ -14,6 +14,7 @@
 * Ignore some files Wabbajack creates
 * Improve compilation times by reworking file indexing algorithm
 * Store patch files in byte format instead of base64 strings
+* Verify SHA of patched files after install
 
 #### Version 0.9.1 - 9/5/2019
 * Fixed a bug where having only one profile selected would result in no profiles being selected

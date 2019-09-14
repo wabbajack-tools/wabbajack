@@ -157,6 +157,7 @@ namespace Wabbajack
         /// The file to apply to the source file to patch it
         /// </summary>
         public byte[] Patch;
+        public string Hash;
     }
 
     [Serializable]

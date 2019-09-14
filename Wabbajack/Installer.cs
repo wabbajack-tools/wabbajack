@@ -411,6 +411,11 @@ namespace Wabbajack
                     {
                         BSDiff.Apply(old_data, () => new MemoryStream(patch_data), out_stream);
                     }
+
+                    Status($"Verifying Patch {Path.GetFileName(to_patch.To)}");
+                    var result_sha = Utils.FileSHA256(to_file);
+                    if (result_sha != to_patch.Hash)
+                        throw new InvalidDataException($"Invalid Hash for {to_patch.To} after patching");
                 }
 
             }

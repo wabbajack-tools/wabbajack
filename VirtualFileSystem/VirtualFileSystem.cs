@@ -45,41 +45,34 @@ namespace VFS
             Directory.CreateDirectory(_stagedRoot);
         }
 
-        private static void DeleteDirectory(string path)
+        private static void DeleteDirectory(string path, bool recursive = true)
         {
-            Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
-                .DoProgress("Cleaning VFS Files", file =>
+            if (recursive)
+            {
+                var subfolders = Directory.GetDirectories(path);
+                foreach (var s in subfolders)
                 {
-                    try
+                    DeleteDirectory(s, recursive);
+                }
+            }
+            var files = Directory.GetFiles(path);
+            foreach (var f in files)
+            {
+                try
+                {
+                    var attr = File.GetAttributes(f);
+                    if ((attr & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
                     {
-                        var fi = new FileInfo(file);
-                        fi.Attributes &= ~FileAttributes.ReadOnly;
-                        File.Delete(file);
+                        File.SetAttributes(f, attr ^ FileAttributes.ReadOnly);
                     }
-                    catch (Exception ex)
-                    {
-                        Utils.Log(ex.ToString());
-                    }
-                });
+                    File.Delete(f);
+                }
+                catch (IOException)
+                {
+                }
+            }
+            Directory.Delete(path, true);
 
-            Directory.EnumerateDirectories(path, DirectoryEnumerationOptions.Recursive)
-                .OrderByDescending(d => d.Length)
-                .DoProgress("Cleaning VFS Folders", folder =>
-                {
-                    try
-                    {
-                        if (!Directory.Exists(folder))
-                            return;
-                        var di = new DirectoryInfo(folder);
-                        di.Attributes &= ~FileAttributes.ReadOnly;
-                        Directory.Delete(path, true);
-                    }
-                    catch (Exception ex)
-                    {
-                        Utils.Log(ex.ToString());
-                    }
-                });
-            
 
         }
 
