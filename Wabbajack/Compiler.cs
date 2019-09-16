@@ -103,6 +103,7 @@ namespace Wabbajack
 
         public void Compile()
         {
+            VirtualFileSystem.Clean();
             Info("Looking for other profiles");
             var other_profiles_path = Path.Combine(MO2ProfileDir, "otherprofiles.txt");
             SelectedProfiles = new HashSet<string>();

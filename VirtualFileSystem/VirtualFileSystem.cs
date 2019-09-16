@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
@@ -28,11 +30,17 @@ namespace VFS
             RootFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
             _stagedRoot = Path.Combine(RootFolder, "vfs_staged_files");
-            Utils.OnQueue(() =>
+
+        }
+
+        public static void Clean()
+        {
+            if (Directory.Exists(_stagedRoot))
             {
-                if (Directory.Exists(_stagedRoot))
-                    DeleteDirectory(_stagedRoot);
-            });
+                Directory.EnumerateDirectories(_stagedRoot)
+                    .PMap(f => DeleteDirectory(f));
+                DeleteDirectory(_stagedRoot);
+            }
 
             Directory.CreateDirectory(_stagedRoot);
         }
@@ -47,28 +55,41 @@ namespace VFS
 
         public VirtualFile this[string path] => Lookup(path);
 
-        private static void DeleteDirectory(string path, bool recursive = true)
+        private static void DeleteDirectory(string path)
         {
-            if (recursive)
+            var info = new ProcessStartInfo
             {
-                var subfolders = Directory.GetDirectories(path);
-                foreach (var s in subfolders) DeleteDirectory(s, recursive);
+                FileName = "cmd.exe",
+                Arguments = $"/c del /f /q /s \"{path}\" && rmdir /q /s \"{path}\" ",
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            var p = new Process
+            {
+                StartInfo = info
+            };
+
+            p.Start();
+            ChildProcessTracker.AddProcess(p);
+            try
+            {
+                p.PriorityClass = ProcessPriorityClass.BelowNormal;
+            }
+            catch (Exception)
+            {
             }
 
-            var files = Directory.GetFiles(path);
-            foreach (var f in files)
-                try
-                {
-                    var attr = File.GetAttributes(f);
-                    if ((attr & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
-                        File.SetAttributes(f, attr ^ FileAttributes.ReadOnly);
-                    File.Delete(f);
-                }
-                catch (IOException)
-                {
-                }
-
-            Directory.Delete(path, true);
+            while (!p.HasExited)
+            {
+                var line = p.StandardOutput.ReadLine();
+                if (line == null) break;
+                Utils.Status(line);
+            }
+            p.WaitForExit();
         }
 
         private void LoadFromDisk()

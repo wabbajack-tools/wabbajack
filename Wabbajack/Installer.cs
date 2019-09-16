@@ -78,6 +78,7 @@ namespace Wabbajack
 
         public void Install()
         {
+            VirtualFileSystem.Clean();
             Directory.CreateDirectory(Outputfolder);
             Directory.CreateDirectory(DownloadFolder);
 
