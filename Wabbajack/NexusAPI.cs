@@ -132,8 +132,15 @@ namespace Wabbajack
                 Directory.CreateDirectory(Consts.NexusCacheDirectory);
 
             var path = Path.Combine(Consts.NexusCacheDirectory, $"mod-info-{archive.GameName}-{archive.ModID}.json");
-            if (File.Exists(path))
-                return path.FromJSON<ModInfo>();
+            try
+            {
+                if (File.Exists(path))
+                    return path.FromJSON<ModInfo>();
+            }
+            catch (Exception)
+            {
+                File.Delete(path);
+            }
 
 
             var url =

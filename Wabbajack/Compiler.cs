@@ -533,10 +533,10 @@ namespace Wabbajack
                 IgnoreRegex(Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
                 IncludeModIniData(),
                 DirectMatch(),
+                IncludeTaggedFiles(),
                 DeconstructBSAs(), // Deconstruct BSAs before building patches so we don't generate massive patch files
                 IncludePatches(),
                 IncludeDummyESPs(),
-                IncludeTaggedFiles(),
 
 
                 // If we have no match at this point for a game folder file, skip them, we can't do anything about them
@@ -551,6 +551,9 @@ namespace Wabbajack
                 IgnoreEndsWith("HavokBehaviorPostProcess.exe"),
                 // Theme file MO2 downloads somehow
                 IgnoreEndsWith("splash.png"),
+
+                IgnoreEndsWith(".bin"),
+                IgnoreEndsWith(".refcache"),
 
                 IgnoreWabbajackInstallCruft(),
 
