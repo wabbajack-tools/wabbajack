@@ -462,7 +462,7 @@ namespace Wabbajack
                 }
                 else
                 {
-                    Error("No way to handle archive {0} but it's required by the modpack", found.Name);
+                    Error("No way to handle archive {0} but it's required by the modlist", found.Name);
                     return null;
                 }
 
@@ -1130,7 +1130,7 @@ namespace Wabbajack
                 }
 
                 bw.Write(orig_pos);
-                bw.Write(Encoding.ASCII.GetBytes(Consts.ModPackMagic));
+                bw.Write(Encoding.ASCII.GetBytes(Consts.ModListMagic));
             }
         }
 

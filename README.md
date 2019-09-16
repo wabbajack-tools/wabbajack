@@ -78,7 +78,7 @@ continuum).
 5) Wabbajack will start by indexing all your downloaded archives. This will take some time on most machines as the application
 has to performa `SHA-256` hash on every file in every archive. However the results of this operation are cached, so you'll only need 
 to do this once for every downloaded file.
-6) Once completed, Wabbajack will collect the files required for the modpack install and begin running them through the compilation stack.
+6) Once completed, Wabbajack will collect the files required for the modlist install and begin running them through the compilation stack.
 7) If all goes well, you should see a new `<your profile name>.exe` file next to `Wabbajack.exe` that you just ran. This new `.exe` is the one
 you want to hand out as a auto modlist installer.
 
@@ -152,7 +152,7 @@ copyrighted material. Instead we copy instructions on how to modify the copyrigh
 
 Look at the [`RECIPES.md`] file, we keep a knowledgebase of how to deal with given types of mods in that file.
 
-**Why does each modpack install another copy of Mod Organizer 2?**
+**Why does each modlist install another copy of Mod Organizer 2?**
 
 Self-contained folders are a cleaner abstraction than dumping tons of modlists into the same set of folders. It's easy to uninstall a modlist (simply delete the folder),
 and MO2 really isn't designed to support lots of disparate modlists. For example if two modlists both wanted a given texture mod, but different options they would
