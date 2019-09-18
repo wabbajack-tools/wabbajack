@@ -172,7 +172,7 @@ namespace Wabbajack
 
         private bool LocateGameFolder()
         {
-            var fs = UIUtils.ShowFolderSelectionDialoag("Please locate your game installation path");
+            var fs = UIUtils.ShowFolderSelectionDialog("Please locate your game installation path");
             if (fs != null)
             {
                 GameFolder = fs;

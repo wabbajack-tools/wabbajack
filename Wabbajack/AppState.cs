@@ -207,6 +207,17 @@ namespace Wabbajack
             }
         }
 
+        private bool _uiReady = false;
+        public bool UIReady
+        {
+            get => _uiReady;
+            set
+            {
+                _uiReady = value;
+                OnPropertyChanged("UIReady");
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public void OnPropertyChanged(string name)
@@ -279,7 +290,7 @@ namespace Wabbajack
         {
             if (Mode == "Installing")
             {
-                var folder = UIUtils.ShowFolderSelectionDialoag("Select Installation directory");
+                var folder = UIUtils.ShowFolderSelectionDialog("Select Installation directory");
                 if (folder != null)
                 {
                     Location = folder;
@@ -289,7 +300,7 @@ namespace Wabbajack
             }
             else
             {
-                var folder = UIUtils.ShowFolderSelectionDialoag("Select Your MO2 profile directory");
+                var folder = UIUtils.ShowFolderSelectionDialog("Select Your MO2 profile directory");
 
                 if (folder != null)
                 {
@@ -307,7 +318,7 @@ namespace Wabbajack
 
         private void ExecuteChangeDownloadPath()
         {
-            var folder = UIUtils.ShowFolderSelectionDialoag("Select a location for MO2 downloads");
+            var folder = UIUtils.ShowFolderSelectionDialog("Select a location for MO2 downloads");
             if (folder != null) DownloadLocation = folder;
         }
 
@@ -338,6 +349,7 @@ namespace Wabbajack
 
         private void ExecuteBegin()
         {
+            UIReady = false;
             if (Mode == "Installing")
             {
                 var installer = new Installer(_modList, Location, msg => LogMsg(msg));
@@ -345,6 +357,7 @@ namespace Wabbajack
                 installer.DownloadFolder = DownloadLocation;
                 var th = new Thread(() =>
                 {
+                    UIReady = false;
                     try
                     {
                         installer.Install();
@@ -355,6 +368,10 @@ namespace Wabbajack
                         LogMsg(ex.StackTrace);
                         LogMsg(ex.ToString());
                         LogMsg($"{ex.Message} - Can't continue");
+                    }
+                    finally
+                    {
+                        UIReady = true;
                     }
                 });
                 th.Priority = ThreadPriority.BelowNormal;
@@ -367,6 +384,7 @@ namespace Wabbajack
                 compiler.MO2Profile = ModListName;
                 var th = new Thread(() =>
                 {
+                    UIReady = false;
                     try
                     {
                         compiler.Compile();
@@ -379,6 +397,10 @@ namespace Wabbajack
                         LogMsg(ex.StackTrace);
                         LogMsg(ex.ToString());
                         LogMsg($"{ex.Message} - Can't continue");
+                    }
+                    finally
+                    {
+                        UIReady = true;
                     }
                 });
                 th.Priority = ThreadPriority.BelowNormal;

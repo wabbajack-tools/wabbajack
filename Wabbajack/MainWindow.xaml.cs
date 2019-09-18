@@ -38,33 +38,19 @@ namespace Wabbajack
 
             Utils.SetLoggerFn(s => context.LogMsg(s));
             Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
+            UIUtils.Dispatcher = Dispatcher;
 
 
-            if (DebugMode)
-                new Thread(() =>
-                {
-                    var compiler = new Compiler(MO2Folder, msg => context.LogMsg(msg));
-
-                    compiler.MO2Profile = MO2Profile;
-                    context.ModListName = compiler.MO2Profile;
-
-                    context.Mode = "Building";
-                    compiler.Compile();
-
-                    var modlist = compiler.ModList.ToJSON();
-                    compiler = null;
-
-                    //context.ConfigureForInstall(modlist);
-                }).Start();
-            else
-                new Thread(() =>
-                {
-                    var modlist = Installer.CheckForModList();
-                    if (modlist == null)
-                        Utils.Log("No Modlist found, running in Compiler mode.");
-                    else
-                        context.ConfigureForInstall(modlist);
-                }).Start();
+            new Thread(() =>
+            {
+                context.UIReady = false;
+                var modlist = Installer.CheckForModList();
+                if (modlist == null)
+                    Utils.Log("No Modlist found, running in Compiler mode.");
+                else
+                    context.ConfigureForInstall(modlist);
+                context.UIReady = true;
+            }).Start();
         }
 
         private void SetupHandlers(AppState state)
