@@ -20,6 +20,8 @@
 * Ignore .bin and .refcache files (DynDOLOD temp files)
 * Shell out to cmd.exe for VFS cleaning should fix "ReadOnlyFile" errors once and for all
 * Switch out folder selection routines for Win32 APIs, should fix issue #27
+* Disable the UI while working on things, so users don't accidentally mis-click during installation/loading
+* Disabled "ignore missing files", it didn't work anyways
  
 #### Version 0.9.1 - 9/5/2019
 * Fixed a bug where having only one profile selected would result in no profiles being selected
