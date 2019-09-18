@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 using VFS;
 
@@ -24,6 +25,8 @@ namespace Wabbajack
         {
             var v = new T();
             v.To = Path;
+            v.Hash = Hash;
+            v.Size = File.Size;
             return v;
         }
     }
@@ -59,6 +62,8 @@ namespace Wabbajack
         ///     location the file will be copied to, relative to the install path.
         /// </summary>
         public string To;
+        public long Size;
+        public string Hash;
     }
 
     [Serializable]

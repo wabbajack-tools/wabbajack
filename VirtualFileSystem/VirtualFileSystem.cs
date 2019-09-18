@@ -55,7 +55,7 @@ namespace VFS
 
         public VirtualFile this[string path] => Lookup(path);
 
-        private static void DeleteDirectory(string path)
+        public static void DeleteDirectory(string path)
         {
             var info = new ProcessStartInfo
             {

@@ -17,6 +17,10 @@ using Newtonsoft.Json;
 using VFS;
 using Wabbajack.Common;
 using static Wabbajack.NexusAPI;
+using Directory = Alphaleonis.Win32.Filesystem.Directory;
+using File = Alphaleonis.Win32.Filesystem.File;
+using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack
 {

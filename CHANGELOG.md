@@ -22,6 +22,8 @@
 * Switch out folder selection routines for Win32 APIs, should fix issue #27
 * Disable the UI while working on things, so users don't accidentally mis-click during installation/loading
 * Disabled "ignore missing files", it didn't work anyways
+* Properly delete BSA temp folder after install
+* Include size and hash for installed files
  
 #### Version 0.9.1 - 9/5/2019
 * Fixed a bug where having only one profile selected would result in no profiles being selected

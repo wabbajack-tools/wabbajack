@@ -14,6 +14,10 @@ using Compression.BSA;
 using K4os.Compression.LZ4.Streams;
 using VFS;
 using Wabbajack.Common;
+using Directory = Alphaleonis.Win32.Filesystem.Directory;
+using File = Alphaleonis.Win32.Filesystem.File;
+using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack
 {
@@ -89,8 +93,10 @@ namespace Wabbajack
                         "Existing MO2 installation in install folder",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Exclamation) == MessageBoxResult.No)
+                {
                     Utils.Log("Existing installation at the request of the user, existing mods folder found.");
-                return;
+                    return;
+                }
             }
 
             if (ModList.Directives.OfType<RemappedInlineFile>().FirstOrDefault() != null ||
@@ -245,10 +251,12 @@ namespace Wabbajack
                     }
             });
 
-            if (Directory.Exists(Consts.BSACreationDir))
+
+            var bsa_dir = Path.Combine(Outputfolder, Consts.BSACreationDir);
+            if (Directory.Exists(bsa_dir))
             {
                 Info($"Removing temp folder {Consts.BSACreationDir}");
-                Directory.Delete(Path.Combine(Outputfolder, Consts.BSACreationDir), true);
+                VirtualFileSystem.DeleteDirectory(bsa_dir);
             }
         }
 
