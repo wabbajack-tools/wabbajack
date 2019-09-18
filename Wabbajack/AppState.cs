@@ -9,7 +9,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Ookii.Dialogs.Wpf;
 using Wabbajack.Common;
 
 namespace Wabbajack
@@ -280,24 +279,27 @@ namespace Wabbajack
         {
             if (Mode == "Installing")
             {
-                var ofd = new VistaFolderBrowserDialog();
-                ofd.Description = "Select Installation Directory";
-                ofd.UseDescriptionForTitle = true;
-                if (ofd.ShowDialog() == true)
+                var folder = UIUtils.ShowFolderSelectionDialoag("Select Installation directory");
+                if (folder != null)
                 {
-                    Location = ofd.SelectedPath;
+                    Location = folder;
                     if (_downloadLocation == null)
                         DownloadLocation = Path.Combine(Location, "downloads");
                 }
             }
             else
             {
-                var fsd = new VistaOpenFileDialog();
-                fsd.Title = "Select a ModOrganizer modlist.txt file";
-                fsd.Filter = "modlist.txt|modlist.txt";
-                if (fsd.ShowDialog() == true)
+                var folder = UIUtils.ShowFolderSelectionDialoag("Select Your MO2 profile directory");
+
+                if (folder != null)
                 {
-                    Location = fsd.FileName;
+                    var file = Path.Combine(folder, "modlist.txt");
+                    if (!File.Exists(file))
+                    {
+                        Utils.Log($"No modlist.txt found at {file}");
+                    }
+
+                    Location = file;
                     ConfigureForBuild();
                 }
             }
@@ -305,10 +307,8 @@ namespace Wabbajack
 
         private void ExecuteChangeDownloadPath()
         {
-            var ofd = new VistaFolderBrowserDialog();
-            ofd.Description = "Select a location for MO2 downloads";
-            ofd.UseDescriptionForTitle = true;
-            if (ofd.ShowDialog() == true) DownloadLocation = ofd.SelectedPath;
+            var folder = UIUtils.ShowFolderSelectionDialoag("Select a location for MO2 downloads");
+            if (folder != null) DownloadLocation = folder;
         }
 
         private void ConfigureForBuild()

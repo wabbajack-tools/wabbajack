@@ -12,7 +12,6 @@ using System.Windows;
 using CG.Web.MegaApiClient;
 using Compression.BSA;
 using K4os.Compression.LZ4.Streams;
-using Ookii.Dialogs.Wpf;
 using VFS;
 using Wabbajack.Common;
 
@@ -173,12 +172,10 @@ namespace Wabbajack
 
         private bool LocateGameFolder()
         {
-            var vf = new VistaFolderBrowserDialog();
-            vf.Description = "Please Locate Your Game Installation Path";
-            vf.UseDescriptionForTitle = true;
-            if (vf.ShowDialog() == true)
+            var fs = UIUtils.ShowFolderSelectionDialoag("Please locate your game installation path");
+            if (fs != null)
             {
-                GameFolder = vf.SelectedPath;
+                GameFolder = fs;
                 return true;
             }
 

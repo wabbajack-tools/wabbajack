@@ -19,6 +19,7 @@
 * Include WABBAJACK_INCLUDE files before including patches
 * Ignore .bin and .refcache files (DynDOLOD temp files)
 * Shell out to cmd.exe for VFS cleaning should fix "ReadOnlyFile" errors once and for all
+* Switch out folder selection routines for Win32 APIs, should fix issue #27
  
 #### Version 0.9.1 - 9/5/2019
 * Fixed a bug where having only one profile selected would result in no profiles being selected
