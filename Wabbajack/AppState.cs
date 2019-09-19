@@ -45,12 +45,27 @@ namespace Wabbajack
 
         public AppState(Dispatcher d, string mode)
         {
+            // Ensure WJ is not being run in a download directory.
             if (Assembly.GetEntryAssembly().Location.ToLower().Contains("\\downloads\\"))
             {
                 MessageBox.Show(
                     "This app seems to be running inside a folder called `Downloads`, such folders are often highly monitored by Antivirus software and they can often " +
                     "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your `Downloads` folder and then restart the app.",
                     "Cannot run inside `Downloads`",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Environment.Exit(1);
+            }
+
+            // Check if LOOT is installed.
+            string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string lootAppDataPath = $"{appDataPath}\\LOOT";
+            if (!Directory.Exists(lootAppDataPath))
+            {
+                MessageBox.Show(
+                   $"Wabbajack could not locate the LOOT application data at {lootAppDataPath}. " +
+                    "Please make sure that LOOT is installed correctly before running Wabbajack.",
+                    "LOOT not found",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
                 Environment.Exit(1);
