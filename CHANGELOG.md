@@ -1,6 +1,8 @@
 ### Changelog
 
-#### Version 0.9.2 - ???
+#### Version 0.9.3 - ???
+
+#### Version 0.9.2 - 9/18/2013
 * Fixed a bug with BSA string encoding
 * Fixed another profile issue confirmed that they are properly included now
 * Log when the executable is being generated
