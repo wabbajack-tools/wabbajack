@@ -423,6 +423,11 @@ namespace Wabbajack.Common
             return Math.Sign(byteCount) * num + Suffix[place];
         }
 
+        public static string ToFileSizeString(this int byteCount)
+        {
+            return ToFileSizeString((long)byteCount);
+        }
+
         public static void CreatePatch(byte[] a, byte[] b, Stream output)
         {
             var data_a = a.SHA256().FromBase64().ToHEX();

@@ -538,7 +538,7 @@ namespace Wabbajack
                 IgnoreRegex(Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
                 IncludeModIniData(),
                 DirectMatch(),
-                IncludeTaggedFiles(),
+                IncludeTaggedFiles(Consts.WABBAJACK_INCLUDE),
                 DeconstructBSAs(), // Deconstruct BSAs before building patches so we don't generate massive patch files
                 IncludePatches(),
                 IncludeDummyESPs(),
@@ -565,6 +565,7 @@ namespace Wabbajack
                 PatchStockESMs(),
 
                 IncludeAllConfigs(),
+                IncludeTaggedFiles(Consts.WABBAJACK_NOMATCH_INCLUDE),
 
                 DropAll()
             };
@@ -700,14 +701,14 @@ namespace Wabbajack
         ///     mod will be inlined into the installer. USE WISELY.
         /// </summary>
         /// <returns></returns>
-        private Func<RawSourceFile, Directive> IncludeTaggedFiles()
+        private Func<RawSourceFile, Directive> IncludeTaggedFiles(string tag)
         {
             var include_directly = ModInis.Where(kv =>
             {
                 var general = kv.Value.General;
-                if (general.notes != null && general.notes.Contains(Consts.WABBAJACK_INCLUDE))
+                if (general.notes != null && general.notes.Contains(tag))
                     return true;
-                if (general.comments != null && general.comments.Contains(Consts.WABBAJACK_INCLUDE))
+                if (general.comments != null && general.comments.Contains(tag))
                     return true;
                 return false;
             }).Select(kv => $"mods\\{kv.Key}\\");

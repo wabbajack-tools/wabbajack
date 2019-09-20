@@ -100,13 +100,27 @@ namespace Wabbajack
                         NoWrapText($"* `{i.To}` by remapping the contents of an inline file");
                         break;
                     case InlineFile i:
-                        NoWrapText($"* `{i.To}` from `{i.SourceData.Length}` byte file included in modlist");
+                        NoWrapText($"* `{i.To}` from `{i.SourceData.Length.ToFileSizeString()}` file included in modlist");
                         break;
                     case CreateBSA i:
                         NoWrapText(
                             $"* `{i.To}` by creating a BSA of files found in `{Consts.BSACreationDir}\\{i.TempID}`");
                         break;
                 }
+
+            var inlined = lst.Directives.OfType<InlineFile>()
+                .Select(f => (f.To, "inlined", f.SourceData.Length))
+                .Concat(lst.Directives
+                    .OfType<PatchedFromArchive>()
+                    .Select(f => (f.To, "patched", f.Patch.Length)))
+                .ToHashSet()
+                .OrderByDescending(f => f.Length);
+
+            NoWrapText("\n\n### Summary of inlined files in this installer");
+            foreach (var inline in inlined)
+            {
+                NoWrapText($"* {inline.Length.ToFileSizeString()} for {inline.Item2} file {inline.To}");
+            }
         }
 
         private IEnumerable<Archive> SortArchives(List<Archive> lstArchives)

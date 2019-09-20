@@ -22,6 +22,7 @@ namespace Wabbajack.Common
 
         public static string WABBAJACK_INCLUDE = "WABBAJACK_INCLUDE";
         public static string WABBAJACK_ALWAYS_ENABLE = "WABBAJACK_ALWAYS_ENABLE";
+        public static string WABBAJACK_NOMATCH_INCLUDE = "WABBAJACK_NOMATCH_INCLUDE";
 
         public static string GAME_PATH_MAGIC_BACK = "{--||GAME_PATH_MAGIC_BACK||--}";
         public static string GAME_PATH_MAGIC_DOUBLE_BACK = "{--||GAME_PATH_MAGIC_DOUBLE_BACK||--}";
@@ -41,6 +42,7 @@ namespace Wabbajack.Common
 
         public static HashSet<string> GameESMs = new HashSet<string>
             {"Skyrim.esm", "Update.esm", "Dawnguard.esm", "HearthFires.esm", "Dragonborn.esm"};
+
 
         public static string UserAgent
         {
