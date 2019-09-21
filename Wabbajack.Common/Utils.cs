@@ -235,6 +235,16 @@ namespace Wabbajack.Common
             }
         }
 
+        public static void BZip2ExtractToFile(this Stream src, string dest)
+        {
+            using (var os = File.OpenWrite(dest))
+            {
+                os.SetLength(0);
+                using (var bz = new BZip2InputStream(src))
+                    bz.CopyTo(os);
+            }
+        }
+
         /// <summary>
         ///     Returns the string compressed via BZip2
         /// </summary>
