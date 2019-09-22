@@ -741,14 +741,14 @@ namespace Wabbajack
         {
             return source =>
             {
-                if (Path.GetExtension(source.AbsolutePath) == ".esp")
+                if (Path.GetExtension(source.AbsolutePath) == ".esp" || Path.GetExtension(source.AbsolutePath) == ".esm")
                 {
                     var bsa = Path.Combine(Path.GetDirectoryName(source.AbsolutePath),
                         Path.GetFileNameWithoutExtension(source.AbsolutePath) + ".bsa");
                     var bsa_textures = Path.Combine(Path.GetDirectoryName(source.AbsolutePath),
                         Path.GetFileNameWithoutExtension(source.AbsolutePath) + " - Textures.bsa");
                     var esp_size = new FileInfo(source.AbsolutePath).Length;
-                    if (esp_size <= 100 && (File.Exists(bsa) || File.Exists(bsa_textures)))
+                    if (esp_size <= 250 && (File.Exists(bsa) || File.Exists(bsa_textures)))
                     {
                         var inline = source.EvolveTo<InlineFile>();
                         inline.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();

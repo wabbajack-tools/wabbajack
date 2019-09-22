@@ -3,6 +3,7 @@
 #### Version 0.9.3 - ???
 * Add WABBAJACK_NOMATCH_INCLUDE works like WABBAJACK_INCLUDE but only includes files that are found to be missing at the end of compilation
 * Add a list of all inlined data blobs to the install report, useful for reducing installer sizes
+* Increased dummy EPS detection size to 250 bytes and added .esm files to the filter logic
 
 #### Version 0.9.2 - 9/18/2013
 * Fixed a bug with BSA string encoding
