@@ -175,6 +175,7 @@ namespace Wabbajack
 
             AllFiles = mo2_files.Concat(game_files)
                 .Concat(loot_files)
+                .DistinctBy(f => f.Path)
                 .ToList();
 
             Info("Found {0} files to build into mod list", AllFiles.Count);
@@ -229,6 +230,7 @@ namespace Wabbajack
 
             if (!User.is_premium) Info($"User {User.name} is not a premium Nexus user, cannot continue");
 
+            zEditIntegration.VerifyMerges(this);
 
             GatherArchives();
             BuildPatches();
@@ -566,6 +568,7 @@ namespace Wabbajack
 
                 IncludeAllConfigs(),
                 IncludeTaggedFiles(Consts.WABBAJACK_NOMATCH_INCLUDE),
+                zEditIntegration.IncludezEditPatches(this),
 
                 DropAll()
             };
@@ -821,7 +824,7 @@ namespace Wabbajack
 
                 foreach (var match in matches)
                 {
-                    if (match is IgnoredDirectly) Error($"File required for BSA creation doesn't exist: {match.To}");
+                    if (match is IgnoredDirectly) Error($"File required for BSA {source.Path} creation doesn't exist: {match.To}");
                     ExtraFiles.Add(match);
                 }
 

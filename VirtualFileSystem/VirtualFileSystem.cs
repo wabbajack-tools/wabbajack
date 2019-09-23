@@ -23,6 +23,7 @@ namespace VFS
         private bool _disableDiskCache;
         private Dictionary<string, VirtualFile> _files = new Dictionary<string, VirtualFile>();
         private volatile bool _isSyncing;
+        private volatile bool _isDirty = false;
 
         static VirtualFileSystem()
         {
@@ -123,6 +124,7 @@ namespace VFS
             {
                 Utils.Log($"Purging cache due to {ex}");
                 File.Delete("vfs_cache.bson");
+                _isDirty = true;
                 _files.Clear();
             }
         }
@@ -134,6 +136,7 @@ namespace VFS
                 Utils.Status("Syncing VFS Cache");
                 lock (this)
                 {
+                    if (!_isDirty) return;
                     try
                     {
                         _isSyncing = true;
@@ -152,6 +155,7 @@ namespace VFS
                             File.Delete("vfs_cache.bin");
 
                         File.Move("vfs_cache.bin_new", "vfs_cache.bin");
+                        _isDirty = false;
                     }
                     finally
                     {
@@ -178,7 +182,11 @@ namespace VFS
                 _files.Values
                     .Where(v => v.FullPath.StartsWith(path) || v.FullPath == f.FullPath)
                     .ToList()
-                    .Do(r => { _files.Remove(r.FullPath); });
+                    .Do(r =>
+                    {
+                        _isDirty = true;
+                        _files.Remove(r.FullPath);
+                    });
             }
         }
 
@@ -186,6 +194,7 @@ namespace VFS
         {
             lock (this)
             {
+                _isDirty = true;
                 if (_files.ContainsKey(f.FullPath))
                     Purge(f);
                 _files.Add(f.FullPath, f);
@@ -229,7 +238,11 @@ namespace VFS
                         return false;
                     })
                     .ToList()
-                    .Do(f => _files.Remove(f.FullPath));
+                    .Do(f =>
+                    {
+                        _isDirty = true;
+                        _files.Remove(f.FullPath);
+                    });
             }
         }
 
@@ -455,7 +468,9 @@ namespace VFS
 
         public IDictionary<VirtualFile, IEnumerable<VirtualFile>> GroupedByArchive()
         {
-            return _files.Values.GroupBy(f => f.TopLevelArchive)
+            return _files.Values
+                .Where(f => f.TopLevelArchive != null)
+                .GroupBy(f => f.TopLevelArchive)
                 .ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>) f);
         }
     }

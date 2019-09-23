@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 using VFS;
 
@@ -145,6 +144,21 @@ namespace Wabbajack
         /// <summary>
         ///     The file to apply to the source file to patch it
         /// </summary>
+        public byte[] Patch;
+    }
+
+    [Serializable]
+    public class SourcePatch
+    {
+        public string RelativePath;
+        public string Hash;
+    }
+
+    [Serializable]
+    public class MergedPatch : Directive
+    {
+        public List<SourcePatch> Sources;
+        public string Hash;
         public byte[] Patch;
     }
 

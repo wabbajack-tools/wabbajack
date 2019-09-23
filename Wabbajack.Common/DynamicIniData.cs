@@ -47,5 +47,18 @@ namespace Wabbajack.Common
             if (result is string) result = Regex.Unescape(((string) result).Trim('"'));
             return true;
         }
+
+        public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object result)
+        {
+            if (indexes.Length > 1)
+            {
+                result = null;
+                return false;
+            }
+
+            result = _coll[(string) indexes[0]];
+            if (result is string) result = Regex.Unescape(((string)result).Trim('"'));
+            return true;
+        }
     }
 }

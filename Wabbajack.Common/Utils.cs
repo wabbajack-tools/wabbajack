@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Configuration;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -477,6 +478,23 @@ namespace Wabbajack.Common
             var patch_name = Path.Combine("patch_cache",
                 $"{foundHash.FromBase64().ToHEX()}_{fileHash.FromBase64().ToHEX()}.patch");
             ePatch = File.Exists(patch_name) ? File.ReadAllBytes(patch_name) : null;
+        }
+
+        public static void Warning(string s)
+        {
+            Log($"WARNING: {s}");
+        }
+
+        public static byte[] ConcatArrays(this IEnumerable<byte[]> arrays)
+        {
+            var outarr = new byte[arrays.Sum(a => a.Length)];
+            int offset = 0;
+            foreach (var arr in arrays)
+            {
+                Array.Copy(arr, 0, outarr, offset, arr.Length);
+                offset += arr.Length;
+            }
+            return outarr;
         }
     }
 }
