@@ -9,6 +9,7 @@
 * Detect and zEdit Merges and include binary patches for merges (no install support yet)
 * Add unit/integration tests. 
 * Don't assume *everyone* has LOOT
+* Added support for `.exe` installers
 
 #### Version 0.9.2 - 9/18/2013
 * Fixed a bug with BSA string encoding
