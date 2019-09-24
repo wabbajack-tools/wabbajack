@@ -232,7 +232,7 @@ namespace Wabbajack
 
             InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
 
-            Info("Getting nexus api_key please click authorize if a browser window appears");
+            Info("Getting Nexus api_key, please click authorize if a browser window appears");
 
             if (IndexedArchives.OfType<NexusMod>().Any())
             {
@@ -439,7 +439,7 @@ namespace Wabbajack
                 }
                 else if (general.directURL != null && general.directURL.StartsWith("http://www.mediafire.com/file/"))
                 {
-                    Error("Mediafire links are not currently supported");
+                    Error("MediaFire links are not currently supported");
                     return null;
                     /*result = new MediaFireArchive()
                     {
@@ -502,7 +502,7 @@ namespace Wabbajack
                 installer.NexusAPIKey = NexusKey;
                 if (!installer.DownloadArchive(result, false))
                     Error(
-                        $"Unable to resolve link for {found.Name}. If this is hosted on the nexus the file may have been removed.");
+                        $"Unable to resolve link for {found.Name}. If this is hosted on the Nexus the file may have been removed.");
 
                 return result;
             }

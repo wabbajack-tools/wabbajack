@@ -24,7 +24,7 @@ namespace Wabbajack.Common
         private static Action<string> _loggerFn;
         private static Action<string, int> _statusFn;
 
-        private static readonly string[] Suffix = {"B", "KB", "MB", "GB", "TB", "PB", "EB"}; //Longs run out around EB
+        private static readonly string[] Suffix = {"B", "KB", "MB", "GB", "TB", "PB", "EB"}; // Longs run out around EB
 
         public static void SetLoggerFn(Action<string> f)
         {
