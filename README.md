@@ -153,6 +153,10 @@ copyrighted material. Instead we copy instructions on how to modify the copyrigh
 
 Look at the [`RECIPES.md`] file, we keep a knowledgebase of how to deal with given types of mods in that file.
 
+**How do I contribute to Wabbajack?**
+
+Look at the [`CONTRIBUTION.md`](https://github.com/halgari/wabbajack/blob/master/CONTRIBUTING.md) file for detailed guidelines.
+
 **Why does each modlist install another copy of Mod Organizer 2?**
 
 Self-contained folders are a cleaner abstraction than dumping tons of modlists into the same set of folders. It's easy to uninstall a modlist (simply delete the folder),
