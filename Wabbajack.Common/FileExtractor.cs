@@ -36,7 +36,7 @@ namespace Wabbajack.Common
             {
                 if (source.EndsWith(".bsa"))
                     ExtractAllWithBSA(source, dest);
-                if (source.EndsWith(".exe"))
+                else if (source.EndsWith(".exe"))
                     ExtractAllWithInno(source, dest);
                 else
                     ExtractAllWith7Zip(source, dest);
