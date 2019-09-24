@@ -47,6 +47,8 @@ namespace Wabbajack
         public dynamic MO2Ini { get; }
         public string GamePath { get; }
 
+        public bool ShowReportWhenFinished { get; set; } = true;
+
         public bool IgnoreMissingFiles { get; set; }
 
         public string MO2DownloadsFolder
@@ -105,7 +107,7 @@ namespace Wabbajack
             throw new Exception(msg);
         }
 
-        public void Compile()
+        public bool Compile()
         {
             VirtualFileSystem.Clean();
             Info("Looking for other profiles");
@@ -217,7 +219,7 @@ namespace Wabbajack
                 else
                 {
                     Info("Exiting due to no way to compile these files");
-                    return;
+                    return false;
                 }
             }
 
@@ -225,10 +227,13 @@ namespace Wabbajack
 
             Info("Getting nexus api_key please click authorize if a browser window appears");
 
-            NexusKey = GetNexusAPIKey();
-            User = GetUserStatus(NexusKey);
+            if (IndexedArchives.OfType<NexusMod>().Any())
+            {
+                NexusKey = GetNexusAPIKey();
+                User = GetUserStatus(NexusKey);
+                if (!User.is_premium) Info($"User {User.name} is not a premium Nexus user, cannot continue");
 
-            if (!User.is_premium) Info($"User {User.name} is not a premium Nexus user, cannot continue");
+            }
 
             zEditIntegration.VerifyMerges(this);
 
@@ -250,10 +255,13 @@ namespace Wabbajack
             ShowReport();
 
             Info("Done Building Modpack");
+            return true;
         }
 
         private void ShowReport()
         {
+            if (!ShowReportWhenFinished) return;
+
             var file = Path.GetTempFileName() + ".html";
             File.WriteAllText(file, ModList.ReportHTML);
             Process.Start(file);
@@ -445,13 +453,6 @@ namespace Wabbajack
 
                     result = tmp;
                 }
-                else if (general.manualURL != null)
-                {
-                    result = new ManualURLArchive
-                    {
-                        URL = general.manualURL.ToString()
-                    };
-                }
                 else if (general.modID != null && general.fileID != null && general.gameName != null)
                 {
                     var nm = new NexusMod
@@ -467,6 +468,14 @@ namespace Wabbajack
                     nm.UploaderProfile = info.uploaded_users_profile_url;
                     result = nm;
                 }
+                else if (general.manualURL != null)
+                {
+                    result = new ManualArchive
+                    {
+                        URL = general.manualURL,
+                        Notes = general.manualNotes,
+                    };
+                }
                 else
                 {
                     Error("No way to handle archive {0} but it's required by the modlist", found.Name);
@@ -477,6 +486,8 @@ namespace Wabbajack
                 result.Hash = found.File.Hash;
                 result.Meta = found.Meta;
                 result.Size = found.File.Size;
+
+                if (result is ManualArchive) return result;
 
                 Info($"Checking link for {found.Name}");
 

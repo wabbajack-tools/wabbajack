@@ -17,6 +17,7 @@ namespace Wabbajack.Common
 
         public static int MaxQueueSize;
         public static int CurrentQueueSize;
+        private static bool _inited;
 
         public static Action<int, string, int> ReportFunction { get; private set; }
         public static Action<int, int> ReportQueueSize { get; private set; }
@@ -28,7 +29,10 @@ namespace Wabbajack.Common
             ReportFunction = report_function;
             ReportQueueSize = report_queue_size;
             ThreadCount = Environment.ProcessorCount;
+            if (_inited) return;
             StartThreads();
+            _inited = true;
+
         }
 
         private static void StartThreads()

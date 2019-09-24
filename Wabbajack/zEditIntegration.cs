@@ -19,6 +19,7 @@ namespace Wabbajack
         public static string FindzEditPath(Compiler compiler)
         {
             var executables = compiler.MO2Ini.customExecutables;
+            if (executables.size == null) return null;
 
             foreach (var idx in Enumerable.Range(1, int.Parse(executables.size)))
             {

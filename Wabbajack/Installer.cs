@@ -48,7 +48,7 @@ namespace Wabbajack
 
         public string NexusAPIKey { get; set; }
         public bool IgnoreMissingFiles { get; internal set; }
-        public string GameFolder { get; private set; }
+        public string GameFolder { get; set; }
 
         public void Info(string msg, params object[] args)
         {
@@ -99,8 +99,7 @@ namespace Wabbajack
                 }
             }
 
-            if (ModList.Directives.OfType<RemappedInlineFile>().FirstOrDefault() != null ||
-                ModList.Directives.OfType<CleanedESM>().FirstOrDefault() != null)
+            if (GameFolder == null)
             {
                 MessageBox.Show(
                     "In order to do a proper install Wabbajack needs to know where your game folder resides. This is most likely " +
@@ -408,15 +407,18 @@ namespace Wabbajack
             Info("Missing {0} archives", missing.Count);
 
             Info("Getting Nexus API Key, if a browser appears, please accept");
-            NexusAPIKey = NexusAPI.GetNexusAPIKey();
-
-            var user_status = NexusAPI.GetUserStatus(NexusAPIKey);
-
-            if (!user_status.is_premium)
+            if (ModList.Archives.OfType<NexusMod>().Any())
             {
-                Info(
-                    $"Automated installs with Wabbajack requires a premium nexus account. {user_status.name} is not a premium account");
-                return;
+                NexusAPIKey = NexusAPI.GetNexusAPIKey();
+
+                var user_status = NexusAPI.GetUserStatus(NexusAPIKey);
+
+                if (!user_status.is_premium)
+                {
+                    Info(
+                        $"Automated installs with Wabbajack requires a premium nexus account. {user_status.name} is not a premium account");
+                    return;
+                }
             }
 
             DownloadMissingArchives(missing);

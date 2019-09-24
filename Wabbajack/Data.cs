@@ -195,6 +195,13 @@ namespace Wabbajack
     }
 
     [Serializable]
+    public class ManualArchive : Archive
+    {
+        public string URL;
+        public string Notes;
+    }
+
+    [Serializable]
     public class GoogleDriveMod : Archive
     {
         public string Id;
@@ -209,15 +216,6 @@ namespace Wabbajack
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public List<string> Headers;
 
-        public string URL;
-    }
-
-    /// <summary>
-    ///     A URL that cannot be downloaded automatically and has to be downloaded by hand
-    /// </summary>
-    [Serializable]
-    public class ManualURLArchive : Archive
-    {
         public string URL;
     }
 

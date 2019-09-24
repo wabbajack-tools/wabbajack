@@ -28,10 +28,18 @@ namespace VFS
         static VirtualFileSystem()
         {
             VFS = new VirtualFileSystem();
-            RootFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            var entry = Assembly.GetEntryAssembly();
+            if (entry != null && !string.IsNullOrEmpty(entry.Location))
+            {
+                RootFolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                _stagedRoot = Path.Combine(RootFolder, "vfs_staged_files");
+            }
+        }
 
+        public static void Reconfigure(string root)
+        {
+            RootFolder = root;
             _stagedRoot = Path.Combine(RootFolder, "vfs_staged_files");
-
         }
 
         public static void Clean()
@@ -51,7 +59,7 @@ namespace VFS
             LoadFromDisk();
         }
 
-        public static string RootFolder { get; }
+        public static string RootFolder { get; private set; }
         public Dictionary<string, IEnumerable<VirtualFile>> HashIndex { get; private set; }
 
         public VirtualFile this[string path] => Lookup(path);
