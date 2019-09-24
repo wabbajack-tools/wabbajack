@@ -1,4 +1,5 @@
 ## Wabbajack - An automated modlist installer for TES/Fallout games
+[![Build Status](https://dev.azure.com/tbaldridge/tbaldridge/_apis/build/status/halgari.wabbajack?branchName=master)](https://dev.azure.com/tbaldridge/tbaldridge/_build/latest?definitionId=1&branchName=master)
 
 The general idea behind this program is fairly simple. Given a Mod Organizer 2 folder and profile, generate list of instructions that will allow
 a program to automatically recreate the contents of the folder on another machine. Think of it as replication, but without ever distributing copyrighted
