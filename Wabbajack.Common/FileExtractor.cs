@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
@@ -13,6 +14,7 @@ namespace Wabbajack.Common
         {
             ExtractResource("Wabbajack.Common.7z.dll.gz", "7z.dll");
             ExtractResource("Wabbajack.Common.7z.exe.gz", "7z.exe");
+            ExtractResource("Wabbajack.Common.innounp.exe.gz", "innounp.exe");
         }
 
         private static void ExtractResource(string from, string to)
@@ -34,6 +36,8 @@ namespace Wabbajack.Common
             {
                 if (source.EndsWith(".bsa"))
                     ExtractAllWithBSA(source, dest);
+                if (source.EndsWith(".exe"))
+                    ExtractAllWithInno(source, dest);
                 else
                     ExtractAllWith7Zip(source, dest);
             }
@@ -84,6 +88,64 @@ namespace Wabbajack.Common
             {
                 FileName = "7z.exe",
                 Arguments = $"x -bsp1 -y -o\"{dest}\" \"{source}\"",
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            var p = new Process
+            {
+                StartInfo = info
+            };
+
+            p.Start();
+            ChildProcessTracker.AddProcess(p);
+            try
+            {
+                p.PriorityClass = ProcessPriorityClass.BelowNormal;
+            }
+            catch (Exception)
+            {
+            }
+
+            var name = Path.GetFileName(source);
+            try
+            {
+                while (!p.HasExited)
+                {
+                    var line = p.StandardOutput.ReadLine();
+                    if (line == null)
+                        break;
+                    var percent = 0;
+                    if (line.Length > 4 && line[3] == '%')
+                    {
+                        int.TryParse(line.Substring(0, 3), out percent);
+                        Utils.Status($"Extracting {name} - {line.Trim()}", percent);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+
+            p.WaitForExit();
+            if (p.ExitCode != 0)
+            {
+                Utils.Log(p.StandardOutput.ReadToEnd());
+                Utils.Log($"Extraction error extracting {source}");
+            }
+        }
+
+        private static void ExtractAllWithInno(string source, string dest)
+        {
+            Utils.Log($"Extracting {Path.GetFileName(source)}");
+
+            var info = new ProcessStartInfo
+            {
+                FileName = "innounp.exe",
+                Arguments = $"-x -y -b -d\"{dest}\" \"{source}\"",
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
