@@ -138,13 +138,20 @@ namespace Wabbajack
             var loot_path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "LOOT");
 
-            Info($"Indexing {loot_path}");
-            VFS.AddRoot(loot_path);
+            // TODO: make this generic so we can add more paths
+            IEnumerable<RawSourceFile> loot_files = new List<RawSourceFile>();
+            if (Directory.Exists(loot_path))
+            {
+                Info($"Indexing {loot_path}");
+                VFS.AddRoot(loot_path);
 
-            var loot_files = Directory.EnumerateFiles(loot_path, "userlist.yaml", SearchOption.AllDirectories)
-                .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Lookup(p))
-                    {Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(loot_path))});
+                loot_files = Directory.EnumerateFiles(loot_path, "userlist.yaml", SearchOption.AllDirectories)
+                    .Where(p => p.FileExists())
+                    .Select(p => new RawSourceFile(VFS.Lookup(p))
+                        { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(loot_path)) });
+            }
+
+
 
 
             Info("Indexing Archives");

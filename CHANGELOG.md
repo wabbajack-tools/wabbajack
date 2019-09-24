@@ -7,6 +7,8 @@
 * Only sync the VFS cache when it changes.
 * Fix a crash in GroupedByArchive()
 * Detect and zEdit Merges and include binary patches for merges (no install support yet)
+* Add unit/integration tests. 
+* Don't assume *everyone* has LOOT
 
 #### Version 0.9.2 - 9/18/2013
 * Fixed a bug with BSA string encoding
