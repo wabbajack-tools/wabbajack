@@ -68,9 +68,6 @@
     <Reference Include="Newtonsoft.Json.Bson, Version=1.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.Bson.1.0.2\lib\net45\Newtonsoft.Json.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="OMODExtractorDLL">
-      <HintPath>..\..\OMOD-Extractor\OMODExtractorDLL\bin\Debug\OMODExtractorDLL.dll</HintPath>
-    </Reference>
     <Reference Include="protobuf-net, Version=2.4.0.0, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
       <HintPath>..\packages\protobuf-net.2.4.0\lib\net40\protobuf-net.dll</HintPath>
     </Reference>
@@ -106,6 +103,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\OMOD-Extractor\OMODExtractorDLL\OMODExtractorDLL.csproj">
+      <Project>{eb003d18-dffb-49c7-b054-fb375345ae26}</Project>
+      <Name>OMODExtractorDLL</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj">
       <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
       <Name>Compression.BSA</Name>
