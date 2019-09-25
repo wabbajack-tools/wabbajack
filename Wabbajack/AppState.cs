@@ -305,13 +305,15 @@ namespace Wabbajack
                 if (folder != null)
                 {
                     var file = Path.Combine(folder, "modlist.txt");
-                    if (!File.Exists(file))
+                    if(File.Exists(file))
+                    {
+                        Location = file;
+                        ConfigureForBuild();
+                    }
+                    else
                     {
                         Utils.Log($"No modlist.txt found at {file}");
                     }
-
-                    Location = file;
-                    ConfigureForBuild();
                 }
             }
         }
