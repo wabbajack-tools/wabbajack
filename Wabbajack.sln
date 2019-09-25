@@ -29,7 +29,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.WebAutomation.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Test", "Wabbajack.Test\Wabbajack.Test.csproj", "{A47FFF32-782B-4D9F-8704-C98FB32FA8CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OMODExtractorDLL", "..\OMOD-Extractor\OMODExtractorDLL\OMODExtractorDLL.csproj", "{EB003D18-DFFB-49C7-B054-FB375345AE26}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OMODExtractorDLL", "OMOD-Extractor\OMODExtractorDLL\OMODExtractorDLL.csproj", "{EB003D18-DFFB-49C7-B054-FB375345AE26}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
