@@ -381,32 +381,40 @@ namespace Wabbajack
             }
             else
             {
-                var compiler = new Compiler(_mo2Folder, msg => LogMsg(msg));
-                compiler.IgnoreMissingFiles = IgnoreMissingFiles;
-                compiler.MO2Profile = ModListName;
-                var th = new Thread(() =>
+                if (_mo2Folder != null)
                 {
-                    UIReady = false;
-                    try
+                    var compiler = new Compiler(_mo2Folder, msg => LogMsg(msg));
+                    compiler.IgnoreMissingFiles = IgnoreMissingFiles;
+                    compiler.MO2Profile = ModListName;
+                    var th = new Thread(() =>
                     {
-                        compiler.Compile();
-                        if (compiler.ModList != null && compiler.ModList.ReportHTML != null)
-                            HTMLReport = compiler.ModList.ReportHTML;
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        LogMsg(ex.StackTrace);
-                        LogMsg(ex.ToString());
-                        LogMsg($"{ex.Message} - Can't continue");
-                    }
-                    finally
-                    {
-                        UIReady = true;
-                    }
-                });
-                th.Priority = ThreadPriority.BelowNormal;
-                th.Start();
+                        UIReady = false;
+                        try
+                        {
+                            compiler.Compile();
+                            if (compiler.ModList != null && compiler.ModList.ReportHTML != null)
+                                HTMLReport = compiler.ModList.ReportHTML;
+                        }
+                        catch (Exception ex)
+                        {
+                            while (ex.InnerException != null) ex = ex.InnerException;
+                            LogMsg(ex.StackTrace);
+                            LogMsg(ex.ToString());
+                            LogMsg($"{ex.Message} - Can't continue");
+                        }
+                        finally
+                        {
+                            UIReady = true;
+                        }
+                    });
+                    th.Priority = ThreadPriority.BelowNormal;
+                    th.Start();
+                }
+                else
+                {
+                    Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
+                    UIReady = true;
+                }
             }
         }
 
