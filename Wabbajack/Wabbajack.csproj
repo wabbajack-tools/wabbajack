@@ -266,7 +266,10 @@
     <Resource Include="square_transparent_icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="css.css" />
+    <None Include="css.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="css-min.css" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.5.1.1\build\Fody.targets" Condition="Exists('..\packages\Fody.5.1.1\build\Fody.targets')" />
