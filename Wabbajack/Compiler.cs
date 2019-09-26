@@ -223,7 +223,7 @@ namespace Wabbajack
 
             InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
 
-            Info("Getting nexus api_key please click authorize if a browser window appears");
+            Info("Getting Nexus api_key, please click authorize if a browser window appears");
 
             if (IndexedArchives.Any(a => a.IniData?.General?.gameName != null))
             {
@@ -267,6 +267,15 @@ namespace Wabbajack
 
         private void GenerateReport()
         {
+            string css = "";
+            using (Stream cssStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.css-min.css"))
+            {
+                using (StreamReader reader = new StreamReader(cssStream))
+                {
+                    css = reader.ReadToEnd();
+                }
+            }
+
             using (var fs = File.OpenWrite($"{ModList.Name}.md"))
             {
                 fs.SetLength(0);
@@ -276,7 +285,8 @@ namespace Wabbajack
                 }
             }
 
-            ModList.ReportHTML = CommonMarkConverter.Convert(File.ReadAllText($"{ModList.Name}.md"));
+            ModList.ReportHTML = "<style>"+css+"</style>"
+                +CommonMarkConverter.Convert(File.ReadAllText($"{ModList.Name}.md"));
         }
 
         /// <summary>
@@ -426,7 +436,7 @@ namespace Wabbajack
                 }
                 else if (general.directURL != null && general.directURL.StartsWith("http://www.mediafire.com/file/"))
                 {
-                    Error("Mediafire links are not currently supported");
+                    Error("MediaFire links are not currently supported");
                     return null;
                     /*result = new MediaFireArchive()
                     {
@@ -494,7 +504,7 @@ namespace Wabbajack
                 installer.NexusAPIKey = NexusKey;
                 if (!installer.DownloadArchive(result, false))
                     Error(
-                        $"Unable to resolve link for {found.Name}. If this is hosted on the nexus the file may have been removed.");
+                        $"Unable to resolve link for {found.Name}. If this is hosted on the Nexus the file may have been removed.");
 
                 return result;
             }

@@ -38,6 +38,8 @@ namespace Wabbajack.Common
                     ExtractAllWithBSA(source, dest);
                 else if (source.EndsWith(".exe"))
                     ExtractAllWithInno(source, dest);
+                else if (source.EndsWith(".omod"))
+                    ExtractAllWithOMOD(source, dest);
                 else
                     ExtractAllWith7Zip(source, dest);
             }
@@ -46,6 +48,17 @@ namespace Wabbajack.Common
                 Utils.Log($"Error while extracting {source}");
                 throw ex;
             }
+        }
+
+        private static void ExtractAllWithOMOD(string source, string dest)
+        {
+            Utils.Log($"Extracting {Path.GetFileName(source)}");
+            OMODExtractorDLL.OMOD omod = new OMODExtractorDLL.OMOD(source, dest+"//", "temp");
+            omod.SaveConfig();
+            omod.SaveFile("script");
+            omod.SaveFile("readme");
+            omod.ExtractData();
+            omod.ExtractPlugins();
         }
 
         private static void ExtractAllWithBSA(string source, string dest)

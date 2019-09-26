@@ -1,6 +1,6 @@
 # Contributing to Wabbajack
 
-The following is a set of guidelines for contributing to the `halgari/wabbajack` repo on Github. These are guildeines but not rules so be free to propose changes.
+The following is a set of guidelines for contributing to the `halgari/wabbajack` repo on GitHub. These are guidelines but not rules so be free to propose changes.
 
 ## How Can I Contribute?
 
@@ -39,11 +39,12 @@ You can download it [here](https://visualstudio.microsoft.com/vs/) but make sure
 
 The installer may have selected other options as well but these are the most important ones.
 
-### Starting developement
+### Starting development
 
 1) **Fork and clone the project:** go to the Github repo page, click the fork button, copy the url from the forked repo, navigate to your project folder, open Git Bash or normal command prompt and type `git clone url name` and replace url with the copied url and name with the folder name
-2) **Open Wabbajack.sln** in Visual Studio 2019
-3) **Download NuGet Packages** by selecting the solution and *Right Click*->*Restore NuGet Packages*
+2) **Initialize the submodules** using `git submodule init` and `git submodule update`
+3) **Open Wabbajack.sln** in Visual Studio 2019
+4) **Download NuGet Packages** by selecting the solution and *Right Click*->*Restore NuGet Packages*
 
 It may take a while for Visual Studio to download all packages and update all References so be patience. Once all packages are downloaded go and try building Wabbajack. If the build is successful than good job, if not head over to the *#wabbajack-development* channel on the discord and talk about your build error.
 

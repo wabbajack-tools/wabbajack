@@ -13,7 +13,8 @@ namespace Wabbajack.Common
         public static string BSACreationDir = "TEMP_BSA_FILES";
         public static string MegaPrefix = "https://mega.nz/#!";
 
-        public static HashSet<string> SupportedArchives = new HashSet<string> {".zip", ".rar", ".7z", ".7zip", ".fomod"};
+        public static HashSet<string> SupportedArchives = new HashSet<string> {".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod"};
+
         public static HashSet<string> SupportedBSAs = new HashSet<string> {".bsa"};
 
         public static HashSet<string> ConfigFileExtensions = new HashSet<string> {".json", ".ini", ".yml"};
