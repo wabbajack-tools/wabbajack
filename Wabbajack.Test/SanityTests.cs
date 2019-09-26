@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
@@ -46,14 +48,58 @@ namespace Wabbajack.Test
             utils.AddManualDownload(
                 new Dictionary<string, byte[]> {{"/baz/biz.pex", File.ReadAllBytes(test_pex)}});
 
+            CompileAndInstall(profile);
 
-            var compiler = ConfigureCompiler(profile);
-            Assert.IsTrue(compiler.Compile());
-
-            Install(compiler);
             utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
         }
 
+        [TestMethod]
+        public void UnmodifiedInlinedFilesArePulledFromArchives()
+        {
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var ini = utils.AddModFile(mod, @"foo.ini", 10);
+            utils.Configure();
+
+            utils.AddManualDownload(
+                new Dictionary<string, byte[]> { { "/baz/biz.pex", File.ReadAllBytes(ini) } });
+
+            var modlist = CompileAndInstall(profile);
+            var directive = modlist.Directives.Where(m => m.To == $"mods\\{mod}\\foo.ini").FirstOrDefault();
+
+            Assert.IsNotNull(directive);
+            Assert.IsInstanceOfType(directive, typeof(FromArchive));
+        }
+
+        [TestMethod]
+        public void ModifiedIniFilesArePatchedAgainstFileWithSameName()
+        {
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var ini = utils.AddModFile(mod, @"foo.ini", 10);
+            utils.Configure();
+
+
+            utils.AddManualDownload(
+                new Dictionary<string, byte[]> { { "/baz/foo.ini", File.ReadAllBytes(ini) } });
+
+            // Modify after creating mod archive in the downloads folder
+            File.WriteAllText(ini, "Wabbajack, Wabbajack, Wabbajack!");
+
+            var modlist = CompileAndInstall(profile);
+            var directive = modlist.Directives.Where(m => m.To == $"mods\\{mod}\\foo.ini").FirstOrDefault();
+
+            Assert.IsNotNull(directive);
+            Assert.IsInstanceOfType(directive, typeof(PatchedFromArchive));
+        }
+
+
+        private ModList CompileAndInstall(string profile)
+        {
+            var compiler = ConfigureAndRunCompiler(profile);
+            Install(compiler);
+            return compiler.ModList;
+        }
 
         private void Install(Compiler compiler)
         {
@@ -63,12 +109,14 @@ namespace Wabbajack.Test
             installer.Install();
         }
 
-        private Compiler ConfigureCompiler(string profile)
+        private Compiler ConfigureAndRunCompiler(string profile)
         {
             VirtualFileSystem.Reconfigure(utils.TestFolder);
             var compiler = new Compiler(utils.MO2Folder);
+            compiler.VFS.Reset();
             compiler.MO2Profile = profile;
             compiler.ShowReportWhenFinished = false;
+            Assert.IsTrue(compiler.Compile());
             return compiler;
         }
     }

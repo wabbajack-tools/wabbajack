@@ -559,7 +559,7 @@ namespace Wabbajack
                 // If we have no match at this point for a game folder file, skip them, we can't do anything about them
                 IgnoreGameFiles(),
 
-                // There are some types of files that will error the compilation, because tehy're created on-the-fly via tools
+                // There are some types of files that will error the compilation, because they're created on-the-fly via tools
                 // so if we don't have a match by this point, just drop them.
                 IgnoreEndsWith(".ini"),
                 IgnoreEndsWith(".html"),

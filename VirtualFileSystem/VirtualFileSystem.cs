@@ -101,10 +101,16 @@ namespace VFS
             p.WaitForExit();
         }
 
+        public void Reset()
+        {
+            LoadFromDisk();
+        }
+
         private void LoadFromDisk()
         {
             try
             {
+                HashIndex = new Dictionary<string, IEnumerable<VirtualFile>>();
                 Utils.Log("Loading VFS Cache");
                 if (!File.Exists("vfs_cache.bin")) return;
                 _files = new Dictionary<string, VirtualFile>();
@@ -301,6 +307,7 @@ namespace VFS
             {
                 HashIndex = _files.Values
                     .GroupBy(f => f.Hash)
+                    .Where(f => f.Key != null)
                     .ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>) f);
             }
         }
