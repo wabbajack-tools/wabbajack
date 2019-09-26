@@ -40,6 +40,7 @@ namespace Wabbajack
             Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
             UIUtils.Dispatcher = Dispatcher;
 
+            _state._nexusSiteURL = "https://github.com/halgari/wabbajack";
 
             new Thread(() =>
             {
