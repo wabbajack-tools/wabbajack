@@ -30,11 +30,13 @@ let's do a rundown of all the supported features:
   - ModDB
   - Direct URLs (with custom header support)
 - Support the following archive types
-  - .zip
-  - .7z
-  - .rar
+  - `.zip`
+  - `.7z`
+  - `.rar`
+  - `.fomod` (FNV archives)
 - The following mod installation types are supported
-  - Files installed with our without fomod isntallers
+  - Files installed with our without fomod installers
+  - Files from `.omod` mods like `DarNified UI` or `DarkUId Darn`
   - Manually installed mods
   - Renamed/deleted/moved files are detected and handled
   - Multiple mods installed into the same mod folder
@@ -65,7 +67,7 @@ That being said, there are some cases where we would need to do a bit more work 
 
 ### Creating a ModList Installer
 
-Overview video [`https://www.youtube.com/watch?v=5Fwr0Chtcuc`]
+Overview video [`https://www.youtube.com/watch?v=5Fwr0Chtcuc`](https://www.youtube.com/watch?v=5Fwr0Chtcuc)
 
 1) Download Wabbajack and install it somewhere outside of your normal Mod Organizer 2 folder
 (otherwise Wabbajack will try to figure out how to install itself and that might cause a collapse in the time-space
