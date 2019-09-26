@@ -276,6 +276,15 @@ namespace Wabbajack
 
         private void GenerateReport()
         {
+            string css = "";
+            using (Stream cssStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.css-min.css"))
+            {
+                using (StreamReader reader = new StreamReader(cssStream))
+                {
+                    css = reader.ReadToEnd();
+                }
+            }
+
             using (var fs = File.OpenWrite($"{ModList.Name}.md"))
             {
                 fs.SetLength(0);
@@ -285,7 +294,8 @@ namespace Wabbajack
                 }
             }
 
-            ModList.ReportHTML = CommonMarkConverter.Convert(File.ReadAllText($"{ModList.Name}.md"));
+            ModList.ReportHTML = "<style>"+css+"</style>"
+                +CommonMarkConverter.Convert(File.ReadAllText($"{ModList.Name}.md"));
         }
 
         /// <summary>

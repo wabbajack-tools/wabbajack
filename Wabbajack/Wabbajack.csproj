@@ -266,6 +266,12 @@
     <Resource Include="square_transparent_icon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="css.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="css-min.css" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="banner.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

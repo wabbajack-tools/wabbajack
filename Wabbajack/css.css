@@ -1,0 +1,67 @@
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    vertical-align: baseline;
+    -webkit-text-size-adjust: none;
+    padding-left: 10px;
+    padding-right: 10px;
+    
+}
+ul {
+    list-style: none;
+}
+q {
+    quotes: none;
+}
+q:before , q:after {
+    content: '';
+    content: none;
+}
+h1, h2, h3, h4, h5, h6 {
+    color: #555;
+    font-weight: 400;
+    line-height: 1.5;
+    margin: 0 0 0 0;
+}
+h3 {
+    margin: 1em 0 1em 0.5em;
+    text-align: left;
+    text-decoration: underline;
+}
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+    color: inherit;
+    text-decoration: none;
+}
+h2 {
+    font-size: 1.85em;
+    font-weight: 300;
+}
+h3 {
+    font-size: 1.75em;
+}
+h4 {
+    font-size: 1.5em;
+}
+h5 {
+    font-size: 0.9em;
+}
+h6 {
+    font-size: 0.7em;
+}
+a {
+    color: #6cc091;
+    text-decoration: underline;
+}
+a:hover {
+    text-decoration: none;
+}
+code {
+    background: rgba(144, 144, 144, 0.075);
+    border-radius: 0;
+    border: solid 1px #dbdbdb;
+    font-family: "Courier New", monospace;
+    font-size: 0.9em;
+}
