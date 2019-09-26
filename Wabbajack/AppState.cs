@@ -244,7 +244,7 @@ namespace Wabbajack
             }
         }
 
-        private string _nexusSiteURL = null;
+        public string _nexusSiteURL = null;
 
         private void VisitNexusSite()
         {
