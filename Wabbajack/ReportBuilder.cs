@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Wabbajack.Common;
+using Wabbajack.NexusApi;
 
 namespace Wabbajack
 {
@@ -51,9 +52,9 @@ namespace Wabbajack
                 {
                     case NexusMod m:
                         var profile = m.UploaderProfile.Replace("/games/",
-                            "/" + NexusAPI.ConvertGameName(m.GameName).ToLower() + "/");
+                            "/" + NexusApiUtils.ConvertGameName(m.GameName).ToLower() + "/");
                         NoWrapText(
-                            $"* [{m.Name}](http://nexusmods.com/{NexusAPI.ConvertGameName(m.GameName)}/mods/{m.ModID})");
+                            $"* [{m.Name}](http://nexusmods.com/{NexusApiUtils.ConvertGameName(m.GameName)}/mods/{m.ModID})");
                         NoWrapText($"    * Author : [{m.UploadedBy}]({profile})");
                         NoWrapText($"    * Version : {m.Version}");
                         break;
