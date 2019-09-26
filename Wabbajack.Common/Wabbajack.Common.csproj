@@ -103,13 +103,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\OMOD-Extractor\OMODExtractorDLL\OMODExtractorDLL.csproj">
-      <Project>{eb003d18-dffb-49c7-b054-fb375345ae26}</Project>
-      <Name>OMODExtractorDLL</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj">
       <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
       <Name>Compression.BSA</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\OMOD-Extractor\OMODExtractorDLL\OMODExtractorDLL.csproj">
+      <Project>{eb003d18-dffb-49c7-b054-fb375345ae26}</Project>
+      <Name>OMODExtractorDLL</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
