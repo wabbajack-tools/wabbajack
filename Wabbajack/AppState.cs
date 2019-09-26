@@ -16,7 +16,7 @@ using Wabbajack.Properties;
 
 namespace Wabbajack
 {
-    internal class AppState : INotifyPropertyChanged
+    internal class AppState : INotifyPropertyChanged, IDataErrorInfo
     {
         private ICommand _begin;
 
@@ -157,6 +157,7 @@ namespace Wabbajack
                 OnPropertyChanged("Location");
             }
         }
+        
 
         public string DownloadLocation
         {
@@ -315,7 +316,46 @@ namespace Wabbajack
 
         public void OnPropertyChanged(string name)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            if(PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(name));
+            }
+        }
+        public string Error
+        {
+            get { return "Error"; }
+        }
+
+        public string this[string columnName]
+        {
+            get
+            {
+                return Validate(columnName);
+            }
+        }
+        private string Validate(string columnName)
+        {
+            string validationMessage = null;
+            switch (columnName)
+            {
+                case "Location":
+                    if (Location == null)
+                    {
+                        validationMessage = null;
+                    }
+                    else if (Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")))
+                    {
+                        Location = Path.Combine(Location, "modlist.txt");
+                        validationMessage = null;
+                        ConfigureForBuild();
+                    }
+                    else
+                    {
+                        validationMessage = "Invalid Mod Organizer profile directory";
+                    }
+                    break;
+            }
+            return validationMessage;
         }
 
         private void UpdateLoop()
@@ -421,20 +461,7 @@ namespace Wabbajack
             else
             {
                 var folder = UIUtils.ShowFolderSelectionDialog("Select Your MO2 profile directory");
-
-                if (folder != null)
-                {
-                    var file = Path.Combine(folder, "modlist.txt");
-                    if(File.Exists(file))
-                    {
-                        Location = file;
-                        ConfigureForBuild();
-                    }
-                    else
-                    {
-                        Utils.Log($"No modlist.txt found at {file}");
-                    }
-                }
+                Location = folder;
             }
         }
 
@@ -500,42 +527,40 @@ namespace Wabbajack
                 th.Priority = ThreadPriority.BelowNormal;
                 th.Start();
             }
+            else if (_mo2Folder != null)
+            {
+                var compiler = new Compiler(_mo2Folder, msg => LogMsg(msg));
+                compiler.IgnoreMissingFiles = IgnoreMissingFiles;
+                compiler.MO2Profile = ModListName;
+                var th = new Thread(() =>
+                {
+                    UIReady = false;
+                    try
+                    {
+                        compiler.Compile();
+                        if (compiler.ModList != null && compiler.ModList.ReportHTML != null)
+                            HTMLReport = compiler.ModList.ReportHTML;
+                    }
+                    catch (Exception ex)
+                    {
+                        while (ex.InnerException != null) ex = ex.InnerException;
+                        LogMsg(ex.StackTrace);
+                        LogMsg(ex.ToString());
+                        LogMsg($"{ex.Message} - Can't continue");
+                    }
+                    finally
+                    {
+                        UIReady = true;
+                    }
+                });
+                th.Priority = ThreadPriority.BelowNormal;
+                th.Start();
+            }
             else
             {
-                if (_mo2Folder != null)
-                {
-                    var compiler = new Compiler(_mo2Folder, msg => LogMsg(msg));
-                    compiler.IgnoreMissingFiles = IgnoreMissingFiles;
-                    compiler.MO2Profile = ModListName;
-                    var th = new Thread(() =>
-                    {
-                        UIReady = false;
-                        try
-                        {
-                            compiler.Compile();
-                            if (compiler.ModList != null && compiler.ModList.ReportHTML != null)
-                                HTMLReport = compiler.ModList.ReportHTML;
-                        }
-                        catch (Exception ex)
-                        {
-                            while (ex.InnerException != null) ex = ex.InnerException;
-                            LogMsg(ex.StackTrace);
-                            LogMsg(ex.ToString());
-                            LogMsg($"{ex.Message} - Can't continue");
-                        }
-                        finally
-                        {
-                            UIReady = true;
-                        }
-                    });
-                    th.Priority = ThreadPriority.BelowNormal;
-                    th.Start();
-                }
-                else
-                {
-                    Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
-                    UIReady = true;
-                }
+                Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
+                UIReady = true;
+            }
             }
         }
 
@@ -547,5 +572,4 @@ namespace Wabbajack
             public string Msg { get; internal set; }
             public int ID { get; internal set; }
         }
-    }
 }
