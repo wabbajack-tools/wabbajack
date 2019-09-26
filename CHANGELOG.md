@@ -11,6 +11,7 @@
 * Don't assume *everyone* has LOOT
 * Added support for `.exe` installers
 * Rework UI to support a slideshow of used mods during installation and compilation
+* Remove support for extracting `.exe` installers
 
 #### Version 0.9.2 - 9/18/2013
 * Fixed a bug with BSA string encoding
