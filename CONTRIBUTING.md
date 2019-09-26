@@ -1,6 +1,6 @@
 # Contributing to Wabbajack
 
-The following is a set of guidelines for contributing to the `halgari/wabbajack` repo on Github. These are guildeines but not rules so be free to propose changes.
+The following is a set of guidelines for contributing to the `halgari/wabbajack` repo on GitHub. These are guidelines but not rules so be free to propose changes.
 
 ## How Can I Contribute?
 
@@ -39,7 +39,7 @@ You can download it [here](https://visualstudio.microsoft.com/vs/) but make sure
 
 The installer may have selected other options as well but these are the most important ones.
 
-### Starting developement
+### Starting development
 
 1) **Fork and clone the project:** go to the Github repo page, click the fork button, copy the url from the forked repo, navigate to your project folder, open Git Bash or normal command prompt and type `git clone url name` and replace url with the copied url and name with the folder name
 2) **Initialize the submodules** using `git submodule init` and `git submodule update`

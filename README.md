@@ -65,7 +65,7 @@ Overview video [`https://www.youtube.com/watch?v=5Fwr0Chtcuc`]
 
 
 1) Download Wabbajack and install it somewhere outside of your normal Mod Organizer 2 folder
-(otherwise Wabbajack will try to figure out how to install itself and that might cuase a collapse in the time-space
+(otherwise Wabbajack will try to figure out how to install itself and that might cause a collapse in the time-space
 continuum).
 2) Make sure every archive you used in your MO2 profile has some sort of download information attached. 
    * If the file was downloaded via MO2 you're good, no extra work is needed

@@ -4,12 +4,15 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Wabbajack.Common;
+using Wabbajack.Properties;
 
 namespace Wabbajack
 {
@@ -37,6 +40,8 @@ namespace Wabbajack
         private int _queueProgress;
 
         private ICommand _showReportCommand;
+        private ICommand _visitNexusSiteCommand;
+
         private readonly DateTime _startTime;
 
         public volatile bool Dirty;
@@ -45,10 +50,20 @@ namespace Wabbajack
 
         public AppState(Dispatcher d, string mode)
         {
+
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.banner.png");
+            image.EndInit();
+            _wabbajackLogo = image;
+            _splashScreenImage = image;
+
+            SetupSlideshow();
+
             if (Assembly.GetEntryAssembly().Location.ToLower().Contains("\\downloads\\"))
             {
                 MessageBox.Show(
-                    "This app seems to be running inside a folder called `Downloads`, such folders are often highly monitored by Antivirus software and they can often " +
+                    "This app seems to be running inside a folder called `Downloads`, such folders are often highly monitored by antivirus software and they can often " +
                     "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your `Downloads` folder and then restart the app.",
                     "Cannot run inside `Downloads`",
                     MessageBoxButton.OK,
@@ -74,6 +89,19 @@ namespace Wabbajack
             th.IsBackground = true;
             th.Start();
         }
+
+        private void SetupSlideshow()
+        {
+            var files = NexusAPI.CachedSlideShow;
+            if (files.Any())
+            {
+                SlideShowElements = files.ToList();
+            }
+        }
+
+        public Random _random = new Random();
+        public List<NexusAPI.SlideShowItem> SlideShowElements = new List<NexusAPI.SlideShowItem>();
+        private DateTime _lastSlideShowUpdate = new DateTime();
 
         public ObservableCollection<string> Log { get; }
         public ObservableCollection<CPUStatus> Status { get; }
@@ -207,6 +235,26 @@ namespace Wabbajack
             }
         }
 
+        public ICommand VisitNexusSiteCommand
+        {
+            get
+            {
+                if (_visitNexusSiteCommand == null) _visitNexusSiteCommand = new LambdaCommand(() => true, () => VisitNexusSite());
+                return _visitNexusSiteCommand;
+            }
+        }
+
+        private string _nexusSiteURL = null;
+
+        private void VisitNexusSite()
+        {
+            if (_nexusSiteURL != null && _nexusSiteURL.StartsWith("https://"))
+            {
+                Process.Start(_nexusSiteURL);
+            }
+        }
+
+
         private bool _uiReady = false;
         public bool UIReady
         {
@@ -215,6 +263,51 @@ namespace Wabbajack
             {
                 _uiReady = value;
                 OnPropertyChanged("UIReady");
+            }
+        }
+
+        private BitmapImage _wabbajackLogo = null;
+        private BitmapImage _splashScreenImage = null;
+        public BitmapImage SplashScreenImage
+        {
+            get => _splashScreenImage;
+            set
+            {
+                _splashScreenImage = value;
+                OnPropertyChanged("SplashScreenImage");
+            }
+        }
+
+        public string _splashScreenModName = "Wabbajack";
+        public string SplashScreenModName
+        {
+            get => _splashScreenModName;
+            set
+            {
+                _splashScreenModName = value;
+                OnPropertyChanged("SplashScreenModName");
+            }
+        }
+
+        public string _splashScreenAuthorName = "Halgari & the Wabbajack Team";
+        public string SplashScreenAuthorName
+        {
+            get => _splashScreenAuthorName;
+            set
+            {
+                _splashScreenAuthorName = value;
+                OnPropertyChanged("SplashScreenAuthorName");
+            }
+        }
+
+        public string _splashScreenSummary = "";
+        public string SplashScreenSummary
+        {
+            get => _splashScreenSummary;
+            set
+            {
+                _splashScreenSummary = value;
+                OnPropertyChanged("SplashScreenSummary");
             }
         }
 
@@ -244,6 +337,24 @@ namespace Wabbajack
                         Dirty = false;
                     }
 
+                if (SlideShowElements.Any())
+                {
+                    if (DateTime.Now - _lastSlideShowUpdate > TimeSpan.FromSeconds(10))
+                    {
+                        dispatcher.Invoke(() =>
+                        {
+                            var element = SlideShowElements[_random.Next(0, SlideShowElements.Count)];
+                            SplashScreenImage = new BitmapImage(new Uri(element.ImageURL));
+                            SplashScreenModName = element.ModName;
+                            SplashScreenAuthorName = element.AuthorName;
+                            SplashScreenSummary = element.ModSummary;
+                            _nexusSiteURL = element.ModURL;
+
+                            _lastSlideShowUpdate = DateTime.Now;
+                        });
+                    }
+                }
+
                 Thread.Sleep(1000);
             }
         }
@@ -255,6 +366,15 @@ namespace Wabbajack
             ModListName = _modList.Name;
             HTMLReport = _modList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
+            SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => new NexusAPI.SlideShowItem
+            {
+                ModName = NexusAPI.FixupSummary(m.ModName),
+                AuthorName = NexusAPI.FixupSummary(m.Author),
+                ModSummary = NexusAPI.FixupSummary(m.Summary),
+                ImageURL = m.SlideShowPic,
+                ModURL = m.NexusURL,
+            }).ToList();
         }
 
         public void LogMsg(string msg)
@@ -305,13 +425,15 @@ namespace Wabbajack
                 if (folder != null)
                 {
                     var file = Path.Combine(folder, "modlist.txt");
-                    if (!File.Exists(file))
+                    if(File.Exists(file))
+                    {
+                        Location = file;
+                        ConfigureForBuild();
+                    }
+                    else
                     {
                         Utils.Log($"No modlist.txt found at {file}");
                     }
-
-                    Location = file;
-                    ConfigureForBuild();
                 }
             }
         }
@@ -353,6 +475,7 @@ namespace Wabbajack
             if (Mode == "Installing")
             {
                 var installer = new Installer(_modList, Location, msg => LogMsg(msg));
+
                 installer.IgnoreMissingFiles = IgnoreMissingFiles;
                 installer.DownloadFolder = DownloadLocation;
                 var th = new Thread(() =>
@@ -379,34 +502,44 @@ namespace Wabbajack
             }
             else
             {
-                var compiler = new Compiler(_mo2Folder, msg => LogMsg(msg));
-                compiler.IgnoreMissingFiles = IgnoreMissingFiles;
-                compiler.MO2Profile = ModListName;
-                var th = new Thread(() =>
+                if (_mo2Folder != null)
                 {
-                    UIReady = false;
-                    try
+                    var compiler = new Compiler(_mo2Folder, msg => LogMsg(msg));
+                    compiler.IgnoreMissingFiles = IgnoreMissingFiles;
+                    compiler.MO2Profile = ModListName;
+                    var th = new Thread(() =>
                     {
-                        compiler.Compile();
-                        if (compiler.ModList != null && compiler.ModList.ReportHTML != null)
-                            HTMLReport = compiler.ModList.ReportHTML;
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        LogMsg(ex.StackTrace);
-                        LogMsg(ex.ToString());
-                        LogMsg($"{ex.Message} - Can't continue");
-                    }
-                    finally
-                    {
-                        UIReady = true;
-                    }
-                });
-                th.Priority = ThreadPriority.BelowNormal;
-                th.Start();
+                        UIReady = false;
+                        try
+                        {
+                            compiler.Compile();
+                            if (compiler.ModList != null && compiler.ModList.ReportHTML != null)
+                                HTMLReport = compiler.ModList.ReportHTML;
+                        }
+                        catch (Exception ex)
+                        {
+                            while (ex.InnerException != null) ex = ex.InnerException;
+                            LogMsg(ex.StackTrace);
+                            LogMsg(ex.ToString());
+                            LogMsg($"{ex.Message} - Can't continue");
+                        }
+                        finally
+                        {
+                            UIReady = true;
+                        }
+                    });
+                    th.Priority = ThreadPriority.BelowNormal;
+                    th.Start();
+                }
+                else
+                {
+                    Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
+                    UIReady = true;
+                }
             }
         }
+
+
 
         public class CPUStatus
         {
