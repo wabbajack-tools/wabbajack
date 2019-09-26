@@ -453,7 +453,7 @@ namespace Wabbajack
             ModListName = profile_name;
             Mode = "Building";
 
-            var tmp_compiler = new Compiler(mo2folder, Utils.Log);
+            var tmp_compiler = new Compiler(mo2folder);
             DownloadLocation = tmp_compiler.MO2DownloadsFolder;
 
             _mo2Folder = mo2folder;
@@ -472,7 +472,7 @@ namespace Wabbajack
             UIReady = false;
             if (Mode == "Installing")
             {
-                var installer = new Installer(_modList, Location, msg => LogMsg(msg));
+                var installer = new Installer(_modList, Location);
 
                 installer.IgnoreMissingFiles = IgnoreMissingFiles;
                 installer.DownloadFolder = DownloadLocation;
@@ -500,7 +500,7 @@ namespace Wabbajack
             }
             else
             {
-                var compiler = new Compiler(_mo2Folder, msg => LogMsg(msg));
+                var compiler = new Compiler(_mo2Folder);
                 compiler.IgnoreMissingFiles = IgnoreMissingFiles;
                 compiler.MO2Profile = ModListName;
                 var th = new Thread(() =>

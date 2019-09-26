@@ -25,11 +25,10 @@ namespace Wabbajack
     {
         private string _downloadsFolder;
 
-        public Installer(ModList mod_list, string output_folder, Action<string> log_fn)
+        public Installer(ModList mod_list, string output_folder)
         {
             Outputfolder = output_folder;
             ModList = mod_list;
-            Log_Fn = log_fn;
         }
 
         public VirtualFileSystem VFS => VirtualFileSystem.VFS;
@@ -43,39 +42,30 @@ namespace Wabbajack
         }
 
         public ModList ModList { get; }
-        public Action<string> Log_Fn { get; }
         public Dictionary<string, string> HashedArchives { get; private set; }
 
         public string NexusAPIKey { get; set; }
         public bool IgnoreMissingFiles { get; internal set; }
         public string GameFolder { get; set; }
 
-        public void Info(string msg, params object[] args)
+        public void Info(string msg)
         {
-            if (args.Length > 0)
-                msg = string.Format(msg, args);
-            Log_Fn(msg);
+            Utils.Log(msg);
         }
 
-        public void Status(string msg, params object[] args)
+        public void Status(string msg)
         {
-            if (args.Length > 0)
-                msg = string.Format(msg, args);
             WorkQueue.Report(msg, 0);
         }
 
-        public void Status(int progress, string msg, params object[] args)
+        public void Status(string msg, int progress)
         {
-            if (args.Length > 0)
-                msg = string.Format(msg, args);
             WorkQueue.Report(msg, progress);
         }
 
-        private void Error(string msg, params object[] args)
+        private void Error(string msg)
         {
-            if (args.Length > 0)
-                msg = string.Format(msg, args);
-            Log_Fn(msg);
+            Utils.Log(msg);
             throw new Exception(msg);
         }
 
@@ -121,7 +111,7 @@ namespace Wabbajack
             if (missing.Count > 0)
             {
                 foreach (var a in missing)
-                    Info("Unable to download {0}", a.Name);
+                    Info($"Unable to download {a.Name}");
                 if (IgnoreMissingFiles)
                     Info("Missing some archives, but continuing anyways at the request of the user");
                 else
@@ -266,7 +256,7 @@ namespace Wabbajack
                 .OfType<InlineFile>()
                 .PMap(directive =>
                 {
-                    Status("Writing included file {0}", directive.To);
+                    Status($"Writing included file {directive.To}");
                     var out_path = Path.Combine(Outputfolder, directive.To);
                     if (File.Exists(out_path)) File.Delete(out_path);
                     if (directive is RemappedInlineFile)
@@ -362,7 +352,7 @@ namespace Wabbajack
             var on_finish = VFS.Stage(vfiles.Select(f => f.FromFile).Distinct());
 
 
-            Status("Copying files for {0}", archive.Name);
+            Status($"Copying files for {archive.Name}");
 
             vfiles.DoIndexed((idx, file) =>
             {
@@ -377,7 +367,7 @@ namespace Wabbajack
             foreach (var to_patch in grouping.OfType<PatchedFromArchive>())
                 using (var patch_stream = new MemoryStream())
                 {
-                    Status("Patching {0}", Path.GetFileName(to_patch.To));
+                    Status($"Patching {Path.GetFileName(to_patch.To)}");
                     // Read in the patch data
 
                     var patch_data = to_patch.Patch;
@@ -404,7 +394,7 @@ namespace Wabbajack
         private void DownloadArchives()
         {
             var missing = ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash)).ToList();
-            Info("Missing {0} archives", missing.Count);
+            Info($"Missing {missing.Count} archives");
 
             Info("Getting Nexus API Key, if a browser appears, please accept");
             if (ModList.Archives.OfType<NexusMod>().Any())
@@ -501,7 +491,7 @@ namespace Wabbajack
             var file_link = new Uri(m.URL);
             var node = client.GetNodeFromLink(file_link);
             if (!download) return true;
-            Status("Downloading MEGA file: {0}", m.Name);
+            Status($"Downloading MEGA file: {m.Name}");
 
             var output_path = Path.Combine(DownloadFolder, m.Name);
             client.DownloadFile(file_link, output_path);
@@ -588,14 +578,14 @@ namespace Wabbajack
                     {
                         var read = webs.Read(buffer, 0, buffer_size);
                         if (read == 0) break;
-                        Status((int) (total_read * 100 / content_size), "Downloading {0}", archive.Name);
+                        Status("Downloading {archive.Name}", (int)(total_read * 100 / content_size));
 
                         fs.Write(buffer, 0, read);
                         total_read += read;
                     }
                 }
 
-                Status("Hashing {0}", archive.Name);
+                Status($"Hashing {archive.Name}");
                 HashArchive(output_path);
                 return true;
             }
@@ -623,7 +613,7 @@ namespace Wabbajack
             if (cache.FileExists() && new FileInfo(cache).LastWriteTime >= new FileInfo(e).LastWriteTime)
                 return File.ReadAllText(cache);
 
-            Status("Hashing {0}", Path.GetFileName(e));
+            Status($"Hashing {Path.GetFileName(e)}");
             File.WriteAllText(cache, e.FileSHA256());
             return HashArchive(e);
         }
