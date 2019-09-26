@@ -234,7 +234,7 @@ namespace Wabbajack
 
             Info("Getting nexus api_key please click authorize if a browser window appears");
 
-            if (IndexedArchives.OfType<NexusMod>().Any())
+            if (IndexedArchives.Any(a => a.IniData?.General?.gameName != null))
             {
                 NexusKey = GetNexusAPIKey();
                 User = GetUserStatus(NexusKey);
@@ -473,6 +473,11 @@ namespace Wabbajack
                     nm.Author = info.author;
                     nm.UploadedBy = info.uploaded_by;
                     nm.UploaderProfile = info.uploaded_users_profile_url;
+                    nm.ModName = info.name;
+                    nm.SlideShowPic = info.picture_url;
+                    nm.NexusURL = NexusAPI.GetModURL(info.game_name, info.mod_id);
+                    nm.Summary = info.summary;
+
                     result = nm;
                 }
                 else if (general.manualURL != null)

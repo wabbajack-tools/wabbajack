@@ -192,6 +192,10 @@ namespace Wabbajack
         public string UploadedBy;
         public string UploaderProfile;
         public string Version;
+        public string SlideShowPic;
+        public string ModName;
+        public string NexusURL;
+        public string Summary;
     }
 
     [Serializable]

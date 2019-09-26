@@ -7,8 +7,10 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Security.Authentication;
 using System.Threading.Tasks;
+using System.Windows.Media.TextFormatting;
 using Wabbajack.Common;
 using WebSocketSharp;
 
@@ -126,16 +128,27 @@ namespace Wabbajack
             }
         }
 
+        private const int CACHED_VERSION_NUMBER = 1;
         public static ModInfo GetModInfo(NexusMod archive, string apikey)
         {
             if (!Directory.Exists(Consts.NexusCacheDirectory))
                 Directory.CreateDirectory(Consts.NexusCacheDirectory);
 
+            TOP:
             var path = Path.Combine(Consts.NexusCacheDirectory, $"mod-info-{archive.GameName}-{archive.ModID}.json");
             try
             {
                 if (File.Exists(path))
-                    return path.FromJSON<ModInfo>();
+                {
+                    var result = path.FromJSON<ModInfo>();
+                    if (result._internal_version != CACHED_VERSION_NUMBER)
+                    {
+                        File.Delete(path);
+                        goto TOP;
+                    }
+
+                    return result;
+                }
             }
             catch (Exception)
             {
@@ -150,6 +163,9 @@ namespace Wabbajack
             using (var s = client.GetStreamSync(url))
             {
                 var result = s.FromJSON<ModInfo>();
+                result.game_name = archive.GameName;
+                result.mod_id = archive.ModID;
+                result._internal_version = CACHED_VERSION_NUMBER;
                 result.ToJSON(path);
                 return result;
             }
@@ -209,9 +225,63 @@ namespace Wabbajack
 
         public class ModInfo
         {
+            public uint _internal_version;
+            public string game_name;
+            public string mod_id;
+            public string name;
+            public string summary;
             public string author;
             public string uploaded_by;
             public string uploaded_users_profile_url;
+            public string picture_url;
+        }
+
+        public class SlideShowItem
+        {
+            public string ImageURL;
+            public string ModName;
+            public string ModSummary;
+            public string AuthorName;
+            public string ModURL;
+        }
+
+        public static IEnumerable<SlideShowItem> CachedSlideShow
+        {
+            get
+            {
+                if (!Directory.Exists(Consts.NexusCacheDirectory)) return new SlideShowItem[]{};
+
+                return Directory.EnumerateFiles(Consts.NexusCacheDirectory)
+                    .Where(f => f.EndsWith(".json"))
+                    .Select(f => f.FromJSON<ModInfo>())
+                    .Where(m => m._internal_version == CACHED_VERSION_NUMBER && m.picture_url != null)
+                    .Select(m => new SlideShowItem
+                    {
+                        ImageURL =  m.picture_url,
+                        ModName = FixupSummary(m.name),
+                        AuthorName = FixupSummary(m.author),
+                        ModURL = GetModURL(m.game_name, m.mod_id),
+                        ModSummary = FixupSummary(m.summary)
+                    });
+            }
+        }
+
+        public static string GetModURL(string argGameName, string argModId)
+        {
+            return $"https://nexusmods.com/{ConvertGameName(argGameName)}/mods/{argModId}";
+        }
+
+        public static string FixupSummary(string argSummary)
+        {
+            if (argSummary != null)
+            {
+                return argSummary.Replace("&#39;", "'")
+                                 .Replace("<br/>", "\n\n")
+                                 .Replace("<br />", "\n\n")
+                                 .Replace("&#33;", "!");
+            }
+
+            return argSummary;
         }
     }
 
