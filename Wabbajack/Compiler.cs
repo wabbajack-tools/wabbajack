@@ -232,9 +232,9 @@ namespace Wabbajack
 
             InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
 
-            Info("Getting nexus api_key please click authorize if a browser window appears");
+            Info("Getting Nexus api_key, please click authorize if a browser window appears");
 
-            if (IndexedArchives.OfType<NexusMod>().Any())
+            if (IndexedArchives.Any(a => a.IniData?.General?.gameName != null))
             {
                 NexusKey = GetNexusAPIKey();
                 User = GetUserStatus(NexusKey);
@@ -449,7 +449,7 @@ namespace Wabbajack
                 }
                 else if (general.directURL != null && general.directURL.StartsWith("http://www.mediafire.com/file/"))
                 {
-                    Error("Mediafire links are not currently supported");
+                    Error("MediaFire links are not currently supported");
                     return null;
                     /*result = new MediaFireArchive()
                     {
@@ -483,6 +483,11 @@ namespace Wabbajack
                     nm.Author = info.author;
                     nm.UploadedBy = info.uploaded_by;
                     nm.UploaderProfile = info.uploaded_users_profile_url;
+                    nm.ModName = info.name;
+                    nm.SlideShowPic = info.picture_url;
+                    nm.NexusURL = NexusAPI.GetModURL(info.game_name, info.mod_id);
+                    nm.Summary = info.summary;
+
                     result = nm;
                 }
                 else if (general.manualURL != null)
@@ -512,7 +517,7 @@ namespace Wabbajack
                 installer.NexusAPIKey = NexusKey;
                 if (!installer.DownloadArchive(result, false))
                     Error(
-                        $"Unable to resolve link for {found.Name}. If this is hosted on the nexus the file may have been removed.");
+                        $"Unable to resolve link for {found.Name}. If this is hosted on the Nexus the file may have been removed.");
 
                 return result;
             }

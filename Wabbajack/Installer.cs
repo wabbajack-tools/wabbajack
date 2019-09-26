@@ -88,7 +88,7 @@ namespace Wabbajack
             if (Directory.Exists(Path.Combine(Outputfolder, "mods")))
             {
                 if (MessageBox.Show(
-                        "There already appears to be a Mod Organize 2 install in this folder, are you sure you wish to continue" +
+                        "There already appears to be a Mod Organizer 2 install in this folder, are you sure you wish to continue" +
                         " with installation? If you do, you may render both your existing install and the new modlist inoperable.",
                         "Existing MO2 installation in install folder",
                         MessageBoxButton.YesNo,
