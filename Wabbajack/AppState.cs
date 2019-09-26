@@ -12,7 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Wabbajack.Common;
-using Wabbajack.Properties;
+using Wabbajack.NexusApi;
 
 namespace Wabbajack
 {
@@ -92,7 +92,7 @@ namespace Wabbajack
 
         private void SetupSlideshow()
         {
-            var files = NexusAPI.CachedSlideShow;
+            var files = NexusApiClient.CachedSlideShow;
             if (files.Any())
             {
                 SlideShowElements = files.ToList();
@@ -100,7 +100,7 @@ namespace Wabbajack
         }
 
         public Random _random = new Random();
-        public List<NexusAPI.SlideShowItem> SlideShowElements = new List<NexusAPI.SlideShowItem>();
+        public List<SlideShowItem> SlideShowElements = new List<SlideShowItem>();
         private DateTime _lastSlideShowUpdate = new DateTime();
 
         public ObservableCollection<string> Log { get; }
@@ -387,11 +387,11 @@ namespace Wabbajack
             HTMLReport = _modList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => new NexusAPI.SlideShowItem
+            SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => new SlideShowItem
             {
-                ModName = NexusAPI.FixupSummary(m.ModName),
-                AuthorName = NexusAPI.FixupSummary(m.Author),
-                ModSummary = NexusAPI.FixupSummary(m.Summary),
+                ModName = NexusApiUtils.FixupSummary(m.ModName),
+                AuthorName = NexusApiUtils.FixupSummary(m.Author),
+                ModSummary = NexusApiUtils.FixupSummary(m.Summary),
                 ImageURL = m.SlideShowPic,
                 ModURL = m.NexusURL,
             }).ToList();
