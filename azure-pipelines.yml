@@ -10,7 +10,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/*.sln'
+  solution: 'Wabbajack.sln'
   buildPlatform: 'x64'
   buildConfiguration: 'Debug'
 
