@@ -1,0 +1,3 @@
+[submodule "OMOD-Extractor"]
+	path = OMOD-Extractor
+	url = https://github.com/erri120/OMOD-Extractor
