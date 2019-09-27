@@ -13,6 +13,8 @@
 * Rework UI to support a slideshow of used mods during installation and compilation
 * Remove support for extracting `.exe` installers
 * Added support for `.omod` files
+* Stop emitting `.exe` modlist installers
+* Reworked Nexus HTTP API - Thanks Cyclonit
 
 #### Version 0.9.2 - 9/18/2013
 * Fixed a bug with BSA string encoding

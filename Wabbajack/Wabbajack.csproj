@@ -182,6 +182,8 @@
     </ApplicationDefinition>
     <Compile Include="Data.cs" />
     <Compile Include="LambdaCommand.cs" />
+    <Compile Include="NexusApi\Dtos.cs" />
+    <Compile Include="NexusApi\NexusApiUtils.cs" />
     <Compile Include="ModeSelectionWindow.xaml.cs">
       <DependentUpon>ModeSelectionWindow.xaml</DependentUpon>
     </Compile>
@@ -216,7 +218,7 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NexusAPI.cs" />
+    <Compile Include="NexusApi\NexusApi.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

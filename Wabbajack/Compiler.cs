@@ -16,7 +16,7 @@ using K4os.Compression.LZ4.Streams;
 using Newtonsoft.Json;
 using VFS;
 using Wabbajack.Common;
-using static Wabbajack.NexusAPI;
+using Wabbajack.NexusApi;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -67,13 +67,23 @@ namespace Wabbajack
         public string MO2ProfileDir => Path.Combine(MO2Folder, "profiles", MO2Profile);
 
         public List<Directive> InstallDirectives { get; private set; }
-        public string NexusKey { get; private set; }
         internal UserStatus User { get; private set; }
         public List<Archive> SelectedArchives { get; private set; }
         public List<RawSourceFile> AllFiles { get; private set; }
         public ModList ModList { get; private set; }
         public ConcurrentBag<Directive> ExtraFiles { get; private set; }
         public Dictionary<string, dynamic> ModInis { get; private set; }
+
+        private NexusApiClient _nexusApiClient;
+        private NexusApiClient NexusApiClient {
+            get
+            {
+                if (_nexusApiClient == null)
+                    _nexusApiClient = new NexusApiClient();
+
+                return _nexusApiClient;
+            }
+        }
 
         public VirtualFileSystem VFS => VirtualFileSystem.VFS;
 
@@ -227,9 +237,8 @@ namespace Wabbajack
 
             if (IndexedArchives.Any(a => a.IniData?.General?.gameName != null))
             {
-                NexusKey = GetNexusAPIKey();
-                User = GetUserStatus(NexusKey);
-                if (!User.is_premium) Info($"User {User.name} is not a premium Nexus user, cannot continue");
+                var nexusClient = new NexusApiClient();
+                if (!nexusClient.IsPremium) Info($"User {nexusClient.Username} is not a premium Nexus user, cannot continue");
 
             }
 
@@ -484,13 +493,13 @@ namespace Wabbajack
                         ModID = general.modID,
                         Version = general.version ?? "0.0.0.0"
                     };
-                    var info = GetModInfo(nm, NexusKey);
+                    var info = NexusApiClient.GetModInfo(nm);
                     nm.Author = info.author;
                     nm.UploadedBy = info.uploaded_by;
                     nm.UploaderProfile = info.uploaded_users_profile_url;
                     nm.ModName = info.name;
                     nm.SlideShowPic = info.picture_url;
-                    nm.NexusURL = NexusAPI.GetModURL(info.game_name, info.mod_id);
+                    nm.NexusURL = NexusApiUtils.GetModURL(info.game_name, info.mod_id);
                     nm.Summary = info.summary;
 
                     result = nm;
@@ -519,7 +528,8 @@ namespace Wabbajack
                 Info($"Checking link for {found.Name}");
 
                 var installer = new Installer(null, "");
-                installer.NexusAPIKey = NexusKey;
+                installer.NexusClient = NexusApiClient;
+
                 if (!installer.DownloadArchive(result, false))
                     Error(
                         $"Unable to resolve link for {found.Name}. If this is hosted on the Nexus the file may have been removed.");
