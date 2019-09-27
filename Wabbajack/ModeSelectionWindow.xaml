@@ -6,7 +6,7 @@
         Style="{StaticResource {x:Type Window}}" Icon="square_transparent_icon.ico" WindowStyle="ToolWindow"
         xmlns:local="clr-namespace:Wabbajack"
         mc:Ignorable="d"
-        Title="ModeSelectionWindow" Height="450" Width="800" ResizeMode="NoResize"
+        Title="Wabbajack" Height="450" Width="800" ResizeMode="NoResize"
         Closing="Close_Window">
     <Grid Margin="20">
         <Grid.RowDefinitions>
