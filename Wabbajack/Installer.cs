@@ -25,8 +25,20 @@ namespace Wabbajack
     public class Installer
     {
         private string _downloadsFolder;
+        private NexusApiClient _nexusClient;
 
-        private NexusApiClient _nexusApiClient;
+        public NexusApiClient NexusClient
+        {
+            get
+            {
+                if (_nexusClient == null)
+                    _nexusClient = new NexusApiClient();
+                return _nexusClient;
+            }
+            set => _nexusClient = value;
+        }
+
+        public string NexusAPIKey { get; set; }
 
         public Installer(ModList mod_list, string output_folder)
         {
@@ -161,7 +173,7 @@ namespace Wabbajack
 
             mods.PMap(mod =>
             {
-                var er = _nexusApiClient.EndorseMod(mod);
+                var er = NexusClient.EndorseMod(mod);
                 Utils.Log($"Endorsed {mod.GameName} - {mod.ModID} - Result: {er.message}");
             });
             Info("Done! You may now exit the application!");
@@ -404,19 +416,19 @@ namespace Wabbajack
             Info("Getting Nexus API Key, if a browser appears, please accept");
             if (ModList.Archives.OfType<NexusMod>().Any())
             {
-                _nexusApiClient = new NexusApiClient();
+                NexusClient = new NexusApiClient();
 
-                if (!_nexusApiClient.IsAuthenticated)
+                if (!NexusClient.IsAuthenticated)
                 {
                     Error(
                         $"Authenticating for the Nexus failed. A nexus account is required to automatically download mods.");
                     return;
                 }
 
-                if (!_nexusApiClient.IsPremium)
+                if (!NexusClient.IsPremium)
                 {
                     Error(
-                        $"Automated installs with Wabbajack requires a premium nexus account. {_nexusApiClient.Username} is not a premium account.");
+                        $"Automated installs with Wabbajack requires a premium nexus account. {NexusClient.Username} is not a premium account.");
                     return;
                 }
             }
@@ -449,7 +461,7 @@ namespace Wabbajack
                         string url;
                         try
                         {
-                            url = _nexusApiClient.GetNexusDownloadLink(a, !download);
+                            url = NexusClient.GetNexusDownloadLink(a, !download);
                             if (!download) return true;
                         }
                         catch (Exception ex)

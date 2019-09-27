@@ -16,7 +16,7 @@ using WebSocketSharp;
 
 namespace Wabbajack.NexusApi
 {
-    internal class NexusApiClient : INotifyPropertyChanged
+    public class NexusApiClient : INotifyPropertyChanged
     {
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
 
@@ -121,10 +121,10 @@ namespace Wabbajack.NexusApi
             {
                 _dailyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
                 _hourlyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
-
-                OnPropertyChanged(nameof(DailyRemaining));
-                OnPropertyChanged(nameof(HourlyRemaining));
             }
+            OnPropertyChanged(nameof(DailyRemaining));
+            OnPropertyChanged(nameof(HourlyRemaining));
+
         }
 
         #endregion

@@ -493,7 +493,7 @@ namespace Wabbajack
                         ModID = general.modID,
                         Version = general.version ?? "0.0.0.0"
                     };
-                    var info = _nexusApiClient.GetModInfo(nm);
+                    var info = NexusApiClient.GetModInfo(nm);
                     nm.Author = info.author;
                     nm.UploadedBy = info.uploaded_by;
                     nm.UploaderProfile = info.uploaded_users_profile_url;
@@ -528,7 +528,8 @@ namespace Wabbajack
                 Info($"Checking link for {found.Name}");
 
                 var installer = new Installer(null, "");
-                installer.NexusAPIKey = NexusKey;
+                installer.NexusClient = NexusApiClient;
+
                 if (!installer.DownloadArchive(result, false))
                     Error(
                         $"Unable to resolve link for {found.Name}. If this is hosted on the Nexus the file may have been removed.");
