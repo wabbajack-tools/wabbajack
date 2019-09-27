@@ -1,0 +1,25 @@
+﻿<Window x:Class="Wabbajack.ModeSelectionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Style="{StaticResource {x:Type Window}}" Icon="square_transparent_icon.ico" WindowStyle="ToolWindow"
+        xmlns:local="clr-namespace:Wabbajack"
+        mc:Ignorable="d"
+        Title="ModeSelectionWindow" Height="450" Width="800" ResizeMode="NoResize"
+        Closing="Close_Window">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition Height="70"></RowDefinition>
+            <RowDefinition Height="70"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Image Name="Banner"></Image>
+        <Button Name="InstallModlist"  Grid.Row="1" Margin="2" Click="InstallModlist_Click">
+            <TextBlock FontSize="40">Install a ModList</TextBlock>
+        </Button>
+        <Button Name="CreateModlist" Grid.Row="2" Margin="2" Click="CreateModlist_Click">
+            <TextBlock FontSize="40">Create a ModList</TextBlock>
+        </Button>
+    </Grid>
+</Window>

@@ -115,6 +115,5 @@
         <Button Content="View Modlist Contents" Grid.Row="5" Grid.Column="1" Height="30" Visibility="{Binding ShowReportButton}"
                 Command="{Binding ShowReportCommand}" Margin="10" />
         <Button Content="Begin" Grid.Row="6" Height="30" Grid.Column="1" Command="{Binding Begin}" IsEnabled="{Binding UIReady}" Margin="10"/>
-        <CheckBox Content="Ignore Missing Files" Grid.Row="7" Height="20" IsChecked="{Binding IgnoreMissingFiles}" IsEnabled="{Binding UIReady}" Visibility="Collapsed"/>
     </Grid>
 </Window>

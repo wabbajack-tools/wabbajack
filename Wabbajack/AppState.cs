@@ -116,28 +116,6 @@ namespace Wabbajack
             }
         }
 
-        public bool IgnoreMissingFiles
-        {
-            get => _ignoreMissingFiles;
-            set
-            {
-                if (value)
-                {
-                    if (MessageBox.Show(
-                            "Setting this value could result in broken installations. \n Are you sure you want to continue?",
-                            "Ignore Missing Files?", MessageBoxButton.OKCancel, MessageBoxImage.Warning)
-                        == MessageBoxResult.OK)
-                        _ignoreMissingFiles = value;
-                }
-                else
-                {
-                    _ignoreMissingFiles = value;
-                }
-
-                OnPropertyChanged("IgnoreMissingFiles");
-            }
-        }
-
         public string ModListName
         {
             get => _modListName;
@@ -360,7 +338,7 @@ namespace Wabbajack
 
         private void UpdateLoop()
         {
-            while (true)
+            while (Running)
             {
                 if (Dirty)
                     lock (InternalStatus)
@@ -398,6 +376,8 @@ namespace Wabbajack
                 Thread.Sleep(1000);
             }
         }
+
+        public bool Running { get; set; } = true;
 
         internal void ConfigureForInstall(ModList modlist)
         {
@@ -503,7 +483,6 @@ namespace Wabbajack
             {
                 var installer = new Installer(_modList, Location);
 
-                installer.IgnoreMissingFiles = IgnoreMissingFiles;
                 installer.DownloadFolder = DownloadLocation;
                 var th = new Thread(() =>
                 {
@@ -530,7 +509,6 @@ namespace Wabbajack
             else if (_mo2Folder != null)
             {
                 var compiler = new Compiler(_mo2Folder);
-                compiler.IgnoreMissingFiles = IgnoreMissingFiles;
                 compiler.MO2Profile = ModListName;
                 var th = new Thread(() =>
                 {

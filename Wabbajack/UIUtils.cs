@@ -6,6 +6,8 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common;
@@ -59,6 +61,24 @@ namespace Wabbajack
                 // Do something with selected folder string
             }
 
+            return null;
+        }
+
+        public static BitmapImage BitmapImageFromResource(string name)
+        {
+            var img = new BitmapImage();
+            img.BeginInit();
+            img.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream(name);
+            img.EndInit();
+            return img;
+        }
+
+        public static string OpenFileDialog(string filter)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = filter;
+            if (ofd.ShowDialog() == DialogResult.OK)
+                return ofd.FileName;
             return null;
         }
 

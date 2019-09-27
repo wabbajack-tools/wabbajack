@@ -246,14 +246,32 @@ namespace Wabbajack
             };
 
             GenerateReport();
-            PatchExecutable();
+            ExportModlist();
 
             ResetMembers();
 
             ShowReport();
 
-            Info("Done Building Modpack");
+            Info("Done Building Modlist");
             return true;
+        }
+
+        private void ExportModlist()
+        {
+            var out_path = MO2Profile + ".modlist";
+
+            Utils.Log($"Exporting Modlist to : {out_path}");
+
+            using (var os = File.OpenWrite(out_path))
+            using (var bw = new BinaryWriter(os))
+            {
+                var formatter = new BinaryFormatter();
+                using (var compressed = LZ4Stream.Encode(bw.BaseStream,
+                    new LZ4EncoderSettings { CompressionLevel = LZ4Level.L10_OPT }, true))
+                {
+                    formatter.Serialize(compressed, ModList);
+                }
+            }
         }
 
         private void ShowReport()
@@ -1141,15 +1159,6 @@ namespace Wabbajack
             {
                 var orig_pos = os.Length;
                 os.Position = os.Length;
-                //using (var compressor = new BZip2OutputStream(bw.BaseStream))
-                /*using (var sw = new StreamWriter(compressor))
-                using (var writer = new JsonTextWriter(sw))
-                {
-                    var serializer = new JsonSerializer();
-                    serializer.TypeNameHandling = TypeNameHandling.Auto;
-                    serializer.Serialize(writer, ModList);
-                }*/
-                //bw.Write(data);
                 var formatter = new BinaryFormatter();
 
                 using (var compressed = LZ4Stream.Encode(bw.BaseStream,

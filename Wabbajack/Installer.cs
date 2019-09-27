@@ -357,7 +357,10 @@ namespace Wabbajack
             vfiles.DoIndexed((idx, file) =>
             {
                 Utils.Status("Installing files", idx * 100 / vfiles.Count);
-                File.Copy(file.FromFile.StagedPath, Path.Combine(Outputfolder, file.To));
+                var dest = Path.Combine(Outputfolder, file.To);
+                if (File.Exists(dest))
+                    File.Delete(dest);
+                File.Copy(file.FromFile.StagedPath, dest);
             });
 
             Status("Unstaging files");
@@ -578,7 +581,7 @@ namespace Wabbajack
                     {
                         var read = webs.Read(buffer, 0, buffer_size);
                         if (read == 0) break;
-                        Status("Downloading {archive.Name}", (int)(total_read * 100 / content_size));
+                        Status($"Downloading {archive.Name}", (int)(total_read * 100 / content_size));
 
                         fs.Write(buffer, 0, read);
                         total_read += read;
@@ -618,32 +621,29 @@ namespace Wabbajack
             return HashArchive(e);
         }
 
-        public static ModList CheckForModList()
+        public static ModList LoadModlist(string file)
         {
-            Utils.Log("Looking for attached modlist");
-            using (var s = File.OpenRead(Assembly.GetExecutingAssembly().Location))
+            Utils.Log("Reading Modlist, this may take a moment");
+            try
             {
-                var magic_bytes = Encoding.ASCII.GetBytes(Consts.ModListMagic);
-                s.Position = s.Length - magic_bytes.Length;
-                using (var br = new BinaryReader(s))
+                using (var s = File.OpenRead(file))
                 {
-                    var bytes = br.ReadBytes(magic_bytes.Length);
-                    var magic = Encoding.ASCII.GetString(bytes);
-
-                    if (magic != Consts.ModListMagic) return null;
-                  
-                    s.Position = s.Length - magic_bytes.Length - 8;
-                    var start_pos = br.ReadInt64();
-                    s.Position = start_pos;
-                    Utils.Log("Modlist found, loading...");
-                    using (var dc = LZ4Stream.Decode(br.BaseStream, leaveOpen: true))
+                    using (var br = new BinaryReader(s))
                     {
-                        IFormatter formatter = new BinaryFormatter();
-                        var list = formatter.Deserialize(dc);
-                        Utils.Log("Modlist loaded.");
-                        return (ModList) list;
+                        using (var dc = LZ4Stream.Decode(br.BaseStream, leaveOpen: true))
+                        {
+                            IFormatter formatter = new BinaryFormatter();
+                            var list = formatter.Deserialize(dc);
+                            Utils.Log("Modlist loaded.");
+                            return (ModList) list;
+                        }
                     }
                 }
+            }
+            catch (Exception)
+            {
+                Utils.Log("Error Loading modlist");
+                return null;
             }
         }
     }
