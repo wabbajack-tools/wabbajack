@@ -6,19 +6,28 @@
         Style="{StaticResource {x:Type Window}}" Icon="square_transparent_icon.ico" WindowStyle="ToolWindow"
         xmlns:local="clr-namespace:Wabbajack"
         mc:Ignorable="d"
-        Title="ModeSelectionWindow" Height="450" Width="800" ResizeMode="NoResize"
+        Title="Wabbajack" Height="500" Width="800" ResizeMode="NoResize"
         Closing="Close_Window">
-    <Grid Margin="20">
+    <Grid Margin="20" ShowGridLines="False">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition Width="30"></ColumnDefinition>
+            <ColumnDefinition Width="30"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="30"></RowDefinition>
             <RowDefinition></RowDefinition>
             <RowDefinition Height="70"></RowDefinition>
             <RowDefinition Height="70"></RowDefinition>
         </Grid.RowDefinitions>
-        <Image Name="Banner"></Image>
-        <Button Name="InstallModlist"  Grid.Row="1" Margin="2" Click="InstallModlist_Click">
+        <Image MouseLeftButtonDown="GitHub_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" Name="GitHub"></Image>
+        <Image MouseLeftButtonDown="Patreon_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="1" Name="Patreon"></Image>
+        <Image MouseLeftButtonDown="Discord_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="2" Name="Discord"></Image>
+        <Image Grid.Row="1" Grid.ColumnSpan="3" Name="Banner"></Image>
+        <Button Name="InstallModlist" Grid.ColumnSpan="3"  Grid.Row="2" Margin="2" Click="InstallModlist_Click">
             <TextBlock FontSize="40">Install a ModList</TextBlock>
         </Button>
-        <Button Name="CreateModlist" Grid.Row="2" Margin="2" Click="CreateModlist_Click">
+        <Button Name="CreateModlist" Grid.ColumnSpan="3" Grid.Row="3" Margin="2" Click="CreateModlist_Click">
             <TextBlock FontSize="40">Create a ModList</TextBlock>
         </Button>
     </Grid>

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Diagnostics;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -25,8 +26,14 @@ namespace Wabbajack
         public ModeSelectionWindow()
         {
             InitializeComponent();
-            var img = UIUtils.BitmapImageFromResource("Wabbajack.banner_small.png");
-            Banner.Source = img;
+            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.banner_small.png");
+            Banner.Source = bannerImage;
+            var patreonIcon = UIUtils.BitmapImageFromResource("Wabbajack.Icons.patreon.png");
+            Patreon.Source = patreonIcon;
+            var githubIcon = UIUtils.BitmapImageFromResource("Wabbajack.Icons.github.png");
+            GitHub.Source = githubIcon;
+            var discordIcon = UIUtils.BitmapImageFromResource("Wabbajack.Icons.discord.png");
+            Discord.Source = discordIcon;
         }
 
         private void CreateModlist_Click(object sender, RoutedEventArgs e)
@@ -60,5 +67,20 @@ namespace Wabbajack
         }
 
         public bool ShutdownOnClose { get; set; } = true;
+
+        private void GitHub_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("https://github.com/halgari/wabbajack");
+        }
+
+        private void Patreon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("https://www.patreon.com/user?u=11907933");
+        }
+
+        private void Discord_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Process.Start("https://discord.gg/zgbrkmA");
+        }
     }
 }
