@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
@@ -66,39 +67,11 @@ namespace VFS
 
         public static void DeleteDirectory(string path)
         {
-            var info = new ProcessStartInfo
+            Utils.Status($"Deleting directory ${path}");
+            if (Directory.Exists(path))
             {
-                FileName = "cmd.exe",
-                Arguments = $"/c del /f /q /s \"{path}\" && rmdir /q /s \"{path}\" ",
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            var p = new Process
-            {
-                StartInfo = info
-            };
-
-            p.Start();
-            ChildProcessTracker.AddProcess(p);
-            try
-            {
-                p.PriorityClass = ProcessPriorityClass.BelowNormal;
+                Directory.Delete(path, true);
             }
-            catch (Exception)
-            {
-            }
-
-            while (!p.HasExited)
-            {
-                var line = p.StandardOutput.ReadLine();
-                if (line == null) break;
-                Utils.Status(line);
-            }
-            p.WaitForExit();
         }
 
         public void Reset()
@@ -351,7 +324,7 @@ namespace VFS
             if (!f.IsStaged)
                 throw new InvalidDataException("Can't analyze an unstaged file");
 
-            var tmp_dir = Path.Combine(_stagedRoot, Guid.NewGuid().ToString());
+            var tmp_dir = Path.Combine(_stagedRoot, Thread.CurrentThread.ManagedThreadId.ToString());
             Utils.Status($"Extracting Archive {Path.GetFileName(f.StagedPath)}");
 
             FileExtractor.ExtractAll(f.StagedPath, tmp_dir);
@@ -360,6 +333,7 @@ namespace VFS
             Utils.Status($"Updating Archive {Path.GetFileName(f.StagedPath)}");
 
             var entries = Directory.EnumerateFiles(tmp_dir, "*", SearchOption.AllDirectories)
+                .Where(path => !path.EndsWith(".sha"))
                 .Select(path => path.RelativeTo(tmp_dir));
 
             var new_files = entries.Select(e =>
@@ -407,7 +381,7 @@ namespace VFS
 
             foreach (var group in grouped)
             {
-                var tmp_path = Path.Combine(_stagedRoot, Guid.NewGuid().ToString());
+                var tmp_path = Path.Combine(_stagedRoot, Thread.CurrentThread.ManagedThreadId.ToString());
                 FileExtractor.ExtractAll(group.Key.StagedPath, tmp_path);
                 Paths.Add(tmp_path);
                 foreach (var file in group)
@@ -693,7 +667,7 @@ namespace VFS
         internal string GenerateStagedName()
         {
             if (_stagedPath != null) return _stagedPath;
-            _stagedPath = Path.Combine(VirtualFileSystem._stagedRoot, Guid.NewGuid() + Path.GetExtension(Paths.Last()));
+            _stagedPath = Path.Combine(VirtualFileSystem._stagedRoot, Thread.CurrentThread.ManagedThreadId + Path.GetExtension(Paths.Last()));
             return _stagedPath;
         }
 
