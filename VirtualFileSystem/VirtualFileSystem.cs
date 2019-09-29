@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
@@ -23,7 +24,6 @@ namespace VFS
         private bool _disableDiskCache;
         private Dictionary<string, VirtualFile> _files = new Dictionary<string, VirtualFile>();
         private volatile bool _isSyncing;
-        private volatile bool _isDirty = false;
 
         static VirtualFileSystem()
         {
@@ -131,15 +131,12 @@ namespace VFS
                 {
                 }
 
-                _isDirty = false;
-
                 CleanDB();
             }
             catch (Exception ex)
             {
                 Utils.Log($"Purging cache due to {ex}");
                 File.Delete("vfs_cache.bson");
-                _isDirty = true;
                 _files.Clear();
             }
         }
@@ -151,7 +148,6 @@ namespace VFS
                 Utils.Status("Syncing VFS Cache");
                 lock (this)
                 {
-                    if (!_isDirty) return;
                     try
                     {
                         _isSyncing = true;
@@ -170,7 +166,6 @@ namespace VFS
                             File.Delete("vfs_cache.bin");
 
                         File.Move("vfs_cache.bin_new", "vfs_cache.bin");
-                        _isDirty = false;
                     }
                     finally
                     {
@@ -199,7 +194,6 @@ namespace VFS
                     .ToList()
                     .Do(r =>
                     {
-                        _isDirty = true;
                         _files.Remove(r.FullPath);
                     });
             }
@@ -209,7 +203,6 @@ namespace VFS
         {
             lock (this)
             {
-                _isDirty = true;
                 if (_files.ContainsKey(f.FullPath))
                     Purge(f);
                 _files.Add(f.FullPath, f);
@@ -255,7 +248,6 @@ namespace VFS
                     .ToList()
                     .Do(f =>
                     {
-                        _isDirty = true;
                         _files.Remove(f.FullPath);
                     });
                 SyncToDisk();

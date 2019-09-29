@@ -227,8 +227,7 @@ namespace Wabbajack
             if (IndexedArchives.Any(a => a.IniData?.General?.gameName != null))
             {
                 var nexusClient = new NexusApiClient();
-                var status = nexusClient.GetUserStatus();
-                if (!status.is_premium) Info($"User {status.user_id} is not a premium Nexus user, cannot continue");
+                if (!nexusClient.IsPremium) Info($"User {nexusClient.Username} is not a premium Nexus user, cannot continue");
 
             }
 
