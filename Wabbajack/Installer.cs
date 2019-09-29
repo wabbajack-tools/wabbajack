@@ -15,6 +15,7 @@ using K4os.Compression.LZ4.Streams;
 using VFS;
 using Wabbajack.Common;
 using Wabbajack.NexusApi;
+using Wabbajack.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -71,6 +72,9 @@ namespace Wabbajack
 
         public void Install()
         {
+
+            ValidateModlist.RunValidation(ModList);
+
             VirtualFileSystem.Clean();
             Directory.CreateDirectory(Outputfolder);
             Directory.CreateDirectory(DownloadFolder);

@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using VFS;
 using Wabbajack.Common;
 using Wabbajack.NexusApi;
+using Wabbajack.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -238,6 +239,7 @@ namespace Wabbajack
 
             ModList = new ModList
             {
+                GameType = GameRegistry.Games.Values.First(f => f.MO2Name == MO2Ini.General.gameName).Game,
                 Archives = SelectedArchives,
                 Directives = InstallDirectives,
                 Name = MO2Profile
@@ -247,6 +249,7 @@ namespace Wabbajack
             ExportModlist();
 
             ResetMembers();
+            ValidateModlist.RunValidation(ModList);
 
             ShowReport();
 

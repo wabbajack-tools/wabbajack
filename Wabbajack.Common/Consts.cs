@@ -46,6 +46,8 @@ namespace Wabbajack.Common
         public static HashSet<string> GameESMs = new HashSet<string>
             {"Skyrim.esm", "Update.esm", "Dawnguard.esm", "HearthFires.esm", "Dragonborn.esm"};
 
+        public static string ModPermissionsURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/NexusModPermissions.yml";
+        public static string ServerWhitelistURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml";
 
         public static string UserAgent
         {

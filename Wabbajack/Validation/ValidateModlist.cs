@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Validation
 {
@@ -34,6 +36,36 @@ namespace Wabbajack.Validation
                 .WithNamingConvention(new PascalCaseNamingConvention())
                 .Build();
             ServerWhitelist = d.Deserialize<ServerWhitelist>(s);
+        }
+
+        public void LoadListsFromGithub()
+        {
+            var d = new DeserializerBuilder()
+                .WithNamingConvention(new PascalCaseNamingConvention())
+                .Build();
+            var client = new HttpClient();
+            Utils.Log("Loading Nexus Mod Permissions");
+            using (var result = new StringReader(client.GetStringSync(Consts.ModPermissionsURL)))
+            {
+                AuthorPermissions = d.Deserialize<Dictionary<string, Author>>(result);
+            }
+
+            Utils.Log("Loading Server Whitelist");
+            using (var result = new StringReader(client.GetStringSync(Consts.ServerWhitelistURL)))
+            {
+                ServerWhitelist = d.Deserialize<ServerWhitelist>(result);
+            }
+
+        }
+
+        public static void RunValidation(ModList modlist)
+        {
+            var validator = new ValidateModlist();
+            validator.LoadListsFromGithub();
+
+            var errors = validator.Validate(modlist);
+            errors.Do(e => Utils.Log(e));
+            Utils.Log($"{errors.Count()} validation errors found, cannot continue.");
         }
 
         /// <summary>
@@ -109,8 +141,16 @@ namespace Wabbajack.Validation
 
             modlist.Archives
                    .OfType<NexusMod>()
-                   .Where(m => m.GameName.ToLower() != nexus)
-                   .Do(m => ValidationErrors.Push($"The modlist is for {nexus} but {m.Name} is for game type {m.GameName} and is not allowed to be converted to other game types"));
+                   .Where(m => NexusApi.NexusApiUtils.ConvertGameName(m.GameName) != nexus)
+                   .Do(m =>
+                   {
+                       var permissions = FilePermissions(m);
+                       if (!(permissions.CanUseInOtherGames ?? true))
+                       {
+                           ValidationErrors.Push(
+                               $"The modlist is for {nexus} but {m.Name} is for game type {m.GameName} and is not allowed to be converted to other game types");
+                       }
+                   });
 
             modlist.Archives
                    .OfType<GoogleDriveMod>()

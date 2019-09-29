@@ -31,12 +31,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Test", "Wabbajack
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OMODExtractorDLL", "OMOD-Extractor\OMODExtractorDLL\OMODExtractorDLL.csproj", "{EB003D18-DFFB-49C7-B054-FB375345AE26}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content Control Lists", "Content Control Lists", "{9CF13B36-1015-4065-B326-F2632E3C892D}"
-	ProjectSection(SolutionItems) = preProject
-		NexusModPermissions.yml = NexusModPermissions.yml
-		ServerWhitelist.yml = ServerWhitelist.yml
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug (no commandargs)|Any CPU = Debug (no commandargs)|Any CPU
@@ -170,9 +164,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{9CF13B36-1015-4065-B326-F2632E3C892D} = {4EDEF6CC-2F5C-439B-BEAF-9D03895099F1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5CF408D5-8BF2-40C2-907C-694DBACFF01B}
