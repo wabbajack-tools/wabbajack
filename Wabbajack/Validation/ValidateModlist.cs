@@ -18,6 +18,7 @@ namespace Wabbajack.Validation
     public class ValidateModlist
     {
         public Dictionary<string, Author> AuthorPermissions { get; set; }
+        public ServerWhitelist ServerWhitelist { get; set; }
 
         public void LoadAuthorPermissionsFromString(string s)
         {
@@ -25,6 +26,14 @@ namespace Wabbajack.Validation
                 .WithNamingConvention(new PascalCaseNamingConvention())
                 .Build();
             AuthorPermissions = d.Deserialize<Dictionary<string, Author>>(s);
+        }
+
+        public void LoadServerWhitelist(string s)
+        {
+            var d = new DeserializerBuilder()
+                .WithNamingConvention(new PascalCaseNamingConvention())
+                .Build();
+            ServerWhitelist = d.Deserialize<ServerWhitelist>(s);
         }
 
         /// <summary>
@@ -103,6 +112,21 @@ namespace Wabbajack.Validation
                    .Where(m => m.GameName.ToLower() != nexus)
                    .Do(m => ValidationErrors.Push($"The modlist is for {nexus} but {m.Name} is for game type {m.GameName} and is not allowed to be converted to other game types"));
 
+            modlist.Archives
+                   .OfType<GoogleDriveMod>()
+                   .PMap(m =>
+            {
+                if (!ServerWhitelist.GoogleIDs.Contains(m.Id))
+                    ValidationErrors.Push($"{m.Name} uses Google Drive id {m.Id} but that id is not in the file whitelist.");
+            });
+
+            modlist.Archives
+                .OfType<DirectURLArchive>()
+                .PMap(m =>
+                {
+                    if (!ServerWhitelist.AllowedPrefixes.Any(prefix => m.URL.StartsWith(prefix)))
+                        ValidationErrors.Push($"{m.Name} will be downloaded from {m.URL} but that URL is not in the server whitelist");
+                });
 
             return ValidationErrors.ToList();
         }

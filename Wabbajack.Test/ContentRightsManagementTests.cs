@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Validation;
@@ -32,6 +33,16 @@ namespace Wabbajack.Test
                                         CanUseInOtherGames: false
 ";
 
+        private static string server_whitelist = @"
+        
+        GoogleIDs:
+            - googleDEADBEEF
+        
+        AllowedPrefixes:
+            - https://somegoodplace.com/
+
+";
+
 
         [TestInitialize]
         public void TestSetup()
@@ -39,6 +50,7 @@ namespace Wabbajack.Test
             WorkQueue.Init((x, y, z) => { }, (min, max) => { });
             validate = new ValidateModlist();
             validate.LoadAuthorPermissionsFromString(permissions);
+            validate.LoadServerWhitelist(server_whitelist);
         }
 
         [TestMethod]
@@ -173,6 +185,47 @@ namespace Wabbajack.Test
             };
             errors = validate.Validate(modlist);
             Assert.AreEqual(errors.Count(), 1);
+
+            // Error due to file downloaded from 3rd party
+            modlist.GameType = Game.Skyrim;
+            modlist.Archives[0] = new DirectURLArchive()
+            {
+                URL = "https://somebadplace.com",
+                Hash = "DEADBEEF"
+            };
+            errors = validate.Validate(modlist);
+            Assert.AreEqual(errors.Count(), 1);
+
+            // Ok due to file downloaded from whitelisted 3rd party
+            modlist.GameType = Game.Skyrim;
+            modlist.Archives[0] = new DirectURLArchive()
+            {
+                URL = "https://somegoodplace.com/myfile",
+                Hash = "DEADBEEF"
+            };
+            errors = validate.Validate(modlist);
+            Assert.AreEqual(errors.Count(), 0);
+
+
+            // Error due to file downloaded from bad 3rd party
+            modlist.GameType = Game.Skyrim;
+            modlist.Archives[0] = new GoogleDriveMod()
+            {
+                Id = "bleg",
+                Hash = "DEADBEEF"
+            };
+            errors = validate.Validate(modlist);
+            Assert.AreEqual(errors.Count(), 1);
+
+            // Error due to file downloaded from good 3rd party
+            modlist.GameType = Game.Skyrim;
+            modlist.Archives[0] = new GoogleDriveMod()
+            {
+                Id = "googleDEADBEEF",
+                Hash = "DEADBEEF"
+            };
+            errors = validate.Validate(modlist);
+            Assert.AreEqual(errors.Count(), 0);
 
         }
     }

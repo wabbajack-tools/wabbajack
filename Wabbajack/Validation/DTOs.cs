@@ -37,4 +37,11 @@ namespace Wabbajack.Validation
     {
         public Permissions Permissions;
     }
+
+
+    public class ServerWhitelist
+    {
+        public List<string> GoogleIDs;
+        public List<string> AllowedPrefixes;
+    }
 }
