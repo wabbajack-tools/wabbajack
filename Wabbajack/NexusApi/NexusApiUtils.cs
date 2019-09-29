@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wabbajack.Common;
 
 namespace Wabbajack.NexusApi
 {
@@ -10,9 +11,7 @@ namespace Wabbajack.NexusApi
     {
         public static string ConvertGameName(string gameName)
         {
-            if (gameName == "SkyrimSE") return "skyrimspecialedition";
-            if (gameName == "FalloutNV") return "newvegas";
-            return gameName.ToLower();
+            return GameRegistry.GetByMO2ArchiveName(gameName)?.NexusName ?? gameName.ToLower();
         }
 
         public static string GetModURL(string argGameName, string argModId)

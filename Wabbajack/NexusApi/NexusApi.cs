@@ -34,48 +34,62 @@ namespace Wabbajack.NexusApi
 
         private UserStatus _userStatus;
 
-        public bool IsPremium => IsAuthenticated && _userStatus.is_premium;
-
-        public string Username => _userStatus?.name;
-
-
-        private static string GetApiKey()
+        public UserStatus UserStatus
         {
-            // check if there exists a cached api key
-            var fi = new FileInfo(API_KEY_CACHE_FILE);
-            if (fi.Exists && fi.LastWriteTime > DateTime.Now.AddHours(-72))
+            get
             {
-                return File.ReadAllText(API_KEY_CACHE_FILE);
+                if (_userStatus == null)
+                    _userStatus = GetUserStatus();
+                return _userStatus;
             }
-
-            // open a web socket to receive the api key
-            var guid = Guid.NewGuid();
-            var _websocket = new WebSocket("wss://sso.nexusmods.com")
-            {
-                SslConfiguration =
-                {
-                    EnabledSslProtocols = SslProtocols.Tls12
-                }
-            };
-
-            var api_key = new TaskCompletionSource<string>();
-            _websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
-
-            _websocket.Connect();
-            _websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"" + Consts.AppName + "\"}");
-
-            // open a web browser to get user permission
-            Process.Start($"https://www.nexusmods.com/sso?id={guid}&application=" + Consts.AppName);
-
-            // get the api key from the socket and cache it
-            api_key.Task.Wait();
-            var result = api_key.Task.Result;
-            File.WriteAllText(API_KEY_CACHE_FILE, result);
-
-            return result;
         }
 
-        private UserStatus GetUserStatus()
+        public bool IsPremium => IsAuthenticated && UserStatus.is_premium;
+
+        public string Username => UserStatus?.name;
+
+
+        private static object _getAPIKeyLock = new object();
+        private static string GetApiKey()
+        {
+            lock (_getAPIKeyLock)
+            {
+                // check if there exists a cached api key
+                var fi = new FileInfo(API_KEY_CACHE_FILE);
+                if (fi.Exists && fi.LastWriteTime > DateTime.Now.AddHours(-72))
+                {
+                    return File.ReadAllText(API_KEY_CACHE_FILE);
+                }
+
+                // open a web socket to receive the api key
+                var guid = Guid.NewGuid();
+                var _websocket = new WebSocket("wss://sso.nexusmods.com")
+                {
+                    SslConfiguration =
+                    {
+                        EnabledSslProtocols = SslProtocols.Tls12
+                    }
+                };
+
+                var api_key = new TaskCompletionSource<string>();
+                _websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
+
+                _websocket.Connect();
+                _websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"" + Consts.AppName + "\"}");
+
+                // open a web browser to get user permission
+                Process.Start($"https://www.nexusmods.com/sso?id={guid}&application=" + Consts.AppName);
+
+                // get the api key from the socket and cache it
+                api_key.Task.Wait();
+                var result = api_key.Task.Result;
+                File.WriteAllText(API_KEY_CACHE_FILE, result);
+
+                return result;
+            }
+        }
+
+        public UserStatus GetUserStatus()
         {
             var url = "https://api.nexusmods.com/v1/users/validate.json";
             return Get<UserStatus>(url);
@@ -142,8 +156,6 @@ namespace Wabbajack.NexusApi
             headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             headers.Add("Application-Name", Consts.AppName);
             headers.Add("Application-Version", $"{Assembly.GetEntryAssembly().GetName().Version}");
-
-            _userStatus = GetUserStatus();
         }
         
         private T Get<T>(string url)

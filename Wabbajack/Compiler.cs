@@ -74,17 +74,6 @@ namespace Wabbajack
         public ConcurrentBag<Directive> ExtraFiles { get; private set; }
         public Dictionary<string, dynamic> ModInis { get; private set; }
 
-        private NexusApiClient _nexusApiClient;
-        private NexusApiClient NexusApiClient {
-            get
-            {
-                if (_nexusApiClient == null)
-                    _nexusApiClient = new NexusApiClient();
-
-                return _nexusApiClient;
-            }
-        }
-
         public VirtualFileSystem VFS => VirtualFileSystem.VFS;
 
         public List<IndexedArchive> IndexedArchives { get; private set; }
@@ -238,7 +227,8 @@ namespace Wabbajack
             if (IndexedArchives.Any(a => a.IniData?.General?.gameName != null))
             {
                 var nexusClient = new NexusApiClient();
-                if (!nexusClient.IsPremium) Info($"User {nexusClient.Username} is not a premium Nexus user, cannot continue");
+                var status = nexusClient.GetUserStatus();
+                if (!status.is_premium) Info($"User {status.user_id} is not a premium Nexus user, cannot continue");
 
             }
 
@@ -493,7 +483,7 @@ namespace Wabbajack
                         ModID = general.modID,
                         Version = general.version ?? "0.0.0.0"
                     };
-                    var info = NexusApiClient.GetModInfo(nm);
+                    var info = new NexusApiClient().GetModInfo(nm);
                     nm.Author = info.author;
                     nm.UploadedBy = info.uploaded_by;
                     nm.UploaderProfile = info.uploaded_users_profile_url;
@@ -528,7 +518,6 @@ namespace Wabbajack
                 Info($"Checking link for {found.Name}");
 
                 var installer = new Installer(null, "");
-                installer.NexusClient = NexusApiClient;
 
                 if (!installer.DownloadArchive(result, false))
                     Error(

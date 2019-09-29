@@ -131,6 +131,7 @@ namespace VFS
                 {
                 }
 
+                _isDirty = false;
 
                 CleanDB();
             }
@@ -257,6 +258,7 @@ namespace VFS
                         _isDirty = true;
                         _files.Remove(f.FullPath);
                     });
+                SyncToDisk();
             }
         }
 
@@ -335,8 +337,12 @@ namespace VFS
 
                 lv.Analyze();
                 Add(lv);
-                if (lv.IsArchive) UpdateArchive(lv);
-                // Upsert after extraction incase extraction fails
+                if (lv.IsArchive)
+                {
+                    UpdateArchive(lv);
+                    // Upsert after extraction incase extraction fails
+                    lv.FinishedIndexing = true;
+                }
             }
 
             if (lv.IsOutdated)
