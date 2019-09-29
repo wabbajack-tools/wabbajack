@@ -18,6 +18,8 @@ namespace Wabbajack.Common
         public static HashSet<string> SupportedBSAs = new HashSet<string> {".bsa"};
 
         public static HashSet<string> ConfigFileExtensions = new HashSet<string> {".json", ".ini", ".yml"};
+        public static HashSet<string> ESPFileExtensions = new HashSet<string>() { ".esp", ".esm", ".esl"};
+        public static HashSet<string> AssetFileExtensions = new HashSet<string>() {".dds", ".tga", ".nif", ".psc", ".pex"};
 
         public static string NexusCacheDirectory = "nexus_link_cache";
 

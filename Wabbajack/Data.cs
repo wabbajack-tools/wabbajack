@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using VFS;
+using Wabbajack.Common;
 
 namespace Wabbajack
 {
@@ -37,6 +38,11 @@ namespace Wabbajack
         ///     Archives required by this modlist
         /// </summary>
         public List<Archive> Archives;
+
+        /// <summary>
+        /// The game variant to which this game applies
+        /// </summary>
+        public Game GameType;
 
         /// <summary>
         ///     Install directives

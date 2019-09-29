@@ -485,6 +485,11 @@ namespace Wabbajack.Common
             Log($"WARNING: {s}");
         }
 
+        public static TV GetOrDefault<TK, TV>(this Dictionary<TK, TV> dict, TK key)
+        {
+            return dict.TryGetValue(key, out var result) ? result : default;
+        }
+
         public static byte[] ConcatArrays(this IEnumerable<byte[]> arrays)
         {
             var outarr = new byte[arrays.Sum(a => a.Length)];
