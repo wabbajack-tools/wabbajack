@@ -15,6 +15,8 @@
 * Added support for `.omod` files
 * Stop emitting `.exe` modlist installers
 * Reworked Nexus HTTP API - Thanks Cyclonit
+* Added permissions system 
+* Auto detect game folders
 
 #### Version 0.9.2 - 9/18/2013
 * Fixed a bug with BSA string encoding

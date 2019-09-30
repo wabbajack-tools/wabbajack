@@ -65,7 +65,11 @@ namespace Wabbajack.Validation
 
             var errors = validator.Validate(modlist);
             errors.Do(e => Utils.Log(e));
-            Utils.Log($"{errors.Count()} validation errors found, cannot continue.");
+            if (errors.Count() > 0)
+            {
+                Utils.Log($"{errors.Count()} validation errors found, cannot continue.");
+                throw new AccessViolationException();
+            }
         }
 
         /// <summary>

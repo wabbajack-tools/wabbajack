@@ -93,18 +93,18 @@ namespace Wabbajack
                 }
             }
 
+            var game = GameRegistry.Games[ModList.GameType];
+
+            GameFolder = game.GameLocation;
+
             if (GameFolder == null)
             {
                 MessageBox.Show(
-                    "In order to do a proper install Wabbajack needs to know where your game folder resides. This is most likely " +
-                    "somewhere in one of your Steam folders. Please select this folder on the next screen." +
-                    "Note: This is not the install location where Mod Organizer 2 will be installed. ",
-                    "Select your Game Folder", MessageBoxButton.OK);
-                if (!LocateGameFolder())
-                {
-                    Info("Stopping installation because game folder was not selected");
-                    return;
-                }
+                    $"In order to do a proper install Wabbajack needs to know where your {game.MO2Name} folder resides. We tried looking the" +
+                    "game location up in the windows registry but were unable to find it, please make sure you launch the game once before running this installer. ",
+                    "Could not find game location", MessageBoxButton.OK);
+                Utils.Log("Exiting because we couldn't find the game folder.");
+                return;
             }
 
             HashArchives();
