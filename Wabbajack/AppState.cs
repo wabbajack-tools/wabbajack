@@ -364,12 +364,15 @@ namespace Wabbajack
                         dispatcher.Invoke(() =>
                         {
                             var element = SlideShowElements[_random.Next(0, SlideShowElements.Count)];
-                            SplashScreenImage = new BitmapImage(new Uri(element.ImageURL));
-                            SplashScreenModName = element.ModName;
-                            SplashScreenAuthorName = element.AuthorName;
-                            SplashScreenSummary = element.ModSummary;
-                            _nexusSiteURL = element.ModURL;
+                            if (element.ImageURL != null)
+                            {
 
+                                SplashScreenImage = new BitmapImage(new Uri(element.ImageURL));
+                                SplashScreenModName = element.ModName;
+                                SplashScreenAuthorName = element.AuthorName;
+                                SplashScreenSummary = element.ModSummary;
+                                _nexusSiteURL = element.ModURL;
+                            }
                             _lastSlideShowUpdate = DateTime.Now;
                         });
                     }
