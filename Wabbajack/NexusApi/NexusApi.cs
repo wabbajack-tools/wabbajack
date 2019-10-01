@@ -267,7 +267,19 @@ namespace Wabbajack.NexusApi
 
                 return Directory.EnumerateFiles(Consts.NexusCacheDirectory)
                     .Where(f => f.EndsWith(".json"))
-                    .Select(f => f.FromJSON<ModInfo>())
+                    .Select(f =>
+                    {
+                        try
+                        {
+                            return f.FromJSON<ModInfo>();
+                        }
+                        catch (Exception)
+                        {
+                            File.Delete(f);
+                            return null;
+                        }
+                    })
+                    .Where(m => m != null)
                     .Where(m => m._internal_version == CACHED_VERSION_NUMBER && m.picture_url != null)
                     .Select(m => new SlideShowItem
                     {

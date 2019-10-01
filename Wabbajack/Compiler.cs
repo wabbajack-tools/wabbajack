@@ -14,6 +14,7 @@ using Compression.BSA;
 using K4os.Compression.LZ4;
 using K4os.Compression.LZ4.Streams;
 using Newtonsoft.Json;
+using System.IO.Compression;
 using VFS;
 using Wabbajack.Common;
 using Wabbajack.NexusApi;
@@ -67,6 +68,9 @@ namespace Wabbajack
 
         public string MO2ProfileDir => Path.Combine(MO2Folder, "profiles", MO2Profile);
 
+        public string ModListOutputFolder => "output_folder";
+        public string ModListOutputFile => MO2Profile + Consts.ModlistExtension;
+
         public List<Directive> InstallDirectives { get; private set; }
         internal UserStatus User { get; private set; }
         public List<Archive> SelectedArchives { get; private set; }
@@ -98,6 +102,20 @@ namespace Wabbajack
             throw new Exception(msg);
         }
 
+        internal string IncludeFile(byte[] data)
+        {
+            var id = Guid.NewGuid().ToString();
+            File.WriteAllBytes(Path.Combine(ModListOutputFolder, id), data);
+            return id;
+        }
+
+        internal string IncludeFile(string data)
+        {
+            var id = Guid.NewGuid().ToString();
+            File.WriteAllText(Path.Combine(ModListOutputFolder, id), data);
+            return id;
+        }
+
         public bool Compile()
         {
             VirtualFileSystem.Clean();
@@ -116,6 +134,12 @@ namespace Wabbajack
 
             Info($"Indexing {MO2DownloadsFolder}");
             VFS.AddRoot(MO2DownloadsFolder);
+
+            Info("Cleaning output folder");
+            if (Directory.Exists(ModListOutputFolder))
+                Directory.Delete(ModListOutputFolder, true);
+
+            Directory.CreateDirectory(ModListOutputFolder);
 
             var mo2_files = Directory.EnumerateFiles(MO2Folder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
@@ -274,20 +298,35 @@ namespace Wabbajack
 
         private void ExportModlist()
         {
-            var out_path = MO2Profile + ".modlist";
+            Utils.Log($"Exporting Modlist to : {ModListOutputFile}");
 
-            Utils.Log($"Exporting Modlist to : {out_path}");
+            ModList.ToJSON(Path.Combine(ModListOutputFolder, "modlist.json"));
 
-            using (var os = File.OpenWrite(out_path))
-            using (var bw = new BinaryWriter(os))
+            if (File.Exists(ModListOutputFile))
+                File.Delete(ModListOutputFile);
+
+            using (var fs = new FileStream(ModListOutputFile, FileMode.Create))
             {
-                var formatter = new BinaryFormatter();
-                using (var compressed = LZ4Stream.Encode(bw.BaseStream,
-                    new LZ4EncoderSettings { CompressionLevel = LZ4Level.L10_OPT }, true))
+                using (var za = new ZipArchive(fs, ZipArchiveMode.Create))
                 {
-                    formatter.Serialize(compressed, ModList);
+                    Directory.EnumerateFiles(ModListOutputFolder, "*.*")
+                        .DoProgress("Compressing Modlist",
+                    f =>
+                    {
+                        var ze = za.CreateEntry(Path.GetFileName(f));
+                        using (var os = ze.Open())
+                        using (var ins = File.OpenRead(f))
+                        {
+                            ins.CopyTo(os);
+                        }
+                    });
                 }
             }
+            Utils.Log("Removing modlist staging folder");
+            Directory.Delete(ModListOutputFolder, true);
+
+
+
         }
 
         private void ShowReport()
@@ -313,7 +352,7 @@ namespace Wabbajack
             using (var fs = File.OpenWrite($"{ModList.Name}.md"))
             {
                 fs.SetLength(0);
-                using (var reporter = new ReportBuilder(fs))
+                using (var reporter = new ReportBuilder(fs, ModListOutputFolder))
                 {
                     reporter.Build(ModList);
                 }
@@ -342,7 +381,7 @@ namespace Wabbajack
         {
             Info("Gathering patch files");
             var groups = InstallDirectives.OfType<PatchedFromArchive>()
-                .Where(p => p.Patch == null)
+                .Where(p => p.PatchID == null)
                 .GroupBy(p => p.ArchiveHashPath[0])
                 .ToList();
 
@@ -350,7 +389,7 @@ namespace Wabbajack
             var absolute_paths = AllFiles.ToDictionary(e => e.Path, e => e.AbsolutePath);
             groups.PMap(group => BuildArchivePatches(group.Key, group, absolute_paths));
 
-            if (InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.Patch == null) != null)
+            if (InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.PatchID == null) != null)
                 Error("Missing patches after generation, this should not happen");
         }
 
@@ -372,8 +411,9 @@ namespace Wabbajack
                         var a = origin.ReadAll();
                         var b = LoadDataForTo(entry.To, absolute_paths);
                         Utils.CreatePatch(a, b, output);
-                        entry.Patch = output.ToArray();
-                        Info($"Patch size {entry.Patch.Length} for {entry.To}");
+                        entry.PatchID = IncludeFile(output.ToArray());
+                        var file_size = File.GetSize(Path.Combine(ModListOutputFolder, entry.PatchID));
+                        Info($"Patch size {file_size} for {entry.To}");
                     }
                 });
             }
@@ -534,7 +574,7 @@ namespace Wabbajack
 
                 Info($"Checking link for {found.Name}");
 
-                var installer = new Installer(null, "");
+                var installer = new Installer("", null, "");
 
                 if (!installer.DownloadArchive(result, false))
                     Error(
@@ -650,7 +690,7 @@ namespace Wabbajack
             {
                 if (!Consts.ConfigFileExtensions.Contains(Path.GetExtension(source.Path))) return null;
                 var result = source.EvolveTo<InlineFile>();
-                result.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                result.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
                 return result;
             };
         }
@@ -672,10 +712,12 @@ namespace Wabbajack
                     using (var ms = new MemoryStream())
                     {
                         Utils.CreatePatch(File.ReadAllBytes(game_file), File.ReadAllBytes(source.AbsolutePath), ms);
-                        result.SourceData = ms.ToArray().ToBase64();
+                        var data = ms.ToArray().ToBase64();
+                        result.SourceDataID = IncludeFile(data);
+                        Info($"Generated a {data.Length} byte patch for {filename}");
+
                     }
 
-                    Info($"Generated a {result.SourceData.Length} byte patch for {filename}");
 
                     return result;
                 }
@@ -693,7 +735,7 @@ namespace Wabbajack
                 if (source.Path.StartsWith(prefix))
                 {
                     var result = source.EvolveTo<InlineFile>();
-                    result.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                    result.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath).ToBase64());
                     return result;
                 }
 
@@ -731,7 +773,7 @@ namespace Wabbajack
             if (data == original_data)
                 return null;
             var result = source.EvolveTo<RemappedInlineFile>();
-            result.SourceData = Encoding.UTF8.GetBytes(data).ToBase64();
+            result.SourceDataID = IncludeFile(Encoding.UTF8.GetBytes(data));
             return result;
         }
 
@@ -778,7 +820,7 @@ namespace Wabbajack
                         if (source.Path.StartsWith(modpath))
                         {
                             var result = source.EvolveTo<InlineFile>();
-                            result.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                            result.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
                             return result;
                         }
 
@@ -808,7 +850,7 @@ namespace Wabbajack
                     if (esp_size <= 250 && (File.Exists(bsa) || File.Exists(bsa_textures)))
                     {
                         var inline = source.EvolveTo<InlineFile>();
-                        inline.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                        inline.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
                         return inline;
                     }
                 }
@@ -908,7 +950,7 @@ namespace Wabbajack
             return source =>
             {
                 var inline = source.EvolveTo<InlineFile>();
-                inline.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                inline.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
                 return inline;
             };
         }
@@ -971,7 +1013,12 @@ namespace Wabbajack
                 e.ArchiveHashPath = found.MakeRelativePaths();
                 e.To = source.Path;
                 e.Hash = source.File.Hash;
-                Utils.TryGetPatch(found.Hash, source.File.Hash, out e.Patch);
+
+                Utils.TryGetPatch(found.Hash, source.File.Hash, out var data);
+
+                if (data != null)
+                    e.PatchID = IncludeFile(data);
+
                 return e;
             };
         }
@@ -983,7 +1030,7 @@ namespace Wabbajack
                 if (source.Path.StartsWith("mods\\") && source.Path.EndsWith("\\meta.ini"))
                 {
                     var e = source.EvolveTo<InlineFile>();
-                    e.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                    e.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
                     return e;
                 }
 
@@ -1022,7 +1069,7 @@ namespace Wabbajack
                         data = File.ReadAllBytes(source.AbsolutePath);
 
                     var e = source.EvolveTo<InlineFile>();
-                    e.SourceData = data.ToBase64();
+                    e.SourceDataID = IncludeFile(data);
                     return e;
                 }
 
@@ -1101,7 +1148,7 @@ namespace Wabbajack
                 if (regex.IsMatch(source.Path))
                 {
                     var result = source.EvolveTo<InlineFile>();
-                    result.SourceData = File.ReadAllBytes(source.AbsolutePath).ToBase64();
+                    result.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
                     return result;
                 }
 
@@ -1160,32 +1207,6 @@ namespace Wabbajack
 
                 return null;
             };
-        }
-
-        internal void PatchExecutable()
-        {
-            Utils.Log("Exporting Installer");
-            var settings = new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto};
-            var executable = Assembly.GetExecutingAssembly().Location;
-            var out_path = Path.Combine(Path.GetDirectoryName(executable), MO2Profile + ".exe");
-            Info($"Patching Executable {Path.GetFileName(out_path)}");
-            File.Copy(executable, out_path, true);
-            using (var os = File.OpenWrite(out_path))
-            using (var bw = new BinaryWriter(os))
-            {
-                var orig_pos = os.Length;
-                os.Position = os.Length;
-                var formatter = new BinaryFormatter();
-
-                using (var compressed = LZ4Stream.Encode(bw.BaseStream,
-                    new LZ4EncoderSettings {CompressionLevel = LZ4Level.L10_OPT}, true))
-                {
-                    formatter.Serialize(compressed, ModList);
-                }
-
-                bw.Write(orig_pos);
-                bw.Write(Encoding.ASCII.GetBytes(Consts.ModListMagic));
-            }
         }
 
         public class IndexedFileMatch

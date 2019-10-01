@@ -88,7 +88,7 @@ namespace Wabbajack
                     using (var ms = new MemoryStream())
                     {
                         Utils.CreatePatch(src_data, dst_data, ms);
-                        result.Patch = ms.ToArray();
+                        result.PatchID = compiler.IncludeFile(ms.ToArray());
                     }
 
                     return result;

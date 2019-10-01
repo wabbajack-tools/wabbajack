@@ -7,6 +7,7 @@ namespace Wabbajack.Common
 {
     public static class Consts
     {
+        public static string ModlistExtension = ".modlist_v1";
         public static string GameFolderFilesDir = "Game Folder Files";
         public static string LOOTFolderFilesDir = "LOOT Config Files";
         public static string ModListMagic = "Celebration!, Cheese for Everyone!";

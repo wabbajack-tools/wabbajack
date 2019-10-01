@@ -202,7 +202,8 @@ namespace Wabbajack.Common
         public static T FromJSON<T>(this Stream data)
         {
             var s = Encoding.UTF8.GetString(data.ReadAll());
-            return JsonConvert.DeserializeObject<T>(s);
+            return JsonConvert.DeserializeObject<T>(s, 
+                new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto });
         }
 
         public static bool FileExists(this string filename)
@@ -488,6 +489,12 @@ namespace Wabbajack.Common
         public static TV GetOrDefault<TK, TV>(this Dictionary<TK, TV> dict, TK key)
         {
             return dict.TryGetValue(key, out var result) ? result : default;
+        }
+
+        public static IEnumerable<T> ButLast<T>(this IEnumerable<T> coll)
+        {
+            var lst = coll.ToList();
+            return lst.Take(lst.Count() - 1);
         }
 
         public static byte[] ConcatArrays(this IEnumerable<byte[]> arrays)

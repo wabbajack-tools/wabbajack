@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using Wabbajack.Common;
 using Wabbajack.NexusApi;
+using File = Alphaleonis.Win32.Filesystem.File;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack
 {
@@ -11,9 +13,11 @@ namespace Wabbajack
     {
         private const int WRAP_SIZE = 80;
         private readonly StreamWriter wtr;
+        private string _output_folder;
 
-        public ReportBuilder(Stream str)
+        public ReportBuilder(Stream str, string output_folder)
         {
+            _output_folder = output_folder;
             wtr = new StreamWriter(str);
         }
 
@@ -82,7 +86,7 @@ namespace Wabbajack
             Text($"#### Summary of ({patched.Count}) patches");
             foreach (var directive in patched)
                 NoWrapText(
-                    $"* Applying {directive.Patch.Length} byte patch `{directive.FullPath}` to create `{directive.To}`");
+                    $"* Applying {SizeForID(directive.PatchID)} byte patch `{directive.FullPath}` to create `{directive.To}`");
 
 
             var files = lst.Directives.OrderBy(d => d.To).ToList();
@@ -101,7 +105,7 @@ namespace Wabbajack
                         NoWrapText($"* `{i.To}` by remapping the contents of an inline file");
                         break;
                     case InlineFile i:
-                        NoWrapText($"* `{i.To}` from `{i.SourceData.Length.ToFileSizeString()}` file included in modlist");
+                        NoWrapText($"* `{i.To}` from `{SizeForID(i.SourceDataID).ToFileSizeString()}` file included in modlist");
                         break;
                     case CreateBSA i:
                         NoWrapText(
@@ -110,18 +114,23 @@ namespace Wabbajack
                 }
 
             var inlined = lst.Directives.OfType<InlineFile>()
-                .Select(f => (f.To, "inlined", f.SourceData.Length))
+                .Select(f => (f.To, "inlined", SizeForID(f.SourceDataID)))
                 .Concat(lst.Directives
                     .OfType<PatchedFromArchive>()
-                    .Select(f => (f.To, "patched", f.Patch.Length)))
+                    .Select(f => (f.To, "patched", SizeForID(f.PatchID))))
                 .ToHashSet()
-                .OrderByDescending(f => f.Length);
+                .OrderByDescending(f => f.Item3);
 
             NoWrapText("\n\n### Summary of inlined files in this installer");
             foreach (var inline in inlined)
             {
-                NoWrapText($"* {inline.Length.ToFileSizeString()} for {inline.Item2} file {inline.To}");
+                NoWrapText($"* {inline.Item3.ToFileSizeString()} for {inline.Item2} file {inline.To}");
             }
+        }
+
+        private long SizeForID(string id)
+        {
+            return File.GetSize(Path.Combine(_output_folder, id));
         }
 
         private IEnumerable<Archive> SortArchives(List<Archive> lstArchives)

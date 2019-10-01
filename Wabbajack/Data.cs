@@ -88,7 +88,7 @@ namespace Wabbajack
         /// <summary>
         ///     Data that will be written as-is to the destination location;
         /// </summary>
-        public string SourceData;
+        public string SourceDataID;
     }
 
     [Serializable]
@@ -150,7 +150,7 @@ namespace Wabbajack
         /// <summary>
         ///     The file to apply to the source file to patch it
         /// </summary>
-        public byte[] Patch;
+        public String PatchID;
     }
 
     [Serializable]
@@ -165,7 +165,7 @@ namespace Wabbajack
     {
         public List<SourcePatch> Sources;
         public string Hash;
-        public byte[] Patch;
+        public string PatchID;
     }
 
     [Serializable]

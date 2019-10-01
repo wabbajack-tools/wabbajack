@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using Wabbajack.Common;
 using static Wabbajack.MainWindow;
 
 namespace Wabbajack
@@ -49,7 +50,7 @@ namespace Wabbajack
 
         private void InstallModlist_Click(object sender, RoutedEventArgs e)
         {
-            var file = UIUtils.OpenFileDialog("Wabbajack Modlist (*.modlist)|*.modlist");
+            var file = UIUtils.OpenFileDialog($"Wabbajack Modlist (*{Consts.ModlistExtension})|*{Consts.ModlistExtension}");
             if (file != null)
             {
                 ShutdownOnClose = false;

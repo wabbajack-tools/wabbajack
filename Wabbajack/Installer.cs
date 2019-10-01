@@ -12,6 +12,7 @@ using System.Windows;
 using CG.Web.MegaApiClient;
 using Compression.BSA;
 using K4os.Compression.LZ4.Streams;
+using System.IO.Compression;
 using VFS;
 using Wabbajack.Common;
 using Wabbajack.NexusApi;
@@ -27,8 +28,9 @@ namespace Wabbajack
     {
         private string _downloadsFolder;
 
-        public Installer(ModList mod_list, string output_folder)
+        public Installer(string archive, ModList mod_list, string output_folder)
         {
+            ModListArchive = archive;
             Outputfolder = output_folder;
             ModList = mod_list;
         }
@@ -43,6 +45,7 @@ namespace Wabbajack
             set => _downloadsFolder = value;
         }
 
+        public string ModListArchive { get; }
         public ModList ModList { get; }
         public Dictionary<string, string> HashedArchives { get; private set; }
 
@@ -68,6 +71,31 @@ namespace Wabbajack
         {
             Utils.Log(msg);
             throw new Exception(msg);
+        }
+
+        private byte[] LoadBytesFromPath(string path)
+        {
+            using (var fs = new FileStream(ModListArchive, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var ar = new ZipArchive(fs,ZipArchiveMode.Read))
+            using (var ms = new MemoryStream())
+            {
+                var entry = ar.GetEntry(path);
+                using (var e = entry.Open())
+                    e.CopyTo(ms);
+                return ms.ToArray();
+            }
+        }
+
+        public static ModList LoadFromFile(string path)
+        {
+            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+            using (var ms = new MemoryStream())
+            {
+                var entry = ar.GetEntry("modlist.json");
+                using (var e = entry.Open())
+                    return e.FromJSON<ModList>();
+            }
         }
 
         public void Install()
@@ -268,7 +296,7 @@ namespace Wabbajack
                     else if (directive is CleanedESM)
                         GenerateCleanedESM((CleanedESM) directive);
                     else
-                        File.WriteAllBytes(out_path, directive.SourceData.FromBase64());
+                        File.WriteAllBytes(out_path, LoadBytesFromPath(directive.SourceDataID));
                 });
         }
 
@@ -284,7 +312,7 @@ namespace Wabbajack
                 throw new InvalidDataException(
                     $"Cannot patch {filename} from the game folder hashes don't match have you already cleaned the file?");
 
-            var patch_data = directive.SourceData.FromBase64();
+            var patch_data = LoadBytesFromPath(directive.SourceDataID);
             var to_file = Path.Combine(Outputfolder, directive.To);
             Status($"Patching {filename}");
             using (var output = File.OpenWrite(to_file))
@@ -295,7 +323,7 @@ namespace Wabbajack
 
         private void WriteRemappedFile(RemappedInlineFile directive)
         {
-            var data = Encoding.UTF8.GetString(directive.SourceData.FromBase64());
+            var data = Encoding.UTF8.GetString(LoadBytesFromPath(directive.SourceDataID));
 
             data = data.Replace(Consts.GAME_PATH_MAGIC_BACK, GameFolder);
             data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, GameFolder.Replace("\\", "\\\\"));
@@ -377,7 +405,7 @@ namespace Wabbajack
                     Status($"Patching {Path.GetFileName(to_patch.To)}");
                     // Read in the patch data
 
-                    var patch_data = to_patch.Patch;
+                    var patch_data = LoadBytesFromPath(to_patch.PatchID);
 
                     var to_file = Path.Combine(Outputfolder, to_patch.To);
                     var old_data = new MemoryStream(File.ReadAllBytes(to_file));
@@ -628,32 +656,6 @@ namespace Wabbajack
             Status($"Hashing {Path.GetFileName(e)}");
             File.WriteAllText(cache, e.FileSHA256());
             return HashArchive(e);
-        }
-
-        public static ModList LoadModlist(string file)
-        {
-            Utils.Log("Reading Modlist, this may take a moment");
-            try
-            {
-                using (var s = File.OpenRead(file))
-                {
-                    using (var br = new BinaryReader(s))
-                    {
-                        using (var dc = LZ4Stream.Decode(br.BaseStream, leaveOpen: true))
-                        {
-                            IFormatter formatter = new BinaryFormatter();
-                            var list = formatter.Deserialize(dc);
-                            Utils.Log("Modlist loaded.");
-                            return (ModList) list;
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                Utils.Log("Error Loading modlist");
-                return null;
-            }
         }
     }
 }

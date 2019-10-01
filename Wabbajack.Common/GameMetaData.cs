@@ -14,7 +14,8 @@ namespace Wabbajack.Common
         FalloutNewVegas,
         Skyrim,
         SkyrimSpecialEdition,
-        Fallout4
+        Fallout4,
+        SkyrimVR
     }
 
     public class GameMetaData
@@ -101,6 +102,16 @@ namespace Wabbajack.Common
                     MO2Name = "Fallout 4",
                     MO2ArchiveName = "fallout4",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Fallout4"
+                }
+            },
+            {
+                Game.SkyrimVR, new GameMetaData
+                {
+                    Game = Game.SkyrimVR,
+                    NexusName = "skyrimspecialedition",
+                    MO2Name = "Skyrim VR",
+                    MO2ArchiveName = "skyrimse",
+                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Skyrim VR"
                 }
             }
         };

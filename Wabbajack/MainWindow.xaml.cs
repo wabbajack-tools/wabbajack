@@ -54,7 +54,7 @@ namespace Wabbajack
                 else if (mode == RunMode.Install)
                 {
                     context.UIReady = false;
-                    var modlist = Installer.LoadModlist(source);
+                    var modlist = Installer.LoadFromFile(source);
                     if (modlist == null)
                     {
                         MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
@@ -71,7 +71,7 @@ namespace Wabbajack
                     }
                     else
                     {
-                        context.ConfigureForInstall(modlist);
+                        context.ConfigureForInstall(source, modlist);
                     }
 
                 }

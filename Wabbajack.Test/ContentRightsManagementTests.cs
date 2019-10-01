@@ -160,7 +160,7 @@ namespace Wabbajack.Test
             // Error due to patched file
             modlist.Directives[0] = new PatchedFromArchive
             {
-                Patch = new byte[]{0, 1, 3},
+                PatchID = Guid.NewGuid().ToString(),
                 ArchiveHashPath = new[] {"DEADBEEF", "foo\\bar\\baz.pex"},
             };
 
@@ -176,7 +176,15 @@ namespace Wabbajack.Test
             errors = validate.Validate(modlist);
             Assert.AreEqual(errors.Count(), 1);
 
+            // No error since we're just installing the .bsa, not extracting it
+            modlist.Directives[0] = new FromArchive
+            {
+                ArchiveHashPath = new[] { "DEADBEEF", "foo.bsa"},
+            };
 
+            errors = validate.Validate(modlist);
+            Assert.AreEqual(0, errors.Count());
+            
             // Error due to game conversion
             modlist.GameType = Game.SkyrimSpecialEdition;
             modlist.Directives[0] = new FromArchive

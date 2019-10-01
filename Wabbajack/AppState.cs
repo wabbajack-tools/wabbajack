@@ -280,6 +280,8 @@ namespace Wabbajack
         }
 
         public string _splashScreenSummary = "";
+        private string _modListPath;
+
         public string SplashScreenSummary
         {
             get => _splashScreenSummary;
@@ -379,9 +381,10 @@ namespace Wabbajack
 
         public bool Running { get; set; } = true;
 
-        internal void ConfigureForInstall(ModList modlist)
+        internal void ConfigureForInstall(string source, ModList modlist)
         {
             _modList = modlist;
+            _modListPath = source;
             Mode = "Installing";
             ModListName = _modList.Name;
             HTMLReport = _modList.ReportHTML;
@@ -481,7 +484,7 @@ namespace Wabbajack
             UIReady = false;
             if (Mode == "Installing")
             {
-                var installer = new Installer(_modList, Location);
+                var installer = new Installer(_modListPath, _modList, Location);
 
                 installer.DownloadFolder = DownloadLocation;
                 var th = new Thread(() =>

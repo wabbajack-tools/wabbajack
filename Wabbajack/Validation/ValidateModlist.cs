@@ -48,12 +48,14 @@ namespace Wabbajack.Validation
             using (var result = new StringReader(client.GetStringSync(Consts.ModPermissionsURL)))
             {
                 AuthorPermissions = d.Deserialize<Dictionary<string, Author>>(result);
+                Utils.Log($"Loaded permissions for {AuthorPermissions.Count} authors");
             }
 
             Utils.Log("Loading Server Whitelist");
             using (var result = new StringReader(client.GetStringSync(Consts.ServerWhitelistURL)))
             {
                 ServerWhitelist = d.Deserialize<ServerWhitelist>(result);
+                Utils.Log($"Loaded permissions for {ServerWhitelist.AllowedPrefixes.Count} servers and {ServerWhitelist.GoogleIDs.Count} GDrive files");
             }
 
         }
@@ -62,13 +64,17 @@ namespace Wabbajack.Validation
         {
             var validator = new ValidateModlist();
             validator.LoadListsFromGithub();
-
+            Utils.Log("Running validation checks");
             var errors = validator.Validate(modlist);
             errors.Do(e => Utils.Log(e));
             if (errors.Count() > 0)
             {
                 Utils.Log($"{errors.Count()} validation errors found, cannot continue.");
-                throw new AccessViolationException();
+                throw new Exception($"{errors.Count()} validation errors found, cannot continue.");
+            }
+            else
+            {
+                Utils.Log("No Validation failures");
             }
         }
 
@@ -134,7 +140,7 @@ namespace Wabbajack.Validation
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {
                         if (!(archive.permissions.CanExtractBSAs ?? true) && 
-                            p.ArchiveHashPath.Skip(1).Any(a => Consts.SupportedBSAs.Contains(Path.GetExtension(a))))
+                            p.ArchiveHashPath.Skip(1).ButLast().Any(a => Consts.SupportedBSAs.Contains(Path.GetExtension(a))))
                         {
                             ValidationErrors.Push($"{p.To} from {archive.archive.NexusURL} is set to disallow BSA Extraction");
                         }
