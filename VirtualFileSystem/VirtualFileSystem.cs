@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
+using DirectoryInfo = Alphaleonis.Win32.Filesystem.DirectoryInfo;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
+using FileSystemInfo = Alphaleonis.Win32.Filesystem.FileSystemInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace VFS
@@ -66,39 +65,24 @@ namespace VFS
 
         public static void DeleteDirectory(string path)
         {
-            var info = new ProcessStartInfo
-            {
-                FileName = "cmd.exe",
-                Arguments = $"/c del /f /q /s \"{path}\" && rmdir /q /s \"{path}\" ",
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
+            Utils.Status($"Deleting directory {path}.");
 
-            var p = new Process
-            {
-                StartInfo = info
-            };
+            var directoryInfo = new DirectoryInfo(path);
 
-            p.Start();
-            ChildProcessTracker.AddProcess(p);
-            try
-            {
-                p.PriorityClass = ProcessPriorityClass.BelowNormal;
-            }
-            catch (Exception)
-            {
+            // GetFileSystemInfos does a breath search. By reversing the result, we are guaranteed
+            // to delete from the deepest level of the hiarchy up to the root. Thus directories are
+            // always empty once we reach them.
+            foreach (FileSystemInfo descendantInfo in directoryInfo.GetFileSystemInfos("*", SearchOption.AllDirectories).Reverse()) {
+                if (descendantInfo is FileInfo)
+                {
+                    File.Delete(descendantInfo.FullName, true);
+                } else
+                {
+                    Directory.Delete(descendantInfo.FullName);
+                }
             }
 
-            while (!p.HasExited)
-            {
-                var line = p.StandardOutput.ReadLine();
-                if (line == null) break;
-                Utils.Status(line);
-            }
-            p.WaitForExit();
+            directoryInfo.Delete();
         }
 
         public void Reset()
