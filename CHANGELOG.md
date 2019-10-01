@@ -5,6 +5,7 @@
 * Add game registry entry for Skyrim VR
 * Modlists are now .zip files. 
 * Modlists now end with `.modlist_v1` to enable better version control
+* If `readme.md` is found in the profile directory, inline it into the install report.
 
 #### Version 0.9.3 - 9/30/2019
 * Add WABBAJACK_NOMATCH_INCLUDE works like WABBAJACK_INCLUDE but only includes files that are found to be missing at the end of compilation

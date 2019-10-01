@@ -44,9 +44,15 @@ namespace Wabbajack
             wtr.WriteLine(txt);
         }
 
-        public void Build(ModList lst)
+        public void Build(Compiler c, ModList lst)
         {
             Text($"### {lst.Name} - Installation Summary");
+
+            var readme_file = Path.Combine(c.MO2ProfileDir, "readme.md");
+            if (File.Exists(readme_file))
+                File.ReadAllLines(readme_file)
+                    .Do(NoWrapText);
+
             Text(
                 $"#### Download Summary ({lst.Archives.Count} archives - {lst.Archives.Sum(a => a.Size).ToFileSizeString()})");
             foreach (var archive in SortArchives(lst.Archives))

@@ -354,7 +354,7 @@ namespace Wabbajack
                 fs.SetLength(0);
                 using (var reporter = new ReportBuilder(fs, ModListOutputFolder))
                 {
-                    reporter.Build(ModList);
+                    reporter.Build(this, ModList);
                 }
             }
 
