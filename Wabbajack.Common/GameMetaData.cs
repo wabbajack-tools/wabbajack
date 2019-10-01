@@ -28,7 +28,7 @@ namespace Wabbajack.Common
         public string GameLocation =>
             (string)Registry.GetValue(GameLocationRegistryKey, "installed path", null)
             ??
-            (string)Registry.GetValue(GameLocationRegistryKey.Replace(@"HKEY_LOCAL_MACHINE\SOFTWARE\", @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432"), "installed path", null);
+            (string)Registry.GetValue(GameLocationRegistryKey.Replace(@"HKEY_LOCAL_MACHINE\SOFTWARE\", @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\"), "installed path", null);
     }
 
     public class GameRegistry

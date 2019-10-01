@@ -100,7 +100,7 @@
   <ItemGroup>
     <EmbeddedResource Include="7z.dll.gz" />
     <EmbeddedResource Include="7z.exe.gz" />
-    <EmbeddedResource Include="innounp.exe.gz" />
+    <None Include="innounp.exe.gz" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -116,7 +116,7 @@
   <ItemGroup>
     <Content Include="7z.dll" />
     <Content Include="7z.exe" />
-    <Content Include="innounp.exe" />
+    <None Include="innounp.exe" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,6 +1,9 @@
 ### Changelog
 
-#### Version 0.9.3 - ???
+#### Version 0.9.4 - ???
+* Point github icon to https://github.com/wabbajack-tools/wabbajack
+
+#### Version 0.9.3 - 9/30/2019
 * Add WABBAJACK_NOMATCH_INCLUDE works like WABBAJACK_INCLUDE but only includes files that are found to be missing at the end of compilation
 * Add a list of all inlined data blobs to the install report, useful for reducing installer sizes
 * Increased dummy EPS detection size to 250 bytes and added .esm files to the filter logic
@@ -15,6 +18,8 @@
 * Added support for `.omod` files
 * Stop emitting `.exe` modlist installers
 * Reworked Nexus HTTP API - Thanks Cyclonit
+* Added permissions system 
+* Auto detect game folders
 
 #### Version 0.9.2 - 9/18/2013
 * Fixed a bug with BSA string encoding

@@ -7,6 +7,9 @@ a program to automatically recreate the contents of the folder on another machin
 files or syncing data between the source and destination machine. The end result is a program that recreate a modlist on a computer while respecting the
 rights of the game publisher and the mod authors.
 
+### Installing a Modlist
+Please visit our Discord link below for information on how to obtain and install a modlist. 
+
 ### Social Links
 
 - [Discord](https://discord.gg/zgbrkmA)
@@ -64,6 +67,13 @@ That being said, there are some cases where we would need to do a bit more work 
 - LL Files (currently no plans to implement)
 - esp to esm conversion (there are hacks for this)
 - binary patching of non-bsa huge files. 256MB is the largest size Wabbajack can currently handle with the binary patcher
+
+### The Wabbajack Permissions System
+While Wabbajack can perform a large variety of operations on mod files, we recognize that some authors don't want to deal with 
+the support requests that come from some users performing operations on these files. Therefore we worked together with several 
+authors to create a permissions system Wabbajack will follow during installation and creation of a modlist. This permissions file 
+can be found on [Github](https://github.com/wabbajack-tools/opt-out-lists/blob/master/NexusModPermissions.yml). Feel free to contact
+us via discord about any questions you may have. 
 
 ### Creating a ModList Installer
 
@@ -184,18 +194,6 @@ I wouldn't throw away the code, but it would have to be done in a way that was r
 it doesn't know what mod manager a user is using. This means that if the modlist creator used Vortex all users of the modlist would have to use Vortex. This doesn't seem
 optimal. It's possible perhaps, but it's at the bottom of the priority list.
 
-**Where is the modlist? Why am I just given an .exe?**
-
-When Wabbajack creates a modlist, as a final step it copies itself (the wabbajack.exe) and tacks onto the end of the file the modlist data, and a few bits
-of magic text. When Wabbajack starts it looks at itself to see if it has this extra data tacked on to the end of the executable. If the data is found the app kicks
-into installation mode. This means that Wabbajack acts a lot like a self-extracting installer.
-
-**Do you know that some mod authors don't like their mods being automatically installed?**
-
-Yes, I've heard this, but they chose to host their data on a public site. And no, they don't have the right to dictate what HTTP client is used to download a file.
-We're using official Nexus APIs for nexus downloads, so any downloads Wabbajack performs are correctly tracked, and MO2 encourages users to endorse mods. It's 2019, we can
-have better tools than manually clicking links.
-
 **How does Wabbajack differ from Automaton?**
 
 I (halgari) used to be a developer working on Automaton. Sadly development was moving a bit too slowly for my liking, and I realized that a complete rewrite would allow the
@@ -215,6 +213,9 @@ Our tester and Discord members who encourage development and help test the build
 #### Patreon Supporters
 
 - Druwski
+- Soothsayre
+- krageon
+- Scumbag
 
 ### License & Copyright
 

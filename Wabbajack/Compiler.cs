@@ -180,6 +180,20 @@ namespace Wabbajack
 
             Info($"Found {AllFiles.Count} files to build into mod list");
 
+            Info("Verifying destinations");
+            var dups = AllFiles.GroupBy(f => f.Path)
+                .Where(fs => fs.Count() > 1)
+                .Select(fs =>
+                {
+                    Utils.Log($"Duplicate files installed to {fs.Key} from : {String.Join(", ", fs.Select(f => f.AbsolutePath))}");
+                    return fs;
+                }).ToList();
+
+            if (dups.Count > 0)
+            {
+                Error($"Found {dups.Count} duplicates, exiting");
+            }
+
             ExtraFiles = new ConcurrentBag<Directive>();
 
             ModInis = Directory.EnumerateDirectories(Path.Combine(MO2Folder, "mods"))
@@ -245,11 +259,12 @@ namespace Wabbajack
                 Name = MO2Profile
             };
 
+            ValidateModlist.RunValidation(ModList);
+
             GenerateReport();
             ExportModlist();
 
             ResetMembers();
-            ValidateModlist.RunValidation(ModList);
 
             ShowReport();
 

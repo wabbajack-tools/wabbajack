@@ -70,7 +70,7 @@ namespace Wabbajack
 
         private void GitHub_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            Process.Start("https://github.com/halgari/wabbajack");
+            Process.Start("https://github.com/wabbajack-tools/wabbajack");
         }
 
         private void Patreon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
