@@ -1,6 +1,9 @@
 ### Changelog
 
-#### Version 0.9.3 - ???
+#### Version 0.9.4 - ???
+* Nothing yet
+
+#### Version 0.9.3 - 9/30/2019
 * Add WABBAJACK_NOMATCH_INCLUDE works like WABBAJACK_INCLUDE but only includes files that are found to be missing at the end of compilation
 * Add a list of all inlined data blobs to the install report, useful for reducing installer sizes
 * Increased dummy EPS detection size to 250 bytes and added .esm files to the filter logic
