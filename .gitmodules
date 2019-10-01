@@ -1,0 +1,3 @@
+[submodule "OMOD-Framework"]
+	path = OMOD-Framework
+	url = https://github.com/erri120/OMOD-Framework.git
