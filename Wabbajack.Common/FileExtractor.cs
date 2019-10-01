@@ -14,7 +14,7 @@ namespace Wabbajack.Common
         {
             ExtractResource("Wabbajack.Common.7z.dll.gz", "7z.dll");
             ExtractResource("Wabbajack.Common.7z.exe.gz", "7z.exe");
-            ExtractResource("Wabbajack.Common.innounp.exe.gz", "innounp.exe");
+            //ExtractResource("Wabbajack.Common.innounp.exe.gz", "innounp.exe");
         }
 
         private static void ExtractResource(string from, string to)
