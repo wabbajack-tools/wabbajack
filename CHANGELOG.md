@@ -1,7 +1,7 @@
 ### Changelog
 
 #### Version 0.9.5 - ???
-* Nothing Yet
+* Set Oblivion's MO2 names to `Oblivion` not `oblivion`
 
 #### Version 0.9.4 - 10/2/2019
 * Point github icon to https://github.com/wabbajack-tools/wabbajack
