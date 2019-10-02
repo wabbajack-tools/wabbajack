@@ -1,6 +1,6 @@
 # Contributing to Wabbajack
 
-The following is a set of guidelines for contributing to the `halgari/wabbajack` repo on GitHub. These are guidelines but not rules so be free to propose changes.
+The following is a set of guidelines for contributing to the `wabbajack-tools/wabbajack` repo on GitHub. These are guidelines but not rules so be free to propose changes.
 
 ## How Can I Contribute?
 
@@ -8,9 +8,9 @@ You don't have to be a programmer to contribute to this project.
 
 ### Reporting Bugs
 
-When you encounter problems with the application, go to our [discord](https://discord.gg/zgbrkmA) server first and ask for help there. Before creating a new Issue, take a look at the others to avoid getting the [Duplicate](https://github.com/halgari/wabbajack/labels/duplicate) label.
+When you encounter problems with the application, go to our [discord](https://discord.gg/zgbrkmA) server first and ask for help there. Before creating a new Issue, take a look at the others to avoid getting the [Duplicate](https://github.com/wabbajack-tools/wabbajack/labels/duplicate) label.
 
-Creating a bug report is as easy as navigating to the [Issues](https://github.com/halgari/wabbajack/issues) page and clicking the [New Issue](https://github.com/halgari/wabbajack/issues/new/choose) button.
+Creating a bug report is as easy as navigating to the [Issues](https://github.com/wabbajack-tools/wabbajack/issues) page and clicking the [New Issue](https://github.com/wabbajack-tools/wabbajack/issues/new/choose) button.
 
 #### Submitting A Good Bug Report
 
@@ -56,7 +56,7 @@ You commits should also be elegant. Check [this](https://github.com/git-for-wind
 
 Updating your fork is important and easy. Open your terminal of choice inside the project folder and add the original repo as a new remote:
 
-`git remote add upstream https://github.com/halgari/wabbajack.git`
+`git remote add upstream https://github.com/wabbajack-tools/wabbajack.git`
 
 Make sure that you're on your master branch:
 
