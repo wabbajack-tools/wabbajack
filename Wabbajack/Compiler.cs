@@ -712,7 +712,7 @@ namespace Wabbajack
                     using (var ms = new MemoryStream())
                     {
                         Utils.CreatePatch(File.ReadAllBytes(game_file), File.ReadAllBytes(source.AbsolutePath), ms);
-                        var data = ms.ToArray().ToBase64();
+                        var data = ms.ToArray();
                         result.SourceDataID = IncludeFile(data);
                         Info($"Generated a {data.Length} byte patch for {filename}");
 
