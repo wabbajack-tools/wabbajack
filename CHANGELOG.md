@@ -1,6 +1,9 @@
 ### Changelog
 
-#### Version 0.9.4 - ???
+#### Version 0.9.5 - ???
+* Nothing Yet
+
+#### Version 0.9.4 - 10/2/2019
 * Point github icon to https://github.com/wabbajack-tools/wabbajack
 * Add game registry entry for Skyrim VR
 * Modlists are now .zip files. 
