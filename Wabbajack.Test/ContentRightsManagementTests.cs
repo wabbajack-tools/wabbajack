@@ -236,12 +236,6 @@ namespace Wabbajack.Test
             Assert.AreEqual(errors.Count(), 0);
 
         }
-
-        [TestMethod]
-        public void CanLoadFromGithub()
-        {
-            new ValidateModlist().LoadListsFromGithub();
-        }
     }
 
 

@@ -20,8 +20,8 @@ namespace Wabbajack.Validation
     public class ValidateModlist
     {
         public static bool TestMode { get; set; } = false;
-        public Dictionary<string, Author> AuthorPermissions { get; set; }
-        public ServerWhitelist ServerWhitelist { get; set; }
+        public Dictionary<string, Author> AuthorPermissions { get; set; } = new Dictionary<string, Author>();
+        public ServerWhitelist ServerWhitelist { get; set; } = new ServerWhitelist();
 
         public void LoadAuthorPermissionsFromString(string s)
         {

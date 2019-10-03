@@ -2,6 +2,7 @@
 
 #### Version 0.9.5 - ???
 * Set Oblivion's MO2 names to `Oblivion` not `oblivion`
+* Fix validation tests to run in CI
 
 #### Version 0.9.4 - 10/2/2019
 * Point github icon to https://github.com/wabbajack-tools/wabbajack
