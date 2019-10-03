@@ -19,6 +19,7 @@ namespace Wabbajack.Validation
     /// </summary>
     public class ValidateModlist
     {
+        public static bool TestMode { get; set; } = false;
         public Dictionary<string, Author> AuthorPermissions { get; set; }
         public ServerWhitelist ServerWhitelist { get; set; }
 
@@ -63,7 +64,10 @@ namespace Wabbajack.Validation
         public static void RunValidation(ModList modlist)
         {
             var validator = new ValidateModlist();
-            validator.LoadListsFromGithub();
+
+            if (!TestMode)
+                validator.LoadListsFromGithub();
+
             Utils.Log("Running validation checks");
             var errors = validator.Validate(modlist);
             errors.Do(e => Utils.Log(e));

@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime;
-using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using VFS;
 using Wabbajack.Common;
+using Wabbajack.Validation;
+using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Test
 {
@@ -20,6 +21,7 @@ namespace Wabbajack.Test
         [TestInitialize]
         public void TestInitialize()
         {
+            ValidateModlist.TestMode = true;
             utils = new TestUtils();
             utils.GameName = "Skyrim Special Edition";
 
