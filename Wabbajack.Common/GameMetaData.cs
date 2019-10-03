@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Microsoft.Win32;
 
 namespace Wabbajack.Common
@@ -26,10 +28,20 @@ namespace Wabbajack.Common
         public string MO2Name { get; internal set; }
         public string GameLocationRegistryKey { get; internal set; }
 
-        public string GameLocation =>
-            (string)Registry.GetValue(GameLocationRegistryKey, "installed path", null)
-            ??
-            (string)Registry.GetValue(GameLocationRegistryKey.Replace(@"HKEY_LOCAL_MACHINE\SOFTWARE\", @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\"), "installed path", null);
+        public string GameLocation
+        {
+            get
+            {
+                if (Consts.TestMode)
+                    return Directory.GetCurrentDirectory();
+
+                return (string) Registry.GetValue(GameLocationRegistryKey, "installed path", null)
+                       ??
+                       (string) Registry.GetValue(
+                           GameLocationRegistryKey.Replace(@"HKEY_LOCAL_MACHINE\SOFTWARE\",
+                               @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\"), "installed path", null);
+            }
+        }
     }
 
     public class GameRegistry
