@@ -72,10 +72,6 @@ namespace Wabbajack
             }
 
             _startTime = DateTime.Now;
-            LogFile = Assembly.GetExecutingAssembly().Location + ".log";
-
-            if (LogFile.FileExists())
-                File.Delete(LogFile);
 
             Mode = mode;
             Dirty = false;
@@ -405,12 +401,7 @@ namespace Wabbajack
 
         public void LogMsg(string msg)
         {
-            msg = $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}";
             dispatcher.Invoke(() => Log.Add(msg));
-            lock (dispatcher)
-            {
-                File.AppendAllText(LogFile, msg + "\r\n");
-            }
         }
 
         public void SetProgress(int id, string msg, int progress)

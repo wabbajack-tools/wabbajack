@@ -18,7 +18,7 @@
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <StartArguments>"c:\Mod Organizer 2" "Nexus SSO Test" "c:\tmp\validate"</StartArguments>
+    <StartArguments>"c:\tmp\Lexys LOTD SE Unofficial Autoinstaller - 0.4.5.modlist_v1"</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug %28no commandargs%29|x64'">
     <StartWorkingDirectory>c:\tmp\vstmp</StartWorkingDirectory>

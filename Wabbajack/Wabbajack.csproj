@@ -195,6 +195,7 @@
     <Compile Include="Themes\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Themes\TreeViewItemExtensions.cs" />
     <Compile Include="UIUtils.cs" />
+    <Compile Include="Updater\CheckForUpdates.cs" />
     <Compile Include="Validation\DTOs.cs" />
     <Compile Include="Validation\ValidateModlist.cs" />
     <Compile Include="zEditIntegration.cs" />

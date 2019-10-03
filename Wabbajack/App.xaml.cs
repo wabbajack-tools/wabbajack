@@ -1,4 +1,8 @@
-﻿using System.Windows;
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Windows;
+using Wabbajack.Common;
+using Wabbajack.Updater;
 
 namespace Wabbajack
 {
@@ -7,5 +11,21 @@ namespace Wabbajack
     /// </summary>
     public partial class App : Application
     {
+        public App()
+        {
+            var args = Environment.GetCommandLineArgs();
+            if (args.Length > 1)
+            {
+                Utils.SetLoggerFn(f => {});
+                WorkQueue.Init((a, b, c) => {}, (a, b) => {});
+                var updater = new CheckForUpdates(args[1]);
+                if (updater.FindOutdatedMods())
+                {
+                    Environment.Exit(0);
+                }
+                Environment.Exit(1);
+            }
+
+        }
     }
 }

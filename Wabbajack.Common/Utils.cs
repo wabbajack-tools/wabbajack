@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Configuration;
 using System.Net.Http;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -21,6 +22,17 @@ namespace Wabbajack.Common
 {
     public static class Utils
     {
+        public static string LogFile { get; private set; }
+        static Utils()
+        {
+            var program_name = Assembly.GetEntryAssembly()?.Location ?? "Wabbajack";
+            LogFile = program_name + ".log";
+            _startTime = DateTime.Now;
+
+            if (LogFile.FileExists())
+                File.Delete(LogFile);
+        }
+
         private static Action<string> _loggerFn;
         private static Action<string, int> _statusFn;
 
@@ -36,8 +48,17 @@ namespace Wabbajack.Common
             _statusFn = f;
         }
 
+        private static object _lock = new object();
+        private static DateTime _startTime;
+
         public static void Log(string msg)
         {
+            lock (_lock)
+            {
+                msg = $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}";
+
+                File.AppendAllText(LogFile, msg + "\r\n");
+            }
             _loggerFn?.Invoke(msg);
         }
 
