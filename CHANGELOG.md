@@ -4,6 +4,7 @@
 * Set Oblivion's MO2 names to `Oblivion` not `oblivion`
 * Fix validation tests to run in CI
 * Add `check for broken archives` batch functionality
+* Remove nexus timeout for login, it's pointless.
 
 #### Version 0.9.4 - 10/2/2019
 * Point github icon to https://github.com/wabbajack-tools/wabbajack

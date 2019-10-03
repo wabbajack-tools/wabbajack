@@ -56,7 +56,7 @@ namespace Wabbajack.NexusApi
             {
                 // check if there exists a cached api key
                 var fi = new FileInfo(API_KEY_CACHE_FILE);
-                if (fi.Exists && fi.LastWriteTime > DateTime.Now.AddHours(-72))
+                if (fi.Exists)
                 {
                     return File.ReadAllText(API_KEY_CACHE_FILE);
                 }
