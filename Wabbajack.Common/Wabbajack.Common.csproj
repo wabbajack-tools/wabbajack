@@ -107,9 +107,9 @@
       <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
       <Name>Compression.BSA</Name>
     </ProjectReference>
-    <ProjectReference Include="..\OMOD-Extractor\OMODExtractorDLL\OMODExtractorDLL.csproj">
-      <Project>{eb003d18-dffb-49c7-b054-fb375345ae26}</Project>
-      <Name>OMODExtractorDLL</Name>
+    <ProjectReference Include="..\OMOD-Framework\OMOD-Framework\OMOD-Framework.csproj">
+      <Project>{1b2576a1-0208-485f-8e79-38551e4593b4}</Project>
+      <Name>OMOD-Framework</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
