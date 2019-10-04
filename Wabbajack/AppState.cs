@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Windows;
@@ -357,20 +358,39 @@ namespace Wabbajack
                 {
                     if (DateTime.Now - _lastSlideShowUpdate > TimeSpan.FromSeconds(10))
                     {
-                        dispatcher.Invoke(() =>
-                        {
-                            var element = SlideShowElements[_random.Next(0, SlideShowElements.Count)];
-                            if (element.ImageURL != null)
-                            {
+                        var idx = _random.Next(0, SlideShowElements.Count);
 
-                                SplashScreenImage = new BitmapImage(new Uri(element.ImageURL));
+                        try
+                        {
+                            var element = SlideShowElements[idx];
+
+                            var data = new MemoryStream();
+                            using (var stream = new HttpClient().GetStreamSync("asdas" + element.ImageURL))
+                                stream.CopyTo(data);
+                            data.Seek(0, SeekOrigin.Begin);
+
+
+                            dispatcher.Invoke(() =>
+                            {
+                                var bitmap = new BitmapImage();
+                                bitmap.BeginInit();
+                                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                bitmap.StreamSource = data;
+                                bitmap.EndInit();
+
+                                SplashScreenImage = bitmap;
                                 SplashScreenModName = element.ModName;
                                 SplashScreenAuthorName = element.AuthorName;
                                 SplashScreenSummary = element.ModSummary;
                                 _nexusSiteURL = element.ModURL;
-                            }
-                            _lastSlideShowUpdate = DateTime.Now;
-                        });
+
+                                _lastSlideShowUpdate = DateTime.Now;
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                        }
+
                     }
                 }
 
