@@ -42,7 +42,7 @@ namespace Wabbajack
             Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
             UIUtils.Dispatcher = Dispatcher;
 
-            _state._nexusSiteURL = "https://github.com/halgari/wabbajack";
+            _state._nexusSiteURL = "https://github.com/wabbajack-tools/wabbajack";
 
             new Thread(() =>
             {
@@ -50,10 +50,12 @@ namespace Wabbajack
                 {
                     Utils.Log("Compiler ready to execute");
                     context.Location = Path.GetDirectoryName(source);
+                    context.LocationLabel = "MO2 Profile:";
                 }
                 else if (mode == RunMode.Install)
                 {
                     context.UIReady = false;
+                    context.LocationLabel = "Installation Location:";
                     var modlist = Installer.LoadFromFile(source);
                     if (modlist == null)
                     {

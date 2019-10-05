@@ -30,9 +30,9 @@ namespace Wabbajack
 
         private bool _ignoreMissingFiles;
         private string _location;
+        private string _locationLabel;
 
         private string _mo2Folder;
-
 
         private string _mode;
         private ModList _modList;
@@ -64,9 +64,9 @@ namespace Wabbajack
             if (Assembly.GetEntryAssembly().Location.ToLower().Contains("\\downloads\\"))
             {
                 MessageBox.Show(
-                    "This app seems to be running inside a folder called `Downloads`, such folders are often highly monitored by antivirus software and they can often " +
-                    "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your `Downloads` folder and then restart the app.",
-                    "Cannot run inside `Downloads`",
+                    "This app seems to be running inside a folder called 'Downloads', such folders are often highly monitored by antivirus software and they can often " +
+                    "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your 'Downloads' folder and then restart the app.",
+                    "Cannot run inside 'Downloads'",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
                 Environment.Exit(1);
@@ -130,6 +130,16 @@ namespace Wabbajack
             {
                 _location = value;
                 OnPropertyChanged("Location");
+            }
+        }
+
+        public string LocationLabel
+        {
+            get => _locationLabel;
+            set
+            {
+                _locationLabel = value;
+                OnPropertyChanged("LocationLabel");
             }
         }
         
@@ -320,11 +330,19 @@ namespace Wabbajack
                     {
                         validationMessage = null;
                     }
-                    else if (Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")))
+                    else if (Mode == "Building" && Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")))
                     {
                         Location = Path.Combine(Location, "modlist.txt");
                         validationMessage = null;
                         ConfigureForBuild();
+                    }
+                    else if (Mode == "Installing" && Location != null && Directory.Exists(Location) && !Directory.EnumerateFileSystemEntries(Location).Any())
+                    {
+                        validationMessage = null;
+                    }
+                    else if (Mode == "Installing" && Location != null && Directory.Exists(Location) && Directory.EnumerateFileSystemEntries(Location).Any())
+                    {
+                        validationMessage = "You have selected a non-empty directory. Installing the modlist here might result in a broken install!";
                     }
                     else
                     {

@@ -64,7 +64,7 @@
                 <RowDefinition MinHeight="10" />
                 <RowDefinition />
             </Grid.RowDefinitions>
-            <Label Grid.Row="0" Content="MO2 Profile:" Grid.Column="0" />
+            <Label Grid.Row="0" Content="{Binding LocationLabel}" Grid.Column="0"  />
             <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Location, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, NotifyOnValidationError=True}" IsEnabled="{Binding UIReady}"/>
             <Button Grid.Row="0" Content="Select" MinWidth="80" Grid.Column="2" Command="{Binding ChangePath}" IsEnabled="{Binding UIReady}"/>
             <Label Grid.Row="2" Content="Download Location:" Grid.Column="0" />
