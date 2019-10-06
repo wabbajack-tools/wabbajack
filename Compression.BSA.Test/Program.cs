@@ -8,20 +8,20 @@ namespace Compression.BSA.Test
 {
     internal class Program
     {
-        private const string TestDir = @"D:\MO2 Instances\";
-        private const string TempDir = "c:\\tmp\\out";
+        private const string TestDir = @"D:\MO2 Instances\F4EE";
+        private const string TempDir = @"c:\tmp\out\f4ee";
 
         private static void Main(string[] args)
         {
-            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.bsa", SearchOption.AllDirectories).Skip(0))
+            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.ba2", SearchOption.AllDirectories).Skip(1))
             {
                 Console.WriteLine($"From {bsa}");
                 Console.WriteLine("Cleaning Output Dir");
-                if (Directory.Exists(TempDir)) Directory.Delete(TempDir, true);
+                //if (Directory.Exists(TempDir)) Directory.Delete(TempDir, true);
                 Directory.CreateDirectory(TempDir);
 
                 Console.WriteLine($"Reading {bsa}");
-                using (var a = new BSAReader(bsa))
+                using (var a = BSADispatch.OpenRead(bsa))
                 {
                     Parallel.ForEach(a.Files, file =>
                     {
@@ -30,15 +30,18 @@ namespace Compression.BSA.Test
                         if (!Directory.Exists(Path.GetDirectoryName(abs_name)))
                             Directory.CreateDirectory(Path.GetDirectoryName(abs_name));
 
+                        
                         using (var fs = File.OpenWrite(abs_name))
                         {
                             file.CopyDataTo(fs);
                         }
 
+                        
                         Equal(file.Size, new FileInfo(abs_name).Length);
+                        
                     });
 
-
+                    /*
                     Console.WriteLine($"Building {bsa}");
 
                     using (var w = new BSABuilder())
@@ -62,16 +65,12 @@ namespace Compression.BSA.Test
                         Equal(a.Files.Count(), w.Files.Count());
                         Equal(a.Files.Select(f => f.Path).ToHashSet(), w.Files.Select(f => f.Path).ToHashSet());
 
-                        /*foreach (var pair in Enumerable.Zip(a.Files, w.Files, (ai, bi) => (ai, bi)))
-                        {
-                            Console.WriteLine($"{pair.ai.Path},  {pair.ai.Hash},  {pair.bi.Path}, {pair.bi.Hash}");
-                        }*/
-
                         foreach (var pair in a.Files.Zip(w.Files, (ai, bi) => (ai, bi)))
                         {
                             Equal(pair.ai.Path, pair.bi.Path);
                             Equal(pair.ai.Hash, pair.bi.Hash);
                         }
+                        
                     }
 
                     Console.WriteLine($"Verifying {bsa}");
@@ -93,7 +92,7 @@ namespace Compression.BSA.Test
                             Equal(pair.ai.Size, pair.bi.Size);
                             Equal(pair.ai.GetData(), pair.bi.GetData());
                         }
-                    }
+                    }*/
                 }
             }
         }

@@ -46,7 +46,7 @@ namespace Compression.BSA
         Miscellaneous = 0x100
     }
 
-    public class BSAReader : IDisposable
+    public class BSAReader : IDisposable, IBSAReader
     {
         private uint _archiveFlags;
         private uint _fileCount;
@@ -74,7 +74,7 @@ namespace Compression.BSA
             LoadHeaders();
         }
 
-        public IEnumerable<FileRecord> Files
+        public IEnumerable<IFile> Files
         {
             get
             {
@@ -183,7 +183,7 @@ namespace Compression.BSA
         }
     }
 
-    public class FileRecord
+    public class FileRecord : IFile
     {
         private readonly BSAReader _bsa;
         private readonly long _dataOffset;
@@ -259,7 +259,7 @@ namespace Compression.BSA
             }
         }
 
-        public int Size => (int) _dataSize;
+        public uint Size => _dataSize;
 
         public ulong Hash { get; }
 

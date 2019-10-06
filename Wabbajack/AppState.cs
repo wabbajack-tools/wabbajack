@@ -365,7 +365,7 @@ namespace Wabbajack
                             var element = SlideShowElements[idx];
 
                             var data = new MemoryStream();
-                            using (var stream = new HttpClient().GetStreamSync("asdas" + element.ImageURL))
+                            using (var stream = new HttpClient().GetStreamSync(element.ImageURL))
                                 stream.CopyTo(data);
                             data.Seek(0, SeekOrigin.Begin);
 

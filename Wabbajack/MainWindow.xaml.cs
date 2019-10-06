@@ -32,8 +32,6 @@ namespace Wabbajack
             InitializeComponent();
 
             var context = new AppState(Dispatcher, "Building");
-            context.LogMsg($"Wabbajack Build - {ThisAssembly.Git.Sha}");
-            SetupHandlers(context);
             DataContext = context;
             WorkQueue.Init((id, msg, progress) => context.SetProgress(id, msg, progress),
                 (max, current) => context.SetQueueSize(max, current));
@@ -80,17 +78,6 @@ namespace Wabbajack
             }).Start();
         }
 
-        private void SetupHandlers(AppState state)
-        {
-            _state = state;
-            AppDomain.CurrentDomain.UnhandledException += AppHandler;
-        }
-
-        private void AppHandler(object sender, UnhandledExceptionEventArgs e)
-        {
-            _state.LogMsg("Uncaught error:");
-            _state.LogMsg(((Exception) e.ExceptionObject).ExceptionToString());
-        }
 
 
         internal bool ExitWhenClosing = true;
