@@ -555,6 +555,7 @@ namespace Wabbajack
                     nm.SlideShowPic = info.picture_url;
                     nm.NexusURL = NexusApiUtils.GetModURL(info.game_name, info.mod_id);
                     nm.Summary = info.summary;
+                    nm.Adult = info.contains_adult_content;
 
                     result = nm;
                 }

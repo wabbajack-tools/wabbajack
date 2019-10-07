@@ -222,6 +222,7 @@ namespace Wabbajack
         public string ModName;
         public string NexusURL;
         public string Summary;
+        public bool Adult;
     }
 
     [Serializable]
