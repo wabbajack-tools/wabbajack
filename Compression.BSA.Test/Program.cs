@@ -13,11 +13,11 @@ namespace Compression.BSA.Test
 
         private static void Main(string[] args)
         {
-            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.ba2", SearchOption.AllDirectories).Skip(1))
+            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.ba2", SearchOption.AllDirectories).Skip(0))
             {
                 Console.WriteLine($"From {bsa}");
                 Console.WriteLine("Cleaning Output Dir");
-                //if (Directory.Exists(TempDir)) Directory.Delete(TempDir, true);
+                if (Directory.Exists(TempDir)) Directory.Delete(TempDir, true);
                 Directory.CreateDirectory(TempDir);
 
                 Console.WriteLine($"Reading {bsa}");

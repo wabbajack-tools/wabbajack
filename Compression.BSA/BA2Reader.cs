@@ -85,6 +85,8 @@ namespace Compression.BSA
                     case EntryType.DX10:
                         files.Add(new BA2DX10Entry(this));
                         break;
+                    case EntryType.GNMF:
+                        break;
 
                 }
             }
@@ -164,6 +166,7 @@ namespace Compression.BSA
                         case DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM_SRGB:
                         case DXGI_FORMAT.DXGI_FORMAT_BC4_UNORM:
                         case DXGI_FORMAT.DXGI_FORMAT_BC5_SNORM:
+                        case DXGI_FORMAT.DXGI_FORMAT_BC6H_UF16:
                         case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM:
                         case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM_SRGB:
                             return DDS_HEADER_DXT10.Size + DDS_HEADER.Size;
@@ -251,6 +254,7 @@ namespace Compression.BSA
                     ddsHeader.dwPitchOrLinearSize = (uint)(_width * _height / 2); // 4bpp
                     break;
                 case DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM_SRGB:
+                case DXGI_FORMAT.DXGI_FORMAT_BC6H_UF16:
                 case DXGI_FORMAT.DXGI_FORMAT_BC4_UNORM:
                 case DXGI_FORMAT.DXGI_FORMAT_BC5_SNORM:
                 case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM:
@@ -298,6 +302,7 @@ namespace Compression.BSA
                 case DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM_SRGB:
                 case DXGI_FORMAT.DXGI_FORMAT_BC4_UNORM:
                 case DXGI_FORMAT.DXGI_FORMAT_BC5_SNORM:
+                case DXGI_FORMAT.DXGI_FORMAT_BC6H_UF16:
                 case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM:
                 case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM_SRGB:
                     var dxt10 = new DDS_HEADER_DXT10()
@@ -346,7 +351,7 @@ namespace Compression.BSA
         private uint _align;
         private BA2Reader _bsa;
 
-        private bool Compressed => this.Size != 0;
+        private bool Compressed => _size != 0;
 
         public BA2FileEntry(BA2Reader ba2Reader)
         {
