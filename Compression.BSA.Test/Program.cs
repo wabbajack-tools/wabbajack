@@ -3,17 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Compression.BSA.Test
 {
     internal class Program
     {
         private const string TestDir = @"D:\MO2 Instances\F4EE";
+        //private const string TestDir = @"D:\Steam\steamapps\common\Fallout 4";
         private const string TempDir = @"c:\tmp\out\f4ee";
 
         private static void Main(string[] args)
         {
-            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.ba2", SearchOption.AllDirectories).Skip(0))
+            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.ba2", SearchOption.AllDirectories).Skip(0).Take(1))
             {
                 Console.WriteLine($"From {bsa}");
                 Console.WriteLine("Cleaning Output Dir");
@@ -41,44 +43,36 @@ namespace Compression.BSA.Test
                         
                     });
 
-                    /*
+                    
                     Console.WriteLine($"Building {bsa}");
 
-                    using (var w = new BSABuilder())
+                    using (var w = ViaJson(a.State).MakeBuilder())
                     {
-                        w.ArchiveFlags = a.ArchiveFlags;
-                        w.FileFlags = a.FileFlags;
-                        w.HeaderType = a.HeaderType;
 
                         Parallel.ForEach(a.Files, file =>
                         {
-                            var abs_path = Path.Combine("c:\\tmp\\out", file.Path);
+                            var abs_path = Path.Combine(TempDir, file.Path);
                             using (var str = File.OpenRead(abs_path))
                             {
-                                var entry = w.AddFile(file.Path, str, file.FlipCompression);
+                                w.AddFile(ViaJson(file.State), str);
                             }
                         });
 
                         w.Build("c:\\tmp\\tmp.bsa");
 
-                        // Sanity Checks
-                        Equal(a.Files.Count(), w.Files.Count());
-                        Equal(a.Files.Select(f => f.Path).ToHashSet(), w.Files.Select(f => f.Path).ToHashSet());
-
-                        foreach (var pair in a.Files.Zip(w.Files, (ai, bi) => (ai, bi)))
-                        {
-                            Equal(pair.ai.Path, pair.bi.Path);
-                            Equal(pair.ai.Hash, pair.bi.Hash);
-                        }
                         
+                       
                     }
-
+                    
                     Console.WriteLine($"Verifying {bsa}");
-                    using (var b = new BSAReader("c:\\tmp\\tmp.bsa"))
+                    using (var b = BSADispatch.OpenRead("c:\\tmp\\tmp.bsa"))
                     {
+
                         Console.WriteLine($"Performing A/B tests on {bsa}");
-                        Equal((uint) a.ArchiveFlags, (uint) b.ArchiveFlags);
-                        Equal((uint) a.FileFlags, (uint) b.FileFlags);
+                        Equal(JsonConvert.SerializeObject(a.State), JsonConvert.SerializeObject(b.State));
+
+                        //Equal((uint) a.ArchiveFlags, (uint) b.ArchiveFlags);
+                        //Equal((uint) a.FileFlags, (uint) b.FileFlags);
 
                         // Check same number of files
                         Equal(a.Files.Count(), b.Files.Count());
@@ -86,15 +80,26 @@ namespace Compression.BSA.Test
                         foreach (var pair in a.Files.Zip(b.Files, (ai, bi) => (ai, bi)))
                         {
                             idx++;
+                            Equal(JsonConvert.SerializeObject(pair.ai.State),
+                                JsonConvert.SerializeObject(pair.bi.State));
                             //Console.WriteLine($"   - {pair.ai.Path}");
                             Equal(pair.ai.Path, pair.bi.Path);
-                            Equal(pair.ai.Compressed, pair.bi.Compressed);
+                            //Equal(pair.ai.Compressed, pair.bi.Compressed);
                             Equal(pair.ai.Size, pair.bi.Size);
-                            Equal(pair.ai.GetData(), pair.bi.GetData());
+                            //Equal(pair.ai.GetData(), pair.bi.GetData());
                         }
-                    }*/
+                    }
                 }
             }
+        }
+
+        public static T ViaJson<T>(T i)
+        {
+            var settings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.All
+            };
+            return JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(i, settings), settings);
         }
 
         private static void Equal(HashSet<string> a, HashSet<string> b)

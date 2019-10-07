@@ -84,6 +84,8 @@ namespace Compression.BSA
             }
         }
 
+        public ArchiveStateObject State { get; }
+
         public VersionType HeaderType => (VersionType) _version;
 
         public ArchiveFlags ArchiveFlags => (ArchiveFlags) _archiveFlags;
@@ -260,6 +262,7 @@ namespace Compression.BSA
         }
 
         public uint Size => _dataSize;
+        public FileStateObject State { get; }
 
         public ulong Hash { get; }
 

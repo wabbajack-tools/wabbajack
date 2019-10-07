@@ -93,6 +93,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BA2Builder.cs" />
     <Compile Include="BA2Reader.cs" />
     <Compile Include="BSABuilder.cs" />
     <Compile Include="BSADispatch.cs" />

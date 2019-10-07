@@ -5,14 +5,16 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using ICSharpCode.SharpZipLib.Zip;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
 {
-    enum EntryType
+    public enum EntryType
     {
         GNRL,
         DX10,
@@ -30,11 +32,11 @@ namespace Compression.BSA
         internal string _filename;
         private Stream _stream;
         internal BinaryReader _rdr;
-        private uint _version;
-        private string _headerMagic;
-        private EntryType _type;
-        private uint _numFiles;
-        private ulong _nameTableOffset;
+        internal uint _version;
+        internal string _headerMagic;
+        internal EntryType _type;
+        internal uint _numFiles;
+        internal ulong _nameTableOffset;
         public bool UseATIFourCC { get; set; } = false;
 
         public bool HasNameTable => _nameTableOffset > 0;
@@ -80,7 +82,7 @@ namespace Compression.BSA
                 switch (_type)
                 {
                     case EntryType.GNRL:
-                        files.Add(new BA2FileEntry(this));
+                        files.Add(new BA2FileEntry(this, idx));
                         break;
                     case EntryType.DX10:
                         files.Add(new BA2DX10Entry(this));
@@ -108,6 +110,31 @@ namespace Compression.BSA
         }
 
         public IEnumerable<IFile> Files { get; private set; }
+        public ArchiveStateObject State => new BA2StateObject(this);
+    }
+
+    public class BA2StateObject : ArchiveStateObject
+    {
+        public BA2StateObject()
+        {
+        }
+
+        public BA2StateObject(BA2Reader ba2Reader)
+        {
+            Version = ba2Reader._version;
+            HeaderMagic = ba2Reader._headerMagic;
+            Type = ba2Reader._type;
+            HasNameTable = ba2Reader.HasNameTable;
+        }
+
+        public bool HasNameTable { get; set; }
+        public EntryType Type { get; set; }
+        public string HeaderMagic { get; set; }
+        public uint Version { get; set; }
+        public override IBSABuilder MakeBuilder()
+        {
+            return new BA2Builder(this);
+        }
     }
 
     public class BA2DX10Entry : IFileEntry
@@ -153,26 +180,24 @@ namespace Compression.BSA
 
         public string Path => FullPath;
         public uint Size => (uint)_chunks.Sum(f => f._fullSz) + HeaderSize + sizeof(uint);
+        public FileStateObject State { get; }
 
         public uint HeaderSize 
         {
             get
             {
-                unsafe
+                switch ((DXGI_FORMAT) _format)
                 {
-                    switch ((DXGI_FORMAT) _format)
-                    {
-                        case DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB:
-                        case DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM_SRGB:
-                        case DXGI_FORMAT.DXGI_FORMAT_BC4_UNORM:
-                        case DXGI_FORMAT.DXGI_FORMAT_BC5_SNORM:
-                        case DXGI_FORMAT.DXGI_FORMAT_BC6H_UF16:
-                        case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM:
-                        case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM_SRGB:
-                            return DDS_HEADER_DXT10.Size + DDS_HEADER.Size;
-                        default:
-                            return DDS_HEADER.Size;
-                    }
+                    case DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB:
+                    case DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM_SRGB:
+                    case DXGI_FORMAT.DXGI_FORMAT_BC4_UNORM:
+                    case DXGI_FORMAT.DXGI_FORMAT_BC5_SNORM:
+                    case DXGI_FORMAT.DXGI_FORMAT_BC6H_UF16:
+                    case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM:
+                    case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM_SRGB:
+                        return DDS_HEADER_DXT10.Size + DDS_HEADER.Size;
+                    default:
+                        return DDS_HEADER.Size;
                 }
             }
         }
@@ -341,20 +366,22 @@ namespace Compression.BSA
 
     public class BA2FileEntry : IFileEntry
     {
-        private uint _nameHash;
-        private string _extension;
-        private uint _dirHash;
-        private uint _flags;
-        private ulong _offset;
-        private uint _size;
-        private uint _realSize;
-        private uint _align;
-        private BA2Reader _bsa;
+        internal uint _nameHash;
+        internal string _extension;
+        internal uint _dirHash;
+        internal uint _flags;
+        internal ulong _offset;
+        internal uint _size;
+        internal uint _realSize;
+        internal uint _align;
+        internal BA2Reader _bsa;
+        internal int _index;
 
-        private bool Compressed => _size != 0;
+        public bool Compressed => _size != 0;
 
-        public BA2FileEntry(BA2Reader ba2Reader)
+        public BA2FileEntry(BA2Reader ba2Reader, int index)
         {
+            _index = index;
             _bsa = ba2Reader;
             var _rdr = ba2Reader._rdr;
             _nameHash = _rdr.ReadUInt32();
@@ -372,6 +399,7 @@ namespace Compression.BSA
 
         public string Path => FullPath;
         public uint Size => _realSize;
+        public FileStateObject State => new BA2FileEntryState(this);
 
         public void CopyDataTo(Stream output)
         {
@@ -399,5 +427,30 @@ namespace Compression.BSA
                 }
             }
         }
+    }
+
+    public class BA2FileEntryState : FileStateObject
+    {
+        public BA2FileEntryState() { }
+
+        public BA2FileEntryState(BA2FileEntry ba2FileEntry)
+        {
+            NameHash = ba2FileEntry._nameHash;
+            DirHash = ba2FileEntry._dirHash;
+            Flags = ba2FileEntry._flags;
+            Align = ba2FileEntry._align;
+            Compressed = ba2FileEntry.Compressed;
+            FullPath = ba2FileEntry.FullPath;
+            Extension = ba2FileEntry._extension;
+            Index = ba2FileEntry._index;
+        }
+
+        public string Extension { get; set; }
+        public string FullPath { get; set; }
+        public bool Compressed { get; set; }
+        public uint Align { get; set; }
+        public uint Flags { get; set; }
+        public uint DirHash { get; set; }
+        public uint NameHash { get; set; }
     }
 }
