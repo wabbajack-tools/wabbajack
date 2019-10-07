@@ -32,15 +32,21 @@
         </StackPanel>
 
         <!-- Settings -->
-        <Grid Grid.Row="1" Grid.Column="0" Margin="5">
+        <Grid Grid.Row="1" Grid.Column="0" Margin="5" Name="PropertyCompilerGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
             <Image Grid.Row="0" Source="{Binding SplashScreenImage}" Stretch="Fill"></Image>
-            <Button Grid.Row="1" Height="30" Command="{Binding OpenModListPropertiesCommand}">
+            <Button Grid.Row="1" Height="30" Command="{Binding OpenModListPropertiesCommand}" IsEnabled="{Binding UIReady}">
                 <TextBlock Text="Modlist Properties" FontSize="15" FontWeight="Bold"></TextBlock>
             </Button>
+        </Grid>
+        <Grid Grid.Row="1" Grid.Column="0" Margin="5" Name="PropertyInstallerGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Image Grid.Row="0" Source="{Binding SplashScreenImage}" Stretch="Fill"></Image>
         </Grid>
         <!-- End Settings -->
         
