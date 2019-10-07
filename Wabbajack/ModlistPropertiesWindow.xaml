@@ -10,12 +10,16 @@
         ResizeMode="NoResize"
         Closing="Window_Closing">
     <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="450"/>
             <ColumnDefinition Width="450"/>
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0" Margin="5">
+        <Grid Grid.Column="0" Grid.Row="0" Margin="5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="289"/>
                 <RowDefinition Height="30"/>
@@ -26,15 +30,19 @@
             </Button>
         </Grid>
 
-        <Grid Grid.Column="1" Margin="5">
+        <Grid Grid.Column="1" Grid.Row="0" Margin="5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="30"/>
                 <RowDefinition Height="30"/>
                 <RowDefinition Height="234"/>
             </Grid.RowDefinitions>
-            <TextBox Grid.Row="0" Text="ModList Name" Name="ModlistNameProperty" ToolTip="Change the name of your ModList" MaxLength="50" AcceptsTab="False" FontSize="15" Margin="0 0 0 5" />
+            <TextBox Grid.Row="0" Text="ModList Name" Name="ModlistNameProperty" ToolTip="Change the name of your ModList" MaxLength="50" AcceptsTab="False" FontSize="15" FontWeight="Bold" Margin="0 0 0 5" />
             <TextBox Grid.Row="1" Text="Author" Name="ModlistAuthorProperty" ToolTip="Change the name of the Author" MaxLength="50" AcceptsTab="False" FontSize="15" Margin="0 0 0 5" />
             <TextBox Grid.Row="2" Text="Description (700 characters max)" Name="ModlistDescriptionProperty" ToolTip="Change the description" MaxLength="700" AcceptsReturn="True" TextWrapping="Wrap" AcceptsTab="False" FontSize="15" Margin="0 0 0 5" />
         </Grid>
+
+        <Button Grid.Row="1" Grid.ColumnSpan="2" Click="SaveProperties_Click">
+            <TextBlock Text="Save" FontSize="15" FontWeight="Bold"/>
+        </Button>
     </Grid>
 </Window>
