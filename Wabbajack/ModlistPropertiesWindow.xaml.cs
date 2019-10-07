@@ -51,18 +51,18 @@ namespace Wabbajack
         {
             if (state.UIReady)
             {
-                BitmapImage splashScreen = null;
                 if (newBannerFile != null)
                 {
+                    BitmapImage splashScreen = null;
                     splashScreen = new BitmapImage(new Uri(newBannerFile));
+                    state.newImagePath = newBannerFile;
+                    state.SplashScreenImage = splashScreen;
                 }
                 string modListName = ModlistNameProperty.Text;
                 string modListAuthor = ModlistAuthorProperty.Text;
                 string modListDescription = ModlistDescriptionProperty.Text;
                 string modListWebsite = ModlistWebsiteProperty.Text;
 
-                state.newImagePath = newBannerFile;
-                state.SplashScreenImage = splashScreen;
                 state.SplashScreenModName = modListName;
                 state.SplashScreenSummary = modListDescription;
                 state.SplashScreenAuthorName = modListAuthor;
