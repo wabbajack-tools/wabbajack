@@ -57,11 +57,13 @@
                 <RowDefinition Height="Auto"></RowDefinition>
                 <RowDefinition Height="*"></RowDefinition>
                 <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <TextBlock Text="{Binding SplashScreenModName}" Grid.Row="0" FontSize="30" FontWeight="Bold"></TextBlock>
             <TextBlock Text="{Binding SplashScreenAuthorName}" Grid.Row="1" FontSize="15" FontWeight="Bold"></TextBlock>
             <TextBlock Text="{Binding SplashScreenSummary}" TextWrapping="Wrap" Grid.Row="2" FontSize="15" FontWeight="Bold"></TextBlock>
-            <Button Height="30" Grid.Row="3" Grid.Column="1" Command="{Binding VisitNexusSiteCommand}">
+            <CheckBox Grid.Row="3" IsChecked="{Binding SplashShowNSFW}" Name="ShowNSFWContent">Show NSFW Mods in the Slideshow</CheckBox>
+            <Button Height="30" Grid.Row="4" Command="{Binding VisitNexusSiteCommand}">
                 <TextBlock Text="View Nexus Site" FontSize="15" FontWeight="Bold"></TextBlock>
             </Button>
         </Grid>

@@ -231,6 +231,8 @@ namespace Wabbajack
 
         private string _SplashScreenSummary;
         public string SplashScreenSummary { get => _SplashScreenSummary; set => this.RaiseAndSetIfChanged(ref _SplashScreenSummary, value); }
+        private bool _splashShowNSFW = true;
+        public bool SplashShowNSFW { get => _splashShowNSFW; set => this.RaiseAndSetIfChanged(ref _splashShowNSFW, value); }    
 
         public string Error => "Error";
 
@@ -297,29 +299,31 @@ namespace Wabbajack
                         try
                         {
                             var element = SlideShowElements[idx];
-
-                            var data = new MemoryStream();
-                            using (var stream = new HttpClient().GetStreamSync("asdas" + element.ImageURL))
-                                stream.CopyTo(data);
-                            data.Seek(0, SeekOrigin.Begin);
-
-
-                            dispatcher.Invoke(() =>
+                            if(!element.Adult || (element.Adult && SplashShowNSFW))
                             {
-                                var bitmap = new BitmapImage();
-                                bitmap.BeginInit();
-                                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                                bitmap.StreamSource = data;
-                                bitmap.EndInit();
+                                var data = new MemoryStream();
+                                using (var stream = new HttpClient().GetStreamSync("asdas" + element.ImageURL))
+                                    stream.CopyTo(data);
+                                data.Seek(0, SeekOrigin.Begin);
 
-                                SplashScreenImage = bitmap;
-                                SplashScreenModName = element.ModName;
-                                SplashScreenAuthorName = element.AuthorName;
-                                SplashScreenSummary = element.ModSummary;
-                                _nexusSiteURL = element.ModURL;
 
-                                _lastSlideShowUpdate = DateTime.Now;
-                            });
+                                dispatcher.Invoke(() =>
+                                {
+                                    var bitmap = new BitmapImage();
+                                    bitmap.BeginInit();
+                                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                    bitmap.StreamSource = data;
+                                    bitmap.EndInit();
+
+                                    SplashScreenImage = bitmap;
+                                    SplashScreenModName = element.ModName;
+                                    SplashScreenAuthorName = element.AuthorName;
+                                    SplashScreenSummary = element.ModSummary;
+                                    _nexusSiteURL = element.ModURL;
+
+                                    _lastSlideShowUpdate = DateTime.Now;
+                                });
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -347,7 +351,7 @@ namespace Wabbajack
             SplashScreenAuthorName = modlist.Author;
             _nexusSiteURL = modlist.Website;
             SplashScreenSummary = modlist.Description;
-            //if(modlist.Image != null) SplashScreenImage = modlist.Image;
+            //TODO: if(modlist.Image != null) SplashScreenImage = modlist.Image;
 
             SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => new SlideShowItem
             {
@@ -356,6 +360,7 @@ namespace Wabbajack
                 ModSummary = NexusApiUtils.FixupSummary(m.Summary),
                 ImageURL = m.SlideShowPic,
                 ModURL = m.NexusURL,
+                Adult = m.Adult
             }).ToList();
         }
 
