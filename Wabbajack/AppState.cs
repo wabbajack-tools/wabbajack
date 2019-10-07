@@ -177,12 +177,14 @@ namespace Wabbajack
         internal ModlistPropertiesWindow modlistPropertiesWindow;
         private void OpenModListProperties()
         {
-            if(modlistPropertiesWindow == null)
-            {
-                modlistPropertiesWindow = new ModlistPropertiesWindow(this);
-                
+            if (UIReady) { 
+                if (modlistPropertiesWindow == null)
+                {
+                    modlistPropertiesWindow = new ModlistPropertiesWindow(this);
+
+                }
+                modlistPropertiesWindow.Show();
             }
-            modlistPropertiesWindow.Show();
         }
 
         public string _nexusSiteURL = null;

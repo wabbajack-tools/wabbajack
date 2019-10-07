@@ -49,21 +49,24 @@ namespace Wabbajack
 
         private void SaveProperties_Click(object sender, RoutedEventArgs e)
         {
-            BitmapImage splashScreen = null;
-            if (newBannerFile != null)
+            if (state.UIReady)
             {
-                splashScreen = new BitmapImage(new Uri(newBannerFile));
+                BitmapImage splashScreen = null;
+                if (newBannerFile != null)
+                {
+                    splashScreen = new BitmapImage(new Uri(newBannerFile));
+                }
+                string modListName = ModlistNameProperty.Text;
+                string modListAuthor = ModlistAuthorProperty.Text;
+                string modListDescription = ModlistDescriptionProperty.Text;
+
+                state.SplashScreenImage = splashScreen;
+                state.SplashScreenModName = modListName;
+                state.SplashScreenSummary = modListDescription;
+                state.SplashScreenAuthorName = modListAuthor;
+
+                Hide();
             }
-            string modListName = ModlistNameProperty.Text;
-            string modListAuthor = ModlistAuthorProperty.Text;
-            string modListDescription = ModlistDescriptionProperty.Text;
-
-            state.SplashScreenImage = splashScreen;
-            state.SplashScreenModName = modListName;
-            state.SplashScreenSummary = modListDescription;
-            state.SplashScreenAuthorName = modListAuthor;
-
-            Hide();
         }
     }
 }
