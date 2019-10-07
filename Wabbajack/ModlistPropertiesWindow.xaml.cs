@@ -23,11 +23,22 @@ namespace Wabbajack
         public ModlistPropertiesWindow()
         {
             InitializeComponent();
+            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.banner.png");
+            SplashScreenProperty.Source = bannerImage;
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             //Hide();
+        }
+
+        private void SetSplashScreen_Click(object sender, RoutedEventArgs e)
+        {
+            var file = UIUtils.OpenFileDialog("Banner image|*.png");
+            if(file != null)
+            {
+                SplashScreenProperty.Source = new BitmapImage(new Uri(file));
+            }
         }
     }
 }

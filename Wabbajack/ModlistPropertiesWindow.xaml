@@ -9,7 +9,21 @@
         Style="{StaticResource {x:Type Window}}" Icon="square_transparent_icon.ico" WindowStyle="ToolWindow"
         ResizeMode="NoResize"
         Closing="Window_Closing">
-    <Grid>
-        
+    <Grid Margin="8">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="450"/>
+            <ColumnDefinition Width="450"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="289"/>
+                <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+            <Image Grid.Row="0" Stretch="Uniform" Name="SplashScreenProperty"/>
+            <Button Grid.Row="1" Height="30" Click="SetSplashScreen_Click" ToolTip="Use a 1400x900 png file for the best results">
+                <TextBlock Text="Change splash screen image" FontSize="15" FontWeight="Bold"/>
+            </Button>
+        </Grid> 
     </Grid>
 </Window>
