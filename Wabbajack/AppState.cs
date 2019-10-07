@@ -174,10 +174,15 @@ namespace Wabbajack
                 return new LambdaCommand(() => true, () => OpenModListProperties());
             }
         }
-
+        internal ModlistPropertiesWindow modlistPropertiesWindow;
         private void OpenModListProperties()
         {
-            new ModlistPropertiesWindow().Show();
+            if(modlistPropertiesWindow == null)
+            {
+                modlistPropertiesWindow = new ModlistPropertiesWindow(this);
+                
+            }
+            modlistPropertiesWindow.Show();
         }
 
         public string _nexusSiteURL = null;
