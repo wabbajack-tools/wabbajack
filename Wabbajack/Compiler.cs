@@ -277,7 +277,8 @@ namespace Wabbajack
             GatherArchives();
             BuildPatches();
 
-            if (File.Exists(ModListImage) && !File.Exists(Path.Combine(MO2ProfileDir, Path.GetFileName(ModListImage)))) File.Copy(ModListImage, Path.Combine(MO2ProfileDir, Path.GetFileName(ModListImage)));
+            if(ModList != null)
+                if (File.Exists(ModListImage) && !File.Exists(Path.Combine(MO2ProfileDir, Path.GetFileName(ModListImage)))) File.Copy(ModListImage, Path.Combine(MO2ProfileDir, Path.GetFileName(ModListImage)));
 
             ModList = new ModList
             {
@@ -287,7 +288,7 @@ namespace Wabbajack
                 Name = ModListName ?? MO2Profile,
                 Author = ModListAuthor ?? "",
                 Description = ModListDescription ?? "",
-                Image = Path.Combine("profiles", MO2Profile, Path.GetFileName(ModListImage)),
+                Image = ModListImage != null ? Path.Combine("profiles", MO2Profile, Path.GetFileName(ModListImage)) : "",
                 Website = ModListWebsite ?? ""
             };
 

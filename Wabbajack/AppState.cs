@@ -357,7 +357,10 @@ namespace Wabbajack
             SplashScreenAuthorName = modlist.Author;
             _nexusSiteURL = modlist.Website;
             SplashScreenSummary = modlist.Description;
-            //TODO: if(modlist.Image != null) SplashScreenImage = modlist.Image;
+            if(modlist.Image != "")
+            {
+                //TODO: if(modlist.Image != null) SplashScreenImage = modlist.Image;
+            }
 
             SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => new SlideShowItem
             {
