@@ -1,20 +1,16 @@
-﻿using System;
+﻿using CommonMark;
+using Compression.BSA;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using CommonMark;
-using Compression.BSA;
-using K4os.Compression.LZ4;
-using K4os.Compression.LZ4.Streams;
-using Newtonsoft.Json;
-using System.IO.Compression;
 using VFS;
 using Wabbajack.Common;
 using Wabbajack.NexusApi;
@@ -23,7 +19,6 @@ using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
-using System.Windows.Media.Imaging;
 
 namespace Wabbajack
 {
@@ -44,7 +39,7 @@ namespace Wabbajack
         {
             MO2Folder = mo2_folder;
             MO2Ini = Path.Combine(MO2Folder, "ModOrganizer.ini").LoadIniFile();
-            GamePath = ((string) MO2Ini.General.gamePath).Replace("\\\\", "\\");
+            GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
         }
 
         public dynamic MO2Ini { get; }
@@ -145,12 +140,12 @@ namespace Wabbajack
 
             var mo2_files = Directory.EnumerateFiles(MO2Folder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Lookup(p)) {Path = p.RelativeTo(MO2Folder)});
+                .Select(p => new RawSourceFile(VFS.Lookup(p)) { Path = p.RelativeTo(MO2Folder) });
 
             var game_files = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Lookup(p))
-                    {Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))});
+                { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
 
             var loot_path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "LOOT");
@@ -165,7 +160,7 @@ namespace Wabbajack
                 loot_files = Directory.EnumerateFiles(loot_path, "userlist.yaml", SearchOption.AllDirectories)
                     .Where(p => p.FileExists())
                     .Select(p => new RawSourceFile(VFS.Lookup(p))
-                        { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(loot_path)) });
+                    { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(loot_path)) });
             }
 
 
@@ -277,7 +272,7 @@ namespace Wabbajack
             GatherArchives();
             BuildPatches();
 
-            if(ModList != null)
+            if (ModList != null)
                 if (File.Exists(ModListImage) && !File.Exists(Path.Combine(MO2ProfileDir, Path.GetFileName(ModListImage)))) File.Copy(ModListImage, Path.Combine(MO2ProfileDir, Path.GetFileName(ModListImage)));
 
             ModList = new ModList
@@ -367,8 +362,8 @@ namespace Wabbajack
                 }
             }
 
-            ModList.ReportHTML = "<style>"+css+"</style>"
-                +CommonMarkConverter.Convert(File.ReadAllText($"{ModList.Name}.md"));
+            ModList.ReportHTML = "<style>" + css + "</style>"
+                + CommonMarkConverter.Convert(File.ReadAllText($"{ModList.Name}.md"));
         }
 
         /// <summary>
@@ -494,7 +489,7 @@ namespace Wabbajack
                 }
                 else if (general.directURL != null && general.directURL.StartsWith("https://www.dropbox.com/"))
                 {
-                    var uri = new UriBuilder((string) general.directURL);
+                    var uri = new UriBuilder((string)general.directURL);
                     var query = HttpUtility.ParseQueryString(uri.Query);
 
                     if (query.GetValues("dl").Count() > 0)
@@ -943,9 +938,9 @@ namespace Wabbajack
                     {
                         To = source.Path,
                         TempID = id,
-                        Type = (uint) bsa.HeaderType,
-                        FileFlags = (uint) bsa.FileFlags,
-                        ArchiveFlags = (uint) bsa.ArchiveFlags
+                        Type = (uint)bsa.HeaderType,
+                        FileFlags = (uint)bsa.FileFlags,
+                        ArchiveFlags = (uint)bsa.ArchiveFlags
                     };
                 }
 
@@ -1091,8 +1086,8 @@ namespace Wabbajack
         {
             var lines = File.ReadAllLines(absolutePath);
             lines = (from line in lines
-                where !(line.StartsWith("-") && !line.EndsWith("_separator"))
-                select line).ToArray();
+                     where !(line.StartsWith("-") && !line.EndsWith("_separator"))
+                     select line).ToArray();
             return Encoding.UTF8.GetBytes(string.Join("\r\n", lines));
         }
 

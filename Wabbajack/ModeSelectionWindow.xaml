@@ -11,19 +11,19 @@
     <Grid Margin="20" ShowGridLines="False">
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
-            <ColumnDefinition Width="30"></ColumnDefinition>
-            <ColumnDefinition Width="30"></ColumnDefinition>
+            <ColumnDefinition Width="30"/>
+            <ColumnDefinition Width="30"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="30"/>
             <RowDefinition></RowDefinition>
-            <RowDefinition Height="70"></RowDefinition>
-            <RowDefinition Height="70"></RowDefinition>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="70"/>
         </Grid.RowDefinitions>
-        <Image MouseLeftButtonDown="GitHub_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" Name="GitHub"></Image>
-        <Image MouseLeftButtonDown="Patreon_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="1" Name="Patreon"></Image>
-        <Image MouseLeftButtonDown="Discord_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="2" Name="Discord"></Image>
-        <Image Grid.Row="1" Grid.ColumnSpan="3" Name="Banner"></Image>
+        <Image MouseLeftButtonDown="GitHub_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" Name="GitHub"/>
+        <Image MouseLeftButtonDown="Patreon_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="1" Name="Patreon"/>
+        <Image MouseLeftButtonDown="Discord_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="2" Name="Discord"/>
+        <Image Grid.Row="1" Grid.ColumnSpan="3" Name="Banner"/>
         <Button Name="InstallModlist" Grid.ColumnSpan="3"  Grid.Row="2" Margin="2" Click="InstallModlist_Click">
             <TextBlock FontSize="40">Install a ModList</TextBlock>
         </Button>

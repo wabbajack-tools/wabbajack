@@ -11,8 +11,8 @@ using System.Reflection;
 using System.Security.Authentication;
 using System.Threading.Tasks;
 using Wabbajack.Common;
-using static Wabbajack.NexusApi.NexusApiUtils;
 using WebSocketSharp;
+using static Wabbajack.NexusApi.NexusApiUtils;
 
 namespace Wabbajack.NexusApi
 {

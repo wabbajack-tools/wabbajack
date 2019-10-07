@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using System;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using Microsoft.WindowsAPICodePack.Dialogs;
-using Wabbajack.Common;
 
 namespace Wabbajack
 {
     public static class UIUtils
     {
-        
+
         public static string ShowFolderSelectionDialog(string prompt)
         {
             if (Dispatcher.Thread != Thread.CurrentThread)

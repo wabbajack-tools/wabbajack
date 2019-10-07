@@ -21,8 +21,8 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="700"></ColumnDefinition>
-            <ColumnDefinition Width="700"></ColumnDefinition>
+            <ColumnDefinition Width="700"/>
+            <ColumnDefinition Width="700"/>
         </Grid.ColumnDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0, 16, 0, 16">
@@ -37,34 +37,34 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
-            <Image Grid.Row="0" Source="{Binding SplashScreenImage}" Stretch="Fill"></Image>
+            <Image Grid.Row="0" Source="{Binding SplashScreenImage}" Stretch="Fill"/>
             <Button Grid.Row="1" Height="30" Command="{Binding OpenModListPropertiesCommand}" IsEnabled="{Binding UIReady}">
-                <TextBlock Text="Modlist Properties" FontSize="15" FontWeight="Bold"></TextBlock>
+                <TextBlock Text="Modlist Properties" FontSize="15" FontWeight="Bold"/>
             </Button>
         </Grid>
         <Grid Grid.Row="1" Grid.Column="0" Margin="5" Name="PropertyInstallerGrid">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <Image Grid.Row="0" Source="{Binding SplashScreenImage}" Stretch="Fill"></Image>
+            <Image Grid.Row="0" Source="{Binding SplashScreenImage}" Stretch="Fill"/>
         </Grid>
         <!-- End Settings -->
         
         <!-- Slideshow -->
         <Grid Grid.Row="1" Grid.Column="1" Margin="5">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"></RowDefinition>
-                <RowDefinition Height="Auto"></RowDefinition>
-                <RowDefinition Height="*"></RowDefinition>
-                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <TextBlock Text="{Binding SplashScreenModName}" Grid.Row="0" FontSize="30" FontWeight="Bold"></TextBlock>
-            <TextBlock Text="{Binding SplashScreenAuthorName}" Grid.Row="1" FontSize="15" FontWeight="Bold"></TextBlock>
-            <TextBlock Text="{Binding SplashScreenSummary}" TextWrapping="Wrap" Grid.Row="2" FontSize="15" FontWeight="Bold"></TextBlock>
+            <TextBlock Text="{Binding SplashScreenModName}" Grid.Row="0" FontSize="30" FontWeight="Bold"/>
+            <TextBlock Text="{Binding SplashScreenAuthorName}" Grid.Row="1" FontSize="15" FontWeight="Bold"/>
+            <TextBlock Text="{Binding SplashScreenSummary}" TextWrapping="Wrap" Grid.Row="2" FontSize="15" FontWeight="Bold"/>
             <CheckBox Grid.Row="3" IsChecked="{Binding SplashShowNSFW}" Name="ShowNSFWContent">Show NSFW Mods in the Slideshow</CheckBox>
             <Button Height="30" Grid.Row="4" Command="{Binding VisitNexusSiteCommand}">
-                <TextBlock Text="View Nexus Site" FontSize="15" FontWeight="Bold"></TextBlock>
+                <TextBlock Text="View Nexus Site" FontSize="15" FontWeight="Bold"/>
             </Button>
         </Grid>
         <!-- End Slideshow-->

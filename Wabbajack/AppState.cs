@@ -56,7 +56,6 @@ namespace Wabbajack
             Mode = mode;
             Dirty = false;
             dispatcher = d;
-<<<<<<< HEAD
 
             var th = new Thread(() => UpdateLoop())
             {
@@ -64,11 +63,6 @@ namespace Wabbajack
                 IsBackground = true
             };
             th.Start();
-=======
-            Log = new ObservableCollection<string>();
-            Status = new ObservableCollection<CPUStatus>();
-            InternalStatus = new List<CPUStatus>();
->>>>>>> Update loop for slideshow will be called when installing
         }
 
         private void SetupSlideshow()
@@ -185,7 +179,8 @@ namespace Wabbajack
         public bool ChangedProperties;
         private void OpenModListProperties()
         {
-            if (UIReady) { 
+            if (UIReady)
+            {
                 if (modlistPropertiesWindow == null)
                 {
                     modlistPropertiesWindow = new ModlistPropertiesWindow(this);
@@ -305,7 +300,7 @@ namespace Wabbajack
                         try
                         {
                             var element = SlideShowElements[idx];
-                            if(!element.Adult || (element.Adult && SplashShowNSFW))
+                            if (!element.Adult || (element.Adult && SplashShowNSFW))
                             {
                                 var data = new MemoryStream();
                                 using (var stream = new HttpClient().GetStreamSync(element.ImageURL))
@@ -357,7 +352,7 @@ namespace Wabbajack
             SplashScreenAuthorName = modlist.Author;
             _nexusSiteURL = modlist.Website;
             SplashScreenSummary = modlist.Description;
-            if(modlist.Image != "")
+            if (modlist.Image != "")
             {
                 //TODO: if(modlist.Image != null) SplashScreenImage = modlist.Image;
             }
