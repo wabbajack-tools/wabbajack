@@ -57,9 +57,11 @@ namespace Wabbajack
             Dirty = false;
             dispatcher = d;
 
-            var th = new Thread(() => UpdateLoop());
-            th.Priority = ThreadPriority.BelowNormal;
-            th.IsBackground = true;
+            var th = new Thread(() => UpdateLoop())
+            {
+                Priority = ThreadPriority.BelowNormal,
+                IsBackground = true
+            };
             th.Start();
         }
 
@@ -405,9 +407,10 @@ namespace Wabbajack
             UIReady = false;
             if (Mode == "Installing")
             {
-                var installer = new Installer(_modListPath, _modList, Location);
-
-                installer.DownloadFolder = DownloadLocation;
+                var installer = new Installer(_modListPath, _modList, Location)
+                {
+                    DownloadFolder = DownloadLocation
+                };
                 var th = new Thread(() =>
                 {
                     UIReady = false;
@@ -426,14 +429,18 @@ namespace Wabbajack
                     {
                         UIReady = true;
                     }
-                });
-                th.Priority = ThreadPriority.BelowNormal;
+                })
+                {
+                    Priority = ThreadPriority.BelowNormal
+                };
                 th.Start();
             }
             else if (_mo2Folder != null)
             {
-                var compiler = new Compiler(_mo2Folder);
-                compiler.MO2Profile = ModListName;
+                var compiler = new Compiler(_mo2Folder)
+                {
+                    MO2Profile = ModListName
+                };
                 var th = new Thread(() =>
                 {
                     UIReady = false;
@@ -454,8 +461,10 @@ namespace Wabbajack
                     {
                         UIReady = true;
                     }
-                });
-                th.Priority = ThreadPriority.BelowNormal;
+                })
+                {
+                    Priority = ThreadPriority.BelowNormal
+                };
                 th.Start();
             }
             else

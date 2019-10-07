@@ -65,8 +65,10 @@ namespace Wabbajack
                         {
                             context.Running = false;
                             ExitWhenClosing = false;
-                            var window = new ModeSelectionWindow();
-                            window.ShowActivated = true;
+                            var window = new ModeSelectionWindow
+                            {
+                                ShowActivated = true
+                            };
                             window.Show();
                             Close();
                         });
