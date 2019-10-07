@@ -55,6 +55,26 @@ namespace Wabbajack
         public string Name;
 
         /// <summary>
+        ///     Author of the ModList
+        /// </summary>
+        public string Author;
+
+        /// <summary>
+        ///     Description of the ModList
+        /// </summary>
+        public string Description;
+
+        /// <summary>
+        ///     Image of the ModList
+        /// </summary>
+        public string Image;
+
+        /// <summary>
+        ///     Website of the ModList
+        /// </summary>
+        public string Website;
+
+        /// <summary>
         ///     Content Report in HTML form
         /// </summary>
         public string ReportHTML;
