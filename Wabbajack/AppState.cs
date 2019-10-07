@@ -490,7 +490,7 @@ namespace Wabbajack
                     ModListName = ChangedProperties ? SplashScreenModName : null,
                     ModListAuthor = ChangedProperties ? SplashScreenAuthorName : null,
                     ModListDescription = ChangedProperties ? SplashScreenSummary : null,
-                    ModListImage = ChangedProperties ? newImagePath : null,
+                    ModListImage = ChangedProperties ? newImagePath ?? null : null,
                     ModListWebsite = ChangedProperties ? _nexusSiteURL : null
                 };
                 var th = new Thread(() =>

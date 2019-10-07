@@ -277,6 +277,8 @@ namespace Wabbajack
             GatherArchives();
             BuildPatches();
 
+            if (File.Exists(ModListImage) && !File.Exists(Path.Combine(MO2ProfileDir, Path.GetFileName(ModListImage)))) File.Copy(ModListImage, Path.Combine(MO2ProfileDir, Path.GetFileName(ModListImage)));
+
             ModList = new ModList
             {
                 GameType = GameRegistry.Games.Values.First(f => f.MO2Name == MO2Ini.General.gameName).Game,
@@ -285,10 +287,9 @@ namespace Wabbajack
                 Name = ModListName ?? MO2Profile,
                 Author = ModListAuthor ?? "",
                 Description = ModListDescription ?? "",
-                Image = Path.GetFileName(ModListImage),
+                Image = Path.Combine("profiles", MO2Profile, Path.GetFileName(ModListImage)),
                 Website = ModListWebsite ?? ""
             };
-            if(File.Exists(ModListImage)) File.Copy(ModListImage, Path.Combine(ModListOutputFolder, Path.GetFileName(ModListImage)));
 
             ValidateModlist.RunValidation(ModList);
 

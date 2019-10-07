@@ -53,8 +53,7 @@ namespace Wabbajack
             {
                 if (newBannerFile != null)
                 {
-                    BitmapImage splashScreen = null;
-                    splashScreen = new BitmapImage(new Uri(newBannerFile));
+                    BitmapImage splashScreen = new BitmapImage(new Uri(newBannerFile));
                     state.newImagePath = newBannerFile;
                     state.SplashScreenImage = splashScreen;
                 }
