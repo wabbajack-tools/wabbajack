@@ -47,6 +47,7 @@ namespace Wabbajack.NexusApi
         public string uploaded_by;
         public string uploaded_users_profile_url;
         public string picture_url;
+        public bool contains_adult_content;
     }
 
     public class SlideShowItem
@@ -56,6 +57,7 @@ namespace Wabbajack.NexusApi
         public string ModSummary;
         public string AuthorName;
         public string ModURL;
+        public bool Adult;
     }
 
     public class EndorsementResponse

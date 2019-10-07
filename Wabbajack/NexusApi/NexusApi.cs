@@ -286,7 +286,8 @@ namespace Wabbajack.NexusApi
                         ModName = FixupSummary(m.name),
                         AuthorName = FixupSummary(m.author),
                         ModURL = GetModURL(m.game_name, m.mod_id),
-                        ModSummary = FixupSummary(m.summary)
+                        ModSummary = FixupSummary(m.summary),
+                        Adult = m.contains_adult_content
                     });
             }
         }
