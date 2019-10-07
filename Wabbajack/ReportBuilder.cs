@@ -46,7 +46,10 @@ namespace Wabbajack
 
         public void Build(Compiler c, ModList lst)
         {
-            Text($"### {lst.Name} - Installation Summary");
+            Text($"### {lst.Name} by {lst.Author} - Installation Summary");
+            Text(lst.Description);
+            Text($"#### Website:");
+            NoWrapText($"[{lst.Website}]({lst.Website})");
 
             var readme_file = Path.Combine(c.MO2ProfileDir, "readme.md");
             if (File.Exists(readme_file))

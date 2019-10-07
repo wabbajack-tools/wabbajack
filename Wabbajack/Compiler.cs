@@ -23,6 +23,7 @@ using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+using System.Windows.Media.Imaging;
 
 namespace Wabbajack
 {
@@ -37,6 +38,7 @@ namespace Wabbajack
 
 
         public string MO2Profile;
+        public string ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModListImage;
 
         public Compiler(string mo2_folder)
         {
@@ -280,7 +282,11 @@ namespace Wabbajack
                 GameType = GameRegistry.Games.Values.First(f => f.MO2Name == MO2Ini.General.gameName).Game,
                 Archives = SelectedArchives,
                 Directives = InstallDirectives,
-                Name = MO2Profile
+                Name = ModListName ?? MO2Profile,
+                Author = ModListAuthor ?? "",
+                Description = ModListDescription ?? "",
+                Image = ModListImage,
+                Website = ModListWebsite ?? ""
             };
 
             ValidateModlist.RunValidation(ModList);

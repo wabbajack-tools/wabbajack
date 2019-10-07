@@ -174,13 +174,17 @@ namespace Wabbajack
                 return new LambdaCommand(() => true, () => OpenModListProperties());
             }
         }
-        internal ModlistPropertiesWindow modlistPropertiesWindow;
+        private ModlistPropertiesWindow modlistPropertiesWindow;
+        internal string newImagePath;
+        public bool ChangedProperties;
         private void OpenModListProperties()
         {
             if (UIReady) { 
                 if (modlistPropertiesWindow == null)
                 {
                     modlistPropertiesWindow = new ModlistPropertiesWindow(this);
+                    newImagePath = "";
+                    ChangedProperties = false;
 
                 }
                 modlistPropertiesWindow.Show();
@@ -339,6 +343,12 @@ namespace Wabbajack
             HTMLReport = _modList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
+            SplashScreenModName = modlist.Name;
+            SplashScreenAuthorName = modlist.Author;
+            _nexusSiteURL = modlist.Website;
+            SplashScreenSummary = modlist.Description;
+            //if(modlist.Image != null) SplashScreenImage = modlist.Image;
+
             SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => new SlideShowItem
             {
                 ModName = NexusApiUtils.FixupSummary(m.ModName),
@@ -459,7 +469,12 @@ namespace Wabbajack
             {
                 var compiler = new Compiler(_mo2Folder)
                 {
-                    MO2Profile = ModListName
+                    MO2Profile = ModListName,
+                    ModListName = ChangedProperties ? SplashScreenModName : null,
+                    ModListAuthor = ChangedProperties ? SplashScreenAuthorName : null,
+                    ModListDescription = ChangedProperties ? SplashScreenSummary : null,
+                    ModListImage = ChangedProperties ? newImagePath : null,
+                    ModListWebsite = ChangedProperties ? _nexusSiteURL : null
                 };
                 var th = new Thread(() =>
                 {
