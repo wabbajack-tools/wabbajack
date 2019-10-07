@@ -62,7 +62,18 @@
             <TextBlock Text="{Binding SplashScreenModName}" Grid.Row="0" FontSize="30" FontWeight="Bold"/>
             <TextBlock Text="{Binding SplashScreenAuthorName}" Grid.Row="1" FontSize="15" FontWeight="Bold"/>
             <TextBlock Text="{Binding SplashScreenSummary}" TextWrapping="Wrap" Grid.Row="2" FontSize="15" FontWeight="Bold"/>
-            <CheckBox Grid.Row="3" IsChecked="{Binding SplashShowNSFW}" Name="ShowNSFWContent">Show NSFW Mods in the Slideshow</CheckBox>
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="48"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Column="0" IsChecked="{Binding SplashShowNSFW}" Name="ShowNSFWContent">Show NSFW Mods in the Slideshow</CheckBox>
+                <Button HorizontalAlignment="Right" Height="30" Grid.Column="1" Command="{Binding SlideShowNextItem}">
+                    <DockPanel>
+                        <Image Source="{Binding NextIcon}" Stretch="Fill"/>
+                    </DockPanel>
+                </Button>
+            </Grid>
             <Button Height="30" Grid.Row="4" Command="{Binding VisitNexusSiteCommand}">
                 <TextBlock Text="View Nexus Site" FontSize="15" FontWeight="Bold"/>
             </Button>

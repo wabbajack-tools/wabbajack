@@ -38,6 +38,12 @@ namespace Wabbajack
             _wabbajackLogo = image;
             _splashScreenImage = image;
 
+            image = new BitmapImage();
+            image.BeginInit();
+            image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.Icons.next.png");
+            image.EndInit();
+            _nextIcon = image;
+
             SetupSlideshow();
 
             if (Assembly.GetEntryAssembly().Location.ToLower().Contains("\\downloads\\"))
@@ -224,6 +230,8 @@ namespace Wabbajack
 
         private string _SplashScreenModName = "Wabbajack";
         public string SplashScreenModName { get => _SplashScreenModName; set => this.RaiseAndSetIfChanged(ref _SplashScreenModName, value); }
+        private BitmapImage _nextIcon = null;
+        public BitmapImage NextIcon { get => _nextIcon; set => this.RaiseAndSetIfChanged(ref _nextIcon, value); }
 
         private string _SplashScreenAuthorName = "Halgari & the Wabbajack Team";
         public string SplashScreenAuthorName { get => _SplashScreenAuthorName; set => this.RaiseAndSetIfChanged(ref _SplashScreenAuthorName, value); }
