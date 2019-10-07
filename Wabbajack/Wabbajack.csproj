@@ -186,6 +186,9 @@
     </ApplicationDefinition>
     <Compile Include="Data.cs" />
     <Compile Include="LambdaCommand.cs" />
+    <Compile Include="ModlistPropertiesWindow.xaml.cs">
+      <DependentUpon>ModlistPropertiesWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="NexusApi\Dtos.cs" />
     <Compile Include="NexusApi\NexusApiUtils.cs" />
     <Compile Include="ModeSelectionWindow.xaml.cs">
@@ -217,6 +220,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="ModeSelectionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ModlistPropertiesWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

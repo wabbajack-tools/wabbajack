@@ -31,9 +31,20 @@
             <TextBlock Text="{Binding ModListName}" FontSize="16" />
         </StackPanel>
 
+        <!-- Settings -->
+        <Grid Grid.Row="1" Grid.Column="0" Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="30"/>
+            </Grid.RowDefinitions>
+            <Image Grid.Row="0" Source="{Binding SplashScreenImage}" Stretch="Uniform"></Image>
+            <Button Grid.Row="1" Height="30" Command="{Binding OpenModListPropertiesCommand}">
+                <TextBlock Text="Modlist Properties" FontSize="15" FontWeight="Bold"></TextBlock>
+            </Button>
+        </Grid>
+        <!-- End Settings -->
+        
         <!-- Slideshow -->
-
-        <Image Grid.Row="1" Grid.Column="0" Source="{Binding SplashScreenImage}" Stretch="Uniform" Margin="5"></Image>
         <Grid Grid.Row="1" Grid.Column="1" Margin="5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"></RowDefinition>

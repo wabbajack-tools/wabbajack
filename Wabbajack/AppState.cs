@@ -167,6 +167,19 @@ namespace Wabbajack
             }
         }
 
+        public ICommand OpenModListPropertiesCommand
+        {
+            get
+            {
+                return new LambdaCommand(() => true, () => OpenModListProperties());
+            }
+        }
+
+        private void OpenModListProperties()
+        {
+            new ModlistPropertiesWindow().Show();
+        }
+
         public string _nexusSiteURL = null;
 
         private void VisitNexusSite()
