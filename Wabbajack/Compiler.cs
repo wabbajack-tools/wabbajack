@@ -285,9 +285,10 @@ namespace Wabbajack
                 Name = ModListName ?? MO2Profile,
                 Author = ModListAuthor ?? "",
                 Description = ModListDescription ?? "",
-                Image = ModListImage,
+                Image = Path.GetFileName(ModListImage),
                 Website = ModListWebsite ?? ""
             };
+            if(File.Exists(ModListImage)) File.Copy(ModListImage, Path.Combine(ModListOutputFolder, Path.GetFileName(ModListImage)));
 
             ValidateModlist.RunValidation(ModList);
 

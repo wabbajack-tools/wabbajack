@@ -61,7 +61,7 @@ namespace Wabbajack
                 string modListDescription = ModlistDescriptionProperty.Text;
                 string modListWebsite = ModlistWebsiteProperty.Text;
 
-                state.newImagePath = System.IO.Path.GetFileName(newBannerFile);
+                state.newImagePath = newBannerFile;
                 state.SplashScreenImage = splashScreen;
                 state.SplashScreenModName = modListName;
                 state.SplashScreenSummary = modListDescription;
