@@ -24,6 +24,17 @@
             <Button Grid.Row="1" Height="30" Click="SetSplashScreen_Click" ToolTip="Use a 1400x900 png file for the best results">
                 <TextBlock Text="Change splash screen image" FontSize="15" FontWeight="Bold"/>
             </Button>
-        </Grid> 
+        </Grid>
+
+        <Grid Grid.Column="1" Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="30"/>
+                <RowDefinition Height="234"/>
+            </Grid.RowDefinitions>
+            <TextBox Grid.Row="0" Text="ModList Name" Name="ModlistNameProperty" ToolTip="Change the name of your ModList" MaxLength="50" AcceptsTab="False" FontSize="15" Margin="0 0 0 5" />
+            <TextBox Grid.Row="1" Text="Author" Name="ModlistAuthorProperty" ToolTip="Change the name of the Author" MaxLength="50" AcceptsTab="False" FontSize="15" Margin="0 0 0 5" />
+            <TextBox Grid.Row="2" Text="Description (700 characters max)" Name="ModlistDescriptionProperty" ToolTip="Change the description" MaxLength="700" AcceptsReturn="True" TextWrapping="Wrap" AcceptsTab="False" FontSize="15" Margin="0 0 0 5" />
+        </Grid>
     </Grid>
 </Window>
