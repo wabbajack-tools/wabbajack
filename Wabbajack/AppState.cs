@@ -56,6 +56,7 @@ namespace Wabbajack
             Mode = mode;
             Dirty = false;
             dispatcher = d;
+<<<<<<< HEAD
 
             var th = new Thread(() => UpdateLoop())
             {
@@ -63,6 +64,11 @@ namespace Wabbajack
                 IsBackground = true
             };
             th.Start();
+=======
+            Log = new ObservableCollection<string>();
+            Status = new ObservableCollection<CPUStatus>();
+            InternalStatus = new List<CPUStatus>();
+>>>>>>> Update loop for slideshow will be called when installing
         }
 
         private void SetupSlideshow()
@@ -442,6 +448,12 @@ namespace Wabbajack
             UIReady = false;
             if (Mode == "Installing")
             {
+                var thSlideShow = new Thread(() => UpdateLoop())
+                {
+                    Priority = ThreadPriority.BelowNormal,
+                    IsBackground = true
+                };
+                thSlideShow.Start();
                 var installer = new Installer(_modListPath, _modList, Location)
                 {
                     DownloadFolder = DownloadLocation
