@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
@@ -190,7 +191,7 @@ namespace Wabbajack
                 if (modlistPropertiesWindow == null)
                 {
                     modlistPropertiesWindow = new ModlistPropertiesWindow(this);
-                    newImagePath = "";
+                    newImagePath = null;
                     ChangedProperties = false;
 
                 }
@@ -258,6 +259,7 @@ namespace Wabbajack
         }
 
         private BitmapImage _wabbajackLogo = null;
+        private bool _originalImage = true;
         private BitmapImage _splashScreenImage = null;
         public BitmapImage SplashScreenImage
         {
@@ -283,6 +285,10 @@ namespace Wabbajack
         public string SplashScreenSummary { get => _SplashScreenSummary; set => this.RaiseAndSetIfChanged(ref _SplashScreenSummary, value); }
         private bool _splashShowNSFW = true;
         public bool SplashShowNSFW { get => _splashShowNSFW; set => this.RaiseAndSetIfChanged(ref _splashShowNSFW, value); }    
+        internal Thread slideshowThread = null;
+        internal bool _enableSlideShow = true;
+        internal int slideshowSleepTime = 1000;
+        public bool EnableSlideShow { get => _enableSlideShow; set => RaiseAndSetIfChanged(ref _enableSlideShow, value); }
 
         public string Error => "Error";
 
@@ -344,52 +350,141 @@ namespace Wabbajack
                 {
                     if (DateTime.Now - _lastSlideShowUpdate > TimeSpan.FromSeconds(10))
                     {
-                        var idx = _random.Next(0, SlideShowElements.Count);
-
-                        try
-                        {
-                            var element = SlideShowElements[idx];
-                            if (!element.Adult || (element.Adult && SplashShowNSFW))
-                            {
-                                var data = new MemoryStream();
-                                using (var stream = new HttpClient().GetStreamSync(element.ImageURL))
-                                    stream.CopyTo(data);
-                                data.Seek(0, SeekOrigin.Begin);
-
-
-                                dispatcher.Invoke(() =>
-                                {
-                                    var bitmap = new BitmapImage();
-                                    bitmap.BeginInit();
-                                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                                    bitmap.StreamSource = data;
-                                    bitmap.EndInit();
-
-                                    SplashScreenImage = bitmap;
-                                    SplashScreenModName = element.ModName;
-                                    SplashScreenAuthorName = element.AuthorName;
-                                    SplashScreenSummary = element.ModSummary;
-                                    _nexusSiteURL = element.ModURL;
-
-                                    _lastSlideShowUpdate = DateTime.Now;
-                                });
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                        }
-
+                        UpdateSlideShowItem();
                     }
                 }
-
                 Thread.Sleep(1000);
+            }
+        }
+        private void UpdateSlideShowItem()
+        {
+            if (EnableSlideShow)
+            {
+                SlideShowItem element = slidesQueue.Peek();
+                if (!element.Adult || (element.Adult && SplashShowNSFW))
+                {
+                    dispatcher.Invoke(() => {
+                        var data = new MemoryStream();
+
+                        //if (cachedSlides.Contains(element.ModID))
+                        //{
+                        using (var stream = new FileStream(Path.Combine(SlideshowCacheDir, element.ModID + ".slideshowcache"), FileMode.Open, FileAccess.Read))
+                            stream.CopyTo(data);
+                        data.Seek(0, SeekOrigin.Begin);
+                       // }
+                        //else
+                       // {
+                       //     using (var stream = new HttpClient().GetStreamSync(element.ImageURL))
+                       //         stream.CopyTo(data);
+                       //     data.Seek(0, SeekOrigin.Begin);
+                       // }
+
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.StreamSource = data;
+                        bitmap.EndInit();
+
+                        SplashScreenImage = bitmap;
+                        _originalImage = false;
+                        SplashScreenModName = element.ModName;
+                        SplashScreenAuthorName = element.AuthorName;
+                        SplashScreenSummary = element.ModSummary;
+                        _nexusSiteURL = element.ModURL;
+
+                        _lastSlideShowUpdate = DateTime.Now;
+                    });
+                }
+                slidesQueue.Dequeue();
+                QueueRandomSlide();
+            }
+        }
+
+        private string SlideshowCacheDir;
+        private List<string> cachedSlides;
+        private Queue<SlideShowItem> slidesQueue;
+        private void CacheSlide(string url, string dest)
+        {
+            dispatcher.Invoke(() => {
+                var file = new FileStream(dest, FileMode.Create, FileAccess.Write);
+                using (var stream = new HttpClient().GetStreamSync(url))
+                    stream.CopyTo(file);
+            });
+        }
+        private bool QueueRandomSlide()
+        {
+            bool result = false;
+            var idx = _random.Next(0, SlideShowElements.Count);
+            var element = SlideShowElements[idx];
+            string id = element.ModID;
+            string cacheFile = Path.Combine(SlideshowCacheDir, id + ".slideshowcache");
+
+            if (!File.Exists(cacheFile))
+            {
+                CacheSlide(element.ImageURL, cacheFile);
+                cachedSlides.Add(id);
+                slidesQueue.Enqueue(element);
+                result = true;
+            }
+            return result;
+        }
+        private void PreloadSlideshow()
+        {
+            cachedSlides = new List<string>();
+            slidesQueue = new Queue<SlideShowItem>();
+
+            if (!Directory.Exists(SlideshowCacheDir))
+                Directory.CreateDirectory(SlideshowCacheDir);
+
+            int turns = 0;
+            for(int i = 0; i < SlideShowElements.Count; i++)
+            {
+                if (turns >= 3)
+                    break;
+
+                if (QueueRandomSlide())
+                    turns++;
+                else
+                    continue;
+            }
+        }
+        private void DeleteCache()
+        {
+            if (Directory.Exists(SlideshowCacheDir))
+            {
+                foreach (string s in Directory.GetFiles(SlideshowCacheDir))
+                    File.Delete(s);
+                Directory.Delete(SlideshowCacheDir);
             }
         }
 
         public bool Running { get; set; } = true;
-
+        internal void ApplyModlistProperties()
+        {
+            SplashScreenModName = _modList.Name;
+            SplashScreenAuthorName = _modList.Author;
+            _nexusSiteURL = _modList.Website;
+            SplashScreenSummary = _modList.Description;
+            if (_modList.Image != null)
+            {
+                //TODO: if(_modList.Image != null) SplashScreenImage = _modList.Image;
+            }
+            else
+            {
+                if (!_originalImage) {
+                    var image = new BitmapImage();
+                    image.BeginInit();
+                    image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.banner.png");
+                    image.EndInit();
+                    SplashScreenImage = image;
+                }
+            }
+        }
         internal void ConfigureForInstall(string source, ModList modlist)
         {
+            SlideshowCacheDir = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "slideshow_cache");
+            DeleteCache();
+
             _modList = modlist;
             _modListPath = source;
             Mode = "Installing";
@@ -397,14 +492,7 @@ namespace Wabbajack
             HTMLReport = _modList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            SplashScreenModName = modlist.Name;
-            SplashScreenAuthorName = modlist.Author;
-            _nexusSiteURL = modlist.Website;
-            SplashScreenSummary = modlist.Description;
-            if (modlist.Image != "")
-            {
-                //TODO: if(modlist.Image != null) SplashScreenImage = modlist.Image;
-            }
+            ApplyModlistProperties();
 
             SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => new SlideShowItem
             {
@@ -413,8 +501,12 @@ namespace Wabbajack
                 ModSummary = NexusApiUtils.FixupSummary(m.Summary),
                 ImageURL = m.SlideShowPic,
                 ModURL = m.NexusURL,
-                Adult = m.Adult
+                Adult = m.Adult,
+                ModID = m.ModID
             }).ToList();
+
+
+            PreloadSlideshow();
         }
 
         public void LogMsg(string msg)
@@ -495,12 +587,12 @@ namespace Wabbajack
             UIReady = false;
             if (Mode == "Installing")
             {
-                var thSlideShow = new Thread(() => UpdateLoop())
+                slideshowThread = new Thread(() => UpdateLoop())
                 {
                     Priority = ThreadPriority.BelowNormal,
                     IsBackground = true
                 };
-                thSlideShow.Start();
+                slideshowThread.Start();
                 var installer = new Installer(_modListPath, _modList, Location)
                 {
                     DownloadFolder = DownloadLocation
@@ -522,6 +614,9 @@ namespace Wabbajack
                     finally
                     {
                         UIReady = true;
+                        DeleteCache();
+                        Running = false;
+                        slideshowThread.Abort();
                     }
                 })
                 {

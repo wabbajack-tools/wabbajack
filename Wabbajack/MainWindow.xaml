@@ -65,10 +65,12 @@
             <Grid Grid.Row="3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="48"/>
                 </Grid.ColumnDefinitions>
-                <CheckBox Grid.Column="0" IsChecked="{Binding SplashShowNSFW}" Name="ShowNSFWContent">Show NSFW Mods in the Slideshow</CheckBox>
-                <Button HorizontalAlignment="Right" Height="30" Grid.Column="1" Command="{Binding SlideShowNextItem}">
+                <CheckBox Grid.Column="0" IsChecked="{Binding EnableSlideShow}" Name="EnableSlideShow">Enable the Slideshow</CheckBox>
+                <CheckBox Grid.Column="1" IsChecked="{Binding SplashShowNSFW}" Name="ShowNSFWContent">Show NSFW Mods in the Slideshow</CheckBox>
+                <Button HorizontalAlignment="Right" Height="30" Grid.Column="2" Command="{Binding SlideShowNextItem}">
                     <DockPanel>
                         <Image Source="{Binding NextIcon}" Stretch="Fill"/>
                     </DockPanel>
