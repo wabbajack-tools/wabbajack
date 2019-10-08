@@ -54,6 +54,7 @@ namespace Wabbajack.NexusApi
         public string AuthorName;
         public string ModURL;
         public bool Adult;
+        public string ModID;
     }
 
     public class EndorsementResponse
