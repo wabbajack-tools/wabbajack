@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using ICSharpCode.SharpZipLib.Zip;
 using ICSharpCode.SharpZipLib.Zip.Compression;
+using Microsoft.SqlServer.Server;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
@@ -85,7 +87,7 @@ namespace Compression.BSA
                         files.Add(new BA2FileEntry(this, idx));
                         break;
                     case EntryType.DX10:
-                        files.Add(new BA2DX10Entry(this));
+                        files.Add(new BA2DX10Entry(this, idx));
                         break;
                     case EntryType.GNMF:
                         break;
@@ -139,21 +141,22 @@ namespace Compression.BSA
 
     public class BA2DX10Entry : IFileEntry
     {
-        private uint _nameHash;
-        private string _extension;
-        private uint _dirHash;
-        private byte _unk8;
-        private byte _numChunks;
-        private ushort _chunkHdrLen;
-        private ushort _height;
-        private ushort _width;
-        private byte _numMips;
-        private byte _format;
-        private ushort _unk16;
-        private List<BA2TextureChunk> _chunks;
+        internal uint _nameHash;
+        internal string _extension;
+        internal uint _dirHash;
+        internal byte _unk8;
+        internal byte _numChunks;
+        internal ushort _chunkHdrLen;
+        internal ushort _height;
+        internal ushort _width;
+        internal byte _numMips;
+        internal byte _format;
+        internal ushort _unk16;
+        internal List<BA2TextureChunk> _chunks;
         private BA2Reader _bsa;
+        internal int _index;
 
-        public BA2DX10Entry(BA2Reader ba2Reader)
+        public BA2DX10Entry(BA2Reader ba2Reader, int idx)
         {
             _bsa = ba2Reader;
             var _rdr = ba2Reader._rdr;
@@ -169,9 +172,10 @@ namespace Compression.BSA
             _numMips = _rdr.ReadByte();
             _format = _rdr.ReadByte();
             _unk16 = _rdr.ReadUInt16();
+            _index = idx;
 
             _chunks = Enumerable.Range(0, _numChunks)
-                .Select(idx => new BA2TextureChunk(_rdr))
+                .Select(_ => new BA2TextureChunk(_rdr))
                 .ToList();
 
         }
@@ -180,7 +184,7 @@ namespace Compression.BSA
 
         public string Path => FullPath;
         public uint Size => (uint)_chunks.Sum(f => f._fullSz) + HeaderSize + sizeof(uint);
-        public FileStateObject State { get; }
+        public FileStateObject State => new BA2DX10EntryState(this);
 
         public uint HeaderSize 
         {
@@ -342,6 +346,70 @@ namespace Compression.BSA
                     break;
             }
         }
+    }
+
+    public class BA2DX10EntryState : FileStateObject
+    {
+        public BA2DX10EntryState() { }
+        public BA2DX10EntryState(BA2DX10Entry ba2Dx10Entry)
+        {
+            FullName = ba2Dx10Entry.FullPath;
+            NameHash = ba2Dx10Entry._nameHash;
+            Extension = ba2Dx10Entry._extension;
+            DirHash = ba2Dx10Entry._dirHash;
+            Unk8 = ba2Dx10Entry._unk8;
+            ChunkHdrLen = ba2Dx10Entry._chunkHdrLen;
+            Height = ba2Dx10Entry._height;
+            Width = ba2Dx10Entry._width;
+            NumMips = ba2Dx10Entry._numMips;
+            PixelFormat = ba2Dx10Entry._format;
+            Unk16 = ba2Dx10Entry._unk16;
+            Index = ba2Dx10Entry._index;
+            Chunks = ba2Dx10Entry._chunks.Select(ch => new ChunkState(ch)).ToList();
+        }
+
+        public string FullName { get; set; }
+
+        public List<ChunkState> Chunks { get; set; }
+
+        public ushort Unk16 { get; set; }
+
+        public byte PixelFormat { get; set; }
+
+        public byte NumMips { get; set; }
+
+        public ushort Width { get; set; }
+
+        public ushort Height { get; set; }
+
+        public ushort ChunkHdrLen { get; set; }
+
+        public byte Unk8 { get; set; }
+
+        public uint DirHash { get; set; }
+
+        public string Extension { get; set; }
+
+        public uint NameHash { get; set; }
+    }
+
+    public class ChunkState
+    {
+        public ChunkState() {}
+        public ChunkState(BA2TextureChunk ch)
+        {
+            FullSz = ch._fullSz;
+            StartMip = ch._startMip;
+            EndMip = ch._endMip;
+            Align = ch._align;
+            Compressed = ch._packSz != null;
+        }
+
+        public bool Compressed { get; set; }
+        public uint Align { get; set; }
+        public ushort EndMip { get; set; }
+        public ushort StartMip { get; set; }
+        public uint FullSz { get; set; }
     }
 
     public class BA2TextureChunk
