@@ -204,8 +204,7 @@ namespace Wabbajack
             get
             {
                 return new LambdaCommand(() => true, () => {
-                    UpdateSlideShowItem();
-                    QueueRandomSlide();
+                    UpdateSlideShowItem(false);
                 });
             }
         }
@@ -256,9 +255,27 @@ namespace Wabbajack
         private bool _splashShowNSFW = true;
         public bool SplashShowNSFW { get => _splashShowNSFW; set => this.RaiseAndSetIfChanged(ref _splashShowNSFW, value); }    
         internal Thread slideshowThread = null;
-        internal bool _enableSlideShow = true;
         internal int slideshowSleepTime = 1000;
-        public bool EnableSlideShow { get => _enableSlideShow; set => RaiseAndSetIfChanged(ref _enableSlideShow, value); }
+        private bool _enableSlideShow = true;
+        public bool EnableSlideShow
+        {
+            get => _enableSlideShow;
+            set
+            {
+                RaiseAndSetIfChanged(ref _enableSlideShow, value);
+                if (!_enableSlideShow)
+                {
+                    if (slideshowThread.IsAlive)
+                    {
+                        ApplyModlistProperties();
+                    }
+                }
+                else
+                {
+                    UpdateSlideShowItem(false);
+                }
+            }
+        }
 
         public string Error => "Error";
 
@@ -320,13 +337,13 @@ namespace Wabbajack
                 {
                     if (DateTime.Now - _lastSlideShowUpdate > TimeSpan.FromSeconds(10))
                     {
-                        UpdateSlideShowItem();
+                        UpdateSlideShowItem(true);
                     }
                 }
                 Thread.Sleep(1000);
             }
         }
-        private void UpdateSlideShowItem()
+        private void UpdateSlideShowItem(bool fromLoop)
         {
             if (EnableSlideShow)
             {
@@ -335,44 +352,50 @@ namespace Wabbajack
                 {
                     dispatcher.Invoke(() => {
                         var data = new MemoryStream();
+                        bool success = false;
+                        try
+                        {
+                            using (var stream = new FileStream(Path.Combine(SlideshowCacheDir, element.ModID + ".slideshowcache"), FileMode.Open, FileAccess.Read))
+                                stream.CopyTo(data);
+                            success = true;
+                        }
+                        catch (IOException) { success = false; }
+                        if (success)
+                        {
+                            data.Seek(0, SeekOrigin.Begin);
 
-                        //if (cachedSlides.Contains(element.ModID))
-                        //{
-                        using (var stream = new FileStream(Path.Combine(SlideshowCacheDir, element.ModID + ".slideshowcache"), FileMode.Open, FileAccess.Read))
-                            stream.CopyTo(data);
-                        data.Seek(0, SeekOrigin.Begin);
-                       // }
-                        //else
-                       // {
-                       //     using (var stream = new HttpClient().GetStreamSync(element.ImageURL))
-                       //         stream.CopyTo(data);
-                       //     data.Seek(0, SeekOrigin.Begin);
-                       // }
+                            var bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.StreamSource = data;
+                            bitmap.EndInit();
 
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.StreamSource = data;
-                        bitmap.EndInit();
+                            SplashScreenImage = bitmap;
+                            _originalImage = false;
+                            SplashScreenModName = element.ModName;
+                            SplashScreenAuthorName = element.AuthorName;
+                            SplashScreenSummary = element.ModSummary;
+                            _nexusSiteURL = element.ModURL;
 
-                        SplashScreenImage = bitmap;
-                        _originalImage = false;
-                        SplashScreenModName = element.ModName;
-                        SplashScreenAuthorName = element.AuthorName;
-                        SplashScreenSummary = element.ModSummary;
-                        _nexusSiteURL = element.ModURL;
-
-                        _lastSlideShowUpdate = DateTime.Now;
+                            if (fromLoop)
+                                _lastSlideShowUpdate = DateTime.Now;
+                        }
                     });
                 }
                 slidesQueue.Dequeue();
-                QueueRandomSlide();
+                QueueRandomSlide(false, true);
             }
         }
 
         private string SlideshowCacheDir;
         private List<string> cachedSlides;
         private Queue<SlideShowItem> slidesQueue;
+        private SlideShowItem lastSlide;
+        /// <summary>
+        /// Caches a slide
+        /// </summary>
+        /// <param name="url">The url</param>
+        /// <param name="dest">The destination</param>
         private void CacheSlide(string url, string dest)
         {
             dispatcher.Invoke(() => {
@@ -381,14 +404,32 @@ namespace Wabbajack
                     stream.CopyTo(file);
             });
         }
-        private bool QueueRandomSlide()
+        /// <summary>
+        /// Queues a random slide
+        /// </summary>
+        /// <param name="init">Only used if called from the Preloadfunction</param>
+        /// <param name="checkLast">If to not queue the same thing again</param>
+        /// <returns></returns>
+        private bool QueueRandomSlide(bool init, bool checkLast)
         {
             bool result = false;
             var idx = _random.Next(0, SlideShowElements.Count);
             var element = SlideShowElements[idx];
+            if (checkLast)
+            {
+                while(element == lastSlide && (!element.Adult || (element.Adult && SplashShowNSFW)))
+                {
+                    idx = _random.Next(0, SlideShowElements.Count);
+                    element = SlideShowElements[idx];
+                }
+            }
+            
             string id = element.ModID;
             string cacheFile = Path.Combine(SlideshowCacheDir, id + ".slideshowcache");
 
+            // if the file doesen't exist, we cache it and add it to the cachedSlide list and to the 
+            // slidesQueue
+            // return true for the PreloadSlideshow
             if (!File.Exists(cacheFile))
             {
                 CacheSlide(element.ImageURL, cacheFile);
@@ -396,8 +437,19 @@ namespace Wabbajack
                 slidesQueue.Enqueue(element);
                 result = true;
             }
+            // if the file exists and was not called from preloadslideshow, we queue the slide
+            else
+            {
+                if(!init)
+                    slidesQueue.Enqueue(element);
+            }
+            // set the last element to the current element after queueing
+            lastSlide = element;
             return result;
         }
+        /// <summary>
+        /// Caches 3 random images and puts them in the queue
+        /// </summary>
         private void PreloadSlideshow()
         {
             cachedSlides = new List<string>();
@@ -412,12 +464,15 @@ namespace Wabbajack
                 if (turns >= 3)
                     break;
 
-                if (QueueRandomSlide())
+                if (QueueRandomSlide(true, false))
                     turns++;
                 else
                     continue;
             }
         }
+        /// <summary>
+        /// Deletes the slideshow cache
+        /// </summary>
         private void DeleteCache()
         {
             if (Directory.Exists(SlideshowCacheDir))
