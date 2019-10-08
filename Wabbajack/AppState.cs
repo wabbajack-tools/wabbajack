@@ -348,20 +348,25 @@ namespace Wabbajack
             if (EnableSlideShow)
             {
                 SlideShowItem element = slidesQueue.Peek();
+                string cachePath = Path.Combine(SlideshowCacheDir, cachedSlides[0] + ".slideshowcache");
                 if (!element.Adult || (element.Adult && SplashShowNSFW))
                 {
                     dispatcher.Invoke(() => {
+                        // max cached files achieved
+                        if (cachedSlides.Count == 4)
+                        {
+                            if (File.Exists(cachePath) && !IsFileLocked(cachePath))
+                            {
+                                File.Delete(cachePath);
+                                cachedSlides.RemoveAt(0);
+                            }
+                        }
                         var data = new MemoryStream();
-                        bool success = false;
-                        try
+                        if (!IsFileLocked(cachePath))
                         {
                             using (var stream = new FileStream(Path.Combine(SlideshowCacheDir, element.ModID + ".slideshowcache"), FileMode.Open, FileAccess.Read))
                                 stream.CopyTo(data);
-                            success = true;
-                        }
-                        catch (IOException) { success = false; }
-                        if (success)
-                        {
+
                             data.Seek(0, SeekOrigin.Begin);
 
                             var bitmap = new BitmapImage();
@@ -492,7 +497,7 @@ namespace Wabbajack
             {
                 foreach (string s in Directory.GetFiles(SlideshowCacheDir))
                     File.Delete(s);
-                Directory.Delete(SlideshowCacheDir);
+                //Directory.Delete(SlideshowCacheDir);
             }
         }
 
@@ -704,6 +709,20 @@ namespace Wabbajack
                 Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
                 UIReady = true;
             }
+        }
+
+        private bool IsFileLocked(string path)
+        {
+            bool result = false;
+            try
+            {
+                using (var stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    result = false;
+                }
+            }
+            catch (IOException) { result = true; }
+            return result;
         }
     }
 
