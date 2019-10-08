@@ -203,41 +203,11 @@ namespace Wabbajack
         {
             get
             {
-                return new LambdaCommand(() => true, () => NextSlideshowItem());
+                return new LambdaCommand(() => true, () => {
+                    UpdateSlideShowItem();
+                    QueueRandomSlide();
+                });
             }
-        }
-        private void NextSlideshowItem()
-        {
-            var idx = _random.Next(0, SlideShowElements.Count);
-
-            try
-            {
-                var element = SlideShowElements[idx];
-                if (!element.Adult || (element.Adult && SplashShowNSFW))
-                {
-                    var data = new MemoryStream();
-                    using (var stream = new HttpClient().GetStreamSync(element.ImageURL))
-                        stream.CopyTo(data);
-                    data.Seek(0, SeekOrigin.Begin);
-
-
-                    dispatcher.Invoke(() =>
-                    {
-                        var bitmap = new BitmapImage();
-                        bitmap.BeginInit();
-                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmap.StreamSource = data;
-                        bitmap.EndInit();
-
-                        SplashScreenImage = bitmap;
-                        SplashScreenModName = element.ModName;
-                        SplashScreenAuthorName = element.AuthorName;
-                        SplashScreenSummary = element.ModSummary;
-                        _nexusSiteURL = element.ModURL;
-                    });
-                }
-            }
-            catch (Exception e) { }
         }
 
         public string _nexusSiteURL = null;
