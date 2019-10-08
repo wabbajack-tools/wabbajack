@@ -398,10 +398,23 @@ namespace Wabbajack
         /// <param name="dest">The destination</param>
         private void CacheSlide(string url, string dest)
         {
+            bool sync = false;
             dispatcher.Invoke(() => {
                 var file = new FileStream(dest, FileMode.Create, FileAccess.Write);
-                using (var stream = new HttpClient().GetStreamSync(url))
-                    stream.CopyTo(file);
+                if (sync)
+                {
+                    using (var stream = new HttpClient().GetStreamSync(url))
+                        stream.CopyTo(file);
+                }
+                else
+                {
+                    using (var stream = new HttpClient().GetStreamAsync(url))
+                    {
+                        stream.Wait();
+                        stream.Result.CopyTo(file);
+                    }     
+                }
+                
             });
         }
         /// <summary>
