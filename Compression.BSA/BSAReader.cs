@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Compression.LZ4.Streams;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -48,19 +49,19 @@ namespace Compression.BSA
 
     public class BSAReader : IDisposable, IBSAReader
     {
-        private uint _archiveFlags;
-        private uint _fileCount;
-        private uint _fileFlags;
+        internal uint _archiveFlags;
+        internal uint _fileCount;
+        internal uint _fileFlags;
         internal string _fileName;
-        private uint _folderCount;
-        private uint _folderRecordOffset;
+        internal uint _folderCount;
+        internal uint _folderRecordOffset;
         private List<FolderRecord> _folders;
-        private string _magic;
+        internal string _magic;
         private readonly BinaryReader _rdr;
         private readonly Stream _stream;
-        private uint _totalFileNameLength;
-        private uint _totalFolderNameLength;
-        private uint _version;
+        internal uint _totalFileNameLength;
+        internal uint _totalFolderNameLength;
+        internal uint _version;
 
         public BSAReader(string filename) : this(File.OpenRead(filename))
         {
@@ -84,7 +85,7 @@ namespace Compression.BSA
             }
         }
 
-        public ArchiveStateObject State { get; }
+        public ArchiveStateObject State => new BSAStateObject(this);
 
         public VersionType HeaderType => (VersionType) _version;
 
@@ -150,6 +151,29 @@ namespace Compression.BSA
         }
     }
 
+    public class BSAStateObject : ArchiveStateObject
+    {
+        public BSAStateObject() { }
+        public BSAStateObject(BSAReader bsaReader)
+        {
+            Magic = bsaReader._magic;
+            Version = bsaReader._version;
+            ArchiveFlags = bsaReader._archiveFlags;
+            FileFlags = bsaReader._fileFlags;
+
+        }
+
+        public override IBSABuilder MakeBuilder()
+        {
+            return new BSABuilder(this);
+        }
+
+        public string Magic { get; set; }
+        public uint Version { get; set; }
+        public uint ArchiveFlags { get; set; }
+        public uint FileFlags { get; set; }
+    }
+
     public class FolderRecord
     {
         private readonly uint _fileCount;
@@ -181,7 +205,8 @@ namespace Compression.BSA
             if (bsa.HasFolderNames) Name = src.ReadStringLen(bsa.HeaderType);
 
             _files = new List<FileRecord>();
-            for (var idx = 0; idx < _fileCount; idx += 1) _files.Add(new FileRecord(bsa, this, src));
+            for (var idx = 0; idx < _fileCount; idx += 1)
+                _files.Add(new FileRecord(bsa, this, src, idx));
         }
     }
 
@@ -196,9 +221,11 @@ namespace Compression.BSA
         private readonly uint _onDiskSize;
         private readonly uint _originalSize;
         private readonly uint _size;
+        internal readonly int _index;
 
-        public FileRecord(BSAReader bsa, FolderRecord folderRecord, BinaryReader src)
+        public FileRecord(BSAReader bsa, FolderRecord folderRecord, BinaryReader src, int index)
         {
+            _index = index;
             _bsa = bsa;
             Hash = src.ReadUInt64();
             var size = src.ReadUInt32();
@@ -262,7 +289,7 @@ namespace Compression.BSA
         }
 
         public uint Size => _dataSize;
-        public FileStateObject State { get; }
+        public FileStateObject State => new BSAFileStateObject(this);
 
         public ulong Hash { get; }
 
@@ -313,5 +340,19 @@ namespace Compression.BSA
             CopyDataTo(ms);
             return ms.ToArray();
         }
+    }
+
+    public class BSAFileStateObject : FileStateObject
+    {
+        public BSAFileStateObject() { }
+        public BSAFileStateObject(FileRecord fileRecord)
+        {
+            FlipCompression = fileRecord.FlipCompression;
+            Path = fileRecord.Path;
+            Index = fileRecord._index;
+        }
+
+        public bool FlipCompression { get; set; }
+        public string Path { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,17 +10,24 @@ namespace Compression.BSA.Test
 {
     internal class Program
     {
-        private const string TestDir = @"D:\MO2 Instances\F4EE";
+        //private const string TestDirBSA = @"D:\MO2 Instances\F4EE";
+        //private const string TestDirBA2 = @"D:\MO2 Instances\F4EE";
+        private const string TestDir = @"D:\MO2 Instances";
         //private const string TestDir = @"D:\Steam\steamapps\common\Fallout 4";
         private const string TempDir = @"c:\tmp\out\f4ee";
+        private const string ArchiveTempDir = @"c:\tmp\out\archive";
+
+        //private const string Archive2Location = @"D:\Steam\steamapps\common\Fallout 4\Tools\Archive2\Archive2.exe";
 
         private static void Main(string[] args)
         {
-            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.ba2", SearchOption.AllDirectories).Skip(0))
+            foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.ba2", SearchOption.AllDirectories)
+                                         .Concat(Directory.EnumerateFiles(TestDir, "*.bsa", SearchOption.AllDirectories)).Skip(200))
             {
                 Console.WriteLine($"From {bsa}");
                 Console.WriteLine("Cleaning Output Dir");
                 if (Directory.Exists(TempDir)) Directory.Delete(TempDir, true);
+                if (Directory.Exists(ArchiveTempDir)) Directory.Delete(ArchiveTempDir, true);
                 Directory.CreateDirectory(TempDir);
 
                 Console.WriteLine($"Reading {bsa}");
@@ -28,6 +36,7 @@ namespace Compression.BSA.Test
                     Parallel.ForEach(a.Files, file =>
                     {
                         var abs_name = Path.Combine(TempDir, file.Path);
+                        ViaJson(file.State);
 
                         if (!Directory.Exists(Path.GetDirectoryName(abs_name)))
                             Directory.CreateDirectory(Path.GetDirectoryName(abs_name));
@@ -42,6 +51,22 @@ namespace Compression.BSA.Test
                         Equal(file.Size, new FileInfo(abs_name).Length);
                         
                     });
+
+                    /*
+                    Console.WriteLine("Extracting via Archive.exe");
+                    if (bsa.ToLower().EndsWith(".ba2"))
+                    {
+                        var p = Process.Start(Archive2Location, $"\"{bsa}\" -e=\"{ArchiveTempDir}\"");
+                        p.WaitForExit();
+
+                        foreach (var file in a.Files)
+                        {
+                            var a_path = Path.Combine(TempDir, file.Path);
+                            var b_path = Path.Combine(ArchiveTempDir, file.Path);
+                            Equal(new FileInfo(a_path).Length, new FileInfo(b_path).Length);
+                            Equal(File.ReadAllBytes(a_path), File.ReadAllBytes(b_path));
+                        }
+                    }*/
 
                     
                     Console.WriteLine($"Building {bsa}");
@@ -59,9 +84,6 @@ namespace Compression.BSA.Test
                         });
 
                         w.Build("c:\\tmp\\tmp.bsa");
-
-                        
-                       
                     }
                     
                     Console.WriteLine($"Verifying {bsa}");
@@ -163,7 +185,7 @@ namespace Compression.BSA.Test
 
             for (var idx = 0; idx < a.Length; idx++)
                 if (a[idx] != b[idx])
-                    throw new InvalidDataException($"Byte array contents not equal at {idx}");
+                    throw new InvalidDataException($"Byte array contents not equal at {idx} - {a[idx]} vs {b[idx]}");
         }
     }
 }

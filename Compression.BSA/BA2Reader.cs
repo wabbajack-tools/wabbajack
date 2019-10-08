@@ -250,6 +250,7 @@ namespace Compression.BSA
             ddsHeader.dwWidth = _width;
             ddsHeader.dwMipMapCount = _numMips;
             ddsHeader.PixelFormat.dwSize = ddsHeader.PixelFormat.GetSize();
+            ddsHeader.dwDepth = 1;
             ddsHeader.dwSurfaceFlags = DDS.DDS_SURFACE_FLAGS_TEXTURE | DDS.DDS_SURFACE_FLAGS_MIPMAP;
 
             switch ((DXGI_FORMAT)_format)
@@ -274,7 +275,7 @@ namespace Compression.BSA
                     if (_bsa.UseATIFourCC)
                         ddsHeader.PixelFormat.dwFourCC = DDS.MAKEFOURCC('A', 'T', 'I', '2'); // this is more correct but the only thing I have found that supports it is the nvidia photoshop plugin
                     else
-                        ddsHeader.PixelFormat.dwFourCC = DDS.MAKEFOURCC('D', 'X', 'T', '5');
+                        ddsHeader.PixelFormat.dwFourCC = DDS.MAKEFOURCC('B', 'C', '5', 'U');
                     ddsHeader.dwPitchOrLinearSize = (uint)(_width * _height); // 8bpp
                     break;
                 case DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB:
