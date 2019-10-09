@@ -16,7 +16,7 @@
         <Grid Margin="4,0,4,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" MaxHeight="435"/>
+                <RowDefinition Height="435"/>
                 <RowDefinition Height="10" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="320"/>
@@ -66,7 +66,7 @@
                 <TextBlock Text="{Binding SplashScreenModName}" Grid.Row="0" FontSize="30" FontWeight="Bold"/>
                 <TextBlock Text="{Binding SplashScreenAuthorName}" Grid.Row="1" FontSize="15" FontWeight="Bold"/>
                 <TextBlock Text="{Binding SplashScreenSummary}" TextWrapping="Wrap" Grid.Row="2" FontSize="15" FontWeight="Bold"/>
-                <Grid Grid.Row="3">
+                <Grid Grid.Row="3" VerticalAlignment="Bottom">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
