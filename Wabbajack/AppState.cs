@@ -409,7 +409,11 @@ namespace Wabbajack
 
                         if (_cachedSlides.ContainsKey(randomElement.ModID))
                         {
+                            var bitmap = new BitmapImage();
+                            _cachedSlides.TryGetValue(randomElement.ModID, out bitmap);
+                            bitmap = null;
                             _cachedSlides.Remove(randomElement.ModID);
+                            //hmmm
                             //GC.Collect();
                         }
                     } while (_cachedSlides.Count >= MAX_CACHE_SIZE);
