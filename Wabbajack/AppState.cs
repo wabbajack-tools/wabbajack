@@ -79,41 +79,20 @@ namespace Wabbajack
         public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
         public ObservableCollection<CPUStatus> Status { get; } = new ObservableCollection<CPUStatus>();
 
-        private string _mode;
-        public string Mode
-        {
-            get => _mode;
-            set => this.RaiseAndSetIfChanged(ref _mode, value);
-        }
+        private string _Mode;
+        public string Mode { get => _Mode; set => this.RaiseAndSetIfChanged(ref _Mode, value); }
 
-        private string _modListName;
-        public string ModListName
-        {
-            get => _modListName;
-            set => this.RaiseAndSetIfChanged(ref _modListName, value);
-        }
+        private string _ModListName;
+        public string ModListName { get => _ModListName; set => this.RaiseAndSetIfChanged(ref _ModListName, value); }
 
-        private string _location;
-        public string Location
-        {
-            get => _location;
-            set => this.RaiseAndSetIfChanged(ref _location, value);
-        }
+        private string _Location;
+        public string Location { get => _Location; set => this.RaiseAndSetIfChanged(ref _Location, value); }
 
-        private string _locationLabel;
-        public string LocationLabel
-        {
-            get => _locationLabel;
-            set => this.RaiseAndSetIfChanged(ref _locationLabel, value);
-        }
+        private string _LocationLabel;
+        public string LocationLabel { get => _LocationLabel; set => this.RaiseAndSetIfChanged(ref _LocationLabel, value); }
 
-
-        private string _downloadLocation;
-        public string DownloadLocation
-        {
-            get => _downloadLocation;
-            set => this.RaiseAndSetIfChanged(ref _downloadLocation, value);
-        }
+        private string _DownloadLocation;
+        public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
 
         public Visibility ShowReportButton => _htmlReport == null ? Visibility.Collapsed : Visibility.Visible;
 
@@ -129,13 +108,8 @@ namespace Wabbajack
             }
         }
 
-        private int _queueProgress;
-        public int QueueProgress
-        {
-            get => _queueProgress;
-            set => this.RaiseAndSetIfChanged(ref _queueProgress, value);
-        }
-
+        private int _QueueProgress;
+        public int QueueProgress { get => _QueueProgress; set => this.RaiseAndSetIfChanged(ref _QueueProgress, value); }
 
         private List<CPUStatus> InternalStatus { get; } = new List<CPUStatus>();
         public string LogFile { get; }
@@ -221,28 +195,16 @@ namespace Wabbajack
             }
         }
 
-        public string _splashScreenModName = "Wabbajack";
-        public string SplashScreenModName
-        {
-            get => _splashScreenModName;
-            set => this.RaiseAndSetIfChanged(ref _splashScreenModName, value);
-        }
+        private string _SplashScreenModName = "Wabbajack";
+        public string SplashScreenModName { get => _SplashScreenModName; set => this.RaiseAndSetIfChanged(ref _SplashScreenModName, value); }
 
-        public string _splashScreenAuthorName = "Halgari & the Wabbajack Team";
-        public string SplashScreenAuthorName
-        {
-            get => _splashScreenAuthorName;
-            set => this.RaiseAndSetIfChanged(ref _splashScreenAuthorName, value);
-        }
+        private string _SplashScreenAuthorName = "Halgari & the Wabbajack Team";
+        public string SplashScreenAuthorName { get => _SplashScreenAuthorName; set => this.RaiseAndSetIfChanged(ref _SplashScreenAuthorName, value); }
 
         private string _modListPath;
 
-        public string _splashScreenSummary = "";
-        public string SplashScreenSummary
-        {
-            get => _splashScreenSummary;
-            set => this.RaiseAndSetIfChanged(ref _splashScreenSummary, value);
-        }
+        private string _SplashScreenSummary;
+        public string SplashScreenSummary { get => _SplashScreenSummary; set => this.RaiseAndSetIfChanged(ref _SplashScreenSummary, value); }
 
         public string Error => "Error";
 
