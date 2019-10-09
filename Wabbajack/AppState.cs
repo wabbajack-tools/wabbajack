@@ -395,27 +395,39 @@ namespace Wabbajack
             if (EnableSlideShow)
             {
                 SlideShowItem element = slidesQueue.Peek();
-                if(element.ImageURL == null)
-                {
-                    SplashScreenImage = _noneImage;
-                }
-                else
+                SplashScreenImage = _noneImage;
+                if (element.ImageURL != null)
                 {
                     string cachePath = Path.Combine(SlideshowCacheDir, element.ModID + ".slideshowcache");
+                    // max cached files achieved
+                    if(cachedSlides.Count >= MAX_CACHE_SIZE) { 
+                        do
+                        {
+                            // delete a random file to make room
+                            // file can not be in the queue
+                            var idx = _random.Next(0, SlideShowElements.Count);
+                            var randomElement = SlideShowElements[idx];
+                            string randomPath = Path.Combine(SlideshowCacheDir, randomElement.ModID + ".slideshowcache");
+                            while (!File.Exists(randomPath)
+                                || slidesQueue.Contains(randomElement))
+                            {
+                                idx = _random.Next(0, SlideShowElements.Count);
+                                randomElement = SlideShowElements[idx];
+                                randomPath = Path.Combine(SlideshowCacheDir, randomElement.ModID + ".slideshowcache");
+                            }
+
+                            if (File.Exists(randomPath) && !IsFileLocked(randomPath))
+                            {
+                                File.Delete(randomPath);
+                                cachedSlides.RemoveAt(cachedSlides.IndexOf(randomElement.ModID));
+                            }
+                        } while (cachedSlides.Count >= MAX_CACHE_SIZE);
+                    }
                     if (!element.Adult || (element.Adult && SplashShowNSFW))
                     {
                         dispatcher.Invoke(() => {
-                            // max cached files achieved
-                            if (cachedSlides.Count == MAX_CACHE_SIZE)
-                            {
-                                if (File.Exists(cachePath) && !IsFileLocked(cachePath))
-                                {
-                                    File.Delete(cachePath);
-                                    cachedSlides.RemoveAt(0);
-                                }
-                            }
                             var data = new MemoryStream();
-                            if (!IsFileLocked(cachePath))
+                            if (!IsFileLocked(cachePath) && File.Exists(cachePath))
                             {
                                 using (var stream = new FileStream(cachePath, FileMode.Open, FileAccess.Read))
                                     stream.CopyTo(data);
