@@ -8,22 +8,22 @@
         mc:Ignorable="d"
         Title="Wabbajack" Height="500" Width="800" ResizeMode="NoResize"
         Closing="Close_Window">
-    <Grid Margin="20" ShowGridLines="False">
+    <Grid Margin="20">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="30"/>
             <ColumnDefinition Width="30"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
-            <RowDefinition></RowDefinition>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="70"/>
             <RowDefinition Height="70"/>
         </Grid.RowDefinitions>
         <Image MouseLeftButtonDown="GitHub_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" Name="GitHub"/>
         <Image MouseLeftButtonDown="Patreon_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="1" Name="Patreon"/>
         <Image MouseLeftButtonDown="Discord_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="2" Name="Discord"/>
-        <Image Grid.Row="1" Grid.ColumnSpan="3" Name="Banner"/>
+        <Image Grid.Row="1" Grid.ColumnSpan="3" Name="Banner" Stretch="Uniform" Margin="2,0,2,0"/>
         <Button Name="InstallModlist" Grid.ColumnSpan="3"  Grid.Row="2" Margin="2" Click="InstallModlist_Click">
             <TextBlock FontSize="40">Install a ModList</TextBlock>
         </Button>
