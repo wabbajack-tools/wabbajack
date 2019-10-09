@@ -183,6 +183,58 @@ namespace Wabbajack
                 return new LambdaCommand(() => true, () => OpenModListProperties());
             }
         }
+
+        public ICommand SlideShowNextItem
+        {
+            get
+            {
+                return new LambdaCommand(() => true, () => {
+                    UpdateSlideShowItem(false);
+                });
+            }
+        }
+
+        private void ExecuteChangePath()
+        {
+            if (Mode == TaskMode.INSTALLING)
+            {
+                var folder = UIUtils.ShowFolderSelectionDialog("Select Installation directory");
+                if (folder != null)
+                {
+                    Location = folder;
+                    if (DownloadLocation == null)
+                        DownloadLocation = Path.Combine(Location, "downloads");
+                }
+            }
+            else
+            {
+                var folder = UIUtils.ShowFolderSelectionDialog("Select Your MO2 profile directory");
+                Location = folder;
+            }
+        }
+
+        private void ExecuteChangeDownloadPath()
+        {
+            var folder = UIUtils.ShowFolderSelectionDialog("Select a location for MO2 downloads");
+            if (folder != null) DownloadLocation = folder;
+        }
+
+        private void ShowReport()
+        {
+            var file = Path.GetTempFileName() + ".html";
+            File.WriteAllText(file, HTMLReport);
+            Process.Start(file);
+        }
+
+        public string _nexusSiteURL = null;
+        private void VisitNexusSite()
+        {
+            if (_nexusSiteURL != null && _nexusSiteURL.StartsWith("https://"))
+            {
+                Process.Start(_nexusSiteURL);
+            }
+        }
+
         private ModlistPropertiesWindow modlistPropertiesWindow;
         internal string newImagePath;
         public bool ChangedProperties;
@@ -199,27 +251,7 @@ namespace Wabbajack
                 }
                 modlistPropertiesWindow.Show();
             }
-        }
-
-        public ICommand SlideShowNextItem
-        {
-            get
-            {
-                return new LambdaCommand(() => true, () => {
-                    UpdateSlideShowItem(false);
-                });
-            }
-        }
-
-        public string _nexusSiteURL = null;
-
-        private void VisitNexusSite()
-        {
-            if (_nexusSiteURL != null && _nexusSiteURL.StartsWith("https://"))
-            {
-                Process.Start(_nexusSiteURL);
-            }
-        }
+        }      
 
 
         private bool _uiReady = false;
@@ -504,7 +536,7 @@ namespace Wabbajack
         }
 
         public bool Running { get; set; } = true;
-        internal void ApplyModlistProperties()
+        private void ApplyModlistProperties()
         {
             SplashScreenModName = _modList.Name;
             SplashScreenAuthorName = _modList.Author;
@@ -524,6 +556,47 @@ namespace Wabbajack
                     SplashScreenImage = image;
                 }
             }
+        }
+
+        public void LogMsg(string msg)
+        {
+            dispatcher.Invoke(() => Log.Add(msg));
+        }
+
+        public void SetProgress(int id, string msg, int progress)
+        {
+            lock (InternalStatus)
+            {
+                Dirty = true;
+                while (id >= InternalStatus.Count) InternalStatus.Add(new CPUStatus());
+
+                InternalStatus[id] = new CPUStatus { ID = id, Msg = msg, Progress = progress };
+            }
+        }
+
+        public void SetQueueSize(int max, int current)
+        {
+            if (max == 0)
+                max = 1;
+            var total = current * 100 / max;
+            QueueProgress = total;
+        }
+
+        private void ConfigureForBuild()
+        {
+            var profile_folder = Path.GetDirectoryName(Location);
+            var mo2folder = Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
+            if (!File.Exists(Path.Combine(mo2folder, "ModOrganizer.exe")))
+                LogMsg($"Error! No ModOrganizer2.exe found in {mo2folder}");
+
+            var profile_name = Path.GetFileName(profile_folder);
+            ModListName = profile_name;
+            Mode = TaskMode.BUILDING;
+
+            var tmp_compiler = new Compiler(mo2folder);
+            DownloadLocation = tmp_compiler.MO2DownloadsFolder;
+
+            _mo2Folder = mo2folder;
         }
         internal void ConfigureForInstall(string source, ModList modlist)
         {
@@ -552,79 +625,6 @@ namespace Wabbajack
 
 
             PreloadSlideshow();
-        }
-
-        public void LogMsg(string msg)
-        {
-            dispatcher.Invoke(() => Log.Add(msg));
-        }
-
-        public void SetProgress(int id, string msg, int progress)
-        {
-            lock (InternalStatus)
-            {
-                Dirty = true;
-                while (id >= InternalStatus.Count) InternalStatus.Add(new CPUStatus());
-
-                InternalStatus[id] = new CPUStatus { ID = id, Msg = msg, Progress = progress };
-            }
-        }
-
-        public void SetQueueSize(int max, int current)
-        {
-            if (max == 0)
-                max = 1;
-            var total = current * 100 / max;
-            QueueProgress = total;
-        }
-
-        private void ExecuteChangePath()
-        {
-            if (Mode == TaskMode.INSTALLING)
-            {
-                var folder = UIUtils.ShowFolderSelectionDialog("Select Installation directory");
-                if (folder != null)
-                {
-                    Location = folder;
-                    if (DownloadLocation == null)
-                        DownloadLocation = Path.Combine(Location, "downloads");
-                }
-            }
-            else
-            {
-                var folder = UIUtils.ShowFolderSelectionDialog("Select Your MO2 profile directory");
-                Location = folder;
-            }
-        }
-
-        private void ExecuteChangeDownloadPath()
-        {
-            var folder = UIUtils.ShowFolderSelectionDialog("Select a location for MO2 downloads");
-            if (folder != null) DownloadLocation = folder;
-        }
-
-        private void ConfigureForBuild()
-        {
-            var profile_folder = Path.GetDirectoryName(Location);
-            var mo2folder = Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
-            if (!File.Exists(Path.Combine(mo2folder, "ModOrganizer.exe")))
-                LogMsg($"Error! No ModOrganizer2.exe found in {mo2folder}");
-
-            var profile_name = Path.GetFileName(profile_folder);
-            ModListName = profile_name;
-            Mode = TaskMode.BUILDING;
-
-            var tmp_compiler = new Compiler(mo2folder);
-            DownloadLocation = tmp_compiler.MO2DownloadsFolder;
-
-            _mo2Folder = mo2folder;
-        }
-
-        private void ShowReport()
-        {
-            var file = Path.GetTempFileName() + ".html";
-            File.WriteAllText(file, HTMLReport);
-            Process.Start(file);
         }
 
         private void ExecuteBegin()
