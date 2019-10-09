@@ -19,7 +19,7 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="10" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition MinHeight="320"/>
+                <RowDefinition Height="320"/>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
