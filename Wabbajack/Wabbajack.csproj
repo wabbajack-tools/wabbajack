@@ -54,7 +54,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>UI\Icons\square_transparent_icon.ico</ApplicationIcon>
+    <ApplicationIcon>UI\Icons\wabbajack.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug %28no commandargs%29|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -287,7 +287,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="UI\Icons\square_transparent_icon.ico" />
+    <Resource Include="UI\Icons\wabbajack.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="css.css" />

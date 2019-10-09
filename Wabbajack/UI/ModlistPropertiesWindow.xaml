@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Wabbajack"
         mc:Ignorable="d"
         Title="Wabbajack (Modlist Properties)" Height="600" Width="900"
-        Style="{StaticResource {x:Type Window}}" Icon="Icons/square_transparent_icon.ico" WindowStyle="ToolWindow"
+        Style="{StaticResource {x:Type Window}}" Icon="Icons/wabbajack.ico" WindowStyle="ToolWindow"
         ResizeMode="NoResize"
         Closing="Window_Closing">
     <Grid Margin="8">
