@@ -20,6 +20,8 @@ namespace Wabbajack
 {
     internal class AppState : ViewModel, IDataErrorInfo
     {
+        private const int MAX_CACHE_SIZE = 10;
+
         private string _mo2Folder;
 
         private ModList _modList;
@@ -353,7 +355,7 @@ namespace Wabbajack
                 {
                     dispatcher.Invoke(() => {
                         // max cached files achieved
-                        if (cachedSlides.Count == 4)
+                        if (cachedSlides.Count == MAX_CACHE_SIZE)
                         {
                             if (File.Exists(cachePath) && !IsFileLocked(cachePath))
                             {
