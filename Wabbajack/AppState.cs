@@ -310,16 +310,16 @@ namespace Wabbajack
             set
             {
                 RaiseAndSetIfChanged(ref _enableSlideShow, value);
-                if (!_enableSlideShow)
+                if(slideshowThread.IsAlive)
                 {
-                    if (slideshowThread.IsAlive)
+                    if (!_enableSlideShow)
                     {
                         ApplyModlistProperties();
                     }
-                }
-                else
-                {
-                    UpdateSlideShowItem(false);
+                    else
+                    {
+                        UpdateSlideShowItem(false);
+                    }
                 }
             }
         }
