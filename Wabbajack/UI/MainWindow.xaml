@@ -5,9 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Wabbajack"
         mc:Ignorable="d"
-        Title="Wabbajack" Height="960" Width="1448"
+        Title="Wabbajack"
+        MinWidth="1280" MinHeight="960"
+        Width="1280" Height="960" 
         Style="{StaticResource {x:Type Window}}" Icon="Icons/wabbajack.ico" WindowStyle="ToolWindow"
-        ResizeMode="NoResize"
+        ResizeMode="CanResize"
         Closing="Window_Closing">
     <Grid Margin="16">
         <Grid.RowDefinitions>
