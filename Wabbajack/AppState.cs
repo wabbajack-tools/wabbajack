@@ -459,7 +459,6 @@ namespace Wabbajack
                         stream.Result.CopyTo(file);
                     }     
                 }
-                
             });
         }
         /// <summary>
@@ -481,28 +480,30 @@ namespace Wabbajack
                     element = SlideShowElements[idx];
                 }
             }
-            
-            string id = element.ModID;
-            string cacheFile = Path.Combine(SlideshowCacheDir, id + ".slideshowcache");
+            if(element.ImageURL != null)
+            {
+                string id = element.ModID;
+                string cacheFile = Path.Combine(SlideshowCacheDir, id + ".slideshowcache");
 
-            // if the file doesen't exist, we cache it and add it to the cachedSlide list and to the 
-            // slidesQueue
-            // return true for the PreloadSlideshow
-            if (!File.Exists(cacheFile))
-            {
-                CacheSlide(element.ImageURL, cacheFile);
-                cachedSlides.Add(id);
-                slidesQueue.Enqueue(element);
-                result = true;
-            }
-            // if the file exists and was not called from preloadslideshow, we queue the slide
-            else
-            {
-                if(!init)
+                // if the file doesen't exist, we cache it and add it to the cachedSlide list and to the 
+                // slidesQueue
+                // return true for the PreloadSlideshow
+                if (!File.Exists(cacheFile))
+                {
+                    CacheSlide(element.ImageURL, cacheFile);
+                    cachedSlides.Add(id);
                     slidesQueue.Enqueue(element);
+                    result = true;
+                }
+                // if the file exists and was not called from preloadslideshow, we queue the slide
+                else
+                {
+                    if (!init)
+                        slidesQueue.Enqueue(element);
+                }
+                // set the last element to the current element after queueing
+                lastSlide = element;
             }
-            // set the last element to the current element after queueing
-            lastSlide = element;
             return result;
         }
         /// <summary>
