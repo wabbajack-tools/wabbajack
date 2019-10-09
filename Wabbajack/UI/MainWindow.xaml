@@ -11,143 +11,146 @@
         Style="{StaticResource {x:Type Window}}" Icon="Icons/wabbajack.ico" WindowStyle="ToolWindow"
         ResizeMode="CanResize"
         Closing="Window_Closing">
-    <Grid Margin="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="460"/>
-            <RowDefinition Height="10" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="700"/>
-            <ColumnDefinition Width="700"/>
-        </Grid.ColumnDefinitions>
+    <Viewbox Stretch="Uniform">
+        <Grid Width="1280" Height="960">
+            <!--<Grid Margin="16" ShowGridLines="True">-->
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="460"/>
+                <RowDefinition Height="10" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0, 16, 0, 16">
-            <TextBlock Text="{Binding Mode}" FontSize="16" FontWeight="Bold" />
-            <TextBlock Text=" : " FontSize="16" />
-            <TextBlock Text="{Binding ModListName}" FontSize="16" />
-        </StackPanel>
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0, 16, 0, 16">
+                <TextBlock Text="{Binding Mode}" FontSize="16" FontWeight="Bold" />
+                <TextBlock Text=" : " FontSize="16" />
+                <TextBlock Text="{Binding ModListName}" FontSize="16" />
+            </StackPanel>
 
-        <!-- Settings -->
-        <Grid Grid.Row="1" Grid.Column="0" Margin="5" Name="PropertyCompilerGrid">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="30"/>
-            </Grid.RowDefinitions>
-            <Image Grid.Row="0" Source="{Binding SplashScreenImage}" Stretch="Fill"/>
-            <Button Grid.Row="1" Height="30" Command="{Binding OpenModListPropertiesCommand}" IsEnabled="{Binding UIReady}">
-                <TextBlock Text="Modlist Properties" FontSize="15" FontWeight="Bold"/>
-            </Button>
-        </Grid>
-        <Grid Grid.Row="1" Grid.Column="0" Margin="5" Name="PropertyInstallerGrid">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Image Grid.Row="0" Source="{Binding SplashScreenImage}" Stretch="Fill"/>
-        </Grid>
-        <!-- End Settings -->
-        
-        <!-- Slideshow -->
-        <Grid Grid.Row="1" Grid.Column="1" Margin="5">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <TextBlock Text="{Binding SplashScreenModName}" Grid.Row="0" FontSize="30" FontWeight="Bold"/>
-            <TextBlock Text="{Binding SplashScreenAuthorName}" Grid.Row="1" FontSize="15" FontWeight="Bold"/>
-            <TextBlock Text="{Binding SplashScreenSummary}" TextWrapping="Wrap" Grid.Row="2" FontSize="15" FontWeight="Bold"/>
-            <Grid Grid.Row="3">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="48"/>
-                </Grid.ColumnDefinitions>
-                <CheckBox Grid.Column="0" IsChecked="{Binding EnableSlideShow}" Name="EnableSlideShow">Enable the Slideshow</CheckBox>
-                <CheckBox Grid.Column="1" IsChecked="{Binding SplashShowNSFW}" Name="ShowNSFWContent">Show NSFW Mods in the Slideshow</CheckBox>
-                <Button HorizontalAlignment="Right" Height="30" Grid.Column="2" Command="{Binding SlideShowNextItem}">
-                    <DockPanel>
-                        <Image Source="{Binding NextIcon}" Stretch="Fill"/>
-                    </DockPanel>
+            <!-- Settings -->
+            <Grid Grid.Row="1" Grid.Column="0" Margin="5" Name="PropertyCompilerGrid">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="30"/>
+                </Grid.RowDefinitions>
+                <Image Grid.Row="0" Source="{Binding SplashScreenImage}" Stretch="Fill"/>
+                <Button Grid.Row="1" Height="30" Command="{Binding OpenModListPropertiesCommand}" IsEnabled="{Binding UIReady}">
+                    <TextBlock Text="Modlist Properties" FontSize="15" FontWeight="Bold"/>
                 </Button>
             </Grid>
-            <Button Height="30" Grid.Row="4" Command="{Binding VisitNexusSiteCommand}">
-                <TextBlock Text="View Nexus Site" FontSize="15" FontWeight="Bold"/>
-            </Button>
-        </Grid>
-        <!-- End Slideshow-->
+            <Grid Grid.Row="1" Grid.Column="0" Margin="5" Name="PropertyInstallerGrid">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Image Grid.Row="0" Source="{Binding SplashScreenImage}" Stretch="Fill"/>
+            </Grid>
+            <!-- End Settings -->
+
+            <!-- Slideshow -->
+            <Grid Grid.Row="1" Grid.Column="1" Margin="5">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="{Binding SplashScreenModName}" Grid.Row="0" FontSize="30" FontWeight="Bold"/>
+                <TextBlock Text="{Binding SplashScreenAuthorName}" Grid.Row="1" FontSize="15" FontWeight="Bold"/>
+                <TextBlock Text="{Binding SplashScreenSummary}" TextWrapping="Wrap" Grid.Row="2" FontSize="15" FontWeight="Bold"/>
+                <Grid Grid.Row="3">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="48"/>
+                    </Grid.ColumnDefinitions>
+                    <CheckBox Grid.Column="0" IsChecked="{Binding EnableSlideShow}" Name="EnableSlideShow">Enable the Slideshow</CheckBox>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding SplashShowNSFW}" Name="ShowNSFWContent">Show NSFW Mods in the Slideshow</CheckBox>
+                    <Button HorizontalAlignment="Right" Height="30" Grid.Column="2" Command="{Binding SlideShowNextItem}">
+                        <DockPanel>
+                            <Image Source="{Binding NextIcon}" Stretch="Fill"/>
+                        </DockPanel>
+                    </Button>
+                </Grid>
+                <Button Height="30" Grid.Row="4" Command="{Binding VisitNexusSiteCommand}">
+                    <TextBlock Text="View Nexus Site" FontSize="15" FontWeight="Bold"/>
+                </Button>
+            </Grid>
+            <!-- End Slideshow-->
 
 
-        <TextBlock Text="Log:" Grid.Row="3" FontSize="14" Margin="0, 16, 0, 8" />
-        <ListBox local:AutoScrollBehavior.ScrollOnNewItem="True" Grid.Row="4" ItemsSource="{Binding Log}" />
-        <Grid HorizontalAlignment="Stretch" Grid.Row="5" Grid.Column="0" Grid.RowSpan="2" Margin="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition />
-                <RowDefinition MinHeight="10" />
-                <RowDefinition />
-            </Grid.RowDefinitions>
-            <Label Grid.Row="0" Content="{Binding LocationLabel}" Grid.Column="0"  />
-            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Location, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, NotifyOnValidationError=True}" IsEnabled="{Binding UIReady}"/>
-            <Button Grid.Row="0" Content="Select" MinWidth="80" Grid.Column="2" Command="{Binding ChangePath}" IsEnabled="{Binding UIReady}"/>
-            <Label Grid.Row="2" Content="Download Location:" Grid.Column="0" />
-            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DownloadLocation}" IsEnabled="{Binding UIReady}"/>
-            <Button Grid.Row="2" Content="Select" MinWidth="80" Grid.Column="2" Command="{Binding ChangeDownloadPath}" IsEnabled="{Binding UIReady}"/>
-        </Grid>
+            <TextBlock Text="Log:" Grid.Row="3" FontSize="14" Margin="0, 16, 0, 8" />
+            <ListBox local:AutoScrollBehavior.ScrollOnNewItem="True" Grid.Row="4" ItemsSource="{Binding Log}" />
+            <Grid HorizontalAlignment="Stretch" Grid.Row="5" Grid.Column="0" Grid.RowSpan="2" Margin="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition MinHeight="10" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Content="{Binding LocationLabel}" Grid.Column="0"  />
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Location, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, NotifyOnValidationError=True}" IsEnabled="{Binding UIReady}"/>
+                <Button Grid.Row="0" Content="Select" MinWidth="80" Grid.Column="2" Command="{Binding ChangePath}" IsEnabled="{Binding UIReady}"/>
+                <Label Grid.Row="2" Content="Download Location:" Grid.Column="0" />
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding DownloadLocation}" IsEnabled="{Binding UIReady}"/>
+                <Button Grid.Row="2" Content="Select" MinWidth="80" Grid.Column="2" Command="{Binding ChangeDownloadPath}" IsEnabled="{Binding UIReady}"/>
+            </Grid>
 
 
 
-        <!-- Work Queue Start -->
-        <ProgressBar Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Value="{Binding QueueProgress}" Minimum="0" Maximum="100" Background="#444444" />
-        <TextBlock Text="Work Queue:" Grid.Row="3" Grid.Column="1" FontSize="14" Margin="0, 16, 0, 8" />
+            <!-- Work Queue Start -->
+            <ProgressBar Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Value="{Binding QueueProgress}" Minimum="0" Maximum="100" Background="#444444" />
+            <TextBlock Text="Work Queue:" Grid.Row="3" Grid.Column="1" FontSize="14" Margin="0, 16, 0, 8" />
 
-        <ListBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding Status}" Width="Auto" HorizontalAlignment="Stretch">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Grid HorizontalAlignment="Stretch">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress, Mode=OneTime}" Width="100"
+            <ListBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding Status}" Width="Auto" HorizontalAlignment="Stretch">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid HorizontalAlignment="Stretch">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ProgressBar Minimum="0" Maximum="100" Value="{Binding Progress, Mode=OneTime}" Width="100"
                                      Grid.Column="0">
-                            <ProgressBar.Style>
-                                <Style TargetType="ProgressBar">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Progress}" Value="0">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ProgressBar.Style>
-                        </ProgressBar>
-                        <TextBlock Text=" CPU " Grid.Column="1" />
-                        <TextBlock Text="{Binding ID}" Grid.Column="2" />
-                        <TextBlock Text=" - " Grid.Column="3" />
-                        <TextBlock Text="{Binding Msg}" Grid.Column="4" />
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-        <!-- Work Queue End-->
+                                <ProgressBar.Style>
+                                    <Style TargetType="ProgressBar">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Progress}" Value="0">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ProgressBar.Style>
+                            </ProgressBar>
+                            <TextBlock Text=" CPU " Grid.Column="1" />
+                            <TextBlock Text="{Binding ID}" Grid.Column="2" />
+                            <TextBlock Text=" - " Grid.Column="3" />
+                            <TextBlock Text="{Binding Msg}" Grid.Column="4" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <!-- Work Queue End-->
 
-        <Button Content="View Modlist Contents" Grid.Row="5" Grid.Column="1" Height="30" Visibility="{Binding ShowReportButton}"
+            <Button Content="View Modlist Contents" Grid.Row="5" Grid.Column="1" Height="30" Visibility="{Binding ShowReportButton}"
                 Command="{Binding ShowReportCommand}" Margin="10" />
-        <Button Content="Begin" Grid.Row="6" Height="30" Grid.Column="1" Command="{Binding Begin}" IsEnabled="{Binding UIReady}" Margin="10"/>
-    </Grid>
+            <Button Content="Begin" Grid.Row="6" Height="30" Grid.Column="1" Command="{Binding Begin}" IsEnabled="{Binding UIReady}" Margin="10"/>
+        </Grid>
+    </Viewbox>
 </Window>
