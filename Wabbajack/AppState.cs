@@ -249,7 +249,13 @@ namespace Wabbajack
                     ChangedProperties = false;
 
                 }
-                modlistPropertiesWindow.Show();
+                if(!modlistPropertiesWindow.IsClosed)
+                    modlistPropertiesWindow.Show();
+                else
+                {
+                    modlistPropertiesWindow = null;
+                    OpenModListProperties();
+                }
             }
         }      
 
