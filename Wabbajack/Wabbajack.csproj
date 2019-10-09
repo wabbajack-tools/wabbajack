@@ -309,6 +309,9 @@
   <ItemGroup>
     <EmbeddedResource Include="UI\Icons\next.png" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UI\none.jpg" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.5.1.1\build\Fody.targets" Condition="Exists('..\packages\Fody.5.1.1\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
