@@ -394,31 +394,36 @@ namespace Wabbajack
         {
             if (EnableSlideShow)
             {
-                SlideShowItem element = slidesQueue.Peek();
-                SplashScreenImage = _noneImage;
-                if (element.ImageURL != null)
+                // max cached files achieved
+                if (_cachedSlides.Count >= MAX_CACHE_SIZE)
                 {
-                    // max cached files achieved
-                    if(_cachedSlides.Count >= MAX_CACHE_SIZE) { 
-                        do
-                        {
-                            var idx = _random.Next(0, SlideShowElements.Count);
-                            var randomElement = SlideShowElements[idx];
-                            while(!_cachedSlides.ContainsKey(randomElement.ModID) || slidesQueue.Contains(randomElement))
-                            {
-                                idx = _random.Next(0, SlideShowElements.Count);
-                                randomElement = SlideShowElements[idx];
-                            }
-
-                            if (_cachedSlides.ContainsKey(randomElement.ModID))
-                            {
-                                _cachedSlides.Remove(randomElement.ModID);
-                            }
-                        } while (_cachedSlides.Count >= MAX_CACHE_SIZE);
-                    }
-                    if (!element.Adult || (element.Adult && SplashShowNSFW))
+                    do
                     {
-                        dispatcher.Invoke(() => {
+                        var idx = _random.Next(0, SlideShowElements.Count);
+                        var randomElement = SlideShowElements[idx];
+                        while (!_cachedSlides.ContainsKey(randomElement.ModID) || slidesQueue.Contains(randomElement))
+                        {
+                            idx = _random.Next(0, SlideShowElements.Count);
+                            randomElement = SlideShowElements[idx];
+                        }
+
+                        if (_cachedSlides.ContainsKey(randomElement.ModID))
+                        {
+                            _cachedSlides.Remove(randomElement.ModID);
+                            //GC.Collect();
+                        }
+                    } while (_cachedSlides.Count >= MAX_CACHE_SIZE);
+                }
+
+                SlideShowItem element = slidesQueue.Peek();
+                if (!element.Adult || (element.Adult && SplashShowNSFW))
+                {
+                    SplashScreenImage = _noneImage;
+                    if (element.ImageURL != null)
+                    {
+
+                        dispatcher.Invoke(() =>
+                        {
                             if (_cachedSlides.ContainsKey(element.ModID))
                             {
                                 var bitmap = new BitmapImage();
@@ -427,13 +432,12 @@ namespace Wabbajack
                             }
                         });
                     }
+                    _originalImage = false;
+                    SplashScreenModName = element.ModName;
+                    SplashScreenAuthorName = element.AuthorName;
+                    SplashScreenSummary = element.ModSummary;
+                    _nexusSiteURL = element.ModURL;                  
                 }
-                _originalImage = false;
-                SplashScreenModName = element.ModName;
-                SplashScreenAuthorName = element.AuthorName;
-                SplashScreenSummary = element.ModSummary;
-                _nexusSiteURL = element.ModURL;
-
                 if (fromLoop)
                     _lastSlideShowUpdate = DateTime.Now;
 
@@ -479,6 +483,8 @@ namespace Wabbajack
                     image.CacheOption = BitmapCacheOption.OnLoad;
                     image.StreamSource = ms;
                     image.EndInit();
+                    image.Freeze();
+
                     _cachedSlides.Add(id, image);
                 });
             }
