@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
@@ -18,6 +17,7 @@ using Wabbajack.NexusApi;
 
 namespace Wabbajack
 {
+    public enum TaskMode { INSTALLING, BUILDING }
     internal class AppState : ViewModel, IDataErrorInfo
     {
         private const int MAX_CACHE_SIZE = 10;
@@ -32,7 +32,7 @@ namespace Wabbajack
 
         private readonly Dispatcher dispatcher;
 
-        public AppState(Dispatcher d, string mode)
+        public AppState(Dispatcher d, TaskMode mode)
         {
             var image = new BitmapImage();
             image.BeginInit();
@@ -90,8 +90,8 @@ namespace Wabbajack
         public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
         public ObservableCollection<CPUStatus> Status { get; } = new ObservableCollection<CPUStatus>();
 
-        private string _Mode;
-        public string Mode { get => _Mode; set => this.RaiseAndSetIfChanged(ref _Mode, value); }
+        private TaskMode _Mode;
+        public TaskMode Mode { get => _Mode; set => this.RaiseAndSetIfChanged(ref _Mode, value); }
 
         private string _ModListName;
         public string ModListName { get => _ModListName; set => this.RaiseAndSetIfChanged(ref _ModListName, value); }
@@ -293,17 +293,17 @@ namespace Wabbajack
                     {
                         validationMessage = null;
                     }
-                    else if (Mode == "Building" && Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")))
+                    else if (Mode == TaskMode.BUILDING && Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")))
                     {
                         Location = Path.Combine(Location, "modlist.txt");
                         validationMessage = null;
                         ConfigureForBuild();
                     }
-                    else if (Mode == "Installing" && Location != null && Directory.Exists(Location) && !Directory.EnumerateFileSystemEntries(Location).Any())
+                    else if (Mode == TaskMode.INSTALLING && Location != null && Directory.Exists(Location) && !Directory.EnumerateFileSystemEntries(Location).Any())
                     {
                         validationMessage = null;
                     }
-                    else if (Mode == "Installing" && Location != null && Directory.Exists(Location) && Directory.EnumerateFileSystemEntries(Location).Any())
+                    else if (Mode == TaskMode.INSTALLING && Location != null && Directory.Exists(Location) && Directory.EnumerateFileSystemEntries(Location).Any())
                     {
                         validationMessage = "You have selected a non-empty directory. Installing the modlist here might result in a broken install!";
                     }
@@ -532,7 +532,7 @@ namespace Wabbajack
 
             _modList = modlist;
             _modListPath = source;
-            Mode = "Installing";
+            Mode = TaskMode.INSTALLING;
             ModListName = _modList.Name;
             HTMLReport = _modList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -580,7 +580,7 @@ namespace Wabbajack
 
         private void ExecuteChangePath()
         {
-            if (Mode == "Installing")
+            if (Mode == TaskMode.INSTALLING)
             {
                 var folder = UIUtils.ShowFolderSelectionDialog("Select Installation directory");
                 if (folder != null)
@@ -612,7 +612,7 @@ namespace Wabbajack
 
             var profile_name = Path.GetFileName(profile_folder);
             ModListName = profile_name;
-            Mode = "Building";
+            Mode = TaskMode.BUILDING;
 
             var tmp_compiler = new Compiler(mo2folder);
             DownloadLocation = tmp_compiler.MO2DownloadsFolder;
@@ -630,7 +630,7 @@ namespace Wabbajack
         private void ExecuteBegin()
         {
             UIReady = false;
-            if (Mode == "Installing")
+            if (Mode == TaskMode.INSTALLING)
             {
                 slideshowThread = new Thread(() => UpdateLoop())
                 {
