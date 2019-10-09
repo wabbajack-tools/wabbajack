@@ -460,12 +460,15 @@ namespace Wabbajack
         private void CacheSlide(string url, string dest)
         {
             bool sync = false;
-            dispatcher.Invoke(() => {
-                var file = new FileStream(dest, FileMode.Create, FileAccess.Write);
+            using (var file = new FileStream(dest, FileMode.Create, FileAccess.Write))
+            {
                 if (sync)
                 {
-                    using (var stream = new HttpClient().GetStreamSync(url))
-                        stream.CopyTo(file);
+                    dispatcher.Invoke(() =>
+                    {
+                        using (var stream = new HttpClient().GetStreamSync(url))
+                            stream.CopyTo(file);
+                    });
                 }
                 else
                 {
@@ -473,9 +476,9 @@ namespace Wabbajack
                     {
                         stream.Wait();
                         stream.Result.CopyTo(file);
-                    }     
+                    }
                 }
-            });
+            }
         }
         /// <summary>
         /// Queues a random slide
