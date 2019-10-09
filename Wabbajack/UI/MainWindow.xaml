@@ -12,21 +12,21 @@
         ResizeMode="CanResize"
         Closing="Window_Closing">
     <Viewbox Stretch="Uniform">
-        <Grid Width="1280" Height="960">
-            <!--<Grid Margin="16" ShowGridLines="True">-->
+        <!--<Grid Width="1280" Height="960">-->
+        <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="460"/>
+                <RowDefinition Height="*"/>
                 <RowDefinition Height="10" />
                 <RowDefinition Height="Auto" />
-                <RowDefinition />
+                <RowDefinition MinHeight="320"/>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="640"/>
+                <ColumnDefinition Width="640"/>
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0, 8, 0, 8">
