@@ -429,18 +429,20 @@ namespace Wabbajack
                                 bitmap.EndInit();
 
                                 SplashScreenImage = bitmap;
-                                _originalImage = false;
-                                SplashScreenModName = element.ModName;
-                                SplashScreenAuthorName = element.AuthorName;
-                                SplashScreenSummary = element.ModSummary;
-                                _nexusSiteURL = element.ModURL;
 
-                                if (fromLoop)
-                                    _lastSlideShowUpdate = DateTime.Now;
                             }
                         });
                     }
                 }
+                _originalImage = false;
+                SplashScreenModName = element.ModName;
+                SplashScreenAuthorName = element.AuthorName;
+                SplashScreenSummary = element.ModSummary;
+                _nexusSiteURL = element.ModURL;
+
+                if (fromLoop)
+                    _lastSlideShowUpdate = DateTime.Now;
+
                 slidesQueue.Dequeue();
                 QueueRandomSlide(false, true);
             }
