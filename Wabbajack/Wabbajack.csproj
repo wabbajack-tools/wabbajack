@@ -198,6 +198,7 @@
     <Compile Include="Updater\CheckForUpdates.cs" />
     <Compile Include="Validation\DTOs.cs" />
     <Compile Include="Validation\ValidateModlist.cs" />
+    <Compile Include="ViewModel.cs" />
     <Compile Include="zEditIntegration.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
