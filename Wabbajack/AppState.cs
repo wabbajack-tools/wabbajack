@@ -36,14 +36,14 @@ namespace Wabbajack
         {
             var image = new BitmapImage();
             image.BeginInit();
-            image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.banner.png");
+            image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.UI.banner.png");
             image.EndInit();
             _wabbajackLogo = image;
             _splashScreenImage = image;
 
             image = new BitmapImage();
             image.BeginInit();
-            image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.Icons.next.png");
+            image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.UI.Icons.next.png");
             image.EndInit();
             _nextIcon = image;
 
@@ -551,7 +551,7 @@ namespace Wabbajack
                 if (!_originalImage) {
                     var image = new BitmapImage();
                     image.BeginInit();
-                    image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.banner.png");
+                    image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.UI.banner.png");
                     image.EndInit();
                     SplashScreenImage = image;
                 }
