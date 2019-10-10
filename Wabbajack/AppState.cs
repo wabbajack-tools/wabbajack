@@ -17,31 +17,11 @@ using Wabbajack.NexusApi;
 
 namespace Wabbajack
 {
-    internal class AppState : INotifyPropertyChanged, IDataErrorInfo
+    internal class AppState : ViewModel, IDataErrorInfo
     {
-        private ICommand _begin;
-
-        private ICommand _changeDownloadPath;
-
-        private ICommand _changePath;
-        private string _downloadLocation;
-
-        private string _htmlReport;
-
-        private bool _ignoreMissingFiles;
-        private string _location;
-        private string _locationLabel;
-
         private string _mo2Folder;
 
-        private string _mode;
         private ModList _modList;
-        private string _modListName;
-
-        private int _queueProgress;
-
-        private ICommand _showReportCommand;
-        private ICommand _visitNexusSiteCommand;
 
         private readonly DateTime _startTime;
 
@@ -51,7 +31,6 @@ namespace Wabbajack
 
         public AppState(Dispatcher d, string mode)
         {
-
             var image = new BitmapImage();
             image.BeginInit();
             image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.banner.png");
@@ -77,9 +56,6 @@ namespace Wabbajack
             Mode = mode;
             Dirty = false;
             dispatcher = d;
-            Log = new ObservableCollection<string>();
-            Status = new ObservableCollection<CPUStatus>();
-            InternalStatus = new List<CPUStatus>();
 
             var th = new Thread(() => UpdateLoop());
             th.Priority = ThreadPriority.BelowNormal;
@@ -100,90 +76,45 @@ namespace Wabbajack
         public List<SlideShowItem> SlideShowElements = new List<SlideShowItem>();
         private DateTime _lastSlideShowUpdate = new DateTime();
 
-        public ObservableCollection<string> Log { get; }
-        public ObservableCollection<CPUStatus> Status { get; }
+        public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
+        public ObservableCollection<CPUStatus> Status { get; } = new ObservableCollection<CPUStatus>();
 
-        public string Mode
-        {
-            get => _mode;
-            set
-            {
-                _mode = value;
-                OnPropertyChanged("Mode");
-            }
-        }
+        private string _Mode;
+        public string Mode { get => _Mode; set => this.RaiseAndSetIfChanged(ref _Mode, value); }
 
-        public string ModListName
-        {
-            get => _modListName;
-            set
-            {
-                _modListName = value;
-                OnPropertyChanged("ModListName");
-            }
-        }
+        private string _ModListName;
+        public string ModListName { get => _ModListName; set => this.RaiseAndSetIfChanged(ref _ModListName, value); }
 
-        public string Location
-        {
-            get => _location;
-            set
-            {
-                _location = value;
-                OnPropertyChanged("Location");
-            }
-        }
+        private string _Location;
+        public string Location { get => _Location; set => this.RaiseAndSetIfChanged(ref _Location, value); }
 
-        public string LocationLabel
-        {
-            get => _locationLabel;
-            set
-            {
-                _locationLabel = value;
-                OnPropertyChanged("LocationLabel");
-            }
-        }
-        
+        private string _LocationLabel;
+        public string LocationLabel { get => _LocationLabel; set => this.RaiseAndSetIfChanged(ref _LocationLabel, value); }
 
-        public string DownloadLocation
-        {
-            get => _downloadLocation;
-            set
-            {
-                _downloadLocation = value;
-                OnPropertyChanged("DownloadLocation");
-            }
-        }
+        private string _DownloadLocation;
+        public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
 
         public Visibility ShowReportButton => _htmlReport == null ? Visibility.Collapsed : Visibility.Visible;
 
+        private string _htmlReport;
         public string HTMLReport
         {
             get => _htmlReport;
             set
             {
                 _htmlReport = value;
-                OnPropertyChanged("HTMLReport");
-                OnPropertyChanged("ShowReportButton");
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(ShowReportButton));
             }
         }
 
-        public int QueueProgress
-        {
-            get => _queueProgress;
-            set
-            {
-                if (value != _queueProgress)
-                {
-                    _queueProgress = value;
-                    OnPropertyChanged("QueueProgress");
-                }
-            }
-        }
+        private int _QueueProgress;
+        public int QueueProgress { get => _QueueProgress; set => this.RaiseAndSetIfChanged(ref _QueueProgress, value); }
 
-
-        private List<CPUStatus> InternalStatus { get; }
+        private List<CPUStatus> InternalStatus { get; } = new List<CPUStatus>();
         public string LogFile { get; }
 
+        private ICommand _changePath;
         public ICommand ChangePath
         {
             get
@@ -193,6 +124,7 @@ namespace Wabbajack
             }
         }
 
+        private ICommand _changeDownloadPath;
         public ICommand ChangeDownloadPath
         {
             get
@@ -203,6 +135,7 @@ namespace Wabbajack
             }
         }
 
+        private ICommand _begin;
         public ICommand Begin
         {
             get
@@ -212,6 +145,7 @@ namespace Wabbajack
             }
         }
 
+        private ICommand _showReportCommand;
         public ICommand ShowReportCommand
         {
             get
@@ -221,6 +155,7 @@ namespace Wabbajack
             }
         }
 
+        private ICommand _visitNexusSiteCommand;
         public ICommand VisitNexusSiteCommand
         {
             get
@@ -245,11 +180,7 @@ namespace Wabbajack
         public bool UIReady
         {
             get => _uiReady;
-            set
-            {
-                _uiReady = value;
-                OnPropertyChanged("UIReady");
-            }
+            set => this.RaiseAndSetIfChanged(ref _uiReady, value);
         }
 
         private BitmapImage _wabbajackLogo = null;
@@ -260,66 +191,25 @@ namespace Wabbajack
             set
             {
                 _splashScreenImage = value;
-                OnPropertyChanged("SplashScreenImage");
+                RaisePropertyChanged();
             }
         }
 
-        public string _splashScreenModName = "Wabbajack";
-        public string SplashScreenModName
-        {
-            get => _splashScreenModName;
-            set
-            {
-                _splashScreenModName = value;
-                OnPropertyChanged("SplashScreenModName");
-            }
-        }
+        private string _SplashScreenModName = "Wabbajack";
+        public string SplashScreenModName { get => _SplashScreenModName; set => this.RaiseAndSetIfChanged(ref _SplashScreenModName, value); }
 
-        public string _splashScreenAuthorName = "Halgari & the Wabbajack Team";
-        public string SplashScreenAuthorName
-        {
-            get => _splashScreenAuthorName;
-            set
-            {
-                _splashScreenAuthorName = value;
-                OnPropertyChanged("SplashScreenAuthorName");
-            }
-        }
+        private string _SplashScreenAuthorName = "Halgari & the Wabbajack Team";
+        public string SplashScreenAuthorName { get => _SplashScreenAuthorName; set => this.RaiseAndSetIfChanged(ref _SplashScreenAuthorName, value); }
 
-        public string _splashScreenSummary = "";
         private string _modListPath;
 
-        public string SplashScreenSummary
-        {
-            get => _splashScreenSummary;
-            set
-            {
-                _splashScreenSummary = value;
-                OnPropertyChanged("SplashScreenSummary");
-            }
-        }
+        private string _SplashScreenSummary;
+        public string SplashScreenSummary { get => _SplashScreenSummary; set => this.RaiseAndSetIfChanged(ref _SplashScreenSummary, value); }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public string Error => "Error";
 
-        public void OnPropertyChanged(string name)
-        {
-            if(PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(name));
-            }
-        }
-        public string Error
-        {
-            get { return "Error"; }
-        }
+        public string this[string columnName] => Validate(columnName);
 
-        public string this[string columnName]
-        {
-            get
-            {
-                return Validate(columnName);
-            }
-        }
         private string Validate(string columnName)
         {
             string validationMessage = null;
@@ -449,7 +339,7 @@ namespace Wabbajack
                 Dirty = true;
                 while (id >= InternalStatus.Count) InternalStatus.Add(new CPUStatus());
 
-                InternalStatus[id] = new CPUStatus {ID = id, Msg = msg, Progress = progress};
+                InternalStatus[id] = new CPUStatus { ID = id, Msg = msg, Progress = progress };
             }
         }
 
@@ -469,7 +359,7 @@ namespace Wabbajack
                 if (folder != null)
                 {
                     Location = folder;
-                    if (_downloadLocation == null)
+                    if (DownloadLocation == null)
                         DownloadLocation = Path.Combine(Location, "downloads");
                 }
             }
@@ -509,7 +399,6 @@ namespace Wabbajack
             File.WriteAllText(file, HTMLReport);
             Process.Start(file);
         }
-
 
         private void ExecuteBegin()
         {
@@ -574,15 +463,13 @@ namespace Wabbajack
                 Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
                 UIReady = true;
             }
-            }
         }
+    }
 
-
-
-        public class CPUStatus
-        {
-            public int Progress { get; internal set; }
-            public string Msg { get; internal set; }
-            public int ID { get; internal set; }
-        }
+    public class CPUStatus
+    {
+        public int Progress { get; internal set; }
+        public string Msg { get; internal set; }
+        public int ID { get; internal set; }
+    }
 }
