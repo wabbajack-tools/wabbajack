@@ -22,7 +22,8 @@ namespace Compression.BSA.Test
         private static void Main(string[] args)
         {
             foreach (var bsa in Directory.EnumerateFiles(TestDir, "*.ba2", SearchOption.AllDirectories)
-                                         .Concat(Directory.EnumerateFiles(TestDir, "*.bsa", SearchOption.AllDirectories)).Skip(200))
+                                         //.Concat(Directory.EnumerateFiles(TestDir, "*.bsa", SearchOption.AllDirectories))
+                                         )
             {
                 Console.WriteLine($"From {bsa}");
                 Console.WriteLine("Cleaning Output Dir");
@@ -108,10 +109,19 @@ namespace Compression.BSA.Test
                             Equal(pair.ai.Path, pair.bi.Path);
                             //Equal(pair.ai.Compressed, pair.bi.Compressed);
                             Equal(pair.ai.Size, pair.bi.Size);
-                            //Equal(pair.ai.GetData(), pair.bi.GetData());
+                            Equal(GetData(pair.ai), GetData(pair.bi));
                         }
                     }
                 }
+            }
+        }
+
+        private static byte[] GetData(IFile pairAi)
+        {
+            using (var ms = new MemoryStream())
+            {
+                pairAi.CopyDataTo(ms);
+                return ms.ToArray();
             }
         }
 
@@ -184,8 +194,12 @@ namespace Compression.BSA.Test
             if (a.Length != b.Length) throw new InvalidDataException("Byte array sizes are not equal");
 
             for (var idx = 0; idx < a.Length; idx++)
+            {
                 if (a[idx] != b[idx])
-                    throw new InvalidDataException($"Byte array contents not equal at {idx} - {a[idx]} vs {b[idx]}");
+                {
+                    Console.WriteLine($"Byte array contents not equal at {idx} - {a[idx]} vs {b[idx]}");
+                }
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Wabbajack
     {
         public App()
         {
-
+            /*
             Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
             SetupHandlers();
 
@@ -28,7 +28,7 @@ namespace Wabbajack
                     Environment.Exit(0);
                 }
                 Environment.Exit(1);
-            }
+            }*/
 
         }
 

@@ -5,7 +5,7 @@ using System.Reflection;
 using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.GZip;
-using OMODFramework;
+//using OMODFramework;
 
 namespace Wabbajack.Common
 {
@@ -35,7 +35,7 @@ namespace Wabbajack.Common
         {
             try
             {
-                if (source.EndsWith(".bsa"))
+                if (Consts.SupportedBSAs.Any(b => source.EndsWith(b)))
                     ExtractAllWithBSA(source, dest);
                 else if (source.EndsWith(".exe"))
                     ExtractAllWithInno(source, dest);
@@ -53,19 +53,19 @@ namespace Wabbajack.Common
 
         private static void ExtractAllWithOMOD(string source, string dest)
         {
-            Utils.Log($"Extracting {Path.GetFileName(source)}");
+            /*Utils.Log($"Extracting {Path.GetFileName(source)}");
             Framework f = new Framework();
             f.SetTempDirectory(dest);
             OMOD omod = new OMOD(source, ref f);
             omod.ExtractDataFiles();
-            omod.ExtractPlugins();
+            omod.ExtractPlugins();*/
         }
 
         private static void ExtractAllWithBSA(string source, string dest)
         {
             try
             {
-                using (var arch = new BSAReader(source))
+                using (var arch = BSADispatch.OpenRead(source))
                 {
                     arch.Files.PMap(f =>
                     {
@@ -216,7 +216,7 @@ namespace Wabbajack.Common
         /// <returns></returns>
         public static bool CanExtract(string v)
         {
-            return Consts.SupportedArchives.Contains(v) || v == ".bsa";
+            return Consts.SupportedArchives.Contains(v) || Consts.SupportedBSAs.Contains(v);
         }
 
         public class Entry

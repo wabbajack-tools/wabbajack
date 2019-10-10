@@ -432,7 +432,11 @@ namespace Wabbajack
                 using (var a = new BSAReader(Path.Combine(MO2Folder, bsa.To)))
                 {
                     var file = a.Files.First(e => e.Path == Path.Combine(to.Split('\\').Skip(2).ToArray()));
-                    return file.GetData();
+                    using (var ms = new MemoryStream())
+                    {
+                        file.CopyDataTo(ms);
+                        return ms.ToArray();
+                    }
                 }
             }
 
@@ -924,23 +928,16 @@ namespace Wabbajack
                     ExtraFiles.Add(match);
                 }
 
-                ;
-
                 CreateBSA directive;
                 using (var bsa = new BSAReader(source.AbsolutePath))
                 {
                     directive = new CreateBSA
                     {
                         To = source.Path,
-                        TempID = id,
-                        Type = (uint) bsa.HeaderType,
-                        FileFlags = (uint) bsa.FileFlags,
-                        ArchiveFlags = (uint) bsa.ArchiveFlags
+                        State = bsa.State,
+                        FileStates = bsa.Files.Select(f => f.State).ToList()
                     };
                 }
-
-                ;
-
                 return directive;
             };
         }

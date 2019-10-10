@@ -23,6 +23,23 @@ namespace Compression.BSA
 
     public class DDS
     {
+        public static uint HeaderSizeForFormat(DXGI_FORMAT fmt)
+        {
+            switch (fmt)
+            {
+                case DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB:
+                case DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM_SRGB:
+                case DXGI_FORMAT.DXGI_FORMAT_BC4_UNORM:
+                case DXGI_FORMAT.DXGI_FORMAT_BC5_SNORM:
+                case DXGI_FORMAT.DXGI_FORMAT_BC6H_UF16:
+                case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM:
+                case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM_SRGB:
+                    return DDS_HEADER_DXT10.Size + DDS_HEADER.Size;
+                default:
+                    return DDS_HEADER.Size;
+            }
+        }
+
         public const int DDS_MAGIC = 0x20534444; // "DDS "
 
         public static uint MAKEFOURCC(char ch0, char ch1, char ch2, char ch3)

@@ -104,12 +104,16 @@ namespace Compression.BSA
         public BA2DX10FileEntryBuilder(BA2DX10EntryState state, Stream src)
         {
             _state = state;
+
+            var header_size = DDS.HeaderSizeForFormat((DXGI_FORMAT) state.PixelFormat) + 4;
+            new BinaryReader(src).ReadBytes((int)header_size);
+
             _chunks = _state.Chunks.Select(ch => new ChunkBuilder(state, ch, src)).ToList();
         }
 
         public uint FileHash => _state.NameHash;
         public uint DirHash => _state.DirHash;
-        public string FullName => _state.FullName;
+        public string FullName => _state.Path;
         public int Index => _state.Index;
 
         public void WriteHeader(BinaryWriter bw)
@@ -148,13 +152,22 @@ namespace Compression.BSA
         public ChunkBuilder(BA2DX10EntryState state, ChunkState ch, Stream src)
         {
             _chunk = ch;
-            _data = new byte[_chunk.FullSz];
+
+            using (var ms = new MemoryStream())
+            {
+                src.CopyToLimit(ms, (int)_chunk.FullSz);
+                _data = ms.ToArray();
+            }
+
             if (_chunk.Compressed)
             {
                 using (var ms = new MemoryStream())
-                using (var ds = new DeflaterOutputStream(ms))
                 {
-                    ds.Write(_data, 0, _data.Length);
+                    using (var ds = new DeflaterOutputStream(ms))
+                    {
+                        ds.Write(_data, 0, _data.Length);
+                    }
+                    _data = ms.ToArray();
                 }
                 _packSize = (uint)_data.Length;
             }
@@ -203,10 +216,14 @@ namespace Compression.BSA
             if (state.Compressed)
             {
                 using (var ms = new MemoryStream())
-                using (var ds = new DeflaterOutputStream(ms))
                 {
-                    ds.Write(_data, 0, _data.Length);
+                    using (var ds = new DeflaterOutputStream(ms))
+                    {
+                        ds.Write(_data, 0, _data.Length);
+                    }
+                    _data = ms.ToArray();
                 }
+
                 _size = _data.Length;
             }
 
@@ -214,7 +231,7 @@ namespace Compression.BSA
 
         public uint FileHash => _state.NameHash;
         public uint DirHash => _state.DirHash;
-        public string FullName => _state.FullPath;
+        public string FullName => _state.Path;
         public int Index => _state.Index;
 
         public void WriteHeader(BinaryWriter wtr)

@@ -251,19 +251,15 @@ namespace Wabbajack
                     .ToList();
 
                 if (source_files.Count > 0)
-                    using (var a = new BSABuilder())
+                    using (var a = bsa.State.MakeBuilder())
                     {
-                        //a.Create(Path.Combine(Outputfolder, bsa.To), (bsa_archive_type_t)bsa.Type, entries);
-                        a.HeaderType = (VersionType) bsa.Type;
-                        a.FileFlags = (FileFlags) bsa.FileFlags;
-                        a.ArchiveFlags = (ArchiveFlags) bsa.ArchiveFlags;
-
+                        var indexed = bsa.FileStates.ToDictionary(d => d.Path);
                         source_files.PMap(f =>
                         {
                             Status($"Adding {f} to BSA");
                             using (var fs = File.OpenRead(Path.Combine(source_dir, f)))
                             {
-                                a.AddFile(f, fs);
+                                a.AddFile(indexed[f.ToLower()], fs);
                             }
                         });
 

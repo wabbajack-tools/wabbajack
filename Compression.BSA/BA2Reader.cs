@@ -186,25 +186,7 @@ namespace Compression.BSA
         public uint Size => (uint)_chunks.Sum(f => f._fullSz) + HeaderSize + sizeof(uint);
         public FileStateObject State => new BA2DX10EntryState(this);
 
-        public uint HeaderSize 
-        {
-            get
-            {
-                switch ((DXGI_FORMAT) _format)
-                {
-                    case DXGI_FORMAT.DXGI_FORMAT_BC1_UNORM_SRGB:
-                    case DXGI_FORMAT.DXGI_FORMAT_BC3_UNORM_SRGB:
-                    case DXGI_FORMAT.DXGI_FORMAT_BC4_UNORM:
-                    case DXGI_FORMAT.DXGI_FORMAT_BC5_SNORM:
-                    case DXGI_FORMAT.DXGI_FORMAT_BC6H_UF16:
-                    case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM:
-                    case DXGI_FORMAT.DXGI_FORMAT_BC7_UNORM_SRGB:
-                        return DDS_HEADER_DXT10.Size + DDS_HEADER.Size;
-                    default:
-                        return DDS_HEADER.Size;
-                }
-            }
-        }
+        public uint HeaderSize => DDS.HeaderSizeForFormat((DXGI_FORMAT)_format);
 
         public void CopyDataTo(Stream output)
         {
@@ -354,7 +336,7 @@ namespace Compression.BSA
         public BA2DX10EntryState() { }
         public BA2DX10EntryState(BA2DX10Entry ba2Dx10Entry)
         {
-            FullName = ba2Dx10Entry.FullPath;
+            Path = ba2Dx10Entry.FullPath;
             NameHash = ba2Dx10Entry._nameHash;
             Extension = ba2Dx10Entry._extension;
             DirHash = ba2Dx10Entry._dirHash;
@@ -369,7 +351,7 @@ namespace Compression.BSA
             Chunks = ba2Dx10Entry._chunks.Select(ch => new ChunkState(ch)).ToList();
         }
 
-        public string FullName { get; set; }
+        public string Path { get; set; }
 
         public List<ChunkState> Chunks { get; set; }
 
@@ -403,7 +385,7 @@ namespace Compression.BSA
             StartMip = ch._startMip;
             EndMip = ch._endMip;
             Align = ch._align;
-            Compressed = ch._packSz != null;
+            Compressed = ch._packSz != 0;
         }
 
         public bool Compressed { get; set; }
@@ -509,13 +491,13 @@ namespace Compression.BSA
             Flags = ba2FileEntry._flags;
             Align = ba2FileEntry._align;
             Compressed = ba2FileEntry.Compressed;
-            FullPath = ba2FileEntry.FullPath;
+            Path = ba2FileEntry.FullPath;
             Extension = ba2FileEntry._extension;
             Index = ba2FileEntry._index;
         }
 
         public string Extension { get; set; }
-        public string FullPath { get; set; }
+        public string Path { get; set; }
         public bool Compressed { get; set; }
         public uint Align { get; set; }
         public uint Flags { get; set; }

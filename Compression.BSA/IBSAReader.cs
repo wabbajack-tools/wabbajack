@@ -34,6 +34,7 @@ namespace Compression.BSA
     public class FileStateObject
     {
         public int Index { get; set; }
+        public string Path { get; set; }
     }
     
     public interface IFile
