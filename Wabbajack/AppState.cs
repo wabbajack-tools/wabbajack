@@ -21,6 +21,7 @@ namespace Wabbajack
     internal class AppState : ViewModel, IDataErrorInfo
     {
         private const int MAX_CACHE_SIZE = 10;
+        private bool installing = false;
 
         private string _mo2Folder;
 
@@ -72,12 +73,12 @@ namespace Wabbajack
             Dirty = false;
             dispatcher = d;
 
-            var th = new Thread(() => UpdateLoop())
+            slideshowThread = new Thread(() => UpdateLoop())
             {
                 Priority = ThreadPriority.BelowNormal,
                 IsBackground = true
             };
-            th.Start();
+            slideshowThread.Start();
         }
 
         private void SetupSlideshow()
@@ -125,8 +126,8 @@ namespace Wabbajack
             }
         }
 
-        private int _QueueProgress;
-        public int QueueProgress { get => _QueueProgress; set => this.RaiseAndSetIfChanged(ref _QueueProgress, value); }
+        private int _queueProgress;
+        public int QueueProgress { get => _queueProgress; set => this.RaiseAndSetIfChanged(ref _queueProgress, value); }
 
         private List<CPUStatus> InternalStatus { get; } = new List<CPUStatus>();
         public string LogFile { get; }
@@ -380,7 +381,7 @@ namespace Wabbajack
                         Dirty = false;
                     }
 
-                if (slidesQueue.Any())
+                if (slidesQueue != null && slidesQueue.Any())
                 {
                     if (DateTime.Now - _lastSlideShowUpdate > TimeSpan.FromSeconds(10))
                     {
@@ -392,7 +393,7 @@ namespace Wabbajack
         }
         private void UpdateSlideShowItem(bool fromLoop)
         {
-            if (EnableSlideShow)
+            if (EnableSlideShow && slideshowThread != null && installing)
             {
                 // max cached files achieved
                 if (_cachedSlides.Count >= MAX_CACHE_SIZE)
@@ -551,8 +552,6 @@ namespace Wabbajack
 
                 if (QueueRandomSlide(true, false))
                     turns++;
-                else
-                    continue;
             }
         }
 
@@ -648,12 +647,7 @@ namespace Wabbajack
             UIReady = false;
             if (Mode == TaskMode.INSTALLING)
             {
-                slideshowThread = new Thread(() => UpdateLoop())
-                {
-                    Priority = ThreadPriority.BelowNormal,
-                    IsBackground = true
-                };
-                slideshowThread.Start();
+                installing = true;
                 var installer = new Installer(_modListPath, _modList, Location)
                 {
                     DownloadFolder = DownloadLocation
@@ -676,6 +670,7 @@ namespace Wabbajack
                     {
                         UIReady = true;
                         Running = false;
+                        installing = false;
                         slideshowThread.Abort();
                     }
                 })
@@ -726,20 +721,6 @@ namespace Wabbajack
                 Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
                 UIReady = true;
             }
-        }
-
-        private bool IsFileLocked(string path)
-        {
-            bool result = false;
-            try
-            {
-                using (var stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.None))
-                {
-                    result = false;
-                }
-            }
-            catch (IOException) { result = true; }
-            return result;
         }
     }
 

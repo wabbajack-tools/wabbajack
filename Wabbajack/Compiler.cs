@@ -677,7 +677,7 @@ namespace Wabbajack
         {
             var cruft_files = new HashSet<string>
             {
-                "7z.dll", "7z.exe", "vfs_staged_files\\", "nexus.key_cache", "patch_cache\\", "slideshow_cache\\",
+                "7z.dll", "7z.exe", "vfs_staged_files\\", "nexus.key_cache", "patch_cache\\",
                 Consts.NexusCacheDirectory + "\\"
             };
             return source =>
