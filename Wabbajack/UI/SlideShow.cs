@@ -111,6 +111,8 @@ namespace Wabbajack.UI
                 _appState._nexusSiteURL = slide.ModURL;
             }
 
+            _appState.lastSlideShowUpdate = DateTime.Now;
+
             SlidesQueue.Dequeue();
             QueueRandomSlide(false, true);
         }

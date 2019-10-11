@@ -72,7 +72,7 @@ namespace Wabbajack
             slideshowThread.Start();
         }
 
-        private DateTime _lastSlideShowUpdate = new DateTime();
+        public DateTime lastSlideShowUpdate = new DateTime();
 
         public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
         public ObservableCollection<CPUStatus> Status { get; } = new ObservableCollection<CPUStatus>();
@@ -387,12 +387,12 @@ namespace Wabbajack
 
                 if (_slideShow.SlidesQueue.Any())
                 {
-                    if (DateTime.Now - _lastSlideShowUpdate > TimeSpan.FromSeconds(10))
+                    if (DateTime.Now - lastSlideShowUpdate > TimeSpan.FromSeconds(10))
                     {
                         _slideShow.UpdateSlideShowItem();
                     }
                 }
-                Thread.Sleep(10000);
+                Thread.Sleep(1000);
             }
         }
 
