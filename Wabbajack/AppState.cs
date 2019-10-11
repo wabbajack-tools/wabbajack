@@ -369,7 +369,7 @@ namespace Wabbajack
             SplashScreenAuthorName = _modList.Author;
             _nexusSiteURL = _modList.Website;
             SplashScreenSummary = _modList.Description;
-            if (_modList.Image != null)
+            if (!string.IsNullOrEmpty(_modList.Image) && _modList.Image.Length == 36)
             {
                 //TODO: if(_modList.Image != null) SplashScreenImage = _modList.Image;
                 SplashScreenImage = _wabbajackLogo;
