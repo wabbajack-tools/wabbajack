@@ -198,6 +198,9 @@
     <Compile Include="Themes\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Themes\TreeViewItemExtensions.cs" />
     <Compile Include="UI\SlideShow.cs" />
+    <Compile Include="UI\TextViewer.xaml.cs">
+      <DependentUpon>TextViewer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\UIUtils.cs" />
     <Compile Include="Updater\CheckForUpdates.cs" />
     <Compile Include="Validation\DTOs.cs" />
@@ -231,6 +234,10 @@
     <Page Include="Themes\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="UI\TextViewer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
