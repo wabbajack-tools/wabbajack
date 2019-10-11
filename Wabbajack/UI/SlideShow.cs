@@ -81,15 +81,15 @@ namespace Wabbajack.UI
             {
                 var idx = _random.Next(0, SlideShowElements.Count);
                 var randomSlide = SlideShowElements[idx];
-                while (CachedSlides.ContainsKey(randomSlide.ModID) || SlidesQueue.Contains(randomSlide))
+                while (!CachedSlides.ContainsKey(randomSlide.ModID) || SlidesQueue.Contains(randomSlide))
                 {
                     idx = _random.Next(0, SlideShowElements.Count);
                     randomSlide = SlideShowElements[idx];
                 }
 
-                if (!CachedSlides.ContainsKey(randomSlide.ModID)) continue;
+                //if (SlidesQueue.Contains(randomSlide)) continue;
                 CachedSlides.Remove(randomSlide.ModID);
-                if(AppState.GcCollect)
+                if (AppState.GcCollect)
                     GC.Collect();
             }
 
