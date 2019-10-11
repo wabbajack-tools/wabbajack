@@ -105,7 +105,7 @@ namespace Wabbajack
                 switch (directive)
                 {
                     case PropertyFile i:
-                        NoWrapText($"* `{i.OriginalName}` as a `{Enum.GetName(typeof(PropertyType),i.Type)}`");
+                        NoWrapText($"* `{i.SourceDataID}` as a `{Enum.GetName(typeof(PropertyType),i.Type)}`");
                         break;
                     case FromArchive f:
                         //NoWrapText($"* `{f.To}` from `{f.FullPath}`");
