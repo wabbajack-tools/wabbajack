@@ -174,7 +174,7 @@ Look at the [`RECIPES.md`] file, we keep a knowledgebase of how to deal with giv
 
 **How do I contribute to Wabbajack?**
 
-Look at the [`CONTRIBUTION.md`](https://github.com/halgari/wabbajack/blob/master/CONTRIBUTING.md) file for detailed guidelines.
+Look at the [`CONTRIBUTING.md`](https://github.com/halgari/wabbajack/blob/master/CONTRIBUTING.md) file for detailed guidelines.
 
 **Why does each modlist install another copy of Mod Organizer 2?**
 

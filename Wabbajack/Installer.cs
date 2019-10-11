@@ -1,18 +1,14 @@
-﻿using System;
+﻿using CG.Web.MegaApiClient;
+using Compression.BSA;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
-using CG.Web.MegaApiClient;
-using Compression.BSA;
-using K4os.Compression.LZ4.Streams;
-using System.IO.Compression;
 using VFS;
 using Wabbajack.Common;
 using Wabbajack.NexusApi;
@@ -76,7 +72,7 @@ namespace Wabbajack
         private byte[] LoadBytesFromPath(string path)
         {
             using (var fs = new FileStream(ModListArchive, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var ar = new ZipArchive(fs,ZipArchiveMode.Read))
+            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
             using (var ms = new MemoryStream())
             {
                 var entry = ar.GetEntry(path);
@@ -218,7 +214,7 @@ namespace Wabbajack
         {
             HashedArchives.Do(a => VFS.AddKnown(new VirtualFile
             {
-                Paths = new[] {a.Value},
+                Paths = new[] { a.Value },
                 Hash = a.Key
             }));
             VFS.RefreshIndexes();
@@ -231,7 +227,7 @@ namespace Wabbajack
                     var updated_path = new string[f.ArchiveHashPath.Length];
                     f.ArchiveHashPath.CopyTo(updated_path, 0);
                     updated_path[0] = VFS.HashIndex[updated_path[0]].Where(e => e.IsConcrete).First().FullPath;
-                    VFS.AddKnown(new VirtualFile {Paths = updated_path});
+                    VFS.AddKnown(new VirtualFile { Paths = updated_path });
                 });
 
             VFS.BackfillMissing();
@@ -251,15 +247,19 @@ namespace Wabbajack
                     .ToList();
 
                 if (source_files.Count > 0)
-                    using (var a = bsa.State.MakeBuilder())
+                    using (var a = new BSABuilder())
                     {
-                        var indexed = bsa.FileStates.ToDictionary(d => d.Path);
+                        //a.Create(Path.Combine(Outputfolder, bsa.To), (bsa_archive_type_t)bsa.Type, entries);
+                        a.HeaderType = (VersionType)bsa.Type;
+                        a.FileFlags = (FileFlags)bsa.FileFlags;
+                        a.ArchiveFlags = (ArchiveFlags)bsa.ArchiveFlags;
+
                         source_files.PMap(f =>
                         {
                             Status($"Adding {f} to BSA");
                             using (var fs = File.OpenRead(Path.Combine(source_dir, f)))
                             {
-                                a.AddFile(indexed[f.ToLower()], fs);
+                                a.AddFile(f, fs);
                             }
                         });
 
@@ -288,9 +288,9 @@ namespace Wabbajack
                     var out_path = Path.Combine(Outputfolder, directive.To);
                     if (File.Exists(out_path)) File.Delete(out_path);
                     if (directive is RemappedInlineFile)
-                        WriteRemappedFile((RemappedInlineFile) directive);
+                        WriteRemappedFile((RemappedInlineFile)directive);
                     else if (directive is CleanedESM)
-                        GenerateCleanedESM((CleanedESM) directive);
+                        GenerateCleanedESM((CleanedESM)directive);
                     else
                         File.WriteAllBytes(out_path, LoadBytesFromPath(directive.SourceDataID));
                 });
@@ -358,7 +358,7 @@ namespace Wabbajack
                 .GroupBy(e => e.ArchiveHashPath[0])
                 .ToDictionary(k => k.Key);
             var archives = ModList.Archives
-                .Select(a => new {Archive = a, AbsolutePath = HashedArchives.GetOrDefault(a.Hash)})
+                .Select(a => new { Archive = a, AbsolutePath = HashedArchives.GetOrDefault(a.Hash) })
                 .Where(a => a.AbsolutePath != null)
                 .ToList();
 

@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using Compression.BSA;
-using Newtonsoft.Json;
 using VFS;
 using Wabbajack.Common;
 
@@ -56,6 +55,31 @@ namespace Wabbajack
         public string Name;
 
         /// <summary>
+        ///     Author of the ModList
+        /// </summary>
+        public string Author;
+
+        /// <summary>
+        ///     Description of the ModList
+        /// </summary>
+        public string Description;
+
+        /// <summary>
+        ///     Hash of the banner-image
+        /// </summary>
+        public string Image;
+
+        /// <summary>
+        ///     Website of the ModList
+        /// </summary>
+        public string Website;
+
+        /// <summary>
+        ///     Hash of the readme
+        /// </summary>
+        public string Readme;
+
+        /// <summary>
         ///     Content Report in HTML form
         /// </summary>
         public string ReportHTML;
@@ -90,6 +114,17 @@ namespace Wabbajack
         ///     Data that will be written as-is to the destination location;
         /// </summary>
         public string SourceDataID;
+    }
+
+    public enum PropertyType { Banner, Readme }
+
+    /// <summary>
+    ///     File meant to be extracted before the installation
+    /// </summary>
+    [Serializable]
+    public class PropertyFile : InlineFile
+    {
+        public PropertyType Type;
     }
 
     [Serializable]
@@ -132,9 +167,15 @@ namespace Wabbajack
     [Serializable]
     public class CreateBSA : Directive
     {
+        public string IsCompressed;
+        public bool ShareData;
         public string TempID;
-        public ArchiveStateObject State { get; set; }
-        public List<FileStateObject> FileStates { get; set; }
+        public uint Type;
+        public uint Version;
+
+        public uint FileFlags { get; set; }
+        public bool Compress { get; set; }
+        public uint ArchiveFlags { get; set; }
     }
 
     [Serializable]
@@ -197,6 +238,7 @@ namespace Wabbajack
         public string ModName;
         public string NexusURL;
         public string Summary;
+        public bool Adult;
     }
 
     [Serializable]

@@ -1,19 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
+using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using Wabbajack.Common;
 using static Wabbajack.MainWindow;
 
@@ -27,13 +15,13 @@ namespace Wabbajack
         public ModeSelectionWindow()
         {
             InitializeComponent();
-            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.banner_small.png");
+            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner_small.png");
             Banner.Source = bannerImage;
-            var patreonIcon = UIUtils.BitmapImageFromResource("Wabbajack.Icons.patreon.png");
+            var patreonIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.patreon_light.png");
             Patreon.Source = patreonIcon;
-            var githubIcon = UIUtils.BitmapImageFromResource("Wabbajack.Icons.github.png");
+            var githubIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.github_light.png");
             GitHub.Source = githubIcon;
-            var discordIcon = UIUtils.BitmapImageFromResource("Wabbajack.Icons.discord.png");
+            var discordIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.discord.png");
             Discord.Source = discordIcon;
         }
 

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Wabbajack.NexusApi
 {
@@ -47,15 +43,7 @@ namespace Wabbajack.NexusApi
         public string uploaded_by;
         public string uploaded_users_profile_url;
         public string picture_url;
-    }
-
-    public class SlideShowItem
-    {
-        public string ImageURL;
-        public string ModName;
-        public string ModSummary;
-        public string AuthorName;
-        public string ModURL;
+        public bool contains_adult_content;
     }
 
     public class EndorsementResponse

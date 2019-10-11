@@ -11,18 +11,18 @@ using System.Reflection;
 using System.Security.Authentication;
 using System.Threading.Tasks;
 using Wabbajack.Common;
-using static Wabbajack.NexusApi.NexusApiUtils;
 using WebSocketSharp;
+using static Wabbajack.NexusApi.NexusApiUtils;
 
 namespace Wabbajack.NexusApi
 {
-    public class NexusApiClient : INotifyPropertyChanged
+    public class NexusApiClient : ViewModel
     {
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
 
         private static readonly uint CACHED_VERSION_NUMBER = 1;
 
-        
+
         private readonly HttpClient _httpClient;
 
 
@@ -136,9 +136,8 @@ namespace Wabbajack.NexusApi
                 _dailyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
                 _hourlyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
             }
-            OnPropertyChanged(nameof(DailyRemaining));
-            OnPropertyChanged(nameof(HourlyRemaining));
-
+            RaisePropertyChanged(nameof(DailyRemaining));
+            RaisePropertyChanged(nameof(HourlyRemaining));
         }
 
         #endregion
@@ -157,7 +156,7 @@ namespace Wabbajack.NexusApi
             headers.Add("Application-Name", Consts.AppName);
             headers.Add("Application-Version", $"{Assembly.GetEntryAssembly().GetName().Version}");
         }
-        
+
         private T Get<T>(string url)
         {
             Task<HttpResponseMessage> responseTask = _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
@@ -171,7 +170,7 @@ namespace Wabbajack.NexusApi
                 return stream.FromJSON<T>();
             }
         }
-        
+
 
         public string GetNexusDownloadLink(NexusMod archive, bool cache = false)
         {
@@ -214,7 +213,7 @@ namespace Wabbajack.NexusApi
                 Directory.CreateDirectory(Consts.NexusCacheDirectory);
 
             ModInfo result = null;
-            TOP:
+        TOP:
             var path = Path.Combine(Consts.NexusCacheDirectory, $"mod-info-{archive.GameName}-{archive.ModID}.json");
             try
             {
@@ -250,7 +249,7 @@ namespace Wabbajack.NexusApi
             Utils.Status($"Endorsing ${mod.GameName} - ${mod.ModID}");
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/endorse.json";
 
-            var content = new FormUrlEncodedContent(new Dictionary<string, string> {{"version", mod.Version}});
+            var content = new FormUrlEncodedContent(new Dictionary<string, string> { { "version", mod.Version } });
 
             using (var stream = _httpClient.PostStreamSync(url, content))
             {
@@ -259,11 +258,11 @@ namespace Wabbajack.NexusApi
         }
 
 
-        public static IEnumerable<SlideShowItem> CachedSlideShow
+        public static IEnumerable<UI.Slide> CachedSlideShow
         {
             get
             {
-                if (!Directory.Exists(Consts.NexusCacheDirectory)) return new SlideShowItem[]{};
+                if (!Directory.Exists(Consts.NexusCacheDirectory)) return new UI.Slide[] { };
 
                 return Directory.EnumerateFiles(Consts.NexusCacheDirectory)
                     .Where(f => f.EndsWith(".json"))
@@ -281,14 +280,7 @@ namespace Wabbajack.NexusApi
                     })
                     .Where(m => m != null)
                     .Where(m => m._internal_version == CACHED_VERSION_NUMBER && m.picture_url != null)
-                    .Select(m => new SlideShowItem
-                    {
-                        ImageURL =  m.picture_url,
-                        ModName = FixupSummary(m.name),
-                        AuthorName = FixupSummary(m.author),
-                        ModURL = GetModURL(m.game_name, m.mod_id),
-                        ModSummary = FixupSummary(m.summary)
-                    });
+                    .Select(m => new UI.Slide(m.name,m.mod_id,m.summary,m.author,m.contains_adult_content,GetModURL(m.game_name,m.mod_id),m.picture_url));
             }
         }
 
@@ -297,18 +289,6 @@ namespace Wabbajack.NexusApi
         {
             public string URI { get; set; }
         }
-
-
-        #region INotifyPropertyChanged
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnPropertyChanged(string name)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
-
-        #endregion
     }
 
 }

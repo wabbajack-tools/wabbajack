@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
@@ -14,59 +15,44 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Wabbajack.Common;
 using Wabbajack.NexusApi;
+using Wabbajack.UI;
 
 namespace Wabbajack
 {
-    internal class AppState : INotifyPropertyChanged, IDataErrorInfo
+    public enum TaskMode { INSTALLING, BUILDING }
+    internal class AppState : ViewModel, IDataErrorInfo
     {
-        private ICommand _begin;
+        public const bool GcCollect = true;
 
-        private ICommand _changeDownloadPath;
+        private SlideShow _slideShow;
 
-        private ICommand _changePath;
-        private string _downloadLocation;
-
-        private string _htmlReport;
-
-        private bool _ignoreMissingFiles;
-        private string _location;
+        public bool installing = false;
 
         private string _mo2Folder;
 
-
-        private string _mode;
         private ModList _modList;
-        private string _modListName;
-
-        private int _queueProgress;
-
-        private ICommand _showReportCommand;
-        private ICommand _visitNexusSiteCommand;
 
         private readonly DateTime _startTime;
 
         public volatile bool Dirty;
 
-        private readonly Dispatcher dispatcher;
+        public readonly Dispatcher dispatcher;
 
-        public AppState(Dispatcher d, string mode)
+        public AppState(Dispatcher d, TaskMode mode)
         {
+            _wabbajackLogo = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner.png");
+            _splashScreenImage = _wabbajackLogo;
+            _noneImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.none.jpg");
+            _nextIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.next.png");
 
-            var image = new BitmapImage();
-            image.BeginInit();
-            image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.banner.png");
-            image.EndInit();
-            _wabbajackLogo = image;
-            _splashScreenImage = image;
-
-            SetupSlideshow();
+            _slideShow = new SlideShow(this, true);
 
             if (Assembly.GetEntryAssembly().Location.ToLower().Contains("\\downloads\\"))
             {
                 MessageBox.Show(
-                    "This app seems to be running inside a folder called `Downloads`, such folders are often highly monitored by antivirus software and they can often " +
-                    "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your `Downloads` folder and then restart the app.",
-                    "Cannot run inside `Downloads`",
+                    "This app seems to be running inside a folder called 'Downloads', such folders are often highly monitored by antivirus software and they can often " +
+                    "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your 'Downloads' folder and then restart the app.",
+                    "Cannot run inside 'Downloads'",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
                 Environment.Exit(1);
@@ -77,383 +63,130 @@ namespace Wabbajack
             Mode = mode;
             Dirty = false;
             dispatcher = d;
-            Log = new ObservableCollection<string>();
-            Status = new ObservableCollection<CPUStatus>();
-            InternalStatus = new List<CPUStatus>();
 
-            var th = new Thread(() => UpdateLoop());
-            th.Priority = ThreadPriority.BelowNormal;
-            th.IsBackground = true;
-            th.Start();
-        }
-
-        private void SetupSlideshow()
-        {
-            var files = NexusApiClient.CachedSlideShow;
-            if (files.Any())
+            slideshowThread = new Thread(UpdateLoop)
             {
-                SlideShowElements = files.ToList();
-            }
+                Priority = ThreadPriority.BelowNormal,
+                IsBackground = true
+            };
+            slideshowThread.Start();
         }
 
-        public Random _random = new Random();
-        public List<SlideShowItem> SlideShowElements = new List<SlideShowItem>();
-        private DateTime _lastSlideShowUpdate = new DateTime();
+        public DateTime lastSlideShowUpdate = new DateTime();
 
-        public ObservableCollection<string> Log { get; }
-        public ObservableCollection<CPUStatus> Status { get; }
+        public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
+        public ObservableCollection<CPUStatus> Status { get; } = new ObservableCollection<CPUStatus>();
 
-        public string Mode
-        {
-            get => _mode;
-            set
-            {
-                _mode = value;
-                OnPropertyChanged("Mode");
-            }
-        }
+        private TaskMode _Mode;
+        public TaskMode Mode { get => _Mode; set => this.RaiseAndSetIfChanged(ref _Mode, value); }
 
-        public string ModListName
-        {
-            get => _modListName;
-            set
-            {
-                _modListName = value;
-                OnPropertyChanged("ModListName");
-            }
-        }
+        private string _ModListName;
+        public string ModListName { get => _ModListName; set => this.RaiseAndSetIfChanged(ref _ModListName, value); }
 
-        public string Location
-        {
-            get => _location;
-            set
-            {
-                _location = value;
-                OnPropertyChanged("Location");
-            }
-        }
-        
+        private string _Location;
+        public string Location { get => _Location; set => this.RaiseAndSetIfChanged(ref _Location, value); }
 
-        public string DownloadLocation
-        {
-            get => _downloadLocation;
-            set
-            {
-                _downloadLocation = value;
-                OnPropertyChanged("DownloadLocation");
-            }
-        }
+        private string _LocationLabel;
+        public string LocationLabel { get => _LocationLabel; set => this.RaiseAndSetIfChanged(ref _LocationLabel, value); }
+
+        private string _DownloadLocation;
+        public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
 
         public Visibility ShowReportButton => _htmlReport == null ? Visibility.Collapsed : Visibility.Visible;
 
+        private string _htmlReport;
         public string HTMLReport
         {
             get => _htmlReport;
             set
             {
                 _htmlReport = value;
-                OnPropertyChanged("HTMLReport");
-                OnPropertyChanged("ShowReportButton");
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(ShowReportButton));
             }
         }
 
-        public int QueueProgress
-        {
-            get => _queueProgress;
-            set
-            {
-                if (value != _queueProgress)
-                {
-                    _queueProgress = value;
-                    OnPropertyChanged("QueueProgress");
-                }
-            }
-        }
+        private int _queueProgress;
+        public int QueueProgress { get => _queueProgress; set => this.RaiseAndSetIfChanged(ref _queueProgress, value); }
 
-
-        private List<CPUStatus> InternalStatus { get; }
+        private List<CPUStatus> InternalStatus { get; } = new List<CPUStatus>();
         public string LogFile { get; }
 
+        private ICommand _changePath;
         public ICommand ChangePath
         {
             get
             {
-                if (_changePath == null) _changePath = new LambdaCommand(() => true, () => ExecuteChangePath());
+                if (_changePath == null) _changePath = new LambdaCommand(() => true, ExecuteChangePath);
                 return _changePath;
             }
         }
 
+        private ICommand _changeDownloadPath;
         public ICommand ChangeDownloadPath
         {
             get
             {
                 if (_changeDownloadPath == null)
-                    _changeDownloadPath = new LambdaCommand(() => true, () => ExecuteChangeDownloadPath());
+                    _changeDownloadPath = new LambdaCommand(() => true, ExecuteChangeDownloadPath);
                 return _changeDownloadPath;
             }
         }
 
+        private ICommand _begin;
         public ICommand Begin
         {
             get
             {
-                if (_begin == null) _begin = new LambdaCommand(() => true, () => ExecuteBegin());
+                if (_begin == null) _begin = new LambdaCommand(() => true, ExecuteBegin);
                 return _begin;
             }
         }
 
+        private ICommand _showReportCommand;
         public ICommand ShowReportCommand
         {
             get
             {
-                if (_showReportCommand == null) _showReportCommand = new LambdaCommand(() => true, () => ShowReport());
-                return _showReportCommand;
+                return _showReportCommand ?? (_showReportCommand = new LambdaCommand(() => true, ShowReport));
             }
         }
 
+        private ICommand _visitNexusSiteCommand;
         public ICommand VisitNexusSiteCommand
         {
             get
             {
-                if (_visitNexusSiteCommand == null) _visitNexusSiteCommand = new LambdaCommand(() => true, () => VisitNexusSite());
-                return _visitNexusSiteCommand;
+                return _visitNexusSiteCommand ??
+                       (_visitNexusSiteCommand = new LambdaCommand(() => true, VisitNexusSite));
             }
         }
 
-        public string _nexusSiteURL = null;
-
-        private void VisitNexusSite()
-        {
-            if (_nexusSiteURL != null && _nexusSiteURL.StartsWith("https://"))
-            {
-                Process.Start(_nexusSiteURL);
-            }
-        }
-
-
-        private bool _uiReady = false;
-        public bool UIReady
-        {
-            get => _uiReady;
-            set
-            {
-                _uiReady = value;
-                OnPropertyChanged("UIReady");
-            }
-        }
-
-        private BitmapImage _wabbajackLogo = null;
-        private BitmapImage _splashScreenImage = null;
-        public BitmapImage SplashScreenImage
-        {
-            get => _splashScreenImage;
-            set
-            {
-                _splashScreenImage = value;
-                OnPropertyChanged("SplashScreenImage");
-            }
-        }
-
-        public string _splashScreenModName = "Wabbajack";
-        public string SplashScreenModName
-        {
-            get => _splashScreenModName;
-            set
-            {
-                _splashScreenModName = value;
-                OnPropertyChanged("SplashScreenModName");
-            }
-        }
-
-        public string _splashScreenAuthorName = "Halgari & the Wabbajack Team";
-        public string SplashScreenAuthorName
-        {
-            get => _splashScreenAuthorName;
-            set
-            {
-                _splashScreenAuthorName = value;
-                OnPropertyChanged("SplashScreenAuthorName");
-            }
-        }
-
-        public string _splashScreenSummary = "";
-        private string _modListPath;
-
-        public string SplashScreenSummary
-        {
-            get => _splashScreenSummary;
-            set
-            {
-                _splashScreenSummary = value;
-                OnPropertyChanged("SplashScreenSummary");
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public void OnPropertyChanged(string name)
-        {
-            if(PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(name));
-            }
-        }
-        public string Error
-        {
-            get { return "Error"; }
-        }
-
-        public string this[string columnName]
+        public ICommand OpenModListPropertiesCommand
         {
             get
             {
-                return Validate(columnName);
-            }
-        }
-        private string Validate(string columnName)
-        {
-            string validationMessage = null;
-            switch (columnName)
-            {
-                case "Location":
-                    if (Location == null)
-                    {
-                        validationMessage = null;
-                    }
-                    else if (Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")))
-                    {
-                        Location = Path.Combine(Location, "modlist.txt");
-                        validationMessage = null;
-                        ConfigureForBuild();
-                    }
-                    else
-                    {
-                        validationMessage = "Invalid Mod Organizer profile directory";
-                    }
-                    break;
-            }
-            return validationMessage;
-        }
-
-        private void UpdateLoop()
-        {
-            while (Running)
-            {
-                if (Dirty)
-                    lock (InternalStatus)
-                    {
-                        var data = InternalStatus.ToArray();
-                        dispatcher.Invoke(() =>
-                        {
-                            for (var idx = 0; idx < data.Length; idx += 1)
-                                if (idx >= Status.Count)
-                                    Status.Add(data[idx]);
-                                else if (Status[idx] != data[idx])
-                                    Status[idx] = data[idx];
-                        });
-                        Dirty = false;
-                    }
-
-                if (SlideShowElements.Any())
-                {
-                    if (DateTime.Now - _lastSlideShowUpdate > TimeSpan.FromSeconds(10))
-                    {
-                        var idx = _random.Next(0, SlideShowElements.Count);
-
-                        try
-                        {
-                            var element = SlideShowElements[idx];
-
-                            var data = new MemoryStream();
-                            using (var stream = new HttpClient().GetStreamSync(element.ImageURL))
-                                stream.CopyTo(data);
-                            data.Seek(0, SeekOrigin.Begin);
-
-
-                            dispatcher.Invoke(() =>
-                            {
-                                var bitmap = new BitmapImage();
-                                bitmap.BeginInit();
-                                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                                bitmap.StreamSource = data;
-                                bitmap.EndInit();
-
-                                SplashScreenImage = bitmap;
-                                SplashScreenModName = element.ModName;
-                                SplashScreenAuthorName = element.AuthorName;
-                                SplashScreenSummary = element.ModSummary;
-                                _nexusSiteURL = element.ModURL;
-
-                                _lastSlideShowUpdate = DateTime.Now;
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                        }
-
-                    }
-                }
-
-                Thread.Sleep(1000);
+                return new LambdaCommand(() => true, OpenModListProperties);
             }
         }
 
-        public bool Running { get; set; } = true;
-
-        internal void ConfigureForInstall(string source, ModList modlist)
+        public ICommand SlideShowNextItem
         {
-            _modList = modlist;
-            _modListPath = source;
-            Mode = "Installing";
-            ModListName = _modList.Name;
-            HTMLReport = _modList.ReportHTML;
-            Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-            SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => new SlideShowItem
+            get
             {
-                ModName = NexusApiUtils.FixupSummary(m.ModName),
-                AuthorName = NexusApiUtils.FixupSummary(m.Author),
-                ModSummary = NexusApiUtils.FixupSummary(m.Summary),
-                ImageURL = m.SlideShowPic,
-                ModURL = m.NexusURL,
-            }).ToList();
-        }
-
-        public void LogMsg(string msg)
-        {
-            dispatcher.Invoke(() => Log.Add(msg));
-        }
-
-        public void SetProgress(int id, string msg, int progress)
-        {
-            lock (InternalStatus)
-            {
-                Dirty = true;
-                while (id >= InternalStatus.Count) InternalStatus.Add(new CPUStatus());
-
-                InternalStatus[id] = new CPUStatus {ID = id, Msg = msg, Progress = progress};
+                return new LambdaCommand(() => true, _slideShow.UpdateSlideShowItem);
             }
-        }
-
-        public void SetQueueSize(int max, int current)
-        {
-            if (max == 0)
-                max = 1;
-            var total = current * 100 / max;
-            QueueProgress = total;
         }
 
         private void ExecuteChangePath()
         {
-            if (Mode == "Installing")
+            if (Mode == TaskMode.INSTALLING)
             {
                 var folder = UIUtils.ShowFolderSelectionDialog("Select Installation directory");
-                if (folder != null)
-                {
-                    Location = folder;
-                    if (_downloadLocation == null)
-                        DownloadLocation = Path.Combine(Location, "downloads");
-                }
+                if (folder == null) return;
+                Location = folder;
+                if (DownloadLocation == null)
+                    DownloadLocation = Path.Combine(Location, "downloads");
             }
             else
             {
@@ -468,6 +201,258 @@ namespace Wabbajack
             if (folder != null) DownloadLocation = folder;
         }
 
+        private void ShowReport()
+        {
+            var file = Path.GetTempFileName() + ".html";
+            File.WriteAllText(file, HTMLReport);
+            Process.Start(file);
+        }
+
+        public string _nexusSiteURL = null;
+        private void VisitNexusSite()
+        {
+            if (_nexusSiteURL != null && _nexusSiteURL.StartsWith("https://"))
+            {
+                Process.Start(_nexusSiteURL);
+            }
+        }
+
+        private ModlistPropertiesWindow modlistPropertiesWindow;
+        public string newImagePath;
+        public string readmePath;
+        public bool ChangedProperties;
+        private void OpenModListProperties()
+        {
+            if (UIReady)
+            {
+                if (modlistPropertiesWindow == null)
+                {
+                    modlistPropertiesWindow = new ModlistPropertiesWindow(this);
+                    newImagePath = null;
+                    ChangedProperties = false;
+
+                }
+                if(!modlistPropertiesWindow.IsClosed)
+                    modlistPropertiesWindow.Show();
+                else
+                {
+                    modlistPropertiesWindow = null;
+                    OpenModListProperties();
+                }
+            }
+        }
+
+        public bool HasReadme { get; set; }
+        public ICommand OpenReadme
+        {
+            get
+            {
+                return new LambdaCommand(()=> true,OpenReadmeWindow);
+            }
+        }
+
+        private void OpenReadmeWindow()
+        {
+            if (!UIReady || string.IsNullOrEmpty(_modList.Readme)) return;
+            var text = "";
+            using (var fs = new FileStream(_modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+            using (var ms = new MemoryStream())
+            {
+                var entry = ar.GetEntry(_modList.Readme);
+                using (var e = entry.Open())
+                    e.CopyTo(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                using (var sr = new StreamReader(ms))
+                {
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                        text += line+Environment.NewLine;
+                    //text = sr.ReadToEnd();
+                }
+            }
+
+            var viewer = new TextViewer(text, _ModListName);
+            viewer.Show();
+        }
+
+        private bool _uiReady = false;
+        public bool UIReady
+        {
+            get => _uiReady;
+            set => this.RaiseAndSetIfChanged(ref _uiReady, value);
+        }
+
+        private readonly BitmapImage _wabbajackLogo = null;
+        public readonly BitmapImage _noneImage = null;
+        private BitmapImage _splashScreenImage = null;
+        public BitmapImage SplashScreenImage
+        {
+            get => _splashScreenImage;
+            set
+            {
+                _splashScreenImage = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private string _SplashScreenModName = "Wabbajack";
+        public string SplashScreenModName { get => _SplashScreenModName; set => this.RaiseAndSetIfChanged(ref _SplashScreenModName, value); }
+        private BitmapImage _nextIcon = null;
+        public BitmapImage NextIcon { get => _nextIcon; set => this.RaiseAndSetIfChanged(ref _nextIcon, value); }
+
+        private string _SplashScreenAuthorName = "Halgari & the Wabbajack Team";
+        public string SplashScreenAuthorName { get => _SplashScreenAuthorName; set => this.RaiseAndSetIfChanged(ref _SplashScreenAuthorName, value); }
+
+        private string _modListPath;
+
+        private string _SplashScreenSummary;
+        public string SplashScreenSummary { get => _SplashScreenSummary; set => this.RaiseAndSetIfChanged(ref _SplashScreenSummary, value); }
+        private bool _splashShowNSFW = false;
+        public bool SplashShowNSFW { get => _splashShowNSFW; set => this.RaiseAndSetIfChanged(ref _splashShowNSFW, value); }    
+        private readonly Thread slideshowThread = null;
+        private bool _enableSlideShow = true;
+        public bool EnableSlideShow
+        {
+            get => _enableSlideShow;
+            set
+            {
+                RaiseAndSetIfChanged(ref _enableSlideShow, value);
+                if (!slideshowThread.IsAlive) return;
+                if (!_enableSlideShow)
+                {
+                    ApplyModlistProperties();
+                }
+                else
+                {
+                    _slideShow.UpdateSlideShowItem();
+                }
+            }
+        }
+
+        public string Error => "Error";
+
+        public string this[string columnName] => Validate(columnName);
+
+        private string Validate(string columnName)
+        {
+            string validationMessage = null;
+            switch (columnName)
+            {
+                case "Location":
+                    if (Location == null)
+                    {
+                        validationMessage = null;
+                    }
+                    else switch (Mode)
+                    {
+                        case TaskMode.BUILDING when Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")):
+                            Location = Path.Combine(Location, "modlist.txt");
+                            validationMessage = null;
+                            ConfigureForBuild();
+                            break;
+                        case TaskMode.INSTALLING when Location != null && Directory.Exists(Location) && !Directory.EnumerateFileSystemEntries(Location).Any():
+                            validationMessage = null;
+                            break;
+                        case TaskMode.INSTALLING when Location != null && Directory.Exists(Location) && Directory.EnumerateFileSystemEntries(Location).Any():
+                            validationMessage = "You have selected a non-empty directory. Installing the modlist here might result in a broken install!";
+                            break;
+                        default:
+                            validationMessage = "Invalid Mod Organizer profile directory";
+                            break;
+                    }
+                    break;
+            }
+            return validationMessage;
+        }
+
+        private void UpdateLoop()
+        {
+            while (Running)
+            {
+                if (Dirty)
+                    lock (InternalStatus)
+                    {
+                        CPUStatus[] data = InternalStatus.ToArray();
+                        dispatcher.Invoke(() =>
+                        {
+                            for (var idx = 0; idx < data.Length; idx += 1)
+                                if (idx >= Status.Count)
+                                    Status.Add(data[idx]);
+                                else if (Status[idx] != data[idx])
+                                    Status[idx] = data[idx];
+                        });
+                        Dirty = false;
+                    }
+
+                if (_slideShow.SlidesQueue.Any())
+                {
+                    if (DateTime.Now - lastSlideShowUpdate > TimeSpan.FromSeconds(10))
+                    {
+                        _slideShow.UpdateSlideShowItem();
+                    }
+                }
+                Thread.Sleep(1000);
+            }
+        }
+
+        public bool Running { get; set; } = true;
+        private void ApplyModlistProperties()
+        {
+            SplashScreenModName = _modList.Name;
+            SplashScreenAuthorName = _modList.Author;
+            _nexusSiteURL = _modList.Website;
+            SplashScreenSummary = _modList.Description;
+            if (!string.IsNullOrEmpty(_modList.Image) && _modList.Image.Length == 36)
+            {
+                SplashScreenImage = _wabbajackLogo;
+                using (var fs = new FileStream(_modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+                using (var ms = new MemoryStream())
+                {
+                    var entry = ar.GetEntry(_modList.Image);
+                    using (var e = entry.Open())
+                        e.CopyTo(ms);
+                    var image = new BitmapImage();
+                    image.BeginInit();
+                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    image.StreamSource = ms;
+                    image.EndInit();
+                    image.Freeze();
+
+                    SplashScreenImage = image;
+                }
+            }
+            else
+            {
+                SplashScreenImage = _wabbajackLogo;
+            }
+        }
+
+        public void LogMsg(string msg)
+        {
+            dispatcher.Invoke(() => Log.Add(msg));
+        }
+
+        public void SetProgress(int id, string msg, int progress)
+        {
+            lock (InternalStatus)
+            {
+                Dirty = true;
+                while (id >= InternalStatus.Count) InternalStatus.Add(new CPUStatus());
+
+                InternalStatus[id] = new CPUStatus { ID = id, Msg = msg, Progress = progress };
+            }
+        }
+
+        public void SetQueueSize(int max, int current)
+        {
+            if (max == 0)
+                max = 1;
+            var total = current * 100 / max;
+            QueueProgress = total;
+        }
+
         private void ConfigureForBuild()
         {
             var profile_folder = Path.GetDirectoryName(Location);
@@ -477,7 +462,7 @@ namespace Wabbajack
 
             var profile_name = Path.GetFileName(profile_folder);
             ModListName = profile_name;
-            Mode = "Building";
+            Mode = TaskMode.BUILDING;
 
             var tmp_compiler = new Compiler(mo2folder);
             DownloadLocation = tmp_compiler.MO2DownloadsFolder;
@@ -485,22 +470,37 @@ namespace Wabbajack
             _mo2Folder = mo2folder;
         }
 
-        private void ShowReport()
+        internal void ConfigureForInstall(string source, ModList modlist)
         {
-            var file = Path.GetTempFileName() + ".html";
-            File.WriteAllText(file, HTMLReport);
-            Process.Start(file);
-        }
+            _modList = modlist;
+            _modListPath = source;
+            HasReadme = !string.IsNullOrEmpty(_modList.Readme);
+            Mode = TaskMode.INSTALLING;
+            ModListName = _modList.Name;
+            HTMLReport = _modList.ReportHTML;
+            Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
+            ApplyModlistProperties();
+
+            _slideShow.SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => 
+                new Slide(NexusApiUtils.FixupSummary(m.ModName),m.ModID,
+                    NexusApiUtils.FixupSummary(m.Summary), NexusApiUtils.FixupSummary(m.Author),
+                    m.Adult,m.NexusURL,m.SlideShowPic)).ToList();
+
+
+            _slideShow.PreloadSlideShow();
+        }
 
         private void ExecuteBegin()
         {
             UIReady = false;
-            if (Mode == "Installing")
+            if (Mode == TaskMode.INSTALLING)
             {
-                var installer = new Installer(_modListPath, _modList, Location);
-
-                installer.DownloadFolder = DownloadLocation;
+                installing = true;
+                var installer = new Installer(_modListPath, _modList, Location)
+                {
+                    DownloadFolder = DownloadLocation
+                };
                 var th = new Thread(() =>
                 {
                     UIReady = false;
@@ -518,15 +518,28 @@ namespace Wabbajack
                     finally
                     {
                         UIReady = true;
+                        Running = false;
+                        installing = false;
+                        slideshowThread.Abort();
                     }
-                });
-                th.Priority = ThreadPriority.BelowNormal;
+                })
+                {
+                    Priority = ThreadPriority.BelowNormal
+                };
                 th.Start();
             }
             else if (_mo2Folder != null)
             {
-                var compiler = new Compiler(_mo2Folder);
-                compiler.MO2Profile = ModListName;
+                var compiler = new Compiler(_mo2Folder)
+                {
+                    MO2Profile = ModListName,
+                    ModListName = ChangedProperties ? SplashScreenModName : null,
+                    ModListAuthor = ChangedProperties ? SplashScreenAuthorName : null,
+                    ModListDescription = ChangedProperties ? SplashScreenSummary : null,
+                    ModListImage = ChangedProperties ? newImagePath : null,
+                    ModListWebsite = ChangedProperties ? _nexusSiteURL : null,
+                    ModListReadme = ChangedProperties ? readmePath : null
+                };
                 var th = new Thread(() =>
                 {
                     UIReady = false;
@@ -547,8 +560,10 @@ namespace Wabbajack
                     {
                         UIReady = true;
                     }
-                });
-                th.Priority = ThreadPriority.BelowNormal;
+                })
+                {
+                    Priority = ThreadPriority.BelowNormal
+                };
                 th.Start();
             }
             else
@@ -556,15 +571,13 @@ namespace Wabbajack
                 Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
                 UIReady = true;
             }
-            }
         }
+    }
 
-
-
-        public class CPUStatus
-        {
-            public int Progress { get; internal set; }
-            public string Msg { get; internal set; }
-            public int ID { get; internal set; }
-        }
+    public class CPUStatus
+    {
+        public int Progress { get; internal set; }
+        public string Msg { get; internal set; }
+        public int ID { get; internal set; }
+    }
 }
