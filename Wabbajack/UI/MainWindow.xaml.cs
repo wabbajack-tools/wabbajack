@@ -30,7 +30,7 @@ namespace Wabbajack
 
             InitializeComponent();
 
-            var context = new AppState(Dispatcher, TaskMode.BUILDING);
+            var context = new AppState(TaskMode.BUILDING);
             context.LogMsg($"Wabbajack Build - {ThisAssembly.Git.Sha}");
             SetupHandlers(context);
             DataContext = context;
@@ -39,7 +39,6 @@ namespace Wabbajack
 
             Utils.SetLoggerFn(s => context.LogMsg(s));
             Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
-            UIUtils.Dispatcher = Dispatcher;
 
             _state._nexusSiteURL = "https://github.com/wabbajack-tools/wabbajack";
 

@@ -98,7 +98,7 @@ namespace Wabbajack.UI
                 _appState.SplashScreenImage = _appState._noneImage;
                 if (slide.ImageURL != null && slide.Image != null)
                 {
-                    _appState.dispatcher.Invoke(() =>
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
                     {
                         if (!CachedSlides.ContainsKey(slide.ModID)) return;
                         _appState.SplashScreenImage = slide.Image;
@@ -123,7 +123,7 @@ namespace Wabbajack.UI
             {
                 if (UseSync)
                 {
-                    _appState.dispatcher.Invoke(() =>
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
                     {
                         using (var stream = new HttpClient().GetStreamSync(slide.ImageURL))
                             stream.CopyTo(ms);
@@ -139,7 +139,7 @@ namespace Wabbajack.UI
                 }
 
                 ms.Seek(0, SeekOrigin.Begin);
-                _appState.dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     var image = new BitmapImage();
                     image.BeginInit();

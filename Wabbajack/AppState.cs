@@ -37,8 +37,6 @@ namespace Wabbajack
 
         public volatile bool Dirty;
 
-        public readonly Dispatcher dispatcher;
-
         // Command properties
         public IReactiveCommand ChangePathCommand => ReactiveCommand.Create(ExecuteChangePath);
         public IReactiveCommand ChangeDownloadPathCommand => ReactiveCommand.Create(ExecuteChangeDownloadPath);
@@ -49,7 +47,7 @@ namespace Wabbajack
         public IReactiveCommand OpenModListPropertiesCommand => ReactiveCommand.Create(OpenModListProperties);
         public IReactiveCommand SlideShowNextItemCommand { get; }
 
-        public AppState(Dispatcher d, TaskMode mode)
+        public AppState(TaskMode mode)
         {
             _wabbajackLogo = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner.png");
             _splashScreenImage = _wabbajackLogo;
@@ -74,7 +72,6 @@ namespace Wabbajack
 
             Mode = mode;
             Dirty = false;
-            dispatcher = d;
 
             slideshowThread = new Thread(UpdateLoop)
             {
@@ -313,7 +310,7 @@ namespace Wabbajack
                     lock (InternalStatus)
                     {
                         CPUStatus[] data = InternalStatus.ToArray();
-                        dispatcher.Invoke(() =>
+                        Application.Current.Dispatcher.Invoke(() =>
                         {
                             for (var idx = 0; idx < data.Length; idx += 1)
                                 if (idx >= Status.Count)
@@ -370,7 +367,7 @@ namespace Wabbajack
 
         public void LogMsg(string msg)
         {
-            dispatcher.Invoke(() => Log.Add(msg));
+            Application.Current.Dispatcher.Invoke(() => Log.Add(msg));
         }
 
         public void SetProgress(int id, string msg, int progress)

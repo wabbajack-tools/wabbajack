@@ -14,10 +14,10 @@ namespace Wabbajack
 
         public static string ShowFolderSelectionDialog(string prompt)
         {
-            if (Dispatcher.Thread != Thread.CurrentThread)
+            if (System.Windows.Application.Current.Dispatcher.Thread != Thread.CurrentThread)
             {
                 var task = new TaskCompletionSource<string>();
-                Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     try
                     {
@@ -76,7 +76,5 @@ namespace Wabbajack
                 return ofd.FileName;
             return null;
         }
-
-        public static Dispatcher Dispatcher { get; set; }
     }
 }
