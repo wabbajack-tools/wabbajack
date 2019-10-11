@@ -21,6 +21,8 @@ namespace Wabbajack
     internal class AppState : ViewModel, IDataErrorInfo
     {
         private const int MAX_CACHE_SIZE = 10;
+        private const bool USE_SYNC_CACHING = false;
+
         private bool installing = false;
 
         private string _mo2Folder;
@@ -35,24 +37,10 @@ namespace Wabbajack
 
         public AppState(Dispatcher d, TaskMode mode)
         {
-            var image = new BitmapImage();
-            image.BeginInit();
-            image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.UI.banner.png");
-            image.EndInit();
-            _wabbajackLogo = image;
-            _splashScreenImage = image;
-
-            image = new BitmapImage();
-            image.BeginInit();
-            image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.UI.none.jpg");
-            image.EndInit();
-            _noneImage = image;
-
-            image = new BitmapImage();
-            image.BeginInit();
-            image.StreamSource = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.UI.Icons.next.png");
-            image.EndInit();
-            _nextIcon = image;
+            _wabbajackLogo = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner.png");
+            _splashScreenImage = _wabbajackLogo;
+            _noneImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.none.jpg");
+            _nextIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.next.png");
 
             SetupSlideshow();
 
@@ -73,7 +61,7 @@ namespace Wabbajack
             Dirty = false;
             dispatcher = d;
 
-            slideshowThread = new Thread(() => UpdateLoop())
+            slideshowThread = new Thread(UpdateLoop)
             {
                 Priority = ThreadPriority.BelowNormal,
                 IsBackground = true
@@ -137,7 +125,7 @@ namespace Wabbajack
         {
             get
             {
-                if (_changePath == null) _changePath = new LambdaCommand(() => true, () => ExecuteChangePath());
+                if (_changePath == null) _changePath = new LambdaCommand(() => true, ExecuteChangePath);
                 return _changePath;
             }
         }
@@ -148,7 +136,7 @@ namespace Wabbajack
             get
             {
                 if (_changeDownloadPath == null)
-                    _changeDownloadPath = new LambdaCommand(() => true, () => ExecuteChangeDownloadPath());
+                    _changeDownloadPath = new LambdaCommand(() => true, ExecuteChangeDownloadPath);
                 return _changeDownloadPath;
             }
         }
@@ -158,7 +146,7 @@ namespace Wabbajack
         {
             get
             {
-                if (_begin == null) _begin = new LambdaCommand(() => true, () => ExecuteBegin());
+                if (_begin == null) _begin = new LambdaCommand(() => true, ExecuteBegin);
                 return _begin;
             }
         }
@@ -168,8 +156,7 @@ namespace Wabbajack
         {
             get
             {
-                if (_showReportCommand == null) _showReportCommand = new LambdaCommand(() => true, () => ShowReport());
-                return _showReportCommand;
+                return _showReportCommand ?? (_showReportCommand = new LambdaCommand(() => true, ShowReport));
             }
         }
 
@@ -178,8 +165,8 @@ namespace Wabbajack
         {
             get
             {
-                if (_visitNexusSiteCommand == null) _visitNexusSiteCommand = new LambdaCommand(() => true, () => VisitNexusSite());
-                return _visitNexusSiteCommand;
+                return _visitNexusSiteCommand ??
+                       (_visitNexusSiteCommand = new LambdaCommand(() => true, VisitNexusSite));
             }
         }
 
@@ -187,7 +174,7 @@ namespace Wabbajack
         {
             get
             {
-                return new LambdaCommand(() => true, () => OpenModListProperties());
+                return new LambdaCommand(() => true, OpenModListProperties);
             }
         }
 
@@ -195,9 +182,7 @@ namespace Wabbajack
         {
             get
             {
-                return new LambdaCommand(() => true, () => {
-                    UpdateSlideShowItem(false);
-                });
+                return new LambdaCommand(() => true, UpdateSlideShowItem);
             }
         }
 
@@ -206,12 +191,10 @@ namespace Wabbajack
             if (Mode == TaskMode.INSTALLING)
             {
                 var folder = UIUtils.ShowFolderSelectionDialog("Select Installation directory");
-                if (folder != null)
-                {
-                    Location = folder;
-                    if (DownloadLocation == null)
-                        DownloadLocation = Path.Combine(Location, "downloads");
-                }
+                if (folder == null) return;
+                Location = folder;
+                if (DownloadLocation == null)
+                    DownloadLocation = Path.Combine(Location, "downloads");
             }
             else
             {
@@ -243,7 +226,7 @@ namespace Wabbajack
         }
 
         private ModlistPropertiesWindow modlistPropertiesWindow;
-        internal string newImagePath;
+        public string newImagePath;
         public bool ChangedProperties;
         private void OpenModListProperties()
         {
@@ -302,8 +285,8 @@ namespace Wabbajack
         public string SplashScreenSummary { get => _SplashScreenSummary; set => this.RaiseAndSetIfChanged(ref _SplashScreenSummary, value); }
         private bool _splashShowNSFW = true;
         public bool SplashShowNSFW { get => _splashShowNSFW; set => this.RaiseAndSetIfChanged(ref _splashShowNSFW, value); }    
-        internal Thread slideshowThread = null;
-        internal int slideshowSleepTime = 1000;
+        private Thread slideshowThread = null;
+        private int slideshowSleepTime = 1000;
         private bool _enableSlideShow = true;
         public bool EnableSlideShow
         {
@@ -319,7 +302,7 @@ namespace Wabbajack
                     }
                     else
                     {
-                        UpdateSlideShowItem(false);
+                        UpdateSlideShowItem();
                     }
                 }
             }
@@ -339,23 +322,22 @@ namespace Wabbajack
                     {
                         validationMessage = null;
                     }
-                    else if (Mode == TaskMode.BUILDING && Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")))
+                    else switch (Mode)
                     {
-                        Location = Path.Combine(Location, "modlist.txt");
-                        validationMessage = null;
-                        ConfigureForBuild();
-                    }
-                    else if (Mode == TaskMode.INSTALLING && Location != null && Directory.Exists(Location) && !Directory.EnumerateFileSystemEntries(Location).Any())
-                    {
-                        validationMessage = null;
-                    }
-                    else if (Mode == TaskMode.INSTALLING && Location != null && Directory.Exists(Location) && Directory.EnumerateFileSystemEntries(Location).Any())
-                    {
-                        validationMessage = "You have selected a non-empty directory. Installing the modlist here might result in a broken install!";
-                    }
-                    else
-                    {
-                        validationMessage = "Invalid Mod Organizer profile directory";
+                        case TaskMode.BUILDING when Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")):
+                            Location = Path.Combine(Location, "modlist.txt");
+                            validationMessage = null;
+                            ConfigureForBuild();
+                            break;
+                        case TaskMode.INSTALLING when Location != null && Directory.Exists(Location) && !Directory.EnumerateFileSystemEntries(Location).Any():
+                            validationMessage = null;
+                            break;
+                        case TaskMode.INSTALLING when Location != null && Directory.Exists(Location) && Directory.EnumerateFileSystemEntries(Location).Any():
+                            validationMessage = "You have selected a non-empty directory. Installing the modlist here might result in a broken install!";
+                            break;
+                        default:
+                            validationMessage = "Invalid Mod Organizer profile directory";
+                            break;
                     }
                     break;
             }
@@ -369,7 +351,7 @@ namespace Wabbajack
                 if (Dirty)
                     lock (InternalStatus)
                     {
-                        var data = InternalStatus.ToArray();
+                        CPUStatus[] data = InternalStatus.ToArray();
                         dispatcher.Invoke(() =>
                         {
                             for (var idx = 0; idx < data.Length; idx += 1)
@@ -385,13 +367,13 @@ namespace Wabbajack
                 {
                     if (DateTime.Now - _lastSlideShowUpdate > TimeSpan.FromSeconds(10))
                     {
-                        UpdateSlideShowItem(true);
+                        UpdateSlideShowItem();
                     }
                 }
                 Thread.Sleep(1000);
             }
         }
-        private void UpdateSlideShowItem(bool fromLoop)
+        private void UpdateSlideShowItem()
         {
             if (EnableSlideShow && slideshowThread != null && installing)
             {
@@ -443,8 +425,8 @@ namespace Wabbajack
                     SplashScreenSummary = element.ModSummary;
                     _nexusSiteURL = element.ModURL;                  
                 }
-                if (fromLoop)
-                    _lastSlideShowUpdate = DateTime.Now;
+
+                _lastSlideShowUpdate = DateTime.Now;
 
                 slidesQueue.Dequeue();
                 QueueRandomSlide(false, true);
@@ -461,10 +443,9 @@ namespace Wabbajack
         /// <param name="dest">The destination</param>
         private void CacheSlide(string id, string url)
         {
-            bool sync = false;
             using (var ms = new MemoryStream())
             {
-                if (sync)
+                if (USE_SYNC_CACHING)
                 {
                     dispatcher.Invoke(() =>
                     {
@@ -502,7 +483,7 @@ namespace Wabbajack
         /// <returns></returns>
         private bool QueueRandomSlide(bool init, bool checkLast)
         {
-            bool result = false;
+            var result = false;
             var idx = _random.Next(0, SlideShowElements.Count);
             var element = SlideShowElements[idx];
             if (checkLast)
@@ -544,8 +525,8 @@ namespace Wabbajack
             _cachedSlides = new Dictionary<string, BitmapImage>();
             slidesQueue = new Queue<SlideShowItem>();
 
-            int turns = 0;
-            for(int i = 0; i < SlideShowElements.Count; i++)
+            var turns = 0;
+            for(var i = 0; i < SlideShowElements.Count; i++)
             {
                 if (turns >= 3)
                     break;
