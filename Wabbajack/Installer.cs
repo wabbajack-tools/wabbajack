@@ -242,30 +242,21 @@ namespace Wabbajack
             {
                 Status($"Building {bsa.To}");
                 var source_dir = Path.Combine(Outputfolder, Consts.BSACreationDir, bsa.TempID);
-                var source_files = Directory.EnumerateFiles(source_dir, "*", SearchOption.AllDirectories)
-                    .Select(e => e.Substring(source_dir.Length + 1))
-                    .ToList();
 
-                if (source_files.Count > 0)
-                    using (var a = new BSABuilder())
+                using (var a = bsa.State.MakeBuilder())
+                {
+                    bsa.FileStates.PMap(state =>
                     {
-                        //a.Create(Path.Combine(Outputfolder, bsa.To), (bsa_archive_type_t)bsa.Type, entries);
-                        a.HeaderType = (VersionType)bsa.Type;
-                        a.FileFlags = (FileFlags)bsa.FileFlags;
-                        a.ArchiveFlags = (ArchiveFlags)bsa.ArchiveFlags;
-
-                        source_files.PMap(f =>
+                        Status($"Adding {state.Path} to BSA");
+                        using (var fs = File.OpenRead(Path.Combine(source_dir, state.Path)))
                         {
-                            Status($"Adding {f} to BSA");
-                            using (var fs = File.OpenRead(Path.Combine(source_dir, f)))
-                            {
-                                a.AddFile(f, fs);
-                            }
-                        });
+                            a.AddFile(state, fs);
+                        }
+                    });
 
-                        Info($"Writing {bsa.To}");
-                        a.Build(Path.Combine(Outputfolder, bsa.To));
-                    }
+                    Info($"Writing {bsa.To}");
+                    a.Build(Path.Combine(Outputfolder, bsa.To));
+                }
             });
 
 

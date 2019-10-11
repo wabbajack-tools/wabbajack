@@ -31,7 +31,7 @@ namespace Wabbajack
             if (file != null)
             {
                 ShutdownOnClose = false;
-                new MainWindow(RunMode.Compile, file).Start().Show();
+                new MainWindow(RunMode.Compile, file).Show();
                 Close();
             }
         }
@@ -42,7 +42,7 @@ namespace Wabbajack
             if (file != null)
             {
                 ShutdownOnClose = false;
-                new MainWindow(RunMode.Install, file).Start().Show();
+                new MainWindow(RunMode.Install, file).Show();
                 Close();
             }
         }

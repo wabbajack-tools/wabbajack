@@ -35,7 +35,7 @@ namespace Wabbajack.Common
         {
             try
             {
-                if (Consts.SupportedBSAs.Any(b => source.EndsWith(b)))
+                if (Consts.SupportedBSAs.Any(b => source.ToLower().EndsWith(b)))
                     ExtractAllWithBSA(source, dest);
                 else if (source.EndsWith(".exe"))
                     ExtractAllWithInno(source, dest);
@@ -216,6 +216,7 @@ namespace Wabbajack.Common
         /// <returns></returns>
         public static bool CanExtract(string v)
         {
+            v = v.ToLower();
             return Consts.SupportedArchives.Contains(v) || Consts.SupportedBSAs.Contains(v);
         }
 

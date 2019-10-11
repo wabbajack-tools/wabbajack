@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Compression.BSA;
 using VFS;
 using Wabbajack.Common;
 
@@ -167,15 +168,10 @@ namespace Wabbajack
     [Serializable]
     public class CreateBSA : Directive
     {
-        public string IsCompressed;
-        public bool ShareData;
         public string TempID;
         public uint Type;
-        public uint Version;
-
-        public uint FileFlags { get; set; }
-        public bool Compress { get; set; }
-        public uint ArchiveFlags { get; set; }
+        public ArchiveStateObject State { get; set; }
+        public List<FileStateObject> FileStates { get; set; }
     }
 
     [Serializable]
