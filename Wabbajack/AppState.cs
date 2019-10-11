@@ -72,7 +72,7 @@ namespace Wabbajack
             slideshowThread.Start();
         }
 
-        private DateTime _lastSlideShowUpdate = new DateTime();
+        public DateTime lastSlideShowUpdate = new DateTime();
 
         public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
         public ObservableCollection<CPUStatus> Status { get; } = new ObservableCollection<CPUStatus>();
@@ -308,7 +308,7 @@ namespace Wabbajack
 
         private string _SplashScreenSummary;
         public string SplashScreenSummary { get => _SplashScreenSummary; set => this.RaiseAndSetIfChanged(ref _SplashScreenSummary, value); }
-        private bool _splashShowNSFW = true;
+        private bool _splashShowNSFW = false;
         public bool SplashShowNSFW { get => _splashShowNSFW; set => this.RaiseAndSetIfChanged(ref _splashShowNSFW, value); }    
         private readonly Thread slideshowThread = null;
         private bool _enableSlideShow = true;
@@ -387,12 +387,12 @@ namespace Wabbajack
 
                 if (_slideShow.SlidesQueue.Any())
                 {
-                    if (DateTime.Now - _lastSlideShowUpdate > TimeSpan.FromSeconds(10))
+                    if (DateTime.Now - lastSlideShowUpdate > TimeSpan.FromSeconds(10))
                     {
                         _slideShow.UpdateSlideShowItem();
                     }
                 }
-                Thread.Sleep(10000);
+                Thread.Sleep(1000);
             }
         }
 
