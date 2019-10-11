@@ -308,7 +308,7 @@ namespace Wabbajack
 
         private string _SplashScreenSummary;
         public string SplashScreenSummary { get => _SplashScreenSummary; set => this.RaiseAndSetIfChanged(ref _SplashScreenSummary, value); }
-        private bool _splashShowNSFW = true;
+        private bool _splashShowNSFW = false;
         public bool SplashShowNSFW { get => _splashShowNSFW; set => this.RaiseAndSetIfChanged(ref _splashShowNSFW, value); }    
         private readonly Thread slideshowThread = null;
         private bool _enableSlideShow = true;
