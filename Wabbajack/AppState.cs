@@ -472,9 +472,9 @@ namespace Wabbajack
 
         internal void ConfigureForInstall(string source, ModList modlist)
         {
-
             _modList = modlist;
             _modListPath = source;
+            HasReadme = !string.IsNullOrEmpty(_modList.Readme);
             Mode = TaskMode.INSTALLING;
             ModListName = _modList.Name;
             HTMLReport = _modList.ReportHTML;
