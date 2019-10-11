@@ -273,7 +273,7 @@ namespace Wabbajack
                     }
                 }
 
-                var viewer = new TextViewer(text);
+                var viewer = new TextViewer(text, _ModListName);
                 viewer.Show();
             }
         }

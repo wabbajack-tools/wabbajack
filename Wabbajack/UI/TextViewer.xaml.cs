@@ -1,16 +1,14 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Documents;
+﻿using System.Windows;
 
 namespace Wabbajack.UI
 {
     public partial class TextViewer : Window
     {
-        public TextViewer(string text)
+        public TextViewer(string text, string title)
         {
             InitializeComponent();
             TextBlock.Text = text;
-            
+            Title = title;
         }
     }
 }

@@ -11,6 +11,5 @@
         Title="TextViewer" Height="450" Width="800">
     <Grid>
         <TextBlock FontSize="20" Name="TextBlock" TextWrapping="Wrap"/>
-        <!--<RichTextBox FontSize="15" Name="RichTextBox" AllowDrop="False" IsReadOnly="True"/>-->
     </Grid>
 </Window>
