@@ -253,29 +253,27 @@ namespace Wabbajack
 
         private void OpenReadmeWindow()
         {
-            if (UIReady)
+            if (!UIReady || string.IsNullOrEmpty(_modList.Readme)) return;
+            var text = "";
+            using (var fs = new FileStream(_modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+            using (var ms = new MemoryStream())
             {
-                var text = "";
-                using (var fs = new FileStream(_modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
-                using (var ms = new MemoryStream())
+                var entry = ar.GetEntry(_modList.Readme);
+                using (var e = entry.Open())
+                    e.CopyTo(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                using (var sr = new StreamReader(ms))
                 {
-                    var entry = ar.GetEntry(_modList.Readme);
-                    using (var e = entry.Open())
-                        e.CopyTo(ms);
-                    ms.Seek(0, SeekOrigin.Begin);
-                    using (var sr = new StreamReader(ms))
-                    {
-                        string line;
-                        while ((line = sr.ReadLine()) != null)
-                            text += line+Environment.NewLine;
-                        //text = sr.ReadToEnd();
-                    }
+                    string line;
+                    while ((line = sr.ReadLine()) != null)
+                        text += line+Environment.NewLine;
+                    //text = sr.ReadToEnd();
                 }
-
-                var viewer = new TextViewer(text, _ModListName);
-                viewer.Show();
             }
+
+            var viewer = new TextViewer(text, _ModListName);
+            viewer.Show();
         }
 
         private bool _uiReady = false;
