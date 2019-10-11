@@ -104,6 +104,9 @@ namespace Wabbajack
             foreach (var directive in files.OrderBy(f => f.GetType().Name).ThenByDescending(f => f.To))
                 switch (directive)
                 {
+                    case PropertyFile i:
+                        NoWrapText($"* `{i.OriginalName}` as a `{Enum.GetName(typeof(PropertyType),i.Type)}`");
+                        break;
                     case FromArchive f:
                         //NoWrapText($"* `{f.To}` from `{f.FullPath}`");
                         break;

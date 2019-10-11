@@ -272,9 +272,6 @@ namespace Wabbajack
             GatherArchives();
             BuildPatches();
 
-            if (ModList != null)
-                if (File.Exists(ModListImage) && !File.Exists(Path.Combine(MO2ProfileDir, Path.GetFileName(ModListImage)))) File.Copy(ModListImage, Path.Combine(MO2ProfileDir, Path.GetFileName(ModListImage)));
-
             ModList = new ModList
             {
                 GameType = GameRegistry.Games.Values.First(f => f.MO2Name == MO2Ini.General.gameName).Game,
@@ -283,7 +280,7 @@ namespace Wabbajack
                 Name = ModListName ?? MO2Profile,
                 Author = ModListAuthor ?? "",
                 Description = ModListDescription ?? "",
-                Image = ModListImage != null ? Path.Combine("profiles", MO2Profile, Path.GetFileName(ModListImage)) : "",
+                Image = ModListImage ?? "",
                 Website = ModListWebsite ?? ""
             };
 
@@ -617,6 +614,7 @@ namespace Wabbajack
             Info("Generating compilation stack");
             return new List<Func<RawSourceFile, Directive>>
             {
+                IncludePropertyFiles(),
                 IgnoreStartsWith("logs\\"),
                 IncludeRegex("^downloads\\\\.*\\.meta"),
                 IgnoreStartsWith("downloads\\"),
@@ -670,6 +668,20 @@ namespace Wabbajack
                 zEditIntegration.IncludezEditPatches(this),
 
                 DropAll()
+            };
+        }
+
+        private Func<RawSourceFile, Directive> IncludePropertyFiles()
+        {
+            return source =>
+            {
+                if (source.AbsolutePath != ModListImage) return null;
+                if (!File.Exists(ModListImage)) return null;
+                var result = source.EvolveTo<PropertyFile>();
+                result.Type = PropertyType.Banner;
+                result.SourceDataID = IncludeFile(File.ReadAllBytes(ModListImage));
+                ModListImage = result.SourceDataID;
+                return result;
             };
         }
 

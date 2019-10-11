@@ -111,6 +111,17 @@ namespace Wabbajack
         public string SourceDataID;
     }
 
+    public enum PropertyType { Banner }
+
+    /// <summary>
+    ///     File meant to be extracted before the installation
+    /// </summary>
+    [Serializable]
+    public class PropertyFile : InlineFile
+    {
+        public PropertyType Type;
+    }
+
     [Serializable]
     public class CleanedESM : InlineFile
     {
