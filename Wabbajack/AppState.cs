@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
@@ -250,7 +251,6 @@ namespace Wabbajack
 
         private readonly BitmapImage _wabbajackLogo = null;
         public readonly BitmapImage _noneImage = null;
-        private bool _originalImage = true;
         private BitmapImage _splashScreenImage = null;
         public BitmapImage SplashScreenImage
         {
@@ -373,12 +373,26 @@ namespace Wabbajack
             {
                 //TODO: if(_modList.Image != null) SplashScreenImage = _modList.Image;
                 SplashScreenImage = _wabbajackLogo;
+                using (var fs = new FileStream(_modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+                using (var ms = new MemoryStream())
+                {
+                    var entry = ar.GetEntry(_modList.Image);
+                    using (var e = entry.Open())
+                        e.CopyTo(ms);
+                    var image = new BitmapImage();
+                    image.BeginInit();
+                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    image.StreamSource = ms;
+                    image.EndInit();
+                    image.Freeze();
+
+                    SplashScreenImage = image;
+                }
             }
             else
             {
-                if (!_originalImage) {
-                    SplashScreenImage = _wabbajackLogo;
-                }
+                SplashScreenImage = _wabbajackLogo;
             }
         }
 
