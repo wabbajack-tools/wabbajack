@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ReactiveUI;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -136,8 +137,8 @@ namespace Wabbajack.NexusApi
                 _dailyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
                 _hourlyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
             }
-            RaisePropertyChanged(nameof(DailyRemaining));
-            RaisePropertyChanged(nameof(HourlyRemaining));
+            this.RaisePropertyChanged(nameof(DailyRemaining));
+            this.RaisePropertyChanged(nameof(HourlyRemaining));
         }
 
         #endregion

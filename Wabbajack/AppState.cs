@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ReactiveUI;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -101,8 +102,8 @@ namespace Wabbajack
             set
             {
                 _htmlReport = value;
-                RaisePropertyChanged();
-                RaisePropertyChanged(nameof(ShowReportButton));
+                this.RaisePropertyChanged();
+                this.RaisePropertyChanged(nameof(ShowReportButton));
             }
         }
 
@@ -292,7 +293,7 @@ namespace Wabbajack
             set
             {
                 _splashScreenImage = value;
-                RaisePropertyChanged();
+                this.RaisePropertyChanged();
             }
         }
 
