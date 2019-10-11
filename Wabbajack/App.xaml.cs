@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Windows;
 using Wabbajack.Common;
 using Wabbajack.Updater;
@@ -16,8 +15,8 @@ namespace Wabbajack
             var args = Environment.GetCommandLineArgs();
             if (args.Length > 1)
             {
-                Utils.SetLoggerFn(f => {});
-                WorkQueue.Init((a, b, c) => {}, (a, b) => {});
+                Utils.SetLoggerFn(f => { });
+                WorkQueue.Init((a, b, c) => { }, (a, b) => { });
                 var updater = new CheckForUpdates(args[1]);
                 if (updater.FindOutdatedMods())
                 {

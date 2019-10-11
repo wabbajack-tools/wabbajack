@@ -11,8 +11,8 @@ using System.Reflection;
 using System.Security.Authentication;
 using System.Threading.Tasks;
 using Wabbajack.Common;
-using static Wabbajack.NexusApi.NexusApiUtils;
 using WebSocketSharp;
+using static Wabbajack.NexusApi.NexusApiUtils;
 
 namespace Wabbajack.NexusApi
 {
@@ -258,11 +258,11 @@ namespace Wabbajack.NexusApi
         }
 
 
-        public static IEnumerable<SlideShowItem> CachedSlideShow
+        public static IEnumerable<UI.Slide> CachedSlideShow
         {
             get
             {
-                if (!Directory.Exists(Consts.NexusCacheDirectory)) return new SlideShowItem[] { };
+                if (!Directory.Exists(Consts.NexusCacheDirectory)) return new UI.Slide[] { };
 
                 return Directory.EnumerateFiles(Consts.NexusCacheDirectory)
                     .Where(f => f.EndsWith(".json"))
@@ -280,14 +280,7 @@ namespace Wabbajack.NexusApi
                     })
                     .Where(m => m != null)
                     .Where(m => m._internal_version == CACHED_VERSION_NUMBER && m.picture_url != null)
-                    .Select(m => new SlideShowItem
-                    {
-                        ImageURL = m.picture_url,
-                        ModName = FixupSummary(m.name),
-                        AuthorName = FixupSummary(m.author),
-                        ModURL = GetModURL(m.game_name, m.mod_id),
-                        ModSummary = FixupSummary(m.summary)
-                    });
+                    .Select(m => new UI.Slide(m.name,m.mod_id,m.summary,m.author,m.contains_adult_content,GetModURL(m.game_name,m.mod_id),m.picture_url));
             }
         }
 

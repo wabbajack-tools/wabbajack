@@ -1,9 +1,8 @@
-﻿using System;
+﻿using Alphaleonis.Win32.Filesystem;
+using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Windows;
-using System.Windows.Forms;
-using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
@@ -31,7 +30,7 @@ namespace Wabbajack
 
             InitializeComponent();
 
-            var context = new AppState(Dispatcher, "Building");
+            var context = new AppState(Dispatcher, TaskMode.BUILDING);
             context.LogMsg($"Wabbajack Build - {ThisAssembly.Git.Sha}");
             SetupHandlers(context);
             DataContext = context;
@@ -43,6 +42,17 @@ namespace Wabbajack
             UIUtils.Dispatcher = Dispatcher;
 
             _state._nexusSiteURL = "https://github.com/wabbajack-tools/wabbajack";
+
+            if (mode == RunMode.Compile)
+            {
+                PropertyCompilerGrid.Visibility = Visibility.Visible;
+                PropertyInstallerGrid.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                PropertyCompilerGrid.Visibility = Visibility.Hidden;
+                PropertyInstallerGrid.Visibility = Visibility.Visible;
+            }
 
             new Thread(() =>
             {
@@ -65,8 +75,10 @@ namespace Wabbajack
                         {
                             context.Running = false;
                             ExitWhenClosing = false;
-                            var window = new ModeSelectionWindow();
-                            window.ShowActivated = true;
+                            var window = new ModeSelectionWindow
+                            {
+                                ShowActivated = true
+                            };
                             window.Show();
                             Close();
                         });
@@ -91,7 +103,7 @@ namespace Wabbajack
         private void AppHandler(object sender, UnhandledExceptionEventArgs e)
         {
             _state.LogMsg("Uncaught error:");
-            _state.LogMsg(((Exception) e.ExceptionObject).ExceptionToString());
+            _state.LogMsg(((Exception)e.ExceptionObject).ExceptionToString());
         }
 
 

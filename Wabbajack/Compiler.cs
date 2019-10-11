@@ -1,20 +1,16 @@
-﻿using System;
+﻿using CommonMark;
+using Compression.BSA;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
-using CommonMark;
-using Compression.BSA;
-using K4os.Compression.LZ4;
-using K4os.Compression.LZ4.Streams;
-using Newtonsoft.Json;
-using System.IO.Compression;
 using VFS;
 using Wabbajack.Common;
 using Wabbajack.NexusApi;
@@ -37,12 +33,13 @@ namespace Wabbajack
 
 
         public string MO2Profile;
+        public string ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModListImage, ModListReadme;
 
         public Compiler(string mo2_folder)
         {
             MO2Folder = mo2_folder;
             MO2Ini = Path.Combine(MO2Folder, "ModOrganizer.ini").LoadIniFile();
-            GamePath = ((string) MO2Ini.General.gamePath).Replace("\\\\", "\\");
+            GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
         }
 
         public dynamic MO2Ini { get; }
@@ -143,12 +140,12 @@ namespace Wabbajack
 
             var mo2_files = Directory.EnumerateFiles(MO2Folder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Lookup(p)) {Path = p.RelativeTo(MO2Folder)});
+                .Select(p => new RawSourceFile(VFS.Lookup(p)) { Path = p.RelativeTo(MO2Folder) });
 
             var game_files = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Lookup(p))
-                    {Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))});
+                { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
 
             var loot_path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "LOOT");
@@ -163,7 +160,7 @@ namespace Wabbajack
                 loot_files = Directory.EnumerateFiles(loot_path, "userlist.yaml", SearchOption.AllDirectories)
                     .Where(p => p.FileExists())
                     .Select(p => new RawSourceFile(VFS.Lookup(p))
-                        { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(loot_path)) });
+                    { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(loot_path)) });
             }
 
 
@@ -280,7 +277,12 @@ namespace Wabbajack
                 GameType = GameRegistry.Games.Values.First(f => f.MO2Name == MO2Ini.General.gameName).Game,
                 Archives = SelectedArchives,
                 Directives = InstallDirectives,
-                Name = MO2Profile
+                Name = ModListName ?? MO2Profile,
+                Author = ModListAuthor ?? "",
+                Description = ModListDescription ?? "",
+                Readme = ModListReadme ?? "",
+                Image = ModListImage ?? "",
+                Website = ModListWebsite ?? ""
             };
 
             ValidateModlist.RunValidation(ModList);
@@ -358,8 +360,8 @@ namespace Wabbajack
                 }
             }
 
-            ModList.ReportHTML = "<style>"+css+"</style>"
-                +CommonMarkConverter.Convert(File.ReadAllText($"{ModList.Name}.md"));
+            ModList.ReportHTML = "<style>" + css + "</style>"
+                + CommonMarkConverter.Convert(File.ReadAllText($"{ModList.Name}.md"));
         }
 
         /// <summary>
@@ -485,7 +487,7 @@ namespace Wabbajack
                 }
                 else if (general.directURL != null && general.directURL.StartsWith("https://www.dropbox.com/"))
                 {
-                    var uri = new UriBuilder((string) general.directURL);
+                    var uri = new UriBuilder((string)general.directURL);
                     var query = HttpUtility.ParseQueryString(uri.Query);
 
                     if (query.GetValues("dl").Count() > 0)
@@ -548,6 +550,7 @@ namespace Wabbajack
                     nm.SlideShowPic = info.picture_url;
                     nm.NexusURL = NexusApiUtils.GetModURL(info.game_name, info.mod_id);
                     nm.Summary = info.summary;
+                    nm.Adult = info.contains_adult_content;
 
                     result = nm;
                 }
@@ -612,6 +615,7 @@ namespace Wabbajack
             Info("Generating compilation stack");
             return new List<Func<RawSourceFile, Directive>>
             {
+                IncludePropertyFiles(),
                 IgnoreStartsWith("logs\\"),
                 IncludeRegex("^downloads\\\\.*\\.meta"),
                 IgnoreStartsWith("downloads\\"),
@@ -665,6 +669,34 @@ namespace Wabbajack
                 zEditIntegration.IncludezEditPatches(this),
 
                 DropAll()
+            };
+        }
+
+        private Func<RawSourceFile, Directive> IncludePropertyFiles()
+        {
+            return source =>
+            {
+                var files = new HashSet<string>
+                {
+                    ModListImage, ModListReadme
+                };
+                if (!files.Any(f => source.AbsolutePath.Equals(f))) return null;
+                if (!File.Exists(source.AbsolutePath)) return null;
+                var isBanner = source.AbsolutePath == ModListImage;
+                //var isReadme = source.AbsolutePath == ModListReadme;
+                var result = source.EvolveTo<PropertyFile>();
+                result.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
+                if (isBanner)
+                {
+                    result.Type = PropertyType.Banner;
+                    ModListImage = result.SourceDataID;
+                }
+                else
+                {
+                    result.Type = PropertyType.Readme;
+                    ModListReadme = result.SourceDataID;
+                }
+                return result;
             };
         }
 
@@ -933,9 +965,9 @@ namespace Wabbajack
                     {
                         To = source.Path,
                         TempID = id,
-                        Type = (uint) bsa.HeaderType,
-                        FileFlags = (uint) bsa.FileFlags,
-                        ArchiveFlags = (uint) bsa.ArchiveFlags
+                        Type = (uint)bsa.HeaderType,
+                        FileFlags = (uint)bsa.FileFlags,
+                        ArchiveFlags = (uint)bsa.ArchiveFlags
                     };
                 }
 
@@ -1081,8 +1113,8 @@ namespace Wabbajack
         {
             var lines = File.ReadAllLines(absolutePath);
             lines = (from line in lines
-                where !(line.StartsWith("-") && !line.EndsWith("_separator"))
-                select line).ToArray();
+                     where !(line.StartsWith("-") && !line.EndsWith("_separator"))
+                     select line).ToArray();
             return Encoding.UTF8.GetBytes(string.Join("\r\n", lines));
         }
 

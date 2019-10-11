@@ -21,7 +21,7 @@ namespace Wabbajack
 
         public static bool GetScrollOnNewItem(DependencyObject obj)
         {
-            return (bool) obj.GetValue(ScrollOnNewItemProperty);
+            return (bool)obj.GetValue(ScrollOnNewItemProperty);
         }
 
         public static void SetScrollOnNewItem(DependencyObject obj, bool value)
@@ -35,7 +35,7 @@ namespace Wabbajack
         {
             var listBox = d as ListBox;
             if (listBox == null) return;
-            bool oldValue = (bool) e.OldValue, newValue = (bool) e.NewValue;
+            bool oldValue = (bool)e.OldValue, newValue = (bool)e.NewValue;
             if (newValue == oldValue) return;
             if (newValue)
             {
@@ -57,7 +57,7 @@ namespace Wabbajack
 
         private static void ListBox_ItemsSourceChanged(object sender, EventArgs e)
         {
-            var listBox = (ListBox) sender;
+            var listBox = (ListBox)sender;
             if (Associations.ContainsKey(listBox))
                 Associations[listBox].Dispose();
             Associations[listBox] = new Capture(listBox);
@@ -65,7 +65,7 @@ namespace Wabbajack
 
         private static void ListBox_Unloaded(object sender, RoutedEventArgs e)
         {
-            var listBox = (ListBox) sender;
+            var listBox = (ListBox)sender;
             if (Associations.ContainsKey(listBox))
                 Associations[listBox].Dispose();
             listBox.Unloaded -= ListBox_Unloaded;
@@ -73,7 +73,7 @@ namespace Wabbajack
 
         private static void ListBox_Loaded(object sender, RoutedEventArgs e)
         {
-            var listBox = (ListBox) sender;
+            var listBox = (ListBox)sender;
             var incc = listBox.Items as INotifyCollectionChanged;
             if (incc == null) return;
             listBox.Loaded -= ListBox_Loaded;

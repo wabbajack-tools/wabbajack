@@ -1,12 +1,8 @@
-﻿using System;
+﻿using Alphaleonis.Win32.Filesystem;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using VFS;
 using Wabbajack.Common;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -49,9 +45,10 @@ namespace Wabbajack
                 .GroupBy(f => (f.name, f.filename));
 
             merges.Where(m => m.Count() > 1)
-                .Do(m => {
-                Utils.Warning(
-                    $"WARNING, you have two patches named {m.Key.name}\\{m.Key.filename} in your zEdit profiles. We'll pick one at random, this probably isn't what you want.");
+                .Do(m =>
+                {
+                    Utils.Warning(
+                        $"WARNING, you have two patches named {m.Key.name}\\{m.Key.filename} in your zEdit profiles. We'll pick one at random, this probably isn't what you want.");
                 });
 
             var mergesIndexed =

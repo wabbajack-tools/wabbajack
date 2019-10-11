@@ -46,7 +46,10 @@ namespace Wabbajack
 
         public void Build(Compiler c, ModList lst)
         {
-            Text($"### {lst.Name} - Installation Summary");
+            Text($"### {lst.Name} by {lst.Author} - Installation Summary");
+            Text(lst.Description);
+            Text($"#### Website:");
+            NoWrapText($"[{lst.Website}]({lst.Website})");
 
             var readme_file = Path.Combine(c.MO2ProfileDir, "readme.md");
             if (File.Exists(readme_file))
@@ -101,6 +104,9 @@ namespace Wabbajack
             foreach (var directive in files.OrderBy(f => f.GetType().Name).ThenByDescending(f => f.To))
                 switch (directive)
                 {
+                    case PropertyFile i:
+                        NoWrapText($"* `{i.SourceDataID}` as a `{Enum.GetName(typeof(PropertyType),i.Type)}`");
+                        break;
                     case FromArchive f:
                         //NoWrapText($"* `{f.To}` from `{f.FullPath}`");
                         break;

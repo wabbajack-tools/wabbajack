@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using Wabbajack.Common;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -115,7 +113,7 @@ namespace Wabbajack.Validation
             var nexus_mod_permissions = modlist.Archives
                 .OfType<NexusMod>()
                 .PMap(a => (a.Hash, FilePermissions(a), a))
-                .ToDictionary(a => a.Hash, a => new { permissions = a.Item2, archive = a.a});
+                .ToDictionary(a => a.Hash, a => new { permissions = a.Item2, archive = a.a });
 
             modlist.Directives
                 .OfType<PatchedFromArchive>()
@@ -141,7 +139,7 @@ namespace Wabbajack.Validation
                 {
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {
-                        if (!(archive.permissions.CanExtractBSAs ?? true) && 
+                        if (!(archive.permissions.CanExtractBSAs ?? true) &&
                             p.ArchiveHashPath.Skip(1).ButLast().Any(a => Consts.SupportedBSAs.Contains(Path.GetExtension(a))))
                         {
                             ValidationErrors.Push($"{p.To} from {archive.archive.NexusURL} is set to disallow BSA Extraction");
