@@ -39,6 +39,16 @@ namespace Wabbajack
 
         public readonly Dispatcher dispatcher;
 
+        // Command properties
+        public IReactiveCommand ChangePathCommand => ReactiveCommand.Create(ExecuteChangePath);
+        public IReactiveCommand ChangeDownloadPathCommand => ReactiveCommand.Create(ExecuteChangeDownloadPath);
+        public IReactiveCommand BeginCommand => ReactiveCommand.Create(ExecuteBegin);
+        public IReactiveCommand ShowReportCommand => ReactiveCommand.Create(ShowReport);
+        public IReactiveCommand VisitNexusSiteCommand => ReactiveCommand.Create(VisitNexusSite);
+        public IReactiveCommand OpenReadmeCommand => ReactiveCommand.Create(OpenReadmeWindow);
+        public IReactiveCommand OpenModListPropertiesCommand => ReactiveCommand.Create(OpenModListProperties);
+        public IReactiveCommand SlideShowNextItemCommand { get; }
+
         public AppState(Dispatcher d, TaskMode mode)
         {
             _wabbajackLogo = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner.png");
@@ -47,6 +57,7 @@ namespace Wabbajack
             _nextIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.next.png");
 
             _slideShow = new SlideShow(this, true);
+            this.SlideShowNextItemCommand = ReactiveCommand.Create(_slideShow.UpdateSlideShowItem);
 
             if (Assembly.GetEntryAssembly().Location.ToLower().Contains("\\downloads\\"))
             {
@@ -113,72 +124,6 @@ namespace Wabbajack
         private List<CPUStatus> InternalStatus { get; } = new List<CPUStatus>();
         public string LogFile { get; }
 
-        private ICommand _changePath;
-        public ICommand ChangePath
-        {
-            get
-            {
-                if (_changePath == null) _changePath = new LambdaCommand(() => true, ExecuteChangePath);
-                return _changePath;
-            }
-        }
-
-        private ICommand _changeDownloadPath;
-        public ICommand ChangeDownloadPath
-        {
-            get
-            {
-                if (_changeDownloadPath == null)
-                    _changeDownloadPath = new LambdaCommand(() => true, ExecuteChangeDownloadPath);
-                return _changeDownloadPath;
-            }
-        }
-
-        private ICommand _begin;
-        public ICommand Begin
-        {
-            get
-            {
-                if (_begin == null) _begin = new LambdaCommand(() => true, ExecuteBegin);
-                return _begin;
-            }
-        }
-
-        private ICommand _showReportCommand;
-        public ICommand ShowReportCommand
-        {
-            get
-            {
-                return _showReportCommand ?? (_showReportCommand = new LambdaCommand(() => true, ShowReport));
-            }
-        }
-
-        private ICommand _visitNexusSiteCommand;
-        public ICommand VisitNexusSiteCommand
-        {
-            get
-            {
-                return _visitNexusSiteCommand ??
-                       (_visitNexusSiteCommand = new LambdaCommand(() => true, VisitNexusSite));
-            }
-        }
-
-        public ICommand OpenModListPropertiesCommand
-        {
-            get
-            {
-                return new LambdaCommand(() => true, OpenModListProperties);
-            }
-        }
-
-        public ICommand SlideShowNextItem
-        {
-            get
-            {
-                return new LambdaCommand(() => true, _slideShow.UpdateSlideShowItem);
-            }
-        }
-
         private void ExecuteChangePath()
         {
             if (Mode == TaskMode.INSTALLING)
@@ -244,13 +189,6 @@ namespace Wabbajack
         }
 
         public bool HasReadme { get; set; }
-        public ICommand OpenReadme
-        {
-            get
-            {
-                return new LambdaCommand(()=> true,OpenReadmeWindow);
-            }
-        }
 
         private void OpenReadmeWindow()
         {

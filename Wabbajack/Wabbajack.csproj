@@ -222,7 +222,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Data.cs" />
-    <Compile Include="LambdaCommand.cs" />
     <Compile Include="UI\ModlistPropertiesWindow.xaml.cs">
       <DependentUpon>ModlistPropertiesWindow.xaml</DependentUpon>
     </Compile>
