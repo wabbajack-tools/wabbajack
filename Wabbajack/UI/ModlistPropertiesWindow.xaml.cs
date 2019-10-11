@@ -47,15 +47,12 @@ namespace Wabbajack
                     state.newImagePath = newBannerFile;
                     state.SplashScreenImage = splashScreen;
                 }
-                string modListName = ModlistNameProperty.Text;
-                string modListAuthor = ModlistAuthorProperty.Text;
-                string modListDescription = ModlistDescriptionProperty.Text;
-                string modListWebsite = ModlistWebsiteProperty.Text;
 
-                state.SplashScreenModName = modListName;
-                state.SplashScreenSummary = modListDescription;
-                state.SplashScreenAuthorName = modListAuthor;
-                state._nexusSiteURL = modListWebsite;
+                state.SplashScreenModName = ModlistNameProperty.Text;
+                state.SplashScreenSummary = ModlistDescriptionProperty.Text;
+                state.SplashScreenAuthorName = ModlistAuthorProperty.Text;
+                state._nexusSiteURL = ModlistWebsiteProperty.Text;
+                state.readmePath = ModlistReadmeProperty.Text;
 
                 state.ChangedProperties = true;
 
@@ -68,6 +65,15 @@ namespace Wabbajack
         {
             base.OnClosed(e);
             IsClosed = true;
+        }
+
+        private void ChooseReadme_Click(object sender, RoutedEventArgs e)
+        {
+            var file = UIUtils.OpenFileDialog("Readme|*.txt");
+            if (file != null)
+            {
+                ModlistReadmeProperty.Text = file;
+            }
         }
     }
 }

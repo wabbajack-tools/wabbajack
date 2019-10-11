@@ -11,44 +11,50 @@
         Closing="Window_Closing">
     <Grid Margin="8">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="300"/>
+            <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="450"/>
-            <ColumnDefinition Width="430"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="0" Grid.Row="0" Margin="5">
             <Grid.RowDefinitions>
-                <RowDefinition Height="289"/>
+                <RowDefinition Height="*"/>
                 <RowDefinition Height="30"/>
             </Grid.RowDefinitions>
-            <Image Grid.Row="0" Stretch="Uniform" Name="SplashScreenProperty"/>
-            <Button Grid.Row="1" Height="30" Click="SetSplashScreen_Click" ToolTip="Use a 1400x900 png file for the best results">
+            <Image Grid.Row="0" Stretch="Fill" Name="SplashScreenProperty"/>
+            <Button Height="30" Grid.Row="1" Click="SetSplashScreen_Click" ToolTip="Use a 1400x900 png file for the best results">
                 <TextBlock Text="Change splash screen image" FontSize="15" FontWeight="Bold"/>
             </Button>
         </Grid>
 
         <Grid Grid.Column="1" Grid.Row="0" Margin="0 5 0 5">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="423*"/>
-                <ColumnDefinition Width="17*"/>
-            </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="30"/>
                 <RowDefinition Height="30"/>
-                <RowDefinition Height="234"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <TextBox Grid.Row="0" Text="ModList Name" Name="ModlistNameProperty" ToolTip="Change the name of your ModList" MaxLength="50" AcceptsTab="False" FontSize="15" FontWeight="Bold" Margin="0,0,0,5"/>
             <TextBox Grid.Row="1" Text="Author" Name="ModlistAuthorProperty" ToolTip="Change the name of the Author" MaxLength="50" AcceptsTab="False" FontSize="15" Margin="0 0 0 5" />
-            <TextBox Grid.Row="2" Text="Description (700 characters max)" Name="ModlistDescriptionProperty" ToolTip="Change the description" MaxLength="700" AcceptsReturn="True" TextWrapping="Wrap" AcceptsTab="False" FontSize="15" Margin="0,0,0,-23"/>
+            <TextBox Grid.Row="2" Text="Description (700 characters max)" Name="ModlistDescriptionProperty" ToolTip="Change the description" MaxLength="700" AcceptsReturn="True" TextWrapping="Wrap" AcceptsTab="False" FontSize="15" Margin="0,0,0,0"/>
         </Grid>
 
-        <TextBox Grid.ColumnSpan="2" Text="Website" Name="ModlistWebsiteProperty" ToolTip="Change the website" MaxLength="80" AcceptsReturn="False" AcceptsTab="False" FontSize="15" Margin="5,328,17,128"/>
+        <TextBox Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2" Text="Website" Name="ModlistWebsiteProperty" ToolTip="Change the website" MaxLength="80" AcceptsReturn="False" AcceptsTab="False" FontSize="15"/>
+        <Grid Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Height="30" Margin="0,10,0,-10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBox Height="30" Grid.ColumnSpan="3" Text="Readme path" Name="ModlistReadmeProperty" AcceptsReturn="False" AcceptsTab="False" FontSize="15"/>
+            <Button Height="30" Grid.Column="2" Content="Choose" Click="ChooseReadme_Click"/>
+        </Grid>
 
-        <Button Grid.Row="2" Grid.ColumnSpan="2" Click="SaveProperties_Click">
+        <Button Grid.Column="0" Grid.Row="3" Grid.ColumnSpan="2" Click="SaveProperties_Click" Margin="0,160,0,-160" Height="30" VerticalAlignment="Bottom">
             <TextBlock Text="Save" FontSize="15" FontWeight="Bold"/>
         </Button>
     </Grid>

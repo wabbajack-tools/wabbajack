@@ -219,6 +219,7 @@ namespace Wabbajack
 
         private ModlistPropertiesWindow modlistPropertiesWindow;
         public string newImagePath;
+        public string readmePath;
         public bool ChangedProperties;
         private void OpenModListProperties()
         {
@@ -239,8 +240,43 @@ namespace Wabbajack
                     OpenModListProperties();
                 }
             }
-        }      
+        }
 
+        public bool HasReadme { get; set; }
+        public ICommand OpenReadme
+        {
+            get
+            {
+                return new LambdaCommand(()=> true,OpenReadmeWindow);
+            }
+        }
+
+        private void OpenReadmeWindow()
+        {
+            if (UIReady)
+            {
+                var text = "";
+                using (var fs = new FileStream(_modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+                using (var ms = new MemoryStream())
+                {
+                    var entry = ar.GetEntry(_modList.Readme);
+                    using (var e = entry.Open())
+                        e.CopyTo(ms);
+                    ms.Seek(0, SeekOrigin.Begin);
+                    using (var sr = new StreamReader(ms))
+                    {
+                        string line;
+                        while ((line = sr.ReadLine()) != null)
+                            text += line+Environment.NewLine;
+                        //text = sr.ReadToEnd();
+                    }
+                }
+
+                var viewer = new TextViewer(text);
+                viewer.Show();
+            }
+        }
 
         private bool _uiReady = false;
         public bool UIReady
@@ -371,7 +407,6 @@ namespace Wabbajack
             SplashScreenSummary = _modList.Description;
             if (!string.IsNullOrEmpty(_modList.Image) && _modList.Image.Length == 36)
             {
-                //TODO: if(_modList.Image != null) SplashScreenImage = _modList.Image;
                 SplashScreenImage = _wabbajackLogo;
                 using (var fs = new FileStream(_modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
@@ -503,8 +538,9 @@ namespace Wabbajack
                     ModListName = ChangedProperties ? SplashScreenModName : null,
                     ModListAuthor = ChangedProperties ? SplashScreenAuthorName : null,
                     ModListDescription = ChangedProperties ? SplashScreenSummary : null,
-                    ModListImage = ChangedProperties ? newImagePath ?? null : null,
-                    ModListWebsite = ChangedProperties ? _nexusSiteURL : null
+                    ModListImage = ChangedProperties ? newImagePath : null,
+                    ModListWebsite = ChangedProperties ? _nexusSiteURL : null,
+                    ModListReadme = ChangedProperties ? readmePath : null
                 };
                 var th = new Thread(() =>
                 {
