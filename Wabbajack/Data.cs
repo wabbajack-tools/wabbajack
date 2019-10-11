@@ -65,7 +65,7 @@ namespace Wabbajack
         public string Description;
 
         /// <summary>
-        ///     Image of the ModList
+        ///     Hash of the banner-image
         /// </summary>
         public string Image;
 
@@ -73,6 +73,11 @@ namespace Wabbajack
         ///     Website of the ModList
         /// </summary>
         public string Website;
+
+        /// <summary>
+        ///     Hash of the readme
+        /// </summary>
+        public string Readme;
 
         /// <summary>
         ///     Content Report in HTML form
@@ -111,7 +116,7 @@ namespace Wabbajack
         public string SourceDataID;
     }
 
-    public enum PropertyType { Banner }
+    public enum PropertyType { Banner, Readme }
 
     /// <summary>
     ///     File meant to be extracted before the installation

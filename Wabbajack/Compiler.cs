@@ -33,7 +33,7 @@ namespace Wabbajack
 
 
         public string MO2Profile;
-        public string ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModListImage;
+        public string ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModListImage, ModListReadme;
 
         public Compiler(string mo2_folder)
         {
@@ -280,6 +280,7 @@ namespace Wabbajack
                 Name = ModListName ?? MO2Profile,
                 Author = ModListAuthor ?? "",
                 Description = ModListDescription ?? "",
+                Readme = ModListReadme ?? "",
                 Image = ModListImage ?? "",
                 Website = ModListWebsite ?? ""
             };
@@ -675,12 +676,26 @@ namespace Wabbajack
         {
             return source =>
             {
-                if (source.AbsolutePath != ModListImage) return null;
-                if (!File.Exists(ModListImage)) return null;
+                var files = new HashSet<string>
+                {
+                    ModListImage, ModListReadme
+                };
+                if (!files.Any(f => source.AbsolutePath.Equals(f))) return null;
+                if (!File.Exists(source.AbsolutePath)) return null;
+                var isBanner = source.AbsolutePath == ModListImage;
+                //var isReadme = source.AbsolutePath == ModListReadme;
                 var result = source.EvolveTo<PropertyFile>();
-                result.Type = PropertyType.Banner;
-                result.SourceDataID = IncludeFile(File.ReadAllBytes(ModListImage));
-                ModListImage = result.SourceDataID;
+                result.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
+                if (isBanner)
+                {
+                    result.Type = PropertyType.Banner;
+                    ModListImage = result.SourceDataID;
+                }
+                else
+                {
+                    result.Type = PropertyType.Readme;
+                    ModListReadme = result.SourceDataID;
+                }
                 return result;
             };
         }
