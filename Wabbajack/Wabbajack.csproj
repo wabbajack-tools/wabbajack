@@ -197,6 +197,7 @@
     <Compile Include="ReportBuilder.cs" />
     <Compile Include="Themes\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Themes\TreeViewItemExtensions.cs" />
+    <Compile Include="UI\SlideShow.cs" />
     <Compile Include="UI\UIUtils.cs" />
     <Compile Include="Updater\CheckForUpdates.cs" />
     <Compile Include="Validation\DTOs.cs" />

@@ -14,16 +14,18 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Wabbajack.Common;
 using Wabbajack.NexusApi;
+using Wabbajack.UI;
 
 namespace Wabbajack
 {
     public enum TaskMode { INSTALLING, BUILDING }
     internal class AppState : ViewModel, IDataErrorInfo
     {
-        private const int MAX_CACHE_SIZE = 10;
-        private const bool USE_SYNC_CACHING = false;
+        public const bool GcCollect = true;
 
-        private bool installing = false;
+        private SlideShow _slideShow;
+
+        public bool installing = false;
 
         private string _mo2Folder;
 
@@ -33,7 +35,7 @@ namespace Wabbajack
 
         public volatile bool Dirty;
 
-        private readonly Dispatcher dispatcher;
+        public readonly Dispatcher dispatcher;
 
         public AppState(Dispatcher d, TaskMode mode)
         {
@@ -42,7 +44,7 @@ namespace Wabbajack
             _noneImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.none.jpg");
             _nextIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.next.png");
 
-            SetupSlideshow();
+            _slideShow = new SlideShow(this, true);
 
             if (Assembly.GetEntryAssembly().Location.ToLower().Contains("\\downloads\\"))
             {
@@ -69,17 +71,6 @@ namespace Wabbajack
             slideshowThread.Start();
         }
 
-        private void SetupSlideshow()
-        {
-            var files = NexusApiClient.CachedSlideShow;
-            if (files.Any())
-            {
-                SlideShowElements = files.ToList();
-            }
-        }
-
-        public Random _random = new Random();
-        public List<SlideShowItem> SlideShowElements = new List<SlideShowItem>();
         private DateTime _lastSlideShowUpdate = new DateTime();
 
         public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
@@ -182,7 +173,7 @@ namespace Wabbajack
         {
             get
             {
-                return new LambdaCommand(() => true, UpdateSlideShowItem);
+                return new LambdaCommand(() => true, _slideShow.UpdateSlideShowItem);
             }
         }
 
@@ -258,7 +249,7 @@ namespace Wabbajack
         }
 
         private readonly BitmapImage _wabbajackLogo = null;
-        private readonly BitmapImage _noneImage = null;
+        public readonly BitmapImage _noneImage = null;
         private bool _originalImage = true;
         private BitmapImage _splashScreenImage = null;
         public BitmapImage SplashScreenImage
@@ -285,8 +276,7 @@ namespace Wabbajack
         public string SplashScreenSummary { get => _SplashScreenSummary; set => this.RaiseAndSetIfChanged(ref _SplashScreenSummary, value); }
         private bool _splashShowNSFW = true;
         public bool SplashShowNSFW { get => _splashShowNSFW; set => this.RaiseAndSetIfChanged(ref _splashShowNSFW, value); }    
-        private Thread slideshowThread = null;
-        private int slideshowSleepTime = 1000;
+        private readonly Thread slideshowThread = null;
         private bool _enableSlideShow = true;
         public bool EnableSlideShow
         {
@@ -294,16 +284,14 @@ namespace Wabbajack
             set
             {
                 RaiseAndSetIfChanged(ref _enableSlideShow, value);
-                if(slideshowThread.IsAlive)
+                if (!slideshowThread.IsAlive) return;
+                if (!_enableSlideShow)
                 {
-                    if (!_enableSlideShow)
-                    {
-                        ApplyModlistProperties();
-                    }
-                    else
-                    {
-                        UpdateSlideShowItem();
-                    }
+                    ApplyModlistProperties();
+                }
+                else
+                {
+                    _slideShow.UpdateSlideShowItem();
                 }
             }
         }
@@ -363,176 +351,14 @@ namespace Wabbajack
                         Dirty = false;
                     }
 
-                if (slidesQueue != null && slidesQueue.Any())
+                if (_slideShow.SlidesQueue.Any())
                 {
                     if (DateTime.Now - _lastSlideShowUpdate > TimeSpan.FromSeconds(10))
                     {
-                        UpdateSlideShowItem();
+                        _slideShow.UpdateSlideShowItem();
                     }
                 }
-                Thread.Sleep(1000);
-            }
-        }
-        private void UpdateSlideShowItem()
-        {
-            if (EnableSlideShow && slideshowThread != null && installing)
-            {
-                // max cached files achieved
-                if (_cachedSlides.Count >= MAX_CACHE_SIZE)
-                {
-                    do
-                    {
-                        var idx = _random.Next(0, SlideShowElements.Count);
-                        var randomElement = SlideShowElements[idx];
-                        while (!_cachedSlides.ContainsKey(randomElement.ModID) || slidesQueue.Contains(randomElement))
-                        {
-                            idx = _random.Next(0, SlideShowElements.Count);
-                            randomElement = SlideShowElements[idx];
-                        }
-
-                        if (_cachedSlides.ContainsKey(randomElement.ModID))
-                        {
-                            var bitmap = new BitmapImage();
-                            _cachedSlides.TryGetValue(randomElement.ModID, out bitmap);
-                            bitmap = null;
-                            _cachedSlides.Remove(randomElement.ModID);
-                            //hmmm
-                            //GC.Collect();
-                        }
-                    } while (_cachedSlides.Count >= MAX_CACHE_SIZE);
-                }
-
-                SlideShowItem element = slidesQueue.Peek();
-                if (!element.Adult || (element.Adult && SplashShowNSFW))
-                {
-                    SplashScreenImage = _noneImage;
-                    if (element.ImageURL != null)
-                    {
-
-                        dispatcher.Invoke(() =>
-                        {
-                            if (_cachedSlides.ContainsKey(element.ModID))
-                            {
-                                var bitmap = new BitmapImage();
-                                _cachedSlides.TryGetValue(element.ModID, out bitmap);
-                                SplashScreenImage = bitmap;
-                            }
-                        });
-                    }
-                    _originalImage = false;
-                    SplashScreenModName = element.ModName;
-                    SplashScreenAuthorName = element.AuthorName;
-                    SplashScreenSummary = element.ModSummary;
-                    _nexusSiteURL = element.ModURL;                  
-                }
-
-                _lastSlideShowUpdate = DateTime.Now;
-
-                slidesQueue.Dequeue();
-                QueueRandomSlide(false, true);
-            }
-        }
-
-        private Dictionary<string, BitmapImage> _cachedSlides;
-        private Queue<SlideShowItem> slidesQueue;
-        private SlideShowItem lastSlide;
-        /// <summary>
-        /// Caches a slide
-        /// </summary>
-        /// <param name="url">The url</param>
-        /// <param name="dest">The destination</param>
-        private void CacheSlide(string id, string url)
-        {
-            using (var ms = new MemoryStream())
-            {
-                if (USE_SYNC_CACHING)
-                {
-                    dispatcher.Invoke(() =>
-                    {
-                        using (var stream = new HttpClient().GetStreamSync(url))
-                            stream.CopyTo(ms);
-                    });
-                }
-                else
-                {
-                    using (var stream = new HttpClient().GetStreamAsync(url))
-                    {
-                        stream.Wait();
-                        stream.Result.CopyTo(ms);
-                    }
-                }
-                ms.Seek(0, SeekOrigin.Begin);
-                dispatcher.Invoke(() =>
-                {
-                    var image = new BitmapImage();
-                    image.BeginInit();
-                    image.CacheOption = BitmapCacheOption.OnLoad;
-                    image.StreamSource = ms;
-                    image.EndInit();
-                    image.Freeze();
-
-                    _cachedSlides.Add(id, image);
-                });
-            }
-        }
-        /// <summary>
-        /// Queues a random slide
-        /// </summary>
-        /// <param name="init">Only used if called from the Preloadfunction</param>
-        /// <param name="checkLast">If to not queue the same thing again</param>
-        /// <returns></returns>
-        private bool QueueRandomSlide(bool init, bool checkLast)
-        {
-            var result = false;
-            var idx = _random.Next(0, SlideShowElements.Count);
-            var element = SlideShowElements[idx];
-            if (checkLast)
-            {
-                while(element == lastSlide && (!element.Adult || (element.Adult && SplashShowNSFW)))
-                {
-                    idx = _random.Next(0, SlideShowElements.Count);
-                    element = SlideShowElements[idx];
-                }
-            }
-
-            if(element.ImageURL == null)
-            {
-                if(!init)
-                    slidesQueue.Enqueue(element);
-            }
-            else
-            {
-                if (!_cachedSlides.ContainsKey(element.ModID))
-                {
-                    CacheSlide(element.ModID, element.ImageURL);
-                    slidesQueue.Enqueue(element);
-                    result = true;
-                }
-                else
-                {
-                    if (!init)
-                        slidesQueue.Enqueue(element);
-                }
-                lastSlide = element;
-            }
-            return result;
-        }
-        /// <summary>
-        /// Caches 3 random images and puts them in the queue
-        /// </summary>
-        private void PreloadSlideshow()
-        {
-            _cachedSlides = new Dictionary<string, BitmapImage>();
-            slidesQueue = new Queue<SlideShowItem>();
-
-            var turns = 0;
-            for(var i = 0; i < SlideShowElements.Count; i++)
-            {
-                if (turns >= 3)
-                    break;
-
-                if (QueueRandomSlide(true, false))
-                    turns++;
+                Thread.Sleep(10000);
             }
         }
 
@@ -596,6 +422,7 @@ namespace Wabbajack
 
             _mo2Folder = mo2folder;
         }
+
         internal void ConfigureForInstall(string source, ModList modlist)
         {
 
@@ -608,19 +435,13 @@ namespace Wabbajack
 
             ApplyModlistProperties();
 
-            SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => new SlideShowItem
-            {
-                ModName = NexusApiUtils.FixupSummary(m.ModName),
-                AuthorName = NexusApiUtils.FixupSummary(m.Author),
-                ModSummary = NexusApiUtils.FixupSummary(m.Summary),
-                ImageURL = m.SlideShowPic,
-                ModURL = m.NexusURL,
-                Adult = m.Adult,
-                ModID = m.ModID
-            }).ToList();
+            _slideShow.SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => 
+                new Slide(NexusApiUtils.FixupSummary(m.ModName),m.ModID,
+                    NexusApiUtils.FixupSummary(m.Summary), NexusApiUtils.FixupSummary(m.Author),
+                    m.Adult,m.NexusURL,m.SlideShowPic)).ToList();
 
 
-            PreloadSlideshow();
+            _slideShow.PreloadSlideShow();
         }
 
         private void ExecuteBegin()

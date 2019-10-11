@@ -46,17 +46,6 @@ namespace Wabbajack.NexusApi
         public bool contains_adult_content;
     }
 
-    public class SlideShowItem
-    {
-        public string ImageURL;
-        public string ModName;
-        public string ModSummary;
-        public string AuthorName;
-        public string ModURL;
-        public bool Adult;
-        public string ModID;
-    }
-
     public class EndorsementResponse
     {
         public string message;
