@@ -9,37 +9,32 @@ namespace Wabbajack.Downloaders
 {
     public static class DownloadDispatcher
     {
-        private static List<IDownloader> _downloaders = new List<IDownloader>()
+        private static readonly List<IDownloader> Downloaders = new List<IDownloader>()
         {
             new MegaDownloader(),
             new DropboxDownloader(),
             new GoogleDriveDownloader(),
-            new HTTPDownloader(),
+            new ModDBDownloader(),
             new NexusDownloader(),
-            new ManualDownloader()
+            new ManualDownloader(),
+            new HTTPDownloader()
         };
 
-        private static Dictionary<Type, IDownloader> _indexedDownloaders;
+        private static readonly Dictionary<Type, IDownloader> IndexedDownloaders;
 
         static DownloadDispatcher()
         {
-            _indexedDownloaders = _downloaders.ToDictionary(d => d.GetType());
+            IndexedDownloaders = Downloaders.ToDictionary(d => d.GetType());
         }
 
         public static T GetInstance<T>()
         {
-            return (T)_indexedDownloaders[typeof(T)];
+            return (T)IndexedDownloaders[typeof(T)];
         }
 
         public static AbstractDownloadState ResolveArchive(dynamic ini)
         {
-            foreach (var d in _downloaders)
-            {
-                var result = d.GetDownloaderState(ini);
-                if (result != null) return result;
-            }
-
-            return null;
+            return Downloaders.Select(d => d.GetDownloaderState(ini)).FirstOrDefault(result => result != null);
         }
 
     }

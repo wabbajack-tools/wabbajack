@@ -196,6 +196,7 @@
     <Compile Include="Downloaders\IDownloader.cs" />
     <Compile Include="Downloaders\ManualDownloader.cs" />
     <Compile Include="Downloaders\MegaDownloader.cs" />
+    <Compile Include="Downloaders\ModDBDownloader.cs" />
     <Compile Include="Downloaders\NexusDownloader.cs" />
     <Compile Include="LambdaCommand.cs" />
     <Compile Include="UI\ModlistPropertiesWindow.xaml.cs">

@@ -130,6 +130,27 @@ namespace Wabbajack.Test
 
             Assert.AreEqual(filename.FileSHA256(), "U3Xg6RBR9XrUY9/jQSu6WKu5dfhHmpaN2dTl0ylDFmI=");
         }
+
+        [TestMethod]
+        public void ModDbTests()
+        {
+            var ini = @"[General]
+                        directURL=https://www.moddb.com/downloads/start/124908?referer=https%3A%2F%2Fwww.moddb.com%2Fmods%2Fautopause";
+
+            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.IsNotNull(state);
+
+            var converted = state.ViaJSON();
+            Assert.IsTrue(converted.Verify());
+            var filename = Guid.NewGuid().ToString();
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            converted.Download(new Archive { Name = "moddbtest.7z" }, filename);
+
+            Assert.AreEqual("lUvpEjqxfyidBONSHcDy6EnZIPpAD2K4rkJ5ejCXc2k=", filename.FileSHA256());
+        }
     }
 
 
