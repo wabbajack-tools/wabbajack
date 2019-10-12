@@ -52,7 +52,7 @@ namespace Wabbajack
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly().Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
                 MessageBox.Show(
-                    "Wabbajack is running inside your Downloads folder. Such folders are often highly monitored by antivirus software and they can often " +
+                    "Wabbajack is running inside your Downloads folder. This folder is often highly monitored by antivirus software and these can often " +
                     "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your Downloads folder and then restart the app.",
                     "Cannot run inside Downloads",
                     MessageBoxButton.OK,
