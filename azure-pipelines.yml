@@ -48,10 +48,22 @@ steps:
     hashingAlgorithm: 'SHA256'
     description: 'Wabbajack Modlist Installer'
 
-- task: CmdLine@2
+- task: PythonScript@0
   inputs:
+    scriptSource: 'inline'
     script: |
-      curl --request POST --url 'https://www.virustotal.com/vtapi/v2/file/scan' --form 'apikey=$(VirusTotalAPIKey)' --form 'file=@"$(System.DefaultWorkingDirectory)\Wabbajack\bin\x64\Debug\Wabbajack.exe"'
+      import requests, sys
+      
+      url = 'https://www.virustotal.com/vtapi/v2/file/scan'
+      
+      params = {'apikey': sys.argv[1]}
+      
+      files = {'file': ('Wabbajack.exe', open(sys.argv[2], 'rb'))}
+      
+      response = requests.post(url, files=files, params=params)
+      
+      print(response.json())
+    arguments: '$(VirusTotalAPIKey) $(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
 
 - task: PublishBuildArtifacts@1
   inputs:
