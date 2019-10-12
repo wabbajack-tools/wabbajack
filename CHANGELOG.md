@@ -1,12 +1,16 @@
 ### Changelog
 
 #### Version 0.9.5 - ???
+* New Property system for chaning Modlist Name, Author, Description, Website, custom Banner and custom Readme
+* Slideshow can now be disabled
+* NSFW mods can be toggled to not appear in the Slideshow
 * Set Oblivion's MO2 names to `Oblivion` not `oblivion`
 * Fix validation tests to run in CI
 * Add `check for broken archives` batch functionality
 * Remove nexus timeout for login, it's pointless.
 * Force slides to load before displaying
 * Supress slide load failures
+* UI is now resizeable
 * Setup Crash handling at the very start of the app
 * Add BA2 support
 * Fix Downloads folder being incorrectly detected in some cases
