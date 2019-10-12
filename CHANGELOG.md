@@ -9,6 +9,8 @@
 * Supress slide load failures
 * Setup Crash handling at the very start of the app
 * Add BA2 support
+* Fix Downloads folder being incorrectly detected in some cases
+* Fix validation error on selecting an installation directory in Install mode
 
 #### Version 0.9.4 - 10/2/2019
 * Point github icon to https://github.com/wabbajack-tools/wabbajack
