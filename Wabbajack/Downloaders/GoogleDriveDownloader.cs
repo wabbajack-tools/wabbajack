@@ -67,6 +67,11 @@ namespace Wabbajack.Downloaders
             {
                 return DownloadDispatcher.GetInstance<GoogleDriveDownloader>();
             }
+
+            public override string GetReportEntry(Archive a)
+            {
+                return $"* GoogleDrive - [{a.Name}](https://drive.google.com/uc?id={Id}&export=download)";
+            }
         }
     }
 }

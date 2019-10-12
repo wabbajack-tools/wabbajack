@@ -32,5 +32,7 @@ namespace Wabbajack.Downloaders
         public abstract bool Verify();
 
         public abstract IDownloader GetDownloader();
+
+        public abstract string GetReportEntry(Archive a);
     }
 }

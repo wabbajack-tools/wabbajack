@@ -118,6 +118,17 @@ namespace Wabbajack.Downloaders
             {
                 return DownloadDispatcher.GetInstance<NexusDownloader>();
             }
+
+            public override string GetReportEntry(Archive a)
+            {
+                var profile = UploaderProfile.Replace("/games/",
+                    "/" + NexusApiUtils.ConvertGameName(GameName).ToLower() + "/");
+
+                return string.Join("\n", 
+                    $"* [{a.Name}](http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID})", 
+                    $"    * Author : [{UploadedBy}]({profile})", 
+                    $"    * Version : {Version}");
+            }
         }
     }
 }

@@ -42,6 +42,11 @@ namespace Wabbajack.Downloaders
             {
                 return DownloadDispatcher.GetInstance<ManualDownloader>();
             }
+
+            public override string GetReportEntry(Archive a)
+            {
+                return $"* Manual Download - [{a.Name} - {Url}]({Url})";
+            }
         }
     }
 }

@@ -67,6 +67,11 @@ namespace Wabbajack.Downloaders
             {
                 return DownloadDispatcher.GetInstance<ModDBDownloader>();
             }
+
+            public override string GetReportEntry(Archive a)
+            {
+                return $"* ModDB - [{a.Name}]({Url})";
+            }
         }
     }
 }

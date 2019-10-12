@@ -61,33 +61,7 @@ namespace Wabbajack
             foreach (var archive in SortArchives(lst.Archives))
             {
                 var hash = archive.Hash.FromBase64().ToHEX();
-                switch (archive)
-                {
-                    /*
-                    case NexusMod m:
-                        var profile = m.UploaderProfile.Replace("/games/",
-                            "/" + NexusApiUtils.ConvertGameName(m.GameName).ToLower() + "/");
-                        NoWrapText(
-                            $"* [{m.Name}](http://nexusmods.com/{NexusApiUtils.ConvertGameName(m.GameName)}/mods/{m.ModID})");
-                        NoWrapText($"    * Author : [{m.UploadedBy}]({profile})");
-                        NoWrapText($"    * Version : {m.Version}");
-                        break;
-                    case MODDBArchive m:
-                        NoWrapText($"* MODDB - [{m.Name}]({m.URL})");
-                        break;
-                    case MEGAArchive m:
-                        NoWrapText($"* MEGA - [{m.Name}]({m.URL})");
-                        break;
-                    case GoogleDriveMod m:
-                        NoWrapText(
-                            $"* GoogleDrive - [{m.Name}](https://drive.google.com/uc?id={m.Id}&export=download)");
-                        break;
-                    case DirectURLArchive m:
-                        NoWrapText($"* URL - [{m.Name} - {m.URL}]({m.URL})");
-                        break;
-                        */
-                }
-
+                NoWrapText(archive.State.GetReportEntry(archive));
                 NoWrapText($"    * Size : {archive.Size.ToFileSizeString()}");
                 NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
             }

@@ -128,6 +128,11 @@ namespace Wabbajack.Downloaders
             {
                 return DownloadDispatcher.GetInstance<HTTPDownloader>();
             }
+
+            public override string GetReportEntry(Archive a)
+            {
+                return $"* URL - [{a.Name} - {Url}]({Url})";
+            }
         }
     }
 }
