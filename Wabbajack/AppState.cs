@@ -33,12 +33,25 @@ namespace Wabbajack
 
         private string _mo2Folder;
 
-        private readonly DateTime _startTime;
+        private readonly BitmapImage _wabbajackLogo = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner.png");
+        public readonly BitmapImage _noneImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.none.jpg");
 
         public volatile bool Dirty;
 
         private ModList _ModList;
         public ModList ModList { get => _ModList; private set => this.RaiseAndSetIfChanged(ref _ModList, value); }
+
+        private string _ModListPath;
+        public string ModListPath { get => _ModListPath; private set => this.RaiseAndSetIfChanged(ref _ModListPath, value); }
+
+        private bool _EnableSlideShow = true;
+        public bool EnableSlideShow { get => _EnableSlideShow; set => this.RaiseAndSetIfChanged(ref _EnableSlideShow, value); }
+
+        private BitmapImage _SplashScreenImage;
+        public BitmapImage SplashScreenImage { get => _SplashScreenImage; set => this.RaiseAndSetIfChanged(ref _SplashScreenImage, value); }
+        
+        private BitmapImage _NextIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.next.png");
+        public BitmapImage NextIcon { get => _NextIcon; set => this.RaiseAndSetIfChanged(ref _NextIcon, value); }
 
         // Command properties
         public IReactiveCommand ChangePathCommand => ReactiveCommand.Create(ExecuteChangePath);
@@ -52,14 +65,6 @@ namespace Wabbajack
 
         public AppState(TaskMode mode)
         {
-            _wabbajackLogo = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner.png");
-            _splashScreenImage = _wabbajackLogo;
-            _noneImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.none.jpg");
-            _nextIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.next.png");
-
-            _slideShow = new SlideShow(this, true);
-            this.SlideShowNextItemCommand = ReactiveCommand.Create(_slideShow.UpdateSlideShowItem);
-
             if (Assembly.GetEntryAssembly().Location.ToLower().Contains("\\downloads\\"))
             {
                 MessageBox.Show(
@@ -71,8 +76,6 @@ namespace Wabbajack
                 Environment.Exit(1);
             }
 
-            _startTime = DateTime.Now;
-
             Mode = mode;
             Dirty = false;
 
@@ -80,6 +83,63 @@ namespace Wabbajack
                 execute: this.OpenReadmeWindow,
                 canExecute: this.WhenAny(x => x.ModList)
                     .Select(modList => !string.IsNullOrEmpty(modList?.Readme)));
+
+            _slideShow = new SlideShow(this, true);
+            this.SlideShowNextItemCommand = ReactiveCommand.Create(_slideShow.UpdateSlideShowItem);
+
+            // Update splashscreen when modlist changes
+            Observable.CombineLatest(
+                    this.WhenAny(x => x.ModList),
+                    this.WhenAny(x => x.ModListPath),
+                    this.WhenAny(x => x.EnableSlideShow),
+                    (modList, modListPath, enableSlideShow) => (modList, modListPath, enableSlideShow))
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .Select(u =>
+                {
+                    if (u.enableSlideShow
+                        && u.modList != null
+                        && u.modListPath != null
+                        && File.Exists(u.modListPath)
+                        && !string.IsNullOrEmpty(u.modList.Image)
+                        && u.modList.Image.Length == 36)
+                    {
+                        try
+                        {
+                            using (var fs = new FileStream(u.modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+                            using (var ms = new MemoryStream())
+                            {
+                                var entry = ar.GetEntry(u.modList.Image);
+                                using (var e = entry.Open())
+                                    e.CopyTo(ms);
+                                var image = new BitmapImage();
+                                image.BeginInit();
+                                image.CacheOption = BitmapCacheOption.OnLoad;
+                                image.StreamSource = ms;
+                                image.EndInit();
+                                image.Freeze();
+
+                                return image;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            this.LogMsg("Error loading splash image.");
+                        }
+                    }
+                    return _wabbajackLogo;
+                })
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .StartWith(_wabbajackLogo)
+                .Subscribe(bitmap => this.SplashScreenImage = bitmap)
+                .DisposeWith(this.CompositeDisposable);
+
+            // Trigger a slideshow update if enabled
+            this.WhenAny(x => x.EnableSlideShow)
+                .Skip(1) // Don't fire initially
+                .WhenAny(enable => enable)
+                .Subscribe(_ => _slideShow.UpdateSlideShowItem())
+                .DisposeWith(this.CompositeDisposable);
 
             slideshowThread = new Thread(UpdateLoop)
             {
@@ -197,7 +257,7 @@ namespace Wabbajack
         {
             if (!UIReady || string.IsNullOrEmpty(this.ModList.Readme)) return;
             var text = "";
-            using (var fs = new FileStream(_modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var fs = new FileStream(this.ModListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
             using (var ms = new MemoryStream())
             {
@@ -213,7 +273,7 @@ namespace Wabbajack
                 }
             }
 
-            var viewer = new TextViewer(text, _ModListName);
+            var viewer = new TextViewer(text, this.ModListName);
             viewer.Show();
         }
 
@@ -224,52 +284,17 @@ namespace Wabbajack
             set => this.RaiseAndSetIfChanged(ref _uiReady, value);
         }
 
-        private readonly BitmapImage _wabbajackLogo = null;
-        public readonly BitmapImage _noneImage = null;
-        private BitmapImage _splashScreenImage = null;
-        public BitmapImage SplashScreenImage
-        {
-            get => _splashScreenImage;
-            set
-            {
-                _splashScreenImage = value;
-                this.RaisePropertyChanged();
-            }
-        }
-
         private string _SplashScreenModName = "Wabbajack";
         public string SplashScreenModName { get => _SplashScreenModName; set => this.RaiseAndSetIfChanged(ref _SplashScreenModName, value); }
-        private BitmapImage _nextIcon = null;
-        public BitmapImage NextIcon { get => _nextIcon; set => this.RaiseAndSetIfChanged(ref _nextIcon, value); }
 
         private string _SplashScreenAuthorName = "Halgari & the Wabbajack Team";
         public string SplashScreenAuthorName { get => _SplashScreenAuthorName; set => this.RaiseAndSetIfChanged(ref _SplashScreenAuthorName, value); }
-
-        private string _modListPath;
 
         private string _SplashScreenSummary;
         public string SplashScreenSummary { get => _SplashScreenSummary; set => this.RaiseAndSetIfChanged(ref _SplashScreenSummary, value); }
         private bool _splashShowNSFW = false;
         public bool SplashShowNSFW { get => _splashShowNSFW; set => this.RaiseAndSetIfChanged(ref _splashShowNSFW, value); }    
         private readonly Thread slideshowThread = null;
-        private bool _enableSlideShow = true;
-        public bool EnableSlideShow
-        {
-            get => _enableSlideShow;
-            set
-            {
-                RaiseAndSetIfChanged(ref _enableSlideShow, value);
-                if (!slideshowThread.IsAlive) return;
-                if (!_enableSlideShow)
-                {
-                    ApplyModlistProperties();
-                }
-                else
-                {
-                    _slideShow.UpdateSlideShowItem();
-                }
-            }
-        }
 
         public string Error => "Error";
 
@@ -344,30 +369,6 @@ namespace Wabbajack
             SplashScreenAuthorName = this.ModList.Author;
             _nexusSiteURL = this.ModList.Website;
             SplashScreenSummary = this.ModList.Description;
-            if (!string.IsNullOrEmpty(this.ModList.Image) && this.ModList.Image.Length == 36)
-            {
-                SplashScreenImage = _wabbajackLogo;
-                using (var fs = new FileStream(_modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
-                using (var ms = new MemoryStream())
-                {
-                    var entry = ar.GetEntry(this.ModList.Image);
-                    using (var e = entry.Open())
-                        e.CopyTo(ms);
-                    var image = new BitmapImage();
-                    image.BeginInit();
-                    image.CacheOption = BitmapCacheOption.OnLoad;
-                    image.StreamSource = ms;
-                    image.EndInit();
-                    image.Freeze();
-
-                    SplashScreenImage = image;
-                }
-            }
-            else
-            {
-                SplashScreenImage = _wabbajackLogo;
-            }
         }
 
         public void LogMsg(string msg)
@@ -402,7 +403,7 @@ namespace Wabbajack
                 LogMsg($"Error! No ModOrganizer2.exe found in {mo2folder}");
 
             var profile_name = Path.GetFileName(profile_folder);
-            ModListName = profile_name;
+            this.ModListName = profile_name;
             Mode = TaskMode.BUILDING;
 
             var tmp_compiler = new Compiler(mo2folder);
@@ -414,7 +415,7 @@ namespace Wabbajack
         internal void ConfigureForInstall(string source, ModList modlist)
         {
             this.ModList = modlist;
-            _modListPath = source;
+            this.ModListPath = source;
             Mode = TaskMode.INSTALLING;
             ModListName = this.ModList.Name;
             HTMLReport = this.ModList.ReportHTML;
@@ -437,7 +438,7 @@ namespace Wabbajack
             if (Mode == TaskMode.INSTALLING)
             {
                 installing = true;
-                var installer = new Installer(_modListPath, this.ModList, Location)
+                var installer = new Installer(this.ModListPath, this.ModList, Location)
                 {
                     DownloadFolder = DownloadLocation
                 };
