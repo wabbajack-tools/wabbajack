@@ -66,6 +66,9 @@ namespace Wabbajack
         private bool _UIReady;
         public bool UIReady { get => _UIReady; set => this.RaiseAndSetIfChanged(ref _UIReady, value); }
 
+        private string _HTMLReport;
+        public string HTMLReport { get => _HTMLReport; set => this.RaiseAndSetIfChanged(ref _HTMLReport, value); }
+
         // Command properties
         public IReactiveCommand ChangePathCommand => ReactiveCommand.Create(ExecuteChangePath);
         public IReactiveCommand ChangeDownloadPathCommand => ReactiveCommand.Create(ExecuteChangeDownloadPath);
@@ -75,6 +78,10 @@ namespace Wabbajack
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand OpenModListPropertiesCommand => ReactiveCommand.Create(OpenModListProperties);
         public IReactiveCommand SlideShowNextItemCommand { get; }
+
+        public AppState()
+        {
+        }
 
         public AppState(TaskMode mode)
         {
@@ -206,20 +213,6 @@ namespace Wabbajack
 
         private string _DownloadLocation;
         public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
-
-        public Visibility ShowReportButton => _htmlReport == null ? Visibility.Collapsed : Visibility.Visible;
-
-        private string _htmlReport;
-        public string HTMLReport
-        {
-            get => _htmlReport;
-            set
-            {
-                _htmlReport = value;
-                this.RaisePropertyChanged();
-                this.RaisePropertyChanged(nameof(ShowReportButton));
-            }
-        }
 
         private int _queueProgress;
         public int QueueProgress { get => _queueProgress; set => this.RaiseAndSetIfChanged(ref _queueProgress, value); }

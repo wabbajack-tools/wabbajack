@@ -309,7 +309,7 @@
                     Grid.Row="0"
                     Margin="0,0,0,4"
                     Command="{Binding ShowReportCommand}"
-                    Visibility="{Binding ShowReportButton}">
+                    Visibility="{Binding HTMLReport, Converter={StaticResource IsNotNullVisibilityConverter}}">
                     <TextBlock FontSize="13" FontWeight="Bold">View ModList Contents</TextBlock>
                 </Button>
                 <Button
