@@ -38,10 +38,10 @@ steps:
     configuration: '$(buildConfiguration)'
 - task: DownloadSecureFile@1
   inputs:
-    secureFile: '$(CertFile)'
+    secureFile: 'CertFile.p12'
 - task: codesigning@2
   inputs:
-    secureFileId: '$(CertFile)'
+    secureFileId: 'CertFile.p12'
     signCertPassword: '$(CertPassword)'
     files: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
     timeServer: 'http://timestamp.digicert.com'
