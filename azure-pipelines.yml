@@ -40,6 +40,7 @@ steps:
   inputs:
     secureFile: 'CertFile.p12'
 - task: codesigning@2
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
   inputs:
     secureFileId: 'CertFile.p12'
     signCertPassword: '$(CertPassword)'
@@ -51,6 +52,7 @@ steps:
   inputs:
     script: 'pip install requests'
 - task: PythonScript@0
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
   inputs:
     scriptSource: 'inline'
     script: |
@@ -68,6 +70,7 @@ steps:
     arguments: '$(VirusTotalAPIKey) $(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
 
 - task: PublishBuildArtifacts@1
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
   inputs:
     PathtoPublish: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
     ArtifactName: 'Wabbajack.exe'
