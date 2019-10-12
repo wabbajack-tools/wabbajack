@@ -9,11 +9,6 @@ namespace Wabbajack.Downloaders
 {
     public class DropboxDownloader : IDownloader
     {
-        public void Init()
-        {
-
-        }
-
         public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
         {
             var urlstring = archive_ini?.General?.directURL;
@@ -33,6 +28,10 @@ namespace Wabbajack.Downloaders
             {
                 Url = uri.ToString().Replace("dropbox.com:443/", "dropbox.com/")
             };
+        }
+
+        public void Prepare()
+        {
         }
     }
 }

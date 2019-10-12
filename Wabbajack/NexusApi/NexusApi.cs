@@ -208,7 +208,7 @@ namespace Wabbajack.NexusApi
             return true;
         }
 
-        public NexusFileInfo GetFileInfo(NexusMod mod)
+        public NexusFileInfo GetFileInfo(NexusDownloader.State mod)
         {
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/files/{mod.FileID}.json";
             return Get<NexusFileInfo>(url);
@@ -251,7 +251,7 @@ namespace Wabbajack.NexusApi
             return result;
         }
 
-        public EndorsementResponse EndorseMod(NexusMod mod)
+        public EndorsementResponse EndorseMod(NexusDownloader.State mod)
         {
             Utils.Status($"Endorsing ${mod.GameName} - ${mod.ModID}");
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/endorse.json";

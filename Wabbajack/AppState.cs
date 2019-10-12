@@ -15,6 +15,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Wabbajack.Common;
+using Wabbajack.Downloaders;
 using Wabbajack.NexusApi;
 using Wabbajack.UI;
 
@@ -484,7 +485,10 @@ namespace Wabbajack
 
             ApplyModlistProperties();
 
-            _slideShow.SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => 
+            _slideShow.SlideShowElements = modlist.Archives
+                .Select(m => m.State)
+                .OfType<NexusDownloader.State>()
+                .Select(m => 
                 new Slide(NexusApiUtils.FixupSummary(m.ModName),m.ModID,
                     NexusApiUtils.FixupSummary(m.Summary), NexusApiUtils.FixupSummary(m.Author),
                     m.Adult,m.NexusURL,m.SlideShowPic)).ToList();

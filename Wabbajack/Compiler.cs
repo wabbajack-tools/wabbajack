@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using VFS;
 using Wabbajack.Common;
+using Wabbajack.Downloaders;
 using Wabbajack.NexusApi;
 using Wabbajack.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -469,123 +470,21 @@ namespace Wabbajack
             {
                 if (found.IniData == null)
                     Error($"No download metadata found for {found.Name}, please use MO2 to query info or add a .meta file and try again.");
-                var general = found.IniData.General;
-                if (general == null)
-                    Error($"No General section in mod metadata found for {found.Name}, please use MO2 to query info or add the info and try again.");
 
-                Archive result;
+                var result = new Archive();
+                result.State = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(found.IniData);
 
-                if (general.directURL != null && general.directURL.StartsWith("https://drive.google.com"))
-                {
-                    var regex = new Regex("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*");
-                    var match = regex.Match(general.directURL);
-                    result = new GoogleDriveMod
-                    {
-                        Id = match.ToString()
-                    };
-                }
-                else if (general.directURL != null && general.directURL.StartsWith(Consts.MegaPrefix))
-                {
-                    result = new MEGAArchive
-                    {
-                        URL = general.directURL
-                    };
-                }
-                else if (general.directURL != null && general.directURL.StartsWith("https://www.dropbox.com/"))
-                {
-                    var uri = new UriBuilder((string)general.directURL);
-                    var query = HttpUtility.ParseQueryString(uri.Query);
-
-                    if (query.GetValues("dl").Count() > 0)
-                        query.Remove("dl");
-
-                    query.Set("dl", "1");
-
-                    uri.Query = query.ToString();
-
-                    result = new DirectURLArchive
-                    {
-                        URL = uri.ToString()
-                    };
-                }
-                else if (general.directURL != null &&
-                         general.directURL.StartsWith("https://www.moddb.com/downloads/start"))
-                {
-                    result = new MODDBArchive
-                    {
-                        URL = general.directURL
-                    };
-                }
-                else if (general.directURL != null && general.directURL.StartsWith("http://www.mediafire.com/file/"))
-                {
-                    Error("MediaFire links are not currently supported");
-                    return null;
-                    /*result = new MediaFireArchive()
-                    {
-                        URL = general.directURL
-                    };*/
-                }
-                else if (general.directURL != null)
-                {
-                    var tmp = new DirectURLArchive
-                    {
-                        URL = general.directURL
-                    };
-                    if (general.directURLHeaders != null)
-                    {
-                        tmp.Headers = new List<string>();
-                        tmp.Headers.AddRange(general.directURLHeaders.Split('|'));
-                    }
-
-                    result = tmp;
-                }
-                else if (general.modID != null && general.fileID != null && general.gameName != null)
-                {
-                    var nm = new NexusMod
-                    {
-                        GameName = general.gameName,
-                        FileID = general.fileID,
-                        ModID = general.modID,
-                        Version = general.version ?? "0.0.0.0"
-                    };
-                    /*var info = new NexusApiClient().GetModInfo(nm);
-                    nm.Author = info.author;
-                    nm.UploadedBy = info.uploaded_by;
-                    nm.UploaderProfile = info.uploaded_users_profile_url;
-                    nm.ModName = info.name;
-                    nm.SlideShowPic = info.picture_url;
-                    nm.NexusURL = NexusApiUtils.GetModURL(info.game_name, info.mod_id);
-                    nm.Summary = info.summary;
-                    nm.Adult = info.contains_adult_content;*/
-
-                    result = nm;
-                }
-                else if (general.manualURL != null)
-                {
-                    result = new ManualArchive
-                    {
-                        URL = general.manualURL,
-                        Notes = general.manualNotes,
-                    };
-                }
-                else
-                {
-                    Error($"No way to handle archive {found.Name} but it's required by the modlist");
-                    return null;
-                }
+                if (result.State == null)
+                    Error($"{found.Name} could not be handled by any of the downloaders");
 
                 result.Name = found.Name;
                 result.Hash = found.File.Hash;
                 result.Meta = found.Meta;
                 result.Size = found.File.Size;
 
-                if (result is ManualArchive) return result;
-
                 Info($"Checking link for {found.Name}");
 
-                var installer = new Installer("", null, "");
-
-                if (!installer.DownloadArchive(result, false))
+                if (!result.State.Verify())
                     Error(
                         $"Unable to resolve link for {found.Name}. If this is hosted on the Nexus the file may have been removed.");
 

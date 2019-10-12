@@ -194,6 +194,7 @@
     <Compile Include="Downloaders\DownloadDispatcher.cs" />
     <Compile Include="Downloaders\DropboxDownloader.cs" />
     <Compile Include="Downloaders\IDownloader.cs" />
+    <Compile Include="Downloaders\ManualDownloader.cs" />
     <Compile Include="Downloaders\MegaDownloader.cs" />
     <Compile Include="Downloaders\NexusDownloader.cs" />
     <Compile Include="LambdaCommand.cs" />

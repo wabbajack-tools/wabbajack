@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using VFS;
 using Wabbajack.Common;
+using Wabbajack.Downloaders;
 using Wabbajack.NexusApi;
 using Wabbajack.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -162,7 +163,8 @@ namespace Wabbajack
         private void AskToEndorse()
         {
             var mods = ModList.Archives
-                .OfType<NexusMod>()
+                .Select(m => m.State)
+                .OfType<NexusDownloader.State>()
                 .GroupBy(f => (f.GameName, f.ModID))
                 .Select(mod => mod.First())
                 .ToArray();
@@ -419,24 +421,11 @@ namespace Wabbajack
             Info($"Missing {missing.Count} archives");
 
             Info("Getting Nexus API Key, if a browser appears, please accept");
-            if (ModList.Archives.OfType<NexusMod>().Any())
-            {
-                var client = new NexusApiClient();
-                var status = client.GetUserStatus();
-                if (!client.IsAuthenticated)
-                {
-                    Error(
-                        $"Authenticating for the Nexus failed. A nexus account is required to automatically download mods.");
-                    return;
-                }
 
-                if (!status.is_premium)
-                {
-                    Error(
-                        $"Automated installs with Wabbajack requires a premium nexus account. {client.Username} is not a premium account.");
-                    return;
-                }
-            }
+            var dispatchers = ModList.Archives.Select(m => m.State.GetDownloader()).Distinct();
+
+            foreach (var dispatcher in dispatchers)
+                dispatcher.Prepare();
 
             DownloadMissingArchives(missing);
         }
@@ -460,39 +449,7 @@ namespace Wabbajack
         {
             try
             {
-                switch (archive)
-                {
-                    case NexusMod a:
-                        string url;
-                        /*
-                        try
-                        {
-                            
-                            url = new NexusApiClient().GetNexusDownloadLink(a, !download);
-                            if (!download) return true;
-                        }
-                        catch (Exception ex)
-                        {
-                            Info($"{a.Name} - Error Getting Nexus Download URL - {ex.Message}");
-                            return false;
-                        }
-
-                        Info($"Downloading Nexus Archive - {archive.Name} - {a.GameName} - {a.ModID} - {a.FileID}");
-                        DownloadURLDirect(archive, url);
-                        */
-                        return true;
-                    case MEGAArchive a:
-                        return DownloadMegaArchive(a, download);
-                    case GoogleDriveMod a:
-                        return DownloadGoogleDriveArchive(a, download);
-                    case MODDBArchive a:
-                        return DownloadModDBArchive(archive, (archive as MODDBArchive).URL, download);
-                    case MediaFireArchive a:
-                        return false;
-                    //return DownloadMediaFireArchive(archive, a.URL, download);
-                    case DirectURLArchive a:
-                        return DownloadURLDirect(archive, a.URL, headers: a.Headers, download: download);
-                }
+                archive.State.Download(archive, Path.Combine(DownloadFolder, archive.Name));
             }
             catch (Exception ex)
             {
@@ -502,128 +459,6 @@ namespace Wabbajack
             }
 
             return false;
-        }
-
-        private void DownloadMediaFireArchive(Archive a, string url)
-        {
-            var client = new HttpClient();
-            var result = client.GetStringSync(url);
-            var regex = new Regex("(?<= href =\\\").*\\.mediafire\\.com.*(?=\\\")");
-            var confirm = regex.Match(result);
-            DownloadURLDirect(a, confirm.ToString(), client);
-        }
-
-        private bool DownloadMegaArchive(MEGAArchive m, bool download)
-        {
-            var client = new MegaApiClient();
-            Status("Logging into MEGA (as anonymous)");
-            client.LoginAnonymous();
-            var file_link = new Uri(m.URL);
-            var node = client.GetNodeFromLink(file_link);
-            if (!download) return true;
-            Status($"Downloading MEGA file: {m.Name}");
-
-            var output_path = Path.Combine(DownloadFolder, m.Name);
-            client.DownloadFile(file_link, output_path);
-            return true;
-        }
-
-        private bool DownloadGoogleDriveArchive(GoogleDriveMod a, bool download)
-        {
-            var initial_url = $"https://drive.google.com/uc?id={a.Id}&export=download";
-            var client = new HttpClient();
-            var result = client.GetStringSync(initial_url);
-            var regex = new Regex("(?<=/uc\\?export=download&amp;confirm=).*(?=;id=)");
-            var confirm = regex.Match(result);
-            return DownloadURLDirect(a, $"https://drive.google.com/uc?export=download&confirm={confirm}&id={a.Id}",
-                client, download);
-        }
-
-        private bool DownloadModDBArchive(Archive archive, string url, bool download)
-        {
-            var client = new HttpClient();
-            var result = client.GetStringSync(url);
-            var regex = new Regex("https:\\/\\/www\\.moddb\\.com\\/downloads\\/mirror\\/.*(?=\\\")");
-            var match = regex.Match(result);
-            return DownloadURLDirect(archive, match.Value, download: download);
-        }
-
-        private bool DownloadURLDirect(Archive archive, string url, HttpClient client = null, bool download = true,
-            List<string> headers = null)
-        {
-            try
-            {
-                if (client == null)
-                {
-                    client = new HttpClient();
-                    client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
-                }
-
-                if (headers != null)
-                    foreach (var header in headers)
-                    {
-                        var idx = header.IndexOf(':');
-                        var k = header.Substring(0, idx);
-                        var v = header.Substring(idx + 1);
-                        client.DefaultRequestHeaders.Add(k, v);
-                    }
-
-                long total_read = 0;
-                var buffer_size = 1024 * 32;
-
-                var response = client.GetSync(url);
-                var stream = response.Content.ReadAsStreamAsync();
-                try
-                {
-                    stream.Wait();
-                }
-                catch (Exception ex)
-                {
-                }
-
-                ;
-                if (stream.IsFaulted)
-                {
-                    Info($"While downloading {url} - {stream.Exception.ExceptionToString()}");
-                    return false;
-                }
-
-                if (!download)
-                    return true;
-
-                var header_var = "1";
-                if (response.Content.Headers.Contains("Content-Length"))
-                    header_var = response.Content.Headers.GetValues("Content-Length").FirstOrDefault();
-
-                var content_size = header_var != null ? long.Parse(header_var) : 1;
-
-                var output_path = Path.Combine(DownloadFolder, archive.Name);
-                ;
-
-                using (var webs = stream.Result)
-                using (var fs = File.OpenWrite(output_path))
-                {
-                    var buffer = new byte[buffer_size];
-                    while (true)
-                    {
-                        var read = webs.Read(buffer, 0, buffer_size);
-                        if (read == 0) break;
-                        Status($"Downloading {archive.Name}", (int)(total_read * 100 / content_size));
-
-                        fs.Write(buffer, 0, read);
-                        total_read += read;
-                    }
-                }
-
-                Status($"Hashing {archive.Name}");
-                HashArchive(output_path);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Info($"{archive.Name} - Error downloading from: {url}");
-                return false;
-            }
         }
 
         private void HashArchives()

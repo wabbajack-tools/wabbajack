@@ -24,6 +24,10 @@ namespace Wabbajack.Downloaders
             return null;
         }
 
+        public void Prepare()
+        {
+        }
+
         public class State : HTTPDownloader.State
         {
             public override void Download(Archive a, string destination)

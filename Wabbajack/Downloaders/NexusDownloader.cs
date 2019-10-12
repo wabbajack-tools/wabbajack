@@ -39,6 +39,23 @@ namespace Wabbajack.Downloaders
             return null;
         }
 
+        public void Prepare()
+        {
+            var client = new NexusApiClient();
+            var status = client.GetUserStatus();
+            if (!client.IsAuthenticated)
+            {
+                Utils.Error($"Authenticating for the Nexus failed. A nexus account is required to automatically download mods.");
+                return;
+            }
+
+            if (!status.is_premium)
+            {
+                Utils.Error($"Automated installs with Wabbajack requires a premium nexus account. {client.Username} is not a premium account.");
+                return;
+            }
+        }
+
         public class State : AbstractDownloadState
         {
             public string Author;
@@ -95,6 +112,11 @@ namespace Wabbajack.Downloaders
                     return false;
                 }
 
+            }
+
+            public override IDownloader GetDownloader()
+            {
+                return DownloadDispatcher.GetInstance<NexusDownloader>();
             }
         }
     }

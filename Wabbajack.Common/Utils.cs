@@ -551,5 +551,11 @@ namespace Wabbajack.Common
         {
             return tv.ToJSON().FromJSONString<T>();
         }
+
+        public static void Error(string msg)
+        {
+            Log(msg);
+            throw new Exception(msg);
+        }
     }
 }

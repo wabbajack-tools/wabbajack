@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Policy;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
+using Wabbajack.Downloaders;
 using Wabbajack.Validation;
 using Game = Wabbajack.Common.Game;
 
@@ -56,7 +57,7 @@ namespace Wabbajack.Test
         [TestMethod]
         public void TestRightsFallthrough()
         {
-            var permissions = validate.FilePermissions(new NexusMod()
+            var permissions = validate.FilePermissions(new NexusDownloader.State
             {
                 Author = "bill",
                 GameName = "Skyrim",
@@ -69,7 +70,7 @@ namespace Wabbajack.Test
             permissions.CanModifyAssets.AssertIsFalse();
             permissions.CanUseInOtherGames.AssertIsFalse();
 
-            permissions = validate.FilePermissions(new NexusMod()
+            permissions = validate.FilePermissions(new NexusDownloader.State
             {
                 Author = "bob",
                 GameName = "Skyrim",
@@ -82,7 +83,7 @@ namespace Wabbajack.Test
             permissions.CanModifyAssets.AssertIsTrue();
             permissions.CanUseInOtherGames.AssertIsTrue();
 
-            permissions = validate.FilePermissions(new NexusMod()
+            permissions = validate.FilePermissions(new NexusDownloader.State
             {
                 Author = "bill",
                 GameName = "Fallout4",
@@ -95,7 +96,7 @@ namespace Wabbajack.Test
             permissions.CanModifyAssets.AssertIsTrue();
             permissions.CanUseInOtherGames.AssertIsTrue();
 
-            permissions = validate.FilePermissions(new NexusMod()
+            permissions = validate.FilePermissions(new NexusDownloader.State
             {
                 Author = "bill",
                 GameName = "Skyrim",
@@ -108,7 +109,7 @@ namespace Wabbajack.Test
             permissions.CanModifyAssets.AssertIsTrue();
             permissions.CanUseInOtherGames.AssertIsTrue();
 
-            permissions = validate.FilePermissions(new NexusMod()
+            permissions = validate.FilePermissions(new NexusDownloader.State
             {
                 Author = "bill",
                 GameName = "Skyrim",
@@ -131,14 +132,18 @@ namespace Wabbajack.Test
                 GameType = Game.Skyrim,
                 Archives = new List<Archive>
                 {
-                    new NexusMod
+                    new Archive
                     {
-                        GameName = "Skyrim",
-                        Author = "bill",
-                        ModID = "42",
-                        FileID = "33",
+                        State = new NexusDownloader.State                    
+                        {
+                            GameName = "Skyrim",
+                            Author = "bill",
+                            ModID = "42",
+                            FileID = "33",
+                        },
                         Hash = "DEADBEEF"
                     }
+
                 },
                 Directives = new List<Directive>
                 {
@@ -196,44 +201,44 @@ namespace Wabbajack.Test
 
             // Error due to file downloaded from 3rd party
             modlist.GameType = Game.Skyrim;
-            modlist.Archives[0] = new DirectURLArchive()
+            modlist.Archives[0] = new Archive()
             {
-                URL = "https://somebadplace.com",
+                State = new HTTPDownloader.State() { Url = "https://somebadplace.com" },
                 Hash = "DEADBEEF"
             };
             errors = validate.Validate(modlist);
-            Assert.AreEqual(errors.Count(), 1);
+            Assert.AreEqual(1, errors.Count());
 
             // Ok due to file downloaded from whitelisted 3rd party
             modlist.GameType = Game.Skyrim;
-            modlist.Archives[0] = new DirectURLArchive()
+            modlist.Archives[0] = new Archive
             {
-                URL = "https://somegoodplace.com/myfile",
+                State = new HTTPDownloader.State { Url = "https://somegoodplace.com/baz.7z" },
                 Hash = "DEADBEEF"
             };
             errors = validate.Validate(modlist);
-            Assert.AreEqual(errors.Count(), 0);
+            Assert.AreEqual(0, errors.Count());
 
 
             // Error due to file downloaded from bad 3rd party
             modlist.GameType = Game.Skyrim;
-            modlist.Archives[0] = new GoogleDriveMod()
+            modlist.Archives[0] = new Archive
             {
-                Id = "bleg",
+                State = new GoogleDriveDownloader.State { Id = "bleg"},
                 Hash = "DEADBEEF"
             };
             errors = validate.Validate(modlist);
             Assert.AreEqual(errors.Count(), 1);
 
-            // Error due to file downloaded from good 3rd party
+            // Ok due to file downloaded from good google site
             modlist.GameType = Game.Skyrim;
-            modlist.Archives[0] = new GoogleDriveMod()
+            modlist.Archives[0] = new Archive
             {
-                Id = "googleDEADBEEF",
+                State = new GoogleDriveDownloader.State { Id = "googleDEADBEEF" },
                 Hash = "DEADBEEF"
             };
             errors = validate.Validate(modlist);
-            Assert.AreEqual(errors.Count(), 0);
+            Assert.AreEqual(0, errors.Count());
 
         }
 

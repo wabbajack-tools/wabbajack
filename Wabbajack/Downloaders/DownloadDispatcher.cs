@@ -15,7 +15,8 @@ namespace Wabbajack.Downloaders
             new DropboxDownloader(),
             new GoogleDriveDownloader(),
             new HTTPDownloader(),
-            new NexusDownloader()
+            new NexusDownloader(),
+            new ManualDownloader()
         };
 
         private static Dictionary<Type, IDownloader> _indexedDownloaders;

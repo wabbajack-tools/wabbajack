@@ -63,6 +63,7 @@ namespace Wabbajack
                 var hash = archive.Hash.FromBase64().ToHEX();
                 switch (archive)
                 {
+                    /*
                     case NexusMod m:
                         var profile = m.UploaderProfile.Replace("/games/",
                             "/" + NexusApiUtils.ConvertGameName(m.GameName).ToLower() + "/");
@@ -84,6 +85,7 @@ namespace Wabbajack
                     case DirectURLArchive m:
                         NoWrapText($"* URL - [{m.Name} - {m.URL}]({m.URL})");
                         break;
+                        */
                 }
 
                 NoWrapText($"    * Size : {archive.Size.ToFileSizeString()}");
@@ -147,8 +149,11 @@ namespace Wabbajack
 
         private IEnumerable<Archive> SortArchives(List<Archive> lstArchives)
         {
+            /*
             var lst = lstArchives.OfType<NexusMod>().OrderBy(m => m.Author).ThenBy(m => m.Name);
             return lst.Concat(lstArchives.Where(m => !(m is NexusMod)).OrderBy(m => m.Name));
+            */
+            return lstArchives;
         }
     }
 }

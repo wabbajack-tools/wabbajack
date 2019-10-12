@@ -29,6 +29,10 @@ namespace Wabbajack.Downloaders
             return null;
         }
 
+        public void Prepare()
+        {
+        }
+
         public class State : AbstractDownloadState
         {
             public string Id { get; set; }
@@ -57,6 +61,11 @@ namespace Wabbajack.Downloaders
             public override bool Verify()
             {
                 return ToHttpState().Verify();
+            }
+
+            public override IDownloader GetDownloader()
+            {
+                return DownloadDispatcher.GetInstance<GoogleDriveDownloader>();
             }
         }
     }

@@ -36,6 +36,10 @@ namespace Wabbajack.Downloaders
             return null;
         }
 
+        public void Prepare()
+        {
+        }
+
         public class State : AbstractDownloadState
         {
             public string Url { get; set; }
@@ -118,6 +122,11 @@ namespace Wabbajack.Downloaders
             public override bool Verify()
             {
                 return DoDownload(new Archive {Name = ""}, "", false);
+            }
+
+            public override IDownloader GetDownloader()
+            {
+                return DownloadDispatcher.GetInstance<HTTPDownloader>();
             }
         }
     }
