@@ -37,6 +37,6 @@ steps:
     configuration: '$(buildConfiguration)'
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: '$(System.DefaultWorkingDirectory)/bin/x64/Debug (no commandargs)/Wabbajack.exe'
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/bin/x64/Debug/Wabbajack.exe'
     ArtifactName: 'Wabbajack.exe'
     publishLocation: 'Container'
