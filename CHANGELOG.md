@@ -7,6 +7,8 @@
 * Remove nexus timeout for login, it's pointless.
 * Force slides to load before displaying
 * Supress slide load failures
+* Setup Crash handling at the very start of the app
+* Add BA2 support
 
 #### Version 0.9.4 - 10/2/2019
 * Point github icon to https://github.com/wabbajack-tools/wabbajack

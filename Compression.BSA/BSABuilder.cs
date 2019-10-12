@@ -11,7 +11,7 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Compression.BSA
 {
-    public class BSABuilder : IDisposable
+    public class BSABuilder : IDisposable, IBSABuilder
     {
         internal uint _archiveFlags;
         internal uint _fileCount;
@@ -30,6 +30,13 @@ namespace Compression.BSA
         {
             _fileId = Encoding.ASCII.GetBytes("BSA\0");
             _offset = 0x24;
+        }
+
+        public BSABuilder(BSAStateObject bsaStateObject) : this()
+        {
+            _version = bsaStateObject.Version;
+            _fileFlags = bsaStateObject.FileFlags;
+            _archiveFlags = bsaStateObject.ArchiveFlags;
         }
 
         public IEnumerable<FileEntry> Files => _files;
@@ -83,6 +90,18 @@ namespace Compression.BSA
             }
 
             return r;
+        }
+
+        public void AddFile(FileStateObject state, Stream src)
+        {
+            var ostate = (BSAFileStateObject) state;
+
+            var r = new FileEntry(this, ostate.Path, src, ostate.FlipCompression);
+
+            lock (this)
+            {
+                _files.Add(r);
+            }
         }
 
         public void Build(string outputName)
