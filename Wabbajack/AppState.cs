@@ -22,17 +22,16 @@ using Wabbajack.NexusApi;
 using Wabbajack.UI;
 using DynamicData;
 using DynamicData.Binding;
+using System.Reactive;
 
 namespace Wabbajack
 {
     public enum TaskMode { INSTALLING, BUILDING }
-    internal class AppState : ViewModel, IDataErrorInfo
+    public class AppState : ViewModel, IDataErrorInfo
     {
         public const bool GcCollect = true;
 
         private SlideShow _slideShow;
-
-        public bool installing = false;
 
         private string _mo2Folder;
 
@@ -59,7 +58,7 @@ namespace Wabbajack
 
         private BitmapImage _SplashScreenImage;
         public BitmapImage SplashScreenImage { get => _SplashScreenImage; set => this.RaiseAndSetIfChanged(ref _SplashScreenImage, value); }
-        
+
         private BitmapImage _NextIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.next.png");
         public BitmapImage NextIcon { get => _NextIcon; set => this.RaiseAndSetIfChanged(ref _NextIcon, value); }
 
@@ -69,6 +68,9 @@ namespace Wabbajack
         private string _HTMLReport;
         public string HTMLReport { get => _HTMLReport; set => this.RaiseAndSetIfChanged(ref _HTMLReport, value); }
 
+        private bool _Installing;
+        public bool Installing { get => _Installing; set => this.RaiseAndSetIfChanged(ref _Installing, value); }
+
         // Command properties
         public IReactiveCommand ChangePathCommand => ReactiveCommand.Create(ExecuteChangePath);
         public IReactiveCommand ChangeDownloadPathCommand => ReactiveCommand.Create(ExecuteChangeDownloadPath);
@@ -77,7 +79,10 @@ namespace Wabbajack
         public IReactiveCommand VisitNexusSiteCommand => ReactiveCommand.Create(VisitNexusSite);
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand OpenModListPropertiesCommand => ReactiveCommand.Create(OpenModListProperties);
-        public IReactiveCommand SlideShowNextItemCommand { get; }
+        // ToDo
+        // This subject is not desirable.  Need to research why command's IsExecuting observable not firing, as we'd prefer to hook onto that instead
+        private Subject<Unit> _slideshowCommandTriggeredSubject = new Subject<Unit>();
+        public ReactiveCommand<Unit, Unit> SlideShowNextItemCommand => ReactiveCommand.Create(() => _slideshowCommandTriggeredSubject.OnNext(Unit.Default));
 
         public AppState()
         {
@@ -121,7 +126,6 @@ namespace Wabbajack
                 .DisposeWith(this.CompositeDisposable);
 
             _slideShow = new SlideShow(this, true);
-            this.SlideShowNextItemCommand = ReactiveCommand.Create(_slideShow.UpdateSlideShowItem);
 
             // Update splashscreen when modlist changes
             Observable.CombineLatest(
@@ -170,10 +174,24 @@ namespace Wabbajack
                 .Subscribe(bitmap => this.SplashScreenImage = bitmap)
                 .DisposeWith(this.CompositeDisposable);
 
-            // Trigger a slideshow update if enabled
-            this.WhenAny(x => x.EnableSlideShow)
-                .Skip(1) // Don't fire initially
-                .WhenAny(enable => enable)
+            /// Wire slideshow updates
+            // Merge all the sources that trigger a slideshow update
+            Observable.Merge(
+                    // If the natural timer fires
+                    Observable.Interval(TimeSpan.FromSeconds(10)).Unit(),
+                    // If user requests one manually
+                    _slideshowCommandTriggeredSubject)
+                // When enabled, fire an initial signal
+                .StartWith(Unit.Default)
+                // Only subscribe to slideshow triggers if enabled and installing
+                .FilterSwitch(
+                    Observable.CombineLatest(
+                        this.WhenAny(x => x.EnableSlideShow),
+                        this.WhenAny(x => x.Installing),
+                        resultSelector: (enabled, installing) => enabled && installing))
+                // Don't ever update more than once every half second.  ToDo: Update to debounce
+                .Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
+                .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(_ => _slideShow.UpdateSlideShowItem())
                 .DisposeWith(this.CompositeDisposable);
 
@@ -192,16 +210,7 @@ namespace Wabbajack
                 .Bind(this.Status)
                 .Subscribe()
                 .DisposeWith(this.CompositeDisposable);
-
-            slideshowThread = new Thread(UpdateLoop)
-            {
-                Priority = ThreadPriority.BelowNormal,
-                IsBackground = true
-            };
-            slideshowThread.Start();
         }
-
-        public DateTime lastSlideShowUpdate = new DateTime();
 
         public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
 
@@ -316,8 +325,7 @@ namespace Wabbajack
         private string _SplashScreenSummary;
         public string SplashScreenSummary { get => _SplashScreenSummary; set => this.RaiseAndSetIfChanged(ref _SplashScreenSummary, value); }
         private bool _splashShowNSFW = false;
-        public bool SplashShowNSFW { get => _splashShowNSFW; set => this.RaiseAndSetIfChanged(ref _splashShowNSFW, value); }    
-        private readonly Thread slideshowThread = null;
+        public bool SplashShowNSFW { get => _splashShowNSFW; set => this.RaiseAndSetIfChanged(ref _splashShowNSFW, value); }
 
         public string Error => "Error";
 
@@ -354,23 +362,6 @@ namespace Wabbajack
             }
             return validationMessage;
         }
-
-        private void UpdateLoop()
-        {
-            while (Running)
-            {
-                if (_slideShow.SlidesQueue.Any())
-                {
-                    if (DateTime.Now - lastSlideShowUpdate > TimeSpan.FromSeconds(10))
-                    {
-                        _slideShow.UpdateSlideShowItem();
-                    }
-                }
-                Thread.Sleep(1000);
-            }
-        }
-
-        public bool Running { get; set; } = true;
 
         public void LogMsg(string msg)
         {
@@ -425,7 +416,7 @@ namespace Wabbajack
             UIReady = false;
             if (Mode == TaskMode.INSTALLING)
             {
-                installing = true;
+                this.Installing = true;
                 var installer = new Installer(this.ModListPath, this.ModList, Location)
                 {
                     DownloadFolder = DownloadLocation
@@ -447,9 +438,7 @@ namespace Wabbajack
                     finally
                     {
                         UIReady = true;
-                        Running = false;
-                        installing = false;
-                        slideshowThread.Abort();
+                        this.Installing = false;
                     }
                 })
                 {

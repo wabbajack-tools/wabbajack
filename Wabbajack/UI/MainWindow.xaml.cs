@@ -68,7 +68,6 @@ namespace Wabbajack
                             MessageBoxImage.Error);
                         Dispatcher.Invoke(() =>
                         {
-                            context.Running = false;
                             ExitWhenClosing = false;
                             var window = new ModeSelectionWindow
                             {

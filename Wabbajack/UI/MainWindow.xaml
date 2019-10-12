@@ -149,7 +149,7 @@
                         Height="30"
                         HorizontalAlignment="Right"
                         Command="{Binding SlideShowNextItemCommand}"
-                        ToolTip="Spamming this button will result in problems">
+                        ToolTip="Skip to next slide">
                         <DockPanel>
                             <Image Source="{Binding NextIcon}" Stretch="Fill" />
                         </DockPanel>
