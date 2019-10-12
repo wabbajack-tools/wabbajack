@@ -24,6 +24,11 @@ namespace Wabbajack
             return source.Where(u => u != null);
         }
 
+        public static IObservable<T> ObserveOnGuiThread<T>(this IObservable<T> source)
+        {
+            return source.ObserveOn(RxApp.MainThreadScheduler);
+        }
+
         /// These snippets were provided by RolandPheasant (author of DynamicData)
         /// They'll be going into the official library at some point, but are here for now.
         #region Dynamic Data EnsureUniqueChanges        

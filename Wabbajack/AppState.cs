@@ -63,10 +63,13 @@ namespace Wabbajack
         private BitmapImage _NextIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.next.png");
         public BitmapImage NextIcon { get => _NextIcon; set => this.RaiseAndSetIfChanged(ref _NextIcon, value); }
 
+        private bool _UIReady;
+        public bool UIReady { get => _UIReady; set => this.RaiseAndSetIfChanged(ref _UIReady, value); }
+
         // Command properties
         public IReactiveCommand ChangePathCommand => ReactiveCommand.Create(ExecuteChangePath);
         public IReactiveCommand ChangeDownloadPathCommand => ReactiveCommand.Create(ExecuteChangeDownloadPath);
-        public IReactiveCommand BeginCommand => ReactiveCommand.Create(ExecuteBegin);
+        public IReactiveCommand BeginCommand { get; }
         public IReactiveCommand ShowReportCommand => ReactiveCommand.Create(ShowReport);
         public IReactiveCommand VisitNexusSiteCommand => ReactiveCommand.Create(VisitNexusSite);
         public IReactiveCommand OpenReadmeCommand { get; }
@@ -91,7 +94,12 @@ namespace Wabbajack
             this.OpenReadmeCommand = ReactiveCommand.Create(
                 execute: this.OpenReadmeWindow,
                 canExecute: this.WhenAny(x => x.ModList)
-                    .Select(modList => !string.IsNullOrEmpty(modList?.Readme)));
+                    .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
+                    .ObserveOnGuiThread());
+            this.BeginCommand = ReactiveCommand.Create(
+                execute: this.ExecuteBegin,
+                canExecute: this.WhenAny(x => x.UIReady)
+                    .ObserveOnGuiThread());
 
             // Apply modlist properties when it changes
             this.WhenAny(x => x.ModList)
@@ -304,13 +312,6 @@ namespace Wabbajack
 
             var viewer = new TextViewer(text, this.ModListName);
             viewer.Show();
-        }
-
-        private bool _uiReady = false;
-        public bool UIReady
-        {
-            get => _uiReady;
-            set => this.RaiseAndSetIfChanged(ref _uiReady, value);
         }
 
         private string _SplashScreenModName = "Wabbajack";
