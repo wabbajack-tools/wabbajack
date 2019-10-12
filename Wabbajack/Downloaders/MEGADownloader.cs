@@ -15,9 +15,6 @@ namespace Wabbajack.Downloaders
 {
     public class MegaDownloader : IDownloader
     {
-        public void Init()
-        {
-        }
 
         public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
         {
@@ -27,15 +24,8 @@ namespace Wabbajack.Downloaders
             return null;
         }
 
-        public class State : AbstractDownloadState
+        public class State : HTTPDownloader.State
         {
-            public string Url { get; set; }
-
-            public override bool IsWhitelisted(ServerWhitelist whitelist)
-            {
-                return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
-            }
-
             public override void Download(Archive a, string destination)
             {
                 var client = new MegaApiClient();

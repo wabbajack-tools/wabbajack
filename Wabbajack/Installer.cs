@@ -464,8 +464,10 @@ namespace Wabbajack
                 {
                     case NexusMod a:
                         string url;
+                        /*
                         try
                         {
+                            
                             url = new NexusApiClient().GetNexusDownloadLink(a, !download);
                             if (!download) return true;
                         }
@@ -477,6 +479,7 @@ namespace Wabbajack
 
                         Info($"Downloading Nexus Archive - {archive.Name} - {a.GameName} - {a.ModID} - {a.FileID}");
                         DownloadURLDirect(archive, url);
+                        */
                         return true;
                     case MEGAArchive a:
                         return DownloadMegaArchive(a, download);

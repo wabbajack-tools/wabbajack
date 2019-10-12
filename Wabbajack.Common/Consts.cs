@@ -57,7 +57,7 @@ namespace Wabbajack.Common
             {
                 var platformType = Environment.Is64BitOperatingSystem ? "x64" : "x86";
                 var headerString =
-                    $"{AppName}/{Assembly.GetEntryAssembly().GetName().Version} ({Environment.OSVersion.VersionString}; {platformType}) {RuntimeInformation.FrameworkDescription}";
+                    $"{AppName}/{Assembly.GetEntryAssembly()?.GetName()?.Version ?? new Version(0, 1)} ({Environment.OSVersion.VersionString}; {platformType}) {RuntimeInformation.FrameworkDescription}";
                 return headerString;
             }
         }
