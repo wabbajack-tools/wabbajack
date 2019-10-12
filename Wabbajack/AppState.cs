@@ -1,4 +1,4 @@
-﻿using ReactiveUI;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,6 +8,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows;
@@ -31,11 +33,12 @@ namespace Wabbajack
 
         private string _mo2Folder;
 
-        private ModList _modList;
-
         private readonly DateTime _startTime;
 
         public volatile bool Dirty;
+
+        private ModList _ModList;
+        public ModList ModList { get => _ModList; private set => this.RaiseAndSetIfChanged(ref _ModList, value); }
 
         // Command properties
         public IReactiveCommand ChangePathCommand => ReactiveCommand.Create(ExecuteChangePath);
@@ -43,7 +46,7 @@ namespace Wabbajack
         public IReactiveCommand BeginCommand => ReactiveCommand.Create(ExecuteBegin);
         public IReactiveCommand ShowReportCommand => ReactiveCommand.Create(ShowReport);
         public IReactiveCommand VisitNexusSiteCommand => ReactiveCommand.Create(VisitNexusSite);
-        public IReactiveCommand OpenReadmeCommand => ReactiveCommand.Create(OpenReadmeWindow);
+        public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand OpenModListPropertiesCommand => ReactiveCommand.Create(OpenModListProperties);
         public IReactiveCommand SlideShowNextItemCommand { get; }
 
@@ -72,6 +75,11 @@ namespace Wabbajack
 
             Mode = mode;
             Dirty = false;
+
+            this.OpenReadmeCommand = ReactiveCommand.Create(
+                execute: this.OpenReadmeWindow,
+                canExecute: this.WhenAny(x => x.ModList)
+                    .Select(modList => !string.IsNullOrEmpty(modList?.Readme)));
 
             slideshowThread = new Thread(UpdateLoop)
             {
@@ -185,17 +193,15 @@ namespace Wabbajack
             }
         }
 
-        public bool HasReadme { get; set; }
-
         private void OpenReadmeWindow()
         {
-            if (!UIReady || string.IsNullOrEmpty(_modList.Readme)) return;
+            if (!UIReady || string.IsNullOrEmpty(this.ModList.Readme)) return;
             var text = "";
             using (var fs = new FileStream(_modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
             using (var ms = new MemoryStream())
             {
-                var entry = ar.GetEntry(_modList.Readme);
+                var entry = ar.GetEntry(this.ModList.Readme);
                 using (var e = entry.Open())
                     e.CopyTo(ms);
                 ms.Seek(0, SeekOrigin.Begin);
@@ -204,7 +210,6 @@ namespace Wabbajack
                     string line;
                     while ((line = sr.ReadLine()) != null)
                         text += line+Environment.NewLine;
-                    //text = sr.ReadToEnd();
                 }
             }
 
@@ -335,18 +340,18 @@ namespace Wabbajack
         public bool Running { get; set; } = true;
         private void ApplyModlistProperties()
         {
-            SplashScreenModName = _modList.Name;
-            SplashScreenAuthorName = _modList.Author;
-            _nexusSiteURL = _modList.Website;
-            SplashScreenSummary = _modList.Description;
-            if (!string.IsNullOrEmpty(_modList.Image) && _modList.Image.Length == 36)
+            SplashScreenModName = this.ModList.Name;
+            SplashScreenAuthorName = this.ModList.Author;
+            _nexusSiteURL = this.ModList.Website;
+            SplashScreenSummary = this.ModList.Description;
+            if (!string.IsNullOrEmpty(this.ModList.Image) && this.ModList.Image.Length == 36)
             {
                 SplashScreenImage = _wabbajackLogo;
                 using (var fs = new FileStream(_modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
                 using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
                 using (var ms = new MemoryStream())
                 {
-                    var entry = ar.GetEntry(_modList.Image);
+                    var entry = ar.GetEntry(this.ModList.Image);
                     using (var e = entry.Open())
                         e.CopyTo(ms);
                     var image = new BitmapImage();
@@ -408,12 +413,11 @@ namespace Wabbajack
 
         internal void ConfigureForInstall(string source, ModList modlist)
         {
-            _modList = modlist;
+            this.ModList = modlist;
             _modListPath = source;
-            HasReadme = !string.IsNullOrEmpty(_modList.Readme);
             Mode = TaskMode.INSTALLING;
-            ModListName = _modList.Name;
-            HTMLReport = _modList.ReportHTML;
+            ModListName = this.ModList.Name;
+            HTMLReport = this.ModList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             ApplyModlistProperties();
@@ -433,7 +437,7 @@ namespace Wabbajack
             if (Mode == TaskMode.INSTALLING)
             {
                 installing = true;
-                var installer = new Installer(_modListPath, _modList, Location)
+                var installer = new Installer(_modListPath, this.ModList, Location)
                 {
                     DownloadFolder = DownloadLocation
                 };

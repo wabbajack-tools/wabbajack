@@ -222,6 +222,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Data.cs" />
+    <Compile Include="Extensions\ReactiveUIExt.cs" />
     <Compile Include="UI\ModlistPropertiesWindow.xaml.cs">
       <DependentUpon>ModlistPropertiesWindow.xaml</DependentUpon>
     </Compile>
