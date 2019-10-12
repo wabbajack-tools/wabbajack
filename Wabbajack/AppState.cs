@@ -44,6 +44,12 @@ namespace Wabbajack
         private string _ModListPath;
         public string ModListPath { get => _ModListPath; private set => this.RaiseAndSetIfChanged(ref _ModListPath, value); }
 
+        private TaskMode _Mode;
+        public TaskMode Mode { get => _Mode; private set => this.RaiseAndSetIfChanged(ref _Mode, value); }
+
+        private string _ModListName;
+        public string ModListName { get => _ModListName; set => this.RaiseAndSetIfChanged(ref _ModListName, value); }
+
         private bool _EnableSlideShow = true;
         public bool EnableSlideShow { get => _EnableSlideShow; set => this.RaiseAndSetIfChanged(ref _EnableSlideShow, value); }
 
@@ -83,6 +89,18 @@ namespace Wabbajack
                 execute: this.OpenReadmeWindow,
                 canExecute: this.WhenAny(x => x.ModList)
                     .Select(modList => !string.IsNullOrEmpty(modList?.Readme)));
+
+            // Apply modlist properties when it changes
+            this.WhenAny(x => x.ModList)
+                .NotNull()
+                .Subscribe(modList =>
+                {
+                    this.SplashScreenModName = modList.Name;
+                    this.SplashScreenAuthorName = modList.Author;
+                    this._nexusSiteURL = modList.Website;
+                    this.SplashScreenSummary = modList.Description;
+                })
+                .DisposeWith(this.CompositeDisposable);
 
             _slideShow = new SlideShow(this, true);
             this.SlideShowNextItemCommand = ReactiveCommand.Create(_slideShow.UpdateSlideShowItem);
@@ -153,12 +171,6 @@ namespace Wabbajack
 
         public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
         public ObservableCollection<CPUStatus> Status { get; } = new ObservableCollection<CPUStatus>();
-
-        private TaskMode _Mode;
-        public TaskMode Mode { get => _Mode; set => this.RaiseAndSetIfChanged(ref _Mode, value); }
-
-        private string _ModListName;
-        public string ModListName { get => _ModListName; set => this.RaiseAndSetIfChanged(ref _ModListName, value); }
 
         private string _Location;
         public string Location { get => _Location; set => this.RaiseAndSetIfChanged(ref _Location, value); }
@@ -363,13 +375,6 @@ namespace Wabbajack
         }
 
         public bool Running { get; set; } = true;
-        private void ApplyModlistProperties()
-        {
-            SplashScreenModName = this.ModList.Name;
-            SplashScreenAuthorName = this.ModList.Author;
-            _nexusSiteURL = this.ModList.Website;
-            SplashScreenSummary = this.ModList.Description;
-        }
 
         public void LogMsg(string msg)
         {
@@ -420,8 +425,6 @@ namespace Wabbajack
             ModListName = this.ModList.Name;
             HTMLReport = this.ModList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-            ApplyModlistProperties();
 
             _slideShow.SlideShowElements = modlist.Archives.OfType<NexusMod>().Select(m => 
                 new Slide(NexusApiUtils.FixupSummary(m.ModName),m.ModID,
