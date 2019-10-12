@@ -35,3 +35,8 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/Wabbajack.exe'
+    ArtifactName: 'Wabbajack.exe'
+    publishLocation: 'Container'
