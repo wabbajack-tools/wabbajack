@@ -1,4 +1,5 @@
 # .NET Desktop
+
 # Build and run tests for .NET Desktop or Windows classic desktop solutions.
 # Add steps that publish symbols, save build artifacts, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
@@ -35,3 +36,25 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+- task: DownloadSecureFile@1
+  inputs:
+    secureFile: 'CertFile.p12'
+- task: codesigning@2
+  inputs:
+    secureFileId: 'CertFile.p12'
+    signCertPassword: '$(CertPassword)'
+    files: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
+    timeServer: 'http://timestamp.digicert.com'
+    hashingAlgorithm: 'SHA256'
+    description: 'Wabbajack Modlist Installer'
+
+- task: CmdLine@2
+  inputs:
+    script: |
+      curl --request POST --url 'https://www.virustotal.com/vtapi/v2/file/scan' --form 'apikey=$(VirusTotalAPIKey)' --form 'file=@$(System.DefaultWorkingDirectory)\Wabbajack\bin\x64\Debug\Wabbajack.exe'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
+    ArtifactName: 'Wabbajack.exe'
+    publishLocation: 'Container'
