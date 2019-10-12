@@ -351,8 +351,6 @@ namespace Compression.BSA
             Chunks = ba2Dx10Entry._chunks.Select(ch => new ChunkState(ch)).ToList();
         }
 
-        public string Path { get; set; }
-
         public List<ChunkState> Chunks { get; set; }
 
         public ushort Unk16 { get; set; }
@@ -497,7 +495,6 @@ namespace Compression.BSA
         }
 
         public string Extension { get; set; }
-        public string Path { get; set; }
         public bool Compressed { get; set; }
         public uint Align { get; set; }
         public uint Flags { get; set; }

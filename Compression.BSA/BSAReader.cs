@@ -353,6 +353,5 @@ namespace Compression.BSA
         }
 
         public bool FlipCompression { get; set; }
-        public string Path { get; set; }
     }
 }
