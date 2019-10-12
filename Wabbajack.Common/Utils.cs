@@ -167,6 +167,16 @@ namespace Wabbajack.Common
             return new DynamicIniData(new FileIniDataParser().ReadFile(file));
         }
 
+        /// <summary>
+        /// Loads a INI from the given string
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        public static dynamic LoadIniString(this string file)
+        {
+            return new DynamicIniData(new FileIniDataParser().ReadData(new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(file)))));
+        }
+
         public static void ToJSON<T>(this T obj, string filename)
         {
             File.WriteAllText(filename,
@@ -194,7 +204,7 @@ namespace Wabbajack.Common
         public static string ToJSON<T>(this T obj)
         {
             return JsonConvert.SerializeObject(obj, Formatting.Indented,
-                new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
+                new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.All});
         }
 
         public static T FromJSON<T>(this string filename)
@@ -528,6 +538,18 @@ namespace Wabbajack.Common
                 offset += arr.Length;
             }
             return outarr;
+        }
+
+        /// <summary>
+        /// Roundtrips the value throught the JSON routines
+        /// </summary>
+        /// <typeparam name="TV"></typeparam>
+        /// <typeparam name="TR"></typeparam>
+        /// <param name="tv"></param>
+        /// <returns></returns>
+        public static T ViaJSON<T>(this T tv)
+        {
+            return tv.ToJSON().FromJSONString<T>();
         }
     }
 }

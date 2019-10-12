@@ -188,6 +188,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Data.cs" />
+    <Compile Include="Downloaders\AbstractDownloadState.cs" />
+    <Compile Include="Downloaders\IDownloader.cs" />
+    <Compile Include="Downloaders\MegaDownloader.cs" />
     <Compile Include="LambdaCommand.cs" />
     <Compile Include="UI\ModlistPropertiesWindow.xaml.cs">
       <DependentUpon>ModlistPropertiesWindow.xaml</DependentUpon>
@@ -327,6 +330,7 @@
     <EmbeddedResource Include="UI\Icons\github_light.png" />
     <EmbeddedResource Include="UI\Icons\patreon_light.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.5.1.1\build\Fody.targets" Condition="Exists('..\packages\Fody.5.1.1\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
