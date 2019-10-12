@@ -51,7 +51,7 @@ steps:
 - task: CmdLine@2
   inputs:
     script: |
-      curl --request POST --url 'https://www.virustotal.com/vtapi/v2/file/scan' --form 'apikey=$(VirusTotalAPIKey)' --form 'file=@'$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
+      curl --request POST --url 'https://www.virustotal.com/vtapi/v2/file/scan' --form 'apikey=$(VirusTotalAPIKey)' --form 'file=@Wabbajack/bin/x64/Debug/Wabbajack.exe'
 
 - task: PublishBuildArtifacts@1
   inputs:
