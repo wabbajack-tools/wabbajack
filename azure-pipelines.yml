@@ -35,6 +35,15 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+- task: codesigning@2
+  inputs:
+    secureFileId: '$(CertFile)'
+    signCertPassword: '$(CertPassword)'
+    files: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
+    timeServer: 'http://timestamp.digicert.com'
+    hashingAlgorithm: 'SHA256'
+    description: 'Wabbajack Modlist Installer'
+
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
