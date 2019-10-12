@@ -1,7 +1,7 @@
 # .NET Desktop
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: '$(Pipeline.Workspace)/Wabbajack.exe'
+    targetPath: '$(Pipeline.Workspace)\\Wabbajack.exe'
     artifact: 'Wabbajack.exe'
 # Build and run tests for .NET Desktop or Windows classic desktop solutions.
 # Add steps that publish symbols, save build artifacts, and more:
