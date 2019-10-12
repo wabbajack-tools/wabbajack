@@ -520,7 +520,6 @@ namespace Wabbajack
                         UIReady = true;
                         Running = false;
                         installing = false;
-                        slideshowThread.Abort();
                     }
                 })
                 {
