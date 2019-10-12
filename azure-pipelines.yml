@@ -1,4 +1,14 @@
 # .NET Desktop
+- task: ado-discord-webhook@1
+  inputs:
+    channelId: '632422572855656468'
+    webhookKey: '5Ch9VMAher9zNhzQWjDuj-nTSDt9sxomQIApvK1Gx48QuZK1-aRjw3Wzu8o6sAQuRFhD'
+    name: 'Azure Build'
+    messageType: 'embeds'
+    embeds: |
+      [{"title": "Build Success",
+         "description": "Triggered By: $(Build.Reason)",
+         "author": { "name": "Azure Build"}}]
 # Build and run tests for .NET Desktop or Windows classic desktop solutions.
 # Add steps that publish symbols, save build artifacts, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
