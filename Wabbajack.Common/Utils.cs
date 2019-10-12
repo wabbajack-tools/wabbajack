@@ -62,6 +62,16 @@ namespace Wabbajack.Common
             _loggerFn?.Invoke(msg);
         }
 
+        public static void LogToFile(string msg)
+        {
+            lock (_lock)
+            {
+                msg = $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}";
+
+                File.AppendAllText(LogFile, msg + "\r\n");
+            }
+        }
+
         public static void Status(string msg, int progress = 0)
         {
             _statusFn?.Invoke(msg, progress);
