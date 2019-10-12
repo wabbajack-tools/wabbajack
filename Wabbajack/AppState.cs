@@ -85,10 +85,6 @@ namespace Wabbajack
         private Subject<Unit> _slideshowCommandTriggeredSubject = new Subject<Unit>();
         public ReactiveCommand<Unit, Unit> SlideShowNextItemCommand => ReactiveCommand.Create(() => _slideshowCommandTriggeredSubject.OnNext(Unit.Default));
 
-        public AppState()
-        {
-        }
-
         public AppState(TaskMode mode)
         {
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly().Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
