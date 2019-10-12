@@ -1,6 +1,9 @@
 ### Changelog
 
 #### Version 0.9.5 - ???
+* New Property system for chaning Modlist Name, Author, Description, Website, custom Banner and custom Readme
+* Slideshow can now be disabled
+* NSFW mods can be toggled to not appear in the Slideshow
 * Set Oblivion's MO2 names to `Oblivion` not `oblivion`
 * Fix validation tests to run in CI
 * Add `check for broken archives` batch functionality
