@@ -47,7 +47,9 @@ steps:
     timeServer: 'http://timestamp.digicert.com'
     hashingAlgorithm: 'SHA256'
     description: 'Wabbajack Modlist Installer'
-
+- task: CmdLine@2
+  inputs:
+    script: 'pip install requests'
 - task: PythonScript@0
   inputs:
     scriptSource: 'inline'
