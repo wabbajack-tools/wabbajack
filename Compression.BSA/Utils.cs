@@ -51,7 +51,6 @@ namespace Compression.BSA
             return GetEncoding(version).GetString(acc.ToArray());
         }
 
-
         /// <summary>
         ///     Returns bytes for a \0 terminated string
         /// </summary>

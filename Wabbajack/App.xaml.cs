@@ -12,6 +12,10 @@ namespace Wabbajack
     {
         public App()
         {
+            /*
+            Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
+            SetupHandlers();
+
             var args = Environment.GetCommandLineArgs();
             if (args.Length > 1)
             {
@@ -23,8 +27,19 @@ namespace Wabbajack
                     Environment.Exit(0);
                 }
                 Environment.Exit(1);
-            }
+            }*/
 
+        }
+
+        private void SetupHandlers()
+        {
+            AppDomain.CurrentDomain.UnhandledException += AppHandler;
+        }
+
+        private void AppHandler(object sender, UnhandledExceptionEventArgs e)
+        {
+            Utils.Log("Uncaught error:");
+            Utils.Log(((Exception)e.ExceptionObject).ExceptionToString());
         }
     }
 }

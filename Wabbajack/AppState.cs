@@ -1,5 +1,6 @@
-using ReactiveUI;
+﻿using Syroot.Windows.IO;
 using System;
+using ReactiveUI;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -90,12 +91,12 @@ namespace Wabbajack
 
         public AppState(TaskMode mode)
         {
-            if (Assembly.GetEntryAssembly().Location.ToLower().Contains("\\downloads\\"))
+            if (Path.GetDirectoryName(Assembly.GetEntryAssembly().Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
                 MessageBox.Show(
-                    "This app seems to be running inside a folder called 'Downloads', such folders are often highly monitored by antivirus software and they can often " +
-                    "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your 'Downloads' folder and then restart the app.",
-                    "Cannot run inside 'Downloads'",
+                    "Wabbajack is running inside your Downloads folder. This folder is often highly monitored by antivirus software and these can often " +
+                    "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your Downloads folder and then restart the app.",
+                    "Cannot run inside Downloads",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
                 Environment.Exit(1);

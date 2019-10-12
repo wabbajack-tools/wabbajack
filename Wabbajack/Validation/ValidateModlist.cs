@@ -140,7 +140,7 @@ namespace Wabbajack.Validation
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {
                         if (!(archive.permissions.CanExtractBSAs ?? true) &&
-                            p.ArchiveHashPath.Skip(1).ButLast().Any(a => Consts.SupportedBSAs.Contains(Path.GetExtension(a))))
+                            p.ArchiveHashPath.Skip(1).ButLast().Any(a => Consts.SupportedBSAs.Contains(Path.GetExtension(a).ToLower())))
                         {
                             ValidationErrors.Push($"{p.To} from {archive.archive.NexusURL} is set to disallow BSA Extraction");
                         }

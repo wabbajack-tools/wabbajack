@@ -407,6 +407,7 @@ namespace Wabbajack
                 group.PMap(entry =>
                 {
                     Info($"Patching {entry.To}");
+                    Status($"Patching {entry.To}");
                     using (var origin = by_path[string.Join("|", entry.ArchiveHashPath.Skip(1))].OpenRead())
                     using (var output = new MemoryStream())
                     {
@@ -431,10 +432,15 @@ namespace Wabbajack
                 var bsa_id = to.Split('\\')[1];
                 var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsa_id);
 
-                using (var a = new BSAReader(Path.Combine(MO2Folder, bsa.To)))
+                using (var a = BSADispatch.OpenRead(Path.Combine(MO2Folder, bsa.To)))
                 {
-                    var file = a.Files.First(e => e.Path == Path.Combine(to.Split('\\').Skip(2).ToArray()));
-                    return file.GetData();
+                    var find = Path.Combine(to.Split('\\').Skip(2).ToArray());
+                    var file = a.Files.First(e => e.Path.Replace('/', '\\') == find);
+                    using (var ms = new MemoryStream())
+                    {
+                        file.CopyDataTo(ms);
+                        return ms.ToArray();
+                    }
                 }
             }
 
@@ -927,7 +933,7 @@ namespace Wabbajack
 
             return source =>
             {
-                if (!Consts.SupportedBSAs.Contains(Path.GetExtension(source.Path))) return null;
+                if (!Consts.SupportedBSAs.Contains(Path.GetExtension(source.Path).ToLower())) return null;
 
                 var default_include = false;
                 if (source.Path.StartsWith("mods"))
@@ -959,19 +965,16 @@ namespace Wabbajack
                 ;
 
                 CreateBSA directive;
-                using (var bsa = new BSAReader(source.AbsolutePath))
+                using (var bsa = BSADispatch.OpenRead(source.AbsolutePath))
                 {
                     directive = new CreateBSA
                     {
                         To = source.Path,
                         TempID = id,
-                        Type = (uint)bsa.HeaderType,
-                        FileFlags = (uint)bsa.FileFlags,
-                        ArchiveFlags = (uint)bsa.ArchiveFlags
+                        State = bsa.State,
+                        FileStates = bsa.Files.Select(f => f.State).ToList()
                     };
                 }
-
-                ;
 
                 return directive;
             };
