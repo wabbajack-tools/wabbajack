@@ -34,7 +34,7 @@ steps:
 - task: Bash@3
   inputs:
     targetType: 'inline'
-    script: 'echo $(NEXUSAPIKEY) > nexus.key_cache'
+    script: 'echo $(NEXUSAPIKEY) > $(System.DefaultWorkingDirectory)/nexus.key_cache'
 - task: VSTest@2
   inputs:
     platform: '$(buildPlatform)'
