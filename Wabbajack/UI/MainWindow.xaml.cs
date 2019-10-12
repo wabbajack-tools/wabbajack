@@ -25,8 +25,6 @@ namespace Wabbajack
         public MainWindow(RunMode mode, string source)
         {
             var args = Environment.GetCommandLineArgs();
-            var DebugMode = false;
-            string MO2Folder = null, InstallFolder = null, MO2Profile = null;
 
             InitializeComponent();
 
@@ -34,8 +32,6 @@ namespace Wabbajack
             context.LogMsg($"Wabbajack Build - {ThisAssembly.Git.Sha}");
             SetupHandlers(context);
             DataContext = context;
-            WorkQueue.Init((id, msg, progress) => context.SetProgress(id, msg, progress),
-                (max, current) => context.SetQueueSize(max, current));
 
             Utils.SetLoggerFn(s => context.LogMsg(s));
             Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));

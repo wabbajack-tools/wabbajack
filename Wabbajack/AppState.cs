@@ -8,6 +8,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Reactive.Subjects;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reflection;
@@ -19,6 +20,8 @@ using System.Windows.Threading;
 using Wabbajack.Common;
 using Wabbajack.NexusApi;
 using Wabbajack.UI;
+using DynamicData;
+using DynamicData.Binding;
 
 namespace Wabbajack
 {
@@ -36,7 +39,8 @@ namespace Wabbajack
         private readonly BitmapImage _wabbajackLogo = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner.png");
         public readonly BitmapImage _noneImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.none.jpg");
 
-        public volatile bool Dirty;
+        private readonly Subject<CPUStatus> _statusSubject = new Subject<CPUStatus>();
+        public ObservableCollectionExtended<CPUStatus> Status { get; } = new ObservableCollectionExtended<CPUStatus>();
 
         private ModList _ModList;
         public ModList ModList { get => _ModList; private set => this.RaiseAndSetIfChanged(ref _ModList, value); }
@@ -83,7 +87,6 @@ namespace Wabbajack
             }
 
             Mode = mode;
-            Dirty = false;
 
             this.OpenReadmeCommand = ReactiveCommand.Create(
                 execute: this.OpenReadmeWindow,
@@ -159,6 +162,22 @@ namespace Wabbajack
                 .Subscribe(_ => _slideShow.UpdateSlideShowItem())
                 .DisposeWith(this.CompositeDisposable);
 
+            // Initialize work queue
+            WorkQueue.Init(
+                report_function: (id, msg, progress) => this._statusSubject.OnNext(new CPUStatus() { ID = id, Msg = msg, Progress = progress }),
+                report_queue_size: (max, current) => this.SetQueueSize(max, current));
+            // Compile progress updates and populate ObservableCollection
+            this._statusSubject
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .ToObservableChangeSet(x => x.ID)
+                .Batch(TimeSpan.FromMilliseconds(250))
+                .EnsureUniqueChanges()
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
+                .Bind(this.Status)
+                .Subscribe()
+                .DisposeWith(this.CompositeDisposable);
+
             slideshowThread = new Thread(UpdateLoop)
             {
                 Priority = ThreadPriority.BelowNormal,
@@ -170,7 +189,6 @@ namespace Wabbajack
         public DateTime lastSlideShowUpdate = new DateTime();
 
         public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
-        public ObservableCollection<CPUStatus> Status { get; } = new ObservableCollection<CPUStatus>();
 
         private string _Location;
         public string Location { get => _Location; set => this.RaiseAndSetIfChanged(ref _Location, value); }
@@ -198,7 +216,6 @@ namespace Wabbajack
         private int _queueProgress;
         public int QueueProgress { get => _queueProgress; set => this.RaiseAndSetIfChanged(ref _queueProgress, value); }
 
-        private List<CPUStatus> InternalStatus { get; } = new List<CPUStatus>();
         public string LogFile { get; }
 
         private void ExecuteChangePath()
@@ -348,21 +365,6 @@ namespace Wabbajack
         {
             while (Running)
             {
-                if (Dirty)
-                    lock (InternalStatus)
-                    {
-                        CPUStatus[] data = InternalStatus.ToArray();
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            for (var idx = 0; idx < data.Length; idx += 1)
-                                if (idx >= Status.Count)
-                                    Status.Add(data[idx]);
-                                else if (Status[idx] != data[idx])
-                                    Status[idx] = data[idx];
-                        });
-                        Dirty = false;
-                    }
-
                 if (_slideShow.SlidesQueue.Any())
                 {
                     if (DateTime.Now - lastSlideShowUpdate > TimeSpan.FromSeconds(10))
@@ -379,17 +381,6 @@ namespace Wabbajack
         public void LogMsg(string msg)
         {
             Application.Current.Dispatcher.Invoke(() => Log.Add(msg));
-        }
-
-        public void SetProgress(int id, string msg, int progress)
-        {
-            lock (InternalStatus)
-            {
-                Dirty = true;
-                while (id >= InternalStatus.Count) InternalStatus.Add(new CPUStatus());
-
-                InternalStatus[id] = new CPUStatus { ID = id, Msg = msg, Progress = progress };
-            }
         }
 
         public void SetQueueSize(int max, int current)
