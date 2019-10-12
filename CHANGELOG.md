@@ -10,6 +10,7 @@
 * Remove nexus timeout for login, it's pointless.
 * Force slides to load before displaying
 * Supress slide load failures
+* UI is now resizeable
 * Setup Crash handling at the very start of the app
 * Add BA2 support
 
