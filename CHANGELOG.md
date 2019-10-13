@@ -1,6 +1,9 @@
 ### Changelog
 
-#### Version 0.9.5 - ???
+#### Version 1.0 alpha - ???
+* Nothing yet...
+
+#### Version 0.9.5 - 10/12/2019
 * New Property system for chaning Modlist Name, Author, Description, Website, custom Banner and custom Readme
 * Slideshow can now be disabled
 * NSFW mods can be toggled to not appear in the Slideshow
