@@ -26,7 +26,7 @@
             <Image
                 Grid.Row="0"
                 Margin="0,0,0,4"
-                Source="{Binding AppState.SplashScreenImage}"
+                Source="{Binding SplashScreenImage}"
                 Stretch="Fill" />
             <Button
                 Grid.Row="1"
@@ -50,7 +50,7 @@
             </Grid.RowDefinitions>
             <Image
                 Grid.Row="0"
-                Source="{Binding AppState.SplashScreenImage}"
+                Source="{Binding SplashScreenImage}"
                 Stretch="Fill" />
             <Button
                 Grid.Row="1"
@@ -80,17 +80,17 @@
                 Grid.Row="0"
                 FontSize="30"
                 FontWeight="Bold"
-                Text="{Binding AppState.SplashScreenModName}" />
+                Text="{Binding SplashScreenModName}" />
             <TextBlock
                 Grid.Row="1"
                 FontSize="15"
                 FontWeight="Bold"
-                Text="{Binding AppState.SplashScreenAuthorName}" />
+                Text="{Binding SplashScreenAuthorName}" />
             <TextBlock
                 Grid.Row="2"
                 FontSize="15"
                 FontWeight="Bold"
-                Text="{Binding AppState.SplashScreenSummary}"
+                Text="{Binding SplashScreenSummary}"
                 TextWrapping="Wrap" />
             <Grid Grid.Row="3" VerticalAlignment="Bottom">
                 <Grid.ColumnDefinitions>
@@ -102,24 +102,24 @@
                     Name="EnableSlideShow"
                     Grid.Column="0"
                     Margin="0,10,0,0"
-                    IsChecked="{Binding AppState.EnableSlideShow}">
+                    IsChecked="{Binding EnableSlideShow}">
                     Enable the Slideshow
                 </CheckBox>
                 <CheckBox
                     Name="ShowNSFWContent"
                     Grid.Column="1"
                     Margin="4,10,0,0"
-                    IsChecked="{Binding AppState.SplashShowNSFW}">
+                    IsChecked="{Binding SplashShowNSFW}">
                     Show NSFW Mods in the Slideshow
                 </CheckBox>
                 <Button
                     Grid.Column="2"
                     Height="30"
                     HorizontalAlignment="Right"
-                    Command="{Binding AppState.SlideShowNextItemCommand}"
+                    Command="{Binding SlideShowNextItemCommand}"
                     ToolTip="Skip to next slide">
                     <DockPanel>
-                        <Image Source="{Binding AppState.NextIcon}" Stretch="Fill" />
+                        <Image Source="{Binding NextIcon}" Stretch="Fill" />
                     </DockPanel>
                 </Button>
             </Grid>
