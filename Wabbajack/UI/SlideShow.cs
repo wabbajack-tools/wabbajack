@@ -74,7 +74,7 @@ namespace Wabbajack.UI
 
         public void UpdateSlideShowItem()
         {
-            if (!_appState.EnableSlideShow || !_appState.installing || SlidesQueue.Count==0) return;
+            if (SlidesQueue.Count == 0) return;
             var slide = SlidesQueue.Peek();
 
             while (CachedSlides.Count >= MaxCacheSize)
@@ -98,11 +98,8 @@ namespace Wabbajack.UI
                 _appState.SplashScreenImage = _appState._noneImage;
                 if (slide.ImageURL != null && slide.Image != null)
                 {
-                    _appState.dispatcher.Invoke(() =>
-                    {
-                        if (!CachedSlides.ContainsKey(slide.ModID)) return;
-                        _appState.SplashScreenImage = slide.Image;
-                    });
+                    if (!CachedSlides.ContainsKey(slide.ModID)) return;
+                    _appState.SplashScreenImage = slide.Image;
                 }
 
                 _appState.SplashScreenModName = slide.ModName;
@@ -110,8 +107,6 @@ namespace Wabbajack.UI
                 _appState.SplashScreenSummary = slide.ModDescription;
                 _appState._nexusSiteURL = slide.ModURL;
             }
-
-            _appState.lastSlideShowUpdate = DateTime.Now;
 
             SlidesQueue.Dequeue();
             QueueRandomSlide(false, true);
@@ -126,7 +121,7 @@ namespace Wabbajack.UI
                 {
                     if (UseSync)
                     {
-                        _appState.dispatcher.Invoke(() =>
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
                         {
                             using (var stream = new HttpClient().GetStreamSync(slide.ImageURL))
                                 stream.CopyTo(ms);
@@ -142,7 +137,7 @@ namespace Wabbajack.UI
                     }
 
                     ms.Seek(0, SeekOrigin.Begin);
-                    _appState.dispatcher.Invoke(() =>
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
                     {
                         var image = new BitmapImage();
                         image.BeginInit();

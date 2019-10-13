@@ -25,21 +25,16 @@ namespace Wabbajack
         public MainWindow(RunMode mode, string source)
         {
             var args = Environment.GetCommandLineArgs();
-            var DebugMode = false;
-            string MO2Folder = null, InstallFolder = null, MO2Profile = null;
 
             InitializeComponent();
 
-            var context = new AppState(Dispatcher, TaskMode.BUILDING);
+            var context = new AppState(TaskMode.BUILDING);
             context.LogMsg($"Wabbajack Build - {ThisAssembly.Git.Sha}");
             SetupHandlers(context);
             DataContext = context;
-            WorkQueue.Init((id, msg, progress) => context.SetProgress(id, msg, progress),
-                (max, current) => context.SetQueueSize(max, current));
 
             Utils.SetLoggerFn(s => context.LogMsg(s));
             Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
-            UIUtils.Dispatcher = Dispatcher;
 
             _state._nexusSiteURL = "https://github.com/wabbajack-tools/wabbajack";
 
@@ -73,7 +68,6 @@ namespace Wabbajack
                             MessageBoxImage.Error);
                         Dispatcher.Invoke(() =>
                         {
-                            context.Running = false;
                             ExitWhenClosing = false;
                             var window = new ModeSelectionWindow
                             {

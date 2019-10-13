@@ -2,11 +2,13 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:local="clr-namespace:Wabbajack"
                     xmlns:darkBlendTheme="clr-namespace:DarkBlendTheme"
                     mc:Ignorable="d">
 
     <!--Converters-->
     <BooleanToVisibilityConverter x:Key="bool2VisibilityConverter"/>
+    <local:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter"/>
 
     <!--Colors-->
     <Color x:Key="WindowBackgroundColor">#444444</Color>
