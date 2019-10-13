@@ -34,29 +34,34 @@ namespace Wabbajack.UI
         
     }
 
-    internal class SlideShow
+    public class SlideShow : ViewModel
     {
         private readonly Random _random;
         private Slide _lastSlide;
         private const bool UseSync = false;
         private const int MaxCacheSize = 10;
-        private readonly AppState _appState;
 
-        public SlideShow(AppState appState, bool checkCache)
+        public List<Slide> SlideShowElements { get; set; }
+
+        public Dictionary<string, Slide> CachedSlides { get; }
+
+        public Queue<Slide> SlidesQueue { get; }
+
+        public AppState AppState { get; }
+
+        private bool _ShowNSFW;
+        public bool ShowNSFW { get => _ShowNSFW; set => this.RaiseAndSetIfChanged(ref _ShowNSFW, value); }
+
+        private bool _GCAfterUpdating = true;
+        public bool GCAfterUpdating { get => _GCAfterUpdating; set => this.RaiseAndSetIfChanged(ref _GCAfterUpdating, value); }
+
+        public SlideShow(AppState appState)
         {
-            SlideShowElements = new List<Slide>();
+            SlideShowElements = NexusApiClient.CachedSlideShow.ToList();
             CachedSlides = new Dictionary<string, Slide>();
             SlidesQueue = new Queue<Slide>();
             _random = new Random();
-            _appState = appState;
-
-            if (!checkCache) return;
-            IEnumerable<Slide> files = NexusApiClient.CachedSlideShow;
-            IEnumerable<Slide> enumerable = files.ToList();
-            if (enumerable.Any())
-            {
-                SlideShowElements = enumerable.ToList();
-            }
+            AppState = appState;
         }
 
         public void PreloadSlideShow()
@@ -89,23 +94,23 @@ namespace Wabbajack.UI
 
                 //if (SlidesQueue.Contains(randomSlide)) continue;
                 CachedSlides.Remove(randomSlide.ModID);
-                if (AppState.GcCollect)
+                if (this.GCAfterUpdating)
                     GC.Collect();
             }
 
             if (!slide.IsNSFW || (slide.IsNSFW && ShowNSFW))
             {
-                _appState.SplashScreenImage = _appState._noneImage;
+                AppState.SplashScreenImage = AppState._noneImage;
                 if (slide.ImageURL != null && slide.Image != null)
                 {
                     if (!CachedSlides.ContainsKey(slide.ModID)) return;
-                    _appState.SplashScreenImage = slide.Image;
+                    AppState.SplashScreenImage = slide.Image;
                 }
 
-                _appState.SplashScreenModName = slide.ModName;
-                _appState.SplashScreenAuthorName = slide.ModAuthor;
-                _appState.SplashScreenSummary = slide.ModDescription;
-                _appState._nexusSiteURL = slide.ModURL;
+                AppState.SplashScreenModName = slide.ModName;
+                AppState.SplashScreenAuthorName = slide.ModAuthor;
+                AppState.SplashScreenSummary = slide.ModDescription;
+                AppState._nexusSiteURL = slide.ModURL;
             }
 
             SlidesQueue.Dequeue();
@@ -194,12 +199,5 @@ namespace Wabbajack.UI
 
             return result;
         }
-
-        public bool ShowNSFW { get; set; }
-        public List<Slide> SlideShowElements { get; set; }
-
-        public Dictionary<string, Slide> CachedSlides { get; }
-
-        public Queue<Slide> SlidesQueue { get; }
     }
 }

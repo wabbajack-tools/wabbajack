@@ -30,9 +30,7 @@ namespace Wabbajack
 {
     public class AppState : ViewModel, IDataErrorInfo
     {
-        public const bool GcCollect = true;
-
-        private SlideShow _slideShow;
+        public SlideShow Slideshow { get; }
 
         private string _mo2Folder;
 
@@ -128,7 +126,7 @@ namespace Wabbajack
                 })
                 .DisposeWith(this.CompositeDisposable);
 
-            _slideShow = new SlideShow(this, true);
+            this.Slideshow = new SlideShow(this);
 
             // Update splashscreen when modlist changes
             Observable.CombineLatest(
@@ -196,7 +194,7 @@ namespace Wabbajack
                 // Don't ever update more than once every half second.  ToDo: Update to debounce
                 .Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(_ => _slideShow.UpdateSlideShowItem())
+                .Subscribe(_ => this.Slideshow.UpdateSlideShowItem())
                 .DisposeWith(this.CompositeDisposable);
 
             // Initialize work queue
@@ -410,7 +408,7 @@ namespace Wabbajack
             HTMLReport = this.ModList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            _slideShow.SlideShowElements = modlist.Archives
+            this.Slideshow.SlideShowElements = modlist.Archives
                 .Select(m => m.State)
                 .OfType<NexusDownloader.State>()
                 .Select(m => 
@@ -419,7 +417,7 @@ namespace Wabbajack
                     m.Adult,m.NexusURL,m.SlideShowPic)).ToList();
 
 
-            _slideShow.PreloadSlideShow();
+            this.Slideshow.PreloadSlideShow();
         }
 
         private void ExecuteBegin()
