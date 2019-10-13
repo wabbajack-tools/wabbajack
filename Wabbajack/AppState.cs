@@ -28,7 +28,6 @@ using System.Reactive;
 
 namespace Wabbajack
 {
-    public enum TaskMode { INSTALLING, BUILDING }
     public class AppState : ViewModel, IDataErrorInfo
     {
         public const bool GcCollect = true;
@@ -49,8 +48,8 @@ namespace Wabbajack
         private string _ModListPath;
         public string ModListPath { get => _ModListPath; private set => this.RaiseAndSetIfChanged(ref _ModListPath, value); }
 
-        private TaskMode _Mode;
-        public TaskMode Mode { get => _Mode; private set => this.RaiseAndSetIfChanged(ref _Mode, value); }
+        private RunMode _Mode;
+        public RunMode Mode { get => _Mode; private set => this.RaiseAndSetIfChanged(ref _Mode, value); }
 
         private string _ModListName;
         public string ModListName { get => _ModListName; set => this.RaiseAndSetIfChanged(ref _ModListName, value); }
@@ -83,7 +82,7 @@ namespace Wabbajack
         public IReactiveCommand OpenModListPropertiesCommand { get; }
         public IReactiveCommand SlideShowNextItemCommand { get; } = ReactiveCommand.Create(() => { });
 
-        public AppState(TaskMode mode)
+        public AppState(RunMode mode)
         {
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly().Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
@@ -235,18 +234,22 @@ namespace Wabbajack
 
         private void ExecuteChangePath()
         {
-            if (Mode == TaskMode.INSTALLING)
+            switch (this.Mode)
             {
-                var folder = UIUtils.ShowFolderSelectionDialog("Select Installation directory");
-                if (folder == null) return;
-                Location = folder;
-                if (DownloadLocation == null)
-                    DownloadLocation = Path.Combine(Location, "downloads");
-            }
-            else
-            {
-                var folder = UIUtils.ShowFolderSelectionDialog("Select Your MO2 profile directory");
-                Location = folder;
+                case RunMode.Compile:
+                    Location = UIUtils.ShowFolderSelectionDialog("Select Your MO2 profile directory");
+                    break;
+                case RunMode.Install:
+                    var folder = UIUtils.ShowFolderSelectionDialog("Select Installation directory");
+                    if (folder == null) return;
+                    Location = folder;
+                    if (DownloadLocation == null)
+                    {
+                        DownloadLocation = Path.Combine(Location, "downloads");
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException();
             }
         }
 
@@ -348,15 +351,15 @@ namespace Wabbajack
                     }
                     else switch (Mode)
                     {
-                        case TaskMode.BUILDING when Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")):
+                        case RunMode.Compile when Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")):
                             Location = Path.Combine(Location, "modlist.txt");
                             validationMessage = null;
                             ConfigureForBuild();
                             break;
-                        case TaskMode.INSTALLING when Location != null && Directory.Exists(Location) && !Directory.EnumerateFileSystemEntries(Location).Any():
+                        case RunMode.Install when Location != null && Directory.Exists(Location) && !Directory.EnumerateFileSystemEntries(Location).Any():
                             validationMessage = null;
                             break;
-                        case TaskMode.INSTALLING when Location != null && Directory.Exists(Location) && Directory.EnumerateFileSystemEntries(Location).Any():
+                        case RunMode.Install when Location != null && Directory.Exists(Location) && Directory.EnumerateFileSystemEntries(Location).Any():
                             validationMessage = "You have selected a non-empty directory. Installing the modlist here might result in a broken install!";
                             break;
                         default:
@@ -390,7 +393,7 @@ namespace Wabbajack
 
             var profile_name = Path.GetFileName(profile_folder);
             this.ModListName = profile_name;
-            Mode = TaskMode.BUILDING;
+            this.Mode = RunMode.Compile;
 
             var tmp_compiler = new Compiler(mo2folder);
             DownloadLocation = tmp_compiler.MO2DownloadsFolder;
@@ -402,7 +405,7 @@ namespace Wabbajack
         {
             this.ModList = modlist;
             this.ModListPath = source;
-            Mode = TaskMode.INSTALLING;
+            this.Mode = RunMode.Install;
             ModListName = this.ModList.Name;
             HTMLReport = this.ModList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -422,7 +425,7 @@ namespace Wabbajack
         private void ExecuteBegin()
         {
             UIReady = false;
-            if (Mode == TaskMode.INSTALLING)
+            if (this.Mode == RunMode.Install)
             {
                 this.Installing = true;
                 var installer = new Installer(this.ModListPath, this.ModList, Location)

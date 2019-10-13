@@ -16,19 +16,13 @@ namespace Wabbajack
     {
         private AppState _state;
 
-        public enum RunMode
-        {
-            Compile,
-            Install
-        }
-
         public MainWindow(RunMode mode, string source)
         {
             var args = Environment.GetCommandLineArgs();
 
             InitializeComponent();
 
-            var context = new AppState(TaskMode.BUILDING);
+            var context = new AppState(RunMode.Install);
             context.LogMsg($"Wabbajack Build - {ThisAssembly.Git.Sha}");
             SetupHandlers(context);
             DataContext = context;
