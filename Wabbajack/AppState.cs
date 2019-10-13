@@ -106,8 +106,11 @@ namespace Wabbajack
             this.OpenModListPropertiesCommand = ReactiveCommand.Create(OpenModListProperties);
             this.OpenReadmeCommand = ReactiveCommand.Create(
                 execute: this.OpenReadmeWindow,
-                canExecute: this.WhenAny(x => x.ModList)
-                    .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
+                canExecute: Observable.CombineLatest(
+                        this.WhenAny(x => x.ModList)
+                            .Select(modList => !string.IsNullOrEmpty(modList?.Readme)),
+                        this.WhenAny(x => x.UIReady),
+                        resultSelector: (modListExists, uiReady) => modListExists && uiReady)
                     .ObserveOnGuiThread());
             this.BeginCommand = ReactiveCommand.Create(
                 execute: this.ExecuteBegin,
