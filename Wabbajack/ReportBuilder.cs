@@ -123,11 +123,7 @@ namespace Wabbajack
 
         private IEnumerable<Archive> SortArchives(List<Archive> lstArchives)
         {
-            /*
-            var lst = lstArchives.OfType<NexusMod>().OrderBy(m => m.Author).ThenBy(m => m.Name);
-            return lst.Concat(lstArchives.Where(m => !(m is NexusMod)).OrderBy(m => m.Name));
-            */
-            return lstArchives;
+            return lstArchives.OrderByDescending(a => a.Size);
         }
     }
 }

@@ -131,7 +131,7 @@ namespace Wabbajack.Downloaders
 
             public override string GetReportEntry(Archive a)
             {
-                return $"* URL - [{a.Name} - {Url}]({Url})";
+                return $"* [{a.Name} - {Url}]({Url})";
             }
         }
     }
