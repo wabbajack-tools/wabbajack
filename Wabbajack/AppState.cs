@@ -1,4 +1,4 @@
-using Syroot.Windows.IO;
+﻿using Syroot.Windows.IO;
 using System;
 using ReactiveUI;
 using System.Collections.Generic;
@@ -89,7 +89,10 @@ namespace Wabbajack
             this.ChangeDownloadPathCommand = ReactiveCommand.Create(ExecuteChangeDownloadPath);
             this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
             this.VisitNexusSiteCommand = ReactiveCommand.Create(VisitNexusSite);
-            this.OpenModListPropertiesCommand = ReactiveCommand.Create(OpenModListProperties);
+            this.OpenModListPropertiesCommand = ReactiveCommand.Create(
+                execute: OpenModListProperties,
+                canExecute: this.WhenAny(x => x.UIReady)
+                    .ObserveOnGuiThread());
             this.OpenReadmeCommand = ReactiveCommand.Create(
                 execute: this.OpenReadmeWindow,
                 canExecute: this.WhenAny(x => x.ModList)
