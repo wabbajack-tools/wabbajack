@@ -9,7 +9,7 @@ namespace Wabbajack.Common
     {
         public static bool TestMode { get; set; } = false;
 
-        public static string ModlistExtension = ".modlist_v1";
+        public static string ModlistExtension = ".modlist_v2";
         public static string GameFolderFilesDir = "Game Folder Files";
         public static string LOOTFolderFilesDir = "LOOT Config Files";
         public static string BSACreationDir = "TEMP_BSA_FILES";
@@ -57,7 +57,7 @@ namespace Wabbajack.Common
             {
                 var platformType = Environment.Is64BitOperatingSystem ? "x64" : "x86";
                 var headerString =
-                    $"{AppName}/{Assembly.GetEntryAssembly().GetName().Version} ({Environment.OSVersion.VersionString}; {platformType}) {RuntimeInformation.FrameworkDescription}";
+                    $"{AppName}/{Assembly.GetEntryAssembly()?.GetName()?.Version ?? new Version(0, 1)} ({Environment.OSVersion.VersionString}; {platformType}) {RuntimeInformation.FrameworkDescription}";
                 return headerString;
             }
         }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Compression.BSA;
 using VFS;
 using Wabbajack.Common;
+using Wabbajack.Downloaders;
 
 namespace Wabbajack
 {
@@ -218,81 +219,7 @@ namespace Wabbajack
         public string Name;
 
         public long Size;
-    }
-
-    [Serializable]
-    public class NexusMod : Archive
-    {
-        public string Author;
-        public string FileID;
-        public string GameName;
-        public string ModID;
-        public string UploadedBy;
-        public string UploaderProfile;
-        public string Version;
-        public string SlideShowPic;
-        public string ModName;
-        public string NexusURL;
-        public string Summary;
-        public bool Adult;
-    }
-
-    [Serializable]
-    public class ManualArchive : Archive
-    {
-        public string URL;
-        public string Notes;
-    }
-
-    [Serializable]
-    public class GoogleDriveMod : Archive
-    {
-        public string Id;
-    }
-
-    /// <summary>
-    ///     URL that can be downloaded directly without any additional options
-    /// </summary>
-    [Serializable]
-    public class DirectURLArchive : Archive
-    {
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public List<string> Headers;
-
-        public string URL;
-    }
-
-    /// <summary>
-    ///     An archive that requires additional HTTP headers.
-    /// </summary>
-    [Serializable]
-    public class DirectURLArchiveEx : DirectURLArchive
-    {
-        public Dictionary<string, string> Headers;
-    }
-
-    /// <summary>
-    ///     Archive that comes from MEGA
-    /// </summary>
-    [Serializable]
-    public class MEGAArchive : DirectURLArchive
-    {
-    }
-
-    /// <summary>
-    ///     Archive that comes from MODDB
-    /// </summary>
-    [Serializable]
-    public class MODDBArchive : DirectURLArchive
-    {
-    }
-
-    /// <summary>
-    ///     Archive that comes from MediaFire
-    /// </summary>
-    [Serializable]
-    public class MediaFireArchive : DirectURLArchive
-    {
+        public AbstractDownloadState State { get; set; }
     }
 
     [Serializable]
