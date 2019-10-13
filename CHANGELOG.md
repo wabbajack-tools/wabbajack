@@ -15,6 +15,7 @@
 * Add BA2 support
 * Fix Downloads folder being incorrectly detected in some cases
 * Fix validation error on selecting an installation directory in Install mode
+* Reworked download code to be more extensible and stable
 
 #### Version 0.9.4 - 10/2/2019
 * Point github icon to https://github.com/wabbajack-tools/wabbajack

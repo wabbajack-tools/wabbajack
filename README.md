@@ -1,4 +1,4 @@
-## Wabbajack - An automated modlist installer for TES/Fallout games
+﻿## Wabbajack - An automated modlist installer for TES/Fallout games
 
 [![Build Status](https://dev.azure.com/tbaldridge/tbaldridge/_apis/build/status/halgari.wabbajack?branchName=master)](https://dev.azure.com/tbaldridge/tbaldridge/_build/latest?definitionId=1&branchName=master)
 
@@ -209,6 +209,11 @@ Our tester and Discord members who encourage development and help test the build
 #### Daedra level Patreon Supporters
 
 - Ancalgon
+- Theo
+- Dascede
+- Kristina Poňuchálková
+- metherul
+- Decopauge123
 
 #### Patreon Supporters
 
@@ -216,6 +221,18 @@ Our tester and Discord members who encourage development and help test the build
 - Soothsayre
 - krageon
 - Scumbag
+- Burt Wheeler
+- Jesse Earl Rockwell
+- Mike Gray
+- Theryl
+- Daniel Gardner
+- Dapper
+- Corapol
+- HQM
+- Argos
+- sorrydaijin
+- William Chudziak
+- N Kalim
 
 ### License & Copyright
 
