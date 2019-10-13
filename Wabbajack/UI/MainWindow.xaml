@@ -14,6 +14,7 @@
     Icon="Icons/wabbajack.ico"
     ResizeMode="CanResize"
     Style="{StaticResource {x:Type Window}}"
+    d:DataContext="{d:DesignInstance local:AppState}"
     WindowStyle="ToolWindow"
     mc:Ignorable="d">
     <Viewbox Stretch="Uniform">
