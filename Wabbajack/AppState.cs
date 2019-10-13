@@ -237,9 +237,6 @@ namespace Wabbajack
             }
         }
 
-        private bool _splashShowNSFW = false;
-        public bool SplashShowNSFW { get => _splashShowNSFW; set => this.RaiseAndSetIfChanged(ref _splashShowNSFW, value); }
-
         public string Error => "Error";
 
         public string this[string columnName] => Validate(columnName);
@@ -367,9 +364,9 @@ namespace Wabbajack
                 var compiler = new Compiler(_mo2Folder)
                 {
                     MO2Profile = ModListName,
-                    ModListName = ChangedProperties ? this.Slideshow.SplashScreenModName : null,
-                    ModListAuthor = ChangedProperties ? this.Slideshow.SplashScreenAuthorName : null,
-                    ModListDescription = ChangedProperties ? this.Slideshow.SplashScreenSummary : null,
+                    ModListName = ChangedProperties ? this.Slideshow.ModName : null,
+                    ModListAuthor = ChangedProperties ? this.Slideshow.AuthorName : null,
+                    ModListDescription = ChangedProperties ? this.Slideshow.Summary : null,
                     ModListImage = ChangedProperties ? newImagePath : null,
                     ModListWebsite = ChangedProperties ? _nexusSiteURL : null,
                     ModListReadme = ChangedProperties ? readmePath : null

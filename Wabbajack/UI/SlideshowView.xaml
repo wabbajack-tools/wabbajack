@@ -24,7 +24,7 @@
             </Grid.RowDefinitions>
             <Image
                 Grid.Row="0"
-                Source="{Binding SplashScreenImage}"
+                Source="{Binding Image}"
                 Stretch="Fill" />
             <Button
                 Grid.Row="1"
@@ -61,20 +61,20 @@
                 FontSize="30"
                 FontWeight="Bold"
                 Margin="6,0,0,0"
-                Text="{Binding SplashScreenModName}" />
+                Text="{Binding ModName}" />
             <TextBlock
                 Grid.Row="1"
                 FontSize="15"
                 FontWeight="Bold"
                 Margin="6,0,0,6"
-                Text="{Binding SplashScreenAuthorName}" />
+                Text="{Binding AuthorName}" />
             <TextBlock
                 Grid.Row="2"
                 FontSize="15"
                 FontWeight="Bold"
                 Padding="5"
                 Background="{StaticResource TextBoxBackground}"
-                Text="{Binding SplashScreenSummary}"
+                Text="{Binding Summary}"
                 TextWrapping="Wrap" />
             <Grid Grid.Row="3" VerticalAlignment="Bottom">
                 <Grid.ColumnDefinitions>
@@ -83,19 +83,17 @@
                     <ColumnDefinition Width="48" />
                 </Grid.ColumnDefinitions>
                 <CheckBox
-                    Name="EnableSlideShow"
                     Margin="6,0,0,0"
                     Grid.Column="0"
                     VerticalAlignment="Center"
-                    IsChecked="{Binding EnableSlideShow}">
+                    IsChecked="{Binding Enable}">
                     Enable the Slideshow
                 </CheckBox>
                 <CheckBox
-                    Name="ShowNSFWContent"
                     Grid.Column="1"
                     Margin="15,0,0,0"
                     VerticalAlignment="Center"
-                    IsChecked="{Binding SplashShowNSFW}">
+                    IsChecked="{Binding ShowNSFW}">
                     Show NSFW Mods in the Slideshow
                 </CheckBox>
                 <Button

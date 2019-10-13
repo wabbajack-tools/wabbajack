@@ -45,12 +45,12 @@ namespace Wabbajack
                 {
                     BitmapImage splashScreen = new BitmapImage(new Uri(newBannerFile));
                     state.newImagePath = newBannerFile;
-                    state.Slideshow.SplashScreenImage = splashScreen;
+                    state.Slideshow.Image = splashScreen;
                 }
 
-                state.Slideshow.SplashScreenModName = ModlistNameProperty.Text;
-                state.Slideshow.SplashScreenSummary = ModlistDescriptionProperty.Text;
-                state.Slideshow.SplashScreenAuthorName = ModlistAuthorProperty.Text;
+                state.Slideshow.ModName = ModlistNameProperty.Text;
+                state.Slideshow.Summary = ModlistDescriptionProperty.Text;
+                state.Slideshow.AuthorName = ModlistAuthorProperty.Text;
                 state._nexusSiteURL = ModlistWebsiteProperty.Text;
                 state.readmePath = ModlistReadmeProperty.Text;
 
