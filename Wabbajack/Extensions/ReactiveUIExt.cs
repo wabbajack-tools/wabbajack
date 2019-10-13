@@ -84,6 +84,14 @@ namespace Wabbajack
                 .Switch();
         }
 
+        public static IObservable<Unit> StartingExecution(this IReactiveCommand cmd)
+        {
+            return cmd.IsExecuting
+                .DistinctUntilChanged()
+                .Where(x => x)
+                .Unit();
+        }
+
         /// These snippets were provided by RolandPheasant (author of DynamicData)
         /// They'll be going into the official library at some point, but are here for now.
         #region Dynamic Data EnsureUniqueChanges

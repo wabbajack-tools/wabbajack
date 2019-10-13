@@ -74,17 +74,14 @@ namespace Wabbajack
         public bool Installing { get => _Installing; set => this.RaiseAndSetIfChanged(ref _Installing, value); }
 
         // Command properties
-        public IReactiveCommand ChangePathCommand => ReactiveCommand.Create(ExecuteChangePath);
-        public IReactiveCommand ChangeDownloadPathCommand => ReactiveCommand.Create(ExecuteChangeDownloadPath);
+        public IReactiveCommand ChangePathCommand { get; }
+        public IReactiveCommand ChangeDownloadPathCommand { get; }
         public IReactiveCommand BeginCommand { get; }
-        public IReactiveCommand ShowReportCommand => ReactiveCommand.Create(ShowReport);
-        public IReactiveCommand VisitNexusSiteCommand => ReactiveCommand.Create(VisitNexusSite);
+        public IReactiveCommand ShowReportCommand { get; }
+        public IReactiveCommand VisitNexusSiteCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
-        public IReactiveCommand OpenModListPropertiesCommand => ReactiveCommand.Create(OpenModListProperties);
-        // ToDo
-        // This subject is not desirable.  Need to research why command's IsExecuting observable not firing, as we'd prefer to hook onto that instead
-        private Subject<Unit> _slideshowCommandTriggeredSubject = new Subject<Unit>();
-        public ReactiveCommand<Unit, Unit> SlideShowNextItemCommand => ReactiveCommand.Create(() => _slideshowCommandTriggeredSubject.OnNext(Unit.Default));
+        public IReactiveCommand OpenModListPropertiesCommand { get; }
+        public IReactiveCommand SlideShowNextItemCommand { get; } = ReactiveCommand.Create(() => { });
 
         public AppState(TaskMode mode)
         {
@@ -101,6 +98,12 @@ namespace Wabbajack
 
             Mode = mode;
 
+            // Define commands
+            this.ChangePathCommand = ReactiveCommand.Create(ExecuteChangePath);
+            this.ChangeDownloadPathCommand = ReactiveCommand.Create(ExecuteChangeDownloadPath);
+            this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
+            this.VisitNexusSiteCommand = ReactiveCommand.Create(VisitNexusSite);
+            this.OpenModListPropertiesCommand = ReactiveCommand.Create(OpenModListProperties);
             this.OpenReadmeCommand = ReactiveCommand.Create(
                 execute: this.OpenReadmeWindow,
                 canExecute: this.WhenAny(x => x.ModList)
@@ -179,7 +182,7 @@ namespace Wabbajack
                     // If the natural timer fires
                     Observable.Interval(TimeSpan.FromSeconds(10)).Unit(),
                     // If user requests one manually
-                    _slideshowCommandTriggeredSubject)
+                    this.SlideShowNextItemCommand.StartingExecution())
                 // When enabled, fire an initial signal
                 .StartWith(Unit.Default)
                 // Only subscribe to slideshow triggers if enabled and installing
