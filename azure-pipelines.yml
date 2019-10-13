@@ -31,14 +31,13 @@ steps:
     solution: '$(solution)'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-- task: Bash@3
-  inputs:
-    targetType: 'inline'
-    script: 'echo $(NEXUSAPIKEY) > $(System.DefaultWorkingDirectory)/nexus.key_cache'
+
 - task: VSTest@2
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+  env:
+    NEXUSAPIKEY: $(NEXUSAPIKEY)
 - task: DownloadSecureFile@1
   inputs:
     secureFile: 'CertFile.p12'
