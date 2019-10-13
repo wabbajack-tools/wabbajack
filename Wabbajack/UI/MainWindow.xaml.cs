@@ -32,17 +32,6 @@ namespace Wabbajack
 
             _state._nexusSiteURL = "https://github.com/wabbajack-tools/wabbajack";
 
-            if (mode == RunMode.Compile)
-            {
-                this.Slideshow.PropertyCompilerGrid.Visibility = Visibility.Visible;
-                this.Slideshow.PropertyInstallerGrid.Visibility = Visibility.Hidden;
-            }
-            else
-            {
-                this.Slideshow.PropertyCompilerGrid.Visibility = Visibility.Hidden;
-                this.Slideshow.PropertyInstallerGrid.Visibility = Visibility.Visible;
-            }
-
             new Thread(() =>
             {
                 if (mode == RunMode.Compile)

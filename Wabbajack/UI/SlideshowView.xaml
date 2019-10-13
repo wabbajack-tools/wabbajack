@@ -13,34 +13,7 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <!--  Properties  -->
         <Grid
-            Name="PropertyCompilerGrid"
-            Grid.Row="1"
-            Grid.Column="0"
-            Margin="0,0,2,4">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
-                <RowDefinition Height="30" />
-            </Grid.RowDefinitions>
-            <Image
-                Grid.Row="0"
-                Margin="0,0,0,4"
-                Source="{Binding SplashScreenImage}"
-                Stretch="Fill" />
-            <Button
-                Grid.Row="1"
-                Height="30"
-                Command="{Binding AppState.OpenModListPropertiesCommand}"
-                IsEnabled="{Binding AppState.UIReady}">
-                <TextBlock
-                    FontSize="15"
-                    FontWeight="Bold"
-                    Text="Modlist Properties" />
-            </Button>
-        </Grid>
-        <Grid
-            Name="PropertyInstallerGrid"
             Grid.Row="1"
             Grid.Column="0"
             Margin="0,0,2,4">
@@ -54,17 +27,24 @@
                 Stretch="Fill" />
             <Button
                 Grid.Row="1"
-                Height="30"
-                Command="{Binding AppState.OpenReadmeCommand}">
-                <TextBlock
-                    FontSize="15"
-                    FontWeight="Bold"
-                    Text="Open README" />
+                FontSize="15"
+                FontWeight="Bold">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource MainButtonStyle}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding AppState.Mode}" Value="{x:Static local:RunMode.Install}">
+                                <Setter Property="Command" Value="{Binding AppState.OpenReadmeCommand}" />
+                                <Setter Property="Content" Value="Open README" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding AppState.Mode}" Value="{x:Static local:RunMode.Compile}">
+                                <Setter Property="Command" Value="{Binding AppState.OpenModListPropertiesCommand}" />
+                                <Setter Property="Content" Value="Modlist Properties" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
             </Button>
         </Grid>
-        <!--  End Properties  -->
-
-        <!--  Slideshow  -->
         <Grid
             Grid.Row="1"
             Grid.Column="1"
@@ -133,6 +113,5 @@
                     Text="View Nexus Site" />
             </Button>
         </Grid>
-        <!--  End Slideshow  -->
     </Grid>
 </UserControl>
