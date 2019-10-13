@@ -130,6 +130,7 @@ namespace Wabbajack
                     this.WhenAny(x => x.ModListPath),
                     this.WhenAny(x => x.EnableSlideShow),
                     (modList, modListPath, enableSlideShow) => (modList, modListPath, enableSlideShow))
+                // Do any potential unzipping on a background thread
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(u =>
                 {
