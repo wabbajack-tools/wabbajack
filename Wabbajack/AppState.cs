@@ -25,6 +25,7 @@ using Wabbajack.UI;
 using DynamicData;
 using DynamicData.Binding;
 using System.Reactive;
+using System.Text;
 
 namespace Wabbajack
 {
@@ -218,25 +219,22 @@ namespace Wabbajack
         private void OpenReadmeWindow()
         {
             if (string.IsNullOrEmpty(this.ModList.Readme)) return;
-            var text = "";
             using (var fs = new FileStream(this.ModListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
             using (var ms = new MemoryStream())
             {
                 var entry = ar.GetEntry(this.ModList.Readme);
                 using (var e = entry.Open())
-                    e.CopyTo(ms);
-                ms.Seek(0, SeekOrigin.Begin);
-                using (var sr = new StreamReader(ms))
                 {
-                    string line;
-                    while ((line = sr.ReadLine()) != null)
-                        text += line+Environment.NewLine;
+                    e.CopyTo(ms);
+                }
+                ms.Seek(0, SeekOrigin.Begin);
+                using (var reader = new StreamReader(ms))
+                {
+                    var viewer = new TextViewer(reader.ReadToEnd(), this.ModListName);
+                    viewer.Show();
                 }
             }
-
-            var viewer = new TextViewer(text, this.ModListName);
-            viewer.Show();
         }
 
         private bool _splashShowNSFW = false;
