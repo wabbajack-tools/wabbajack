@@ -34,13 +34,13 @@ namespace Wabbajack
 
             if (mode == RunMode.Compile)
             {
-                PropertyCompilerGrid.Visibility = Visibility.Visible;
-                PropertyInstallerGrid.Visibility = Visibility.Hidden;
+                this.Slideshow.PropertyCompilerGrid.Visibility = Visibility.Visible;
+                this.Slideshow.PropertyInstallerGrid.Visibility = Visibility.Hidden;
             }
             else
             {
-                PropertyCompilerGrid.Visibility = Visibility.Hidden;
-                PropertyInstallerGrid.Visibility = Visibility.Visible;
+                this.Slideshow.PropertyCompilerGrid.Visibility = Visibility.Hidden;
+                this.Slideshow.PropertyInstallerGrid.Visibility = Visibility.Visible;
             }
 
             new Thread(() =>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\Costura.Fody.4.0.0\build\Costura.Fody.props" Condition="Exists('..\packages\Costura.Fody.4.0.0\build\Costura.Fody.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -238,6 +238,9 @@
     <Compile Include="Downloaders\NexusDownloader.cs" />
     <Compile Include="Enums\RunMode.cs" />
     <Compile Include="Extensions\ReactiveUIExt.cs" />
+    <Compile Include="UI\SlideshowView.xaml.cs">
+      <DependentUpon>SlideshowView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\ModlistPropertiesWindow.xaml.cs">
       <DependentUpon>ModlistPropertiesWindow.xaml</DependentUpon>
     </Compile>
@@ -259,6 +262,10 @@
     <Compile Include="Validation\ValidateModlist.cs" />
     <Compile Include="ViewModel.cs" />
     <Compile Include="zEditIntegration.cs" />
+    <Page Include="UI\SlideshowView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
