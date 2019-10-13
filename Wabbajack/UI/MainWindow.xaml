@@ -6,12 +6,12 @@
         xmlns:local="clr-namespace:Wabbajack"
         mc:Ignorable="d"
         Title="Wabbajack"
-        MinWidth="1280" MinHeight="960"
-        Width="1280" Height="960" 
+        MinWidth="1280" MinHeight="768"
+        Width="1280" Height="768" 
         Style="{StaticResource {x:Type Window}}" Icon="Icons/wabbajack.ico" WindowStyle="ToolWindow"
         ResizeMode="CanResize"
         Closing="Window_Closing">
-    <Viewbox Stretch="Uniform">
+    <Viewbox Stretch="Fill">
         <!--<Grid Width="1280" Height="960">-->
         <Grid Margin="4,0,4,0">
             <Grid.RowDefinitions>
