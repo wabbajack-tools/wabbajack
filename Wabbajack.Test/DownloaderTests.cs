@@ -15,6 +15,12 @@ namespace Wabbajack.Test
     public class DownloaderTests
     {
         [TestMethod]
+        public void TestAllPrepares()
+        {
+            DownloadDispatcher.Downloaders.Do(d => d.Prepare());
+        }
+
+        [TestMethod]
         public void MegaDownload()
         {
             var ini = @"[General]

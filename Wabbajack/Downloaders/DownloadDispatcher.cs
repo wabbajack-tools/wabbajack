@@ -9,7 +9,7 @@ namespace Wabbajack.Downloaders
 {
     public static class DownloadDispatcher
     {
-        private static readonly List<IDownloader> Downloaders = new List<IDownloader>()
+        public static readonly List<IDownloader> Downloaders = new List<IDownloader>()
         {
             new MegaDownloader(),
             new DropboxDownloader(),

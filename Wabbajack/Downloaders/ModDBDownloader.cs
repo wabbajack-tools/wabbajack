@@ -29,7 +29,6 @@ namespace Wabbajack.Downloaders
 
         public void Prepare()
         {
-            throw new NotImplementedException();
         }
 
         public class State : AbstractDownloadState
