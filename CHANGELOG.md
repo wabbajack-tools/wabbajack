@@ -1,6 +1,9 @@
 ### Changelog
 
-#### Version 0.9.5 - ???
+#### Version 1.0 alpha - ???
+* Nothing yet...
+
+#### Version 0.9.5 - 10/12/2019
 * New Property system for chaning Modlist Name, Author, Description, Website, custom Banner and custom Readme
 * Slideshow can now be disabled
 * NSFW mods can be toggled to not appear in the Slideshow
@@ -15,6 +18,7 @@
 * Add BA2 support
 * Fix Downloads folder being incorrectly detected in some cases
 * Fix validation error on selecting an installation directory in Install mode
+* Reworked download code to be more extensible and stable
 
 #### Version 0.9.4 - 10/2/2019
 * Point github icon to https://github.com/wabbajack-tools/wabbajack

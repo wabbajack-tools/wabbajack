@@ -114,37 +114,45 @@ namespace Wabbajack.UI
 
         private void CacheImage(Slide slide)
         {
+            Utils.LogToFile($"Caching slide for {slide.ModName} at {slide.ImageURL}");
             using (var ms = new MemoryStream())
             {
-                if (UseSync)
+                try
                 {
+                    if (UseSync)
+                    {
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            using (var stream = new HttpClient().GetStreamSync(slide.ImageURL))
+                                stream.CopyTo(ms);
+                        });
+                    }
+                    else
+                    {
+                        using (Task<Stream> stream = new HttpClient().GetStreamAsync(slide.ImageURL))
+                        {
+                            stream.Wait();
+                            stream.Result.CopyTo(ms);
+                        }
+                    }
+
+                    ms.Seek(0, SeekOrigin.Begin);
                     System.Windows.Application.Current.Dispatcher.Invoke(() =>
                     {
-                        using (var stream = new HttpClient().GetStreamSync(slide.ImageURL))
-                            stream.CopyTo(ms);
+                        var image = new BitmapImage();
+                        image.BeginInit();
+                        image.CacheOption = BitmapCacheOption.OnLoad;
+                        image.StreamSource = ms;
+                        image.EndInit();
+                        image.Freeze();
+
+                        slide.Image = image;
                     });
                 }
-                else
+                catch (Exception e)
                 {
-                    using (Task<Stream> stream = new HttpClient().GetStreamAsync(slide.ImageURL))
-                    {
-                        stream.Wait();
-                        stream.Result.CopyTo(ms);
-                    }
+                    Utils.LogToFile($"Exception while caching slide {slide.ModName} ({slide.ModID})\n{e.ExceptionToString()}");
                 }
-
-                ms.Seek(0, SeekOrigin.Begin);
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    var image = new BitmapImage();
-                    image.BeginInit();
-                    image.CacheOption = BitmapCacheOption.OnLoad;
-                    image.StreamSource = ms;
-                    image.EndInit();
-                    image.Freeze();
-
-                    slide.Image = image;
-                });
             }
         }
 

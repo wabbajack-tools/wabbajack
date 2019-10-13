@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using Wabbajack.Common;
+using Wabbajack.Downloaders;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -84,7 +85,7 @@ namespace Wabbajack.Validation
         /// </summary>
         /// <param name="mod"></param>
         /// <returns></returns>
-        public Permissions FilePermissions(NexusMod mod)
+        public Permissions FilePermissions(NexusDownloader.State mod)
         {
             var author_permissions = AuthorPermissions.GetOrDefault(mod.Author)?.Permissions;
             var game_permissions = AuthorPermissions.GetOrDefault(mod.Author)?.Games.GetOrDefault(mod.GameName)?.Permissions;
@@ -109,10 +110,10 @@ namespace Wabbajack.Validation
         public IEnumerable<string> Validate(ModList modlist)
         {
             ConcurrentStack<string> ValidationErrors = new ConcurrentStack<string>();
-
+            
             var nexus_mod_permissions = modlist.Archives
-                .OfType<NexusMod>()
-                .PMap(a => (a.Hash, FilePermissions(a), a))
+                .Where(a => a.State is NexusDownloader.State)
+                .PMap(a => (a.Hash, FilePermissions((NexusDownloader.State)a.State), a))
                 .ToDictionary(a => a.Hash, a => new { permissions = a.Item2, archive = a.a });
 
             modlist.Directives
@@ -122,13 +123,14 @@ namespace Wabbajack.Validation
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {
                         var ext = Path.GetExtension(p.ArchiveHashPath.Last());
+                        var url = (archive.archive.State as NexusDownloader.State).NexusURL;
                         if (Consts.AssetFileExtensions.Contains(ext) && !(archive.permissions.CanModifyAssets ?? true))
                         {
-                            ValidationErrors.Push($"{p.To} from {archive.archive.NexusURL} is set to disallow asset modification");
+                            ValidationErrors.Push($"{p.To} from {url} is set to disallow asset modification");
                         }
                         else if (Consts.ESPFileExtensions.Contains(ext) && !(archive.permissions.CanModifyESPs ?? true))
                         {
-                            ValidationErrors.Push($"{p.To} from {archive.archive.NexusURL} is set to disallow asset ESP modification");
+                            ValidationErrors.Push($"{p.To} from {url} is set to disallow asset ESP modification");
                         }
                     }
                 });
@@ -139,10 +141,11 @@ namespace Wabbajack.Validation
                 {
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {
+                        var url = (archive.archive.State as NexusDownloader.State).NexusURL;
                         if (!(archive.permissions.CanExtractBSAs ?? true) &&
                             p.ArchiveHashPath.Skip(1).ButLast().Any(a => Consts.SupportedBSAs.Contains(Path.GetExtension(a).ToLower())))
                         {
-                            ValidationErrors.Push($"{p.To} from {archive.archive.NexusURL} is set to disallow BSA Extraction");
+                            ValidationErrors.Push($"{p.To} from {url} is set to disallow BSA Extraction");
                         }
                     }
                 });
@@ -150,34 +153,25 @@ namespace Wabbajack.Validation
             var nexus = NexusApi.NexusApiUtils.ConvertGameName(GameRegistry.Games[modlist.GameType].NexusName);
 
             modlist.Archives
-                   .OfType<NexusMod>()
-                   .Where(m => NexusApi.NexusApiUtils.ConvertGameName(m.GameName) != nexus)
+                   .Where(a => a.State is NexusDownloader.State)
+                   .Where(m => NexusApi.NexusApiUtils.ConvertGameName(((NexusDownloader.State)m.State).GameName) != nexus)
                    .Do(m =>
                    {
-                       var permissions = FilePermissions(m);
+                       var permissions = FilePermissions((NexusDownloader.State)m.State);
                        if (!(permissions.CanUseInOtherGames ?? true))
                        {
                            ValidationErrors.Push(
-                               $"The modlist is for {nexus} but {m.Name} is for game type {m.GameName} and is not allowed to be converted to other game types");
+                               $"The modlist is for {nexus} but {m.Name} is for game type {((NexusDownloader.State)m.State).GameName} and is not allowed to be converted to other game types");
                        }
                    });
 
             modlist.Archives
-                   .OfType<GoogleDriveMod>()
-                   .PMap(m =>
-            {
-                if (!ServerWhitelist.GoogleIDs.Contains(m.Id))
-                    ValidationErrors.Push($"{m.Name} uses Google Drive id {m.Id} but that id is not in the file whitelist.");
-            });
-
-            modlist.Archives
-                .OfType<DirectURLArchive>()
-                .PMap(m =>
+                .Where(m => !m.State.IsWhitelisted(ServerWhitelist))
+                .Do(m =>
                 {
-                    if (!ServerWhitelist.AllowedPrefixes.Any(prefix => m.URL.StartsWith(prefix)))
-                        ValidationErrors.Push($"{m.Name} will be downloaded from {m.URL} but that URL is not in the server whitelist");
+                    ValidationErrors.Push($"{m.Name} is not a whitelisted download");
                 });
-
+                
             return ValidationErrors.ToList();
         }
     }

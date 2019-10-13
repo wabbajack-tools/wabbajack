@@ -36,6 +36,8 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+  env:
+    NEXUSAPIKEY: $(NEXUSAPIKEY)
 - task: DownloadSecureFile@1
   inputs:
     secureFile: 'CertFile.p12'

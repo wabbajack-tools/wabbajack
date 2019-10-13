@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Security.Authentication;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Downloaders;
 using WebSocketSharp;
 using static Wabbajack.NexusApi.NexusApiUtils;
 
@@ -60,6 +61,12 @@ namespace Wabbajack.NexusApi
                 if (fi.Exists)
                 {
                     return File.ReadAllText(API_KEY_CACHE_FILE);
+                }
+
+                var env_key = Environment.GetEnvironmentVariable("NEXUSAPIKEY");
+                if (env_key != null)
+                {
+                    return env_key;
                 }
 
                 // open a web socket to receive the api key
@@ -155,7 +162,7 @@ namespace Wabbajack.NexusApi
             headers.Add("apikey", _apiKey);
             headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             headers.Add("Application-Name", Consts.AppName);
-            headers.Add("Application-Version", $"{Assembly.GetEntryAssembly().GetName().Version}");
+            headers.Add("Application-Version", $"{Assembly.GetEntryAssembly()?.GetName()?.Version ?? new Version(0, 1)}");
         }
 
         private T Get<T>(string url)
@@ -173,7 +180,7 @@ namespace Wabbajack.NexusApi
         }
 
 
-        public string GetNexusDownloadLink(NexusMod archive, bool cache = false)
+        public string GetNexusDownloadLink(NexusDownloader.State archive, bool cache = false)
         {
             if (cache && TryGetCachedLink(archive, out var result))
                 return result;
@@ -184,7 +191,7 @@ namespace Wabbajack.NexusApi
             return Get<List<DownloadLink>>(url).First().URI;
         }
 
-        private bool TryGetCachedLink(NexusMod archive, out string result)
+        private bool TryGetCachedLink(NexusDownloader.State archive, out string result)
         {
             if (!Directory.Exists(Consts.NexusCacheDirectory))
                 Directory.CreateDirectory(Consts.NexusCacheDirectory);
@@ -202,20 +209,20 @@ namespace Wabbajack.NexusApi
             return true;
         }
 
-        public NexusFileInfo GetFileInfo(NexusMod mod)
+        public NexusFileInfo GetFileInfo(NexusDownloader.State mod)
         {
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/files/{mod.FileID}.json";
             return Get<NexusFileInfo>(url);
         }
 
-        public ModInfo GetModInfo(NexusMod archive)
+        public ModInfo GetModInfo(string gameName, string modId)
         {
             if (!Directory.Exists(Consts.NexusCacheDirectory))
                 Directory.CreateDirectory(Consts.NexusCacheDirectory);
 
             ModInfo result = null;
         TOP:
-            var path = Path.Combine(Consts.NexusCacheDirectory, $"mod-info-{archive.GameName}-{archive.ModID}.json");
+            var path = Path.Combine(Consts.NexusCacheDirectory, $"mod-info-{gameName}-{modId}.json");
             try
             {
                 if (File.Exists(path))
@@ -235,17 +242,17 @@ namespace Wabbajack.NexusApi
                 File.Delete(path);
             }
 
-            var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(archive.GameName)}/mods/{archive.ModID}.json";
+            var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(gameName)}/mods/{modId}.json";
             result = Get<ModInfo>(url);
 
-            result.game_name = archive.GameName;
-            result.mod_id = archive.ModID;
+            result.game_name = gameName;
+            result.mod_id = modId;
             result._internal_version = CACHED_VERSION_NUMBER;
             result.ToJSON(path);
             return result;
         }
 
-        public EndorsementResponse EndorseMod(NexusMod mod)
+        public EndorsementResponse EndorseMod(NexusDownloader.State mod)
         {
             Utils.Status($"Endorsing ${mod.GameName} - ${mod.ModID}");
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/endorse.json";
