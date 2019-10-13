@@ -1,4 +1,4 @@
-﻿using Syroot.Windows.IO;
+using Syroot.Windows.IO;
 using System;
 using ReactiveUI;
 using System.Collections.Generic;
@@ -92,11 +92,8 @@ namespace Wabbajack
             this.OpenModListPropertiesCommand = ReactiveCommand.Create(OpenModListProperties);
             this.OpenReadmeCommand = ReactiveCommand.Create(
                 execute: this.OpenReadmeWindow,
-                canExecute: Observable.CombineLatest(
-                        this.WhenAny(x => x.ModList)
-                            .Select(modList => !string.IsNullOrEmpty(modList?.Readme)),
-                        this.WhenAny(x => x.UIReady),
-                        resultSelector: (modListExists, uiReady) => modListExists && uiReady)
+                canExecute: this.WhenAny(x => x.ModList)
+                    .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
                     .ObserveOnGuiThread());
             this.BeginCommand = ReactiveCommand.Create(
                 execute: this.ExecuteBegin,
@@ -217,7 +214,7 @@ namespace Wabbajack
 
         private void OpenReadmeWindow()
         {
-            if (!UIReady || string.IsNullOrEmpty(this.ModList.Readme)) return;
+            if (string.IsNullOrEmpty(this.ModList.Readme)) return;
             var text = "";
             using (var fs = new FileStream(this.ModListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
