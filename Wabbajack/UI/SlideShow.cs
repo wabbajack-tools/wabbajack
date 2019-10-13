@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.NexusApi;
 
-namespace Wabbajack.UI
+namespace Wabbajack
 {
     public class Slide
     {
