@@ -111,7 +111,7 @@
             <Button
                 Grid.Row="4"
                 Height="30"
-                Command="{Binding AppState.VisitNexusSiteCommand}">
+                Command="{Binding VisitNexusSiteCommand}">
                 <TextBlock
                     FontSize="15"
                     FontWeight="Bold"

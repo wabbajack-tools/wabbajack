@@ -51,7 +51,7 @@ namespace Wabbajack
                 state.Slideshow.ModName = ModlistNameProperty.Text;
                 state.Slideshow.Summary = ModlistDescriptionProperty.Text;
                 state.Slideshow.AuthorName = ModlistAuthorProperty.Text;
-                state._nexusSiteURL = ModlistWebsiteProperty.Text;
+                state.Slideshow.NexusSiteURL = ModlistWebsiteProperty.Text;
                 state.readmePath = ModlistReadmeProperty.Text;
 
                 state.ChangedProperties = true;

@@ -30,8 +30,6 @@ namespace Wabbajack
             Utils.SetLoggerFn(s => context.LogMsg(s));
             Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
 
-            _state._nexusSiteURL = "https://github.com/wabbajack-tools/wabbajack";
-
             new Thread(() =>
             {
                 if (mode == RunMode.Compile)

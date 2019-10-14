@@ -66,7 +66,6 @@ namespace Wabbajack
         public IReactiveCommand ChangeDownloadPathCommand { get; }
         public IReactiveCommand BeginCommand { get; }
         public IReactiveCommand ShowReportCommand { get; }
-        public IReactiveCommand VisitNexusSiteCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand OpenModListPropertiesCommand { get; }
 
@@ -89,7 +88,6 @@ namespace Wabbajack
             this.ChangePathCommand = ReactiveCommand.Create(ExecuteChangePath);
             this.ChangeDownloadPathCommand = ReactiveCommand.Create(ExecuteChangeDownloadPath);
             this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
-            this.VisitNexusSiteCommand = ReactiveCommand.Create(VisitNexusSite);
             this.OpenModListPropertiesCommand = ReactiveCommand.Create(
                 execute: OpenModListProperties,
                 canExecute: this.WhenAny(x => x.UIReady)
@@ -103,15 +101,6 @@ namespace Wabbajack
                 execute: this.ExecuteBegin,
                 canExecute: this.WhenAny(x => x.UIReady)
                     .ObserveOnGuiThread());
-
-            // Apply modlist properties when it changes
-            this.WhenAny(x => x.ModList)
-                .NotNull()
-                .Subscribe(modList =>
-                {
-                    this._nexusSiteURL = modList.Website;
-                })
-                .DisposeWith(this.CompositeDisposable);
 
             this.Slideshow = new SlideShow(this);
 
@@ -180,15 +169,6 @@ namespace Wabbajack
             var file = Path.GetTempFileName() + ".html";
             File.WriteAllText(file, HTMLReport);
             Process.Start(file);
-        }
-
-        public string _nexusSiteURL = null;
-        private void VisitNexusSite()
-        {
-            if (_nexusSiteURL != null && _nexusSiteURL.StartsWith("https://"))
-            {
-                Process.Start(_nexusSiteURL);
-            }
         }
 
         private ModlistPropertiesWindow modlistPropertiesWindow;
@@ -368,7 +348,7 @@ namespace Wabbajack
                     ModListAuthor = ChangedProperties ? this.Slideshow.AuthorName : null,
                     ModListDescription = ChangedProperties ? this.Slideshow.Summary : null,
                     ModListImage = ChangedProperties ? newImagePath : null,
-                    ModListWebsite = ChangedProperties ? _nexusSiteURL : null,
+                    ModListWebsite = ChangedProperties ? this.Slideshow.NexusSiteURL : null,
                     ModListReadme = ChangedProperties ? readmePath : null
                 };
                 var th = new Thread(() =>

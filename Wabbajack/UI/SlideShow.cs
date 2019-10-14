@@ -1,6 +1,7 @@
 ﻿using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -78,7 +79,11 @@ namespace Wabbajack
         private string _Summary;
         public string Summary { get => _Summary; set => this.RaiseAndSetIfChanged(ref _Summary, value); }
 
+        private string _NexusSiteURL = "https://github.com/wabbajack-tools/wabbajack";
+        public string NexusSiteURL { get => _NexusSiteURL; set => this.RaiseAndSetIfChanged(ref _NexusSiteURL, value); }
+
         public IReactiveCommand SlideShowNextItemCommand { get; } = ReactiveCommand.Create(() => { });
+        public IReactiveCommand VisitNexusSiteCommand { get; }
 
         public SlideShow(AppState appState)
         {
@@ -88,11 +93,18 @@ namespace Wabbajack
             _random = new Random();
             AppState = appState;
 
+            this.VisitNexusSiteCommand = ReactiveCommand.Create(
+                execute: () => Process.Start(this.NexusSiteURL),
+                canExecute: this.WhenAny(x => x.NexusSiteURL)
+                    .Select(x => x?.StartsWith("https://") ?? false)
+                    .ObserveOnGuiThread());
+
             // Apply modlist properties when it changes
             this.WhenAny(x => x.AppState.ModList)
                 .NotNull()
                 .Subscribe(modList =>
                 {
+                    this.NexusSiteURL = modList.Website;
                     this.ModName = modList.Name;
                     this.AuthorName = modList.Author;
                     this.Summary = modList.Description;
@@ -215,7 +227,7 @@ namespace Wabbajack
                 this.ModName = slide.ModName;
                 this.AuthorName = slide.ModAuthor;
                 this.Summary = slide.ModDescription;
-                AppState._nexusSiteURL = slide.ModURL;
+                this.NexusSiteURL = slide.ModURL;
             }
 
             SlidesQueue.Dequeue();
