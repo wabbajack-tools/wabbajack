@@ -142,7 +142,7 @@ namespace Wabbajack.NexusApi
                 dailyRemaining = int.Parse(response.Headers.GetValues("x-rl-daily-remaining").First());
                 hourlyRemaining = int.Parse(response.Headers.GetValues("x-rl-hourly-remaining").First());
             }
-            catch (InvalidDataException)
+            catch (Exception)
             {
                 Utils.Log("Couldn't find x-rl-*-remaining headers in Nexus response. Ignoring");
                 return;
