@@ -136,25 +136,24 @@ namespace Wabbajack.NexusApi
 
         private void UpdateRemaining(HttpResponseMessage response)
         {
-            int dailyRemaining, hourlyRemaining;
             try
             {
-                dailyRemaining = int.Parse(response.Headers.GetValues("x-rl-daily-remaining").First());
-                hourlyRemaining = int.Parse(response.Headers.GetValues("x-rl-hourly-remaining").First());
+                var dailyRemaining = int.Parse(response.Headers.GetValues("x-rl-daily-remaining").First());
+                var hourlyRemaining = int.Parse(response.Headers.GetValues("x-rl-hourly-remaining").First());
+
+                lock (RemainingLock)
+                {
+                    _dailyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
+                    _hourlyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
+                }
+                this.RaisePropertyChanged(nameof(DailyRemaining));
+                this.RaisePropertyChanged(nameof(HourlyRemaining));
             }
             catch (Exception)
             {
                 Utils.Log("Couldn't find x-rl-*-remaining headers in Nexus response. Ignoring");
-                return;
             }
 
-            lock (RemainingLock)
-            {
-                _dailyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
-                _hourlyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
-            }
-            this.RaisePropertyChanged(nameof(DailyRemaining));
-            this.RaisePropertyChanged(nameof(HourlyRemaining));
         }
 
         #endregion
