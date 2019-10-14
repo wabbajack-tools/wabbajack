@@ -22,11 +22,6 @@ namespace Wabbajack
             state = _state;
         }
 
-        private void Window_Closing(object sender, CancelEventArgs e)
-        {
-            //Hide();
-        }
-
         private void SetSplashScreen_Click(object sender, RoutedEventArgs e)
         {
             var file = UIUtils.OpenFileDialog("Banner image|*.png");

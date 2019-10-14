@@ -7,8 +7,7 @@
         mc:Ignorable="d"
         Title="Wabbajack (Modlist Properties)" Height="600" Width="900"
         Style="{StaticResource {x:Type Window}}" Icon="Icons/wabbajack.ico" WindowStyle="ToolWindow"
-        ResizeMode="NoResize"
-        Closing="Window_Closing">
+        ResizeMode="NoResize">
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="300"/>
