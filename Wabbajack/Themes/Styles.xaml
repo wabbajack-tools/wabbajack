@@ -1146,7 +1146,7 @@
     </Style>
 
 
-    <Style TargetType="{x:Type Button}">
+    <Style TargetType="{x:Type Button}" x:Key="MainButtonStyle" >
         <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}"/>
         <Setter Property="Background" Value="{StaticResource ButtonBackground}"/>
         <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}"/>
@@ -1187,6 +1187,7 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <Style BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}" />
 
     <!-- ToggleButton-->
     <Style TargetType="{x:Type ToggleButton}">
