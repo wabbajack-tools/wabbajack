@@ -103,8 +103,8 @@ namespace Wabbajack.Downloaders
             {
                 try
                 {
-                    new NexusApiClient().GetNexusDownloadLink(this, true);
-                    return true;
+                    var info = new NexusApiClient().GetFileInfo(this);
+                    return info.category_name != null;
                 }
                 catch (Exception ex)
                 {

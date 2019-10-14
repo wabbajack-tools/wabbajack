@@ -9,7 +9,9 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
+using System.Runtime.Serialization.Json;
 using System.Security.Authentication;
+using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Downloaders;
@@ -190,6 +192,20 @@ namespace Wabbajack.NexusApi
             }
         }
 
+        private T GetCached<T>(string url)
+        {
+            var code = Encoding.UTF8.GetBytes(url).ToHEX();
+            var cache_file = Path.Combine(Consts.NexusCacheDirectory, code + ".json");
+            if (File.Exists(cache_file) && DateTime.Now - File.GetLastWriteTime(cache_file) < Consts.NexusCacheExpiry)
+            {
+                return cache_file.FromJSON<T>();
+            }
+
+            var result = Get<T>(url);
+            result.ToJSON(cache_file);
+            return result;
+        }
+
 
         public string GetNexusDownloadLink(NexusDownloader.State archive, bool cache = false)
         {
@@ -223,7 +239,7 @@ namespace Wabbajack.NexusApi
         public NexusFileInfo GetFileInfo(NexusDownloader.State mod)
         {
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/files/{mod.FileID}.json";
-            return Get<NexusFileInfo>(url);
+            return GetCached<NexusFileInfo>(url);
         }
 
         public ModInfo GetModInfo(string gameName, string modId)

@@ -128,6 +128,8 @@ namespace Wabbajack.Test
 
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
+            // Exercise the cache code
+            Assert.IsTrue(converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> () }));

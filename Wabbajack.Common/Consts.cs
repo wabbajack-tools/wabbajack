@@ -61,5 +61,7 @@ namespace Wabbajack.Common
                 return headerString;
             }
         }
+
+        public static TimeSpan NexusCacheExpiry = new TimeSpan(1, 0, 0, 0);
     }
 }
