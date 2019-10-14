@@ -181,7 +181,10 @@ namespace Wabbajack.NexusApi
             var response = responseTask.Result;
             UpdateRemaining(response);
 
-            using (var stream = _httpClient.GetStreamSync(url))
+            var contentTask = response.Content.ReadAsStreamAsync();
+            contentTask.Wait();
+
+            using (var stream = contentTask.Result)
             {
                 return stream.FromJSON<T>();
             }
