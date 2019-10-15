@@ -22,7 +22,7 @@ namespace Wabbajack
 
             InitializeComponent();
 
-            var context = new AppState(RunMode.Install);
+            var context = new AppState(mode);
             context.LogMsg($"Wabbajack Build - {ThisAssembly.Git.Sha}");
             SetupHandlers(context);
             DataContext = context;
