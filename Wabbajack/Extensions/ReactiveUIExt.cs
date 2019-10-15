@@ -2,6 +2,8 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Kernel;
@@ -90,6 +92,63 @@ namespace Wabbajack
                 .DistinctUntilChanged()
                 .Where(x => x)
                 .Unit();
+        }
+
+        /// Inspiration:
+        /// http://reactivex.io/documentation/operators/debounce.html
+        /// https://stackoverflow.com/questions/20034476/how-can-i-use-reactive-extensions-to-throttle-events-using-a-max-window-size
+        public static IObservable<T> Debounce<T>(this IObservable<T> source, TimeSpan interval, IScheduler scheduler = null)
+        {
+            scheduler = scheduler ?? Scheduler.Default;
+            return Observable.Create<T>(o =>
+            {
+                var hasValue = false;
+                bool throttling = false;
+                T value = default;
+
+                var dueTimeDisposable = new SerialDisposable();
+
+                void internalCallback()
+                {
+                    if (hasValue)
+                    {
+                        // We have another value that came in to fire.
+                        // Reregister for callback
+                        dueTimeDisposable.Disposable = scheduler.Schedule(interval, internalCallback);
+                        o.OnNext(value);
+                        value = default;
+                        hasValue = false;
+                    }
+                    else
+                    {
+                        // Nothing to do, throttle is complete.
+                        throttling = false;
+                    }
+                }
+
+                return source.Subscribe(
+                    onNext: (x) =>
+                    {
+                        if (!throttling)
+                        {
+                            // Fire initial value
+                            o.OnNext(x);
+                            // Mark that we're throttling
+                            throttling = true;
+                            // Register for callback when throttle is complete
+                            dueTimeDisposable.Disposable = scheduler.Schedule(interval, internalCallback);
+                        }
+                        else
+                        {
+                            // In the middle of throttle
+                            // Save value and return
+                            hasValue = true;
+                            value = x;
+                        }
+                    },
+                    onError: o.OnError,
+                    onCompleted: o.OnCompleted);
+            });
         }
 
         /// These snippets were provided by RolandPheasant (author of DynamicData)

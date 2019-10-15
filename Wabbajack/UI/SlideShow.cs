@@ -151,8 +151,8 @@ namespace Wabbajack
                         this.WhenAny(x => x.Enable),
                         this.WhenAny(x => x.AppState.Installing),
                         resultSelector: (enabled, installing) => enabled && installing))
-                // Don't ever update more than once every half second.  ToDo: Update to debounce
-                .Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
+                // Don't ever update more than once every half second.
+                .Debounce(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(_ => this.UpdateSlideShowItem())
                 .DisposeWith(this.CompositeDisposable);
