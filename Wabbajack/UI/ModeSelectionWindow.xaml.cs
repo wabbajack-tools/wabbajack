@@ -27,27 +27,28 @@ namespace Wabbajack
 
         private void CreateModlist_Click(object sender, RoutedEventArgs e)
         {
-            var file = UIUtils.OpenFileDialog("MO2 Modlist(modlist.txt)|modlist.txt");
-            if (file != null)
-            {
-                ShutdownOnClose = false;
-                new MainWindow(RunMode.Compile, file).Show();
-                Close();
-            }
+            OpenMainWindow(
+                RunMode.Compile,
+                UIUtils.OpenFileDialog("MO2 Modlist(modlist.txt)|modlist.txt"));
         }
 
         private void InstallModlist_Click(object sender, RoutedEventArgs e)
         {
-            var file = UIUtils.OpenFileDialog($"Wabbajack Modlist (*{Consts.ModlistExtension})|*{Consts.ModlistExtension}");
-            if (file != null)
-            {
-                ShutdownOnClose = false;
-                new MainWindow(RunMode.Install, file).Show();
-                Close();
-            }
+            OpenMainWindow(
+                RunMode.Install,
+                UIUtils.OpenFileDialog($"Wabbajack Modlist (*{Consts.ModlistExtension})|*{Consts.ModlistExtension}"));
         }
 
-
+        private void OpenMainWindow(RunMode mode, string file)
+        {
+            if (file == null) return;
+            ShutdownOnClose = false;
+            var window = new MainWindow(mode, file);
+            window.Left = this.Left;
+            window.Top = this.Top;
+            window.Show();
+            Close();
+        }
 
         public void Close_Window(object sender, CancelEventArgs e)
         {
