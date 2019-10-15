@@ -1,7 +1,7 @@
 ### Changelog
 
-#### Version 1.0 alpha - ???
-* Nothing yet...
+#### Version 1.0 alpha 1 - 10/14/2019
+* Several internal bug fixes
 
 #### Version 0.9.5 - 10/12/2019
 * New Property system for chaning Modlist Name, Author, Description, Website, custom Banner and custom Readme
