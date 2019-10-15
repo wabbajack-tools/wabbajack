@@ -238,6 +238,7 @@
     <Compile Include="Downloaders\NexusDownloader.cs" />
     <Compile Include="Enums\RunMode.cs" />
     <Compile Include="Extensions\ReactiveUIExt.cs" />
+    <Compile Include="ModListRegistry\ModListMetadata.cs" />
     <Compile Include="UI\SlideshowView.xaml.cs">
       <DependentUpon>SlideshowView.xaml</DependentUpon>
     </Compile>

@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="DownloaderTests.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="ModlistMetadataTests.cs" />
     <Compile Include="TestUtils.cs" />
     <Compile Include="SanityTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
