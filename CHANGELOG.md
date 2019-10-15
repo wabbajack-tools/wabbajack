@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version 1.0 alpha 2 - 10/15/2019
+* Fix installer running in wrong mode
+
 #### Version 1.0 alpha 1 - 10/14/2019
 * Several internal bug fixes
 
