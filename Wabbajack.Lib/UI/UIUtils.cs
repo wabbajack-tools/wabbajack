@@ -1,5 +1,6 @@
 ﻿using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using Wabbajack.Common;
 
 namespace Wabbajack.Lib
 {
@@ -64,11 +66,7 @@ namespace Wabbajack.Lib
         {
             var img = new BitmapImage();
             img.BeginInit();
-            img.StreamSource = 
-                (from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                from rname in assembly.GetManifestResourceNames()
-                where rname == name
-                select assembly.GetManifestResourceStream(name)).First();
+            img.StreamSource = Utils.GetResourceStream(name);
             img.EndInit();
             return img;
         }
