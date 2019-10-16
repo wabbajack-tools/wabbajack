@@ -358,7 +358,12 @@
     <EmbeddedResource Include="UI\Icons\github_light.png" />
     <EmbeddedResource Include="UI\Icons\patreon_light.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="UI\Banner_Dark.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UI\banner_small_dark.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.5.1.1\build\Fody.targets" Condition="Exists('..\packages\Fody.5.1.1\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
