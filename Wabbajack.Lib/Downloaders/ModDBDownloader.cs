@@ -10,12 +10,16 @@ using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class ModDBDownloader : IDownloader
+    public class ModDBDownloader : IDownloader, IUrlDownloader
     {
         public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
         {
             var url = archive_ini?.General?.directURL;
+            return GetDownloaderState(url);
+        }
 
+        public AbstractDownloadState GetDownloaderState(string url)
+        {
             if (url != null && url.StartsWith("https://www.moddb.com/downloads/start"))
             {
                 return new State

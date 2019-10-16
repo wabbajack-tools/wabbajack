@@ -16,4 +16,5 @@ namespace Wabbajack.Lib.Downloaders
         /// </summary>
         void Prepare();
     }
+
 }

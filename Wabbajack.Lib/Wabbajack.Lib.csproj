@@ -115,6 +115,7 @@
     <Compile Include="Downloaders\GoogleDriveDownloader.cs" />
     <Compile Include="Downloaders\HTTPDownloader.cs" />
     <Compile Include="Downloaders\IDownloader.cs" />
+    <Compile Include="Downloaders\IUrlDownloader.cs" />
     <Compile Include="Downloaders\ManualDownloader.cs" />
     <Compile Include="Downloaders\MEGADownloader.cs" />
     <Compile Include="Downloaders\ModDBDownloader.cs" />

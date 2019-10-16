@@ -31,6 +31,13 @@ namespace Wabbajack.Test
 
             Assert.IsNotNull(state);
 
+            var url_state = DownloadDispatcher.ResolveArchive(
+                "https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k");
+
+            Assert.AreEqual("https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k",
+                ((MegaDownloader.State)url_state).Url);
+
+
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
             var filename = Guid.NewGuid().ToString();
@@ -54,6 +61,12 @@ namespace Wabbajack.Test
             var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
+
+            var url_state = DownloadDispatcher.ResolveArchive(
+                "https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?dl=0");
+
+            Assert.AreEqual("https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?dl=1", 
+                ((HTTPDownloader.State)url_state).Url);
 
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
@@ -79,6 +92,12 @@ namespace Wabbajack.Test
 
             Assert.IsNotNull(state);
 
+            var url_state = DownloadDispatcher.ResolveArchive(
+                "https://drive.google.com/file/d/1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_/view?usp=sharing");
+
+            Assert.AreEqual("1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_",
+                ((GoogleDriveDownloader.State)url_state).Id);
+
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
             var filename = Guid.NewGuid().ToString();
@@ -102,6 +121,12 @@ namespace Wabbajack.Test
             var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
+
+            var url_state = DownloadDispatcher.ResolveArchive(
+                "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml");
+
+            Assert.AreEqual("https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml",
+                ((HTTPDownloader.State)url_state).Url);
 
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
@@ -127,6 +152,7 @@ namespace Wabbajack.Test
 
             Assert.IsNotNull(state);
 
+
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
             // Exercise the cache code
@@ -149,6 +175,12 @@ namespace Wabbajack.Test
             var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
+
+            var url_state = DownloadDispatcher.ResolveArchive(
+                "https://www.moddb.com/downloads/start/124908?referer=https%3A%2F%2Fwww.moddb.com%2Fmods%2Fautopause");
+
+            Assert.AreEqual("https://www.moddb.com/downloads/start/124908?referer=https%3A%2F%2Fwww.moddb.com%2Fmods%2Fautopause",
+                ((ModDBDownloader.State)url_state).Url);
 
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
