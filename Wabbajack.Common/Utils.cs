@@ -592,7 +592,7 @@ namespace Wabbajack.Common
             var d = new DeserializerBuilder()
                 .WithNamingConvention(PascalCaseNamingConvention.Instance)
                 .Build();
-            return d.Deserialize<T>(new StreamReader(s));
+            return d.Deserialize<T>(new StringReader(s));
         }
 
     }
