@@ -5,10 +5,13 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 using Wabbajack.Common;
+using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.Validation;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using File = System.IO.File;
 using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Lib.ModListRegistry
@@ -40,6 +43,9 @@ namespace Wabbajack.Lib.ModListRegistry
         /// </summary>
         public string LogoUrl { get; set; }
 
+        [YamlIgnore]
+        public BitmapSource Logo { get; set; }
+
         /// <summary>
         /// Download URL
         /// </summary>
@@ -56,6 +62,15 @@ namespace Wabbajack.Lib.ModListRegistry
             {
                 return d.Deserialize<List<ModlistMetadata>>(result);
             }
+        }
+
+        public ModlistMetadata LoadLogo()
+        {
+            // Todo: look at making this stream based instead of requiring a file
+            var temp_file = Path.GetTempFileName();
+            DownloadDispatcher.ResolveArchive(LogoUrl).Download(new Archive {Name = LogoUrl}, temp_file);
+            Logo = new BitmapImage(new Uri(temp_file));
+            return this;
         }
     }
 }
