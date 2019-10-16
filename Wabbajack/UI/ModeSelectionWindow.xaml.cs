@@ -16,7 +16,7 @@ namespace Wabbajack
         public ModeSelectionWindow()
         {
             InitializeComponent();
-            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner_small.png");
+            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner_small_dark.png");
             Banner.Source = bannerImage;
             var patreonIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.patreon_light.png");
             Patreon.Source = patreonIcon;

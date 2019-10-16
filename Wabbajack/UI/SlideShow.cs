@@ -33,7 +33,7 @@ namespace Wabbajack
         public AppState AppState { get; }
 
         public BitmapImage NextIcon { get; } = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.next.png");
-        public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner.png");
+        public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromResource("Wabbajack.UI.Banner_Dark.png");
 
         private bool _ShowNSFW;
         public bool ShowNSFW { get => _ShowNSFW; set => this.RaiseAndSetIfChanged(ref _ShowNSFW, value); }
