@@ -46,7 +46,7 @@ namespace Wabbajack.WebAutomation
             {
                 stream.Wait();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
 

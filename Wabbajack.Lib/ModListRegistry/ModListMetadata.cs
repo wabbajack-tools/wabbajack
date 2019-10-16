@@ -48,7 +48,7 @@ namespace Wabbajack.Lib.ModListRegistry
         public static List<ModlistMetadata> LoadFromGithub()
         {
             var d = new DeserializerBuilder()
-                .WithNamingConvention(new PascalCaseNamingConvention())
+                .WithNamingConvention(PascalCaseNamingConvention.Instance)
                 .Build();
             var client = new HttpClient();
             Utils.Log("Loading Modlists from Github");

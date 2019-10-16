@@ -127,7 +127,7 @@ namespace VFS
                         }
                     }
                 }
-                catch (EndOfStreamException ex)
+                catch (EndOfStreamException)
                 {
                 }
 

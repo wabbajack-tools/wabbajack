@@ -139,7 +139,7 @@ namespace Wabbajack.Common
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
 
@@ -197,7 +197,7 @@ namespace Wabbajack.Common
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
 
