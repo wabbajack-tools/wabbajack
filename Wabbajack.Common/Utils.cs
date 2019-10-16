@@ -14,6 +14,8 @@ using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -575,6 +577,22 @@ namespace Wabbajack.Common
                     from rname in assembly.GetManifestResourceNames()
                     where rname == name
                     select assembly.GetManifestResourceStream(name)).First();
+        }
+
+        public static T FromYaml<T>(this Stream s)
+        {
+            var d = new DeserializerBuilder()
+            .WithNamingConvention(PascalCaseNamingConvention.Instance)
+            .Build();
+            return d.Deserialize<T>(new StreamReader(s));
+        }
+
+        public static T FromYaml<T>(this string s)
+        {
+            var d = new DeserializerBuilder()
+                .WithNamingConvention(PascalCaseNamingConvention.Instance)
+                .Build();
+            return d.Deserialize<T>(new StringReader(s));
         }
 
     }

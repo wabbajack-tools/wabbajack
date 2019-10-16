@@ -11,19 +11,16 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Compression.BSA
 {
-    public class BSABuilder : IDisposable, IBSABuilder
+    public class BSABuilder : IBSABuilder
     {
         internal uint _archiveFlags;
-        internal uint _fileCount;
         internal uint _fileFlags;
         internal byte[] _fileId;
 
         private List<FileEntry> _files = new List<FileEntry>();
-        internal uint _folderCount;
         internal List<FolderRecordBuilder> _folders = new List<FolderRecordBuilder>();
         internal uint _offset;
         internal uint _totalFileNameLength;
-        internal uint _totalFolderNameLength;
         internal uint _version;
 
         public BSABuilder()
@@ -238,8 +235,6 @@ namespace Compression.BSA
     public class FileEntry
     {
         internal BSABuilder _bsa;
-        internal Stream _bytesSource;
-        internal string _filenameSource;
         internal bool _flipCompression;
         internal FolderRecordBuilder _folder;
 

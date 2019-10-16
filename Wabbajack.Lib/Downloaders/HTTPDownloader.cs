@@ -87,7 +87,7 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     stream.Wait();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
 

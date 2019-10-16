@@ -178,12 +178,10 @@ namespace Wabbajack.Lib
     [Serializable]
     public class PatchedFromArchive : FromArchive
     {
-        public string Hash;
-
         /// <summary>
         ///     The file to apply to the source file to patch it
         /// </summary>
-        public String PatchID;
+        public string PatchID;
     }
 
     [Serializable]
@@ -197,7 +195,6 @@ namespace Wabbajack.Lib
     public class MergedPatch : Directive
     {
         public List<SourcePatch> Sources;
-        public string Hash;
         public string PatchID;
     }
 

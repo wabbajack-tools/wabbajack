@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.Downloaders;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib.Validation
@@ -24,37 +20,28 @@ namespace Wabbajack.Lib.Validation
 
         public void LoadAuthorPermissionsFromString(string s)
         {
-            var d = new DeserializerBuilder()
-                .WithNamingConvention(new PascalCaseNamingConvention())
-                .Build();
-            AuthorPermissions = d.Deserialize<Dictionary<string, Author>>(s);
+            AuthorPermissions = s.FromYaml<Dictionary<string, Author>>();
         }
 
         public void LoadServerWhitelist(string s)
         {
-            var d = new DeserializerBuilder()
-                .WithNamingConvention(new PascalCaseNamingConvention())
-                .Build();
-            ServerWhitelist = d.Deserialize<ServerWhitelist>(s);
+            ServerWhitelist = s.FromYaml<ServerWhitelist>();
         }
 
         public void LoadListsFromGithub()
         {
-            var d = new DeserializerBuilder()
-                .WithNamingConvention(new PascalCaseNamingConvention())
-                .Build();
             var client = new HttpClient();
             Utils.Log("Loading Nexus Mod Permissions");
-            using (var result = new StringReader(client.GetStringSync(Consts.ModPermissionsURL)))
+            using (var result = client.GetStreamSync(Consts.ModPermissionsURL))
             {
-                AuthorPermissions = d.Deserialize<Dictionary<string, Author>>(result);
+                AuthorPermissions = result.FromYaml<Dictionary<string, Author>>();
                 Utils.Log($"Loaded permissions for {AuthorPermissions.Count} authors");
             }
 
             Utils.Log("Loading Server Whitelist");
-            using (var result = new StringReader(client.GetStringSync(Consts.ServerWhitelistURL)))
+            using (var result = client.GetStreamSync(Consts.ServerWhitelistURL))
             {
-                ServerWhitelist = d.Deserialize<ServerWhitelist>(result);
+                ServerWhitelist = result.FromYaml<ServerWhitelist>();
                 Utils.Log($"Loaded permissions for {ServerWhitelist.AllowedPrefixes.Count} servers and {ServerWhitelist.GoogleIDs.Count} GDrive files");
             }
 
