@@ -13,14 +13,19 @@ using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class MegaDownloader : IDownloader
+    public class MegaDownloader : IDownloader, IUrlDownloader
     {
 
         public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
         {
             var url = archive_ini?.General?.directURL;
+            return GetDownloaderState(url);
+        }
+
+        public AbstractDownloadState GetDownloaderState(string url)
+        {
             if (url != null && url.StartsWith(Consts.MegaPrefix))
-                return new State {Url = url};
+                return new State { Url = url };
             return null;
         }
 

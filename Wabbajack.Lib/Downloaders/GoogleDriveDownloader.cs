@@ -11,14 +11,19 @@ using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class GoogleDriveDownloader : IDownloader
+    public class GoogleDriveDownloader : IDownloader, IUrlDownloader
     {
         public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
         {
             var url = archive_ini?.General?.directURL;
-            var regex = new Regex("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*");
+            return GetDownloaderState(url);
+        }
+
+        public AbstractDownloadState GetDownloaderState(string url)
+        {
             if (url != null && url.StartsWith("https://drive.google.com"))
             {
+                var regex = new Regex("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*");
                 var match = regex.Match(url);
                 return new State
                 {

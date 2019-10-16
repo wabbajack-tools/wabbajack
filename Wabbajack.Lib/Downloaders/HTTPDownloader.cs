@@ -9,13 +9,23 @@ using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class HTTPDownloader : IDownloader
+    public class HTTPDownloader : IDownloader, IUrlDownloader
     {
 
         public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
         {
             var url = archive_ini?.General?.directURL;
+            return GetDownloaderState(url, archive_ini);
 
+        }
+
+        public AbstractDownloadState GetDownloaderState(string uri)
+        {
+            return GetDownloaderState(uri, null);
+        }
+
+        public AbstractDownloadState GetDownloaderState(string url, dynamic archive_ini)
+        {
             if (url != null)
             {
                 var tmp = new State

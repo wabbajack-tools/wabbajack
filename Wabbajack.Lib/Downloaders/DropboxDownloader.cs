@@ -7,13 +7,18 @@ using System.Web;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class DropboxDownloader : IDownloader
+    public class DropboxDownloader : IDownloader, IUrlDownloader
     {
         public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
         {
             var urlstring = archive_ini?.General?.directURL;
-            if (urlstring == null) return null;
-            var uri = new UriBuilder((string)urlstring);
+            return GetDownloaderState(urlstring);
+        }
+
+        public AbstractDownloadState GetDownloaderState(string url)
+        {
+            if (url == null) return null;
+            var uri = new UriBuilder(url);
             if (uri.Host != "www.dropbox.com") return null;
             var query = HttpUtility.ParseQueryString(uri.Query);
 

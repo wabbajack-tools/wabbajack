@@ -37,5 +37,16 @@ namespace Wabbajack.Lib.Downloaders
             return Downloaders.Select(d => d.GetDownloaderState(ini)).FirstOrDefault(result => result != null);
         }
 
+        /// <summary>
+        /// Reduced version of Resolve archive that requires less information, but only works
+        /// with a single URL string
+        /// </summary>
+        /// <param name="ini"></param>
+        /// <returns></returns>
+        public static AbstractDownloadState ResolveArchive(string url)
+        {
+            return Downloaders.OfType<IUrlDownloader>().Select(d => d.GetDownloaderState(url)).FirstOrDefault(result => result != null);
+        }
+
     }
 }
