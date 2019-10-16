@@ -12,34 +12,11 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
-using Wabbajack.NexusApi;
+using Wabbajack.Lib;
+using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack
 {
-    public class Slide
-    {
-        public Slide(string modName, string modID, string modDescription, string modAuthor, bool isNSFW, string modUrl, string imageURL)
-        {
-            ModName = modName;
-            ModDescription = modDescription;
-            ModAuthor = modAuthor;
-            IsNSFW = isNSFW;
-            ModURL = modUrl;
-            ModID = modID;
-            ImageURL = imageURL;
-        }
-
-        public string ModName { get; }
-        public string ModDescription { get; }
-        public string ModAuthor { get; }
-        public bool IsNSFW { get; }
-        public string ModURL { get; }
-        public string ModID { get; }
-        public BitmapImage Image { get; set; }
-        public string ImageURL { get; }
-        
-    }
-
     public class SlideShow : ViewModel
     {
         private readonly Random _random;

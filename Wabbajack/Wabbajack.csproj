@@ -225,44 +225,23 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\IsNotNullVisibilityConverter.cs" />
-    <Compile Include="Data.cs" />
-    <Compile Include="Downloaders\AbstractDownloadState.cs" />
-    <Compile Include="Downloaders\GoogleDriveDownloader.cs" />
-    <Compile Include="Downloaders\HTTPDownloader.cs" />
-    <Compile Include="Downloaders\DownloadDispatcher.cs" />
-    <Compile Include="Downloaders\DropboxDownloader.cs" />
-    <Compile Include="Downloaders\IDownloader.cs" />
-    <Compile Include="Downloaders\ManualDownloader.cs" />
-    <Compile Include="Downloaders\MegaDownloader.cs" />
-    <Compile Include="Downloaders\ModDBDownloader.cs" />
-    <Compile Include="Downloaders\NexusDownloader.cs" />
     <Compile Include="Enums\RunMode.cs" />
     <Compile Include="Extensions\ReactiveUIExt.cs" />
-    <Compile Include="ModListRegistry\ModListMetadata.cs" />
     <Compile Include="UI\SlideshowView.xaml.cs">
       <DependentUpon>SlideshowView.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\ModlistPropertiesWindow.xaml.cs">
       <DependentUpon>ModlistPropertiesWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="NexusApi\Dtos.cs" />
-    <Compile Include="NexusApi\NexusApiUtils.cs" />
     <Compile Include="UI\ModeSelectionWindow.xaml.cs">
       <DependentUpon>ModeSelectionWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ReportBuilder.cs" />
     <Compile Include="Themes\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Themes\TreeViewItemExtensions.cs" />
     <Compile Include="UI\SlideShow.cs" />
     <Compile Include="UI\TextViewer.xaml.cs">
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\UIUtils.cs" />
-    <Compile Include="Updater\CheckForUpdates.cs" />
-    <Compile Include="Validation\DTOs.cs" />
-    <Compile Include="Validation\ValidateModlist.cs" />
-    <Compile Include="ViewModel.cs" />
-    <Compile Include="zEditIntegration.cs" />
     <Page Include="UI\SlideshowView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -277,8 +256,6 @@
     </Compile>
     <Compile Include="AppState.cs" />
     <Compile Include="AutoScrollBehavior.cs" />
-    <Compile Include="Compiler.cs" />
-    <Compile Include="Installer.cs" />
     <Compile Include="UI\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -301,7 +278,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NexusApi\NexusApi.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -340,6 +316,10 @@
     <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj">
       <Project>{b3f3fb6e-b9eb-4f49-9875-d78578bc7ae5}</Project>
       <Name>Wabbajack.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj">
+      <Project>{0a820830-a298-497d-85e0-e9a89efef5fe}</Project>
+      <Name>Wabbajack.Lib</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

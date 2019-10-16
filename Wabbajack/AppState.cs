@@ -19,13 +19,14 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Wabbajack.Common;
-using Wabbajack.Downloaders;
-using Wabbajack.NexusApi;
+using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.NexusApi;
 using Wabbajack.UI;
 using DynamicData;
 using DynamicData.Binding;
 using System.Reactive;
 using System.Text;
+using Wabbajack.Lib;
 
 namespace Wabbajack
 {
