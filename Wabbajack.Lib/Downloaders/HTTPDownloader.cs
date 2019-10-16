@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using Newtonsoft.Json;
 using Wabbajack.Common;
@@ -92,7 +93,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
 
                 ;
-                if (stream.IsFaulted)
+                if (stream.IsFaulted || response.StatusCode != HttpStatusCode.OK)
                 {
                     Utils.Log($"While downloading {Url} - {stream.Exception.ExceptionToString()}");
                     return false;
