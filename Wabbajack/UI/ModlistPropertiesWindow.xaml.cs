@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using Wabbajack.Lib;
 
 namespace Wabbajack
 {

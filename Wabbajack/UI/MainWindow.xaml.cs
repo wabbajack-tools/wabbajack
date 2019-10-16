@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Threading;
 using System.Windows;
 using Wabbajack.Common;
+using Wabbajack.Lib;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 

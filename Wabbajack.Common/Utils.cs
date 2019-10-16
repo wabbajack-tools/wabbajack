@@ -567,5 +567,15 @@ namespace Wabbajack.Common
             Log(msg);
             throw new Exception(msg);
         }
+
+        public static Stream GetResourceStream(string name)
+        {
+            return (from assembly in AppDomain.CurrentDomain.GetAssemblies()
+                    where !assembly.IsDynamic
+                    from rname in assembly.GetManifestResourceNames()
+                    where rname == name
+                    select assembly.GetManifestResourceStream(name)).First();
+        }
+
     }
 }

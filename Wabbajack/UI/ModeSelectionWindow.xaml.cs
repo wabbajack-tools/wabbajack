@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using Wabbajack.Common;
+using Wabbajack.Lib;
 using static Wabbajack.MainWindow;
 
 namespace Wabbajack

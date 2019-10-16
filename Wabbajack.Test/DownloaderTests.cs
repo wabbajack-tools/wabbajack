@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
-using Wabbajack.Downloaders;
-using Wabbajack.Validation;
+using Wabbajack.Lib;
+using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Test
