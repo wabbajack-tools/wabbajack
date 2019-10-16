@@ -11,7 +11,7 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-- group: my-variable-group
+- group: main-pipeline-keys
 - name: solution
   value: 'Wabbajack.sln'
 - name: buildPlatform
