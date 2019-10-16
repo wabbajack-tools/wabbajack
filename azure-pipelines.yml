@@ -11,9 +11,13 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: 'Wabbajack.sln'
-  buildPlatform: 'x64'
-  buildConfiguration: 'Debug'
+- group: my-variable-group
+- name: solution
+  value: 'Wabbajack.sln'
+- name: buildPlatform
+  value: 'x64'
+- name: buildConfiguration
+  value: 'Debug'
 
 steps:
 - checkout: self
