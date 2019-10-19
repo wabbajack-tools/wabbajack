@@ -46,7 +46,24 @@ namespace Wabbajack.Common
         public static string HashCacheName = "Wabbajack.hash_cache";
 
         public static HashSet<string> GameESMs = new HashSet<string>
-            {"Skyrim.esm", "Update.esm", "Dawnguard.esm", "HearthFires.esm", "Dragonborn.esm"};
+        {
+            // Skyrim LE/SE
+            "Skyrim.esm", 
+            "Update.esm", 
+            "Dawnguard.esm", 
+            "HearthFires.esm", 
+            "Dragonborn.esm",
+
+            // Fallout 4
+            "DLCRobot.esm",
+            "DLCworkshop01.esm",
+            "DLCCoast.esm",
+            "DLCWorkshop02.esm",
+            "DLCWorkshop03.esm",
+            "DLCNukaWorld.esm",
+            "DLCUltraHighResolution.esm"
+
+        };
 
         public static string ModPermissionsURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/NexusModPermissions.yml";
         public static string ServerWhitelistURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml";
