@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.Validation;
@@ -18,59 +19,49 @@ namespace Wabbajack.Lib.ModListRegistry
 {
     public class ModlistMetadata
     {
-        /// <summary>
-        /// Name of the modlist
-        /// </summary>
-        public string Name { get; set; }
+        [JsonProperty("title")]
+        public string Title { get; set; }
 
-        /// <summary>
-        /// Name of the author of the modlist
-        /// </summary>
-        public string Author { get; set; }
-
-        /// <summary>
-        /// Game this modlist is for
-        /// </summary>
-        public Game Game { get; set; }
-
-        /// <summary>
-        /// Short description of the modlist
-        /// </summary>
+        [JsonProperty("description")]
         public string Description { get; set; }
 
-        /// <summary>
-        /// URL of the logo for the modlist
-        /// </summary>
-        public string LogoUrl { get; set; }
+        [JsonProperty("author")]
+        public string Author { get; set; }
 
-        [YamlIgnore]
-        public BitmapSource Logo { get; set; }
+        [JsonProperty("game")]
+        public Game Game { get; set; }
 
-        /// <summary>
-        /// Download URL
-        /// </summary>
-        public string DownloadUrl { get; set; }
+        [JsonProperty("verified")]
+        public bool Verified { get; set; }
+
+        [JsonProperty("links")]
+        public LinksObject Links { get; set; } = new LinksObject();
+
+        public class LinksObject
+        {
+            [JsonProperty("image")]
+            public string ImageUri { get; set; }
+
+            [JsonIgnore]
+            public BitmapImage Image { get; set; }
+
+            [JsonProperty("readme")]
+            public string Readme { get; set; }
+
+            [JsonProperty("download")]
+            public string Download { get; set; }
+
+            [JsonProperty("machineURL")]
+            public string MachineURL { get; set; }
+        }
+
 
         public static List<ModlistMetadata> LoadFromGithub()
         {
-            var d = new DeserializerBuilder()
-                .WithNamingConvention(PascalCaseNamingConvention.Instance)
-                .Build();
             var client = new HttpClient();
             Utils.Log("Loading Modlists from Github");
-            using (var result = new StringReader(client.GetStringSync(Consts.ModlistMetadataURL)))
-            {
-                return d.Deserialize<List<ModlistMetadata>>(result);
-            }
-        }
-
-        public ModlistMetadata LoadLogo()
-        {
-            // Todo: look at making this stream based instead of requiring a file
-            var temp_file = Path.GetTempFileName();
-            DownloadDispatcher.ResolveArchive(LogoUrl).Download(new Archive {Name = LogoUrl}, temp_file);
-            Logo = new BitmapImage(new Uri(temp_file));
-            return this;
+            var result = client.GetStringSync(Consts.ModlistMetadataURL);
+            return result.FromJSONString<List<ModlistMetadata>>();
         }
     }
 }
