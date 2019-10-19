@@ -31,8 +31,8 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonProperty("game")]
         public Game Game { get; set; }
 
-        [JsonProperty("verified")]
-        public bool Verified { get; set; }
+        [JsonProperty("official")]
+        public bool Official { get; set; }
 
         [JsonProperty("links")]
         public LinksObject Links { get; set; } = new LinksObject();
