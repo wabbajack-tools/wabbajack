@@ -53,7 +53,6 @@ namespace Wabbajack.UI
             _url = url;
             _downloadName = name;
             _destination = destination;
-            _resultFn = resultFn;
 
             Start();
         }
@@ -69,7 +68,6 @@ namespace Wabbajack.UI
 
                 _parent.Result = DownloadWindow.WindowResult.Completed;
                 _parent.Dispatcher.Invoke(() => _parent.Close());
-                _resultFn(DownloadWindow.WindowResult.Completed);
             });
             _downloadThread.Start();
         }
@@ -83,7 +81,6 @@ namespace Wabbajack.UI
 
             File.Delete(_destination);
             _parent.Result = DownloadWindow.WindowResult.Canceled;
-            _resultFn(DownloadWindow.WindowResult.Canceled);
         }
 
 

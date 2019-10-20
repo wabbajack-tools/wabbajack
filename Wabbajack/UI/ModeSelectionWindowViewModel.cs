@@ -40,15 +40,10 @@ namespace Wabbajack.UI
             if (!Directory.Exists(Consts.ModListDownloadFolder))
                 Directory.CreateDirectory(Consts.ModListDownloadFolder);
 
-            string dest = Path.Combine(Consts.ModListDownloadFolder, SelectedModList.Links.MachineURL);
+            string dest = Path.Combine(Consts.ModListDownloadFolder, SelectedModList.Links.MachineURL + Consts.ModlistExtension);
 
             string result = null;
-            var window = new DownloadWindow(SelectedModList.Links.Download, SelectedModList.Title, dest,
-                complete =>
-                {
-                    if (complete == DownloadWindow.WindowResult.Completed)
-                        result = dest;
-                });
+            var window = new DownloadWindow(SelectedModList.Links.Download, SelectedModList.Title, dest);
             window.ShowDialog();
 
             if (window.Result == DownloadWindow.WindowResult.Completed)

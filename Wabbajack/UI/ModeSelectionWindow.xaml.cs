@@ -47,6 +47,10 @@ namespace Wabbajack
             //    UIUtils.OpenFileDialog($"Wabbajack Modlist (*{Consts.ModlistExtension})|*{Consts.ModlistExtension}"));
 
             var result = ((ModeSelectionWindowViewModel)DataContext).Download();
+            if (result != null)
+            {
+                OpenMainWindow(RunMode.Install, result);
+            }
         }
 
         private void OpenMainWindow(RunMode mode, string file)

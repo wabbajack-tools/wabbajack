@@ -53,7 +53,7 @@ namespace Wabbajack.Common
 
         public static string ModPermissionsURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/NexusModPermissions.yml";
         public static string ServerWhitelistURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml";
-        public static string ModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/wabbajack-tools.github.io/code/src/assets/states/modlistState.json";
+        public static string ModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json";
 
         public static string UserAgent
         {
