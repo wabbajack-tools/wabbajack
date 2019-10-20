@@ -227,6 +227,11 @@
     <Compile Include="Converters\IsNotNullVisibilityConverter.cs" />
     <Compile Include="Enums\RunMode.cs" />
     <Compile Include="Extensions\ReactiveUIExt.cs" />
+    <Compile Include="UI\DownloadWindow.xaml.cs">
+      <DependentUpon>DownloadWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UI\ModeSelectionWindowViewModel.cs" />
+    <Compile Include="UI\ModListDefinition.cs" />
     <Compile Include="UI\SlideshowView.xaml.cs">
       <DependentUpon>SlideshowView.xaml</DependentUpon>
     </Compile>
@@ -242,6 +247,10 @@
     <Compile Include="UI\TextViewer.xaml.cs">
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
+    <Page Include="UI\DownloadWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UI\SlideshowView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -15,6 +15,8 @@ namespace Wabbajack.Common
 
         [ThreadStatic] internal static bool WorkerThread;
 
+        [ThreadStatic] public static Action<int, string> CustomReportFn;
+
         public static int MaxQueueSize;
         public static int CurrentQueueSize;
         private static bool _inited;
@@ -64,7 +66,10 @@ namespace Wabbajack.Common
 
         public static void Report(string msg, int progress)
         {
-            ReportFunction(CpuId, msg, progress);
+            if (CustomReportFn != null)
+                CustomReportFn(progress, msg);
+            else
+                ReportFunction(CpuId, msg, progress);
         }
 
         public static void QueueTask(Action a)
