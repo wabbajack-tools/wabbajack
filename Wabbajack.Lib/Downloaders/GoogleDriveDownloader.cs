@@ -59,7 +59,7 @@ namespace Wabbajack.Lib.Downloaders
                 var regex = new Regex("(?<=/uc\\?export=download&amp;confirm=).*(?=;id=)");
                 var confirm = regex.Match(result);
                 var url = $"https://drive.google.com/uc?export=download&confirm={confirm}&id={Id}";
-                var http_state = new HTTPDownloader.State {Url = url};
+                var http_state = new HTTPDownloader.State {Url = url, Client = client};
                 return http_state;
             }
 

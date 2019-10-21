@@ -64,7 +64,7 @@ namespace Wabbajack.UI
                 WorkQueue.CustomReportFn = (progress, msg) => { DownloadProgress = progress; };
 
                 var state = DownloadDispatcher.ResolveArchive(_url);
-                state.Download(new Archive() {Name = _downloadName}, _destination);
+                state.Download(new Archive {Name = _downloadName}, _destination);
 
                 _parent.Result = DownloadWindow.WindowResult.Completed;
                 _parent.Dispatcher.Invoke(() => _parent.Close());

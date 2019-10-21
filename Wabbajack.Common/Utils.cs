@@ -76,7 +76,10 @@ namespace Wabbajack.Common
 
         public static void Status(string msg, int progress = 0)
         {
-            _statusFn?.Invoke(msg, progress);
+            if (WorkQueue.CustomReportFn != null)
+                WorkQueue.CustomReportFn(progress, msg);
+            else
+                _statusFn?.Invoke(msg, progress);
         }
 
 
