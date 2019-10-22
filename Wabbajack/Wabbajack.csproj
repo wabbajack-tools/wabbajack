@@ -227,6 +227,7 @@
     <Compile Include="Converters\IsNotNullVisibilityConverter.cs" />
     <Compile Include="Enums\RunMode.cs" />
     <Compile Include="Extensions\ReactiveUIExt.cs" />
+    <Compile Include="Util\CPUStatus.cs" />
     <Compile Include="View Models\MainWindowVM.cs" />
     <Compile Include="Views\SlideshowView.xaml.cs">
       <DependentUpon>SlideshowView.xaml</DependentUpon>

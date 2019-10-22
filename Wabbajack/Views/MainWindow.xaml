@@ -61,7 +61,7 @@
                 Background="#444444"
                 Maximum="100"
                 Minimum="0"
-                Value="{Binding QueueProgress}" />
+                Value="{Binding MWVM.QueueProgress}" />
 
             <!--  Log  -->
             <TextBlock
@@ -143,7 +143,7 @@
                 Width="Auto"
                 Margin="2,0,0,0"
                 HorizontalAlignment="Stretch"
-                ItemsSource="{Binding Status}">
+                ItemsSource="{Binding MWVM.StatusList}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid HorizontalAlignment="Stretch">

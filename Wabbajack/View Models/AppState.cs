@@ -32,13 +32,11 @@ namespace Wabbajack
     public class AppState : ViewModel, IDataErrorInfo
     {
         public SlideShow Slideshow { get; }
+        public MainWindowVM MWVM { get; }
 
         private string _mo2Folder;
 
         public readonly BitmapImage _noneImage = UIUtils.BitmapImageFromResource("Wabbajack.Resources.none.jpg");
-
-        private readonly Subject<CPUStatus> _statusSubject = new Subject<CPUStatus>();
-        public ObservableCollectionExtended<CPUStatus> Status { get; } = new ObservableCollectionExtended<CPUStatus>();
 
         private ModList _ModList;
         public ModList ModList { get => _ModList; private set => this.RaiseAndSetIfChanged(ref _ModList, value); }
@@ -69,7 +67,7 @@ namespace Wabbajack
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand OpenModListPropertiesCommand { get; }
 
-        public AppState(RunMode mode)
+        public AppState(MainWindowVM mainWindowVM, RunMode mode)
         {
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly().Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
@@ -82,6 +80,7 @@ namespace Wabbajack
                 Environment.Exit(1);
             }
 
+            this.MWVM = mainWindowVM;
             Mode = mode;
 
             // Define commands
@@ -103,22 +102,6 @@ namespace Wabbajack
                     .ObserveOnGuiThread());
 
             this.Slideshow = new SlideShow(this);
-
-            // Initialize work queue
-            WorkQueue.Init(
-                report_function: (id, msg, progress) => this._statusSubject.OnNext(new CPUStatus() { ID = id, Msg = msg, Progress = progress }),
-                report_queue_size: (max, current) => this.SetQueueSize(max, current));
-            // Compile progress updates and populate ObservableCollection
-            this._statusSubject
-                .ObserveOn(RxApp.TaskpoolScheduler)
-                .ToObservableChangeSet(x => x.ID)
-                .Batch(TimeSpan.FromMilliseconds(250))
-                .EnsureUniqueChanges()
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
-                .Bind(this.Status)
-                .Subscribe()
-                .DisposeWith(this.CompositeDisposable);
         }
 
         public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
@@ -131,9 +114,6 @@ namespace Wabbajack
 
         private string _DownloadLocation;
         public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
-
-        private int _queueProgress;
-        public int QueueProgress { get => _queueProgress; set => this.RaiseAndSetIfChanged(ref _queueProgress, value); }
 
         public string LogFile { get; }
 
@@ -258,14 +238,6 @@ namespace Wabbajack
             Application.Current.Dispatcher.Invoke(() => Log.Add(msg));
         }
 
-        public void SetQueueSize(int max, int current)
-        {
-            if (max == 0)
-                max = 1;
-            var total = current * 100 / max;
-            QueueProgress = total;
-        }
-
         private void ConfigureForBuild()
         {
             var profile_folder = Path.GetDirectoryName(Location);
@@ -383,12 +355,5 @@ namespace Wabbajack
                 UIReady = true;
             }
         }
-    }
-
-    public class CPUStatus
-    {
-        public int Progress { get; internal set; }
-        public string Msg { get; internal set; }
-        public int ID { get; internal set; }
     }
 }
