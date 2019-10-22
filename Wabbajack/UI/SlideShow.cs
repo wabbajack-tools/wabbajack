@@ -270,7 +270,7 @@ namespace Wabbajack
             var idx = _random.Next(0, SlideShowElements.Count);
             var element = SlideShowElements[idx];
 
-            if (checkLast)
+            if (checkLast && SlideShowElements.Count > 1)
             {
                 while (element == _lastSlide && (!element.IsNSFW || (element.IsNSFW && ShowNSFW)))
                 {
