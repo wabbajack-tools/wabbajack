@@ -20,6 +20,7 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="70"/>
             <RowDefinition Height="70"/>
+            <RowDefinition Height="70"/>
         </Grid.RowDefinitions>
         <Image MouseLeftButtonDown="GitHub_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" Name="GitHub"/>
         <Image MouseLeftButtonDown="Patreon_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="1" Name="Patreon"/>
@@ -54,8 +55,11 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <Button Name="InstallModlist" Grid.ColumnSpan="3"  Grid.Row="3" Margin="2" Click="InstallModlist_Click">
+        <Button Name="InstallModlist" Grid.ColumnSpan="3"  Grid.Row="3" Margin="2" Click="InstallModlist_Click" IsEnabled="{Binding CanInstall}">
             <TextBlock FontSize="40">Download and Install</TextBlock>
+        </Button>
+        <Button Name="InstallFromList" Grid.ColumnSpan="3"  Grid.Row="4" Margin="2" Click="InstallFromList_Click">
+            <TextBlock FontSize="40">Install from Disk</TextBlock>
         </Button>
         <Button Name="CreateModlist" Grid.ColumnSpan="3" Grid.Row="5" Margin="2" Click="CreateModlist_Click">
             <TextBlock FontSize="40">Create a ModList</TextBlock>

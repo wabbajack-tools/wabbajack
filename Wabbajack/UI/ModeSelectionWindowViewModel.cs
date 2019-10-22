@@ -32,7 +32,19 @@ namespace Wabbajack.UI
         public ModlistMetadata SelectedModList
         {
             get => _selectedModList;
-            set => RaiseAndSetIfChanged(ref _selectedModList, value);
+            set
+            {
+                CanInstall = true;
+                RaiseAndSetIfChanged(ref _selectedModList, value);
+            }
+        }
+
+        private bool _canInstall;
+
+        public bool CanInstall
+        {
+            get => _canInstall;
+            set => RaiseAndSetIfChanged(ref _canInstall, value);
         }
 
         internal string Download()

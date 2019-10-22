@@ -86,5 +86,11 @@ namespace Wabbajack
         {
             Process.Start("https://discord.gg/zgbrkmA");
         }
+
+        private void InstallFromList_Click(object sender, RoutedEventArgs e)
+        {
+            OpenMainWindow(RunMode.Install, 
+                UIUtils.OpenFileDialog($"*{Consts.ModlistExtension}|*{Consts.ModlistExtension}"));
+        }
     }
 }
