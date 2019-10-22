@@ -21,7 +21,6 @@ using System.Windows.Threading;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
-using Wabbajack.UI;
 using DynamicData;
 using DynamicData.Binding;
 using System.Reactive;
@@ -36,7 +35,7 @@ namespace Wabbajack
 
         private string _mo2Folder;
 
-        public readonly BitmapImage _noneImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.none.jpg");
+        public readonly BitmapImage _noneImage = UIUtils.BitmapImageFromResource("Wabbajack.Resources.none.jpg");
 
         private readonly Subject<CPUStatus> _statusSubject = new Subject<CPUStatus>();
         public ObservableCollectionExtended<CPUStatus> Status { get; } = new ObservableCollectionExtended<CPUStatus>();

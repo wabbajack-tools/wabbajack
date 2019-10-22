@@ -16,13 +16,13 @@ namespace Wabbajack
         public ModeSelectionWindow()
         {
             InitializeComponent();
-            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner_small_dark.png");
+            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.Resources.banner_small_dark.png");
             Banner.Source = bannerImage;
-            var patreonIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.patreon_light.png");
+            var patreonIcon = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Icons.patreon_light.png");
             Patreon.Source = patreonIcon;
-            var githubIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.github_light.png");
+            var githubIcon = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Icons.github_light.png");
             GitHub.Source = githubIcon;
-            var discordIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.discord.png");
+            var discordIcon = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Icons.discord.png");
             Discord.Source = discordIcon;
         }
 

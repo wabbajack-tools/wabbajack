@@ -1,12 +1,12 @@
-﻿<Window x:Class="Wabbajack.UI.TextViewer"
+﻿<Window x:Class="Wabbajack.TextViewer"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Wabbajack.UI"
+        xmlns:local="clr-namespace:Wabbajack"
         Style="{StaticResource {x:Type Window}}"
         mc:Ignorable="d"
-        Icon="Icons/wabbajack.ico"
+        Icon="../Resources/Icons/wabbajack.ico"
         WindowStyle="ToolWindow"
         Title="TextViewer" Height="450" Width="800">
     <Grid>

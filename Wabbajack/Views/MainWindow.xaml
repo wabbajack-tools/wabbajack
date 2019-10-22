@@ -11,7 +11,7 @@
     MinWidth="1024"
     MinHeight="768"
     Closing="Window_Closing"
-    Icon="Icons/wabbajack.ico"
+    Icon="../Resources/Icons/wabbajack.ico"
     ResizeMode="CanResize"
     Style="{StaticResource {x:Type Window}}"
     WindowStyle="ToolWindow"

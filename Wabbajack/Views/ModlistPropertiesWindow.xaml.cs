@@ -16,7 +16,7 @@ namespace Wabbajack
         internal ModlistPropertiesWindow(AppState _state)
         {
             InitializeComponent();
-            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.Banner_Dark.png");
+            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Banner_Dark.png");
             SplashScreenProperty.Source = bannerImage;
 
             newBannerFile = null;

@@ -54,7 +54,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>UI\Icons\wabbajack.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\Icons\wabbajack.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug %28no commandargs%29|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -227,26 +227,26 @@
     <Compile Include="Converters\IsNotNullVisibilityConverter.cs" />
     <Compile Include="Enums\RunMode.cs" />
     <Compile Include="Extensions\ReactiveUIExt.cs" />
-    <Compile Include="UI\SlideshowView.xaml.cs">
+    <Compile Include="Views\SlideshowView.xaml.cs">
       <DependentUpon>SlideshowView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\ModlistPropertiesWindow.xaml.cs">
+    <Compile Include="Views\ModlistPropertiesWindow.xaml.cs">
       <DependentUpon>ModlistPropertiesWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UI\ModeSelectionWindow.xaml.cs">
+    <Compile Include="Views\ModeSelectionWindow.xaml.cs">
       <DependentUpon>ModeSelectionWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Themes\LeftMarginMultiplierConverter.cs" />
-    <Compile Include="Themes\TreeViewItemExtensions.cs" />
-    <Compile Include="UI\SlideShow.cs" />
-    <Compile Include="UI\TextViewer.xaml.cs">
+    <Compile Include="Converters\LeftMarginMultiplierConverter.cs" />
+    <Compile Include="Util\TreeViewItemExtensions.cs" />
+    <Compile Include="View Models\SlideShow.cs" />
+    <Compile Include="Views\TextViewer.xaml.cs">
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
-    <Page Include="UI\SlideshowView.xaml">
+    <Page Include="Views\SlideshowView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\MainWindow.xaml">
+    <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -254,17 +254,17 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="AppState.cs" />
-    <Compile Include="AutoScrollBehavior.cs" />
-    <Compile Include="UI\MainWindow.xaml.cs">
+    <Compile Include="View Models\AppState.cs" />
+    <Compile Include="Util\AutoScrollBehavior.cs" />
+    <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="UI\ModeSelectionWindow.xaml">
+    <Page Include="Views\ModeSelectionWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UI\ModlistPropertiesWindow.xaml">
+    <Page Include="Views\ModlistPropertiesWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -272,7 +272,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="UI\TextViewer.xaml">
+    <Page Include="Views\TextViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -335,34 +335,34 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="UI\Icons\wabbajack.ico" />
+    <Resource Include="Resources\Icons\wabbajack.ico" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UI\banner.png" />
+    <EmbeddedResource Include="Resources\banner.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UI\banner_small.png" />
+    <EmbeddedResource Include="Resources\banner_small.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UI\Icons\discord.png" />
-    <EmbeddedResource Include="UI\Icons\github.png" />
-    <EmbeddedResource Include="UI\Icons\patreon.png" />
+    <EmbeddedResource Include="Resources\Icons\discord.png" />
+    <EmbeddedResource Include="Resources\Icons\github.png" />
+    <EmbeddedResource Include="Resources\Icons\patreon.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UI\Icons\next.png" />
+    <EmbeddedResource Include="Resources\Icons\next.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UI\none.jpg" />
+    <EmbeddedResource Include="Resources\none.jpg" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UI\Icons\github_light.png" />
-    <EmbeddedResource Include="UI\Icons\patreon_light.png" />
+    <EmbeddedResource Include="Resources\Icons\github_light.png" />
+    <EmbeddedResource Include="Resources\Icons\patreon_light.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UI\Banner_Dark.png" />
+    <EmbeddedResource Include="Resources\Banner_Dark.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UI\banner_small_dark.png" />
+    <EmbeddedResource Include="Resources\banner_small_dark.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.5.1.1\build\Fody.targets" Condition="Exists('..\packages\Fody.5.1.1\build\Fody.targets')" />
