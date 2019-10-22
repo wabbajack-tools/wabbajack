@@ -16,7 +16,7 @@
     Style="{StaticResource {x:Type Window}}"
     WindowStyle="ToolWindow"
     mc:Ignorable="d">
-    <Viewbox Stretch="Uniform">
+    <Viewbox Stretch="Uniform" DataContext="{Binding AppState}">
         <Grid Margin="4,0,4,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />

@@ -23,10 +23,11 @@ namespace Wabbajack
 
             InitializeComponent();
 
-            var context = new AppState(mode);
+            var mainVM = new MainWindowVM(mode);
+            var context = mainVM.AppState;
             context.LogMsg($"Wabbajack Build - {ThisAssembly.Git.Sha}");
             SetupHandlers(context);
-            DataContext = context;
+            DataContext = mainVM;
 
             Utils.SetLoggerFn(s => context.LogMsg(s));
             Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
