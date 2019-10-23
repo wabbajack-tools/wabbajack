@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Compression.BSA;
 using VFS;
 using Wabbajack.Common;
@@ -45,6 +46,11 @@ namespace Wabbajack.Lib
         /// The game variant to which this game applies
         /// </summary>
         public Game GameType;
+
+        /// <summary>
+        /// The build version of Wabbajack used when compiling the Modlist
+        /// </summary>
+        public FileVersionInfo WabbajackVersion;
 
         /// <summary>
         ///     Install directives
