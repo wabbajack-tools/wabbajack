@@ -10,5 +10,16 @@ namespace Wabbajack
     /// </summary>
     public partial class App : Application
     {
+        public App()
+        {
+            // Wire any unhandled crashing exceptions to log before exiting
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+            {
+                // Don't do any special logging side effects
+                Utils.SetLoggerFn((s) => { });
+                Utils.Log("Uncaught error:");
+                Utils.Log(((Exception)e.ExceptionObject).ExceptionToString());
+            };
+        }
     }
 }

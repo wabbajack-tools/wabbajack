@@ -26,7 +26,6 @@ namespace Wabbajack
             this._mwvm = new MainWindowVM(mode);
             var context = _mwvm.AppState;
             Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
-            SetupHandlers();
             DataContext = _mwvm;
 
             new Thread(() =>
@@ -66,17 +65,6 @@ namespace Wabbajack
 
                 context.UIReady = true;
             }).Start();
-        }
-
-        private void SetupHandlers()
-        {
-            AppDomain.CurrentDomain.UnhandledException += AppHandler;
-        }
-
-        private void AppHandler(object sender, UnhandledExceptionEventArgs e)
-        {
-            Utils.Log("Uncaught error:");
-            Utils.Log(((Exception)e.ExceptionObject).ExceptionToString());
         }
 
         internal bool ExitWhenClosing = true;
