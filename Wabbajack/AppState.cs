@@ -295,6 +295,28 @@ namespace Wabbajack
             HTMLReport = this.ModList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
+            var currentWJVersion = new Version(WabbajackVersionInfo.FileVersion);
+            var modlistWJVersion = new Version(modlist.WabbajackVersion.FileVersion);
+
+            if (currentWJVersion > modlistWJVersion)
+            {
+                MessageBox.Show(
+                    "The selected Modlist was build with an earlier version of Wabbajack. " +
+                    $"Current Version: {WabbajackVersionInfo.FileVersion}, " +
+                    $"Version used to build the Modlist: {modlist.WabbajackVersion.FileVersion}", 
+                    "Information", 
+                    MessageBoxButton.OK);
+            }
+            else if(currentWJVersion < modlistWJVersion)
+            {
+                MessageBox.Show(
+                    "The selected Modlist was build with a newer version of Wabbajack. " +
+                    $"Current Version: {WabbajackVersionInfo.FileVersion}, " +
+                    $"Version used to build the Modlist: {modlist.WabbajackVersion.FileVersion}", 
+                    "Information", 
+                    MessageBoxButton.OK);
+            }
+
             this.Slideshow.SlideShowElements = modlist.Archives
                 .Select(m => m.State)
                 .OfType<NexusDownloader.State>()
