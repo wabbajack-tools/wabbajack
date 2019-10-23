@@ -34,6 +34,8 @@ namespace Wabbajack
     {
         public SlideShow Slideshow { get; }
 
+        public readonly string WabbajackVersion = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location).FileVersion;
+
         private string _mo2Folder;
 
         public readonly BitmapImage _noneImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.none.jpg");
@@ -293,6 +295,28 @@ namespace Wabbajack
             HTMLReport = this.ModList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
+            var currentWJVersion = new Version(WabbajackVersion);
+            var modlistWJVersion = new Version(modlist.WabbajackVersion);
+
+            if (currentWJVersion > modlistWJVersion)
+            {
+                MessageBox.Show(
+                    "The selected Modlist was build with an earlier version of Wabbajack. " +
+                    $"Current Version: {WabbajackVersion}, " +
+                    $"Version used to build the Modlist: {modlist.WabbajackVersion}", 
+                    "Information", 
+                    MessageBoxButton.OK);
+            }
+            else if(currentWJVersion < modlistWJVersion)
+            {
+                MessageBox.Show(
+                    "The selected Modlist was build with a newer version of Wabbajack. " +
+                    $"Current Version: {WabbajackVersion}, " +
+                    $"Version used to build the Modlist: {modlist.WabbajackVersion}", 
+                    "Information", 
+                    MessageBoxButton.OK);
+            }
+
             this.Slideshow.SlideShowElements = modlist.Archives
                 .Select(m => m.State)
                 .OfType<NexusDownloader.State>()
@@ -350,7 +374,8 @@ namespace Wabbajack
                     ModListDescription = ChangedProperties ? this.Slideshow.Summary : null,
                     ModListImage = ChangedProperties ? newImagePath : null,
                     ModListWebsite = ChangedProperties ? this.Slideshow.NexusSiteURL : null,
-                    ModListReadme = ChangedProperties ? readmePath : null
+                    ModListReadme = ChangedProperties ? readmePath : null,
+                    WabbajackVersion = WabbajackVersion
                 };
                 var th = new Thread(() =>
                 {

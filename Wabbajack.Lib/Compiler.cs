@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using VFS;
@@ -33,6 +34,7 @@ namespace Wabbajack.Lib
 
         public string MO2Profile;
         public string ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModListImage, ModListReadme;
+        public string WabbajackVersion;
 
         public Compiler(string mo2_folder)
         {
@@ -274,6 +276,7 @@ namespace Wabbajack.Lib
             ModList = new ModList
             {
                 GameType = GameRegistry.Games.Values.First(f => f.MO2Name == MO2Ini.General.gameName).Game,
+                WabbajackVersion = WabbajackVersion,
                 Archives = SelectedArchives,
                 Directives = InstallDirectives,
                 Name = ModListName ?? MO2Profile,
