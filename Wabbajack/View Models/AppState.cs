@@ -1,4 +1,4 @@
-﻿using Syroot.Windows.IO;
+using Syroot.Windows.IO;
 using System;
 using ReactiveUI;
 using System.Collections.Generic;
@@ -104,8 +104,6 @@ namespace Wabbajack
             this.Slideshow = new SlideShow(this);
         }
 
-        public ObservableCollection<string> Log { get; } = new ObservableCollection<string>();
-
         private string _Location;
         public string Location { get => _Location; set => this.RaiseAndSetIfChanged(ref _Location, value); }
 
@@ -114,8 +112,6 @@ namespace Wabbajack
 
         private string _DownloadLocation;
         public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
-
-        public string LogFile { get; }
 
         private void ExecuteChangePath()
         {
@@ -233,17 +229,12 @@ namespace Wabbajack
             return validationMessage;
         }
 
-        public void LogMsg(string msg)
-        {
-            Application.Current.Dispatcher.Invoke(() => Log.Add(msg));
-        }
-
         private void ConfigureForBuild()
         {
             var profile_folder = Path.GetDirectoryName(Location);
             var mo2folder = Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
             if (!File.Exists(Path.Combine(mo2folder, "ModOrganizer.exe")))
-                LogMsg($"Error! No ModOrganizer2.exe found in {mo2folder}");
+                Utils.Log($"Error! No ModOrganizer2.exe found in {mo2folder}");
 
             var profile_name = Path.GetFileName(profile_folder);
             this.ModListName = profile_name;
@@ -296,9 +287,9 @@ namespace Wabbajack
                     catch (Exception ex)
                     {
                         while (ex.InnerException != null) ex = ex.InnerException;
-                        LogMsg(ex.StackTrace);
-                        LogMsg(ex.ToString());
-                        LogMsg($"{ex.Message} - Can't continue");
+                        Utils.Log(ex.StackTrace);
+                        Utils.Log(ex.ToString());
+                        Utils.Log($"{ex.Message} - Can't continue");
                     }
                     finally
                     {
@@ -335,9 +326,9 @@ namespace Wabbajack
                     catch (Exception ex)
                     {
                         while (ex.InnerException != null) ex = ex.InnerException;
-                        LogMsg(ex.StackTrace);
-                        LogMsg(ex.ToString());
-                        LogMsg($"{ex.Message} - Can't continue");
+                        Utils.Log(ex.StackTrace);
+                        Utils.Log(ex.ToString());
+                        Utils.Log($"{ex.Message} - Can't continue");
                     }
                     finally
                     {

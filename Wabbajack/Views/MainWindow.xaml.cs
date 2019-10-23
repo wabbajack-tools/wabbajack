@@ -15,7 +15,7 @@ namespace Wabbajack
     /// </summary>
     public partial class MainWindow : Window
     {
-        private AppState _state;
+        private MainWindowVM _mwvm;
 
         public MainWindow(RunMode mode, string source)
         {
@@ -23,14 +23,11 @@ namespace Wabbajack
 
             InitializeComponent();
 
-            var mainVM = new MainWindowVM(mode);
-            var context = mainVM.AppState;
-            context.LogMsg($"Wabbajack Build - {ThisAssembly.Git.Sha}");
-            SetupHandlers(context);
-            DataContext = mainVM;
-
-            Utils.SetLoggerFn(s => context.LogMsg(s));
-            Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
+            this._mwvm = new MainWindowVM(mode);
+            var context = _mwvm.AppState;
+            Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
+            SetupHandlers();
+            DataContext = _mwvm;
 
             new Thread(() =>
             {
@@ -71,25 +68,26 @@ namespace Wabbajack
             }).Start();
         }
 
-        private void SetupHandlers(AppState state)
+        private void SetupHandlers()
         {
-            _state = state;
             AppDomain.CurrentDomain.UnhandledException += AppHandler;
         }
 
         private void AppHandler(object sender, UnhandledExceptionEventArgs e)
         {
-            _state.LogMsg("Uncaught error:");
-            _state.LogMsg(((Exception)e.ExceptionObject).ExceptionToString());
+            Utils.Log("Uncaught error:");
+            Utils.Log(((Exception)e.ExceptionObject).ExceptionToString());
         }
-
 
         internal bool ExitWhenClosing = true;
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            _mwvm.Dispose();
             if (ExitWhenClosing)
+            {
                 Application.Current.Shutdown();
+            }
         }
     }
 }

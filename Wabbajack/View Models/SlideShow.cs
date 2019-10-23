@@ -1,4 +1,5 @@
 ﻿using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -124,9 +125,9 @@ namespace Wabbajack
                                 return image;
                             }
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
-                            this.AppState.LogMsg("Error loading splash image.");
+                            this.Log().Warn(ex, "Error loading splash image.");
                         }
                     }
                     return this.WabbajackLogo;

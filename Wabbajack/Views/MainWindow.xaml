@@ -73,7 +73,7 @@
                 Grid.Row="4"
                 Margin="0,0,2,0"
                 local:AutoScrollBehavior.ScrollOnNewItem="True"
-                ItemsSource="{Binding Log}" />
+                ItemsSource="{Binding MWVM.Log}" />
             <!--  End Log  -->
 
             <!--  Location  -->
