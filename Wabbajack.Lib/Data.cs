@@ -50,7 +50,7 @@ namespace Wabbajack.Lib
         /// <summary>
         /// The build version of Wabbajack used when compiling the Modlist
         /// </summary>
-        public FileVersionInfo WabbajackVersion;
+        public string WabbajackVersion;
 
         /// <summary>
         ///     Install directives
