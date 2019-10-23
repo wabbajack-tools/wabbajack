@@ -13,6 +13,9 @@ namespace Wabbajack.Common
         public static string GameFolderFilesDir = "Game Folder Files";
         public static string LOOTFolderFilesDir = "LOOT Config Files";
         public static string BSACreationDir = "TEMP_BSA_FILES";
+
+        public static string ModListDownloadFolder = "downloaded_mod_lists";
+
         public static string MegaPrefix = "https://mega.nz/#!";
 
         public static HashSet<string> SupportedArchives = new HashSet<string> {".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod"};
@@ -43,7 +46,6 @@ namespace Wabbajack.Common
 
 
         public static string AppName = "Wabbajack";
-        public static string HashCacheName = "Wabbajack.hash_cache";
 
         public static HashSet<string> GameESMs = new HashSet<string>
         {
@@ -67,7 +69,7 @@ namespace Wabbajack.Common
 
         public static string ModPermissionsURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/NexusModPermissions.yml";
         public static string ServerWhitelistURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml";
-        public static string ModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/wabbajack-tools.github.io/code/src/assets/states/modlistState.json";
+        public static string ModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json";
 
         public static string UserAgent
         {

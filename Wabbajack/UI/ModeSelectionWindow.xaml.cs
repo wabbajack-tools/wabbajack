@@ -1,9 +1,12 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.UI;
 using static Wabbajack.MainWindow;
 
 namespace Wabbajack
@@ -13,6 +16,8 @@ namespace Wabbajack
     /// </summary>
     public partial class ModeSelectionWindow : Window
     {
+        private List<ModlistMetadata> _lists;
+
         public ModeSelectionWindow()
         {
             InitializeComponent();
@@ -24,6 +29,8 @@ namespace Wabbajack
             GitHub.Source = githubIcon;
             var discordIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.discord.png");
             Discord.Source = discordIcon;
+
+            DataContext = new ModeSelectionWindowViewModel();
         }
 
         private void CreateModlist_Click(object sender, RoutedEventArgs e)
@@ -35,9 +42,15 @@ namespace Wabbajack
 
         private void InstallModlist_Click(object sender, RoutedEventArgs e)
         {
-            OpenMainWindow(
-                RunMode.Install,
-                UIUtils.OpenFileDialog($"Wabbajack Modlist (*{Consts.ModlistExtension})|*{Consts.ModlistExtension}"));
+            //OpenMainWindow(
+            //    RunMode.Install,
+            //    UIUtils.OpenFileDialog($"Wabbajack Modlist (*{Consts.ModlistExtension})|*{Consts.ModlistExtension}"));
+
+            var result = ((ModeSelectionWindowViewModel)DataContext).Download();
+            if (result != null)
+            {
+                OpenMainWindow(RunMode.Install, result);
+            }
         }
 
         private void OpenMainWindow(RunMode mode, string file)
@@ -72,6 +85,12 @@ namespace Wabbajack
         private void Discord_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             Process.Start("https://discord.gg/zgbrkmA");
+        }
+
+        private void InstallFromList_Click(object sender, RoutedEventArgs e)
+        {
+            OpenMainWindow(RunMode.Install, 
+                UIUtils.OpenFileDialog($"*{Consts.ModlistExtension}|*{Consts.ModlistExtension}"));
         }
     }
 }

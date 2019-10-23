@@ -55,6 +55,9 @@ namespace Wabbajack.Lib.Downloaders
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public List<string> Headers { get; set; }
 
+            [JsonIgnore]
+            public HttpClient Client { get; set; }
+
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
                 return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
@@ -67,7 +70,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public bool DoDownload(Archive a, string destination, bool download)
             {
-                var client = new HttpClient();
+                var client = Client ?? new HttpClient();
                 client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
 
                 if (Headers != null)
