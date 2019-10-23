@@ -34,6 +34,8 @@ namespace Wabbajack
     {
         public SlideShow Slideshow { get; }
 
+        public readonly FileVersionInfo WabbajackVersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
+
         private string _mo2Folder;
 
         public readonly BitmapImage _noneImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.none.jpg");
@@ -350,7 +352,8 @@ namespace Wabbajack
                     ModListDescription = ChangedProperties ? this.Slideshow.Summary : null,
                     ModListImage = ChangedProperties ? newImagePath : null,
                     ModListWebsite = ChangedProperties ? this.Slideshow.NexusSiteURL : null,
-                    ModListReadme = ChangedProperties ? readmePath : null
+                    ModListReadme = ChangedProperties ? readmePath : null,
+                    WabbajackVersionInfo = WabbajackVersionInfo
                 };
                 var th = new Thread(() =>
                 {

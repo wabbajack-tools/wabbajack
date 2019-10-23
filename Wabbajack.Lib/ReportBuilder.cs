@@ -47,6 +47,7 @@ namespace Wabbajack.Lib
         public void Build(Compiler c, ModList lst)
         {
             Text($"### {lst.Name} by {lst.Author} - Installation Summary");
+            Text($"Build with Wabbajack Version {lst.WabbajackVersion.FileVersion}");
             Text(lst.Description);
             Text($"#### Website:");
             NoWrapText($"[{lst.Website}]({lst.Website})");

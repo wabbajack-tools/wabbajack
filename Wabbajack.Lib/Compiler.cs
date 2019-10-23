@@ -34,6 +34,7 @@ namespace Wabbajack.Lib
 
         public string MO2Profile;
         public string ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModListImage, ModListReadme;
+        public FileVersionInfo WabbajackVersionInfo;
 
         public Compiler(string mo2_folder)
         {
@@ -275,7 +276,7 @@ namespace Wabbajack.Lib
             ModList = new ModList
             {
                 GameType = GameRegistry.Games.Values.First(f => f.MO2Name == MO2Ini.General.gameName).Game,
-                WabbajackVersion = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location),
+                WabbajackVersion = WabbajackVersionInfo,
                 Archives = SelectedArchives,
                 Directives = InstallDirectives,
                 Name = ModListName ?? MO2Profile,
