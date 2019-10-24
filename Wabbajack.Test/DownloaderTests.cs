@@ -116,28 +116,57 @@ namespace Wabbajack.Test
         public void HttpDownload()
         {
             var ini = @"[General]
-                        directURL=https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml";
+                        directURL=http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt";
 
             var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
 
-            var url_state = DownloadDispatcher.ResolveArchive(
-                "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml");
+            var url_state = DownloadDispatcher.ResolveArchive("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt");
 
-            Assert.AreEqual("https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml",
+            Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
                 ((HTTPDownloader.State)url_state).Url);
 
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "https://raw.githubusercontent.com/" } }));
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://build.wabbajack.org/" } }));
             Assert.IsFalse(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            converted.Download(new Archive { Name = "Github Test Test.txt" }, filename);
+            converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
 
-            Assert.IsTrue(File.ReadAllText(filename).StartsWith("# Server whitelist for Wabbajack"));
+            Assert.AreEqual("Lb1iTsz3iyZeHGs3e94TVmOhf22sqtHLhqkCdXbjiyc=", Utils.FileSHA256(filename));
+
+            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+        }
+
+        [TestMethod]
+        public void MediaFireDownload()
+        {
+            var ini = @"[General]
+                        directURL=http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt";
+
+            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.IsNotNull(state);
+
+            var url_state = DownloadDispatcher.ResolveArchive(
+                "http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt");
+
+            Assert.AreEqual("http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt",
+                ((MediaFireDownloader.State)url_state).Url);
+
+            var converted = state.ViaJSON();
+            Assert.IsTrue(converted.Verify());
+            var filename = Guid.NewGuid().ToString();
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://www.mediafire.com/file/agiqzm1xwebczpx/" } }));
+            Assert.IsFalse(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            converted.Download(new Archive { Name = "Media Fire Test.txt" }, filename);
+
+            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
 
         [TestMethod]
