@@ -137,13 +137,22 @@ namespace Wabbajack
                 .DisposeWith(this.CompositeDisposable);
 
             /// Wire slideshow updates
-            // Merge all the sources that trigger a slideshow update
+            var intervalSeconds = 10;
+            // Compile all the sources that trigger a slideshow update
             Observable.Merge(
-                    // If the natural timer fires
-                    Observable.Interval(TimeSpan.FromSeconds(10)).Unit(),
                     // If user requests one manually
-                    this.SlideShowNextItemCommand.StartingExecution())
-                // When enabled, fire an initial signal
+                    this.SlideShowNextItemCommand.StartingExecution(),
+                    // If the natural timer fires
+                    Observable.Merge(
+                            // Start with an initial timer
+                            Observable.Return(Observable.Interval(TimeSpan.FromSeconds(intervalSeconds))),
+                            // but reset timer if user requests one
+                            this.SlideShowNextItemCommand.StartingExecution()
+                                .Select(_ => Observable.Interval(TimeSpan.FromSeconds(intervalSeconds))))
+                        // When a new timer comes in, swap to it
+                        .Switch()
+                        .Unit())
+                // When filter switch enabled, fire an initial signal
                 .StartWith(Unit.Default)
                 // Only subscribe to slideshow triggers if enabled and installing
                 .FilterSwitch(
@@ -151,8 +160,8 @@ namespace Wabbajack
                         this.WhenAny(x => x.Enable),
                         this.WhenAny(x => x.AppState.Installing),
                         resultSelector: (enabled, installing) => enabled && installing))
-                // Don't ever update more than once every half second.  ToDo: Update to debounce
-                .Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
+                // Don't ever update more than once every half second.
+                .Debounce(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(_ => this.UpdateSlideShowItem())
                 .DisposeWith(this.CompositeDisposable);
@@ -261,7 +270,7 @@ namespace Wabbajack
             var idx = _random.Next(0, SlideShowElements.Count);
             var element = SlideShowElements[idx];
 
-            if (checkLast)
+            if (checkLast && SlideShowElements.Count > 1)
             {
                 while (element == _lastSlide && (!element.IsNSFW || (element.IsNSFW && ShowNSFW)))
                 {
