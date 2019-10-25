@@ -30,7 +30,7 @@ namespace Wabbajack.Lib.WebAutomation
                 tcs.SetResult(uri);
             };
             Browser.NavigationCompleted += handler;
-            Browser.Navigate(uri);
+            Browser.Source = uri;
             return tcs.Task;
         }
 
