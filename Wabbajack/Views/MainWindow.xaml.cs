@@ -19,52 +19,11 @@ namespace Wabbajack
 
         public MainWindow(RunMode mode, string source)
         {
-            var args = Environment.GetCommandLineArgs();
-
             InitializeComponent();
 
-            this._mwvm = new MainWindowVM(mode);
-            var context = _mwvm.AppState;
+            _mwvm = new MainWindowVM(mode, source, this);
             Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
-            DataContext = _mwvm;
-
-            new Thread(() =>
-            {
-                if (mode == RunMode.Compile)
-                {
-                    Utils.Log("Compiler ready to execute");
-                    context.Location = Path.GetDirectoryName(source);
-                    context.LocationLabel = "MO2 Profile:";
-                }
-                else if (mode == RunMode.Install)
-                {
-                    context.UIReady = false;
-                    context.LocationLabel = "Installation Location:";
-                    var modlist = Installer.LoadFromFile(source);
-                    if (modlist == null)
-                    {
-                        MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
-                            MessageBoxImage.Error);
-                        Dispatcher.Invoke(() =>
-                        {
-                            ExitWhenClosing = false;
-                            var window = new ModeSelectionWindow
-                            {
-                                ShowActivated = true
-                            };
-                            window.Show();
-                            Close();
-                        });
-                    }
-                    else
-                    {
-                        context.ConfigureForInstall(source, modlist);
-                    }
-
-                }
-
-                context.UIReady = true;
-            }).Start();
+            this.DataContext = _mwvm;
         }
 
         internal bool ExitWhenClosing = true;

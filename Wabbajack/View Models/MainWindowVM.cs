@@ -4,6 +4,7 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -22,10 +23,10 @@ namespace Wabbajack
     /// </summary>
     public class MainWindowVM : ViewModel
     {
-        public AppState AppState { get; }
+        public MainWindow MainWindow { get; }
 
-        private ViewModel _ActivePane;
-        public ViewModel ActivePane { get => _ActivePane; set => this.RaiseAndSetIfChanged(ref _ActivePane, value); }
+        private readonly ObservableAsPropertyHelper<ViewModel> _ActivePane;
+        public ViewModel ActivePane => _ActivePane.Value;
 
         private int _QueueProgress;
         public int QueueProgress { get => _QueueProgress; set => this.RaiseAndSetIfChanged(ref _QueueProgress, value); }
@@ -37,8 +38,14 @@ namespace Wabbajack
         private Subject<string> _logSubj = new Subject<string>();
         public ObservableCollectionExtended<string> Log { get; } = new ObservableCollectionExtended<string>();
 
-        public MainWindowVM(RunMode mode)
+        private RunMode _Mode;
+        public RunMode Mode { get => _Mode; set => this.RaiseAndSetIfChanged(ref _Mode, value); }
+
+        public MainWindowVM(RunMode mode, string source, MainWindow mainWindow)
         {
+            this.Mode = mode;
+            this.MainWindow = mainWindow;
+
             // Set up logging
             _logSubj
                 .ToObservableChangeSet()
@@ -52,8 +59,6 @@ namespace Wabbajack
                 .DisposeWith(this.CompositeDisposable);
             Utils.SetLoggerFn(s => _logSubj.OnNext(s));
             Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
-
-            this.AppState = new AppState(this, mode);
 
             // Initialize work queue
             WorkQueue.Init(
@@ -71,6 +76,29 @@ namespace Wabbajack
                 .Bind(this.StatusList)
                 .Subscribe()
                 .DisposeWith(this.CompositeDisposable);
+
+            // Wire mode to drive the active pane
+            this._ActivePane = this.WhenAny(x => x.Mode)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Select<RunMode, ViewModel>(m =>
+                {
+                    switch (m)
+                    {
+                        case RunMode.Compile:
+                            return new CompilerVM(this, source);
+                        case RunMode.Install:
+                            return new InstallerVM(this);
+                        default:
+                            return default;
+                    }
+                })
+                .ToProperty(this, nameof(this.ActivePane));
+            this.WhenAny(x => x.ActivePane)
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .WhereCastable<ViewModel, InstallerVM>()
+                .Subscribe(vm => vm.Init(source))
+                .DisposeWith(this.CompositeDisposable);
+
         }
 
         private void SetQueueSize(int max, int current)

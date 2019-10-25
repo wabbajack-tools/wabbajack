@@ -3,6 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Kernel;
 using ReactiveUI;
@@ -90,6 +91,57 @@ namespace Wabbajack
                 .DistinctUntilChanged()
                 .Where(x => x)
                 .Unit();
+        }
+
+        public static IObservable<Unit> SelectTask<T>(this IObservable<T> source, Func<T, Task> task)
+        {
+            return source
+                .SelectMany(async i =>
+                {
+                    await task(i).ConfigureAwait(false);
+                    return System.Reactive.Unit.Default;
+                });
+        }
+
+        public static IObservable<Unit> SelectTask<T>(this IObservable<T> source, Func<Task> task)
+        {
+            return source
+                .SelectMany(async _ =>
+                {
+                    await task().ConfigureAwait(false);
+                    return System.Reactive.Unit.Default;
+                });
+        }
+
+        public static IObservable<R> SelectTask<T, R>(this IObservable<T> source, Func<Task<R>> task)
+        {
+            return source
+                .SelectMany(_ => task());
+        }
+
+        public static IObservable<R> SelectTask<T, R>(this IObservable<T> source, Func<T, Task<R>> task)
+        {
+            return source
+                .SelectMany(x => task(x));
+        }
+
+        public static IObservable<T> DoTask<T>(this IObservable<T> source, Func<T, Task> task)
+        {
+            return source
+                .SelectMany(async (x) =>
+                {
+                    await task(x).ConfigureAwait(false);
+                    return x;
+                });
+        }
+
+        public static IObservable<R> WhereCastable<T, R>(this IObservable<T> source)
+            where R : class
+            where T : class
+        {
+            return source
+                .Select(x => x as R)
+                .NotNull();
         }
 
         /// These snippets were provided by RolandPheasant (author of DynamicData)

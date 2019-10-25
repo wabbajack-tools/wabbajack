@@ -33,11 +33,11 @@
                 <Button.Style>
                     <Style TargetType="Button" BasedOn="{StaticResource MainButtonStyle}">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding AppState.Mode}" Value="{x:Static local:RunMode.Install}">
+                            <DataTrigger Binding="{Binding Installer.Mode}" Value="{x:Static local:RunMode.Install}">
                                 <Setter Property="Command" Value="{Binding AppState.OpenReadmeCommand}" />
                                 <Setter Property="Content" Value="Open README" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding AppState.Mode}" Value="{x:Static local:RunMode.Compile}">
+                            <DataTrigger Binding="{Binding Installer.Mode}" Value="{x:Static local:RunMode.Compile}">
                                 <Setter Property="Command" Value="{Binding AppState.OpenModListPropertiesCommand}" />
                                 <Setter Property="Content" Value="Modlist Properties" />
                             </DataTrigger>

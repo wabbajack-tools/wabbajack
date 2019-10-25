@@ -31,7 +31,7 @@ namespace Wabbajack
 
         public Queue<Slide> SlidesQueue { get; }
 
-        public AppState AppState { get; }
+        public InstallerVM Installer { get; }
 
         public BitmapImage NextIcon { get; } = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Icons.next.png");
         public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Banner_Dark.png");
@@ -63,13 +63,13 @@ namespace Wabbajack
         public IReactiveCommand SlideShowNextItemCommand { get; } = ReactiveCommand.Create(() => { });
         public IReactiveCommand VisitNexusSiteCommand { get; }
 
-        public SlideShow(AppState appState)
+        public SlideShow(InstallerVM appState)
         {
             SlideShowElements = NexusApiClient.CachedSlideShow.ToList();
             CachedSlides = new Dictionary<string, Slide>();
             SlidesQueue = new Queue<Slide>();
             _random = new Random();
-            AppState = appState;
+            Installer = appState;
 
             this.VisitNexusSiteCommand = ReactiveCommand.Create(
                 execute: () => Process.Start(this.NexusSiteURL),
@@ -78,7 +78,7 @@ namespace Wabbajack
                     .ObserveOnGuiThread());
 
             // Apply modlist properties when it changes
-            this.WhenAny(x => x.AppState.ModList)
+            this.WhenAny(x => x.Installer.ModList)
                 .NotNull()
                 .Subscribe(modList =>
                 {
@@ -91,8 +91,8 @@ namespace Wabbajack
 
             // Update splashscreen when modlist changes
             Observable.CombineLatest(
-                    (this).WhenAny(x => x.AppState.ModList),
-                    (this).WhenAny(x => x.AppState.ModListPath),
+                    (this).WhenAny(x => x.Installer.ModList),
+                    (this).WhenAny(x => x.Installer.ModListPath),
                     (this).WhenAny(x => x.Enable),
                     (modList, modListPath, enabled) => (modList, modListPath, enabled))
                 // Do any potential unzipping on a background thread
@@ -150,7 +150,7 @@ namespace Wabbajack
                 .FilterSwitch(
                     Observable.CombineLatest(
                         this.WhenAny(x => x.Enable),
-                        this.WhenAny(x => x.AppState.Installing),
+                        this.WhenAny(x => x.Installer.Installing),
                         resultSelector: (enabled, installing) => enabled && installing))
                 // Don't ever update more than once every half second.  ToDo: Update to debounce
                 .Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
@@ -195,7 +195,7 @@ namespace Wabbajack
 
             if (!slide.IsNSFW || (slide.IsNSFW && ShowNSFW))
             {
-                this.Image = AppState._noneImage;
+                this.Image = UIUtils.BitmapImageFromResource("Wabbajack.Resources.none.jpg");
                 if (slide.ImageURL != null && slide.Image != null)
                 {
                     if (!CachedSlides.ContainsKey(slide.ModID)) return;

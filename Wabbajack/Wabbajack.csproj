@@ -224,16 +224,20 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Views\CompilerView.xaml.cs">
+      <DependentUpon>CompilerView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Converters\IsNotNullVisibilityConverter.cs" />
     <Compile Include="Enums\RunMode.cs" />
     <Compile Include="Extensions\ReactiveUIExt.cs" />
+    <Compile Include="Views\InstallationView.xaml.cs">
+      <DependentUpon>InstallationView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Util\CPUStatus.cs" />
+    <Compile Include="View Models\CompilerVM.cs" />
     <Compile Include="View Models\MainWindowVM.cs" />
     <Compile Include="Views\SlideshowView.xaml.cs">
       <DependentUpon>SlideshowView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\ModlistPropertiesWindow.xaml.cs">
-      <DependentUpon>ModlistPropertiesWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ModeSelectionWindow.xaml.cs">
       <DependentUpon>ModeSelectionWindow.xaml</DependentUpon>
@@ -244,6 +248,14 @@
     <Compile Include="Views\TextViewer.xaml.cs">
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\CompilerView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\InstallationView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\SlideshowView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -256,17 +268,13 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="View Models\AppState.cs" />
+    <Compile Include="View Models\InstallerVM.cs" />
     <Compile Include="Util\AutoScrollBehavior.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Views\ModeSelectionWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\ModlistPropertiesWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

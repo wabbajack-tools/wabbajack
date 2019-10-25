@@ -29,14 +29,10 @@ using Wabbajack.Lib;
 
 namespace Wabbajack
 {
-    public class AppState : ViewModel, IDataErrorInfo
+    public class InstallerVM : ViewModel, IDataErrorInfo
     {
         public SlideShow Slideshow { get; }
         public MainWindowVM MWVM { get; }
-
-        private string _mo2Folder;
-
-        public readonly BitmapImage _noneImage = UIUtils.BitmapImageFromResource("Wabbajack.Resources.none.jpg");
 
         private ModList _ModList;
         public ModList ModList { get => _ModList; private set => this.RaiseAndSetIfChanged(ref _ModList, value); }
@@ -44,8 +40,7 @@ namespace Wabbajack
         private string _ModListPath;
         public string ModListPath { get => _ModListPath; private set => this.RaiseAndSetIfChanged(ref _ModListPath, value); }
 
-        private RunMode _Mode;
-        public RunMode Mode { get => _Mode; private set => this.RaiseAndSetIfChanged(ref _Mode, value); }
+        public RunMode Mode => RunMode.Install;
 
         private string _ModListName;
         public string ModListName { get => _ModListName; set => this.RaiseAndSetIfChanged(ref _ModListName, value); }
@@ -59,15 +54,20 @@ namespace Wabbajack
         private bool _Installing;
         public bool Installing { get => _Installing; set => this.RaiseAndSetIfChanged(ref _Installing, value); }
 
+        private string _Location;
+        public string Location { get => _Location; set => this.RaiseAndSetIfChanged(ref _Location, value); }
+
+        private string _DownloadLocation;
+        public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
+
         // Command properties
         public IReactiveCommand ChangePathCommand { get; }
         public IReactiveCommand ChangeDownloadPathCommand { get; }
         public IReactiveCommand BeginCommand { get; }
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
-        public IReactiveCommand OpenModListPropertiesCommand { get; }
 
-        public AppState(MainWindowVM mainWindowVM, RunMode mode)
+        public InstallerVM(MainWindowVM mainWindowVM)
         {
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly().Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
@@ -81,16 +81,11 @@ namespace Wabbajack
             }
 
             this.MWVM = mainWindowVM;
-            Mode = mode;
 
             // Define commands
             this.ChangePathCommand = ReactiveCommand.Create(ExecuteChangePath);
             this.ChangeDownloadPathCommand = ReactiveCommand.Create(ExecuteChangeDownloadPath);
             this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
-            this.OpenModListPropertiesCommand = ReactiveCommand.Create(
-                execute: OpenModListProperties,
-                canExecute: this.WhenAny(x => x.UIReady)
-                    .ObserveOnGuiThread());
             this.OpenReadmeCommand = ReactiveCommand.Create(
                 execute: this.OpenReadmeWindow,
                 canExecute: this.WhenAny(x => x.ModList)
@@ -104,33 +99,14 @@ namespace Wabbajack
             this.Slideshow = new SlideShow(this);
         }
 
-        private string _Location;
-        public string Location { get => _Location; set => this.RaiseAndSetIfChanged(ref _Location, value); }
-
-        private string _LocationLabel;
-        public string LocationLabel { get => _LocationLabel; set => this.RaiseAndSetIfChanged(ref _LocationLabel, value); }
-
-        private string _DownloadLocation;
-        public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
-
         private void ExecuteChangePath()
         {
-            switch (this.Mode)
+            var folder = UIUtils.ShowFolderSelectionDialog("Select Installation directory");
+            if (folder == null) return;
+            Location = folder;
+            if (DownloadLocation == null)
             {
-                case RunMode.Compile:
-                    Location = UIUtils.ShowFolderSelectionDialog("Select Your MO2 profile directory");
-                    break;
-                case RunMode.Install:
-                    var folder = UIUtils.ShowFolderSelectionDialog("Select Installation directory");
-                    if (folder == null) return;
-                    Location = folder;
-                    if (DownloadLocation == null)
-                    {
-                        DownloadLocation = Path.Combine(Location, "downloads");
-                    }
-                    break;
-                default:
-                    throw new NotImplementedException();
+                DownloadLocation = Path.Combine(Location, "downloads");
             }
         }
 
@@ -145,31 +121,6 @@ namespace Wabbajack
             var file = Path.GetTempFileName() + ".html";
             File.WriteAllText(file, HTMLReport);
             Process.Start(file);
-        }
-
-        private ModlistPropertiesWindow modlistPropertiesWindow;
-        public string newImagePath;
-        public string readmePath;
-        public bool ChangedProperties;
-        private void OpenModListProperties()
-        {
-            if (UIReady)
-            {
-                if (modlistPropertiesWindow == null)
-                {
-                    modlistPropertiesWindow = new ModlistPropertiesWindow(this);
-                    newImagePath = null;
-                    ChangedProperties = false;
-
-                }
-                if(!modlistPropertiesWindow.IsClosed)
-                    modlistPropertiesWindow.Show();
-                else
-                {
-                    modlistPropertiesWindow = null;
-                    OpenModListProperties();
-                }
-            }
         }
 
         private void OpenReadmeWindow()
@@ -209,11 +160,6 @@ namespace Wabbajack
                     }
                     else switch (Mode)
                     {
-                        case RunMode.Compile when Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")):
-                            Location = Path.Combine(Location, "modlist.txt");
-                            validationMessage = null;
-                            ConfigureForBuild();
-                            break;
                         case RunMode.Install when Location != null && Directory.Exists(Location) && !Directory.EnumerateFileSystemEntries(Location).Any():
                             validationMessage = null;
                             break;
@@ -229,28 +175,10 @@ namespace Wabbajack
             return validationMessage;
         }
 
-        private void ConfigureForBuild()
-        {
-            var profile_folder = Path.GetDirectoryName(Location);
-            var mo2folder = Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
-            if (!File.Exists(Path.Combine(mo2folder, "ModOrganizer.exe")))
-                Utils.Log($"Error! No ModOrganizer2.exe found in {mo2folder}");
-
-            var profile_name = Path.GetFileName(profile_folder);
-            this.ModListName = profile_name;
-            this.Mode = RunMode.Compile;
-
-            var tmp_compiler = new Compiler(mo2folder);
-            DownloadLocation = tmp_compiler.MO2DownloadsFolder;
-
-            _mo2Folder = mo2folder;
-        }
-
         internal void ConfigureForInstall(string source, ModList modlist)
         {
             this.ModList = modlist;
             this.ModListPath = source;
-            this.Mode = RunMode.Install;
             ModListName = this.ModList.Name;
             HTMLReport = this.ModList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -302,49 +230,31 @@ namespace Wabbajack
                 };
                 th.Start();
             }
-            else if (_mo2Folder != null)
+        }
+
+        public void Init(string source)
+        {
+            var modlist = Installer.LoadFromFile(source);
+            if (modlist == null)
             {
-                var compiler = new Compiler(_mo2Folder)
+                MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    MO2Profile = ModListName,
-                    ModListName = ChangedProperties ? this.Slideshow.ModName : null,
-                    ModListAuthor = ChangedProperties ? this.Slideshow.AuthorName : null,
-                    ModListDescription = ChangedProperties ? this.Slideshow.Summary : null,
-                    ModListImage = ChangedProperties ? newImagePath : null,
-                    ModListWebsite = ChangedProperties ? this.Slideshow.NexusSiteURL : null,
-                    ModListReadme = ChangedProperties ? readmePath : null
-                };
-                var th = new Thread(() =>
-                {
-                    UIReady = false;
-                    try
+                    this.MWVM.MainWindow.ExitWhenClosing = false;
+                    var window = new ModeSelectionWindow
                     {
-                        compiler.Compile();
-                        if (compiler.ModList != null && compiler.ModList.ReportHTML != null)
-                            HTMLReport = compiler.ModList.ReportHTML;
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Log(ex.StackTrace);
-                        Utils.Log(ex.ToString());
-                        Utils.Log($"{ex.Message} - Can't continue");
-                    }
-                    finally
-                    {
-                        UIReady = true;
-                    }
-                })
-                {
-                    Priority = ThreadPriority.BelowNormal
-                };
-                th.Start();
+                        ShowActivated = true
+                    };
+                    window.Show();
+                    this.MWVM.MainWindow.Close();
+                });
             }
             else
             {
-                Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
-                UIReady = true;
+                this.ConfigureForInstall(source, modlist);
             }
+            this.UIReady = true;
         }
     }
 }
