@@ -21,7 +21,7 @@ namespace Wabbajack.Test
             using (var w = await Driver.Create())
             {
                 await w.NavigateTo(new Uri("http://www.google.com"));
-                Assert.AreEqual(new Uri("https://www.google.com"),  await w.GetLocation());
+                Assert.AreEqual("www.google.com", (await w.GetLocation()).Host);
             }
         }
 
