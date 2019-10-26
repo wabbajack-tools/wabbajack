@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Ceras;
 using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
 using Newtonsoft.Json;
@@ -192,13 +193,21 @@ namespace Wabbajack.Common
             return new DynamicIniData(new FileIniDataParser().ReadData(new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(file)))));
         }
 
+        public static void ToCERAS<T>(this T obj, string filename)
+        {
+            var ceras = new CerasSerializer();
+            byte[] buffer = null;
+            ceras.Serialize(obj, ref buffer);
+            File.WriteAllBytes(filename, buffer);
+        }
+
         public static void ToJSON<T>(this T obj, string filename)
         {
             File.WriteAllText(filename,
                 JsonConvert.SerializeObject(obj, Formatting.Indented,
                     new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto}));
         }
-
+        /*
         public static void ToBSON<T>(this T obj, string filename)
         {
             using (var fo = File.OpenWrite(filename))
@@ -209,7 +218,7 @@ namespace Wabbajack.Common
                     {TypeNameHandling = TypeNameHandling.Auto});
                 serializer.Serialize(br, obj);
             }
-        }
+        }*/
 
         public static ulong ToMilliseconds(this DateTime date)
         {
@@ -221,13 +230,13 @@ namespace Wabbajack.Common
             return JsonConvert.SerializeObject(obj, Formatting.Indented,
                 new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.All});
         }
-
+        
         public static T FromJSON<T>(this string filename)
         {
             return JsonConvert.DeserializeObject<T>(File.ReadAllText(filename),
                 new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
         }
-
+        /*
         public static T FromBSON<T>(this string filename, bool root_is_array = false)
         {
             using (var fo = File.OpenRead(filename))
@@ -237,7 +246,7 @@ namespace Wabbajack.Common
                     {TypeNameHandling = TypeNameHandling.Auto});
                 return serializer.Deserialize<T>(br);
             }
-        }
+        }*/
 
         public static T FromJSONString<T>(this string data)
         {
@@ -250,6 +259,13 @@ namespace Wabbajack.Common
             var s = Encoding.UTF8.GetString(data.ReadAll());
             return JsonConvert.DeserializeObject<T>(s, 
                 new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto });
+        }
+
+        public static T FromCERAS<T>(this Stream data)
+        {
+            var ceras = new CerasSerializer();
+            byte[] bytes = data.ReadAll();
+            return ceras.Deserialize<T>(bytes);
         }
 
         public static bool FileExists(this string filename)
