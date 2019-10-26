@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Ceras;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
@@ -505,7 +506,7 @@ namespace VFS
         }
     }
 
-    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+    [MemberConfig(TargetMember.None)]
     public class VirtualFile
     {
         private string _fullPath;
@@ -517,7 +518,7 @@ namespace VFS
 
         internal string _stagedPath;
 
-        [JsonProperty]
+        [Include]
         public string[] Paths
         {
             get => _paths;
@@ -529,13 +530,13 @@ namespace VFS
             }
         }
 
-        [JsonProperty] public string Hash { get; set; }
+        [Include] public string Hash { get; set; }
 
-        [JsonProperty] public long Size { get; set; }
+        [Include] public long Size { get; set; }
 
-        [JsonProperty] public ulong LastModified { get; set; }
+        [Include] public ulong LastModified { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [Include]
         public bool? FinishedIndexing { get; set; }
 
 
