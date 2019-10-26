@@ -304,7 +304,8 @@ namespace Wabbajack.Lib
         {
             Utils.Log($"Exporting Modlist to : {ModListOutputFile}");
 
-            ModList.ToJSON(Path.Combine(ModListOutputFolder, "modlist.json"));
+            //ModList.ToJSON(Path.Combine(ModListOutputFolder, "modlist.json"));
+            ModList.ToCERAS(Path.Combine(ModListOutputFolder, "modlist"));
 
             if (File.Exists(ModListOutputFile))
                 File.Delete(ModListOutputFile);
