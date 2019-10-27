@@ -18,9 +18,9 @@ namespace Wabbajack.Lib
                 typeof(SourcePatch), typeof(MergedPatch), typeof(Archive), typeof(IndexedArchive), typeof(IndexedEntry),
                 typeof(IndexedArchiveEntry), typeof(BSAIndexedEntry), typeof(VirtualFile), 
                 typeof(ArchiveStateObject), typeof(FileStateObject), typeof(IDownloader), 
-                typeof(IUrlDownloader), typeof(AbstractDownloadState), typeof(ManualDownloader),
-                typeof(DropboxDownloader), typeof(GoogleDriveDownloader), typeof(HTTPDownloader),
-                typeof(MegaDownloader), typeof(ModDBDownloader), typeof(NexusDownloader)
+                typeof(IUrlDownloader), typeof(AbstractDownloadState), typeof(ManualDownloader.State),
+                typeof(DropboxDownloader), typeof(GoogleDriveDownloader.State), typeof(HTTPDownloader.State),
+                typeof(MegaDownloader.State), typeof(ModDBDownloader.State), typeof(NexusDownloader.State)
             }
         };
     }
