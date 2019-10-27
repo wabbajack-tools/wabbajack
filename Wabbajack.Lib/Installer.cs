@@ -85,8 +85,13 @@ namespace Wabbajack.Lib
             using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
             {
                 var entry = ar.GetEntry("modlist");
+                if (entry == null)
+                {
+                    entry = ar.GetEntry("modlist.json");
+                    using (var e = entry.Open())
+                        return e.FromJSON<ModList>();
+                }
                 using (var e = entry.Open())
-                    //return e.FromJSON<ModList>();
                     return e.FromCERAS<ModList>(ref CerasConfig.Config);
             }
         }
