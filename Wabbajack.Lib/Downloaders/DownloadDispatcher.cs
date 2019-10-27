@@ -16,6 +16,7 @@ namespace Wabbajack.Lib.Downloaders
             new GoogleDriveDownloader(),
             new ModDBDownloader(),
             new NexusDownloader(),
+            new MediaFireDownloader(),
             new ManualDownloader(),
             new HTTPDownloader()
         };
