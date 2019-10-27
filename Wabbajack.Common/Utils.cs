@@ -193,9 +193,9 @@ namespace Wabbajack.Common
             return new DynamicIniData(new FileIniDataParser().ReadData(new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(file)))));
         }
 
-        public static void ToCERAS<T>(this T obj, string filename)
+        public static void ToCERAS<T>(this T obj, string filename, ref SerializerConfig config)
         {
-            var ceras = new CerasSerializer();
+            var ceras = new CerasSerializer(config);
             byte[] buffer = null;
             ceras.Serialize(obj, ref buffer);
             using(var m1 = new MemoryStream(buffer))
@@ -204,6 +204,19 @@ namespace Wabbajack.Common
                 BZip2.Compress(m1, m2, false, 9);
                 m2.Seek(0, SeekOrigin.Begin);
                 File.WriteAllBytes(filename, m2.ToArray());
+            }
+        }
+
+        public static T FromCERAS<T>(this Stream data, ref SerializerConfig config)
+        {
+            var ceras = new CerasSerializer(config);
+            byte[] bytes = data.ReadAll();
+            using (var m1 = new MemoryStream(bytes))
+            using (var m2 = new MemoryStream())
+            {
+                BZip2.Decompress(m1, m2, false);
+                m2.Seek(0, SeekOrigin.Begin);
+                return ceras.Deserialize<T>(m2.ToArray());
             }
         }
 
@@ -265,19 +278,6 @@ namespace Wabbajack.Common
             var s = Encoding.UTF8.GetString(data.ReadAll());
             return JsonConvert.DeserializeObject<T>(s, 
                 new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto });
-        }
-
-        public static T FromCERAS<T>(this Stream data)
-        {
-            var ceras = new CerasSerializer();
-            byte[] bytes = data.ReadAll();
-            using (var m1 = new MemoryStream(bytes))
-            using (var m2 = new MemoryStream())
-            {
-                BZip2.Decompress(m1, m2, false);
-                m2.Seek(0, SeekOrigin.Begin);
-                return ceras.Deserialize<T>(m2.ToArray());
-            }
         }
 
         public static bool FileExists(this string filename)
