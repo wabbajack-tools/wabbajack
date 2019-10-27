@@ -34,6 +34,9 @@
     <Reference Include="AlphaFS, Version=2.2.0.0, Culture=neutral, PublicKeyToken=4d31a58f7d7ad5c9, processorArchitecture=MSIL">
       <HintPath>..\packages\AlphaFS.2.2.6\lib\net452\AlphaFS.dll</HintPath>
     </Reference>
+    <Reference Include="Ceras, Version=4.1.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ceras.4.1.7\lib\net47\Ceras.dll</HintPath>
+    </Reference>
     <Reference Include="CommonMark, Version=0.1.0.0, Culture=neutral, PublicKeyToken=001ef8810438905d, processorArchitecture=MSIL">
       <HintPath>..\packages\CommonMark.NET.0.15.1\lib\net45\CommonMark.dll</HintPath>
     </Reference>
@@ -70,6 +73,9 @@
       <HintPath>..\packages\Splat.Drawing.9.1.1\lib\net461\Splat.Drawing.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
@@ -112,6 +118,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CerasConfig.cs" />
     <Compile Include="Compiler.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="Downloaders\AbstractDownloadState.cs" />

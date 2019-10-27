@@ -1,7 +1,6 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using Ceras;
 using Compression.BSA;
 using VFS;
 using Wabbajack.Common;
@@ -34,7 +33,6 @@ namespace Wabbajack.Lib
         }
     }
 
-    [Serializable]
     public class ModList
     {
         /// <summary>
@@ -93,7 +91,6 @@ namespace Wabbajack.Lib
         public string ReportHTML;
     }
 
-    [Serializable]
     public class Directive
     {
         /// <summary>
@@ -104,18 +101,15 @@ namespace Wabbajack.Lib
         public string Hash;
     }
 
-    [Serializable]
     public class IgnoredDirectly : Directive
     {
         public string Reason;
     }
 
-    [Serializable]
     public class NoMatch : IgnoredDirectly
     {
     }
 
-    [Serializable]
     public class InlineFile : Directive
     {
         /// <summary>
@@ -129,13 +123,11 @@ namespace Wabbajack.Lib
     /// <summary>
     ///     File meant to be extracted before the installation
     /// </summary>
-    [Serializable]
     public class PropertyFile : InlineFile
     {
         public PropertyType Type;
     }
 
-    [Serializable]
     public class CleanedESM : InlineFile
     {
         public string SourceESMHash;
@@ -144,12 +136,11 @@ namespace Wabbajack.Lib
     /// <summary>
     ///     A file that has the game and MO2 folders remapped on installation
     /// </summary>
-    [Serializable]
     public class RemappedInlineFile : InlineFile
     {
     }
 
-    [Serializable]
+    [MemberConfig(TargetMember.All)]
     public class FromArchive : Directive
     {
         private string _fullPath;
@@ -159,9 +150,10 @@ namespace Wabbajack.Lib
         /// </summary>
         public string[] ArchiveHashPath;
 
-        [JsonIgnore] [NonSerialized] public VirtualFile FromFile;
+        [Exclude]
+        public VirtualFile FromFile;
 
-        [JsonIgnore]
+        [Exclude]
         public string FullPath
         {
             get
@@ -172,7 +164,6 @@ namespace Wabbajack.Lib
         }
     }
 
-    [Serializable]
     public class CreateBSA : Directive
     {
         public string TempID;
@@ -181,7 +172,6 @@ namespace Wabbajack.Lib
         public List<FileStateObject> FileStates { get; set; }
     }
 
-    [Serializable]
     public class PatchedFromArchive : FromArchive
     {
         /// <summary>
@@ -190,21 +180,18 @@ namespace Wabbajack.Lib
         public string PatchID;
     }
 
-    [Serializable]
     public class SourcePatch
     {
         public string RelativePath;
         public string Hash;
     }
 
-    [Serializable]
     public class MergedPatch : Directive
     {
         public List<SourcePatch> Sources;
         public string PatchID;
     }
 
-    [Serializable]
     public class Archive
     {
         /// <summary>
@@ -225,7 +212,6 @@ namespace Wabbajack.Lib
         public AbstractDownloadState State { get; set; }
     }
 
-    [Serializable]
     public class IndexedArchive
     {
         public dynamic IniData;
@@ -237,7 +223,6 @@ namespace Wabbajack.Lib
     /// <summary>
     ///     A archive entry
     /// </summary>
-    [Serializable]
     public class IndexedEntry
     {
         /// <summary>
@@ -256,7 +241,6 @@ namespace Wabbajack.Lib
         public long Size;
     }
 
-    [Serializable]
     public class IndexedArchiveEntry : IndexedEntry
     {
         public string[] HashPath;
@@ -265,7 +249,6 @@ namespace Wabbajack.Lib
     /// <summary>
     ///     Data found inside a BSA file in an archive
     /// </summary>
-    [Serializable]
     public class BSAIndexedEntry : IndexedEntry
     {
         /// <summary>

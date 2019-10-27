@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using Newtonsoft.Json;
+using Ceras;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -48,14 +48,14 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
+        [MemberConfig(TargetMember.All)]
         public class State : AbstractDownloadState
         {
             public string Url { get; set; }
 
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public List<string> Headers { get; set; }
 
-            [JsonIgnore]
+            [Exclude]
             public HttpClient Client { get; set; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
