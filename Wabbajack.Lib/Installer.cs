@@ -87,7 +87,7 @@ namespace Wabbajack.Lib
                 var entry = ar.GetEntry("modlist");
                 using (var e = entry.Open())
                     //return e.FromJSON<ModList>();
-                    return e.FromCERAS<ModList>();
+                    return e.FromCERAS<ModList>(ref CerasConfig.Config);
             }
         }
 

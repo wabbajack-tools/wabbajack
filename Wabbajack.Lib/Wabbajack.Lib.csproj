@@ -118,6 +118,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CerasConfig.cs" />
     <Compile Include="Compiler.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="Downloaders\AbstractDownloadState.cs" />
