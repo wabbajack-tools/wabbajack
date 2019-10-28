@@ -139,17 +139,16 @@ namespace Wabbajack
             // Merge all the sources that trigger a slideshow update
             Observable.Merge(
                     // If the natural timer fires
-                    Observable.Interval(TimeSpan.FromSeconds(10)).Unit(),
+                    Observable.Interval(TimeSpan.FromSeconds(10))
+                        .Unit()
+                        // Only if enabled
+                        .FilterSwitch(this.WhenAny(x => x.Enable)),
                     // If user requests one manually
                     this.SlideShowNextItemCommand.StartingExecution())
-                // When enabled, fire an initial signal
+                // When installing fire an initial signal
                 .StartWith(Unit.Default)
-                // Only subscribe to slideshow triggers if enabled and installing
-                .FilterSwitch(
-                    Observable.CombineLatest(
-                        this.WhenAny(x => x.Enable),
-                        this.WhenAny(x => x.Installer.Installing),
-                        resultSelector: (enabled, installing) => enabled && installing))
+                // Only subscribe to slideshow triggers if installing
+                .FilterSwitch(this.WhenAny(x => x.Installer.Installing))
                 // Don't ever update more than once every half second.  ToDo: Update to debounce
                 .Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
                 .ObserveOn(RxApp.MainThreadScheduler)
