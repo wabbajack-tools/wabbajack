@@ -71,11 +71,13 @@ namespace Wabbajack.Common
             appReg?.CreateSubKey("DefaultIcon")?.SetValue("", iconPath);
 
             appAssocReg?.CreateSubKey("UserChoice")?.SetValue("Progid", "Applications\\Wabbajack.exe");
-            SHChangeNotify(0x000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
 
-            if (!IsWin8()) return;
-            var win8FileReg = Registry.CurrentUser.CreateSubKey(Win8RegPath);
-            win8FileReg?.CreateSubKey("shell\\open\\command")?.SetValue("", $"\"{appPath}\" -i %i");
+            if (IsWin8())
+            {
+                var win8FileReg = Registry.CurrentUser.CreateSubKey(Win8RegPath);
+                win8FileReg?.CreateSubKey("shell\\open\\command")?.SetValue("", $"\"{appPath}\" -i %i");
+            }
+            SHChangeNotify(0x000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
         }
     }
 }
