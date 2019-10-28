@@ -16,7 +16,7 @@ namespace Wabbajack.Common
             return (Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\"+Extension, false) == null);
         }
 
-        public void AssociateExtension()
+        public static void AssociateExtension()
         {
             var iconPath = "";
             var appPath = "";
@@ -38,12 +38,11 @@ namespace Wabbajack.Common
             appAssocReg.CreateSubKey("UserChoice").SetValue("Progid", "Applications\\Wabbajack.exe");
             SHChangeNotify(0x000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
 
-            if (Environment.OSVersion.Platform >= PlatformID.Win32NT && Environment.OSVersion.Version >= winVersion)
-            {
-                RegistryKey win8FileReg =
-                    Registry.CurrentUser.CreateSubKey($"Software\\Classes\\{Extension.Replace(".", "")}_auto_file");
-                win8FileReg.CreateSubKey("shell\\open\\command").SetValue("", $"\"{appPath}\" -i %i");
-            }
+            if (Environment.OSVersion.Platform < PlatformID.Win32NT ||
+                Environment.OSVersion.Version < winVersion) return;
+            RegistryKey win8FileReg =
+                Registry.CurrentUser.CreateSubKey($"Software\\Classes\\{Extension.Replace(".", "")}_auto_file");
+            win8FileReg.CreateSubKey("shell\\open\\command").SetValue("", $"\"{appPath}\" -i %i");
         }
     }
 }
