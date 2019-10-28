@@ -11,22 +11,25 @@ namespace Wabbajack.Common
 
         public static string Extension = ".wabbajack";
 
+        private static readonly string ExtRegPath = $"Software\\Classes\\{Extension}";
+        private static readonly string AppRegPath = "Software\\Classes\\Applications\\Wabbajack.exe";
+        private static readonly string AppAssocRegPath =
+            $"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\{Extension}";
+
         public static bool IsExtensionAssociated()
         {
-            return (Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\"+Extension, false) == null);
+            return (Registry.CurrentUser.OpenSubKey(AppAssocRegPath, false) == null);
         }
 
         public static void AssociateExtension(string iconPath, string appPath)
         {
             var winVersion = new Version(6, 2, 9200, 0);
 
-            var extReg = Registry.CurrentUser.CreateSubKey($"Software\\Classes\\{Extension}");
+            var extReg = Registry.CurrentUser.CreateSubKey(ExtRegPath);
             if (Environment.OSVersion.Platform >= PlatformID.Win32NT && Environment.OSVersion.Version >= winVersion)
                 extReg?.SetValue("", Extension.Replace(".", "") + "_auto_file");
-            var appReg = Registry.CurrentUser.CreateSubKey("Software\\Classes\\Applications\\Wabbajack.exe");
-            var appAssocReg =
-                Registry.CurrentUser.CreateSubKey(
-                    $"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\{Extension}");
+            var appReg = Registry.CurrentUser.CreateSubKey(AppRegPath);
+            var appAssocReg = Registry.CurrentUser.CreateSubKey(AppAssocRegPath);
 
             extReg?.CreateSubKey("DefaultIcon")?.SetValue("", iconPath);
             extReg?.CreateSubKey("PerceivedType")?.SetValue("", "Archive");
