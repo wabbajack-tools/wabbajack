@@ -18,28 +18,30 @@ namespace Wabbajack.Common
 
         public static void AssociateExtension(string iconPath, string appPath)
         {
-            Version winVersion = new Version(6, 2, 9200, 0);
+            var winVersion = new Version(6, 2, 9200, 0);
 
-            RegistryKey extReg = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + Extension);
-            if(Environment.OSVersion.Platform >= PlatformID.Win32NT && Environment.OSVersion.Version >= winVersion)
-                extReg.SetValue("", Extension.Replace(".", "")+"_auto_file");
-            RegistryKey appReg = Registry.CurrentUser.CreateSubKey("Software\\Classes\\Applications\\Wabbajack.exe");
-            RegistryKey appAssocReg = Registry.CurrentUser.CreateSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\"+Extension);
+            var extReg = Registry.CurrentUser.CreateSubKey($"Software\\Classes\\{Extension}");
+            if (Environment.OSVersion.Platform >= PlatformID.Win32NT && Environment.OSVersion.Version >= winVersion)
+                extReg?.SetValue("", Extension.Replace(".", "") + "_auto_file");
+            var appReg = Registry.CurrentUser.CreateSubKey("Software\\Classes\\Applications\\Wabbajack.exe");
+            var appAssocReg =
+                Registry.CurrentUser.CreateSubKey(
+                    $"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\{Extension}");
 
-            extReg.CreateSubKey("DefaultIcon").SetValue("", iconPath);
-            extReg.CreateSubKey("PerceivedType").SetValue("", "Archive");
+            extReg?.CreateSubKey("DefaultIcon")?.SetValue("", iconPath);
+            extReg?.CreateSubKey("PerceivedType")?.SetValue("", "Archive");
 
-            appReg.CreateSubKey("shell\\open\\command").SetValue("", $"\"{appPath}\" -i %i");
-            appReg.CreateSubKey("DefaultIcon").SetValue("", iconPath);
+            appReg?.CreateSubKey("shell\\open\\command")?.SetValue("", $"\"{appPath}\" -i %i");
+            appReg?.CreateSubKey("DefaultIcon")?.SetValue("", iconPath);
 
-            appAssocReg.CreateSubKey("UserChoice").SetValue("Progid", "Applications\\Wabbajack.exe");
+            appAssocReg?.CreateSubKey("UserChoice")?.SetValue("Progid", "Applications\\Wabbajack.exe");
             SHChangeNotify(0x000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
 
             if (Environment.OSVersion.Platform < PlatformID.Win32NT ||
                 Environment.OSVersion.Version < winVersion) return;
-            RegistryKey win8FileReg =
+            var win8FileReg =
                 Registry.CurrentUser.CreateSubKey($"Software\\Classes\\{Extension.Replace(".", "")}_auto_file");
-            win8FileReg.CreateSubKey("shell\\open\\command").SetValue("", $"\"{appPath}\" -i %i");
+            win8FileReg?.CreateSubKey("shell\\open\\command")?.SetValue("", $"\"{appPath}\" -i %i");
         }
     }
 }
