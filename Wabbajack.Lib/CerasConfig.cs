@@ -20,7 +20,8 @@ namespace Wabbajack.Lib
                 typeof(ArchiveStateObject), typeof(FileStateObject), typeof(IDownloader), 
                 typeof(IUrlDownloader), typeof(AbstractDownloadState), typeof(ManualDownloader.State),
                 typeof(DropboxDownloader), typeof(GoogleDriveDownloader.State), typeof(HTTPDownloader.State),
-                typeof(MegaDownloader.State), typeof(ModDBDownloader.State), typeof(NexusDownloader.State)
+                typeof(MegaDownloader.State), typeof(ModDBDownloader.State), typeof(NexusDownloader.State),
+                typeof(BSAStateObject)
             }
         };
     }
