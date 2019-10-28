@@ -1,4 +1,4 @@
-﻿using ReactiveUI;
+using ReactiveUI;
 using Splat;
 using System;
 using System.Collections.Generic;
@@ -48,6 +48,9 @@ namespace Wabbajack
         private BitmapImage _Image;
         public BitmapImage Image { get => _Image; set => this.RaiseAndSetIfChanged(ref _Image, value); }
 
+        private readonly ObservableAsPropertyHelper<BitmapImage> _ModlistImage;
+        public BitmapImage ModlistImage => _ModlistImage.Value;
+
         private string _ModName = "Wabbajack";
         public string ModName { get => _ModName; set => this.RaiseAndSetIfChanged(ref _ModName, value); }
 
@@ -89,53 +92,48 @@ namespace Wabbajack
                 })
                 .DisposeWith(this.CompositeDisposable);
 
-            // Update splashscreen when modlist changes
-            Observable.CombineLatest(
-                    (this).WhenAny(x => x.Installer.ModList),
-                    (this).WhenAny(x => x.Installer.ModListPath),
-                    (this).WhenAny(x => x.Enable),
-                    (modList, modListPath, enabled) => (modList, modListPath, enabled))
-                // Do any potential unzipping on a background thread
+            this._ModlistImage = Observable.CombineLatest(
+                    this.WhenAny(x => x.Installer.ModList),
+                    this.WhenAny(x => x.Installer.ModListPath),
+                    (modList, modListPath) => (modList, modListPath))
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(u =>
                 {
-                    if (u.enabled
-                        && u.modList != null
-                        && u.modListPath != null
-                        && File.Exists(u.modListPath)
-                        && !string.IsNullOrEmpty(u.modList.Image)
-                        && u.modList.Image.Length == 36)
+                    if (u.modList == null
+                        || u.modListPath == null
+                        || !File.Exists(u.modListPath)
+                        || string.IsNullOrEmpty(u.modList.Image)
+                        || u.modList.Image.Length != 36)
                     {
-                        try
+                        return default(BitmapImage);
+                    }
+                    try
+                    {
+                        using (var fs = new FileStream(u.modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+                        using (var ms = new MemoryStream())
                         {
-                            using (var fs = new FileStream(u.modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
-                            using (var ms = new MemoryStream())
-                            {
-                                var entry = ar.GetEntry(u.modList.Image);
-                                using (var e = entry.Open())
-                                    e.CopyTo(ms);
-                                var image = new BitmapImage();
-                                image.BeginInit();
-                                image.CacheOption = BitmapCacheOption.OnLoad;
-                                image.StreamSource = ms;
-                                image.EndInit();
-                                image.Freeze();
+                            var entry = ar.GetEntry(u.modList.Image);
+                            using (var e = entry.Open())
+                                e.CopyTo(ms);
+                            var image = new BitmapImage();
+                            image.BeginInit();
+                            image.CacheOption = BitmapCacheOption.OnLoad;
+                            image.StreamSource = ms;
+                            image.EndInit();
+                            image.Freeze();
 
-                                return image;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            this.Log().Warn(ex, "Error loading splash image.");
+                            return image;
                         }
                     }
-                    return this.WabbajackLogo;
+                    catch (Exception ex)
+                    {
+                        this.Log().Warn(ex, "Error loading modlist splash image.");
+                        return default(BitmapImage);
+                    }
                 })
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .StartWith(this.WabbajackLogo)
-                .Subscribe(bitmap => this.Image = bitmap)
-                .DisposeWith(this.CompositeDisposable);
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(this.ModlistImage));
 
             /// Wire slideshow updates
             // Merge all the sources that trigger a slideshow update
