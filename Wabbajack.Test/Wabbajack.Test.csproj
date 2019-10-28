@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DownloaderTests.cs" />
+    <Compile Include="EndToEndTests.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="ModlistMetadataTests.cs" />
     <Compile Include="TestUtils.cs" />

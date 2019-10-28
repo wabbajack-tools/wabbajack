@@ -60,18 +60,18 @@ namespace Wabbajack.Test
             });
         }
 
-        public string AddProfile()
+        public string AddProfile(string name = null)
         {
-            string profile_name = RandomName();
+            string profile_name = name ?? RandomName();
             Directory.CreateDirectory(Path.Combine(MO2Folder, "profiles", profile_name));
             Profiles.Add(profile_name);
             return profile_name;
         }
         public HashSet<string> Profiles = new HashSet<string>();
 
-        public string AddMod()
+        public string AddMod(string name = null)
         {
-            string mod_name = RandomName();
+            string mod_name = name ?? RandomName();
             Directory.CreateDirectory(Path.Combine(MO2Folder, "mods", mod_name));
             Mods.Add(mod_name);
             return mod_name;
