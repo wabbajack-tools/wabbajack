@@ -16,11 +16,8 @@ namespace Wabbajack.Common
             return (Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\"+Extension, false) == null);
         }
 
-        public static void AssociateExtension()
+        public static void AssociateExtension(string iconPath, string appPath)
         {
-            var iconPath = "";
-            var appPath = "";
-
             Version winVersion = new Version(6, 2, 9200, 0);
 
             RegistryKey extReg = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + Extension);
