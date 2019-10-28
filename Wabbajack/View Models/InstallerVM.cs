@@ -34,27 +34,27 @@ namespace Wabbajack
         public SlideShow Slideshow { get; }
         public MainWindowVM MWVM { get; }
 
-        private ModList _ModList;
-        public ModList ModList { get => _ModList; private set => this.RaiseAndSetIfChanged(ref _ModList, value); }
+        private readonly ObservableAsPropertyHelper<ModList> _ModList;
+        public ModList ModList => _ModList.Value;
 
         private string _ModListPath;
         public string ModListPath { get => _ModListPath; private set => this.RaiseAndSetIfChanged(ref _ModListPath, value); }
 
         public RunMode Mode => RunMode.Install;
 
-        private string _ModListName;
-        public string ModListName { get => _ModListName; set => this.RaiseAndSetIfChanged(ref _ModListName, value); }
+        private readonly ObservableAsPropertyHelper<string> _ModListName;
+        public string ModListName => _ModListName.Value;
 
         private bool _UIReady;
         public bool UIReady { get => _UIReady; set => this.RaiseAndSetIfChanged(ref _UIReady, value); }
 
-        private string _HTMLReport;
-        public string HTMLReport { get => _HTMLReport; set => this.RaiseAndSetIfChanged(ref _HTMLReport, value); }
+        private readonly ObservableAsPropertyHelper<string> _HTMLReport;
+        public string HTMLReport => _HTMLReport.Value;
 
         private bool _Installing;
         public bool Installing { get => _Installing; set => this.RaiseAndSetIfChanged(ref _Installing, value); }
 
-        private string _Location;
+        private string _Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         public string Location { get => _Location; set => this.RaiseAndSetIfChanged(ref _Location, value); }
 
         private string _DownloadLocation;
@@ -81,6 +81,38 @@ namespace Wabbajack
             }
 
             this.MWVM = mainWindowVM;
+
+            this._ModList = this.WhenAny(x => x.ModListPath)
+                .Select(source =>
+                {
+                    if (source == null) return default;
+                    var modlist = Installer.LoadFromFile(source);
+                    if (modlist == null)
+                    {
+                        MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            this.MWVM.MainWindow.ExitWhenClosing = false;
+                            var window = new ModeSelectionWindow
+                            {
+                                ShowActivated = true
+                            };
+                            window.Show();
+                            this.MWVM.MainWindow.Close();
+                        });
+                        return default;
+                    }
+                    return modlist;
+                })
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(this.ModList));
+            this._HTMLReport = this.WhenAny(x => x.ModList)
+                .Select(modList => modList?.ReportHTML)
+                .ToProperty(this, nameof(this.HTMLReport));
+            this._ModListName = this.WhenAny(x => x.ModList)
+                .Select(modList => modList?.Name)
+                .ToProperty(this, nameof(this.ModListName));
 
             // Define commands
             this.ChangePathCommand = ReactiveCommand.Create(ExecuteChangePath);
@@ -175,15 +207,6 @@ namespace Wabbajack
             return validationMessage;
         }
 
-        internal void ConfigureForInstall(string source, ModList modlist)
-        {
-            this.ModList = modlist;
-            this.ModListPath = source;
-            ModListName = this.ModList.Name;
-            HTMLReport = this.ModList.ReportHTML;
-            Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        }
-
         private void ExecuteBegin()
         {
             UIReady = false;
@@ -223,26 +246,7 @@ namespace Wabbajack
 
         public void Init(string source)
         {
-            var modlist = Installer.LoadFromFile(source);
-            if (modlist == null)
-            {
-                MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    this.MWVM.MainWindow.ExitWhenClosing = false;
-                    var window = new ModeSelectionWindow
-                    {
-                        ShowActivated = true
-                    };
-                    window.Show();
-                    this.MWVM.MainWindow.Close();
-                });
-            }
-            else
-            {
-                this.ConfigureForInstall(source, modlist);
-            }
+            this.ModListPath = source;
             this.UIReady = true;
         }
     }
