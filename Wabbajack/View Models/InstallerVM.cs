@@ -182,17 +182,6 @@ namespace Wabbajack
             ModListName = this.ModList.Name;
             HTMLReport = this.ModList.ReportHTML;
             Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-
-            this.Slideshow.SlideShowElements = modlist.Archives
-                .Select(m => m.State)
-                .OfType<NexusDownloader.State>()
-                .Select(m => 
-                new Slide(NexusApiUtils.FixupSummary(m.ModName),m.ModID,
-                    NexusApiUtils.FixupSummary(m.Summary), NexusApiUtils.FixupSummary(m.Author),
-                    m.Adult,m.NexusURL,m.SlideShowPic)).ToList();
-
-
-            this.Slideshow.PreloadSlideShow();
         }
 
         private void ExecuteBegin()

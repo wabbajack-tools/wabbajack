@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack
@@ -83,12 +84,23 @@ namespace Wabbajack
             // Apply modlist properties when it changes
             this.WhenAny(x => x.Installer.ModList)
                 .NotNull()
+                .ObserveOnGuiThread()
                 .Subscribe(modList =>
                 {
                     this.NexusSiteURL = modList.Website;
                     this.ModName = modList.Name;
                     this.AuthorName = modList.Author;
                     this.Summary = modList.Description;
+
+                    this.SlideShowElements = modList.Archives
+                        .Select(m => m.State)
+                        .OfType<NexusDownloader.State>()
+                        .Select(m =>
+                        new Slide(NexusApiUtils.FixupSummary(m.ModName), m.ModID,
+                            NexusApiUtils.FixupSummary(m.Summary), NexusApiUtils.FixupSummary(m.Author),
+                            m.Adult, m.NexusURL, m.SlideShowPic)).ToList();
+
+                    this.PreloadSlideShow();
                 })
                 .DisposeWith(this.CompositeDisposable);
 
