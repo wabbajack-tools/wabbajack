@@ -242,6 +242,17 @@ namespace Wabbajack.Lib.NexusApi
             return GetCached<NexusFileInfo>(url);
         }
 
+        public class GetModFilesResponse
+        {
+            public List<NexusFileInfo> files;
+        }
+
+        public IList<NexusFileInfo> GetModFiles(Game game, int modid)
+        {
+            var url = $"https://api.nexusmods.com/v1/games/{GameRegistry.Games[game].NexusName}/mods/{modid}/files.json";
+            return GetCached<GetModFilesResponse>(url).files;
+        }
+
         public ModInfo GetModInfo(string gameName, string modId)
         {
             if (!Directory.Exists(Consts.NexusCacheDirectory))

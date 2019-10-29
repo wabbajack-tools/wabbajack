@@ -9,6 +9,7 @@ using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack.Test
 {
@@ -55,11 +56,13 @@ namespace Wabbajack.Test
                     "directURL=https://github.com/ModOrganizer2/modorganizer/releases/download/v2.2.1/Mod.Organizer.2.2.1.7z"
                 });
 
+            DownloadAndInstall(Game.SkyrimSpecialEdition, 12604, "SkyUI");
+
             utils.Configure();
 
             var modlist = CompileAndInstall(profile);
 
-            Assert.IsTrue(modlist.Directives.Count > 1);
+            utils.VerifyAllFiles();
         }
 
         private void DownloadAndInstall(string url, string filename, string mod_name = null)
@@ -83,6 +86,42 @@ namespace Wabbajack.Test
             else
                 FileExtractor.ExtractAll(src, Path.Combine(utils.ModsFolder, mod_name));
 
+        }
+
+        private void DownloadAndInstall(Game game, int modid, string mod_name)
+        {
+            utils.AddMod(mod_name);
+            var client = new NexusApiClient();
+            var file = client.GetModFiles(game, modid).First(f => f.is_primary);
+            var src = Path.Combine(DOWNLOAD_FOLDER, file.file_name);
+
+            var ini = string.Join("\n",
+                new List<string>
+                {
+                    "[General]",
+                    $"gameName={GameRegistry.Games[game].MO2ArchiveName}",
+                    $"modID={modid}",
+                    $"fileID={file.file_id}"
+                });
+
+            if (!File.Exists(file.file_name))
+            {
+
+                var state = DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+                state.Download(src);
+            }
+
+            if (!Directory.Exists(utils.DownloadsFolder))
+            {
+                Directory.CreateDirectory(utils.DownloadsFolder);
+            }
+
+            var dest = Path.Combine(utils.DownloadsFolder, file.file_name);
+            File.Copy(src, dest);
+
+            FileExtractor.ExtractAll(src, Path.Combine(utils.ModsFolder, mod_name));
+
+            File.WriteAllText(dest + ".meta", ini);
         }
 
         private ModList CompileAndInstall(string profile)

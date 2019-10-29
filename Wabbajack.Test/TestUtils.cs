@@ -7,10 +7,12 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
+using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Test
@@ -170,6 +172,43 @@ namespace Wabbajack.Test
                 if (src_data[x] != dest_data[x])
                     Assert.Fail($"Index {x} of {mod}\\{file} are not the same");
             }
+        }
+
+        public void VerifyAllFiles()
+        {
+            foreach (var dest_file in Directory.EnumerateFiles(InstallFolder, "*", DirectoryEnumerationOptions.Recursive))
+            {
+                var rel_file = dest_file.RelativeTo(InstallFolder);
+                if (rel_file.StartsWith(Consts.LOOTFolderFilesDir) || rel_file.StartsWith(Consts.GameFolderFilesDir))
+                    continue;
+                Assert.IsTrue(File.Exists(Path.Combine(MO2Folder, rel_file)), $"Only in Destination: {rel_file}");
+            }
+
+            var skip_extensions = new HashSet<string> {".txt", ".ini"};
+
+            foreach (var src_file in Directory.EnumerateFiles(MO2Folder, "*", DirectoryEnumerationOptions.Recursive))
+            {
+                var rel_file = src_file.RelativeTo(MO2Folder);
+
+                if (rel_file.StartsWith("downloads\\"))
+                    continue;
+
+                var dest_file = Path.Combine(InstallFolder, rel_file);
+                Assert.IsTrue(File.Exists(dest_file), $"Only in Source: {rel_file}");
+
+                var fi_src = new FileInfo(src_file);
+                var fi_dest = new FileInfo(dest_file);
+
+
+
+                if (!skip_extensions.Contains(Path.GetExtension(src_file)))
+                {
+                    Assert.AreEqual(fi_src.Length, fi_dest.Length, $"Differing sizes {rel_file}");
+                    Assert.AreEqual(src_file.FileSHA256(), dest_file.FileSHA256(), $"Differing content hash {rel_file}");
+                }
+            }
+
+
         }
     }
 }
