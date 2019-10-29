@@ -272,7 +272,6 @@ namespace Wabbajack.Common
             return JsonConvert.DeserializeObject<T>(data,
                 new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
         }
-
         public static T FromJSON<T>(this Stream data)
         {
             var s = Encoding.UTF8.GetString(data.ReadAll());
