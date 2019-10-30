@@ -1,0 +1,40 @@
+﻿using System.IO;
+using Wabbajack.Common;
+using File = Alphaleonis.Win32.Filesystem.File;
+using Path = Alphaleonis.Win32.Filesystem.Path;
+
+namespace Wabbajack.Lib.CompilationSteps
+{
+    class PatchStockESMs : ACompilationStep
+    {
+        public PatchStockESMs(Compiler compiler) : base(compiler)
+        {
+        }
+
+        public override Directive Run(RawSourceFile source)
+        {
+            var filename = Path.GetFileName(source.Path);
+            var gameFile = Path.Combine(_compiler.GamePath, "Data", filename);
+            if (!Consts.GameESMs.Contains(filename) || !source.Path.StartsWith("mods\\") ||
+                !File.Exists(gameFile)) return null;
+            
+            Utils.Log(
+                $"A ESM named {filename} was found in a mod that shares a name with a core game ESMs, it is assumed this is a cleaned ESM and it will be binary patched.");
+            var result = source.EvolveTo<CleanedESM>();
+            result.SourceESMHash = _compiler.VFS.Lookup(gameFile).Hash;
+
+            Utils.Status($"Generating patch of {filename}");
+            using (var ms = new MemoryStream())
+            {
+                Utils.CreatePatch(File.ReadAllBytes(gameFile), File.ReadAllBytes(source.AbsolutePath), ms);
+                var data = ms.ToArray();
+                result.SourceDataID = _compiler.IncludeFile(data);
+                Utils.Log($"Generated a {data.Length} byte patch for {filename}");
+
+            }
+            
+            return result;
+
+        }
+    }
+}
