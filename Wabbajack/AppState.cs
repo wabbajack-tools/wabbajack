@@ -95,9 +95,10 @@ namespace Wabbajack
                     s.CopyTo(fs);
                 }
             }
-            if (!ExtensionManager.IsExtensionAssociated() || ExtensionManager.IsAssociationOutdated(iconPath, appPath))
+
+            if (!ExtensionManager.IsAssociated(appPath))
             {
-                ExtensionManager.AssociateExtension(iconPath, appPath);
+                ExtensionManager.Associate(appPath);
             }
 
             Mode = mode;
