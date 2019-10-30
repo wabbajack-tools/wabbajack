@@ -120,6 +120,7 @@
     <Compile Include="Downloaders\MEGADownloader.cs" />
     <Compile Include="Downloaders\ModDBDownloader.cs" />
     <Compile Include="Downloaders\NexusDownloader.cs" />
+    <Compile Include="Extensions\TaskExt.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="ModListRegistry\ModListMetadata.cs" />
     <Compile Include="NexusApi\Dtos.cs" />

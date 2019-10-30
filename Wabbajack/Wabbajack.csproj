@@ -31,6 +31,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <XamlDebuggingInformation>True</XamlDebuggingInformation>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -135,6 +136,13 @@
     <Compile Include="Converters\IsNotNullVisibilityConverter.cs" />
     <Compile Include="Enums\RunMode.cs" />
     <Compile Include="Extensions\ReactiveUIExt.cs" />
+    <Page Include="Views\FilePicker.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="Views\FilePicker.xaml.cs">
+      <DependentUpon>FilePicker.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\InstallationView.xaml.cs">
       <DependentUpon>InstallationView.xaml</DependentUpon>
     </Compile>
@@ -153,6 +161,7 @@
     <Compile Include="Views\TextViewer.xaml.cs">
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\UserControlRx.cs" />
     <Page Include="Views\CompilerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
