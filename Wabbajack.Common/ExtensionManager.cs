@@ -40,7 +40,7 @@ namespace Wabbajack.Common
         {
             var progIDKey = Registry.CurrentUser.OpenSubKey(ProgIDPath);
             var extKey = Registry.CurrentUser.OpenSubKey(ExtPath);
-            return (progIDKey == null || extKey == null);
+            return (progIDKey != null && extKey != null);
         }
 
         public static void Associate(string appPath)
