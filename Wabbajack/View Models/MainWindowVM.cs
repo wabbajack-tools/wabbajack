@@ -60,23 +60,6 @@ namespace Wabbajack
             Utils.SetLoggerFn(s => _logSubj.OnNext(s));
             Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
 
-            // Initialize work queue
-            WorkQueue.Init(
-                report_function: (id, msg, progress) => this._statusSubject.OnNext(new CPUStatus() { ID = id, Msg = msg, Progress = progress }),
-                report_queue_size: (max, current) => this.SetQueueSize(max, current));
-
-            // Compile progress updates and populate ObservableCollection
-            this._statusSubject
-                .ObserveOn(RxApp.TaskpoolScheduler)
-                .ToObservableChangeSet(x => x.ID)
-                .Batch(TimeSpan.FromMilliseconds(250))
-                .EnsureUniqueChanges()
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
-                .Bind(this.StatusList)
-                .Subscribe()
-                .DisposeWith(this.CompositeDisposable);
-
             // Wire mode to drive the active pane
             this._ActivePane = this.WhenAny(x => x.Mode)
                 .ObserveOn(RxApp.MainThreadScheduler)
@@ -96,9 +79,25 @@ namespace Wabbajack
             this.WhenAny(x => x.ActivePane)
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .WhereCastable<ViewModel, InstallerVM>()
-                .Subscribe(vm => vm.Init(source))
+                .Subscribe(vm => vm.ModListPath = source)
                 .DisposeWith(this.CompositeDisposable);
 
+            // Initialize work queue
+            WorkQueue.Init(
+                report_function: (id, msg, progress) => this._statusSubject.OnNext(new CPUStatus() { ID = id, Msg = msg, Progress = progress }),
+                report_queue_size: (max, current) => this.SetQueueSize(max, current));
+
+            // Compile progress updates and populate ObservableCollection
+            this._statusSubject
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .ToObservableChangeSet(x => x.ID)
+                .Batch(TimeSpan.FromMilliseconds(250))
+                .EnsureUniqueChanges()
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
+                .Bind(this.StatusList)
+                .Subscribe()
+                .DisposeWith(this.CompositeDisposable);
         }
 
         private void SetQueueSize(int max, int current)

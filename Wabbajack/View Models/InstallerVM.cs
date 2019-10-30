@@ -26,21 +26,23 @@ using DynamicData.Binding;
 using System.Reactive;
 using System.Text;
 using Wabbajack.Lib;
+using Splat;
 
 namespace Wabbajack
 {
-    public class InstallerVM : ViewModel, IDataErrorInfo
+    public class InstallerVM : ViewModel
     {
         public SlideShow Slideshow { get; }
+
         public MainWindowVM MWVM { get; }
+
+        public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Banner_Dark.png");
 
         private readonly ObservableAsPropertyHelper<ModList> _ModList;
         public ModList ModList => _ModList.Value;
 
         private string _ModListPath;
-        public string ModListPath { get => _ModListPath; private set => this.RaiseAndSetIfChanged(ref _ModListPath, value); }
-
-        public RunMode Mode => RunMode.Install;
+        public string ModListPath { get => _ModListPath; set => this.RaiseAndSetIfChanged(ref _ModListPath, value); }
 
         private readonly ObservableAsPropertyHelper<string> _ModListName;
         public string ModListName => _ModListName.Value;
@@ -60,9 +62,10 @@ namespace Wabbajack
         private string _DownloadLocation;
         public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
 
+        private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
+        public BitmapImage Image => _Image.Value;
+
         // Command properties
-        public IReactiveCommand ChangePathCommand { get; }
-        public IReactiveCommand ChangeDownloadPathCommand { get; }
         public IReactiveCommand BeginCommand { get; }
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
@@ -83,6 +86,7 @@ namespace Wabbajack
             this.MWVM = mainWindowVM;
 
             this._ModList = this.WhenAny(x => x.ModListPath)
+                .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(source =>
                 {
                     if (source == null) return default;
@@ -106,6 +110,7 @@ namespace Wabbajack
                     return modlist;
                 })
                 .ObserveOnGuiThread()
+                .StartWith(default(ModList))
                 .ToProperty(this, nameof(this.ModList));
             this._HTMLReport = this.WhenAny(x => x.ModList)
                 .Select(modList => modList?.ReportHTML)
@@ -114,9 +119,69 @@ namespace Wabbajack
                 .Select(modList => modList?.Name)
                 .ToProperty(this, nameof(this.ModListName));
 
+            this.Slideshow = new SlideShow(this);
+
+            // Locate and create modlist image if it exists
+            var modListImage = Observable.CombineLatest(
+                    this.WhenAny(x => x.ModList),
+                    this.WhenAny(x => x.ModListPath),
+                    (modList, modListPath) => (modList, modListPath))
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .Select(u =>
+                {
+                    if (u.modList == null
+                        || u.modListPath == null
+                        || !File.Exists(u.modListPath)
+                        || string.IsNullOrEmpty(u.modList.Image)
+                        || u.modList.Image.Length != 36)
+                    {
+                        return WabbajackLogo;
+                    }
+                    try
+                    {
+                        using (var fs = new FileStream(u.modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+                        using (var ms = new MemoryStream())
+                        {
+                            var entry = ar.GetEntry(u.modList.Image);
+                            using (var e = entry.Open())
+                                e.CopyTo(ms);
+                            var image = new BitmapImage();
+                            image.BeginInit();
+                            image.CacheOption = BitmapCacheOption.OnLoad;
+                            image.StreamSource = ms;
+                            image.EndInit();
+                            image.Freeze();
+
+                            return image;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        this.Log().Warn(ex, "Error loading modlist splash image.");
+                        return WabbajackLogo;
+                    }
+                })
+                .ObserveOnGuiThread()
+                .StartWith(default(BitmapImage))
+                .Replay(1)
+                .RefCount();
+
+            // Set displayed image to modlist image if configuring, or to the current slideshow image if installing
+            this._Image = Observable.CombineLatest(
+                modListImage
+                    .StartWith(default(BitmapImage)),
+                this.WhenAny(x => x.Slideshow.Image)
+                    .StartWith(default(BitmapImage)),
+                this.WhenAny(x => x.Installing)
+                    .StartWith(false),
+                resultSelector: (modList, slideshow, installing) =>
+                {
+                    return installing ? slideshow : modList;
+                })
+                .ToProperty(this, nameof(this.Image));
+
             // Define commands
-            this.ChangePathCommand = ReactiveCommand.Create(ExecuteChangePath);
-            this.ChangeDownloadPathCommand = ReactiveCommand.Create(ExecuteChangeDownloadPath);
             this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
             this.OpenReadmeCommand = ReactiveCommand.Create(
                 execute: this.OpenReadmeWindow,
@@ -125,27 +190,20 @@ namespace Wabbajack
                     .ObserveOnGuiThread());
             this.BeginCommand = ReactiveCommand.Create(
                 execute: this.ExecuteBegin,
-                canExecute: this.WhenAny(x => x.UIReady)
+                canExecute: this.WhenAny(x => x.Installing)
+                    .Select(installing => !installing)
                     .ObserveOnGuiThread());
 
-            this.Slideshow = new SlideShow(this);
-        }
-
-        private void ExecuteChangePath()
-        {
-            var folder = UIUtils.ShowFolderSelectionDialog("Select Installation directory");
-            if (folder == null) return;
-            Location = folder;
-            if (DownloadLocation == null)
-            {
-                DownloadLocation = Path.Combine(Location, "downloads");
-            }
-        }
-
-        private void ExecuteChangeDownloadPath()
-        {
-            var folder = UIUtils.ShowFolderSelectionDialog("Select a location for MO2 downloads");
-            if (folder != null) DownloadLocation = folder;
+            // Have Installation location updates modify the downloads location if empty
+            this.WhenAny(x => x.Location)
+                .Subscribe(installPath =>
+                {
+                    if (string.IsNullOrWhiteSpace(this.DownloadLocation))
+                    {
+                       this.DownloadLocation = Path.Combine(installPath, "downloads");
+                    }
+                })
+                .DisposeWith(this.CompositeDisposable);
         }
 
         private void ShowReport()
@@ -163,6 +221,11 @@ namespace Wabbajack
             using (var ms = new MemoryStream())
             {
                 var entry = ar.GetEntry(this.ModList.Readme);
+                if (entry == null)
+                {
+                    Utils.Log($"Tried to open a non-existant readme: {this.ModList.Readme}");
+                    return;
+                }
                 using (var e = entry.Open())
                 {
                     e.CopyTo(ms);
@@ -176,78 +239,31 @@ namespace Wabbajack
             }
         }
 
-        public string Error => "Error";
-
-        public string this[string columnName] => Validate(columnName);
-
-        private string Validate(string columnName)
-        {
-            string validationMessage = null;
-            switch (columnName)
-            {
-                case "Location":
-                    if (Location == null)
-                    {
-                        validationMessage = null;
-                    }
-                    else switch (Mode)
-                    {
-                        case RunMode.Install when Location != null && Directory.Exists(Location) && !Directory.EnumerateFileSystemEntries(Location).Any():
-                            validationMessage = null;
-                            break;
-                        case RunMode.Install when Location != null && Directory.Exists(Location) && Directory.EnumerateFileSystemEntries(Location).Any():
-                            validationMessage = "You have selected a non-empty directory. Installing the modlist here might result in a broken install!";
-                            break;
-                        default:
-                            validationMessage = "Invalid Mod Organizer profile directory";
-                            break;
-                    }
-                    break;
-            }
-            return validationMessage;
-        }
-
         private void ExecuteBegin()
         {
-            UIReady = false;
-            if (this.Mode == RunMode.Install)
+            this.Installing = true;
+            var installer = new Installer(this.ModListPath, this.ModList, Location)
             {
-                this.Installing = true;
-                var installer = new Installer(this.ModListPath, this.ModList, Location)
+                DownloadFolder = DownloadLocation
+            };
+            var th = new Thread(() =>
+            {
+                try
                 {
-                    DownloadFolder = DownloadLocation
-                };
-                var th = new Thread(() =>
+                    installer.Install();
+                }
+                catch (Exception ex)
                 {
-                    UIReady = false;
-                    try
-                    {
-                        installer.Install();
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Log(ex.StackTrace);
-                        Utils.Log(ex.ToString());
-                        Utils.Log($"{ex.Message} - Can't continue");
-                    }
-                    finally
-                    {
-                        UIReady = true;
-                        this.Installing = false;
-                    }
-                })
-                {
-                    Priority = ThreadPriority.BelowNormal
-                };
-                th.Start();
-            }
-        }
-
-        public void Init(string source)
-        {
-            this.ModListPath = source;
-            this.UIReady = true;
+                    while (ex.InnerException != null) ex = ex.InnerException;
+                    Utils.Log(ex.StackTrace);
+                    Utils.Log(ex.ToString());
+                    Utils.Log($"{ex.Message} - Can't continue");
+                }
+            })
+            {
+                Priority = ThreadPriority.BelowNormal
+            };
+            th.Start();
         }
     }
 }

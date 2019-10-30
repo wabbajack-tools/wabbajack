@@ -136,10 +136,6 @@
     <Compile Include="Converters\IsNotNullVisibilityConverter.cs" />
     <Compile Include="Enums\RunMode.cs" />
     <Compile Include="Extensions\ReactiveUIExt.cs" />
-    <Page Include="Views\FilePicker.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Compile Include="Views\FilePicker.xaml.cs">
       <DependentUpon>FilePicker.xaml</DependentUpon>
     </Compile>
@@ -149,9 +145,6 @@
     <Compile Include="Util\CPUStatus.cs" />
     <Compile Include="View Models\CompilerVM.cs" />
     <Compile Include="View Models\MainWindowVM.cs" />
-    <Compile Include="Views\SlideshowView.xaml.cs">
-      <DependentUpon>SlideshowView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Views\ModeSelectionWindow.xaml.cs">
       <DependentUpon>ModeSelectionWindow.xaml</DependentUpon>
     </Compile>
@@ -166,11 +159,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\InstallationView.xaml">
-      <SubType>Designer</SubType>
+    <Page Include="Views\FilePicker.xaml">
       <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\SlideshowView.xaml">
+    <Page Include="Views\InstallationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
