@@ -17,10 +17,19 @@ namespace Wabbajack
     {
         private AppState _state;
 
+        public MainWindow()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+
+            if (args.Length != 3) return;
+            var modlistPath = args[2];
+            var mainWindow = new MainWindow(RunMode.Install, modlistPath);
+            mainWindow.Show();
+            Close();
+        }
+
         public MainWindow(RunMode mode, string source)
         {
-            var args = Environment.GetCommandLineArgs();
-
             InitializeComponent();
 
             var context = new AppState(mode);

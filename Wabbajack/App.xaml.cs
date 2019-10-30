@@ -29,6 +29,12 @@ namespace Wabbajack
                 Environment.Exit(1);
             }*/
 
+            string[] args = Environment.GetCommandLineArgs();
+            StartupUri = new Uri("UI/ModeSelectionWindow.xaml", UriKind.Relative);
+            if (args.Length != 3) return;
+            if (!args[1].Contains("-i")) return;
+            // modlists gets loaded using a shell command
+            StartupUri = new Uri("UI/MainWindow.xaml", UriKind.Relative);
         }
 
         private void SetupHandlers()
