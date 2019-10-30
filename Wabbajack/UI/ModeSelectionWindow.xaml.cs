@@ -90,7 +90,7 @@ namespace Wabbajack
         private void InstallFromList_Click(object sender, RoutedEventArgs e)
         {
             OpenMainWindow(RunMode.Install, 
-                UIUtils.OpenFileDialog($"*{Consts.ModlistExtension}|*{Consts.ModlistExtension}"));
+                UIUtils.OpenFileDialog($"*{ExtensionManager.Extension}|*{ExtensionManager.Extension}"));
         }
     }
 }
