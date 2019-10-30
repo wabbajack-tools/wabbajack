@@ -86,17 +86,7 @@ namespace Wabbajack
             }
 
             var appPath = Assembly.GetExecutingAssembly().Location;
-            var iconPath = Path.Combine(Path.GetDirectoryName(appPath), "wabbajack.ico");
-            if(!File.Exists(iconPath))
-            {
-                using (var s = Utils.GetResourceStream("Wabbajack.UI.Icons.icon-embedded.ico"))
-                using (var fs = new FileStream(iconPath, FileMode.Create))
-                {
-                    s.CopyTo(fs);
-                }
-            }
-
-            if (!ExtensionManager.IsAssociated(appPath))
+            if (!(ExtensionManager.IsAssociated(appPath) || ExtensionManager.NeedsUpdating(appPath)))
             {
                 ExtensionManager.Associate(appPath);
             }

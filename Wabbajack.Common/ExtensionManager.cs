@@ -28,6 +28,14 @@ namespace Wabbajack.Common
             {"PerceivedType", "Compressed"}
         };
 
+        public static bool NeedsUpdating(string appPath)
+        {
+            var progIDKey = Registry.CurrentUser.OpenSubKey(ProgIDPath);
+            var tempKey = progIDKey?.OpenSubKey("shell\\open\\command");
+            if (progIDKey == null || tempKey == null) return true;
+            return tempKey.GetValue("").ToString().Equals($"\"{appPath}\" -i \"%1\"");
+        }
+
         public static bool IsAssociated(string appPath)
         {
             var progIDKey = Registry.CurrentUser.OpenSubKey(ProgIDPath);
