@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Windows;
 using Wabbajack.Common;
 using Wabbajack.Lib.Updater;
@@ -28,6 +29,12 @@ namespace Wabbajack
                 }
                 Environment.Exit(1);
             }*/
+
+            var appPath = Assembly.GetExecutingAssembly().Location;
+            if (!(ExtensionManager.IsAssociated(appPath) || ExtensionManager.NeedsUpdating(appPath)))
+            {
+                ExtensionManager.Associate(appPath);
+            }
 
             string[] args = Environment.GetCommandLineArgs();
             StartupUri = new Uri("UI/ModeSelectionWindow.xaml", UriKind.Relative);

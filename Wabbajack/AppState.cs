@@ -85,12 +85,6 @@ namespace Wabbajack
                 Environment.Exit(1);
             }
 
-            var appPath = Assembly.GetExecutingAssembly().Location;
-            if (!(ExtensionManager.IsAssociated(appPath) || ExtensionManager.NeedsUpdating(appPath)))
-            {
-                ExtensionManager.Associate(appPath);
-            }
-
             Mode = mode;
 
             // Define commands
