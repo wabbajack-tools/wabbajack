@@ -65,7 +65,7 @@ namespace Wabbajack.Common
             var appAssocReg = Registry.CurrentUser.CreateSubKey(AppAssocRegPath);
 
             extReg?.CreateSubKey("DefaultIcon")?.SetValue("", iconPath);
-            extReg?.CreateSubKey("PerceivedType")?.SetValue("", "Archive");
+            extReg?.CreateSubKey("PerceivedType")?.SetValue("", "Compressed");
 
             appReg?.CreateSubKey("shell\\open\\command")?.SetValue("", $"\"{appPath}\" -i %i");
             appReg?.CreateSubKey("DefaultIcon")?.SetValue("", iconPath);
