@@ -52,7 +52,7 @@ namespace Wabbajack.UI
             if (!Directory.Exists(Consts.ModListDownloadFolder))
                 Directory.CreateDirectory(Consts.ModListDownloadFolder);
 
-            string dest = Path.Combine(Consts.ModListDownloadFolder, SelectedModList.Links.MachineURL + Consts.ModlistExtension);
+            string dest = Path.Combine(Consts.ModListDownloadFolder, SelectedModList.Links.MachineURL + ExtensionManager.Extension);
 
             var window = new DownloadWindow(SelectedModList.Links.Download, SelectedModList.Title, dest);
             window.ShowDialog();

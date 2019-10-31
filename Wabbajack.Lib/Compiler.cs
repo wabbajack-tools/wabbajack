@@ -69,7 +69,7 @@ namespace Wabbajack.Lib
         public string MO2ProfileDir => Path.Combine(MO2Folder, "profiles", MO2Profile);
 
         public string ModListOutputFolder => "output_folder";
-        public string ModListOutputFile => MO2Profile + Consts.ModlistExtension;
+        public string ModListOutputFile => MO2Profile + ExtensionManager.Extension;
 
         public List<Directive> InstallDirectives { get; private set; }
         internal UserStatus User { get; private set; }

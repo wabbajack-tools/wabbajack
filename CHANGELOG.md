@@ -4,6 +4,8 @@
 * Nothing yet...
 * Slideshow more responsive on pressing next
 * Slideshow timer resets when next is pressed
+* Changed modlist extension to `.wabbajack`
+* You can now open modlists directly (after initial launch)
 
 #### Version 1.0 alpha 2 - 10/15/2019
 * Fix installer running in wrong mode
