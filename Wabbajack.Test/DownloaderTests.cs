@@ -47,7 +47,7 @@ namespace Wabbajack.Test
 
             converted.Download(new Archive {Name = "MEGA Test.txt"}, filename);
 
-            Assert.AreEqual("Lb1iTsz3iyZeHGs3e94TVmOhf22sqtHLhqkCdXbjiyc=", Utils.FileSHA256(filename));
+            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
@@ -77,7 +77,7 @@ namespace Wabbajack.Test
 
             converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
 
-            Assert.AreEqual("Lb1iTsz3iyZeHGs3e94TVmOhf22sqtHLhqkCdXbjiyc=", Utils.FileSHA256(filename));
+            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
@@ -107,7 +107,7 @@ namespace Wabbajack.Test
 
             converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
 
-            Assert.AreEqual("Lb1iTsz3iyZeHGs3e94TVmOhf22sqtHLhqkCdXbjiyc=", Utils.FileSHA256(filename));
+            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
@@ -136,7 +136,7 @@ namespace Wabbajack.Test
 
             converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
 
-            Assert.AreEqual("Lb1iTsz3iyZeHGs3e94TVmOhf22sqtHLhqkCdXbjiyc=", Utils.FileSHA256(filename));
+            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
@@ -192,7 +192,7 @@ namespace Wabbajack.Test
 
             converted.Download(new Archive { Name = "SkyUI.7z" }, filename);
 
-            Assert.AreEqual(filename.FileSHA256(), "U3Xg6RBR9XrUY9/jQSu6WKu5dfhHmpaN2dTl0ylDFmI=");
+            Assert.AreEqual(filename.FileHash(), "dF2yafV2Oks=");
         }
 
         [TestMethod]
@@ -219,7 +219,7 @@ namespace Wabbajack.Test
 
             converted.Download(new Archive { Name = "moddbtest.7z" }, filename);
 
-            Assert.AreEqual("lUvpEjqxfyidBONSHcDy6EnZIPpAD2K4rkJ5ejCXc2k=", filename.FileSHA256());
+            Assert.AreEqual("2lZt+1h6wxM=", filename.FileHash());
         }
     }
 

@@ -206,7 +206,7 @@ namespace Wabbajack.Test
                 if (!skip_extensions.Contains(Path.GetExtension(src_file)))
                 {
                     Assert.AreEqual(fi_src.Length, fi_dest.Length, $"Differing sizes {rel_file}");
-                    Assert.AreEqual(src_file.FileSHA256(), dest_file.FileSHA256(), $"Differing content hash {rel_file}");
+                    Assert.AreEqual(src_file.FileHash(), dest_file.FileHash(), $"Differing content hash {rel_file}");
                 }
             }
 
