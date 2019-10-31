@@ -31,9 +31,9 @@
                 <TextBlock
                     FontSize="16"
                     FontWeight="Bold"
-                    Text="{Binding Mode}" />
+                    Text="Compiling" />
                 <TextBlock FontSize="16" Text=" : " />
-                <TextBlock FontSize="16" Text="{Binding ModListName}" />
+                <TextBlock FontSize="16" Text="{Binding MOProfile}" />
             </StackPanel>
 
             <Grid Grid.Row="1" Grid.Column="0" 
@@ -50,24 +50,21 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <Label
                         Grid.Column="0"
                         Content="Splash Screen Path:" />
-                    <TextBox
-                        Grid.Column="1"
-                        IsEnabled="{Binding UIReady}"
-                        Text="{Binding ImagePath}" />
-                    <Button
-                        Grid.Column="2"
-                        MinWidth="80"
-                        Command="{Binding ChangeSplashScreenCommand}"
-                        Content="Select" />
+                    <local:FilePicker Grid.Column="1"
+                                      PathType="File"
+                                      DoExistsCheck="False"
+                                      TargetPath="{Binding ImagePath}"
+                                      Filter="Banner image|*.png"
+                                      IsEnabled="{Binding UIReady}" HorizontalAlignment="Left" Width="534" />
                 </Grid>
             </Grid>
 
             <ScrollViewer Grid.Row="1" Grid.Column="2" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
+                          IsEnabled="{Binding UIReady}"
                           Background="Transparent">
                 <StackPanel Orientation="Vertical" Background="Transparent" >
                     <StackPanel.Resources>
@@ -80,7 +77,7 @@
                         </Style>
                     </StackPanel.Resources>
                     <TextBlock Text="ModList Name" Margin="{StaticResource TitleMargin}" />
-                    <TextBox Text="{Binding ModName}" Style="{StaticResource ValueStyle}" />
+                    <TextBox Text="{Binding ModListName}" Style="{StaticResource ValueStyle}" />
                     <TextBlock Text="Author" Margin="{StaticResource TitleMargin}" />
                     <TextBox Text="{Binding AuthorName}" Style="{StaticResource ValueStyle}" />
                     <TextBlock Text="Description" Margin="{StaticResource TitleMargin}" />
@@ -88,7 +85,10 @@
                     <TextBlock Text="Website" Margin="{StaticResource TitleMargin}" />
                     <TextBox Text="{Binding NexusSiteURL}" Style="{StaticResource ValueStyle}" />
                     <TextBlock Text="Readme Path" Margin="{StaticResource TitleMargin}" ToolTip="Path to a readme file." />
-                    <TextBox Text="{Binding NexusSiteURL}" Style="{StaticResource ValueStyle}" ToolTip="Path to a readme file." />
+                    <local:FilePicker TargetPath="{Binding ReadMeText}"
+                                      PathType="File"
+                                      DoExistsCheck="False"
+                                      ToolTip="Path to a readme file." />
                 </StackPanel>
             </ScrollViewer>
 
@@ -125,7 +125,6 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition />
@@ -136,33 +135,25 @@
                     Grid.Row="0"
                     Grid.Column="0"
                     Content="Installation Location:" />
-                <TextBox
+                <local:FilePicker
                     Grid.Row="0"
                     Grid.Column="1"
-                    IsEnabled="{Binding UIReady}"
-                    Text="{Binding Location, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, NotifyOnValidationError=True}" />
-                <Button
-                    Grid.Row="0"
-                    Grid.Column="2"
-                    MinWidth="80"
-                    Command="{Binding ChangePathCommand}"
-                    Content="Select"
+                    PathType="Folder"
+                    DoExistsCheck="False"
+                    TargetPath="{Binding Location}"
+                    SetTargetPathCommand="{Binding ChangePathCommand}"
                     IsEnabled="{Binding UIReady}" />
                 <Label
                     Grid.Row="2"
                     Grid.Column="0"
                     Content="Download Location:" />
-                <TextBox
+                <local:FilePicker
                     Grid.Row="2"
                     Grid.Column="1"
-                    IsEnabled="{Binding UIReady}"
-                    Text="{Binding DownloadLocation}" />
-                <Button
-                    Grid.Row="2"
-                    Grid.Column="2"
-                    MinWidth="80"
-                    Command="{Binding ChangeDownloadPathCommand}"
-                    Content="Select"
+                    PathType="Folder"
+                    DoExistsCheck="False"
+                    TargetPath="{Binding DownloadLocation}"
+                    SetTargetPathCommand="{Binding ChangeDownloadPathCommand}"
                     IsEnabled="{Binding UIReady}" />
             </Grid>
             <!--  End Location  -->

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading;
@@ -15,14 +16,15 @@ using Wabbajack.Lib;
 
 namespace Wabbajack
 {
-    public class CompilerVM : ViewModel, IDataErrorInfo
+    public class CompilerVM : ViewModel
     {
         public MainWindowVM MWVM { get; }
 
-        public RunMode Mode => RunMode.Compile;
-
         private string _Mo2Folder;
         public string Mo2Folder { get => _Mo2Folder; set => this.RaiseAndSetIfChanged(ref _Mo2Folder, value); }
+
+        private string _MOProfile;
+        public string MOProfile { get => _MOProfile; set => this.RaiseAndSetIfChanged(ref _MOProfile, value); }
 
         private string _ModListName;
         public string ModListName { get => _ModListName; set => this.RaiseAndSetIfChanged(ref _ModListName, value); }
@@ -32,9 +34,6 @@ namespace Wabbajack
 
         private bool _UIReady = true;
         public bool UIReady { get => _UIReady; set => this.RaiseAndSetIfChanged(ref _UIReady, value); }
-
-        private string _ModName;
-        public string ModName { get => _ModName; set => this.RaiseAndSetIfChanged(ref _ModName, value); }
 
         private string _AuthorName;
         public string AuthorName { get => _AuthorName; set => this.RaiseAndSetIfChanged(ref _AuthorName, value); }
@@ -61,34 +60,16 @@ namespace Wabbajack
         public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
 
         public IReactiveCommand BeginCommand { get; }
-        public IReactiveCommand ChangePathCommand { get; }
-        public IReactiveCommand ChangeDownloadPathCommand { get; }
-        public IReactiveCommand ChangeSplashScreenCommand { get; }
 
         public CompilerVM(MainWindowVM mainWindowVM, string source)
         {
             this.MWVM = mainWindowVM;
-            this.Location = Path.GetDirectoryName(source);
+            this.Location = source;
 
-            this.BeginCommand = ReactiveCommand.Create(
+            this.BeginCommand = ReactiveCommand.CreateFromTask(
                 execute: this.ExecuteBegin,
                 canExecute: this.WhenAny(x => x.UIReady)
                     .ObserveOnGuiThread());
-            this.ChangePathCommand = ReactiveCommand.Create(
-                ExecuteChangePath,
-                canExecute: this.WhenAny(x => x.UIReady)
-                    .ObserveOnGuiThread());
-            this.ChangeDownloadPathCommand = ReactiveCommand.Create(
-                ExecuteChangeDownloadPath,
-                canExecute: this.WhenAny(x => x.UIReady)
-                    .ObserveOnGuiThread());
-            this.ChangeSplashScreenCommand = ReactiveCommand.Create(
-                canExecute: this.WhenAny(x => x.UIReady)
-                    .ObserveOnGuiThread(),
-                execute: () =>
-                {
-                    this.ImagePath = UIUtils.OpenFileDialog("Banner image|*.png");
-                });
 
             this._Image = this.WhenAny(x => x.ImagePath)
                 .Select(path =>
@@ -101,57 +82,47 @@ namespace Wabbajack
                     return UIUtils.BitmapImageFromResource("Wabbajack.Resources.none.png");
                 })
                 .ToProperty(this, nameof(this.Image));
+
+            ConfigureForBuild(source);
         }
 
-        private void ExecuteChangePath()
+        private void ConfigureForBuild(string location)
         {
-            Location = UIUtils.ShowFolderSelectionDialog("Select Your MO2 profile directory");
-        }
-
-        private void ExecuteChangeDownloadPath()
-        {
-            var folder = UIUtils.ShowFolderSelectionDialog("Select a location for MO2 downloads");
-            if (folder != null)
-            {
-                DownloadLocation = folder;
-            }
-        }
-
-        private void ConfigureForBuild()
-        {
-            var profile_folder = Path.GetDirectoryName(Location);
+            var profile_folder = Path.GetDirectoryName(location);
             this.Mo2Folder = Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
             if (!File.Exists(Path.Combine(this.Mo2Folder, "ModOrganizer.exe")))
+            {
                 this.Log().Error($"Error! No ModOrganizer2.exe found in {this.Mo2Folder}");
+            }
 
-            var profile_name = Path.GetFileName(profile_folder);
-            this.ModListName = profile_name;
+            this.MOProfile = Path.GetFileName(profile_folder);
+            this.ModListName = this.MOProfile;
 
             var tmp_compiler = new Compiler(this.Mo2Folder);
-            DownloadLocation = tmp_compiler.MO2DownloadsFolder;
+            this.DownloadLocation = tmp_compiler.MO2DownloadsFolder;
         }
 
-        private void ExecuteBegin()
+        private async Task ExecuteBegin()
         {
             if (this.Mo2Folder != null)
             {
                 var compiler = new Compiler(this.Mo2Folder)
                 {
-                    MO2Profile = this.ModListName,
-                    ModListName = this.ModName,
+                    MO2Profile = this.MOProfile,
+                    ModListName = this.ModListName,
                     ModListAuthor = this.AuthorName,
                     ModListDescription = this.Summary,
                     ModListImage = this.ImagePath,
                     ModListWebsite = this.NexusSiteURL,
                     ModListReadme = this.ReadMeText,
                 };
-                var th = new Thread(() =>
+                await Task.Run(() =>
                 {
                     UIReady = false;
                     try
                     {
                         compiler.Compile();
-                        if (compiler.ModList != null && compiler.ModList.ReportHTML != null)
+                        if (compiler.ModList?.ReportHTML != null)
                         {
                             this.HTMLReport = compiler.ModList.ReportHTML;
                         }
@@ -165,53 +136,13 @@ namespace Wabbajack
                     {
                         UIReady = true;
                     }
-                })
-                {
-                    Priority = ThreadPriority.BelowNormal
-                };
-                th.Start();
+                });
             }
             else
             {
                 this.Log().Warn("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
                 UIReady = true;
             }
-        }
-
-        public string Error => "Error";
-
-        public string this[string columnName] => Validate(columnName);
-
-        private string Validate(string columnName)
-        {
-            string validationMessage = null;
-            switch (columnName)
-            {
-                case "Location":
-                    if (Location == null)
-                    {
-                        validationMessage = null;
-                    }
-                    else switch (Mode)
-                        {
-                            case RunMode.Compile when Location != null && Directory.Exists(Location) && File.Exists(Path.Combine(Location, "modlist.txt")):
-                                Location = Path.Combine(Location, "modlist.txt");
-                                validationMessage = null;
-                                ConfigureForBuild();
-                                break;
-                            case RunMode.Install when Location != null && Directory.Exists(Location) && !Directory.EnumerateFileSystemEntries(Location).Any():
-                                validationMessage = null;
-                                break;
-                            case RunMode.Install when Location != null && Directory.Exists(Location) && Directory.EnumerateFileSystemEntries(Location).Any():
-                                validationMessage = "You have selected a non-empty directory. Installing the modlist here might result in a broken install!";
-                                break;
-                            default:
-                                validationMessage = "Invalid Mod Organizer profile directory";
-                                break;
-                        }
-                    break;
-            }
-            return validationMessage;
         }
     }
 }

@@ -89,6 +89,14 @@ namespace Wabbajack
         public static readonly DependencyProperty PromptTitleProperty = DependencyProperty.Register(nameof(PromptTitle), typeof(string), typeof(FilePicker),
              new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
+        public string Filter
+        {
+            get => (string)GetValue(FilterProperty);
+            set => SetValue(FilterProperty, value);
+        }
+        public static readonly DependencyProperty FilterProperty = DependencyProperty.Register(nameof(Filter), typeof(string), typeof(FilePicker),
+             new FrameworkPropertyMetadata(default(string)));
+
         public FilePicker()
         {
             InitializeComponent();
@@ -115,6 +123,14 @@ namespace Wabbajack
                     dlg.EnsureFileExists = true;
                     dlg.EnsurePathExists = true;
                     dlg.EnsureReadOnly = false;
+                    if (!string.IsNullOrWhiteSpace(this.Filter))
+                    {
+                        var split = this.Filter.Split('|');
+                        if (split.Length == 2)
+                        {
+                            dlg.Filters.Add(new CommonFileDialogFilter(split[0], split[1]));
+                        }
+                    }
                     dlg.EnsureValidNames = true;
                     dlg.Multiselect = false;
                     dlg.ShowPlacesList = true;
