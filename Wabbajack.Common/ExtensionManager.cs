@@ -36,7 +36,7 @@ namespace Wabbajack.Common
             return tempKey.GetValue("").ToString().Equals($"\"{appPath}\" -i \"%1\"");
         }
 
-        public static bool IsAssociated(string appPath)
+        public static bool IsAssociated()
         {
             var progIDKey = Registry.CurrentUser.OpenSubKey(ProgIDPath);
             var extKey = Registry.CurrentUser.OpenSubKey(ExtPath);
