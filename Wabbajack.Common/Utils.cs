@@ -244,16 +244,20 @@ namespace Wabbajack.Common
             return (ulong) (date - new DateTime(1970, 1, 1)).TotalMilliseconds;
         }
 
-        public static string ToJSON<T>(this T obj)
+        public static string ToJSON<T>(this T obj, 
+            TypeNameHandling handling = TypeNameHandling.All,
+            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
         {
             return JsonConvert.SerializeObject(obj, Formatting.Indented,
-                new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.All});
+                new JsonSerializerSettings {TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format});
         }
         
-        public static T FromJSON<T>(this string filename)
+        public static T FromJSON<T>(this string filename, 
+            TypeNameHandling handling = TypeNameHandling.All, 
+            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
         {
             return JsonConvert.DeserializeObject<T>(File.ReadAllText(filename),
-                new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
+                new JsonSerializerSettings {TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format});
         }
         /*
         public static T FromBSON<T>(this string filename, bool root_is_array = false)
@@ -267,10 +271,12 @@ namespace Wabbajack.Common
             }
         }*/
 
-        public static T FromJSONString<T>(this string data)
+        public static T FromJSONString<T>(this string data, 
+            TypeNameHandling handling = TypeNameHandling.All,
+            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
         {
             return JsonConvert.DeserializeObject<T>(data,
-                new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
+                new JsonSerializerSettings {TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format});
         }
         public static T FromJSON<T>(this Stream data)
         {

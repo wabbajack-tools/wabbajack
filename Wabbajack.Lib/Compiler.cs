@@ -1,6 +1,7 @@
 ﻿using CommonMark;
 using Compression.BSA;
 using System;
+using System.CodeDom;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using VFS;
 using Wabbajack.Common;
+using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
@@ -498,18 +500,32 @@ namespace Wabbajack.Lib
         }
 
 
-        private Directive RunStack(IEnumerable<Func<RawSourceFile, Directive>> stack, RawSourceFile source)
+        public static Directive RunStack(IEnumerable<ICompilationStep> stack, RawSourceFile source)
         {
-            Status($"Compiling {source.Path}");
-            foreach (var f in stack)
+            Utils.Status($"Compiling {source.Path}");
+            foreach (var step in stack)
             {
-                var result = f(source);
+                var result = step.Run(source);
                 if (result != null) return result;
             }
 
             throw new InvalidDataException("Data fell out of the compilation stack");
         }
 
+        public IEnumerable<ICompilationStep> GetStack()
+        {
+            var user_config = Path.Combine(MO2ProfileDir, "compilation_stack.yml");
+            if (File.Exists(user_config))
+                return Serialization.Deserialize(File.ReadAllText(user_config), this);
+
+            var stack = MakeStack();
+
+            File.WriteAllText(Path.Combine(MO2ProfileDir, "_current_compilation_stack.yml"), 
+                Serialization.Serialize(stack));
+
+            return stack;
+
+        }
 
         /// <summary>
         ///     Creates a execution stack. The stack should be passed into Run stack. Each function
@@ -517,631 +533,65 @@ namespace Wabbajack.Lib
         ///     result included into the pack
         /// </summary>
         /// <returns></returns>
-        private IEnumerable<Func<RawSourceFile, Directive>> MakeStack()
+        public IEnumerable<ICompilationStep> MakeStack()
         {
-            Info("Generating compilation stack");
-            return new List<Func<RawSourceFile, Directive>>
+            Utils.Log("Generating compilation stack");
+            return new List<ICompilationStep>
             {
-                IncludePropertyFiles(),
-                IgnoreStartsWith("logs\\"),
-                IncludeRegex("^downloads\\\\.*\\.meta"),
-                IgnoreStartsWith("downloads\\"),
-                IgnoreStartsWith("webcache\\"),
-                IgnoreStartsWith("overwrite\\"),
-                IgnorePathContains("temporary_logs"),
-                IgnorePathContains("GPUCache"),
-                IgnorePathContains("SSEEdit Cache"),
-                IgnoreEndsWith(".pyc"),
-                IgnoreEndsWith(".log"),
-                IgnoreOtherProfiles(),
-                IgnoreDisabledMods(),
-                IncludeThisProfile(),
+                new IncludePropertyFiles(this),
+                new IgnoreStartsWith(this,"logs\\"),
+                new IncludeRegex(this, "^downloads\\\\.*\\.meta"),
+                new IgnoreStartsWith(this, "downloads\\"),
+                new IgnoreStartsWith(this,"webcache\\"),
+                new IgnoreStartsWith(this, "overwrite\\"),
+                new IgnorePathContains(this,"temporary_logs"),
+                new IgnorePathContains(this, "GPUCache"),
+                new IgnorePathContains(this, "SSEEdit Cache"),
+                new IgnoreEndsWith(this, ".pyc"),
+                new IgnoreEndsWith(this, ".log"),
+                new IgnoreOtherProfiles(this),
+                new IgnoreDisabledMods(this),
+                new IncludeThisProfile(this),
                 // Ignore the ModOrganizer.ini file it contains info created by MO2 on startup
-                IncludeStubbedConfigFiles(),
-                IncludeLootFiles(),
-                IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Data")),
-                IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Papyrus Compiler")),
-                IgnoreStartsWith(Path.Combine(Consts.GameFolderFilesDir, "Skyrim")),
-                IgnoreRegex(Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
-                IncludeModIniData(),
-                DirectMatch(),
-                IncludeTaggedFiles(Consts.WABBAJACK_INCLUDE),
-                DeconstructBSAs(), // Deconstruct BSAs before building patches so we don't generate massive patch files
-                IncludePatches(),
-                IncludeDummyESPs(),
+                new IncludeStubbedConfigFiles(this),
+                new IncludeLootFiles(this),
+                new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Data")),
+                new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Papyrus Compiler")),
+                new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Skyrim")),
+                new IgnoreRegex(this, Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
+                new IncludeModIniData(this),
+                new DirectMatch(this),
+                new IncludeTaggedMods(this, Consts.WABBAJACK_INCLUDE),
+                new DeconstructBSAs(this), // Deconstruct BSAs before building patches so we don't generate massive patch files
+                new IncludePatches(this),
+                new IncludeDummyESPs(this),
 
 
                 // If we have no match at this point for a game folder file, skip them, we can't do anything about them
-                IgnoreGameFiles(),
+                new IgnoreGameFiles(this),
 
                 // There are some types of files that will error the compilation, because they're created on-the-fly via tools
                 // so if we don't have a match by this point, just drop them.
-                IgnoreEndsWith(".ini"),
-                IgnoreEndsWith(".html"),
-                IgnoreEndsWith(".txt"),
+                new IgnoreEndsWith(this, ".ini"),
+                new IgnoreEndsWith(this, ".html"),
+                new IgnoreEndsWith(this, ".txt"),
                 // Don't know why, but this seems to get copied around a bit
-                IgnoreEndsWith("HavokBehaviorPostProcess.exe"),
+                new IgnoreEndsWith(this, "HavokBehaviorPostProcess.exe"),
                 // Theme file MO2 downloads somehow
-                IgnoreEndsWith("splash.png"),
+                new IgnoreEndsWith(this, "splash.png"),
 
-                IgnoreEndsWith(".bin"),
-                IgnoreEndsWith(".refcache"),
+                new IgnoreEndsWith(this, ".bin"),
+                new IgnoreEndsWith(this, ".refcache"),
 
-                IgnoreWabbajackInstallCruft(),
+                new IgnoreWabbajackInstallCruft(this),
 
-                PatchStockESMs(),
+                new PatchStockESMs(this),
 
-                IncludeAllConfigs(),
-                IncludeTaggedFiles(Consts.WABBAJACK_NOMATCH_INCLUDE),
-                zEditIntegration.IncludezEditPatches(this),
+                new IncludeAllConfigs(this),
+                new IncludeTaggedMods(this, Consts.WABBAJACK_NOMATCH_INCLUDE),
+                new zEditIntegration.IncludeZEditPatches(this),
 
-                DropAll()
-            };
-        }
-
-        private Func<RawSourceFile, Directive> IncludePropertyFiles()
-        {
-            return source =>
-            {
-                var files = new HashSet<string>
-                {
-                    ModListImage, ModListReadme
-                };
-                if (!files.Any(f => source.AbsolutePath.Equals(f))) return null;
-                if (!File.Exists(source.AbsolutePath)) return null;
-                var isBanner = source.AbsolutePath == ModListImage;
-                //var isReadme = source.AbsolutePath == ModListReadme;
-                var result = source.EvolveTo<PropertyFile>();
-                result.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
-                if (isBanner)
-                {
-                    result.Type = PropertyType.Banner;
-                    ModListImage = result.SourceDataID;
-                }
-                else
-                {
-                    result.Type = PropertyType.Readme;
-                    ModListReadme = result.SourceDataID;
-                }
-                return result;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> IgnoreWabbajackInstallCruft()
-        {
-            var cruft_files = new HashSet<string>
-            {
-                "7z.dll", "7z.exe", "vfs_staged_files\\", "nexus.key_cache", "patch_cache\\",
-                Consts.NexusCacheDirectory + "\\"
-            };
-            return source =>
-            {
-                if (!cruft_files.Any(f => source.Path.StartsWith(f))) return null;
-                var result = source.EvolveTo<IgnoredDirectly>();
-                result.Reason = "Wabbajack Cruft file";
-                return result;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> IncludeAllConfigs()
-        {
-            return source =>
-            {
-                if (!Consts.ConfigFileExtensions.Contains(Path.GetExtension(source.Path))) return null;
-                var result = source.EvolveTo<InlineFile>();
-                result.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
-                return result;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> PatchStockESMs()
-        {
-            return source =>
-            {
-                var filename = Path.GetFileName(source.Path);
-                var game_file = Path.Combine(GamePath, "Data", filename);
-                if (Consts.GameESMs.Contains(filename) && source.Path.StartsWith("mods\\") && File.Exists(game_file))
-                {
-                    Info(
-                        $"A ESM named {filename} was found in a mod that shares a name with a core game ESMs, it is assumed this is a cleaned ESM and it will be binary patched.");
-                    var result = source.EvolveTo<CleanedESM>();
-                    result.SourceESMHash = VFS.Lookup(game_file).Hash;
-
-                    Status($"Generating patch of {filename}");
-                    using (var ms = new MemoryStream())
-                    {
-                        Utils.CreatePatch(File.ReadAllBytes(game_file), File.ReadAllBytes(source.AbsolutePath), ms);
-                        var data = ms.ToArray();
-                        result.SourceDataID = IncludeFile(data);
-                        Info($"Generated a {data.Length} byte patch for {filename}");
-
-                    }
-
-
-                    return result;
-                }
-
-                return null;
-            };
-        }
-
-
-        private Func<RawSourceFile, Directive> IncludeLootFiles()
-        {
-            var prefix = Consts.LOOTFolderFilesDir + "\\";
-            return source =>
-            {
-                if (source.Path.StartsWith(prefix))
-                {
-                    var result = source.EvolveTo<InlineFile>();
-                    result.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath).ToBase64());
-                    return result;
-                }
-
-                return null;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> IncludeStubbedConfigFiles()
-        {
-            return source =>
-            {
-                if (Consts.ConfigFileExtensions.Contains(Path.GetExtension(source.Path)))
-                    return RemapFile(source, GamePath);
-                return null;
-            };
-        }
-
-        private Directive RemapFile(RawSourceFile source, string gamePath)
-        {
-            var data = File.ReadAllText(source.AbsolutePath);
-            var original_data = data;
-
-            data = data.Replace(GamePath, Consts.GAME_PATH_MAGIC_BACK);
-            data = data.Replace(GamePath.Replace("\\", "\\\\"), Consts.GAME_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(GamePath.Replace("\\", "/"), Consts.GAME_PATH_MAGIC_FORWARD);
-
-            data = data.Replace(MO2Folder, Consts.MO2_PATH_MAGIC_BACK);
-            data = data.Replace(MO2Folder.Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(MO2Folder.Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
-
-            data = data.Replace(MO2DownloadsFolder, Consts.DOWNLOAD_PATH_MAGIC_BACK);
-            data = data.Replace(MO2DownloadsFolder.Replace("\\", "\\\\"), Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(MO2DownloadsFolder.Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD);
-
-            if (data == original_data)
-                return null;
-            var result = source.EvolveTo<RemappedInlineFile>();
-            result.SourceDataID = IncludeFile(Encoding.UTF8.GetBytes(data));
-            return result;
-        }
-
-        private Func<RawSourceFile, Directive> IgnorePathContains(string v)
-        {
-            v = $"\\{v.Trim('\\')}\\";
-            var reason = $"Ignored because path contains {v}";
-            return source =>
-            {
-                if (source.Path.Contains(v))
-                {
-                    var result = source.EvolveTo<IgnoredDirectly>();
-                    result.Reason = reason;
-                    return result;
-                }
-
-                return null;
-            };
-        }
-
-
-        /// <summary>
-        ///     If a user includes WABBAJACK_INCLUDE directly in the notes or comments of a mod, the contents of that
-        ///     mod will be inlined into the installer. USE WISELY.
-        /// </summary>
-        /// <returns></returns>
-        private Func<RawSourceFile, Directive> IncludeTaggedFiles(string tag)
-        {
-            var include_directly = ModInis.Where(kv =>
-            {
-                var general = kv.Value.General;
-                if (general.notes != null && general.notes.Contains(tag))
-                    return true;
-                if (general.comments != null && general.comments.Contains(tag))
-                    return true;
-                return false;
-            }).Select(kv => $"mods\\{kv.Key}\\");
-
-
-            return source =>
-            {
-                if (source.Path.StartsWith("mods"))
-                    foreach (var modpath in include_directly)
-                        if (source.Path.StartsWith(modpath))
-                        {
-                            var result = source.EvolveTo<InlineFile>();
-                            result.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
-                            return result;
-                        }
-
-                return null;
-            };
-        }
-
-
-        /// <summary>
-        ///     Some tools like the Cathedral Asset Optimizer will create dummy ESPs whos only existance is to make
-        ///     sure a BSA with the same name is loaded. We don't have a good way to detect these, but if an ESP is
-        ///     less than 100 bytes in size and shares a name with a BSA it's a pretty good chance that it's a dummy
-        ///     and the contents are generated.
-        /// </summary>
-        /// <returns></returns>
-        private Func<RawSourceFile, Directive> IncludeDummyESPs()
-        {
-            return source =>
-            {
-                if (Path.GetExtension(source.AbsolutePath) == ".esp" || Path.GetExtension(source.AbsolutePath) == ".esm")
-                {
-                    var bsa = Path.Combine(Path.GetDirectoryName(source.AbsolutePath),
-                        Path.GetFileNameWithoutExtension(source.AbsolutePath) + ".bsa");
-                    var bsa_textures = Path.Combine(Path.GetDirectoryName(source.AbsolutePath),
-                        Path.GetFileNameWithoutExtension(source.AbsolutePath) + " - Textures.bsa");
-                    var esp_size = new FileInfo(source.AbsolutePath).Length;
-                    if (esp_size <= 250 && (File.Exists(bsa) || File.Exists(bsa_textures)))
-                    {
-                        var inline = source.EvolveTo<InlineFile>();
-                        inline.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
-                        return inline;
-                    }
-                }
-
-                return null;
-            };
-        }
-
-
-        /// <summary>
-        ///     This function will search for a way to create a BSA in the installed mod list by assembling it from files
-        ///     found in archives. To do this we hash all the files in side the BSA then try to find matches and patches for
-        ///     all of the files.
-        /// </summary>
-        /// <returns></returns>
-        private Func<RawSourceFile, Directive> DeconstructBSAs()
-        {
-            var include_directly = ModInis.Where(kv =>
-            {
-                var general = kv.Value.General;
-                if (general.notes != null && general.notes.Contains(Consts.WABBAJACK_INCLUDE))
-                    return true;
-                if (general.comments != null && general.comments.Contains(Consts.WABBAJACK_INCLUDE))
-                    return true;
-                return false;
-            }).Select(kv => $"mods\\{kv.Key}\\");
-
-            var microstack = new List<Func<RawSourceFile, Directive>>
-            {
-                DirectMatch(),
-                IncludePatches(),
-                DropAll()
-            };
-
-            var microstack_with_include = new List<Func<RawSourceFile, Directive>>
-            {
-                DirectMatch(),
-                IncludePatches(),
-                IncludeALL()
-            };
-
-
-            return source =>
-            {
-                if (!Consts.SupportedBSAs.Contains(Path.GetExtension(source.Path).ToLower())) return null;
-
-                var default_include = false;
-                if (source.Path.StartsWith("mods"))
-                    foreach (var modpath in include_directly)
-                        if (source.Path.StartsWith(modpath))
-                        {
-                            default_include = true;
-                            break;
-                        }
-
-                var source_files = source.File.FileInArchive;
-
-                var stack = default_include ? microstack_with_include : microstack;
-
-                var id = Guid.NewGuid().ToString();
-
-                var matches = source_files.PMap(e => RunStack(stack, new RawSourceFile(e)
-                {
-                    Path = Path.Combine(Consts.BSACreationDir, id, e.Paths.Last())
-                }));
-
-
-                foreach (var match in matches)
-                {
-                    if (match is IgnoredDirectly) Error($"File required for BSA {source.Path} creation doesn't exist: {match.To}");
-                    ExtraFiles.Add(match);
-                }
-
-                ;
-
-                CreateBSA directive;
-                using (var bsa = BSADispatch.OpenRead(source.AbsolutePath))
-                {
-                    directive = new CreateBSA
-                    {
-                        To = source.Path,
-                        TempID = id,
-                        State = bsa.State,
-                        FileStates = bsa.Files.Select(f => f.State).ToList()
-                    };
-                }
-
-                return directive;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> IncludeALL()
-        {
-            return source =>
-            {
-                var inline = source.EvolveTo<InlineFile>();
-                inline.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
-                return inline;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> IgnoreDisabledMods()
-        {
-            var always_enabled = ModInis.Where(f => IsAlwaysEnabled(f.Value)).Select(f => f.Key).ToHashSet();
-
-            var all_enabled_mods = SelectedProfiles
-                .SelectMany(p => File.ReadAllLines(Path.Combine(MO2Folder, "profiles", p, "modlist.txt")))
-                .Where(line => line.StartsWith("+") || line.EndsWith("_separator"))
-                .Select(line => line.Substring(1))
-                .Concat(always_enabled)
-                .Select(line => Path.Combine("mods", line) + "\\")
-                .ToList();
-
-            return source =>
-            {
-                if (!source.Path.StartsWith("mods") || all_enabled_mods.Any(mod => source.Path.StartsWith(mod)))
-                    return null;
-                var r = source.EvolveTo<IgnoredDirectly>();
-                r.Reason = "Disabled Mod";
-                return r;
-            };
-        }
-
-        private static bool IsAlwaysEnabled(dynamic data)
-        {
-            if (data == null)
-                return false;
-            if (data.General != null && data.General.notes != null &&
-                data.General.notes.Contains(Consts.WABBAJACK_ALWAYS_ENABLE))
-                return true;
-            if (data.General != null && data.General.comments != null &&
-                data.General.notes.Contains(Consts.WABBAJACK_ALWAYS_ENABLE))
-                return true;
-            return false;
-        }
-
-        /// <summary>
-        ///     This matches files based purely on filename, and then creates a binary patch.
-        ///     In practice this is fine, because a single file tends to only come from one archive.
-        /// </summary>
-        /// <returns></returns>
-        private Func<RawSourceFile, Directive> IncludePatches()
-        {
-            var indexed = IndexedFiles.Values
-                .SelectMany(f => f)
-                .GroupBy(f => Path.GetFileName(f.Paths.Last()).ToLower())
-                .ToDictionary(f => f.Key);
-
-            return source =>
-            {
-                if (!indexed.TryGetValue(Path.GetFileName(source.File.Paths.Last().ToLower()), out var value))
-                    return null;
-
-                var found = value.OrderByDescending(f => (f.TopLevelArchive ?? f).LastModified).First();
-
-                var e = source.EvolveTo<PatchedFromArchive>();
-                e.ArchiveHashPath = found.MakeRelativePaths();
-                e.To = source.Path;
-                e.Hash = source.File.Hash;
-
-                Utils.TryGetPatch(found.Hash, source.File.Hash, out var data);
-
-                if (data != null)
-                    e.PatchID = IncludeFile(data);
-
-                return e;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> IncludeModIniData()
-        {
-            return source =>
-            {
-                if (source.Path.StartsWith("mods\\") && source.Path.EndsWith("\\meta.ini"))
-                {
-                    var e = source.EvolveTo<InlineFile>();
-                    e.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
-                    return e;
-                }
-
-                return null;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> IgnoreGameFiles()
-        {
-            var start_dir = Consts.GameFolderFilesDir + "\\";
-            return source =>
-            {
-                if (source.Path.StartsWith(start_dir))
-                {
-                    var i = source.EvolveTo<IgnoredDirectly>();
-                    i.Reason = "Default game file";
-                    return i;
-                }
-
-                return null;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> IncludeThisProfile()
-        {
-            var correct_profiles = SelectedProfiles.Select(p => Path.Combine("profiles", p) + "\\").ToList();
-
-            return source =>
-            {
-                if (correct_profiles.Any(p => source.Path.StartsWith(p)))
-                {
-                    byte[] data;
-                    if (source.Path.EndsWith("\\modlist.txt"))
-                        data = ReadAndCleanModlist(source.AbsolutePath);
-                    else
-                        data = File.ReadAllBytes(source.AbsolutePath);
-
-                    var e = source.EvolveTo<InlineFile>();
-                    e.SourceDataID = IncludeFile(data);
-                    return e;
-                }
-
-                return null;
-            };
-        }
-
-        private byte[] ReadAndCleanModlist(string absolutePath)
-        {
-            var lines = File.ReadAllLines(absolutePath);
-            lines = (from line in lines
-                     where !(line.StartsWith("-") && !line.EndsWith("_separator"))
-                     select line).ToArray();
-            return Encoding.UTF8.GetBytes(string.Join("\r\n", lines));
-        }
-
-        private Func<RawSourceFile, Directive> IgnoreOtherProfiles()
-        {
-            var profiles = SelectedProfiles
-                .Select(p => Path.Combine("profiles", p) + "\\")
-                .ToList();
-
-            return source =>
-            {
-                if (source.Path.StartsWith("profiles\\"))
-                {
-                    if (profiles.Any(profile => source.Path.StartsWith(profile))) return null;
-                    var c = source.EvolveTo<IgnoredDirectly>();
-                    c.Reason = "File not for selected profiles";
-                    return c;
-                }
-
-                return null;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> IgnoreEndsWith(string v)
-        {
-            var reason = string.Format("Ignored because path ends with {0}", v);
-            return source =>
-            {
-                if (source.Path.EndsWith(v))
-                {
-                    var result = source.EvolveTo<IgnoredDirectly>();
-                    result.Reason = reason;
-                    return result;
-                }
-
-                return null;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> IgnoreRegex(string p)
-        {
-            var reason = string.Format("Ignored because path matches regex {0}", p);
-            var regex = new Regex(p);
-            return source =>
-            {
-                if (regex.IsMatch(source.Path))
-                {
-                    var result = source.EvolveTo<IgnoredDirectly>();
-                    result.Reason = reason;
-                    return result;
-                }
-
-                return null;
-            };
-        }
-
-
-        private Func<RawSourceFile, Directive> IncludeRegex(string pattern)
-        {
-            var regex = new Regex(pattern);
-            return source =>
-            {
-                if (regex.IsMatch(source.Path))
-                {
-                    var result = source.EvolveTo<InlineFile>();
-                    result.SourceDataID = IncludeFile(File.ReadAllBytes(source.AbsolutePath));
-                    return result;
-                }
-
-                return null;
-            };
-        }
-
-
-        private Func<RawSourceFile, Directive> DropAll()
-        {
-            return source =>
-            {
-                var result = source.EvolveTo<NoMatch>();
-                result.Reason = "No Match in Stack";
-                Info($"No match for: {source.Path}");
-                return result;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> DirectMatch()
-        {
-            return source =>
-            {
-                if (IndexedFiles.TryGetValue(source.Hash, out var found))
-                {
-                    var result = source.EvolveTo<FromArchive>();
-
-                    var match = found.Where(f =>
-                            Path.GetFileName(f.Paths[f.Paths.Length - 1]) == Path.GetFileName(source.Path))
-                        .OrderBy(f => f.Paths.Length)
-                        .FirstOrDefault();
-
-                    if (match == null)
-                        match = found.OrderBy(f => f.Paths.Length).FirstOrDefault();
-
-                    result.ArchiveHashPath = match.MakeRelativePaths();
-
-                    return result;
-                }
-
-                return null;
-            };
-        }
-
-        private Func<RawSourceFile, Directive> IgnoreStartsWith(string v)
-        {
-            var reason = string.Format("Ignored because path starts with {0}", v);
-            return source =>
-            {
-                if (source.Path.StartsWith(v))
-                {
-                    var result = source.EvolveTo<IgnoredDirectly>();
-                    result.Reason = reason;
-                    return result;
-                }
-
-                return null;
+                new DropAll(this)
             };
         }
 

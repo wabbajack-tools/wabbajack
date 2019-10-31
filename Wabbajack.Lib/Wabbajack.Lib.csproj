@@ -113,12 +113,38 @@
       <HintPath>..\packages\WebSocketSharpFork.1.0.4.0\lib\net35\websocket-sharp.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
-    <Reference Include="YamlDotNet, Version=7.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
-      <HintPath>..\packages\YamlDotNet.7.0.0\lib\net45\YamlDotNet.dll</HintPath>
+    <Reference Include="YamlDotNet, Version=8.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
+      <HintPath>..\packages\YamlDotNet.8.0.0\lib\net45\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CerasConfig.cs" />
+    <Compile Include="CompilationSteps\ACompilationStep.cs" />
+    <Compile Include="CompilationSteps\DeconstructBSAs.cs" />
+    <Compile Include="CompilationSteps\DirectMatch.cs" />
+    <Compile Include="CompilationSteps\DropAll.cs" />
+    <Compile Include="CompilationSteps\IgnoreDisabledMods.cs" />
+    <Compile Include="CompilationSteps\IgnoreEndsWith.cs" />
+    <Compile Include="CompilationSteps\IgnoreGameFiles.cs" />
+    <Compile Include="CompilationSteps\IgnorePathContains.cs" />
+    <Compile Include="CompilationSteps\IgnoreRegex.cs" />
+    <Compile Include="CompilationSteps\IgnoreStartsWith.cs" />
+    <Compile Include="CompilationSteps\IgnoreWabbajackInstallCruft.cs" />
+    <Compile Include="CompilationSteps\IncludeAll.cs" />
+    <Compile Include="CompilationSteps\IncludeAllConfigs.cs" />
+    <Compile Include="CompilationSteps\IncludeDummyESPs.cs" />
+    <Compile Include="CompilationSteps\IncludeLootFiles.cs" />
+    <Compile Include="CompilationSteps\IncludeModIniData.cs" />
+    <Compile Include="CompilationSteps\IncludeOtherProfiles.cs" />
+    <Compile Include="CompilationSteps\IncludePatches.cs" />
+    <Compile Include="CompilationSteps\IncludePropertyFiles.cs" />
+    <Compile Include="CompilationSteps\IncludeRegex.cs" />
+    <Compile Include="CompilationSteps\IncludeStubbedConfigFiles.cs" />
+    <Compile Include="CompilationSteps\IncludeTaggedMods.cs" />
+    <Compile Include="CompilationSteps\IncludeThisProfile.cs" />
+    <Compile Include="CompilationSteps\IStackStep.cs" />
+    <Compile Include="CompilationSteps\PatchStockESMs.cs" />
+    <Compile Include="CompilationSteps\Serialization.cs" />
     <Compile Include="Compiler.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="Downloaders\AbstractDownloadState.cs" />

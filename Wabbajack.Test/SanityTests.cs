@@ -12,32 +12,8 @@ using Wabbajack.Lib;
 namespace Wabbajack.Test
 {
     [TestClass]
-    public class SanityTests
+    public class SanityTests : ACompilerTest
     {
-        public TestContext TestContext { get; set; }
-
-        private TestUtils utils { get; set; }
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            Consts.TestMode = true;
-
-            utils = new TestUtils();
-            utils.GameName = "Skyrim Special Edition";
-
-            Utils.SetStatusFn((f, idx) => { });
-            Utils.SetLoggerFn(f => TestContext.WriteLine(f));
-            WorkQueue.Init((x, y, z) => { }, (min, max) => { });
-
-        }
-
-        [TestCleanup]
-        public void TestCleanup()
-        {
-            utils.Dispose();
-        }
-
         [TestMethod]
         public void TestDirectMatch()
         {
@@ -111,17 +87,6 @@ namespace Wabbajack.Test
             installer.DownloadFolder = utils.DownloadsFolder;
             installer.GameFolder = utils.GameFolder;
             installer.Install();
-        }
-
-        private Compiler ConfigureAndRunCompiler(string profile)
-        {
-            VirtualFileSystem.Reconfigure(utils.TestFolder);
-            var compiler = new Compiler(utils.MO2Folder);
-            compiler.VFS.Reset();
-            compiler.MO2Profile = profile;
-            compiler.ShowReportWhenFinished = false;
-            Assert.IsTrue(compiler.Compile());
-            return compiler;
         }
     }
 }

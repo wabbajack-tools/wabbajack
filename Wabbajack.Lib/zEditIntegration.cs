@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Lib.CompilationSteps;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -29,74 +31,89 @@ namespace Wabbajack.Lib
             return null;
         }
 
-        public static Func<RawSourceFile, Directive> IncludezEditPatches(Compiler compiler)
+        public class IncludeZEditPatches : ACompilationStep
         {
-            var zEditPath = FindzEditPath(compiler);
-            var havezEdit = zEditPath != null;
+            private Dictionary<string, zEditMerge> _mergesIndexed;
 
-            Utils.Log(havezEdit ? $"Found zEdit at {zEditPath}" : $"zEdit not detected, disabling zEdit routines");
-
-            if (!havezEdit) return source => { return null; };
-
-            var merges = Directory.EnumerateFiles(Path.Combine(zEditPath, "profiles"),
-                    DirectoryEnumerationOptions.Files | DirectoryEnumerationOptions.Recursive)
-                .Where(f => f.EndsWith("\\merges.json"))
-                .SelectMany(f => f.FromJSON<List<zEditMerge>>())
-                .GroupBy(f => (f.name, f.filename));
-
-            merges.Where(m => m.Count() > 1)
-                .Do(m =>
-                {
-                    Utils.Warning(
-                        $"WARNING, you have two patches named {m.Key.name}\\{m.Key.filename} in your zEdit profiles. We'll pick one at random, this probably isn't what you want.");
-                });
-
-            var mergesIndexed =
-                merges.ToDictionary(
-                    m => Path.Combine(compiler.MO2Folder, "mods", m.Key.name, m.Key.filename),
-                    m => m.First());
-
-
-
-            return source =>
+            public IncludeZEditPatches(Compiler compiler) : base(compiler)
             {
-                if (mergesIndexed.TryGetValue(source.AbsolutePath, out var merge))
+                var zEditPath = FindzEditPath(compiler);
+                var havezEdit = zEditPath != null;
+
+                Utils.Log(havezEdit ? $"Found zEdit at {zEditPath}" : $"zEdit not detected, disabling zEdit routines");
+
+                if (!havezEdit)
                 {
-                    var result = source.EvolveTo<MergedPatch>();
-                    result.Sources = merge.plugins.Select(f =>
-                    {
-                        var abs_path = Path.Combine(f.dataFolder, f.filename);
-                        if (!File.Exists(abs_path))
-                            throw new InvalidDataException(
-                                $"File {abs_path} is required to build {merge.filename} but it doesn't exist");
-
-                        return new SourcePatch
-                        {
-                            RelativePath = abs_path.RelativeTo(compiler.MO2Folder),
-                            Hash = compiler.VFS[abs_path].Hash
-                        };
-                    }).ToList();
-
-                    var src_data = merge.plugins.Select(f => File.ReadAllBytes(Path.Combine(f.dataFolder, f.filename)))
-                        .ConcatArrays();
-
-                    var dst_data = File.ReadAllBytes(source.AbsolutePath);
-
-                    using (var ms = new MemoryStream())
-                    {
-                        Utils.CreatePatch(src_data, dst_data, ms);
-                        result.PatchID = compiler.IncludeFile(ms.ToArray());
-                    }
-
-                    return result;
-
+                    _mergesIndexed = new Dictionary<string, zEditMerge>();
+                    return;
                 }
-                return null;
-            };
 
+                var merges = Directory.EnumerateFiles(Path.Combine(zEditPath, "profiles"),
+                        DirectoryEnumerationOptions.Files | DirectoryEnumerationOptions.Recursive)
+                    .Where(f => f.EndsWith("\\merges.json"))
+                    .SelectMany(f => f.FromJSON<List<zEditMerge>>())
+                    .GroupBy(f => (f.name, f.filename));
 
+                merges.Where(m => m.Count() > 1)
+                    .Do(m =>
+                    {
+                        Utils.Warning(
+                            $"WARNING, you have two patches named {m.Key.name}\\{m.Key.filename} in your zEdit profiles. We'll pick one at random, this probably isn't what you want.");
+                    });
+
+                _mergesIndexed =
+                    merges.ToDictionary(
+                        m => Path.Combine(compiler.MO2Folder, "mods", m.Key.name, m.Key.filename),
+                        m => m.First());
+            }
+
+            public override Directive Run(RawSourceFile source)
+            {
+                if (!_mergesIndexed.TryGetValue(source.AbsolutePath, out var merge)) return null;
+                var result = source.EvolveTo<MergedPatch>();
+                result.Sources = merge.plugins.Select(f =>
+                {
+                    var abs_path = Path.Combine(f.dataFolder, f.filename);
+                    if (!File.Exists(abs_path))
+                        throw new InvalidDataException(
+                            $"File {abs_path} is required to build {merge.filename} but it doesn't exist");
+
+                    return new SourcePatch
+                    {
+                        RelativePath = abs_path.RelativeTo(_compiler.MO2Folder),
+                        Hash = _compiler.VFS[abs_path].Hash
+                    };
+                }).ToList();
+
+                var src_data = merge.plugins.Select(f => File.ReadAllBytes(Path.Combine(f.dataFolder, f.filename)))
+                    .ConcatArrays();
+
+                var dst_data = File.ReadAllBytes(source.AbsolutePath);
+
+                using (var ms = new MemoryStream())
+                {
+                    Utils.CreatePatch(src_data, dst_data, ms);
+                    result.PatchID = _compiler.IncludeFile(ms.ToArray());
+                }
+
+                return result;
+
+            }
+
+            public override IState GetState()
+            {
+                return new State();
+            }
+
+            [JsonObject("IncludeZEditPatches")]
+            public class State : IState
+            {
+                public ICompilationStep CreateStep(Compiler compiler)
+                {
+                    return new IncludeZEditPatches(compiler);
+                }
+            }
         }
-
 
         class zEditMerge
         {
