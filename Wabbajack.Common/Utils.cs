@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.HashFunction.xxHash;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -101,6 +102,20 @@ namespace Wabbajack.Common
             }
 
             return sha.Hash.ToBase64();
+        }
+
+        public static string FileHash(this string file)
+        {
+            var hash = new xxHashConfig();
+            hash.HashSizeInBits = 64;
+            hash.Seed = 0x42;
+            using (var fs = File.OpenRead(file))
+            {
+                var config = new xxHashConfig();
+                config.HashSizeInBits = 64;
+                var value = xxHashFactory.Instance.Create(config).ComputeHash(fs);
+                return value.AsBase64String();
+            }
         }
 
         public static void CopyToWithStatus(this Stream istream, long maxSize, Stream ostream, string status)

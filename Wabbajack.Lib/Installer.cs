@@ -297,7 +297,7 @@ namespace Wabbajack.Lib
             Info($"Generating cleaned ESM for {filename}");
             if (!File.Exists(game_file)) throw new InvalidDataException($"Missing {filename} at {game_file}");
             Status($"Hashing game version of {filename}");
-            var sha = game_file.FileSHA256();
+            var sha = game_file.FileHash();
             if (sha != directive.SourceESMHash)
                 throw new InvalidDataException(
                     $"Cannot patch {filename} from the game folder hashes don't match have you already cleaned the file?");
@@ -410,7 +410,7 @@ namespace Wabbajack.Lib
                     }
 
                     Status($"Verifying Patch {Path.GetFileName(to_patch.To)}");
-                    var result_sha = to_file.FileSHA256();
+                    var result_sha = to_file.FileHash();
                     if (result_sha != to_patch.Hash)
                         throw new InvalidDataException($"Invalid Hash for {to_patch.To} after patching");
                 }
@@ -480,7 +480,7 @@ namespace Wabbajack.Lib
                 return File.ReadAllText(cache);
 
             Status($"Hashing {Path.GetFileName(e)}");
-            File.WriteAllText(cache, e.FileSHA256());
+            File.WriteAllText(cache, e.FileHash());
             return HashArchive(e);
         }
     }
