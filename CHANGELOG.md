@@ -6,6 +6,7 @@
 * Slideshow timer resets when next is pressed
 * Changed modlist extension to `.wabbajack`
 * You can now open modlists directly (after initial launch)
+* Wabbajack will exit if MO2 is running
 
 #### Version 1.0 alpha 2 - 10/15/2019
 * Fix installer running in wrong mode
