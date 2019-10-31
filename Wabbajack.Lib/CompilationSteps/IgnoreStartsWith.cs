@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
     public class IgnoreStartsWith : ACompilationStep
     {
-        private readonly string _reason;
         private readonly string _prefix;
+        private readonly string _reason;
 
         public IgnoreStartsWith(Compiler compiler, string prefix) : base(compiler)
         {
@@ -25,7 +21,33 @@ namespace Wabbajack.Lib.CompilationSteps
                 result.Reason = _reason;
                 return result;
             }
+
             return null;
+        }
+
+        public override IState GetState()
+        {
+            return new State(_prefix);
+        }
+
+        [JsonObject("IgnoreStartsWith")]
+        public class State : IState
+        {
+            public State()
+            {
+            }
+
+            public State(string prefix)
+            {
+                Prefix = prefix;
+            }
+
+            public string Prefix { get; set; }
+
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new IgnoreStartsWith(compiler, Prefix);
+            }
         }
     }
 }

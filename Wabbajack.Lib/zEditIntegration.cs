@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -97,6 +98,20 @@ namespace Wabbajack.Lib
 
                 return result;
 
+            }
+
+            public override IState GetState()
+            {
+                return new State();
+            }
+
+            [JsonObject("IncludeZEditPatches")]
+            public class State : IState
+            {
+                public ICompilationStep CreateStep(Compiler compiler)
+                {
+                    return new IncludeZEditPatches(compiler);
+                }
             }
         }
 

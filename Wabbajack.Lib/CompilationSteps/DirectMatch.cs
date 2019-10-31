@@ -1,9 +1,10 @@
 ﻿using System.Linq;
 using Alphaleonis.Win32.Filesystem;
+using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
-    class DirectMatch : ACompilationStep
+    public class DirectMatch : ACompilationStep
     {
         public DirectMatch(Compiler compiler) : base(compiler)
         {
@@ -17,13 +18,26 @@ namespace Wabbajack.Lib.CompilationSteps
             var match = found.Where(f =>
                                 Path.GetFileName(f.Paths[f.Paths.Length - 1]) == Path.GetFileName(source.Path))
                             .OrderBy(f => f.Paths.Length)
-                            .FirstOrDefault() 
+                            .FirstOrDefault()
                         ?? found.OrderBy(f => f.Paths.Length).FirstOrDefault();
 
             result.ArchiveHashPath = match.MakeRelativePaths();
 
             return result;
+        }
 
+        public override IState GetState()
+        {
+            return new State();
+        }
+
+        [JsonObject("DirectMatch")]
+        public class State : IState
+        {
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new DirectMatch(compiler);
+            }
         }
     }
 }

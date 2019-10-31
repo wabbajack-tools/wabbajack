@@ -512,6 +512,20 @@ namespace Wabbajack.Lib
             throw new InvalidDataException("Data fell out of the compilation stack");
         }
 
+        public IEnumerable<ICompilationStep> GetStack()
+        {
+            var user_config = Path.Combine(MO2ProfileDir, "compilation_stack.yml");
+            if (File.Exists(user_config))
+                return Serialization.Deserialize(File.ReadAllText(user_config), this);
+
+            var stack = MakeStack();
+
+            File.WriteAllText(Path.Combine(MO2ProfileDir, "_current_compilation_stack.yml"), 
+                Serialization.Serialize(stack));
+
+            return stack;
+
+        }
 
         /// <summary>
         ///     Creates a execution stack. The stack should be passed into Run stack. Each function
@@ -519,9 +533,9 @@ namespace Wabbajack.Lib
         ///     result included into the pack
         /// </summary>
         /// <returns></returns>
-        private IEnumerable<ICompilationStep> MakeStack()
+        public IEnumerable<ICompilationStep> MakeStack()
         {
-            Info("Generating compilation stack");
+            Utils.Log("Generating compilation stack");
             return new List<ICompilationStep>
             {
                 new IncludePropertyFiles(this),

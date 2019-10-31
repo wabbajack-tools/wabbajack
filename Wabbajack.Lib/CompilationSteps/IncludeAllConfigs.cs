@@ -1,9 +1,10 @@
 ﻿using Alphaleonis.Win32.Filesystem;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
-    class IncludeAllConfigs : ACompilationStep
+    public class IncludeAllConfigs : ACompilationStep
     {
         public IncludeAllConfigs(Compiler compiler) : base(compiler)
         {
@@ -15,6 +16,20 @@ namespace Wabbajack.Lib.CompilationSteps
             var result = source.EvolveTo<InlineFile>();
             result.SourceDataID = _compiler.IncludeFile(File.ReadAllBytes(source.AbsolutePath));
             return result;
+        }
+
+        public override IState GetState()
+        {
+            return new State();
+        }
+
+        [JsonObject("IncludeAllConfigs")]
+        public class State : IState
+        {
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new IncludeAllConfigs(compiler);
+            }
         }
     }
 }

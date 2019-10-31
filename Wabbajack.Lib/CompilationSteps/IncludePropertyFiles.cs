@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
-    class IncludePropertyFiles : ACompilationStep
+    public class IncludePropertyFiles : ACompilationStep
     {
         public IncludePropertyFiles(Compiler compiler) : base(compiler)
         {
@@ -35,9 +33,22 @@ namespace Wabbajack.Lib.CompilationSteps
                 result.Type = PropertyType.Readme;
                 _compiler.ModListReadme = result.SourceDataID;
             }
+
             return result;
         }
 
+        public override IState GetState()
+        {
+            return new State();
+        }
 
+        [JsonObject("IncludePropertyFiles")]
+        public class State : IState
+        {
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new IncludePropertyFiles(compiler);
+            }
+        }
     }
 }

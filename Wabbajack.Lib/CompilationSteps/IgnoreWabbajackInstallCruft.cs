@@ -1,15 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
-    class IgnoreWabbajackInstallCruft : ACompilationStep
+    public class IgnoreWabbajackInstallCruft : ACompilationStep
     {
         private readonly HashSet<string> _cruftFiles;
 
         public IgnoreWabbajackInstallCruft(Compiler compiler) : base(compiler)
-        { 
+        {
             _cruftFiles = new HashSet<string>
             {
                 "7z.dll", "7z.exe", "vfs_staged_files\\", "nexus.key_cache", "patch_cache\\",
@@ -23,6 +24,20 @@ namespace Wabbajack.Lib.CompilationSteps
             var result = source.EvolveTo<IgnoredDirectly>();
             result.Reason = "Wabbajack Cruft file";
             return result;
+        }
+
+        public override IState GetState()
+        {
+            return new State();
+        }
+
+        [JsonObject("IgnoreWabbajackInstallCruft")]
+        public class State : IState
+        {
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new IgnoreWabbajackInstallCruft(compiler);
+            }
         }
     }
 }

@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
     public class IgnoreEndsWith : ACompilationStep
     {
-        private readonly string _reason;
         private readonly string _postfix;
+        private readonly string _reason;
 
         public IgnoreEndsWith(Compiler compiler, string postfix) : base(compiler)
         {
@@ -23,7 +19,31 @@ namespace Wabbajack.Lib.CompilationSteps
             var result = source.EvolveTo<IgnoredDirectly>();
             result.Reason = _reason;
             return result;
+        }
 
+        public override IState GetState()
+        {
+            return new State(_postfix);
+        }
+
+        [JsonObject("IgnoreEndsWith")]
+        public class State : IState
+        {
+            public State(string postfix)
+            {
+                Postfix = postfix;
+            }
+
+            public State()
+            {
+            }
+
+            public string Postfix { get; set; }
+
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new IgnoreEndsWith(compiler, Postfix);
+            }
         }
     }
 }

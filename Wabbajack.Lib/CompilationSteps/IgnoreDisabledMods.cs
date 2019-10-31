@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Alphaleonis.Win32.Filesystem;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
@@ -31,6 +32,11 @@ namespace Wabbajack.Lib.CompilationSteps
             return r;
         }
 
+        public override IState GetState()
+        {
+            return new State();
+        }
+
 
         private static bool IsAlwaysEnabled(dynamic data)
         {
@@ -44,6 +50,15 @@ namespace Wabbajack.Lib.CompilationSteps
                 data.General.notes.Contains(Consts.WABBAJACK_ALWAYS_ENABLE))
                 return true;
             return false;
+        }
+
+        [JsonObject("IgnoreDisabledMods")]
+        public class State : IState
+        {
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new IgnoreDisabledMods(compiler);
+            }
         }
     }
 }

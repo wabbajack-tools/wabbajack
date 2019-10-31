@@ -1,8 +1,9 @@
 ﻿using Alphaleonis.Win32.Filesystem;
+using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
-    class IncludeModIniData : ACompilationStep
+    public class IncludeModIniData : ACompilationStep
     {
         public IncludeModIniData(Compiler compiler) : base(compiler)
         {
@@ -14,7 +15,20 @@ namespace Wabbajack.Lib.CompilationSteps
             var e = source.EvolveTo<InlineFile>();
             e.SourceDataID = _compiler.IncludeFile(File.ReadAllBytes(source.AbsolutePath));
             return e;
+        }
 
+        public override IState GetState()
+        {
+            return new State();
+        }
+
+        [JsonObject("IncludeModIniData")]
+        public class State : IState
+        {
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new IncludeModIniData(compiler);
+            }
         }
     }
 }

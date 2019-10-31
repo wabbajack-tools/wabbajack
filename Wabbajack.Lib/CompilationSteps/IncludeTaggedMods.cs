@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Alphaleonis.Win32.Filesystem;
+using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
-    class IncludeTaggedMods : ACompilationStep
+    public class IncludeTaggedMods : ACompilationStep
     {
         private readonly IEnumerable<string> _includeDirectly;
-        private string _tag;
+        private readonly string _tag;
 
 
         public IncludeTaggedMods(Compiler compiler, string tag) : base(compiler)
@@ -34,6 +35,31 @@ namespace Wabbajack.Lib.CompilationSteps
             }
 
             return null;
+        }
+
+        public override IState GetState()
+        {
+            return new State(_tag);
+        }
+
+        [JsonObject("IncludeTaggedMods")]
+        public class State : IState
+        {
+            public State()
+            {
+            }
+
+            public State(string tag)
+            {
+                Tag = tag;
+            }
+
+            public string Tag { get; set; }
+
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new IncludeTaggedMods(compiler, Tag);
+            }
         }
     }
 }

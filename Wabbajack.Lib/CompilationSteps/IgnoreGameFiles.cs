@@ -1,4 +1,5 @@
-﻿using Wabbajack.Common;
+﻿using Newtonsoft.Json;
+using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -17,7 +18,20 @@ namespace Wabbajack.Lib.CompilationSteps
             var i = source.EvolveTo<IgnoredDirectly>();
             i.Reason = "Default game file";
             return i;
+        }
 
+        public override IState GetState()
+        {
+            return new State();
+        }
+
+        [JsonObject("IgnoreGameFiles")]
+        public class State : IState
+        {
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new IgnoreGameFiles(compiler);
+            }
         }
     }
 }

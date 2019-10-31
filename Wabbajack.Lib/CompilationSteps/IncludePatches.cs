@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Alphaleonis.Win32.Filesystem;
+using Newtonsoft.Json;
 using VFS;
 using Wabbajack.Common;
 
@@ -36,6 +37,20 @@ namespace Wabbajack.Lib.CompilationSteps
                 e.PatchID = _compiler.IncludeFile(data);
 
             return e;
+        }
+
+        public override IState GetState()
+        {
+            return new State();
+        }
+
+        [JsonObject("IncludePatches")]
+        public class State : IState
+        {
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new IncludePatches(compiler);
+            }
         }
     }
 }

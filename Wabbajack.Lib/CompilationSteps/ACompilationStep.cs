@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Wabbajack.Lib.CompilationSteps
+﻿namespace Wabbajack.Lib.CompilationSteps
 {
     public abstract class ACompilationStep : ICompilationStep
     {
@@ -16,5 +10,6 @@ namespace Wabbajack.Lib.CompilationSteps
         }
 
         public abstract Directive Run(RawSourceFile source);
+        public abstract IState GetState();
     }
 }

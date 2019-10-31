@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -23,7 +19,31 @@ namespace Wabbajack.Lib.CompilationSteps
             var result = source.EvolveTo<IgnoredDirectly>();
             result.Reason = _reason;
             return result;
+        }
 
+        public override IState GetState()
+        {
+            return new State(_pattern);
+        }
+
+        [JsonObject("IgnorePathContains")]
+        public class State : IState
+        {
+            public State()
+            {
+            }
+
+            public State(string pattern)
+            {
+                Pattern = pattern;
+            }
+
+            public string Pattern { get; set; }
+
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new IgnorePathContains(compiler, Pattern);
+            }
         }
     }
 }

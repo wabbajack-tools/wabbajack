@@ -8,7 +8,7 @@ namespace Wabbajack.Lib
 {
     public class CerasConfig
     {
-        public static SerializerConfig Config = new SerializerConfig()
+        public static SerializerConfig Config = new SerializerConfig
         {
             KnownTypes =
             {

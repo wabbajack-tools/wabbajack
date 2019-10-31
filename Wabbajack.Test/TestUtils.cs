@@ -74,7 +74,9 @@ namespace Wabbajack.Test
         public string AddMod(string name = null)
         {
             string mod_name = name ?? RandomName();
-            Directory.CreateDirectory(Path.Combine(MO2Folder, "mods", mod_name));
+            var mod_folder = Path.Combine(MO2Folder, "mods", mod_name);
+            Directory.CreateDirectory(mod_folder);
+            File.WriteAllText(Path.Combine(mod_folder, "meta.ini"), "[General]");
             Mods.Add(mod_name);
             return mod_name;
         }

@@ -1,11 +1,12 @@
 ﻿using System.IO;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
-    class PatchStockESMs : ACompilationStep
+    public class PatchStockESMs : ACompilationStep
     {
         public PatchStockESMs(Compiler compiler) : base(compiler)
         {
@@ -17,7 +18,7 @@ namespace Wabbajack.Lib.CompilationSteps
             var gameFile = Path.Combine(_compiler.GamePath, "Data", filename);
             if (!Consts.GameESMs.Contains(filename) || !source.Path.StartsWith("mods\\") ||
                 !File.Exists(gameFile)) return null;
-            
+
             Utils.Log(
                 $"A ESM named {filename} was found in a mod that shares a name with a core game ESMs, it is assumed this is a cleaned ESM and it will be binary patched.");
             var result = source.EvolveTo<CleanedESM>();
@@ -30,11 +31,23 @@ namespace Wabbajack.Lib.CompilationSteps
                 var data = ms.ToArray();
                 result.SourceDataID = _compiler.IncludeFile(data);
                 Utils.Log($"Generated a {data.Length} byte patch for {filename}");
-
             }
-            
-            return result;
 
+            return result;
+        }
+
+        public override IState GetState()
+        {
+            return new State();
+        }
+
+        [JsonObject("PatchStockESMs")]
+        public class State : IState
+        {
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new PatchStockESMs(compiler);
+            }
         }
     }
 }

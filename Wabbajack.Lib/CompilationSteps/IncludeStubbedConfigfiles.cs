@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Alphaleonis.Win32.Filesystem;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
@@ -13,6 +14,11 @@ namespace Wabbajack.Lib.CompilationSteps
         public override Directive Run(RawSourceFile source)
         {
             return Consts.ConfigFileExtensions.Contains(Path.GetExtension(source.Path)) ? RemapFile(source) : null;
+        }
+
+        public override IState GetState()
+        {
+            return new State();
         }
 
         private Directive RemapFile(RawSourceFile source)
@@ -29,7 +35,8 @@ namespace Wabbajack.Lib.CompilationSteps
             data = data.Replace(_compiler.MO2Folder.Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
 
             data = data.Replace(_compiler.MO2DownloadsFolder, Consts.DOWNLOAD_PATH_MAGIC_BACK);
-            data = data.Replace(_compiler.MO2DownloadsFolder.Replace("\\", "\\\\"), Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK);
+            data = data.Replace(_compiler.MO2DownloadsFolder.Replace("\\", "\\\\"),
+                Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK);
             data = data.Replace(_compiler.MO2DownloadsFolder.Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD);
 
             if (data == originalData)
@@ -37,6 +44,15 @@ namespace Wabbajack.Lib.CompilationSteps
             var result = source.EvolveTo<RemappedInlineFile>();
             result.SourceDataID = _compiler.IncludeFile(Encoding.UTF8.GetBytes(data));
             return result;
+        }
+
+        [JsonObject("IncludeStubbedConfigFiles")]
+        public class State : IState
+        {
+            public ICompilationStep CreateStep(Compiler compiler)
+            {
+                return new IncludeStubbedConfigFiles(compiler);
+            }
         }
     }
 }
