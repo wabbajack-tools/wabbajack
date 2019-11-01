@@ -54,8 +54,8 @@ namespace Wabbajack
         private string _AuthorName = "Halgari & the Wabbajack Team";
         public string AuthorName { get => _AuthorName; set => this.RaiseAndSetIfChanged(ref _AuthorName, value); }
 
-        private string _Summary;
-        public string Summary { get => _Summary; set => this.RaiseAndSetIfChanged(ref _Summary, value); }
+        private string _Description;
+        public string Description { get => _Description; set => this.RaiseAndSetIfChanged(ref _Description, value); }
 
         private string _NexusSiteURL = "https://github.com/wabbajack-tools/wabbajack";
         public string NexusSiteURL { get => _NexusSiteURL; set => this.RaiseAndSetIfChanged(ref _NexusSiteURL, value); }
@@ -166,7 +166,7 @@ namespace Wabbajack
 
                 this.ModName = slide.ModName;
                 this.AuthorName = slide.ModAuthor;
-                this.Summary = slide.ModDescription;
+                this.Description = slide.ModDescription;
                 this.NexusSiteURL = slide.ModURL;
             }
 

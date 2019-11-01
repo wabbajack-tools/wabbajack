@@ -44,9 +44,6 @@ namespace Wabbajack
         private string _ModListPath;
         public string ModListPath { get => _ModListPath; set => this.RaiseAndSetIfChanged(ref _ModListPath, value); }
 
-        private readonly ObservableAsPropertyHelper<string> _ModListName;
-        public string ModListName => _ModListName.Value;
-
         private bool _UIReady;
         public bool UIReady { get => _UIReady; set => this.RaiseAndSetIfChanged(ref _UIReady, value); }
 
@@ -83,8 +80,8 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _AuthorText;
         public string AuthorText => _AuthorText.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _Summary;
-        public string Summary => _Summary.Value;
+        private readonly ObservableAsPropertyHelper<string> _Description;
+        public string Description => _Description.Value;
 
         private readonly ObservableAsPropertyHelper<bool> _ShowTextShadow;
         public bool ShowTextShadow => _ShowTextShadow.Value;
@@ -140,9 +137,6 @@ namespace Wabbajack
             this._HTMLReport = this.WhenAny(x => x.ModList)
                 .Select(modList => modList?.ReportHTML)
                 .ToProperty(this, nameof(this.HTMLReport));
-            this._ModListName = this.WhenAny(x => x.ModList)
-                .Select(modList => modList?.Name)
-                .ToProperty(this, nameof(this.ModListName));
             this._ProgressPercent = Observable.CombineLatest(
                     this.WhenAny(x => x.Installing),
                     this.WhenAny(x => x.InstallingMode),
@@ -212,23 +206,23 @@ namespace Wabbajack
                     resultSelector: (modList, slideshow, installing) => installing ? slideshow : modList)
                 .ToProperty(this, nameof(this.Image));
             this._TitleText = Observable.CombineLatest(
-                    this.WhenAny(x => x.ModListName),
+                    this.WhenAny(x => x.ModList.Name),
                     this.WhenAny(x => x.Slideshow.ModName),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(this.TitleText));
             this._AuthorText = Observable.CombineLatest(
-                    this.WhenAny(x => x.ModListName),
+                    this.WhenAny(x => x.ModList.Author),
                     this.WhenAny(x => x.Slideshow.AuthorName),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(this.AuthorText));
-            this._Summary = Observable.CombineLatest(
-                    this.WhenAny(x => x.ModListName),
-                    this.WhenAny(x => x.Slideshow.Summary),
+            this._Description = Observable.CombineLatest(
+                    this.WhenAny(x => x.ModList.Description),
+                    this.WhenAny(x => x.Slideshow.Description),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
-                .ToProperty(this, nameof(this.Summary));
+                .ToProperty(this, nameof(this.Description));
 
             this._ShowTextShadow = this.WhenAny(x => x.Image)
                 .Select(image =>
@@ -296,7 +290,7 @@ namespace Wabbajack
                 ms.Seek(0, SeekOrigin.Begin);
                 using (var reader = new StreamReader(ms))
                 {
-                    var viewer = new TextViewer(reader.ReadToEnd(), this.ModListName);
+                    var viewer = new TextViewer(reader.ReadToEnd(), this.ModList.Name);
                     viewer.Show();
                 }
             }

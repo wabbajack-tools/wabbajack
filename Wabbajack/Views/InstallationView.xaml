@@ -261,7 +261,7 @@
                     TextAlignment="Right"
                     Margin="20,25,25,25"
                     FontFamily="Lucida Sans"
-                    Text="{Binding Summary}"
+                    Text="{Binding Description}"
                     TextWrapping="Wrap" >
                     <TextBlock.Effect>
                         <DropShadowEffect />
