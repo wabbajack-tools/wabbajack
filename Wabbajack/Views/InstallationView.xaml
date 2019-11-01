@@ -408,15 +408,22 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Button Grid.Row="0"
-                        Margin="30, 10"
+                        Margin="30, 5"
                         Content="Readme"
-                        ToolTip="Open the readme webpage for the modlist"
+                        ToolTip="Open the readme for the modlist"
                         FontSize="20"
                         Command="{Binding OpenReadmeCommand}" />
                 <Button Grid.Row="1"
-                        Margin="30, 10"
+                        Margin="30, 5"
+                        Content="Website"
+                        ToolTip="Open the webpage for the modlist"
+                        FontSize="20"
+                        Command="{Binding VisitWebsiteCommand}" />
+                <Button Grid.Row="2"
+                        Margin="30, 5"
                         Content="Manifest"
                         ToolTip="Open an explicit listing of all actions this modlist will take"
                         FontSize="20"

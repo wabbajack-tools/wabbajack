@@ -83,11 +83,6 @@ namespace Wabbajack
                 .ObserveOnGuiThread()
                 .Do(modList =>
                 {
-                    this.NexusSiteURL = modList.Website;
-                    this.ModName = modList.Name;
-                    this.AuthorName = modList.Author;
-                    this.Summary = modList.Description;
-
                     this.SlideShowElements = modList.Archives
                         .Select(m => m.State)
                         .OfType<NexusDownloader.State>()

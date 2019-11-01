@@ -93,6 +93,7 @@ namespace Wabbajack
         public IReactiveCommand BeginCommand { get; }
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
+        public IReactiveCommand VisitWebsiteCommand { get; }
 
         public InstallerVM(MainWindowVM mainWindowVM)
         {
@@ -249,6 +250,11 @@ namespace Wabbajack
                 execute: this.ExecuteBegin,
                 canExecute: this.WhenAny(x => x.Installing)
                     .Select(installing => !installing)
+                    .ObserveOnGuiThread());
+            this.VisitWebsiteCommand = ReactiveCommand.Create(
+                execute: () => Process.Start(this.ModList.Website),
+                canExecute: this.WhenAny(x => x.ModList.Website)
+                    .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());
 
             // Have Installation location updates modify the downloads location if empty
