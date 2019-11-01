@@ -56,7 +56,7 @@
             <RowDefinition Height="*" MinHeight="150" />
         </Grid.RowDefinitions>
         <!-- Slideshow -->
-        <Grid Grid.Row="2" DataContext="{Binding Slideshow}" Margin="0,0,0,5" x:Name="Slideshow" >
+        <Grid Grid.Row="2" Margin="0,0,0,5" x:Name="Slideshow" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="5*" />
                 <ColumnDefinition Width="3*" />
@@ -68,7 +68,7 @@
             <Viewbox
                 Grid.Column="0"
                 Grid.ColumnSpan="2" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center" >
-                <Image Source="{Binding Installer.Image}" />
+                <Image Source="{Binding Image}" />
             </Viewbox>
             <Image
                 Grid.Column="0"
@@ -77,7 +77,7 @@
                 Height="60"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                Source="{Binding Installer.ModlistImage}" />
+                Source="{Binding ModlistImage}" />
             <Grid Grid.Column="0" >
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
@@ -93,7 +93,7 @@
                     Grid.Row="1"
                     Grid.Column="0"
                     VerticalAlignment="Bottom"
-                    Text="{Binding ModName}"
+                    Text="{Binding TitleText}"
                     FontSize="65"
                     Margin="20,25,20,0"
                     FontFamily="Lucida Sans"
@@ -110,7 +110,7 @@
                     Margin="55,0,20,20"
                     FontFamily="Lucida Sans"
                     FontWeight="Bold"
-                    Text="{Binding AuthorName}"
+                    Text="{Binding AuthorText}"
                     TextWrapping="Wrap" >
                     <TextBlock.Effect>
                         <DropShadowEffect />
@@ -142,7 +142,7 @@
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
                                         <Condition Binding="{Binding IsMouseOver, ElementName=Slideshow}" Value="True" />
-                                        <Condition Binding="{Binding InstallingMode}" Value="True" />
+                                        <Condition Binding="{Binding Installing}" Value="True" />
                                     </MultiDataTrigger.Conditions>
                                     <MultiDataTrigger.EnterActions>
                                         <BeginStoryboard>
@@ -173,13 +173,13 @@
                             Background="{StaticResource BackgroundBrush}"
                             Height="60"
                             Width="60"
-                            Command="{Binding SlideShowNextItemCommand}"
+                            Command="{Binding Slideshow.SlideShowNextItemCommand}"
                             ToolTip="Skip to the next mod"
                             Margin="6,6,6,12">
                         <icon:PackIconFontAwesome Kind="ChevronRightSolid" Height="28" Width="28" />
                     </Button>
                     <ToggleButton Grid.Row="1" 
-                                  IsChecked="{Binding Enable}"
+                                  IsChecked="{Binding Slideshow.Enable}"
                                   Style="{StaticResource SlideshowButton}"
                                   Background="{StaticResource BackgroundBrush}"
                                   x:Name="PlayPauseButton"
@@ -190,7 +190,7 @@
                                 <Style TargetType="icon:PackIconMaterial">
                                     <Setter Property="Kind" Value="Pause" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Enable}" Value="True" >
+                                        <DataTrigger Binding="{Binding Slideshow.Enable}" Value="True" >
                                             <Setter Property="Kind" Value="Play" />
                                         </DataTrigger>
                                     </Style.Triggers>
@@ -199,7 +199,7 @@
                         </icon:PackIconMaterial>
                     </ToggleButton>
                     <ToggleButton Grid.Row="2"
-                                  IsChecked="{Binding ShowNSFW}"
+                                  IsChecked="{Binding Slideshow.ShowNSFW}"
                                   Style="{StaticResource SlideshowButton}"
                                   ToolTip="Show NSFW mods"
                                   Background="{StaticResource BackgroundBrush}">
@@ -217,7 +217,7 @@
                                     Height="40"
                                     Width="40"
                                     Kind="CircleSlash"
-                                    Visibility="{Binding ShowNSFW, Converter={StaticResource  bool2VisibilityConverter}, ConverterParameter=False}" />
+                                    Visibility="{Binding Slideshow.ShowNSFW, Converter={StaticResource  bool2VisibilityConverter}, ConverterParameter=False}" />
                         </Grid>
                     </ToggleButton>
                 </Grid>

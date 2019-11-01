@@ -77,6 +77,15 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
         public BitmapImage Image => _Image.Value;
 
+        private readonly ObservableAsPropertyHelper<string> _TitleText;
+        public string TitleText => _TitleText.Value;
+
+        private readonly ObservableAsPropertyHelper<string> _AuthorText;
+        public string AuthorText => _AuthorText.Value;
+
+        private readonly ObservableAsPropertyHelper<string> _Summary;
+        public string Summary => _Summary.Value;
+
         // Command properties
         public IReactiveCommand BeginCommand { get; }
         public IReactiveCommand ShowReportCommand { get; }
@@ -188,19 +197,34 @@ namespace Wabbajack
                 .Replay(1)
                 .RefCount();
 
-            // Set displayed image to modlist image if configuring, or to the current slideshow image if installing
+            // Set display items to modlist if configuring or complete,
+            // or to the current slideshow data if installing
             this._Image = Observable.CombineLatest(
-                modListImage
-                    .StartWith(default(BitmapImage)),
-                this.WhenAny(x => x.Slideshow.Image)
-                    .StartWith(default(BitmapImage)),
-                this.WhenAny(x => x.Installing)
-                    .StartWith(false),
-                resultSelector: (modList, slideshow, installing) =>
-                {
-                    return installing ? slideshow : modList;
-                })
+                    modListImage
+                        .StartWith(default(BitmapImage)),
+                    this.WhenAny(x => x.Slideshow.Image)
+                        .StartWith(default(BitmapImage)),
+                    this.WhenAny(x => x.Installing),
+                    resultSelector: (modList, slideshow, installing) => installing ? slideshow : modList)
                 .ToProperty(this, nameof(this.Image));
+            this._TitleText = Observable.CombineLatest(
+                    this.WhenAny(x => x.ModListName),
+                    this.WhenAny(x => x.Slideshow.ModName),
+                    this.WhenAny(x => x.Installing),
+                    resultSelector: (modList, mod, installing) => installing ? mod : modList)
+                .ToProperty(this, nameof(this.TitleText));
+            this._AuthorText = Observable.CombineLatest(
+                    this.WhenAny(x => x.ModListName),
+                    this.WhenAny(x => x.Slideshow.AuthorName),
+                    this.WhenAny(x => x.Installing),
+                    resultSelector: (modList, mod, installing) => installing ? mod : modList)
+                .ToProperty(this, nameof(this.AuthorText));
+            this._Summary = Observable.CombineLatest(
+                    this.WhenAny(x => x.ModListName),
+                    this.WhenAny(x => x.Slideshow.Summary),
+                    this.WhenAny(x => x.Installing),
+                    resultSelector: (modList, mod, installing) => installing ? mod : modList)
+                .ToProperty(this, nameof(this.Summary));
 
             // Define commands
             this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
