@@ -142,7 +142,7 @@
                                 <MultiDataTrigger>
                                     <MultiDataTrigger.Conditions>
                                         <Condition Binding="{Binding IsMouseOver, ElementName=Slideshow}" Value="True" />
-                                        <Condition Binding="{Binding Installing}" Value="True" />
+                                        <Condition Binding="{Binding InstallingMode}" Value="True" />
                                     </MultiDataTrigger.Conditions>
                                     <MultiDataTrigger.EnterActions>
                                         <BeginStoryboard>
@@ -257,12 +257,13 @@
                                   Grid.Row="1" 
                                   Grid.RowSpan="2"
                                   VerticalAlignment="Top" 
-                                  Maximum="100"
-                                  Value="46" 
+                                  Maximum="1"
+                                  Value="{Binding ProgressPercent, Mode=OneWay}" 
                                   Foreground="{StaticResource PrimaryVariantBrush}" 
                                   Background="Transparent" 
                                   BorderBrush="Transparent"
-                                  Height="16" Margin="-4" >
+                                  Height="16" 
+                                  Margin="-4" >
             <mahapps:MetroProgressBar.Effect>
                 <BlurEffect Radius="25" />
             </mahapps:MetroProgressBar.Effect>
@@ -271,12 +272,13 @@
                                   Grid.Row="1" 
                                   Grid.RowSpan="2"
                                   VerticalAlignment="Top" 
-                                  Maximum="100"
-                                  Value="46" 
+                                  Maximum="1"
+                                  Value="{Binding ProgressPercent, Mode=OneWay}" 
                                   Foreground="{StaticResource PrimaryBrush}" 
                                   Background="Transparent" 
                                   BorderBrush="Transparent"
-                                  Height="6" Margin="-4" >
+                                  Height="6" 
+                                  Margin="-4" >
             <mahapps:MetroProgressBar.Effect>
                 <BlurEffect Radius="20" />
             </mahapps:MetroProgressBar.Effect>
@@ -293,14 +295,15 @@
                                       Background="{StaticResource WindowBackgroundBrush}"
                                       BorderThickness="0"
                                       Foreground="Transparent"
-                                      Maximum="100"
-                                      Value="46"  />
+                                      Maximum="1"
+                                      Value="{Binding ProgressPercent, Mode=OneWay}"  />
             <mahapps:MetroProgressBar Grid.Column="0" Grid.ColumnSpan="4"
                                       Background="Transparent" 
                                       BorderThickness="0"
-                                      Foreground="{StaticResource PrimaryVariantBrush}" Opacity="0.46"
-                                      Maximum="100"
-                                      Value="46"  />
+                                      Foreground="{StaticResource PrimaryVariantBrush}" 
+                                      Opacity="{Binding ProgressPercent, Mode=OneWay}"
+                                      Maximum="1"
+                                      Value="{Binding ProgressPercent, Mode=OneWay}"  />
             <TextBlock Grid.Column="0" 
                        VerticalAlignment="Bottom"
                        Margin="10,0,0,8"
@@ -313,10 +316,26 @@
                         <Setter Property="Text" Value="Configuring" />
                         <Setter Property="FontSize" Value="15" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding Installing}" >
-                                <Setter Property="Text" Value="Installing" />
-                                <Setter Property="FontSize" Value="14" />
-                            </DataTrigger>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding InstallingMode}" Value="True" />
+                                    <Condition Binding="{Binding Installing}" Value="True" />
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.Setters>
+                                    <Setter Property="Text" Value="Installing" />
+                                    <Setter Property="FontSize" Value="14" />
+                                </MultiDataTrigger.Setters>
+                            </MultiDataTrigger>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding InstallingMode}" Value="True" />
+                                    <Condition Binding="{Binding Installing}" Value="False" />
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.Setters>
+                                    <Setter Property="Text" Value="Installed" />
+                                    <Setter Property="FontSize" Value="14" />
+                                </MultiDataTrigger.Setters>
+                            </MultiDataTrigger>
                         </Style.Triggers>
                     </Style>
                 </TextBlock.Style>
@@ -327,11 +346,12 @@
                        FontSize="25"
                        FontWeight="Black"
                        FontFamily="Lucida Sans" />
-            <Button Grid.Column="2"
+            <!-- Readd when Pause/Stop implementations added -->
+            <!--<Button Grid.Column="2"
                     ToolTip="Pause Installation" 
                     Margin="0,0,0,5"
                     Width="50"
-                    Visibility="{Binding Installing, Converter={StaticResource bool2VisibilityConverter}}">
+                    Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}">
                 <icon:PackIconMaterial
                     Kind="Pause" />
             </Button>
@@ -339,19 +359,19 @@
                     ToolTip="Stop Installation" 
                     Margin="0,0,0,5" 
                     Width="50" 
-                    Visibility="{Binding Installing, Converter={StaticResource bool2VisibilityConverter}}" >
+                    Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}" >
                 <icon:PackIconFontAwesome
                     Width="25"
                     Height="25"
                     Kind="TimesCircleSolid" />
-            </Button>
+            </Button>-->
         </Grid>
         <mahapps:MetroProgressBar x:Name="BottomProgressBar"
                                   Grid.Row="1" 
                                   Grid.RowSpan="2"
                                   VerticalAlignment="Top" 
-                                  Maximum="100"
-                                  Value="46" 
+                                  Maximum="1"
+                                  Value="{Binding ProgressPercent, Mode=OneWay}" 
                                   Foreground="{StaticResource PrimaryBrush}"
                                   Background="Transparent" 
                                   BorderBrush="Transparent"
@@ -360,8 +380,8 @@
                                   Grid.Row="1" 
                                   Grid.RowSpan="2"
                                   VerticalAlignment="Top" 
-                                  Maximum="100"
-                                  Value="46" 
+                                  Maximum="1"
+                                  Value="{Binding ProgressPercent, Mode=OneWay}" 
                                   Background="Transparent" 
                                   BorderBrush="Transparent"
                                   Height="5" >
@@ -376,7 +396,7 @@
         </mahapps:MetroProgressBar>
         <!-- Bottom Area -->
         <Grid Grid.Row="3"
-              Visibility="{Binding Installing, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}" >
+              Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="4" />
@@ -406,7 +426,7 @@
                   Background="{StaticResource WindowBackgroundBrush}" >
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Background="Transparent"
                               Margin="5"
-                              Visibility="{Binding Installing, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
+                              Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
                     <Grid Margin="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -476,7 +496,7 @@
                        Fill="{StaticResource DarkBackgroundBrush}"/>
         </Grid>
         <Grid Grid.Row="3"
-              Visibility="{Binding Installing, Converter={StaticResource bool2VisibilityConverter}}" >
+              Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}" >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="4" />
@@ -509,7 +529,7 @@
                                     <Style TargetType="ProgressBar">
                                         <Setter Property="Visibility" Value="Visible" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Progress}" Value="0">
+                                            <DataTrigger Binding="{Binding Progress, Mode=OneTime}" Value="0">
                                                 <Setter Property="Visibility" Value="Collapsed" />
                                             </DataTrigger>
                                         </Style.Triggers>
@@ -517,9 +537,9 @@
                                 </ProgressBar.Style>
                             </ProgressBar>
                             <TextBlock Grid.Column="1" Text=" CPU " />
-                            <TextBlock Grid.Column="2" Text="{Binding ID}" />
+                            <TextBlock Grid.Column="2" Text="{Binding ID, Mode=OneTime}" />
                             <TextBlock Grid.Column="3" Text=" - " />
-                            <TextBlock Grid.Column="4" Text="{Binding Msg}" />
+                            <TextBlock Grid.Column="4" Text="{Binding Msg, Mode=OneTime}" />
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

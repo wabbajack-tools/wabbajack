@@ -53,14 +53,26 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _HTMLReport;
         public string HTMLReport => _HTMLReport.Value;
 
+        /// <summary>
+        /// Tracks whether an install is currently in progress
+        /// </summary>
         private bool _Installing;
         public bool Installing { get => _Installing; set => this.RaiseAndSetIfChanged(ref _Installing, value); }
+
+        /// <summary>
+        /// Tracks whether to show the installing pane
+        /// </summary>
+        private bool _InstallingMode;
+        public bool InstallingMode { get => _InstallingMode; set => this.RaiseAndSetIfChanged(ref _InstallingMode, value); }
 
         private string _Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         public string Location { get => _Location; set => this.RaiseAndSetIfChanged(ref _Location, value); }
 
         private string _DownloadLocation;
         public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
+
+        private readonly ObservableAsPropertyHelper<float> _ProgressPercent;
+        public float ProgressPercent => _ProgressPercent.Value;
 
         private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
         public BitmapImage Image => _Image.Value;
@@ -118,6 +130,15 @@ namespace Wabbajack
             this._ModListName = this.WhenAny(x => x.ModList)
                 .Select(modList => modList?.Name)
                 .ToProperty(this, nameof(this.ModListName));
+            this._ProgressPercent = Observable.CombineLatest(
+                    this.WhenAny(x => x.Installing),
+                    this.WhenAny(x => x.InstallingMode),
+                    resultSelector: (installing, mode) => !installing && mode)
+                .Select(show => show ? 1f : 0f)
+                // Disable for now, until more reliable
+                //this.WhenAny(x => x.MWVM.QueueProgress)
+                //    .Select(i => i / 100f)
+                .ToProperty(this, nameof(this.ProgressPercent));
 
             this.Slideshow = new SlideShow(this);
 
@@ -242,6 +263,7 @@ namespace Wabbajack
         private void ExecuteBegin()
         {
             this.Installing = true;
+            this.InstallingMode = true;
             var installer = new Installer(this.ModListPath, this.ModList, Location)
             {
                 DownloadFolder = DownloadLocation
@@ -258,6 +280,11 @@ namespace Wabbajack
                     Utils.Log(ex.StackTrace);
                     Utils.Log(ex.ToString());
                     Utils.Log($"{ex.Message} - Can't continue");
+                }
+                finally
+                {
+
+                    this.Installing = false;
                 }
             })
             {
