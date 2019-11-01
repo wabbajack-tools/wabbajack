@@ -81,7 +81,7 @@ namespace Wabbajack
             this.WhenAny(x => x.Installer.ModList)
                 .NotNull()
                 .ObserveOnGuiThread()
-                .Subscribe(modList =>
+                .Do(modList =>
                 {
                     this.NexusSiteURL = modList.Website;
                     this.ModName = modList.Name;
@@ -95,9 +95,14 @@ namespace Wabbajack
                         new Slide(NexusApiUtils.FixupSummary(m.ModName), m.ModID,
                             NexusApiUtils.FixupSummary(m.Summary), NexusApiUtils.FixupSummary(m.Author),
                             m.Adult, m.NexusURL, m.SlideShowPic)).ToList();
-
+                })
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .Do(modList =>
+                {
+                    // This takes a while, and is currently blocking
                     this.PreloadSlideShow();
                 })
+                .Subscribe()
                 .DisposeWith(this.CompositeDisposable);
 
             /// Wire slideshow updates
