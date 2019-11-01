@@ -43,7 +43,7 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="SlideshowButton" BasedOn="{StaticResource CircleButtonStyle}" TargetType="ToggleButton" >
+        <Style x:Key="SlideshowButton" BasedOn="{StaticResource CircleButtonStyle}" TargetType="ButtonBase" >
             <Setter Property="Width" Value="40" />
             <Setter Property="Height" Value="40" />
             <Setter Property="Margin" Value="4" />
@@ -125,14 +125,15 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0"
+                <Grid Grid.Column="0"
                       HorizontalAlignment="Right"
                       Margin="0,20,25,0" >
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
                     <Grid.Effect>
                         <DropShadowEffect Color="Black" Opacity="1" BlurRadius="25" />
                     </Grid.Effect>
@@ -169,23 +170,31 @@
                             </Style.Triggers>
                         </Style>
                     </Grid.Style>
-                    <Button Grid.Row="0" 
+                    <Button Grid.Column="3" 
                             Style="{StaticResource CircleButtonStyle}"
                             Background="{StaticResource BackgroundBrush}"
                             Height="60"
                             Width="60"
                             Command="{Binding Slideshow.SlideShowNextItemCommand}"
                             ToolTip="Skip to the next mod"
-                            Margin="6,6,6,12">
+                            Margin="6">
                         <icon:PackIconFontAwesome Kind="ChevronRightSolid" Height="28" Width="28" />
                     </Button>
-                    <ToggleButton Grid.Row="1" 
+                    <ToggleButton Grid.Column="2" 
                                   IsChecked="{Binding Slideshow.Enable}"
-                                  Style="{StaticResource SlideshowButton}"
                                   Background="{StaticResource BackgroundBrush}"
                                   x:Name="PlayPauseButton"
-                                  ToolTip="Pause/Play slideshow"
-                                  Margin="6,6,6,3">
+                                  Margin="6">
+                        <ToggleButton.Style>
+                            <Style BasedOn="{StaticResource SlideshowButton}" TargetType="ToggleButton" >
+                                <Setter Property="ToolTip" Value="Play slideshow" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Slideshow.Enable}" Value="True" >
+                                        <Setter Property="ToolTip" Value="Pause slideshow" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ToggleButton.Style>
                         <icon:PackIconMaterial >
                             <icon:PackIconMaterial.Style>
                                 <Style TargetType="icon:PackIconMaterial">
@@ -199,11 +208,28 @@
                             </icon:PackIconMaterial.Style>
                         </icon:PackIconMaterial>
                     </ToggleButton>
-                    <ToggleButton Grid.Row="2"
+                    <Button Grid.Column="1"
+                            Style="{StaticResource SlideshowButton}"
+                            ToolTip="Open Nexus Website"
+                            Background="{StaticResource BackgroundBrush}"
+                            Margin="6"
+                            Command="{Binding Slideshow.VisitNexusSiteCommand}" >
+                        <icon:PackIconMaterial Kind="Web" Height="28" Width="28" />
+                    </Button>
+                    <ToggleButton Grid.Column="0"
                                   IsChecked="{Binding Slideshow.ShowNSFW}"
-                                  Style="{StaticResource SlideshowButton}"
                                   ToolTip="Show NSFW mods"
                                   Background="{StaticResource BackgroundBrush}">
+                        <ToggleButton.Style>
+                            <Style BasedOn="{StaticResource SlideshowButton}" TargetType="ToggleButton" >
+                                <Setter Property="ToolTip" Value="Show NSFW mods" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Slideshow.ShowNSFW}" Value="True" >
+                                        <Setter Property="ToolTip" Value="Hide NSFW mods" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ToggleButton.Style>
                         <Grid>
                             <TextBlock Text="NSFW" Margin="4"
                                    HorizontalAlignment="Center"
