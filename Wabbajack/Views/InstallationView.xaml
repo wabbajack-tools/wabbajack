@@ -458,6 +458,11 @@
             <Grid Grid.Column="2"
                   x:Name="InstallationConfigurationView"
                   Background="{StaticResource WindowBackgroundBrush}" >
+                <Border x:Name="ConfigurationBackgroundHaze" Background="{StaticResource PrimaryVariantBrush}" Opacity="0.10" Height="120" CornerRadius="50" >
+                    <Border.Effect>
+                        <BlurEffect Radius="45" />
+                    </Border.Effect>
+                </Border>
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Background="Transparent"
                               Margin="5"
                               Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
@@ -475,6 +480,29 @@
                             <RowDefinition Height="40" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
+                        <Border Grid.Row="1" Grid.RowSpan="2" 
+                                Grid.Column="0" Grid.ColumnSpan="5"
+                                x:Name="BeginButtonPurpleGlow" 
+                                Width="76" 
+                                Height="76"
+                                CornerRadius="43"
+                                Margin="0,0,14,0"
+                                HorizontalAlignment="Right"
+                                Background="{StaticResource PrimaryVariantBrush}" >
+                            <Border.Effect>
+                                <BlurEffect Radius="10" />
+                            </Border.Effect>
+                            <Border.Style>
+                                <Style TargetType="Border" >
+                                    <Setter Property="Opacity" Value="0.5" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMouseOver, ElementName=BeginButton}" Value="True" >
+                                            <Setter Property="Opacity" Value="0.8" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                        </Border>
                         <TextBlock Grid.Column="0" Grid.Row="1"
                                    VerticalAlignment="Center"
                                    FontSize="14"
@@ -505,20 +533,34 @@
                                           TargetPath="{Binding DownloadLocation}" />
                         <Button Grid.Row="1" Grid.RowSpan="2"
                                 Grid.Column="4"
+                                x:Name="BeginButton"
                                 Width="55"
                                 Height="55"
                                 Margin="0,0,25,0"
                                 BorderBrush="{StaticResource SecondaryBrush}"
-                                Background="#222222"
                                 HorizontalAlignment="Right"
-                                Command="{Binding BeginCommand}"
-                                Style="{StaticResource CircleButtonStyle}">
+                                Background="#222222"
+                                Style="{StaticResource CircleButtonStyle}"
+                                Command="{Binding BeginCommand}">
                             <icon:PackIconMaterial
-                                Foreground="{StaticResource SecondaryBrush}"
                                 Margin="5,0,0,0"
                                 Height="25"
                                 Width="25"
-                                Kind="Play" />
+                                Kind="Play" >
+                                <icon:PackIconMaterial.Style>
+                                    <Style TargetType="icon:PackIconMaterial" >
+                                        <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, ElementName=BeginButton}" Value="True" >
+                                                <Setter Property="Foreground" Value="#00ffe7" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </icon:PackIconMaterial.Style>
+                            </icon:PackIconMaterial>
+                            <Button.Effect>
+                                <DropShadowEffect Color="{StaticResource Secondary}" ShadowDepth="0" BlurRadius="15" />
+                            </Button.Effect>
                         </Button>
                     </Grid>
                 </ScrollViewer>
