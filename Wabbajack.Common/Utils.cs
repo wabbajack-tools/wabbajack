@@ -26,6 +26,12 @@ namespace Wabbajack.Common
 {
     public static class Utils
     {
+        public static bool IsMO2Running(string mo2Path)
+        {
+            Process[] processList = Process.GetProcesses();
+            return processList.Where(process => process.ProcessName == "ModOrganizer").Any(process => Path.GetDirectoryName(process.MainModule?.FileName) == mo2Path);
+        }
+
         public static string LogFile { get; private set; }
         static Utils()
         {
