@@ -85,15 +85,6 @@ namespace Wabbajack
                 Environment.Exit(1);
             }
 
-            Process[] processList = Process.GetProcesses();
-            foreach (var process in processList)
-            {
-                if (process.ProcessName != "ModOrganizer") continue;
-                MessageBox.Show("You need to close MO2 before running Wabbajack!",
-                    "Error", MessageBoxButton.OK);
-                Environment.Exit(1);
-            }
-
             Mode = mode;
 
             // Define commands
@@ -288,6 +279,13 @@ namespace Wabbajack
             var profile_name = Path.GetFileName(profile_folder);
             this.ModListName = profile_name;
             this.Mode = RunMode.Compile;
+
+            if (Utils.IsMO2Running(mo2folder))
+            {
+                MessageBox.Show("You need to close MO2 before running Wabbajack!",
+                    "Error", MessageBoxButton.OK);
+                Environment.Exit(1);
+            }
 
             var tmp_compiler = new Compiler(mo2folder);
             DownloadLocation = tmp_compiler.MO2DownloadsFolder;
