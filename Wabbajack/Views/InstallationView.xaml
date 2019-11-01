@@ -16,6 +16,7 @@
         <Color x:Key="TextBackgroundHoverFill" >#DF000000</Color>
         <Style x:Key="BackgroundBlurStyle" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource TextBackgroundFillBrush}" />
+            <Setter Property="Visibility" Value="Hidden" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsMouseOver, ElementName=Slideshow}" Value="True" >
                     <DataTrigger.EnterActions>
@@ -37,8 +38,8 @@
                         </BeginStoryboard>
                     </DataTrigger.ExitActions>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Image}" Value="{x:Null}" >
-                    <Setter Property="Visibility" Value="Hidden" />
+                <DataTrigger Binding="{Binding ShowTextShadow}" Value="True" >
+                    <Setter Property="Visibility" Value="Visible" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>

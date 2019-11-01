@@ -86,6 +86,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _Summary;
         public string Summary => _Summary.Value;
 
+        private readonly ObservableAsPropertyHelper<bool> _ShowTextShadow;
+        public bool ShowTextShadow => _ShowTextShadow.Value;
+
         // Command properties
         public IReactiveCommand BeginCommand { get; }
         public IReactiveCommand ShowReportCommand { get; }
@@ -225,6 +228,15 @@ namespace Wabbajack
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(this.Summary));
+
+            this._ShowTextShadow = this.WhenAny(x => x.Image)
+                .Select(image =>
+                {
+                    if (image == null) return false;
+                    if (image == this.WabbajackLogo) return false;
+                    return true;
+                })
+                .ToProperty(this, nameof(ShowTextShadow));
 
             // Define commands
             this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
