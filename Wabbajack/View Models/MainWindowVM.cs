@@ -1,4 +1,4 @@
-﻿using DynamicData;
+using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using System;
@@ -62,7 +62,6 @@ namespace Wabbajack
 
             // Wire mode to drive the active pane
             this._ActivePane = this.WhenAny(x => x.Mode)
-                .ObserveOn(RxApp.MainThreadScheduler)
                 .Select<RunMode, ViewModel>(m =>
                 {
                     switch (m)
