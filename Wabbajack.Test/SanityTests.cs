@@ -72,21 +72,5 @@ namespace Wabbajack.Test
             Assert.IsInstanceOfType(directive, typeof(PatchedFromArchive));
         }
 
-
-        private ModList CompileAndInstall(string profile)
-        {
-            var compiler = ConfigureAndRunCompiler(profile);
-            Install(compiler);
-            return compiler.ModList;
-        }
-
-        private void Install(Compiler compiler)
-        {
-            var modlist = Installer.LoadFromFile(compiler.ModListOutputFile);
-            var installer = new Installer(compiler.ModListOutputFile, modlist, utils.InstallFolder);
-            installer.DownloadFolder = utils.DownloadsFolder;
-            installer.GameFolder = utils.GameFolder;
-            installer.Install();
-        }
     }
 }

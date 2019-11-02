@@ -115,7 +115,7 @@ namespace Wabbajack.Lib
             }
         }
 
-        class zEditMerge
+        public class zEditMerge
         {
             public string name;
             public string filename;
@@ -123,7 +123,7 @@ namespace Wabbajack.Lib
 
         }
 
-        class zEditMergePlugin
+        public class zEditMergePlugin
         {
             public string filename;
             public string dataFolder;
@@ -146,6 +146,25 @@ namespace Wabbajack.Lib
                     throw new InvalidDataException($"{source.RelativePath} is needed for merged patch {directive.To} but is not included in the install.");
                 }
             }
+        }
+
+        public static void GenerateMerges(Installer installer)
+        {
+            installer.ModList
+                .Directives
+                .OfType<MergedPatch>()
+                .PMap(m =>
+                {
+                    Utils.LogStatus($"Generating zEdit merge: {m.To}");
+
+                    var src_data = m.Sources.Select(s => File.ReadAllBytes(Path.Combine(installer.Outputfolder, s.RelativePath)))
+                        .ConcatArrays();
+
+                    var patch_data = installer.LoadBytesFromPath(m.PatchID);
+
+                    using (var fs = File.OpenWrite(Path.Combine(installer.Outputfolder, m.To))) 
+                        BSDiff.Apply(new MemoryStream(src_data), () => new MemoryStream(patch_data), fs);
+                });
         }
     }
 }
