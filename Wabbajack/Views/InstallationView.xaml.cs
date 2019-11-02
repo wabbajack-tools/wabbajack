@@ -16,11 +16,11 @@ using System.Windows.Shapes;
 namespace Wabbajack
 {
     /// <summary>
-    /// Interaction logic for SlideshowView.xaml
+    /// Interaction logic for InstallationView.xaml
     /// </summary>
-    public partial class SlideshowView : UserControl
+    public partial class InstallationView : UserControl
     {
-        public SlideshowView()
+        public InstallationView()
         {
             InitializeComponent();
         }

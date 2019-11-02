@@ -7,7 +7,7 @@
                     mc:Ignorable="d">
 
     <!--Converters-->
-    <BooleanToVisibilityConverter x:Key="bool2VisibilityConverter"/>
+    <local:BoolToVisibilityConverter x:Key="bool2VisibilityConverter" />
     <local:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter"/>
 
     <!--Colors-->
@@ -22,11 +22,42 @@
 
     <Color x:Key="HighlightColor">#BDBDBD</Color>
     <Color x:Key="HotColor">#525252</Color>
-    
-    <!--Brushes-->
+
+    <Color x:Key="Yellow">#ffc400</Color>
+    <Color x:Key="Red">#e83a40</Color>
+    <Color x:Key="Green">#52b545</Color>
+
+    <Color x:Key="Primary">#BB86FC</Color>
+    <Color x:Key="PrimaryVariant">#3700B3</Color>
+    <Color x:Key="Secondary">#03DAC6</Color>
+    <Color x:Key="Complementary">#C7FC86</Color>
+    <Color x:Key="Analogous1">#868CFC</Color>
+    <Color x:Key="Analogous2">#F686FC</Color>
+    <Color x:Key="Triadic1">#FC86C7</Color>
+    <Color x:Key="Triadic2">#FCBB86</Color>
+
+    <!--  Brushes  -->
+    <SolidColorBrush x:Key="YellowBrush" Color="{StaticResource Yellow}" />
+    <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource Green}" />
+    <SolidColorBrush x:Key="RedBrush" Color="{StaticResource Red}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Yellow}" />
+    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Red}" />
+
+    <SolidColorBrush x:Key="DarkBackgroundBrush" Color="{StaticResource DarkBackgroundColor}" />
+    <SolidColorBrush x:Key="LightBackgroundBrush" Color="{StaticResource LightBackgroundColor}" />
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
     <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}"/>
     <SolidColorBrush x:Key="MouseOverForegroundBrush" Color="{StaticResource DarkBackgroundColor}"/>
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}"/>
+
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
+    <SolidColorBrush x:Key="PrimaryVariantBrush" Color="{StaticResource PrimaryVariant}" />
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}" />
+    <SolidColorBrush x:Key="ComplementaryBrush" Color="{StaticResource Complementary}" />
+    <SolidColorBrush x:Key="Analogous1Brush" Color="{StaticResource Analogous1}" />
+    <SolidColorBrush x:Key="Analogous2Brush" Color="{StaticResource Analogous2}" />
+    <SolidColorBrush x:Key="Triadic1Brush" Color="{StaticResource Triadic1}" />
+    <SolidColorBrush x:Key="Triadic2Brush" Color="{StaticResource Triadic2}" />
 
     <SolidColorBrush x:Key="TabControlNormalBorderBrush" Color="{StaticResource WindowBackgroundColor}"/>
 
@@ -807,7 +838,7 @@
     </Style>
 
     <!-- TextBox -->
-    <Style BasedOn="{StaticResource {x:Type Control}}" TargetType="{x:Type TextBox}">
+    <Style x:Key="MainTextBoxStyle" BasedOn="{StaticResource {x:Type Control}}" TargetType="{x:Type TextBox}">
         <Setter Property="Background" Value="{StaticResource TextBoxBackground}"/>
         <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorder}"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -852,6 +883,7 @@
             </MultiTrigger>-->
         </Style.Triggers>
     </Style>
+    <Style BasedOn="{StaticResource MainTextBoxStyle}" TargetType="TextBox" />
 
     <!-- ComboBox -->
     <Style x:Key="ComboBoxFocusVisual">
@@ -1151,6 +1183,7 @@
         <Setter Property="Background" Value="{StaticResource ButtonBackground}"/>
         <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}"/>
         <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Focusable" Value="False" />
         <Setter Property="Foreground" Value="{StaticResource ButtonForeground}"/>
         <Setter Property="HorizontalContentAlignment" Value="Center"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -1188,6 +1221,10 @@
         </Setter>
     </Style>
     <Style BasedOn="{StaticResource MainButtonStyle}" TargetType="{x:Type Button}" />
+
+    <Style TargetType="ButtonBase" x:Key="CircleButtonStyle" BasedOn="{StaticResource MahApps.Metro.Styles.MetroCircleButtonStyle}" >
+        <Setter Property="Focusable" Value="False" />
+    </Style>
 
     <!-- ToggleButton-->
     <Style TargetType="{x:Type ToggleButton}">

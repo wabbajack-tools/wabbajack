@@ -1,8 +1,11 @@
 ﻿using Alphaleonis.Win32.Filesystem;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
@@ -11,40 +14,21 @@ using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack.UI
 {
-    public class ModeSelectionWindowViewModel : ViewModel
+    public class ModeSelectionWindowVM : ViewModel
     {
+        public ObservableCollection<ModlistMetadata> ModLists { get; } = new ObservableCollection<ModlistMetadata>(ModlistMetadata.LoadFromGithub());
 
+        [Reactive]
+        public ModlistMetadata SelectedModList { get; set; }
 
-        public ModeSelectionWindowViewModel()
+        private readonly ObservableAsPropertyHelper<bool> _CanInstall;
+        public bool CanInstall => _CanInstall.Value;
+
+        public ModeSelectionWindowVM()
         {
-            _modLists = new ObservableCollection<ModlistMetadata>(ModlistMetadata.LoadFromGithub());
-        }
-
-        private ObservableCollection<ModlistMetadata> _modLists;
-
-        public ObservableCollection<ModlistMetadata> ModLists
-        {
-            get => _modLists;
-        }
-
-
-        private ModlistMetadata _selectedModList;
-        public ModlistMetadata SelectedModList
-        {
-            get => _selectedModList;
-            set
-            {
-                CanInstall = true;
-                RaiseAndSetIfChanged(ref _selectedModList, value);
-            }
-        }
-
-        private bool _canInstall;
-
-        public bool CanInstall
-        {
-            get => _canInstall;
-            set => RaiseAndSetIfChanged(ref _canInstall, value);
+            this._CanInstall = this.WhenAny(x => x.SelectedModList)
+                .Select(x => x != null)
+                .ToProperty(this, nameof(this.CanInstall));
         }
 
         internal string Download()
@@ -60,7 +44,6 @@ namespace Wabbajack.UI
             if (window.Result == DownloadWindow.WindowResult.Completed)
                 return dest;
             return null;
-
         }
     }
 }

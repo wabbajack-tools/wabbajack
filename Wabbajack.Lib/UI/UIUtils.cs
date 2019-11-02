@@ -62,13 +62,34 @@ namespace Wabbajack.Lib
             return null;
         }
 
-        public static BitmapImage BitmapImageFromResource(string name)
+        public static BitmapImage BitmapImageFromResource(string name) => BitmapImageFromStream(Utils.GetResourceStream(name));
+
+        public static BitmapImage BitmapImageFromStream(Stream stream)
         {
             var img = new BitmapImage();
             img.BeginInit();
-            img.StreamSource = Utils.GetResourceStream(name);
+            img.StreamSource = stream;
             img.EndInit();
             return img;
+        }
+
+        public static bool TryGetBitmapImageFromFile(string path, out BitmapImage bitmapImage)
+        {
+            try
+            {
+                if (!File.Exists(path))
+                {
+                    bitmapImage = default;
+                    return false;
+                }
+                bitmapImage = new BitmapImage(new Uri(path, UriKind.RelativeOrAbsolute));
+                return true;
+            }
+            catch (Exception)
+            {
+                bitmapImage = default;
+                return false;
+            }
         }
 
         public static string OpenFileDialog(string filter)
