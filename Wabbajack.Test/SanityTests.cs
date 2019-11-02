@@ -1,42 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime;
-using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using VFS;
 using Wabbajack.Common;
+using Wabbajack.Lib;
+using File = Alphaleonis.Win32.Filesystem.File;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Test
 {
     [TestClass]
-    public class SanityTests
+    public class SanityTests : ACompilerTest
     {
-        public TestContext TestContext { get; set; }
-
-        private TestUtils utils { get; set; }
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            Consts.TestMode = true;
-
-            utils = new TestUtils();
-            utils.GameName = "Skyrim Special Edition";
-
-            Utils.SetStatusFn((f, idx) => { });
-            Utils.SetLoggerFn(f => TestContext.WriteLine(f));
-            WorkQueue.Init((x, y, z) => { }, (min, max) => { });
-
-        }
-
-        [TestCleanup]
-        public void TestCleanup()
-        {
-            utils.Dispose();
-        }
-
         [TestMethod]
         public void TestDirectMatch()
         {
@@ -53,6 +32,33 @@ namespace Wabbajack.Test
             CompileAndInstall(profile);
 
             utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
+        }
+
+        [TestMethod]
+        public void CleanedESMTest()
+        {
+
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod("Cleaned ESMs");
+            var update_esm = utils.AddModFile(mod, @"Update.esm", 10);
+
+            utils.Configure();
+
+            var game_file = Path.Combine(utils.GameFolder, "Data", "Update.esm");
+            utils.GenerateRandomFileData(game_file, 20);
+
+            var modlist = CompileAndInstall(profile);
+
+            utils.VerifyInstalledFile(mod, @"Update.esm");
+
+            var compiler = ConfigureAndRunCompiler(profile);
+
+            // Update the file and verify that it throws an error.
+            utils.GenerateRandomFileData(game_file, 20);
+            var exception = Assert.ThrowsException<Exception>(() => Install(compiler));
+            Assert.AreEqual(exception.Message, "Game ESM hash doesn't match, is the ESM already cleaned? Please verify your local game files.");
+
+
         }
 
         [TestMethod]
@@ -95,32 +101,5 @@ namespace Wabbajack.Test
             Assert.IsInstanceOfType(directive, typeof(PatchedFromArchive));
         }
 
-
-        private ModList CompileAndInstall(string profile)
-        {
-            var compiler = ConfigureAndRunCompiler(profile);
-            Install(compiler);
-            return compiler.ModList;
-        }
-
-        private void Install(Compiler compiler)
-        {
-            var modlist = Installer.LoadFromFile(compiler.ModListOutputFile);
-            var installer = new Installer(compiler.ModListOutputFile, modlist, utils.InstallFolder);
-            installer.DownloadFolder = utils.DownloadsFolder;
-            installer.GameFolder = utils.GameFolder;
-            installer.Install();
-        }
-
-        private Compiler ConfigureAndRunCompiler(string profile)
-        {
-            VirtualFileSystem.Reconfigure(utils.TestFolder);
-            var compiler = new Compiler(utils.MO2Folder);
-            compiler.VFS.Reset();
-            compiler.MO2Profile = profile;
-            compiler.ShowReportWhenFinished = false;
-            Assert.IsTrue(compiler.Compile());
-            return compiler;
-        }
     }
 }

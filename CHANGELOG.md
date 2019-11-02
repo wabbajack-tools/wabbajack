@@ -1,7 +1,27 @@
 ### Changelog
 
-#### Version 1.0 alpha - ???
-* Nothing yet...
+#### Version 1.0 alpha 5 - 11/2/2019
+* Fix a NPE exception with game ESM verification
+
+#### Version 1.0 alpha 4 - 11/2/2019
+* Reorganize steps so that we run zEdit merges before NOMATCH_INCLUDE
+* Look for hidden/optional ESMs when building zEdit plugins
+* Check for modified ESMs before starting the long install process
+
+#### Version 1.0 alpha 3 - 11/2/2019
+* Slideshow more responsive on pressing next
+* Slideshow timer resets when next is pressed
+* Changed modlist extension to `.wabbajack`
+* You can now open modlists directly (after initial launch)
+* Wabbajack will exit if MO2 is running
+* Added support for zEdit merges. We detect the zEdit install location by scanning the tool list in 
+Mod Organizer's .ini files, then we use the merges.json file to figure out the contents of each merge. 
+
+#### Version 1.0 alpha 2 - 10/15/2019
+* Fix installer running in wrong mode
+
+#### Version 1.0 alpha 1 - 10/14/2019
+* Several internal bug fixes
 
 #### Version 0.9.5 - 10/12/2019
 * New Property system for chaning Modlist Name, Author, Description, Website, custom Banner and custom Readme

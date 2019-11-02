@@ -5,7 +5,7 @@ using System.Reflection;
 using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.GZip;
-//using OMODFramework;
+using OMODFramework;
 
 namespace Wabbajack.Common
 {
@@ -53,12 +53,12 @@ namespace Wabbajack.Common
 
         private static void ExtractAllWithOMOD(string source, string dest)
         {
-            /*Utils.Log($"Extracting {Path.GetFileName(source)}");
-            Framework f = new Framework();
+            Utils.Log($"Extracting {Path.GetFileName(source)}");
+            var f = new Framework();
             f.SetTempDirectory(dest);
-            OMOD omod = new OMOD(source, ref f);
+            var omod = new OMOD(source, ref f);
             omod.ExtractDataFiles();
-            omod.ExtractPlugins();*/
+            omod.ExtractPlugins();
         }
 
         private static void ExtractAllWithBSA(string source, string dest)
@@ -139,7 +139,7 @@ namespace Wabbajack.Common
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
 
@@ -197,7 +197,7 @@ namespace Wabbajack.Common
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
 

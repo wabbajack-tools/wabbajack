@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Policy;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
-using Wabbajack.Downloaders;
-using Wabbajack.Validation;
+using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib;
+using Wabbajack.Lib.Validation;
 using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Test

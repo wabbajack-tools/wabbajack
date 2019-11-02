@@ -5,7 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
+using Ceras;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
@@ -19,6 +21,9 @@ namespace VFS
 {
     public class VirtualFileSystem
     {
+        public const ulong FileVersion = 0x01;
+        public const string Magic = "WABBAJACK VFS FILE";
+
         internal static string _stagedRoot;
         public static VirtualFileSystem VFS;
         private bool _disableDiskCache;
@@ -120,6 +125,14 @@ namespace VFS
                     using (var fs = File.OpenRead("vfs_cache.bin"))
                     using (var br = new BinaryReader(fs))
                     {
+                        var magic = Encoding.ASCII.GetString(br.ReadBytes(Magic.Length));
+                        if (magic != Magic || br.ReadUInt64() != FileVersion)
+                        {
+                            fs.Close();
+                            File.Delete("vfs_cache.bin");
+                            return;
+                        }
+
                         while (true)
                         {
                             var fr = VirtualFile.Read(br);
@@ -127,7 +140,7 @@ namespace VFS
                         }
                     }
                 }
-                catch (EndOfStreamException ex)
+                catch (EndOfStreamException)
                 {
                 }
 
@@ -158,6 +171,9 @@ namespace VFS
                         using (var fs = File.OpenWrite("vfs_cache.bin_new"))
                         using (var bw = new BinaryWriter(fs))
                         {
+                            bw.Write(Encoding.ASCII.GetBytes(Magic));
+                            bw.Write(FileVersion);
+
                             Utils.Log($"Syncing VFS to Disk: {_files.Count} entries");
                             foreach (var f in _files.Values) f.Write(bw);
                         }
@@ -505,7 +521,7 @@ namespace VFS
         }
     }
 
-    [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+    [MemberConfig(TargetMember.None)]
     public class VirtualFile
     {
         private string _fullPath;
@@ -517,7 +533,7 @@ namespace VFS
 
         internal string _stagedPath;
 
-        [JsonProperty]
+        [Include]
         public string[] Paths
         {
             get => _paths;
@@ -529,13 +545,13 @@ namespace VFS
             }
         }
 
-        [JsonProperty] public string Hash { get; set; }
+        [Include] public string Hash { get; set; }
 
-        [JsonProperty] public long Size { get; set; }
+        [Include] public long Size { get; set; }
 
-        [JsonProperty] public ulong LastModified { get; set; }
+        [Include] public ulong LastModified { get; set; }
 
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [Include]
         public bool? FinishedIndexing { get; set; }
 
 
@@ -671,7 +687,7 @@ namespace VFS
 
             var fio = new FileInfo(StagedPath);
             Size = fio.Length;
-            Hash = StagedPath.FileSHA256();
+            Hash = StagedPath.FileHash();
             LastModified = fio.LastWriteTime.ToMilliseconds();
         }
 

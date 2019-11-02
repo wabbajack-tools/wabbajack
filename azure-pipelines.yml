@@ -8,12 +8,17 @@ trigger:
 - master
 
 pool:
+  name: Default
   vmImage: 'windows-latest'
 
 variables:
-  solution: 'Wabbajack.sln'
-  buildPlatform: 'x64'
-  buildConfiguration: 'Debug'
+- group: main-pipeline-keys
+- name: solution
+  value: 'Wabbajack.sln'
+- name: buildPlatform
+  value: 'x64'
+- name: buildConfiguration
+  value: 'Debug'
 
 steps:
 - checkout: self
@@ -36,8 +41,6 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
-  env:
-    NEXUSAPIKEY: $(NEXUSAPIKEY)
 - task: DownloadSecureFile@1
   inputs:
     secureFile: 'CertFile.p12'

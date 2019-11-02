@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using Wabbajack.Lib;
 
 namespace Wabbajack
 {
@@ -15,16 +16,11 @@ namespace Wabbajack
         internal ModlistPropertiesWindow(AppState _state)
         {
             InitializeComponent();
-            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner.png");
+            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.Banner_Dark.png");
             SplashScreenProperty.Source = bannerImage;
 
             newBannerFile = null;
             state = _state;
-        }
-
-        private void Window_Closing(object sender, CancelEventArgs e)
-        {
-            //Hide();
         }
 
         private void SetSplashScreen_Click(object sender, RoutedEventArgs e)
@@ -45,13 +41,13 @@ namespace Wabbajack
                 {
                     BitmapImage splashScreen = new BitmapImage(new Uri(newBannerFile));
                     state.newImagePath = newBannerFile;
-                    state.SplashScreenImage = splashScreen;
+                    state.Slideshow.Image = splashScreen;
                 }
 
-                state.SplashScreenModName = ModlistNameProperty.Text;
-                state.SplashScreenSummary = ModlistDescriptionProperty.Text;
-                state.SplashScreenAuthorName = ModlistAuthorProperty.Text;
-                state._nexusSiteURL = ModlistWebsiteProperty.Text;
+                state.Slideshow.ModName = ModlistNameProperty.Text;
+                state.Slideshow.Summary = ModlistDescriptionProperty.Text;
+                state.Slideshow.AuthorName = ModlistAuthorProperty.Text;
+                state.Slideshow.NexusSiteURL = ModlistWebsiteProperty.Text;
                 state.readmePath = ModlistReadmeProperty.Text;
 
                 state.ChangedProperties = true;

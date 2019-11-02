@@ -6,7 +6,7 @@
         Style="{StaticResource {x:Type Window}}" Icon="Icons/wabbajack.ico" WindowStyle="ToolWindow"
         xmlns:local="clr-namespace:Wabbajack"
         mc:Ignorable="d"
-        Title="Wabbajack" Height="500" Width="800" ResizeMode="NoResize"
+        Title="Wabbajack" Height="800" Width="1024" ResizeMode="CanResize"
         Closing="Close_Window">
     <Grid Margin="20">
         <Grid.ColumnDefinitions>
@@ -16,7 +16,9 @@
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
+            <RowDefinition Height="150"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="70"/>
             <RowDefinition Height="70"/>
             <RowDefinition Height="70"/>
         </Grid.RowDefinitions>
@@ -24,10 +26,42 @@
         <Image MouseLeftButtonDown="Patreon_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="1" Name="Patreon"/>
         <Image MouseLeftButtonDown="Discord_MouseLeftButtonDown" Margin="5,0,0,0" Grid.Row="0" Grid.Column="2" Name="Discord"/>
         <Image Grid.Row="1" Grid.ColumnSpan="3" Name="Banner" Stretch="Uniform" Margin="2,0,2,0"/>
-        <Button Name="InstallModlist" Grid.ColumnSpan="3"  Grid.Row="2" Margin="2" Click="InstallModlist_Click">
-            <TextBlock FontSize="40">Install a ModList</TextBlock>
+        <ListBox ScrollViewer.CanContentScroll="False" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Grid.Row="2" Grid.ColumnSpan="3" 
+                 ItemsSource="{Binding ModLists}" SelectedItem="{Binding Path=SelectedModList, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="300"></ColumnDefinition>
+                            <ColumnDefinition Width="20"></ColumnDefinition>
+                            <ColumnDefinition Width="200"></ColumnDefinition>
+                            <ColumnDefinition Width="200"></ColumnDefinition>
+                            <ColumnDefinition Width="200"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="20"></RowDefinition>
+                            <RowDefinition Height="15"></RowDefinition>
+                            <RowDefinition Height="150"></RowDefinition>
+                            <RowDefinition Height="20"></RowDefinition>
+
+                        </Grid.RowDefinitions>
+                        <Image Source="{Binding Links.ImageUri}" Grid.Column="0" Grid.Row="0" Grid.RowSpan="4"></Image>
+                        <TextBlock Text="{Binding Title}" FontSize="20" Grid.Column="2" Grid.Row="0"></TextBlock>
+                        <TextBlock Text="{Binding Author}" Grid.Column="2" Grid.Row="1"></TextBlock>
+                        <TextBlock Text="{Binding Game}"  HorizontalAlignment="Right" TextAlignment="Right" Grid.Column="4" Grid.Row="1"></TextBlock>
+                        <TextBlock Text="{Binding Description}" VerticalAlignment="Top" HorizontalAlignment="Left"  TextWrapping="Wrap"  Grid.Column="2" Grid.Row="2" Grid.ColumnSpan="3"></TextBlock>
+                        <Button Grid.Row="3" Grid.Column="2">More Info</Button>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <Button Name="InstallModlist" Grid.ColumnSpan="3"  Grid.Row="3" Margin="2" Click="InstallModlist_Click" IsEnabled="{Binding CanInstall}">
+            <TextBlock FontSize="40">Download and Install</TextBlock>
         </Button>
-        <Button Name="CreateModlist" Grid.ColumnSpan="3" Grid.Row="3" Margin="2" Click="CreateModlist_Click">
+        <Button Name="InstallFromList" Grid.ColumnSpan="3"  Grid.Row="4" Margin="2" Click="InstallFromList_Click">
+            <TextBlock FontSize="40">Install from Disk</TextBlock>
+        </Button>
+        <Button Name="CreateModlist" Grid.ColumnSpan="3" Grid.Row="5" Margin="2" Click="CreateModlist_Click">
             <TextBlock FontSize="40">Create a ModList</TextBlock>
         </Button>
     </Grid>

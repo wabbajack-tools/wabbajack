@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
-using Wabbajack.Downloaders;
-using Wabbajack.Validation;
+using Wabbajack.Lib;
+using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Test
@@ -30,6 +31,13 @@ namespace Wabbajack.Test
 
             Assert.IsNotNull(state);
 
+            var url_state = DownloadDispatcher.ResolveArchive(
+                "https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k");
+
+            Assert.AreEqual("https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k",
+                ((MegaDownloader.State)url_state).Url);
+
+
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
             var filename = Guid.NewGuid().ToString();
@@ -39,7 +47,7 @@ namespace Wabbajack.Test
 
             converted.Download(new Archive {Name = "MEGA Test.txt"}, filename);
 
-            Assert.AreEqual("Lb1iTsz3iyZeHGs3e94TVmOhf22sqtHLhqkCdXbjiyc=", Utils.FileSHA256(filename));
+            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
@@ -54,6 +62,12 @@ namespace Wabbajack.Test
 
             Assert.IsNotNull(state);
 
+            var url_state = DownloadDispatcher.ResolveArchive(
+                "https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?dl=0");
+
+            Assert.AreEqual("https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?dl=1", 
+                ((HTTPDownloader.State)url_state).Url);
+
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
             var filename = Guid.NewGuid().ToString();
@@ -63,7 +77,7 @@ namespace Wabbajack.Test
 
             converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
 
-            Assert.AreEqual("Lb1iTsz3iyZeHGs3e94TVmOhf22sqtHLhqkCdXbjiyc=", Utils.FileSHA256(filename));
+            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
@@ -78,6 +92,12 @@ namespace Wabbajack.Test
 
             Assert.IsNotNull(state);
 
+            var url_state = DownloadDispatcher.ResolveArchive(
+                "https://drive.google.com/file/d/1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_/view?usp=sharing");
+
+            Assert.AreEqual("1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_",
+                ((GoogleDriveDownloader.State)url_state).Id);
+
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
             var filename = Guid.NewGuid().ToString();
@@ -87,7 +107,7 @@ namespace Wabbajack.Test
 
             converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
 
-            Assert.AreEqual("Lb1iTsz3iyZeHGs3e94TVmOhf22sqtHLhqkCdXbjiyc=", Utils.FileSHA256(filename));
+            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
@@ -96,22 +116,57 @@ namespace Wabbajack.Test
         public void HttpDownload()
         {
             var ini = @"[General]
-                        directURL=https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml";
+                        directURL=http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt";
 
             var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
 
+            var url_state = DownloadDispatcher.ResolveArchive("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt");
+
+            Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
+                ((HTTPDownloader.State)url_state).Url);
+
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "https://raw.githubusercontent.com/" } }));
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://build.wabbajack.org/" } }));
             Assert.IsFalse(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            converted.Download(new Archive { Name = "Github Test Test.txt" }, filename);
+            converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
 
-            Assert.IsTrue(File.ReadAllText(filename).StartsWith("# Server whitelist for Wabbajack"));
+            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+
+            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+        }
+
+        [TestMethod]
+        public void MediaFireDownload()
+        {
+            var ini = @"[General]
+                        directURL=http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt";
+
+            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.IsNotNull(state);
+
+            var url_state = DownloadDispatcher.ResolveArchive(
+                "http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt");
+
+            Assert.AreEqual("http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt",
+                ((MediaFireDownloader.State)url_state).Url);
+
+            var converted = state.ViaJSON();
+            Assert.IsTrue(converted.Verify());
+            var filename = Guid.NewGuid().ToString();
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://www.mediafire.com/file/agiqzm1xwebczpx/" } }));
+            Assert.IsFalse(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            converted.Download(new Archive { Name = "Media Fire Test.txt" }, filename);
+
+            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
 
         [TestMethod]
@@ -126,7 +181,10 @@ namespace Wabbajack.Test
 
             Assert.IsNotNull(state);
 
+
             var converted = state.ViaJSON();
+            Assert.IsTrue(converted.Verify());
+            // Exercise the cache code
             Assert.IsTrue(converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
@@ -134,7 +192,7 @@ namespace Wabbajack.Test
 
             converted.Download(new Archive { Name = "SkyUI.7z" }, filename);
 
-            Assert.AreEqual(filename.FileSHA256(), "U3Xg6RBR9XrUY9/jQSu6WKu5dfhHmpaN2dTl0ylDFmI=");
+            Assert.AreEqual(filename.FileHash(), "dF2yafV2Oks=");
         }
 
         [TestMethod]
@@ -147,6 +205,12 @@ namespace Wabbajack.Test
 
             Assert.IsNotNull(state);
 
+            var url_state = DownloadDispatcher.ResolveArchive(
+                "https://www.moddb.com/downloads/start/124908?referer=https%3A%2F%2Fwww.moddb.com%2Fmods%2Fautopause");
+
+            Assert.AreEqual("https://www.moddb.com/downloads/start/124908?referer=https%3A%2F%2Fwww.moddb.com%2Fmods%2Fautopause",
+                ((ModDBDownloader.State)url_state).Url);
+
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
             var filename = Guid.NewGuid().ToString();
@@ -155,7 +219,7 @@ namespace Wabbajack.Test
 
             converted.Download(new Archive { Name = "moddbtest.7z" }, filename);
 
-            Assert.AreEqual("lUvpEjqxfyidBONSHcDy6EnZIPpAD2K4rkJ5ejCXc2k=", filename.FileSHA256());
+            Assert.AreEqual("2lZt+1h6wxM=", filename.FileHash());
         }
     }
 

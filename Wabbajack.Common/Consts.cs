@@ -9,10 +9,12 @@ namespace Wabbajack.Common
     {
         public static bool TestMode { get; set; } = false;
 
-        public static string ModlistExtension = ".modlist_v2";
         public static string GameFolderFilesDir = "Game Folder Files";
         public static string LOOTFolderFilesDir = "LOOT Config Files";
         public static string BSACreationDir = "TEMP_BSA_FILES";
+
+        public static string ModListDownloadFolder = "downloaded_mod_lists";
+
         public static string MegaPrefix = "https://mega.nz/#!";
 
         public static HashSet<string> SupportedArchives = new HashSet<string> {".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod"};
@@ -43,13 +45,30 @@ namespace Wabbajack.Common
 
 
         public static string AppName = "Wabbajack";
-        public static string HashCacheName = "Wabbajack.hash_cache";
 
         public static HashSet<string> GameESMs = new HashSet<string>
-            {"Skyrim.esm", "Update.esm", "Dawnguard.esm", "HearthFires.esm", "Dragonborn.esm"};
+        {
+            // Skyrim LE/SE
+            "Skyrim.esm", 
+            "Update.esm", 
+            "Dawnguard.esm", 
+            "HearthFires.esm", 
+            "Dragonborn.esm",
+
+            // Fallout 4
+            "DLCRobot.esm",
+            "DLCworkshop01.esm",
+            "DLCCoast.esm",
+            "DLCWorkshop02.esm",
+            "DLCWorkshop03.esm",
+            "DLCNukaWorld.esm",
+            "DLCUltraHighResolution.esm"
+
+        };
 
         public static string ModPermissionsURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/NexusModPermissions.yml";
         public static string ServerWhitelistURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml";
+        public static string ModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json";
 
         public static string UserAgent
         {
@@ -61,5 +80,7 @@ namespace Wabbajack.Common
                 return headerString;
             }
         }
+
+        public static TimeSpan NexusCacheExpiry = new TimeSpan(1, 0, 0, 0);
     }
 }

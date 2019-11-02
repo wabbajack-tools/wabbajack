@@ -1,8 +1,12 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using Wabbajack.Common;
+using Wabbajack.Lib;
+using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.UI;
 using static Wabbajack.MainWindow;
 
 namespace Wabbajack
@@ -12,10 +16,12 @@ namespace Wabbajack
     /// </summary>
     public partial class ModeSelectionWindow : Window
     {
+        private List<ModlistMetadata> _lists;
+
         public ModeSelectionWindow()
         {
             InitializeComponent();
-            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner_small.png");
+            var bannerImage = UIUtils.BitmapImageFromResource("Wabbajack.UI.banner_small_dark.png");
             Banner.Source = bannerImage;
             var patreonIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.patreon_light.png");
             Patreon.Source = patreonIcon;
@@ -23,31 +29,40 @@ namespace Wabbajack
             GitHub.Source = githubIcon;
             var discordIcon = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.discord.png");
             Discord.Source = discordIcon;
+
+            DataContext = new ModeSelectionWindowViewModel();
         }
 
         private void CreateModlist_Click(object sender, RoutedEventArgs e)
         {
-            var file = UIUtils.OpenFileDialog("MO2 Modlist(modlist.txt)|modlist.txt");
-            if (file != null)
-            {
-                ShutdownOnClose = false;
-                new MainWindow(RunMode.Compile, file).Show();
-                Close();
-            }
+            OpenMainWindow(
+                RunMode.Compile,
+                UIUtils.OpenFileDialog("MO2 Modlist(modlist.txt)|modlist.txt"));
         }
 
         private void InstallModlist_Click(object sender, RoutedEventArgs e)
         {
-            var file = UIUtils.OpenFileDialog($"Wabbajack Modlist (*{Consts.ModlistExtension})|*{Consts.ModlistExtension}");
-            if (file != null)
+            //OpenMainWindow(
+            //    RunMode.Install,
+            //    UIUtils.OpenFileDialog($"Wabbajack Modlist (*{Consts.ModlistExtension})|*{Consts.ModlistExtension}"));
+
+            var result = ((ModeSelectionWindowViewModel)DataContext).Download();
+            if (result != null)
             {
-                ShutdownOnClose = false;
-                new MainWindow(RunMode.Install, file).Show();
-                Close();
+                OpenMainWindow(RunMode.Install, result);
             }
         }
 
-
+        private void OpenMainWindow(RunMode mode, string file)
+        {
+            if (file == null) return;
+            ShutdownOnClose = false;
+            var window = new MainWindow(mode, file);
+            window.Left = this.Left;
+            window.Top = this.Top;
+            window.Show();
+            Close();
+        }
 
         public void Close_Window(object sender, CancelEventArgs e)
         {
@@ -70,6 +85,12 @@ namespace Wabbajack
         private void Discord_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             Process.Start("https://discord.gg/zgbrkmA");
+        }
+
+        private void InstallFromList_Click(object sender, RoutedEventArgs e)
+        {
+            OpenMainWindow(RunMode.Install, 
+                UIUtils.OpenFileDialog($"*{ExtensionManager.Extension}|*{ExtensionManager.Extension}"));
         }
     }
 }

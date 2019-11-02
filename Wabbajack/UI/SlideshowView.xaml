@@ -1,0 +1,122 @@
+﻿<UserControl
+    x:Class="Wabbajack.SlideshowView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance local:SlideShow}"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="4" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid
+            Grid.Row="1"
+            Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="30" />
+            </Grid.RowDefinitions>
+            <Image
+                Grid.Row="0"
+                Source="{Binding Image}"
+                Stretch="Fill" />
+            <Button
+                Grid.Row="1"
+                FontSize="15"
+                FontWeight="Bold">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource MainButtonStyle}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding AppState.Mode}" Value="{x:Static local:RunMode.Install}">
+                                <Setter Property="Command" Value="{Binding AppState.OpenReadmeCommand}" />
+                                <Setter Property="Content" Value="Open README" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding AppState.Mode}" Value="{x:Static local:RunMode.Compile}">
+                                <Setter Property="Command" Value="{Binding AppState.OpenModListPropertiesCommand}" />
+                                <Setter Property="Content" Value="Modlist Properties" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </Grid>
+        <Grid
+            Grid.Row="1"
+            Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock
+                Grid.Row="0"
+                FontSize="30"
+                FontWeight="Bold"
+                Margin="6,0,0,0"
+                Text="{Binding ModName}" />
+            <TextBlock
+                Grid.Row="1"
+                FontSize="15"
+                FontWeight="Bold"
+                Margin="6,0,0,6"
+                Text="{Binding AuthorName}" />
+            <TextBlock
+                Grid.Row="2"
+                FontSize="15"
+                FontWeight="Bold"
+                Padding="5"
+                Background="{StaticResource TextBoxBackground}"
+                Text="{Binding Summary}"
+                TextWrapping="Wrap" />
+            <Grid Grid.Row="3" VerticalAlignment="Bottom">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="48" />
+                </Grid.ColumnDefinitions>
+                <CheckBox
+                    Margin="6,0,0,0"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    IsChecked="{Binding Enable}">
+                    Enable the Slideshow
+                </CheckBox>
+                <CheckBox
+                    Grid.Column="1"
+                    Margin="15,0,0,0"
+                    VerticalAlignment="Center"
+                    IsChecked="{Binding ShowNSFW}">
+                    Show NSFW Mods in the Slideshow
+                </CheckBox>
+                <Button
+                    Grid.Column="2"
+                    Height="30"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Command="{Binding SlideShowNextItemCommand}"
+                    ToolTip="Skip to next slide">
+                    <DockPanel>
+                        <Image Source="{Binding NextIcon}" Stretch="Fill" />
+                    </DockPanel>
+                </Button>
+            </Grid>
+            <Button
+                Grid.Row="4"
+                Height="30"
+                Command="{Binding VisitNexusSiteCommand}">
+                <TextBlock
+                    FontSize="15"
+                    FontWeight="Bold"
+                    Text="View Nexus Site" />
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>

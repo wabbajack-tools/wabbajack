@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.HashFunction.xxHash;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,10 +11,13 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Ceras;
 using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -22,6 +26,12 @@ namespace Wabbajack.Common
 {
     public static class Utils
     {
+        public static bool IsMO2Running(string mo2Path)
+        {
+            Process[] processList = Process.GetProcesses();
+            return processList.Where(process => process.ProcessName == "ModOrganizer").Any(process => Path.GetDirectoryName(process.MainModule?.FileName) == mo2Path);
+        }
+
         public static string LogFile { get; private set; }
         static Utils()
         {
@@ -74,7 +84,10 @@ namespace Wabbajack.Common
 
         public static void Status(string msg, int progress = 0)
         {
-            _statusFn?.Invoke(msg, progress);
+            if (WorkQueue.CustomReportFn != null)
+                WorkQueue.CustomReportFn(progress, msg);
+            else
+                _statusFn?.Invoke(msg, progress);
         }
 
 
@@ -95,6 +108,20 @@ namespace Wabbajack.Common
             }
 
             return sha.Hash.ToBase64();
+        }
+
+        public static string FileHash(this string file)
+        {
+            var hash = new xxHashConfig();
+            hash.HashSizeInBits = 64;
+            hash.Seed = 0x42;
+            using (var fs = File.OpenRead(file))
+            {
+                var config = new xxHashConfig();
+                config.HashSizeInBits = 64;
+                var value = xxHashFactory.Instance.Create(config).ComputeHash(fs);
+                return value.AsBase64String();
+            }
         }
 
         public static void CopyToWithStatus(this Stream istream, long maxSize, Stream ostream, string status)
@@ -187,13 +214,40 @@ namespace Wabbajack.Common
             return new DynamicIniData(new FileIniDataParser().ReadData(new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(file)))));
         }
 
+        public static void ToCERAS<T>(this T obj, string filename, ref SerializerConfig config)
+        {
+            var ceras = new CerasSerializer(config);
+            byte[] buffer = null;
+            ceras.Serialize(obj, ref buffer);
+            using(var m1 = new MemoryStream(buffer))
+            using (var m2 = new MemoryStream())
+            {
+                BZip2.Compress(m1, m2, false, 9);
+                m2.Seek(0, SeekOrigin.Begin);
+                File.WriteAllBytes(filename, m2.ToArray());
+            }
+        }
+
+        public static T FromCERAS<T>(this Stream data, ref SerializerConfig config)
+        {
+            var ceras = new CerasSerializer(config);
+            byte[] bytes = data.ReadAll();
+            using (var m1 = new MemoryStream(bytes))
+            using (var m2 = new MemoryStream())
+            {
+                BZip2.Decompress(m1, m2, false);
+                m2.Seek(0, SeekOrigin.Begin);
+                return ceras.Deserialize<T>(m2.ToArray());
+            }
+        }
+
         public static void ToJSON<T>(this T obj, string filename)
         {
             File.WriteAllText(filename,
                 JsonConvert.SerializeObject(obj, Formatting.Indented,
                     new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto}));
         }
-
+        /*
         public static void ToBSON<T>(this T obj, string filename)
         {
             using (var fo = File.OpenWrite(filename))
@@ -204,25 +258,29 @@ namespace Wabbajack.Common
                     {TypeNameHandling = TypeNameHandling.Auto});
                 serializer.Serialize(br, obj);
             }
-        }
+        }*/
 
         public static ulong ToMilliseconds(this DateTime date)
         {
             return (ulong) (date - new DateTime(1970, 1, 1)).TotalMilliseconds;
         }
 
-        public static string ToJSON<T>(this T obj)
+        public static string ToJSON<T>(this T obj, 
+            TypeNameHandling handling = TypeNameHandling.All,
+            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
         {
             return JsonConvert.SerializeObject(obj, Formatting.Indented,
-                new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.All});
+                new JsonSerializerSettings {TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format});
         }
-
-        public static T FromJSON<T>(this string filename)
+        
+        public static T FromJSON<T>(this string filename, 
+            TypeNameHandling handling = TypeNameHandling.All, 
+            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
         {
             return JsonConvert.DeserializeObject<T>(File.ReadAllText(filename),
-                new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
+                new JsonSerializerSettings {TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format});
         }
-
+        /*
         public static T FromBSON<T>(this string filename, bool root_is_array = false)
         {
             using (var fo = File.OpenRead(filename))
@@ -232,14 +290,15 @@ namespace Wabbajack.Common
                     {TypeNameHandling = TypeNameHandling.Auto});
                 return serializer.Deserialize<T>(br);
             }
-        }
+        }*/
 
-        public static T FromJSONString<T>(this string data)
+        public static T FromJSONString<T>(this string data, 
+            TypeNameHandling handling = TypeNameHandling.All,
+            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
         {
             return JsonConvert.DeserializeObject<T>(data,
-                new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
+                new JsonSerializerSettings {TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format});
         }
-
         public static T FromJSON<T>(this Stream data)
         {
             var s = Encoding.UTF8.GetString(data.ReadAll());
@@ -566,6 +625,37 @@ namespace Wabbajack.Common
         {
             Log(msg);
             throw new Exception(msg);
+        }
+
+        public static Stream GetResourceStream(string name)
+        {
+            return (from assembly in AppDomain.CurrentDomain.GetAssemblies()
+                    where !assembly.IsDynamic
+                    from rname in assembly.GetManifestResourceNames()
+                    where rname == name
+                    select assembly.GetManifestResourceStream(name)).First();
+        }
+
+        public static T FromYaml<T>(this Stream s)
+        {
+            var d = new DeserializerBuilder()
+            .WithNamingConvention(PascalCaseNamingConvention.Instance)
+            .Build();
+            return d.Deserialize<T>(new StreamReader(s));
+        }
+
+        public static T FromYaml<T>(this string s)
+        {
+            var d = new DeserializerBuilder()
+                .WithNamingConvention(PascalCaseNamingConvention.Instance)
+                .Build();
+            return d.Deserialize<T>(new StringReader(s));
+        }
+
+        public static void LogStatus(string s)
+        {
+            Status(s);
+            Log(s);
         }
     }
 }

@@ -7,10 +7,12 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
+using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Test
@@ -51,7 +53,7 @@ namespace Wabbajack.Test
             });
 
             Directory.CreateDirectory(DownloadsFolder);
-            Directory.CreateDirectory(GameFolder);
+            Directory.CreateDirectory(Path.Combine(GameFolder, "Data"));
 
             Profiles.Do(profile =>
             {
@@ -60,19 +62,21 @@ namespace Wabbajack.Test
             });
         }
 
-        public string AddProfile()
+        public string AddProfile(string name = null)
         {
-            string profile_name = RandomName();
+            string profile_name = name ?? RandomName();
             Directory.CreateDirectory(Path.Combine(MO2Folder, "profiles", profile_name));
             Profiles.Add(profile_name);
             return profile_name;
         }
         public HashSet<string> Profiles = new HashSet<string>();
 
-        public string AddMod()
+        public string AddMod(string name = null)
         {
-            string mod_name = RandomName();
-            Directory.CreateDirectory(Path.Combine(MO2Folder, "mods", mod_name));
+            string mod_name = name ?? RandomName();
+            var mod_folder = Path.Combine(MO2Folder, "mods", mod_name);
+            Directory.CreateDirectory(mod_folder);
+            File.WriteAllText(Path.Combine(mod_folder, "meta.ini"), "[General]");
             Mods.Add(mod_name);
             return mod_name;
         }
@@ -89,6 +93,17 @@ namespace Wabbajack.Test
         /// <returns></returns>
         public string AddModFile(string mod_name, string path, int random_fill=128)
         {
+
+
+            var full_path = Path.Combine(ModsFolder, mod_name, path);
+            Directory.CreateDirectory(Path.GetDirectoryName(full_path));
+
+            GenerateRandomFileData(full_path, random_fill);
+            return full_path;
+        }
+
+        public void GenerateRandomFileData(string full_path, int random_fill)
+        {
             byte[] bytes = new byte[0];
             if (random_fill != 0)
             {
@@ -96,10 +111,7 @@ namespace Wabbajack.Test
                 RNG.NextBytes(bytes);
             }
 
-            var full_path = Path.Combine(ModsFolder, mod_name, path);
-            Directory.CreateDirectory(Path.GetDirectoryName(full_path));
             File.WriteAllBytes(full_path, bytes);
-            return full_path;
         }
 
         public void Dispose()
@@ -170,6 +182,43 @@ namespace Wabbajack.Test
                 if (src_data[x] != dest_data[x])
                     Assert.Fail($"Index {x} of {mod}\\{file} are not the same");
             }
+        }
+
+        public void VerifyAllFiles()
+        {
+            foreach (var dest_file in Directory.EnumerateFiles(InstallFolder, "*", DirectoryEnumerationOptions.Recursive))
+            {
+                var rel_file = dest_file.RelativeTo(InstallFolder);
+                if (rel_file.StartsWith(Consts.LOOTFolderFilesDir) || rel_file.StartsWith(Consts.GameFolderFilesDir))
+                    continue;
+                Assert.IsTrue(File.Exists(Path.Combine(MO2Folder, rel_file)), $"Only in Destination: {rel_file}");
+            }
+
+            var skip_extensions = new HashSet<string> {".txt", ".ini"};
+
+            foreach (var src_file in Directory.EnumerateFiles(MO2Folder, "*", DirectoryEnumerationOptions.Recursive))
+            {
+                var rel_file = src_file.RelativeTo(MO2Folder);
+
+                if (rel_file.StartsWith("downloads\\"))
+                    continue;
+
+                var dest_file = Path.Combine(InstallFolder, rel_file);
+                Assert.IsTrue(File.Exists(dest_file), $"Only in Source: {rel_file}");
+
+                var fi_src = new FileInfo(src_file);
+                var fi_dest = new FileInfo(dest_file);
+
+
+
+                if (!skip_extensions.Contains(Path.GetExtension(src_file)))
+                {
+                    Assert.AreEqual(fi_src.Length, fi_dest.Length, $"Differing sizes {rel_file}");
+                    Assert.AreEqual(src_file.FileHash(), dest_file.FileHash(), $"Differing content hash {rel_file}");
+                }
+            }
+
+
         }
     }
 }

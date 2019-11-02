@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Threading;
 using System.Windows;
 using Wabbajack.Common;
+using Wabbajack.Lib;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 
@@ -16,38 +17,28 @@ namespace Wabbajack
     {
         private AppState _state;
 
-        public enum RunMode
+        public MainWindow()
         {
-            Compile,
-            Install
+            string[] args = Environment.GetCommandLineArgs();
+
+            if (args.Length != 3) return;
+            var modlistPath = args[2];
+            var mainWindow = new MainWindow(RunMode.Install, modlistPath);
+            mainWindow.Show();
+            Close();
         }
 
         public MainWindow(RunMode mode, string source)
         {
-            var args = Environment.GetCommandLineArgs();
-
             InitializeComponent();
 
-            var context = new AppState(TaskMode.BUILDING);
+            var context = new AppState(mode);
             context.LogMsg($"Wabbajack Build - {ThisAssembly.Git.Sha}");
             SetupHandlers(context);
             DataContext = context;
 
             Utils.SetLoggerFn(s => context.LogMsg(s));
             Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
-
-            _state._nexusSiteURL = "https://github.com/wabbajack-tools/wabbajack";
-
-            if (mode == RunMode.Compile)
-            {
-                PropertyCompilerGrid.Visibility = Visibility.Visible;
-                PropertyInstallerGrid.Visibility = Visibility.Hidden;
-            }
-            else
-            {
-                PropertyCompilerGrid.Visibility = Visibility.Hidden;
-                PropertyInstallerGrid.Visibility = Visibility.Visible;
-            }
 
             new Thread(() =>
             {
