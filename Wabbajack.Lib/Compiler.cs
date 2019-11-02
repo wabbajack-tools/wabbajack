@@ -588,8 +588,8 @@ namespace Wabbajack.Lib
                 new PatchStockESMs(this),
 
                 new IncludeAllConfigs(this),
-                new IncludeTaggedMods(this, Consts.WABBAJACK_NOMATCH_INCLUDE),
                 new zEditIntegration.IncludeZEditPatches(this),
+                new IncludeTaggedMods(this, Consts.WABBAJACK_NOMATCH_INCLUDE),
 
                 new DropAll(this)
             };
