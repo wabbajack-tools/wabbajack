@@ -41,10 +41,15 @@ namespace Wabbajack
         private RunMode _Mode;
         public RunMode Mode { get => _Mode; set => this.RaiseAndSetIfChanged(ref _Mode, value); }
 
+        private readonly Lazy<CompilerVM> _Compiler;
+        private readonly Lazy<InstallerVM> _Installer;
+
         public MainWindowVM(RunMode mode, string source, MainWindow mainWindow)
         {
             this.Mode = mode;
             this.MainWindow = mainWindow;
+            this._Installer = new Lazy<InstallerVM>(() => new InstallerVM(this));
+            this._Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this, source));
 
             // Set up logging
             _logSubj
@@ -60,16 +65,18 @@ namespace Wabbajack
             Utils.SetLoggerFn(s => _logSubj.OnNext(s));
             Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
 
-            // Wire mode to drive the active pane
+            // Wire mode to drive the active pane.
+            // Note:  This is currently made into a derivative property driven by mode,
+            // but it can be easily changed into a normal property that can be set from anywhere if needed
             this._ActivePane = this.WhenAny(x => x.Mode)
                 .Select<RunMode, ViewModel>(m =>
                 {
                     switch (m)
                     {
                         case RunMode.Compile:
-                            return new CompilerVM(this, source);
+                            return this._Compiler.Value;
                         case RunMode.Install:
-                            return new InstallerVM(this);
+                            return this._Installer.Value;
                         default:
                             return default;
                     }
