@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version 1.0 alpha 5 - 11/2/2019
+* Fix a NPE exception with game ESM verification
+
 #### Version 1.0 alpha 4 - 11/2/2019
 * Reorganize steps so that we run zEdit merges before NOMATCH_INCLUDE
 * Look for hidden/optional ESMs when building zEdit plugins
