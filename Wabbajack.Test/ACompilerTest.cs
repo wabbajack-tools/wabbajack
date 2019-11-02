@@ -10,7 +10,7 @@ using Wabbajack.Lib;
 
 namespace Wabbajack.Test
 {
-    public abstract class ACompilerTest
+    public abstract class  ACompilerTest
     {
         public TestContext TestContext { get; set; }
         protected TestUtils utils { get; set; }

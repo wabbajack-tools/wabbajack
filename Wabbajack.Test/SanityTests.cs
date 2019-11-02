@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime;
-using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting.Logging;
 using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using File = Alphaleonis.Win32.Filesystem.File;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Test
 {
@@ -30,6 +32,33 @@ namespace Wabbajack.Test
             CompileAndInstall(profile);
 
             utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
+        }
+
+        [TestMethod]
+        public void CleanedESMTest()
+        {
+
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod("Cleaned ESMs");
+            var update_esm = utils.AddModFile(mod, @"Update.esm", 10);
+
+            utils.Configure();
+
+            var game_file = Path.Combine(utils.GameFolder, "Data", "Update.esm");
+            utils.GenerateRandomFileData(game_file, 20);
+
+            var modlist = CompileAndInstall(profile);
+
+            utils.VerifyInstalledFile(mod, @"Update.esm");
+
+            var compiler = ConfigureAndRunCompiler(profile);
+
+            // Update the file and verify that it throws an error.
+            utils.GenerateRandomFileData(game_file, 20);
+            var exception = Assert.ThrowsException<Exception>(() => Install(compiler));
+            Assert.AreEqual(exception.Message, "Game ESM hash doesn't match, is the ESM already cleaned? Please verify your local game files.");
+
+
         }
 
         [TestMethod]

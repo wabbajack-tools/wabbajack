@@ -98,7 +98,22 @@ namespace Wabbajack.Lib
 
         public void Install()
         {
+            var game = GameRegistry.Games[ModList.GameType];
 
+            if (GameFolder == null)
+                GameFolder = game.GameLocation;
+
+            if (GameFolder == null)
+            {
+                MessageBox.Show(
+                    $"In order to do a proper install Wabbajack needs to know where your {game.MO2Name} folder resides. We tried looking the" +
+                    "game location up in the windows registry but were unable to find it, please make sure you launch the game once before running this installer. ",
+                    "Could not find game location", MessageBoxButton.OK);
+                Utils.Log("Exiting because we couldn't find the game folder.");
+                return;
+            }
+
+            ValidateGameESMs();
             ValidateModlist.RunValidation(ModList);
 
             VirtualFileSystem.Clean();
@@ -119,19 +134,6 @@ namespace Wabbajack.Lib
                 }
             }
 
-            var game = GameRegistry.Games[ModList.GameType];
-
-            GameFolder = game.GameLocation;
-
-            if (GameFolder == null)
-            {
-                MessageBox.Show(
-                    $"In order to do a proper install Wabbajack needs to know where your {game.MO2Name} folder resides. We tried looking the" +
-                    "game location up in the windows registry but were unable to find it, please make sure you launch the game once before running this installer. ",
-                    "Could not find game location", MessageBoxButton.OK);
-                Utils.Log("Exiting because we couldn't find the game folder.");
-                return;
-            }
 
             HashArchives();
             DownloadArchives();
@@ -161,6 +163,21 @@ namespace Wabbajack.Lib
             // Removed until we decide if we want this functionality
             // Nexus devs weren't sure this was a good idea, I (halgari) agree.
             //AskToEndorse();
+        }
+
+        private void ValidateGameESMs()
+        {
+            foreach (var esm in ModList.Directives.OfType<CleanedESM>().ToList())
+            {
+                var filename = Path.GetFileName(esm.To);
+                var game_file = Path.Combine(GameFolder, "Data", filename);
+                Utils.Log($"Validating {filename}");
+                var hash = game_file.FileHash();
+                if (hash != esm.SourceESMHash)
+                {
+                    Utils.Error("Game ESM hash doesn't match, is the ESM already cleaned? Please verify your local game files.");
+                }
+            }
         }
 
         private void AskToEndorse()
@@ -308,8 +325,9 @@ namespace Wabbajack.Lib
             var to_file = Path.Combine(Outputfolder, directive.To);
             Status($"Patching {filename}");
             using (var output = File.OpenWrite(to_file))
+            using (var input = File.OpenRead(game_file))
             {
-                BSDiff.Apply(File.OpenRead(game_file), () => new MemoryStream(patch_data), output);
+                BSDiff.Apply(input, () => new MemoryStream(patch_data), output);
             }
         }
 

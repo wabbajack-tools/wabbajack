@@ -53,7 +53,7 @@ namespace Wabbajack.Test
             });
 
             Directory.CreateDirectory(DownloadsFolder);
-            Directory.CreateDirectory(GameFolder);
+            Directory.CreateDirectory(Path.Combine(GameFolder, "Data"));
 
             Profiles.Do(profile =>
             {
@@ -93,6 +93,17 @@ namespace Wabbajack.Test
         /// <returns></returns>
         public string AddModFile(string mod_name, string path, int random_fill=128)
         {
+
+
+            var full_path = Path.Combine(ModsFolder, mod_name, path);
+            Directory.CreateDirectory(Path.GetDirectoryName(full_path));
+
+            GenerateRandomFileData(full_path, random_fill);
+            return full_path;
+        }
+
+        public void GenerateRandomFileData(string full_path, int random_fill)
+        {
             byte[] bytes = new byte[0];
             if (random_fill != 0)
             {
@@ -100,10 +111,7 @@ namespace Wabbajack.Test
                 RNG.NextBytes(bytes);
             }
 
-            var full_path = Path.Combine(ModsFolder, mod_name, path);
-            Directory.CreateDirectory(Path.GetDirectoryName(full_path));
             File.WriteAllBytes(full_path, bytes);
-            return full_path;
         }
 
         public void Dispose()
