@@ -131,11 +131,12 @@
                         FontFamily="Lucida Sans"
                         FontSize="30"
                         FontWeight="Bold"
-                        Text="{Binding AuthorText}"
                         TextWrapping="Wrap">
                         <TextBlock.Effect>
                             <DropShadowEffect />
                         </TextBlock.Effect>
+                        <Run FontSize="15" Text="by" />
+                        <Run Text="{Binding AuthorText, Mode=OneWay}" />
                     </TextBlock>
                 </Grid>
                 <Grid Grid.Column="1">
