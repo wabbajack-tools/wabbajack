@@ -1,4 +1,5 @@
 ﻿using Alphaleonis.Win32.Filesystem;
+using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,24 +16,11 @@ namespace Wabbajack.UI
     {
         public ObservableCollection<ModlistMetadata> ModLists { get; } = new ObservableCollection<ModlistMetadata>(ModlistMetadata.LoadFromGithub());
 
-        private ModlistMetadata _selectedModList;
-        public ModlistMetadata SelectedModList
-        {
-            get => _selectedModList;
-            set
-            {
-                CanInstall = true;
-                RaiseAndSetIfChanged(ref _selectedModList, value);
-            }
-        }
+        [Reactive]
+        public ModlistMetadata SelectedModList { get; set; }
 
-        private bool _canInstall;
-
-        public bool CanInstall
-        {
-            get => _canInstall;
-            set => RaiseAndSetIfChanged(ref _canInstall, value);
-        }
+        [Reactive]
+        public bool CanInstall { get; set; }
 
         internal string Download()
         {

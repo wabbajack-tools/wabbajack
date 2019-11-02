@@ -1,6 +1,7 @@
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -28,8 +29,8 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ViewModel> _ActivePane;
         public ViewModel ActivePane => _ActivePane.Value;
 
-        private int _QueueProgress;
-        public int QueueProgress { get => _QueueProgress; set => this.RaiseAndSetIfChanged(ref _QueueProgress, value); }
+        [Reactive]
+        public int QueueProgress { get; set; }
 
         private readonly Subject<CPUStatus> _statusSubject = new Subject<CPUStatus>();
         public IObservable<CPUStatus> StatusObservable => _statusSubject;
@@ -38,8 +39,8 @@ namespace Wabbajack
         private Subject<string> _logSubj = new Subject<string>();
         public ObservableCollectionExtended<string> Log { get; } = new ObservableCollectionExtended<string>();
 
-        private RunMode _Mode;
-        public RunMode Mode { get => _Mode; set => this.RaiseAndSetIfChanged(ref _Mode, value); }
+        [Reactive]
+        public RunMode Mode { get; set; }
 
         private readonly Lazy<CompilerVM> _Compiler;
         private readonly Lazy<InstallerVM> _Installer;

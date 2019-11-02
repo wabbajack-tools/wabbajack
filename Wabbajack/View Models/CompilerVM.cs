@@ -1,4 +1,5 @@
 ﻿using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using Splat;
 using System;
 using System.Collections.Generic;
@@ -20,44 +21,44 @@ namespace Wabbajack
     {
         public MainWindowVM MWVM { get; }
 
-        private string _Mo2Folder;
-        public string Mo2Folder { get => _Mo2Folder; set => this.RaiseAndSetIfChanged(ref _Mo2Folder, value); }
+        [Reactive]
+        public string Mo2Folder { get; set; }
 
-        private string _MOProfile;
-        public string MOProfile { get => _MOProfile; set => this.RaiseAndSetIfChanged(ref _MOProfile, value); }
+        [Reactive]
+        public string MOProfile { get; set; }
 
-        private string _ModListName;
-        public string ModListName { get => _ModListName; set => this.RaiseAndSetIfChanged(ref _ModListName, value); }
+        [Reactive]
+        public string ModListName { get; set; }
 
-        private string _Location;
-        public string Location { get => _Location; set => this.RaiseAndSetIfChanged(ref _Location, value); }
+        [Reactive]
+        public string Location { get; set; }
 
-        private bool _UIReady = true;
-        public bool UIReady { get => _UIReady; set => this.RaiseAndSetIfChanged(ref _UIReady, value); }
+        [Reactive]
+        public bool UIReady { get; set; }
 
-        private string _AuthorName;
-        public string AuthorName { get => _AuthorName; set => this.RaiseAndSetIfChanged(ref _AuthorName, value); }
+        [Reactive]
+        public string AuthorName { get; set; }
 
-        private string _Summary = "Description (700 characters max)";
-        public string Summary { get => _Summary; set => this.RaiseAndSetIfChanged(ref _Summary, value); }
+        [Reactive]
+        public string Summary { get; set; } = "Description (700 characters max)";
 
-        private string _ImagePath;
-        public string ImagePath { get => _ImagePath; set => this.RaiseAndSetIfChanged(ref _ImagePath, value); }
+        [Reactive]
+        public string ImagePath { get; set; }
 
         private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
         public BitmapImage Image => _Image.Value;
 
-        private string _NexusSiteURL;
-        public string NexusSiteURL { get => _NexusSiteURL; set => this.RaiseAndSetIfChanged(ref _NexusSiteURL, value); }
+        [Reactive]
+        public string NexusSiteURL { get; set; }
 
-        private string _ReadMeText;
-        public string ReadMeText { get => _ReadMeText; set => this.RaiseAndSetIfChanged(ref _ReadMeText, value); }
+        [Reactive]
+        public string ReadMeText { get; set; }
 
-        private string _HTMLReport;
-        public string HTMLReport { get => _HTMLReport; set => this.RaiseAndSetIfChanged(ref _HTMLReport, value); }
+        [Reactive]
+        public string HTMLReport { get; set; }
 
-        private string _DownloadLocation;
-        public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
+        [Reactive]
+        public string DownloadLocation { get; set; }
 
         public IReactiveCommand BeginCommand { get; }
 

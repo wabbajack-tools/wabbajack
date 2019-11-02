@@ -339,6 +339,9 @@
     <PackageReference Include="ReactiveUI.Events.WPF">
       <Version>10.4.1</Version>
     </PackageReference>
+    <PackageReference Include="ReactiveUI.Fody">
+      <Version>10.5.7</Version>
+    </PackageReference>
     <PackageReference Include="ReactiveUI.WPF">
       <Version>10.4.1</Version>
     </PackageReference>

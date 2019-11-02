@@ -1,4 +1,5 @@
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using Splat;
 using System;
 using System.Collections.Generic;
@@ -36,29 +37,29 @@ namespace Wabbajack
 
         public BitmapImage NextIcon { get; } = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Icons.next.png");
 
-        private bool _ShowNSFW;
-        public bool ShowNSFW { get => _ShowNSFW; set => this.RaiseAndSetIfChanged(ref _ShowNSFW, value); }
+        [Reactive]
+        public bool ShowNSFW { get; set; }
 
-        private bool _GCAfterUpdating = true;
-        public bool GCAfterUpdating { get => _GCAfterUpdating; set => this.RaiseAndSetIfChanged(ref _GCAfterUpdating, value); }
+        [Reactive]
+        public bool GCAfterUpdating { get; set; }
 
-        private bool _Enable = true;
-        public bool Enable { get => _Enable; set => this.RaiseAndSetIfChanged(ref _Enable, value); }
+        [Reactive]
+        public bool Enable { get; set; } = true;
 
-        private BitmapImage _Image;
-        public BitmapImage Image { get => _Image; set => this.RaiseAndSetIfChanged(ref _Image, value); }
+        [Reactive]
+        public BitmapImage Image { get; set; }
 
-        private string _ModName = "Wabbajack";
-        public string ModName { get => _ModName; set => this.RaiseAndSetIfChanged(ref _ModName, value); }
+        [Reactive]
+        public string ModName { get; set; } = "Wabbajack";
 
-        private string _AuthorName = "Halgari & the Wabbajack Team";
-        public string AuthorName { get => _AuthorName; set => this.RaiseAndSetIfChanged(ref _AuthorName, value); }
+        [Reactive]
+        public string AuthorName { get; set; } = "Halgari & the Wabbajack Team";
 
-        private string _Description;
-        public string Description { get => _Description; set => this.RaiseAndSetIfChanged(ref _Description, value); }
+        [Reactive]
+        public string Description { get; set; }
 
-        private string _NexusSiteURL = "https://github.com/wabbajack-tools/wabbajack";
-        public string NexusSiteURL { get => _NexusSiteURL; set => this.RaiseAndSetIfChanged(ref _NexusSiteURL, value); }
+        [Reactive]
+        public string NexusSiteURL { get; set; } = "https://github.com/wabbajack-tools/wabbajack";
 
         public IReactiveCommand SlideShowNextItemCommand { get; } = ReactiveCommand.Create(() => { });
         public IReactiveCommand VisitNexusSiteCommand { get; }

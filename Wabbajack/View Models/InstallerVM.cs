@@ -27,6 +27,7 @@ using System.Reactive;
 using System.Text;
 using Wabbajack.Lib;
 using Splat;
+using ReactiveUI.Fody.Helpers;
 
 namespace Wabbajack
 {
@@ -41,11 +42,11 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ModList> _ModList;
         public ModList ModList => _ModList.Value;
 
-        private string _ModListPath;
-        public string ModListPath { get => _ModListPath; set => this.RaiseAndSetIfChanged(ref _ModListPath, value); }
+        [Reactive]
+        public string ModListPath { get; set; }
 
-        private bool _UIReady;
-        public bool UIReady { get => _UIReady; set => this.RaiseAndSetIfChanged(ref _UIReady, value); }
+        [Reactive]
+        public bool UIReady { get; set; }
 
         private readonly ObservableAsPropertyHelper<string> _HTMLReport;
         public string HTMLReport => _HTMLReport.Value;
@@ -53,20 +54,20 @@ namespace Wabbajack
         /// <summary>
         /// Tracks whether an install is currently in progress
         /// </summary>
-        private bool _Installing;
-        public bool Installing { get => _Installing; set => this.RaiseAndSetIfChanged(ref _Installing, value); }
+        [Reactive]
+        public bool Installing { get; set; }
 
         /// <summary>
         /// Tracks whether to show the installing pane
         /// </summary>
-        private bool _InstallingMode;
-        public bool InstallingMode { get => _InstallingMode; set => this.RaiseAndSetIfChanged(ref _InstallingMode, value); }
+        [Reactive]
+        public bool InstallingMode { get; set; }
 
-        private string _Location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        public string Location { get => _Location; set => this.RaiseAndSetIfChanged(ref _Location, value); }
+        [Reactive]
+        public string Location { get; set; } = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-        private string _DownloadLocation;
-        public string DownloadLocation { get => _DownloadLocation; set => this.RaiseAndSetIfChanged(ref _DownloadLocation, value); }
+        [Reactive]
+        public string DownloadLocation { get; set; }
 
         private readonly ObservableAsPropertyHelper<float> _ProgressPercent;
         public float ProgressPercent => _ProgressPercent.Value;
