@@ -34,7 +34,7 @@ namespace Wabbajack
         public string Location { get; set; }
 
         [Reactive]
-        public bool UIReady { get; set; }
+        public bool UIReady { get; set; } = true;
 
         [Reactive]
         public string AuthorName { get; set; }

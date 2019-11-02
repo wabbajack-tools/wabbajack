@@ -41,7 +41,7 @@ namespace Wabbajack
         public bool ShowNSFW { get; set; }
 
         [Reactive]
-        public bool GCAfterUpdating { get; set; }
+        public bool GCAfterUpdating { get; set; } = true;
 
         [Reactive]
         public bool Enable { get; set; } = true;
