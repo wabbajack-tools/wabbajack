@@ -14,8 +14,9 @@
         <Color x:Key="TextBackgroundFill">#92000000</Color>
         <SolidColorBrush x:Key="TextBackgroundFillBrush" Color="{StaticResource TextBackgroundFill}" />
         <Color x:Key="TextBackgroundHoverFill">#DF000000</Color>
-        <Style x:Key="BackgroundBlurStyle" TargetType="Border">
+        <Style x:Key="BackgroundBlurStyle" TargetType="TextBlock">
             <Setter Property="Background" Value="{StaticResource TextBackgroundFillBrush}" />
+            <Setter Property="Foreground" Value="Transparent" />
             <Setter Property="Visibility" Value="Visible" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsMouseOver, ElementName=Slideshow}" Value="True">
@@ -23,7 +24,7 @@
                         <BeginStoryboard>
                             <Storyboard>
                                 <ColorAnimation
-                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                    Storyboard.TargetProperty="(TextBlock.Background).(SolidColorBrush.Color)"
                                     To="{StaticResource TextBackgroundHoverFill}"
                                     Duration="0:0:0.06" />
                             </Storyboard>
@@ -33,7 +34,7 @@
                         <BeginStoryboard>
                             <Storyboard>
                                 <ColorAnimation
-                                    Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                    Storyboard.TargetProperty="(TextBlock.Background).(SolidColorBrush.Color)"
                                     To="{StaticResource TextBackgroundFill}"
                                     Duration="0:0:0.06" />
                             </Storyboard>
@@ -100,21 +101,47 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Border
+                    <TextBlock
+                        x:Name="TitleTextShadow"
                         Grid.Row="1"
-                        Grid.RowSpan="2"
                         Grid.Column="0"
-                        Margin="-100,0,0,-100"
-                        CornerRadius="100"
-                        Style="{StaticResource BackgroundBlurStyle}">
-                        <Border.Effect>
-                            <BlurEffect Radius="65" />
-                        </Border.Effect>
-                    </Border>
+                        Margin="-20,15,40,-10"
+                        Padding="40,10"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Bottom"
+                        FontFamily="Lucida Sans"
+                        FontSize="65"
+                        FontWeight="Bold"
+                        Style="{StaticResource BackgroundBlurStyle}"
+                        Text="{Binding TitleText}"
+                        TextWrapping="WrapWithOverflow">
+                        <TextBlock.Effect>
+                            <BlurEffect Radius="85" />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock
+                        x:Name="ArtistTextShadow"
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Margin="35,-10,-10,10"
+                        Padding="30,10"
+                        HorizontalAlignment="Left"
+                        FontFamily="Lucida Sans"
+                        FontSize="30"
+                        FontWeight="Bold"
+                        Style="{StaticResource BackgroundBlurStyle}"
+                        TextWrapping="WrapWithOverflow">
+                        <TextBlock.Effect>
+                            <BlurEffect Radius="55" />
+                        </TextBlock.Effect>
+                        <Run FontSize="15" Text="by" />
+                        <Run Text="{Binding AuthorText, Mode=OneWay}" />
+                    </TextBlock>
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="0"
                         Margin="20,25,20,0"
+                        HorizontalAlignment="Left"
                         VerticalAlignment="Bottom"
                         FontFamily="Lucida Sans"
                         FontSize="65"
@@ -286,15 +313,23 @@
                             </Grid>
                         </ToggleButton>
                     </Grid>
-                    <Border
+                    <TextBlock
+                        x:Name="DescriptionTextShadow"
                         Grid.Row="3"
-                        Margin="0,0,-50,-50"
-                        CornerRadius="50"
-                        Style="{StaticResource BackgroundBlurStyle}">
-                        <Border.Effect>
-                            <BlurEffect Radius="65" />
-                        </Border.Effect>
-                    </Border>
+                        Margin="-10,15,-5,15"
+                        Padding="30,10"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        FontFamily="Lucida Sans"
+                        FontSize="16"
+                        Style="{StaticResource BackgroundBlurStyle}"
+                        Text="{Binding Description}"
+                        TextAlignment="Right"
+                        TextWrapping="Wrap">
+                        <TextBlock.Effect>
+                            <BlurEffect Radius="55" />
+                        </TextBlock.Effect>
+                    </TextBlock>
                     <TextBlock
                         Grid.Row="3"
                         Margin="20,25,25,25"
