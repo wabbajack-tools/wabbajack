@@ -652,5 +652,10 @@ namespace Wabbajack.Common
             return d.Deserialize<T>(new StringReader(s));
         }
 
+        public static void LogStatus(string s)
+        {
+            Status(s);
+            Log(s);
+        }
     }
 }

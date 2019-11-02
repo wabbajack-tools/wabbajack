@@ -66,7 +66,7 @@ namespace Wabbajack.Lib
             throw new Exception(msg);
         }
 
-        private byte[] LoadBytesFromPath(string path)
+        public byte[] LoadBytesFromPath(string path)
         {
             using (var fs = new FileStream(ModListArchive, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
@@ -154,6 +154,8 @@ namespace Wabbajack.Lib
             InstallArchives();
             InstallIncludedFiles();
             BuildBSAs();
+
+            zEditIntegration.GenerateMerges(this);
 
             Info("Installation complete! You may exit the program.");
             // Removed until we decide if we want this functionality

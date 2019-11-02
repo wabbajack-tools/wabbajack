@@ -51,5 +51,20 @@ namespace Wabbajack.Test
             var compiler = new Compiler(utils.MO2Folder);
             return compiler;
         }
+        protected ModList CompileAndInstall(string profile)
+        {
+            var compiler = ConfigureAndRunCompiler(profile);
+            Install(compiler);
+            return compiler.ModList;
+        }
+
+        protected void Install(Compiler compiler)
+        {
+            var modlist = Installer.LoadFromFile(compiler.ModListOutputFile);
+            var installer = new Installer(compiler.ModListOutputFile, modlist, utils.InstallFolder);
+            installer.DownloadFolder = utils.DownloadsFolder;
+            installer.GameFolder = utils.GameFolder;
+            installer.Install();
+        }
     }
 }
