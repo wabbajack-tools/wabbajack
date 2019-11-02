@@ -36,7 +36,7 @@ namespace Wabbajack
 
         public MainWindowVM MWVM { get; }
 
-        public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Banner_Dark.png");
+        public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Wabba_Mouth.png");
 
         private readonly ObservableAsPropertyHelper<ModList> _ModList;
         public ModList ModList => _ModList.Value;
