@@ -98,6 +98,21 @@ namespace Wabbajack.Lib
 
         public void Install()
         {
+            var game = GameRegistry.Games[ModList.GameType];
+
+            if (GameFolder == null)
+                GameFolder = game.GameLocation;
+
+            if (GameFolder == null)
+            {
+                MessageBox.Show(
+                    $"In order to do a proper install Wabbajack needs to know where your {game.MO2Name} folder resides. We tried looking the" +
+                    "game location up in the windows registry but were unable to find it, please make sure you launch the game once before running this installer. ",
+                    "Could not find game location", MessageBoxButton.OK);
+                Utils.Log("Exiting because we couldn't find the game folder.");
+                return;
+            }
+
             ValidateGameESMs();
             ValidateModlist.RunValidation(ModList);
 
@@ -119,20 +134,6 @@ namespace Wabbajack.Lib
                 }
             }
 
-            var game = GameRegistry.Games[ModList.GameType];
-
-            if (GameFolder == null)
-                GameFolder = game.GameLocation;
-
-            if (GameFolder == null)
-            {
-                MessageBox.Show(
-                    $"In order to do a proper install Wabbajack needs to know where your {game.MO2Name} folder resides. We tried looking the" +
-                    "game location up in the windows registry but were unable to find it, please make sure you launch the game once before running this installer. ",
-                    "Could not find game location", MessageBoxButton.OK);
-                Utils.Log("Exiting because we couldn't find the game folder.");
-                return;
-            }
 
             HashArchives();
             DownloadArchives();
