@@ -1,12 +1,13 @@
 ### Changelog
 
-#### Unreleased changes
-* Nothing yet...
+#### Version 1.0 alpha 3 - 11/2/2019
 * Slideshow more responsive on pressing next
 * Slideshow timer resets when next is pressed
 * Changed modlist extension to `.wabbajack`
 * You can now open modlists directly (after initial launch)
 * Wabbajack will exit if MO2 is running
+* Added support for zEdit merges. We detect the zEdit install location by scanning the tool list in 
+Mod Organizer's .ini files, then we use the merges.json file to figure out the contents of each merge. 
 
 #### Version 1.0 alpha 2 - 10/15/2019
 * Fix installer running in wrong mode
