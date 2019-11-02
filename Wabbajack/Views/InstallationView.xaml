@@ -62,6 +62,17 @@
             <RowDefinition Height="4*" />
             <RowDefinition Height="*" MinHeight="150" />
         </Grid.RowDefinitions>
+        <Rectangle
+            x:Name="BorderEdgeFadeDown"
+            Grid.Row="1"
+            Grid.RowSpan="3">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Offset="0" Color="#191919" />
+                    <GradientStop Offset="0.4" Color="#00191919" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
         <!--  Slideshow  -->
         <Border
             x:Name="Slideshow"
