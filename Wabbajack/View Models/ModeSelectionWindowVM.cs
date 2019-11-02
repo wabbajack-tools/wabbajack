@@ -11,22 +11,9 @@ using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack.UI
 {
-    public class ModeSelectionWindowViewModel : ViewModel
+    public class ModeSelectionWindowVM : ViewModel
     {
-
-
-        public ModeSelectionWindowViewModel()
-        {
-            _modLists = new ObservableCollection<ModlistMetadata>(ModlistMetadata.LoadFromGithub());
-        }
-
-        private ObservableCollection<ModlistMetadata> _modLists;
-
-        public ObservableCollection<ModlistMetadata> ModLists
-        {
-            get => _modLists;
-        }
-
+        public ObservableCollection<ModlistMetadata> ModLists { get; } = new ObservableCollection<ModlistMetadata>(ModlistMetadata.LoadFromGithub());
 
         private ModlistMetadata _selectedModList;
         public ModlistMetadata SelectedModList
@@ -60,7 +47,6 @@ namespace Wabbajack.UI
             if (window.Result == DownloadWindow.WindowResult.Completed)
                 return dest;
             return null;
-
         }
     }
 }

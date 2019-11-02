@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+using ReactiveUI;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack
@@ -30,10 +32,9 @@ namespace Wabbajack
 
         public Queue<Slide> SlidesQueue { get; }
 
-        public AppState AppState { get; }
+        public InstallerVM Installer { get; }
 
-        public BitmapImage NextIcon { get; } = UIUtils.BitmapImageFromResource("Wabbajack.UI.Icons.next.png");
-        public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromResource("Wabbajack.UI.Banner_Dark.png");
+        public BitmapImage NextIcon { get; } = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Icons.next.png");
 
         private bool _ShowNSFW;
         public bool ShowNSFW { get => _ShowNSFW; set => this.RaiseAndSetIfChanged(ref _ShowNSFW, value); }
@@ -53,8 +54,8 @@ namespace Wabbajack
         private string _AuthorName = "Halgari & the Wabbajack Team";
         public string AuthorName { get => _AuthorName; set => this.RaiseAndSetIfChanged(ref _AuthorName, value); }
 
-        private string _Summary;
-        public string Summary { get => _Summary; set => this.RaiseAndSetIfChanged(ref _Summary, value); }
+        private string _Description;
+        public string Description { get => _Description; set => this.RaiseAndSetIfChanged(ref _Description, value); }
 
         private string _NexusSiteURL = "https://github.com/wabbajack-tools/wabbajack";
         public string NexusSiteURL { get => _NexusSiteURL; set => this.RaiseAndSetIfChanged(ref _NexusSiteURL, value); }
@@ -62,13 +63,13 @@ namespace Wabbajack
         public IReactiveCommand SlideShowNextItemCommand { get; } = ReactiveCommand.Create(() => { });
         public IReactiveCommand VisitNexusSiteCommand { get; }
 
-        public SlideShow(AppState appState)
+        public SlideShow(InstallerVM appState)
         {
             SlideShowElements = NexusApiClient.CachedSlideShow.ToList();
             CachedSlides = new Dictionary<string, Slide>();
             SlidesQueue = new Queue<Slide>();
             _random = new Random();
-            AppState = appState;
+            Installer = appState;
 
             this.VisitNexusSiteCommand = ReactiveCommand.Create(
                 execute: () => Process.Start(this.NexusSiteURL),
@@ -77,91 +78,44 @@ namespace Wabbajack
                     .ObserveOnGuiThread());
 
             // Apply modlist properties when it changes
-            this.WhenAny(x => x.AppState.ModList)
+            this.WhenAny(x => x.Installer.ModList)
                 .NotNull()
-                .Subscribe(modList =>
+                .ObserveOnGuiThread()
+                .Do(modList =>
                 {
-                    this.NexusSiteURL = modList.Website;
-                    this.ModName = modList.Name;
-                    this.AuthorName = modList.Author;
-                    this.Summary = modList.Description;
+                    this.SlideShowElements = modList.Archives
+                        .Select(m => m.State)
+                        .OfType<NexusDownloader.State>()
+                        .Select(m =>
+                        new Slide(NexusApiUtils.FixupSummary(m.ModName), m.ModID,
+                            NexusApiUtils.FixupSummary(m.Summary), NexusApiUtils.FixupSummary(m.Author),
+                            m.Adult, m.NexusURL, m.SlideShowPic)).ToList();
                 })
-                .DisposeWith(this.CompositeDisposable);
-
-            // Update splashscreen when modlist changes
-            Observable.CombineLatest(
-                    (this).WhenAny(x => x.AppState.ModList),
-                    (this).WhenAny(x => x.AppState.ModListPath),
-                    (this).WhenAny(x => x.Enable),
-                    (modList, modListPath, enabled) => (modList, modListPath, enabled))
-                // Do any potential unzipping on a background thread
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .Select(u =>
+                .Do(modList =>
                 {
-                    if (u.enabled
-                        && u.modList != null
-                        && u.modListPath != null
-                        && File.Exists(u.modListPath)
-                        && !string.IsNullOrEmpty(u.modList.Image)
-                        && u.modList.Image.Length == 36)
-                    {
-                        try
-                        {
-                            using (var fs = new FileStream(u.modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
-                            using (var ms = new MemoryStream())
-                            {
-                                var entry = ar.GetEntry(u.modList.Image);
-                                using (var e = entry.Open())
-                                    e.CopyTo(ms);
-                                var image = new BitmapImage();
-                                image.BeginInit();
-                                image.CacheOption = BitmapCacheOption.OnLoad;
-                                image.StreamSource = ms;
-                                image.EndInit();
-                                image.Freeze();
-
-                                return image;
-                            }
-                        }
-                        catch (Exception)
-                        {
-                            this.AppState.LogMsg("Error loading splash image.");
-                        }
-                    }
-                    return this.WabbajackLogo;
+                    // This takes a while, and is currently blocking
+                    this.PreloadSlideShow();
                 })
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .StartWith(this.WabbajackLogo)
-                .Subscribe(bitmap => this.Image = bitmap)
+                .Subscribe()
                 .DisposeWith(this.CompositeDisposable);
 
             /// Wire slideshow updates
-            var intervalSeconds = 10;
-            // Compile all the sources that trigger a slideshow update
+            // Merge all the sources that trigger a slideshow update
             Observable.Merge(
-                    // If user requests one manually
-                    this.SlideShowNextItemCommand.StartingExecution(),
                     // If the natural timer fires
-                    Observable.Merge(
-                            // Start with an initial timer
-                            Observable.Return(Observable.Interval(TimeSpan.FromSeconds(intervalSeconds))),
-                            // but reset timer if user requests one
-                            this.SlideShowNextItemCommand.StartingExecution()
-                                .Select(_ => Observable.Interval(TimeSpan.FromSeconds(intervalSeconds))))
-                        // When a new timer comes in, swap to it
-                        .Switch()
-                        .Unit())
-                // When filter switch enabled, fire an initial signal
+                    Observable.Interval(TimeSpan.FromSeconds(10))
+                        .Unit()
+                        // Only if enabled
+                        .FilterSwitch(this.WhenAny(x => x.Enable)),
+                    // If user requests one manually
+                    this.SlideShowNextItemCommand.StartingExecution())
+                // When installing fire an initial signal
                 .StartWith(Unit.Default)
-                // Only subscribe to slideshow triggers if enabled and installing
-                .FilterSwitch(
-                    Observable.CombineLatest(
-                        this.WhenAny(x => x.Enable),
-                        this.WhenAny(x => x.AppState.Installing),
-                        resultSelector: (enabled, installing) => enabled && installing))
-                // Don't ever update more than once every half second.
-                .Debounce(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
+                // Only subscribe to slideshow triggers if installing
+                .FilterSwitch(this.WhenAny(x => x.Installer.Installing))
+                // Don't ever update more than once every half second.  ToDo: Update to debounce
+                .Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(_ => this.UpdateSlideShowItem())
                 .DisposeWith(this.CompositeDisposable);
@@ -203,7 +157,7 @@ namespace Wabbajack
 
             if (!slide.IsNSFW || (slide.IsNSFW && ShowNSFW))
             {
-                this.Image = AppState._noneImage;
+                this.Image = UIUtils.BitmapImageFromResource("Wabbajack.Resources.none.jpg");
                 if (slide.ImageURL != null && slide.Image != null)
                 {
                     if (!CachedSlides.ContainsKey(slide.ModID)) return;
@@ -212,7 +166,7 @@ namespace Wabbajack
 
                 this.ModName = slide.ModName;
                 this.AuthorName = slide.ModAuthor;
-                this.Summary = slide.ModDescription;
+                this.Description = slide.ModDescription;
                 this.NexusSiteURL = slide.ModURL;
             }
 

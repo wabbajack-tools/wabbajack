@@ -13,22 +13,14 @@ namespace Wabbajack
     {
         public App()
         {
-            /*
-            Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
-            SetupHandlers();
-
-            var args = Environment.GetCommandLineArgs();
-            if (args.Length > 1)
+            // Wire any unhandled crashing exceptions to log before exiting
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
-                Utils.SetLoggerFn(f => { });
-                WorkQueue.Init((a, b, c) => { }, (a, b) => { });
-                var updater = new CheckForUpdates(args[1]);
-                if (updater.FindOutdatedMods())
-                {
-                    Environment.Exit(0);
-                }
-                Environment.Exit(1);
-            }*/
+                // Don't do any special logging side effects
+                Utils.SetLoggerFn((s) => { });
+                Utils.Log("Uncaught error:");
+                Utils.Log(((Exception)e.ExceptionObject).ExceptionToString());
+            };
 
             var appPath = Assembly.GetExecutingAssembly().Location;
             if (!ExtensionManager.IsAssociated() || ExtensionManager.NeedsUpdating(appPath))
@@ -37,22 +29,11 @@ namespace Wabbajack
             }
 
             string[] args = Environment.GetCommandLineArgs();
-            StartupUri = new Uri("UI/ModeSelectionWindow.xaml", UriKind.Relative);
+            StartupUri = new Uri("Views/ModeSelectionWindow.xaml", UriKind.Relative);
             if (args.Length != 3) return;
             if (!args[1].Contains("-i")) return;
             // modlists gets loaded using a shell command
-            StartupUri = new Uri("UI/MainWindow.xaml", UriKind.Relative);
-        }
-
-        private void SetupHandlers()
-        {
-            AppDomain.CurrentDomain.UnhandledException += AppHandler;
-        }
-
-        private void AppHandler(object sender, UnhandledExceptionEventArgs e)
-        {
-            Utils.Log("Uncaught error:");
-            Utils.Log(((Exception)e.ExceptionObject).ExceptionToString());
+            StartupUri = new Uri("Views/MainWindow.xaml", UriKind.Relative);
         }
     }
 }
