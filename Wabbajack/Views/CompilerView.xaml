@@ -1,11 +1,13 @@
-﻿<UserControl x:Class="Wabbajack.CompilerView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Wabbajack"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+﻿<UserControl
+    x:Class="Wabbajack.CompilerView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
     <Viewbox Stretch="Uniform">
         <Grid Margin="4,0,4,0">
             <Grid.RowDefinitions>
@@ -36,14 +38,17 @@
                 <TextBlock FontSize="16" Text="{Binding MOProfile}" />
             </StackPanel>
 
-            <Grid Grid.Row="1" Grid.Column="0" 
-                  IsEnabled="{Binding UIReady}"
-                  Margin="0,8,0,8">
+            <Grid
+                Grid.Row="1"
+                Grid.Column="0"
+                Margin="0,8,0,8"
+                IsEnabled="{Binding UIReady}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Image Grid.Row="0"
+                <Image
+                    Grid.Row="0"
                     Source="{Binding Image}"
                     Stretch="Fill" />
                 <Grid Grid.Row="1">
@@ -51,44 +56,66 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Label
-                        Grid.Column="0"
-                        Content="Splash Screen Path:" />
-                    <local:FilePicker Grid.Column="1"
-                                      PathType="File"
-                                      DoExistsCheck="False"
-                                      TargetPath="{Binding ImagePath}"
-                                      Filter="Banner image|*.png"
-                                      IsEnabled="{Binding UIReady}" HorizontalAlignment="Left" Width="534" />
+                    <Label Grid.Column="0" Content="Splash Screen Path:" />
+                    <local:FilePicker
+                        Grid.Column="1"
+                        Width="534"
+                        HorizontalAlignment="Left"
+                        DoExistsCheck="False"
+                        Filter="Banner image|*.png"
+                        IsEnabled="{Binding UIReady}"
+                        PathType="File"
+                        TargetPath="{Binding ImagePath}" />
                 </Grid>
             </Grid>
 
-            <ScrollViewer Grid.Row="1" Grid.Column="2" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"
-                          IsEnabled="{Binding UIReady}"
-                          Background="Transparent">
-                <StackPanel Orientation="Vertical" Background="Transparent" >
+            <ScrollViewer
+                Grid.Row="1"
+                Grid.Column="2"
+                Background="Transparent"
+                HorizontalScrollBarVisibility="Disabled"
+                IsEnabled="{Binding UIReady}"
+                VerticalScrollBarVisibility="Auto">
+                <StackPanel Background="Transparent" Orientation="Vertical">
                     <StackPanel.Resources>
-                        <Thickness x:Key="TitleMargin" Left="5" Bottom="1" />
-                        <Style TargetType="TextBox" x:Key="ValueStyle" BasedOn="{StaticResource MainTextBoxStyle}" >
+                        <Thickness
+                            x:Key="TitleMargin"
+                            Bottom="1"
+                            Left="5" />
+                        <Style
+                            x:Key="ValueStyle"
+                            BasedOn="{StaticResource MainTextBoxStyle}"
+                            TargetType="TextBox">
                             <Setter Property="MaxLength" Value="50" />
                             <Setter Property="AcceptsTab" Value="False" />
                             <Setter Property="FontSize" Value="15" />
                             <Setter Property="Margin" Value="0,0,0,6" />
                         </Style>
                     </StackPanel.Resources>
-                    <TextBlock Text="ModList Name" Margin="{StaticResource TitleMargin}" />
-                    <TextBox Text="{Binding ModListName}" Style="{StaticResource ValueStyle}" />
-                    <TextBlock Text="Author" Margin="{StaticResource TitleMargin}" />
-                    <TextBox Text="{Binding AuthorName}" Style="{StaticResource ValueStyle}" />
-                    <TextBlock Text="Description" Margin="{StaticResource TitleMargin}" />
-                    <TextBox Text="{Binding Summary}" Style="{StaticResource ValueStyle}" Height="150" MaxLength="700" AcceptsReturn="True" TextWrapping="Wrap" AcceptsTab="False" />
-                    <TextBlock Text="Website" Margin="{StaticResource TitleMargin}" />
-                    <TextBox Text="{Binding NexusSiteURL}" Style="{StaticResource ValueStyle}" />
-                    <TextBlock Text="Readme Path" Margin="{StaticResource TitleMargin}" ToolTip="Path to a readme file." />
-                    <local:FilePicker TargetPath="{Binding ReadMeText}"
-                                      PathType="File"
-                                      DoExistsCheck="False"
-                                      ToolTip="Path to a readme file." />
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="ModList Name" />
+                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding ModListName}" />
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
+                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding AuthorName}" />
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
+                    <TextBox
+                        Height="150"
+                        AcceptsReturn="True"
+                        AcceptsTab="False"
+                        MaxLength="700"
+                        Style="{StaticResource ValueStyle}"
+                        Text="{Binding Summary}"
+                        TextWrapping="Wrap" />
+                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
+                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding NexusSiteURL}" />
+                    <TextBlock
+                        Margin="{StaticResource TitleMargin}"
+                        Text="Readme Path"
+                        ToolTip="Path to a readme file." />
+                    <local:FilePicker
+                        DoExistsCheck="False"
+                        PathType="File"
+                        TargetPath="{Binding ReadMeText}"
+                        ToolTip="Path to a readme file." />
                 </StackPanel>
             </ScrollViewer>
 
@@ -138,11 +165,11 @@
                 <local:FilePicker
                     Grid.Row="0"
                     Grid.Column="1"
-                    PathType="Folder"
                     DoExistsCheck="False"
-                    TargetPath="{Binding Location}"
+                    IsEnabled="{Binding UIReady}"
+                    PathType="Folder"
                     SetTargetPathCommand="{Binding ChangePathCommand}"
-                    IsEnabled="{Binding UIReady}" />
+                    TargetPath="{Binding Location}" />
                 <Label
                     Grid.Row="2"
                     Grid.Column="0"
@@ -150,11 +177,11 @@
                 <local:FilePicker
                     Grid.Row="2"
                     Grid.Column="1"
-                    PathType="Folder"
                     DoExistsCheck="False"
-                    TargetPath="{Binding DownloadLocation}"
+                    IsEnabled="{Binding UIReady}"
+                    PathType="Folder"
                     SetTargetPathCommand="{Binding ChangeDownloadPathCommand}"
-                    IsEnabled="{Binding UIReady}" />
+                    TargetPath="{Binding DownloadLocation}" />
             </Grid>
             <!--  End Location  -->
 

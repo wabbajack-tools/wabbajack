@@ -16,12 +16,12 @@
     Style="{StaticResource {x:Type Window}}"
     WindowStyle="ToolWindow"
     mc:Ignorable="d">
-    <ContentPresenter Content="{Binding ActivePane}" >
+    <ContentPresenter Content="{Binding ActivePane}">
         <ContentPresenter.Resources>
-            <DataTemplate DataType="{x:Type local:CompilerVM}" >
+            <DataTemplate DataType="{x:Type local:CompilerVM}">
                 <local:CompilerView />
             </DataTemplate>
-            <DataTemplate DataType="{x:Type local:InstallerVM}" >
+            <DataTemplate DataType="{x:Type local:InstallerVM}">
                 <local:InstallationView />
             </DataTemplate>
         </ContentPresenter.Resources>

@@ -17,8 +17,8 @@
         </Grid.ColumnDefinitions>
         <TextBox
             Grid.Column="0"
-            VerticalContentAlignment="Center"
             Margin="0,0,-4,0"
+            VerticalContentAlignment="Center"
             Background="{StaticResource DarkBackgroundBrush}"
             Text="{Binding TargetPath, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
             Visibility="{Binding ShowTextBoxInput, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
@@ -37,8 +37,8 @@
             ToolTip="Set target path">
             <icon:PackIconMaterial
                 Width="16"
-                Margin="4"
                 Height="12"
+                Margin="4"
                 Kind="DotsHorizontal" />
         </Button>
     </Grid>
