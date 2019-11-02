@@ -16,7 +16,7 @@
         <Color x:Key="TextBackgroundHoverFill">#DF000000</Color>
         <Style x:Key="BackgroundBlurStyle" TargetType="Border">
             <Setter Property="Background" Value="{StaticResource TextBackgroundFillBrush}" />
-            <Setter Property="Visibility" Value="Hidden" />
+            <Setter Property="Visibility" Value="Visible" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsMouseOver, ElementName=Slideshow}" Value="True">
                     <DataTrigger.EnterActions>
@@ -40,8 +40,8 @@
                         </BeginStoryboard>
                     </DataTrigger.ExitActions>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding ShowTextShadow}" Value="True">
-                    <Setter Property="Visibility" Value="Visible" />
+                <DataTrigger Binding="{Binding Image}" Value="{x:Null}">
+                    <Setter Property="Visibility" Value="Hidden" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -54,7 +54,7 @@
             <Setter Property="Margin" Value="4" />
         </Style>
     </UserControl.Resources>
-    <Grid Margin="5">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40" />
             <RowDefinition Height="5" />
@@ -62,255 +62,260 @@
             <RowDefinition Height="*" MinHeight="150" />
         </Grid.RowDefinitions>
         <!--  Slideshow  -->
-        <Grid
+        <Border
             x:Name="Slideshow"
             Grid.Row="2"
-            Margin="0,0,0,5">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="5*" />
-                <ColumnDefinition Width="3*" />
-            </Grid.ColumnDefinitions>
-            <Rectangle
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
-                Fill="{StaticResource WindowBackgroundBrush}" />
-            <Viewbox
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Stretch="UniformToFill">
-                <Image Source="{Binding Image}" />
-            </Viewbox>
-            <Image
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
-                Width="60"
-                Height="60"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Source="{Binding ModlistImage}" />
-            <Grid Grid.Column="0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Border
-                    Grid.Row="1"
-                    Grid.RowSpan="2"
+            Margin="5,0,5,5"
+            BorderBrush="#171717"
+            BorderThickness="1,0,1,1">
+            <Grid ClipToBounds="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="5*" />
+                    <ColumnDefinition Width="3*" />
+                </Grid.ColumnDefinitions>
+                <Rectangle
                     Grid.Column="0"
-                    Margin="-100,0,0,-100"
-                    CornerRadius="100"
-                    Style="{StaticResource BackgroundBlurStyle}">
-                    <Border.Effect>
-                        <BlurEffect Radius="65" />
-                    </Border.Effect>
-                </Border>
-                <TextBlock
-                    Grid.Row="1"
+                    Grid.ColumnSpan="2"
+                    Fill="{StaticResource WindowBackgroundBrush}" />
+                <Viewbox
                     Grid.Column="0"
-                    Margin="20,25,20,0"
-                    VerticalAlignment="Bottom"
-                    FontFamily="Lucida Sans"
-                    FontSize="65"
-                    FontWeight="Bold"
-                    Text="{Binding TitleText}"
-                    TextWrapping="WrapWithOverflow">
-                    <TextBlock.Effect>
-                        <DropShadowEffect />
-                    </TextBlock.Effect>
-                </TextBlock>
-                <TextBlock
-                    Grid.Row="2"
+                    Grid.ColumnSpan="2"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Stretch="UniformToFill">
+                    <Image Source="{Binding Image}" />
+                </Viewbox>
+                <Image
                     Grid.Column="0"
-                    Margin="55,0,20,20"
-                    FontFamily="Lucida Sans"
-                    FontSize="30"
-                    FontWeight="Bold"
-                    Text="{Binding AuthorText}"
-                    TextWrapping="Wrap">
-                    <TextBlock.Effect>
-                        <DropShadowEffect />
-                    </TextBlock.Effect>
-                </TextBlock>
-            </Grid>
-            <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Grid
-                    Grid.Column="0"
-                    Margin="0,20,25,0"
-                    HorizontalAlignment="Right">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Grid.Effect>
-                        <DropShadowEffect
-                            BlurRadius="25"
-                            Opacity="1"
-                            Color="Black" />
-                    </Grid.Effect>
-                    <Grid.Style>
-                        <Style TargetType="Grid">
-                            <Setter Property="Opacity" Value="0" />
-                            <Style.Triggers>
-                                <MultiDataTrigger>
-                                    <MultiDataTrigger.Conditions>
-                                        <Condition Binding="{Binding IsMouseOver, ElementName=Slideshow}" Value="True" />
-                                        <Condition Binding="{Binding Installing}" Value="True" />
-                                    </MultiDataTrigger.Conditions>
-                                    <MultiDataTrigger.EnterActions>
-                                        <BeginStoryboard>
-                                            <Storyboard>
-                                                <DoubleAnimation
-                                                    Storyboard.TargetProperty="Opacity"
-                                                    To="1"
-                                                    Duration="0:0:0.12" />
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </MultiDataTrigger.EnterActions>
-                                    <MultiDataTrigger.ExitActions>
-                                        <BeginStoryboard>
-                                            <Storyboard>
-                                                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
-                                                    <LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1" />
-                                                    <LinearDoubleKeyFrame KeyTime="0:0:0.42" Value="0" />
-                                                </DoubleAnimationUsingKeyFrames>
-                                            </Storyboard>
-                                        </BeginStoryboard>
-                                    </MultiDataTrigger.ExitActions>
-                                </MultiDataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Grid.Style>
-                    <Button
-                        Grid.Column="3"
-                        Width="60"
-                        Height="60"
-                        Margin="6"
-                        Background="{StaticResource BackgroundBrush}"
-                        Command="{Binding Slideshow.SlideShowNextItemCommand}"
-                        Style="{StaticResource CircleButtonStyle}"
-                        ToolTip="Skip to the next mod">
-                        <icon:PackIconFontAwesome
-                            Width="28"
-                            Height="28"
-                            Kind="ChevronRightSolid" />
-                    </Button>
-                    <ToggleButton
-                        x:Name="PlayPauseButton"
-                        Grid.Column="2"
-                        Margin="6"
-                        Background="{StaticResource BackgroundBrush}"
-                        IsChecked="{Binding Slideshow.Enable}">
-                        <ToggleButton.Style>
-                            <Style BasedOn="{StaticResource SlideshowButton}" TargetType="ToggleButton">
-                                <Setter Property="ToolTip" Value="Play slideshow" />
+                    Grid.ColumnSpan="2"
+                    Width="60"
+                    Height="60"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Source="{Binding ModlistImage}" />
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Border
+                        Grid.Row="1"
+                        Grid.RowSpan="2"
+                        Grid.Column="0"
+                        Margin="-100,0,0,-100"
+                        CornerRadius="100"
+                        Style="{StaticResource BackgroundBlurStyle}">
+                        <Border.Effect>
+                            <BlurEffect Radius="65" />
+                        </Border.Effect>
+                    </Border>
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        Margin="20,25,20,0"
+                        VerticalAlignment="Bottom"
+                        FontFamily="Lucida Sans"
+                        FontSize="65"
+                        FontWeight="Bold"
+                        Text="{Binding TitleText}"
+                        TextWrapping="WrapWithOverflow">
+                        <TextBlock.Effect>
+                            <DropShadowEffect />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Margin="55,0,20,20"
+                        FontFamily="Lucida Sans"
+                        FontSize="30"
+                        FontWeight="Bold"
+                        Text="{Binding AuthorText}"
+                        TextWrapping="Wrap">
+                        <TextBlock.Effect>
+                            <DropShadowEffect />
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </Grid>
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid
+                        Grid.Column="0"
+                        Margin="0,20,25,0"
+                        HorizontalAlignment="Right">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.Effect>
+                            <DropShadowEffect
+                                BlurRadius="25"
+                                Opacity="1"
+                                Color="Black" />
+                        </Grid.Effect>
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Opacity" Value="0" />
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Slideshow.Enable}" Value="True">
-                                        <Setter Property="ToolTip" Value="Pause slideshow" />
-                                    </DataTrigger>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsMouseOver, ElementName=Slideshow}" Value="True" />
+                                            <Condition Binding="{Binding Installing}" Value="True" />
+                                        </MultiDataTrigger.Conditions>
+                                        <MultiDataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="Opacity"
+                                                        To="1"
+                                                        Duration="0:0:0.12" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </MultiDataTrigger.EnterActions>
+                                        <MultiDataTrigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
+                                                        <LinearDoubleKeyFrame KeyTime="0:0:0.3" Value="1" />
+                                                        <LinearDoubleKeyFrame KeyTime="0:0:0.42" Value="0" />
+                                                    </DoubleAnimationUsingKeyFrames>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </MultiDataTrigger.ExitActions>
+                                    </MultiDataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </ToggleButton.Style>
-                        <icon:PackIconMaterial>
-                            <icon:PackIconMaterial.Style>
-                                <Style TargetType="icon:PackIconMaterial">
-                                    <Setter Property="Kind" Value="Pause" />
+                        </Grid.Style>
+                        <Button
+                            Grid.Column="3"
+                            Width="60"
+                            Height="60"
+                            Margin="6"
+                            Background="{StaticResource BackgroundBrush}"
+                            Command="{Binding Slideshow.SlideShowNextItemCommand}"
+                            Style="{StaticResource CircleButtonStyle}"
+                            ToolTip="Skip to the next mod">
+                            <icon:PackIconFontAwesome
+                                Width="28"
+                                Height="28"
+                                Kind="ChevronRightSolid" />
+                        </Button>
+                        <ToggleButton
+                            x:Name="PlayPauseButton"
+                            Grid.Column="2"
+                            Margin="6"
+                            Background="{StaticResource BackgroundBrush}"
+                            IsChecked="{Binding Slideshow.Enable}">
+                            <ToggleButton.Style>
+                                <Style BasedOn="{StaticResource SlideshowButton}" TargetType="ToggleButton">
+                                    <Setter Property="ToolTip" Value="Play slideshow" />
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding Slideshow.Enable}" Value="True">
-                                            <Setter Property="Kind" Value="Play" />
+                                            <Setter Property="ToolTip" Value="Pause slideshow" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </icon:PackIconMaterial.Style>
-                        </icon:PackIconMaterial>
-                    </ToggleButton>
-                    <Button
-                        Grid.Column="1"
-                        Margin="6"
-                        Background="{StaticResource BackgroundBrush}"
-                        Command="{Binding Slideshow.VisitNexusSiteCommand}"
-                        Style="{StaticResource SlideshowButton}"
-                        ToolTip="Open Nexus Website">
-                        <icon:PackIconMaterial
-                            Width="28"
-                            Height="28"
-                            Kind="Web" />
-                    </Button>
-                    <ToggleButton
-                        Grid.Column="0"
-                        Background="{StaticResource BackgroundBrush}"
-                        IsChecked="{Binding Slideshow.ShowNSFW}"
-                        ToolTip="Show NSFW mods">
-                        <ToggleButton.Style>
-                            <Style BasedOn="{StaticResource SlideshowButton}" TargetType="ToggleButton">
-                                <Setter Property="ToolTip" Value="Show NSFW mods" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Slideshow.ShowNSFW}" Value="True">
-                                        <Setter Property="ToolTip" Value="Hide NSFW mods" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ToggleButton.Style>
-                        <Grid>
-                            <TextBlock
-                                Margin="4"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontFamily="Lucida Sans"
-                                FontSize="9"
-                                FontWeight="Bold"
-                                Text="NSFW" />
-                            <icon:PackIconOcticons
-                                Width="40"
-                                Height="40"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Foreground="#88FFFFFF"
-                                Kind="CircleSlash"
-                                Visibility="{Binding Slideshow.ShowNSFW, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}" />
-                        </Grid>
-                    </ToggleButton>
+                            </ToggleButton.Style>
+                            <icon:PackIconMaterial>
+                                <icon:PackIconMaterial.Style>
+                                    <Style TargetType="icon:PackIconMaterial">
+                                        <Setter Property="Kind" Value="Pause" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Slideshow.Enable}" Value="True">
+                                                <Setter Property="Kind" Value="Play" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </icon:PackIconMaterial.Style>
+                            </icon:PackIconMaterial>
+                        </ToggleButton>
+                        <Button
+                            Grid.Column="1"
+                            Margin="6"
+                            Background="{StaticResource BackgroundBrush}"
+                            Command="{Binding Slideshow.VisitNexusSiteCommand}"
+                            Style="{StaticResource SlideshowButton}"
+                            ToolTip="Open Nexus Website">
+                            <icon:PackIconMaterial
+                                Width="28"
+                                Height="28"
+                                Kind="Web" />
+                        </Button>
+                        <ToggleButton
+                            Grid.Column="0"
+                            Background="{StaticResource BackgroundBrush}"
+                            IsChecked="{Binding Slideshow.ShowNSFW}"
+                            ToolTip="Show NSFW mods">
+                            <ToggleButton.Style>
+                                <Style BasedOn="{StaticResource SlideshowButton}" TargetType="ToggleButton">
+                                    <Setter Property="ToolTip" Value="Show NSFW mods" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Slideshow.ShowNSFW}" Value="True">
+                                            <Setter Property="ToolTip" Value="Hide NSFW mods" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ToggleButton.Style>
+                            <Grid>
+                                <TextBlock
+                                    Margin="4"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Lucida Sans"
+                                    FontSize="9"
+                                    FontWeight="Bold"
+                                    Text="NSFW" />
+                                <icon:PackIconOcticons
+                                    Width="40"
+                                    Height="40"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Foreground="#88FFFFFF"
+                                    Kind="CircleSlash"
+                                    Visibility="{Binding Slideshow.ShowNSFW, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}" />
+                            </Grid>
+                        </ToggleButton>
+                    </Grid>
+                    <Border
+                        Grid.Row="3"
+                        Margin="0,0,-50,-50"
+                        CornerRadius="50"
+                        Style="{StaticResource BackgroundBlurStyle}">
+                        <Border.Effect>
+                            <BlurEffect Radius="65" />
+                        </Border.Effect>
+                    </Border>
+                    <TextBlock
+                        Grid.Row="3"
+                        Margin="20,25,25,25"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        FontFamily="Lucida Sans"
+                        FontSize="16"
+                        Text="{Binding Description}"
+                        TextAlignment="Right"
+                        TextWrapping="Wrap">
+                        <TextBlock.Effect>
+                            <DropShadowEffect />
+                        </TextBlock.Effect>
+                    </TextBlock>
                 </Grid>
-                <Border
-                    Grid.Row="3"
-                    Margin="0,0,-50,-50"
-                    CornerRadius="50"
-                    Style="{StaticResource BackgroundBlurStyle}">
-                    <Border.Effect>
-                        <BlurEffect Radius="65" />
-                    </Border.Effect>
-                </Border>
-                <TextBlock
-                    Grid.Row="3"
-                    Margin="20,25,25,25"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Bottom"
-                    FontFamily="Lucida Sans"
-                    FontSize="16"
-                    Text="{Binding Description}"
-                    TextAlignment="Right"
-                    TextWrapping="Wrap">
-                    <TextBlock.Effect>
-                        <DropShadowEffect />
-                    </TextBlock.Effect>
-                </TextBlock>
             </Grid>
-        </Grid>
+        </Border>
         <!--  Top progress bar  -->
         <!--  Comes after slideshow control, so that any effects/overlap goes on top  -->
         <Rectangle
             Grid.Row="2"
             Height="25"
+            Margin="6,0"
             VerticalAlignment="Top"
             IsHitTestVisible="False">
             <Rectangle.Fill>
@@ -473,7 +478,11 @@
             </mahapps:MetroProgressBar.Foreground>
         </mahapps:MetroProgressBar>
         <!--  Bottom Area  -->
-        <Grid Grid.Row="3" Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
+        <Grid
+            Grid.Row="3"
+            Margin="5,0,5,5"
+            ClipToBounds="True"
+            Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="4" />
@@ -649,7 +658,10 @@
                 VerticalAlignment="Top"
                 Fill="{StaticResource DarkBackgroundBrush}" />
         </Grid>
-        <Grid Grid.Row="3" Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}">
+        <Grid
+            Grid.Row="3"
+            Margin="5,0,5,5"
+            Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="4" />
