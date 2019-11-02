@@ -21,8 +21,8 @@ namespace Wabbajack.Test
             var modb = utils.AddMod();
             var moddest = utils.AddMod();
             var srca = utils.AddModFile(moda, @"srca.esp", 10);
-            var srcb = utils.AddModFile(moda, @"srcb.esp", 10);
-            var srcc = utils.AddModFile(modb, @"srcd.esp", 10);
+            var srcb = utils.AddModFile(moda, @"srcb.esp.mohidden", 10);
+            var srcc = utils.AddModFile(modb, @"optional\srcc.esp", 10);
             var dest = utils.AddModFile(moddest, @"merged.esp", 20);
 
             var srcs = new List<string> {srca, srcb, srcc};
@@ -39,18 +39,18 @@ namespace Wabbajack.Test
                     {
                         new zEditIntegration.zEditMergePlugin()
                         {
-                            filename = srca,
-                            dataFolder = Path.GetDirectoryName(srca),
+                            filename = "srca.esp",
+                            dataFolder = Path.Combine(utils.MO2Folder, "mods", moda)
                         },
                         new zEditIntegration.zEditMergePlugin()
                         {
-                            filename = srcb,
-                            dataFolder = Path.GetDirectoryName(srcb),
+                            filename = "srcb.esp",
+                            dataFolder = Path.Combine(utils.MO2Folder, "mods", moda),
                         },
                         new zEditIntegration.zEditMergePlugin()
                         {
-                            filename = srcc,
-                            dataFolder = Path.GetDirectoryName(srcc),
+                            filename = "srcc.esp",
+                            dataFolder = Path.Combine(utils.MO2Folder, "mods", modb),
                         }
                     }
                 }

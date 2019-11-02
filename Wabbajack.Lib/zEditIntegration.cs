@@ -73,10 +73,19 @@ namespace Wabbajack.Lib
                 var result = source.EvolveTo<MergedPatch>();
                 result.Sources = merge.plugins.Select(f =>
                 {
-                    var abs_path = Path.Combine(f.dataFolder, f.filename);
-                    if (!File.Exists(abs_path))
+                    var orig_path = Path.Combine(f.dataFolder, f.filename);
+                    var paths = new[]
+                    {
+                        orig_path,
+                        orig_path + ".mohidden",
+                        Path.Combine(Path.GetDirectoryName(orig_path), "optional", Path.GetFileName(orig_path))
+                    };
+
+                    var abs_path = paths.FirstOrDefault(p => File.Exists(p));
+
+                    if (abs_path == null)
                         throw new InvalidDataException(
-                            $"File {abs_path} is required to build {merge.filename} but it doesn't exist");
+                            $"File {abs_path} is required to build {merge.filename} but it doesn't exist searched in: \n" + String.Join("\n", paths));
 
                     return new SourcePatch
                     {
@@ -85,7 +94,7 @@ namespace Wabbajack.Lib
                     };
                 }).ToList();
 
-                var src_data = merge.plugins.Select(f => File.ReadAllBytes(Path.Combine(f.dataFolder, f.filename)))
+                var src_data = result.Sources.Select(f => File.ReadAllBytes(Path.Combine(_compiler.MO2Folder, f.RelativePath)))
                     .ConcatArrays();
 
                 var dst_data = File.ReadAllBytes(source.AbsolutePath);
