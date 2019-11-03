@@ -97,6 +97,20 @@ namespace Wabbajack
         public static readonly DependencyProperty FilterProperty = DependencyProperty.Register(nameof(Filter), typeof(string), typeof(FilePicker),
              new FrameworkPropertyMetadata(default(string)));
 
+        public IErrorResponse AdditionalError
+        {
+            get => (IErrorResponse)GetValue(AdditionalErrorProperty);
+            set => SetValue(AdditionalErrorProperty, value);
+        }
+        public static readonly DependencyProperty AdditionalErrorProperty = DependencyProperty.Register(nameof(AdditionalError), typeof(IErrorResponse), typeof(FilePicker),
+             new FrameworkPropertyMetadata(default(IErrorResponse), WireNotifyPropertyChanged));
+
+        private readonly ObservableAsPropertyHelper<bool> _InError;
+        public bool InError => _InError.Value;
+
+        private readonly ObservableAsPropertyHelper<string> _ErrorTooltip;
+        public string ErrorTooltip => _ErrorTooltip.Value;
+
         public FilePicker()
         {
             InitializeComponent();
@@ -175,6 +189,28 @@ namespace Wabbajack
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Subscribe(exists => this.Exists = exists)
                 .DisposeWith(this.CompositeDisposable);
+
+            this._InError = Observable.CombineLatest(
+                    this.WhenAny(x => x.Exists),
+                    this.WhenAny(x => x.AdditionalError)
+                        .Select(err => !err?.Succeeded ?? true),
+                    resultSelector: (exist, err) => !exist || err)
+                .ToProperty(this, nameof(this.InError));
+
+            this._ErrorTooltip = Observable.CombineLatest(
+                    this.WhenAny(x => x.Exists)
+                        .Select(exists => exists ? default(string) : "Path does not exist"),
+                    this.WhenAny(x => x.AdditionalError),
+                    resultSelector: (exists, err) =>
+                    {
+                        if ((!err?.Succeeded ?? false)
+                            && !string.IsNullOrWhiteSpace(err.Reason))
+                        {
+                            return err.Reason;
+                        }
+                        return exists;
+                    })
+                .ToProperty(this, nameof(this.ErrorTooltip));
         }
     }
 }
