@@ -118,9 +118,12 @@ namespace Wabbajack
 
             // ToDo
             // Can maybe add "preload" systems to prep upcoming images
-            // This would entail subscribing to modVMs, narrowing it down to Top(X) somehow.
+            // This would entail subscribing to modVMs, narrowing it down to Top(X) or Page() somehow.
             // The result would not be used anywhere, just simply expressing interest in those mods'
             // images will implicitly cache them
+            //
+            // Page would be really clever to use, but it's not exactly right as its "window" won't follow the current index,
+            // so at the boundary of a page, the next image won't be cached.  Need like a Page() /w an offset parameter, or something.
         }
     }
 }
