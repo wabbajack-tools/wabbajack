@@ -1,261 +1,129 @@
+using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Splat;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Net.Http;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack
 {
     public class SlideShow : ViewModel
     {
-        private readonly Random _random;
-        private Slide _lastSlide;
-        private const bool UseSync = false;
-        private const int MaxCacheSize = 10;
-
-        public List<Slide> SlideShowElements { get; set; }
-
-        public Dictionary<string, Slide> CachedSlides { get; }
-
-        public Queue<Slide> SlidesQueue { get; }
+        private readonly Random _random = new Random();
 
         public InstallerVM Installer { get; }
-
-        public BitmapImage NextIcon { get; } = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Icons.next.png");
 
         [Reactive]
         public bool ShowNSFW { get; set; }
 
         [Reactive]
-        public bool GCAfterUpdating { get; set; } = true;
-
-        [Reactive]
         public bool Enable { get; set; } = true;
 
-        [Reactive]
-        public BitmapImage Image { get; set; }
+        private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
+        public BitmapImage Image => _Image.Value;
 
-        [Reactive]
-        public string ModName { get; set; } = "Wabbajack";
-
-        [Reactive]
-        public string AuthorName { get; set; } = "Halgari & the Wabbajack Team";
-
-        [Reactive]
-        public string Description { get; set; }
-
-        [Reactive]
-        public string NexusSiteURL { get; set; } = "https://github.com/wabbajack-tools/wabbajack";
+        private readonly ObservableAsPropertyHelper<ModVM> _TargetMod;
+        public ModVM TargetMod => _TargetMod.Value;
 
         public IReactiveCommand SlideShowNextItemCommand { get; } = ReactiveCommand.Create(() => { });
         public IReactiveCommand VisitNexusSiteCommand { get; }
 
         public SlideShow(InstallerVM appState)
         {
-            SlideShowElements = NexusApiClient.CachedSlideShow.ToList();
-            CachedSlides = new Dictionary<string, Slide>();
-            SlidesQueue = new Queue<Slide>();
-            _random = new Random();
-            Installer = appState;
+            this.Installer = appState;
+
+            // Wire target slideshow index
+            var intervalSeconds = 10;
+            // Compile all the sources that trigger a slideshow update, any of which trigger a counter update
+            var selectedIndex = Observable.Merge(
+                    // If user requests one manually
+                    this.SlideShowNextItemCommand.StartingExecution(),
+                    // If the natural timer fires
+                    Observable.Merge(
+                            // Start with an initial timer
+                            Observable.Return(Observable.Interval(TimeSpan.FromSeconds(intervalSeconds))),
+                            // but reset timer if user requests one
+                            this.SlideShowNextItemCommand.StartingExecution()
+                                .Select(_ => Observable.Interval(TimeSpan.FromSeconds(intervalSeconds))))
+                        // When a new timer comes in, swap to it
+                        .Switch()
+                        .Unit())
+                // When filter switch enabled, fire an initial signal
+                .StartWith(Unit.Default)
+                // Only subscribe to slideshow triggers if enabled and installing
+                .FilterSwitch(
+                    Observable.CombineLatest(
+                        this.WhenAny(x => x.Enable),
+                        this.WhenAny(x => x.Installer.Installing),
+                        resultSelector: (enabled, installing) => enabled && installing))
+                // Block spam
+                .Debounce(TimeSpan.FromMilliseconds(250))
+                .Scan(
+                    seed: 0,
+                    accumulator: (i, _) => i + 1)
+                .Publish()
+                .RefCount();
+
+            // Dynamic list changeset of mod VMs to display
+            var modVMs =  this.WhenAny(x => x.Installer.ModList)
+                // Whenever modlist changes, grab the list of its slides
+                .Select(modList =>
+                {
+                    if (modList == null)
+                    {
+                        return Observable.Empty<ModVM>()
+                            .ToObservableChangeSet(x => x.ModID);
+                    }
+                    return modList.SourceModList.Archives
+                        .Select(m => m.State)
+                        .OfType<NexusDownloader.State>()
+                        .Select(nexus => new ModVM(nexus))
+                        // Shuffle it
+                        .Shuffle(this._random)
+                        .AsObservableChangeSet(x => x.ModID);
+                })
+                // Switch to the new list after every modlist change
+                .Switch()
+                // Filter out any NSFW slides if we don't want them
+                .AutoRefreshOnObservable(slide => this.WhenAny(x => x.ShowNSFW))
+                .Filter(slide => !slide.IsNSFW || this.ShowNSFW)
+                .RefCount();
+
+            // Find target mod to display by combining dynamic list with currently desired index
+            this._TargetMod = Observable.CombineLatest(
+                    modVMs.QueryWhenChanged(),
+                    selectedIndex,
+                    resultSelector: (query, selected) => query.Items.ElementAtOrDefault(selected % query.Count))
+                .StartWith(default(ModVM))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .ToProperty(this, nameof(this.TargetMod));
+
+            // Mark interest and materialize image of target mod
+            this._Image = this.WhenAny(x => x.TargetMod)
+                // We want to Switch here, not SelectMany, as we want to hotswap to newest target without waiting on old ones
+                .Select(x => x?.ImageObservable ?? Observable.Return(default(BitmapImage)))
+                .Switch()
+                .ToProperty(this, nameof(this.Image));
 
             this.VisitNexusSiteCommand = ReactiveCommand.Create(
-                execute: () => Process.Start(this.NexusSiteURL),
-                canExecute: this.WhenAny(x => x.NexusSiteURL)
+                execute: () => Process.Start(this.TargetMod.ModURL),
+                canExecute: this.WhenAny(x => x.TargetMod.ModURL)
                     .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());
 
-            // Apply modlist properties when it changes
-            this.WhenAny(x => x.Installer.ModList)
-                .NotNull()
-                .ObserveOnGuiThread()
-                .Do(modList =>
-                {
-                    this.SlideShowElements = modList.Archives
-                        .Select(m => m.State)
-                        .OfType<NexusDownloader.State>()
-                        .Select(m =>
-                        new Slide(NexusApiUtils.FixupSummary(m.ModName), m.ModID,
-                            NexusApiUtils.FixupSummary(m.Summary), NexusApiUtils.FixupSummary(m.Author),
-                            m.Adult, m.NexusURL, m.SlideShowPic)).ToList();
-                })
-                .ObserveOn(RxApp.TaskpoolScheduler)
-                .Do(modList =>
-                {
-                    // This takes a while, and is currently blocking
-                    this.PreloadSlideShow();
-                })
-                .Subscribe()
-                .DisposeWith(this.CompositeDisposable);
-
-            /// Wire slideshow updates
-            // Merge all the sources that trigger a slideshow update
-            Observable.Merge(
-                    // If the natural timer fires
-                    Observable.Interval(TimeSpan.FromSeconds(10))
-                        .Unit()
-                        // Only if enabled
-                        .FilterSwitch(this.WhenAny(x => x.Enable)),
-                    // If user requests one manually
-                    this.SlideShowNextItemCommand.StartingExecution())
-                // When installing fire an initial signal
-                .StartWith(Unit.Default)
-                // Only subscribe to slideshow triggers if installing
-                .FilterSwitch(this.WhenAny(x => x.Installer.Installing))
-                // Don't ever update more than once every half second.  ToDo: Update to debounce
-                .Throttle(TimeSpan.FromMilliseconds(500), RxApp.MainThreadScheduler)
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Subscribe(_ => this.UpdateSlideShowItem())
-                .DisposeWith(this.CompositeDisposable);
-        }
-
-        public void PreloadSlideShow()
-        {
-            var turns = 0;
-            for (var i = 0; i < SlideShowElements.Count; i++)
-            {
-                if (turns >= 3)
-                    break;
-
-                if (QueueRandomSlide(true, false))
-                    turns++;
-            }
-        }
-
-        public void UpdateSlideShowItem()
-        {
-            if (SlidesQueue.Count == 0) return;
-            var slide = SlidesQueue.Peek();
-
-            while (CachedSlides.Count >= MaxCacheSize)
-            {
-                var idx = _random.Next(0, SlideShowElements.Count);
-                var randomSlide = SlideShowElements[idx];
-                while (!CachedSlides.ContainsKey(randomSlide.ModID) || SlidesQueue.Contains(randomSlide))
-                {
-                    idx = _random.Next(0, SlideShowElements.Count);
-                    randomSlide = SlideShowElements[idx];
-                }
-
-                //if (SlidesQueue.Contains(randomSlide)) continue;
-                CachedSlides.Remove(randomSlide.ModID);
-                if (this.GCAfterUpdating)
-                    GC.Collect();
-            }
-
-            if (!slide.IsNSFW || (slide.IsNSFW && ShowNSFW))
-            {
-                this.Image = UIUtils.BitmapImageFromResource("Wabbajack.Resources.none.jpg");
-                if (slide.ImageURL != null && slide.Image != null)
-                {
-                    if (!CachedSlides.ContainsKey(slide.ModID)) return;
-                    this.Image = slide.Image;
-                }
-
-                this.ModName = slide.ModName;
-                this.AuthorName = slide.ModAuthor;
-                this.Description = slide.ModDescription;
-                this.NexusSiteURL = slide.ModURL;
-            }
-
-            SlidesQueue.Dequeue();
-            QueueRandomSlide(false, true);
-        }
-
-        private void CacheImage(Slide slide)
-        {
-            Utils.LogToFile($"Caching slide for {slide.ModName} at {slide.ImageURL}");
-            using (var ms = new MemoryStream())
-            {
-                try
-                {
-                    if (UseSync)
-                    {
-                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            using (var stream = new HttpClient().GetStreamSync(slide.ImageURL))
-                                stream.CopyTo(ms);
-                        });
-                    }
-                    else
-                    {
-                        using (Task<Stream> stream = new HttpClient().GetStreamAsync(slide.ImageURL))
-                        {
-                            stream.Wait();
-                            stream.Result.CopyTo(ms);
-                        }
-                    }
-
-                    ms.Seek(0, SeekOrigin.Begin);
-                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        var image = new BitmapImage();
-                        image.BeginInit();
-                        image.CacheOption = BitmapCacheOption.OnLoad;
-                        image.StreamSource = ms;
-                        image.EndInit();
-                        image.Freeze();
-
-                        slide.Image = image;
-                    });
-                }
-                catch (Exception e)
-                {
-                    Utils.LogToFile($"Exception while caching slide {slide.ModName} ({slide.ModID})\n{e.ExceptionToString()}");
-                }
-            }
-        }
-
-        private bool QueueRandomSlide(bool init, bool checkLast)
-        {
-            var result = false;
-            var idx = _random.Next(0, SlideShowElements.Count);
-            var element = SlideShowElements[idx];
-
-            if (checkLast && SlideShowElements.Count > 1)
-            {
-                while (element == _lastSlide && (!element.IsNSFW || (element.IsNSFW && ShowNSFW)))
-                {
-                    idx = _random.Next(0, SlideShowElements.Count);
-                    element = SlideShowElements[idx];
-                }
-            }
-
-            if (element.ImageURL == null)
-            {
-                if (!init) SlidesQueue.Enqueue(element);
-            }
-            else
-            {
-                if (!CachedSlides.ContainsKey(element.ModID))
-                {
-                    CacheImage(element);
-                    CachedSlides.Add(element.ModID, element);
-                    SlidesQueue.Enqueue(element);
-                    result = true;
-                }
-                else
-                {
-                    if(!init) SlidesQueue.Enqueue(element);
-                }
-
-                _lastSlide = element;
-            }
-
-            return result;
+            // ToDo
+            // Can maybe add "preload" systems to prep upcoming images
+            // This would entail subscribing to modVMs, narrowing it down to Top(X) or Page() somehow.
+            // The result would not be used anywhere, just simply expressing interest in those mods'
+            // images will implicitly cache them
+            //
+            // Page would be really clever to use, but it's not exactly right as its "window" won't follow the current index,
+            // so at the boundary of a page, the next image won't be cached.  Need like a Page() /w an offset parameter, or something.
         }
     }
 }
