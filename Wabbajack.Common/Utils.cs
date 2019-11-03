@@ -657,5 +657,56 @@ namespace Wabbajack.Common
             Status(s);
             Log(s);
         }
+
+        /// https://stackoverflow.com/questions/422090/in-c-sharp-check-that-filename-is-possibly-valid-not-that-it-exists
+        public static IErrorResponse IsFilePathValid(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return ErrorResponse.Fail("Path was empty.");
+            }
+            try
+            {
+                var fi = new System.IO.FileInfo(path);
+            }
+            catch (ArgumentException ex)
+            {
+                return ErrorResponse.Fail(ex.Message);
+            }
+            catch (System.IO.PathTooLongException ex)
+            {
+                return ErrorResponse.Fail(ex.Message);
+            }
+            catch (NotSupportedException ex)
+            {
+                return ErrorResponse.Fail(ex.Message);
+            }
+            return ErrorResponse.Success;
+        }
+
+        public static IErrorResponse IsDirectoryPathValid(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return ErrorResponse.Fail("Path was empty");
+            }
+            try
+            {
+                var fi = new System.IO.DirectoryInfo(path);
+            }
+            catch (ArgumentException ex)
+            {
+                return ErrorResponse.Fail(ex.Message);
+            }
+            catch (System.IO.PathTooLongException ex)
+            {
+                return ErrorResponse.Fail(ex.Message);
+            }
+            catch (NotSupportedException ex)
+            {
+                return ErrorResponse.Fail(ex.Message);
+            }
+            return ErrorResponse.Success;
+        }
     }
 }
