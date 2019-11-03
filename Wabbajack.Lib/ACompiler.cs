@@ -4,23 +4,29 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VFS;
+using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 
 namespace Wabbajack.Lib
 {
     public abstract class ACompiler
     {
-        protected string GamePath;
+        public ModManager ModManager;
+        public Compiler _mo2Compiler;
+        public VortexCompiler _vortexCompiler;
 
-        protected string ModListOutputFolder;
-        protected string ModListOutputFile;
+        public string GamePath;
 
-        protected List<Directive> InstallDirectives;
-        protected List<RawSourceFile> AllFiles;
-        protected ModList ModList;
-        protected VirtualFileSystem VFS;
-        protected List<IndexedArchive> IndexedArchives;
-        protected Dictionary<string, IEnumerable<VirtualFile>> IndexedFiles;
+        public string ModListOutputFolder;
+        public string ModListOutputFile;
+
+        public List<Archive> SelectedArchives;
+        public List<Directive> InstallDirectives;
+        public List<RawSourceFile> AllFiles;
+        public ModList ModList;
+        public VirtualFileSystem VFS;
+        public List<IndexedArchive> IndexedArchives;
+        public Dictionary<string, IEnumerable<VirtualFile>> IndexedFiles;
 
         public abstract void Info(string msg);
         public abstract void Status(string msg);

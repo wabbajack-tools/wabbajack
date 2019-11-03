@@ -26,7 +26,7 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
 {
-    public class Compiler
+    public class Compiler : ACompiler
     {
         private string _mo2DownloadsFolder;
 
@@ -42,9 +42,25 @@ namespace Wabbajack.Lib
 
         public Compiler(string mo2_folder)
         {
+            _vortexCompiler = null;
+            _mo2Compiler = this;
+            ModManager = ModManager.MO2;
+
             MO2Folder = mo2_folder;
             MO2Ini = Path.Combine(MO2Folder, "ModOrganizer.ini").LoadIniFile();
             GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
+
+            ModListOutputFolder = "output_folder";
+            ModListOutputFile = MO2Profile + ExtensionManager.Extension;
+            
+            SelectedArchives = new List<Archive>();
+            InstallDirectives = new List<Directive>();
+            AllFiles = new List<RawSourceFile>();
+            ModList = new ModList();
+
+            VFS = VirtualFileSystem.VFS;
+            IndexedArchives = new List<IndexedArchive>();
+            IndexedFiles = new Dictionary<string, IEnumerable<VirtualFile>>();
         }
 
         public dynamic MO2Ini { get; }
@@ -70,55 +86,43 @@ namespace Wabbajack.Lib
 
         public string MO2ProfileDir => Path.Combine(MO2Folder, "profiles", MO2Profile);
 
-        public string ModListOutputFolder => "output_folder";
-        public string ModListOutputFile => MO2Profile + ExtensionManager.Extension;
-
-        public List<Directive> InstallDirectives { get; private set; }
         internal UserStatus User { get; private set; }
-        public List<Archive> SelectedArchives { get; private set; }
-        public List<RawSourceFile> AllFiles { get; private set; }
-        public ModList ModList { get; private set; }
         public ConcurrentBag<Directive> ExtraFiles { get; private set; }
         public Dictionary<string, dynamic> ModInis { get; private set; }
 
-        public VirtualFileSystem VFS => VirtualFileSystem.VFS;
-
-        public List<IndexedArchive> IndexedArchives { get; private set; }
-        public Dictionary<string, IEnumerable<VirtualFile>> IndexedFiles { get; private set; }
-
         public HashSet<string> SelectedProfiles { get; set; } = new HashSet<string>();
 
-        public void Info(string msg)
+        public override void Info(string msg)
         {
             Utils.Log(msg);
         }
 
-        public void Status(string msg)
+        public override void Status(string msg)
         {
             WorkQueue.Report(msg, 0);
         }
 
-        private void Error(string msg)
+        public override void Error(string msg)
         {
             Utils.Log(msg);
             throw new Exception(msg);
         }
 
-        internal string IncludeFile(byte[] data)
+        internal override string IncludeFile(byte[] data)
         {
             var id = Guid.NewGuid().ToString();
             File.WriteAllBytes(Path.Combine(ModListOutputFolder, id), data);
             return id;
         }
 
-        internal string IncludeFile(string data)
+        internal override string IncludeFile(string data)
         {
             var id = Guid.NewGuid().ToString();
             File.WriteAllText(Path.Combine(ModListOutputFolder, id), data);
             return id;
         }
 
-        public bool Compile()
+        public override bool Compile()
         {
             VirtualFileSystem.Clean();
             Info("Looking for other profiles");
@@ -283,6 +287,7 @@ namespace Wabbajack.Lib
                 GameType = GameRegistry.Games.Values.First(f => f.MO2Name == MO2Ini.General.gameName).Game,
                 WabbajackVersion = WabbajackVersion,
                 Archives = SelectedArchives,
+                ModManager = ModManager.MO2,
                 Directives = InstallDirectives,
                 Name = ModListName ?? MO2Profile,
                 Author = ModListAuthor ?? "",
@@ -533,7 +538,7 @@ namespace Wabbajack.Lib
         }
 
 
-        public static Directive RunStack(IEnumerable<ICompilationStep> stack, RawSourceFile source)
+        public override Directive RunStack(IEnumerable<ICompilationStep> stack, RawSourceFile source)
         {
             Utils.Status($"Compiling {source.Path}");
             foreach (var step in stack)
@@ -545,7 +550,7 @@ namespace Wabbajack.Lib
             throw new InvalidDataException("Data fell out of the compilation stack");
         }
 
-        public IEnumerable<ICompilationStep> GetStack()
+        public override IEnumerable<ICompilationStep> GetStack()
         {
             var user_config = Path.Combine(MO2ProfileDir, "compilation_stack.yml");
             if (File.Exists(user_config))
@@ -566,7 +571,7 @@ namespace Wabbajack.Lib
         ///     result included into the pack
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<ICompilationStep> MakeStack()
+        public override IEnumerable<ICompilationStep> MakeStack()
         {
             Utils.Log("Generating compilation stack");
             return new List<ICompilationStep>
