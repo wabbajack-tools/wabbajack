@@ -123,7 +123,7 @@
       <Version>4.1.7</Version>
     </PackageReference>
     <PackageReference Include="erri120.OMODFramework">
-      <Version>1.0.0</Version>
+      <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="ini-parser">
       <Version>2.5.2</Version>
@@ -138,7 +138,7 @@
       <Version>1.0.2</Version>
     </PackageReference>
     <PackageReference Include="protobuf-net">
-      <Version>2.4.0</Version>
+      <Version>2.4.4</Version>
     </PackageReference>
     <PackageReference Include="System.Data.HashFunction.xxHash">
       <Version>2.0.0</Version>
