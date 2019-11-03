@@ -91,6 +91,8 @@
     <Compile Include="DynamicIniData.cs" />
     <Compile Include="Error States\ErrorResponse.cs" />
     <Compile Include="Error States\GetResponse.cs" />
+    <Compile Include="Enums\ModManager.cs" />
+    <Compile Include="Enums\RunMode.cs" />
     <Compile Include="ExtensionManager.cs" />
     <Compile Include="Extensions\DictionaryExt.cs" />
     <Compile Include="Extensions\HashHelper.cs" />
