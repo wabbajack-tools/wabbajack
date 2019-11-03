@@ -64,10 +64,16 @@ namespace Wabbajack
         public bool InstallingMode { get; set; }
 
         [Reactive]
-        public string Location { get; set; } = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        public string Location { get; set; }
+
+        private readonly ObservableAsPropertyHelper<IErrorResponse> _LocationError;
+        public IErrorResponse LocationError => _LocationError.Value;
 
         [Reactive]
         public string DownloadLocation { get; set; }
+
+        private readonly ObservableAsPropertyHelper<IErrorResponse> _DownloadLocationError;
+        public IErrorResponse DownloadLocationError => _DownloadLocationError.Value;
 
         private readonly ObservableAsPropertyHelper<float> _ProgressPercent;
         public float ProgressPercent => _ProgressPercent.Value;
@@ -222,6 +228,14 @@ namespace Wabbajack
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(this.Description));
 
+            this._LocationError = this.WhenAny(x => x.Location)
+                .Select(x => Utils.IsDirectoryPathValid(x))
+                .ToProperty(this, nameof(this.LocationError));
+
+            this._DownloadLocationError = this.WhenAny(x => x.DownloadLocation)
+                .Select(x => Utils.IsDirectoryPathValid(x))
+                .ToProperty(this, nameof(this.DownloadLocationError));
+
             // Define commands
             this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
             this.OpenReadmeCommand = ReactiveCommand.Create(
@@ -231,8 +245,16 @@ namespace Wabbajack
                     .ObserveOnGuiThread());
             this.BeginCommand = ReactiveCommand.Create(
                 execute: this.ExecuteBegin,
-                canExecute: this.WhenAny(x => x.Installing)
-                    .Select(installing => !installing)
+                canExecute: Observable.CombineLatest(
+                        this.WhenAny(x => x.Installing),
+                        this.WhenAny(x => x.LocationError),
+                        this.WhenAny(x => x.DownloadLocationError),
+                        resultSelector: (installing, loc, download) =>
+                        {
+                            if (installing) return false;
+                            return (loc?.Succeeded ?? false)
+                                && (download?.Succeeded ?? false);
+                        })
                     .ObserveOnGuiThread());
             this.VisitWebsiteCommand = ReactiveCommand.Create(
                 execute: () => Process.Start(this.ModList.Website),
@@ -242,6 +264,7 @@ namespace Wabbajack
 
             // Have Installation location updates modify the downloads location if empty
             this.WhenAny(x => x.Location)
+                .Skip(1) // Don't do it initially
                 .Subscribe(installPath =>
                 {
                     if (string.IsNullOrWhiteSpace(this.DownloadLocation))

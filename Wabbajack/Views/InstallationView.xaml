@@ -617,7 +617,8 @@
                             Margin="0,0,14,0"
                             HorizontalAlignment="Right"
                             Background="{StaticResource PrimaryVariantBrush}"
-                            CornerRadius="43">
+                            CornerRadius="43"
+                            Visibility="{Binding IsEnabled, ElementName=BeginButton, Converter={StaticResource bool2VisibilityConverter}}">
                             <Border.Effect>
                                 <BlurEffect Radius="10" />
                             </Border.Effect>
@@ -645,6 +646,7 @@
                             Grid.Column="2"
                             Height="30"
                             VerticalAlignment="Center"
+                            AdditionalError="{Binding LocationError}"
                             DoExistsCheck="False"
                             FontSize="14"
                             PathType="Folder"
@@ -663,6 +665,7 @@
                             Grid.Column="2"
                             Height="30"
                             VerticalAlignment="Center"
+                            AdditionalError="{Binding DownloadLocationError}"
                             DoExistsCheck="False"
                             FontSize="14"
                             PathType="Folder"
@@ -677,10 +680,7 @@
                             Height="55"
                             Margin="0,0,25,0"
                             HorizontalAlignment="Right"
-                            Background="#222222"
-                            BorderBrush="{StaticResource SecondaryBrush}"
-                            Command="{Binding BeginCommand}"
-                            Style="{StaticResource CircleButtonStyle}">
+                            Command="{Binding BeginCommand}">
                             <icon:PackIconMaterial
                                 Width="25"
                                 Height="25"
@@ -688,21 +688,43 @@
                                 Kind="Play">
                                 <icon:PackIconMaterial.Style>
                                     <Style TargetType="icon:PackIconMaterial">
-                                        <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}" />
+                                        <Setter Property="Foreground" Value="#666666" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsMouseOver, ElementName=BeginButton}" Value="True">
-                                                <Setter Property="Foreground" Value="#00ffe7" />
+                                            <DataTrigger Binding="{Binding IsEnabled, ElementName=BeginButton}" Value="True">
+                                                <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}" />
                                             </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding IsMouseOver, ElementName=BeginButton}" Value="True" />
+                                                    <Condition Binding="{Binding IsEnabled, ElementName=BeginButton}" Value="True" />
+                                                </MultiDataTrigger.Conditions>
+                                                <MultiDataTrigger.Setters>
+                                                    <Setter Property="Foreground" Value="#00ffe7" />
+                                                </MultiDataTrigger.Setters>
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </icon:PackIconMaterial.Style>
                             </icon:PackIconMaterial>
-                            <Button.Effect>
-                                <DropShadowEffect
-                                    BlurRadius="15"
-                                    ShadowDepth="0"
-                                    Color="{StaticResource Secondary}" />
-                            </Button.Effect>
+                            <Button.Style>
+                                <Style BasedOn="{StaticResource CircleButtonStyle}" TargetType="Button">
+                                    <Setter Property="Background" Value="#333333" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsEnabled, ElementName=BeginButton}" Value="True">
+                                            <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
+                                            <Setter Property="Background" Value="#222222" />
+                                            <Setter Property="Effect">
+                                                <Setter.Value>
+                                                    <DropShadowEffect
+                                                        BlurRadius="15"
+                                                        ShadowDepth="0"
+                                                        Color="{StaticResource Secondary}" />
+                                                </Setter.Value>
+                                            </Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
                         </Button>
                     </Grid>
                 </ScrollViewer>
