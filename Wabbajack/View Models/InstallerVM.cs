@@ -39,8 +39,8 @@ namespace Wabbajack
 
         public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Wabba_Mouth.png");
 
-        private readonly ObservableAsPropertyHelper<ModList> _ModList;
-        public ModList ModList => _ModList.Value;
+        private readonly ObservableAsPropertyHelper<ModListVM> _ModList;
+        public ModListVM ModList => _ModList.Value;
 
         [Reactive]
         public string ModListPath { get; set; }
@@ -109,9 +109,9 @@ namespace Wabbajack
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(source =>
                 {
-                    if (source == null) return default;
-                    var modlist = Installer.LoadFromFile(source);
-                    if (modlist == null)
+                    if (source == null) return default(ModListVM);
+                    var modList = Installer.LoadFromFile(source);
+                    if (modList == null)
                     {
                         MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
                             MessageBoxImage.Error);
@@ -125,12 +125,12 @@ namespace Wabbajack
                             window.Show();
                             this.MWVM.MainWindow.Close();
                         });
-                        return default;
+                        return default(ModListVM);
                     }
-                    return modlist;
+                    return new ModListVM(modList, source);
                 })
                 .ObserveOnGuiThread()
-                .StartWith(default(ModList))
+                .StartWith(default(ModListVM))
                 .ToProperty(this, nameof(this.ModList));
             this._HTMLReport = this.WhenAny(x => x.ModList)
                 .Select(modList => modList?.ReportHTML)
@@ -147,57 +147,13 @@ namespace Wabbajack
 
             this.Slideshow = new SlideShow(this);
 
-            // Locate and create modlist image if it exists
-            var modListImage = Observable.CombineLatest(
-                    this.WhenAny(x => x.ModList),
-                    this.WhenAny(x => x.ModListPath),
-                    (modList, modListPath) => (modList, modListPath))
-                .ObserveOn(RxApp.TaskpoolScheduler)
-                .Select(u =>
-                {
-                    if (u.modList == null
-                        || u.modListPath == null
-                        || !File.Exists(u.modListPath)
-                        || string.IsNullOrEmpty(u.modList.Image)
-                        || u.modList.Image.Length != 36)
-                    {
-                        return WabbajackLogo;
-                    }
-                    try
-                    {
-                        using (var fs = new FileStream(u.modListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                        using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
-                        using (var ms = new MemoryStream())
-                        {
-                            var entry = ar.GetEntry(u.modList.Image);
-                            using (var e = entry.Open())
-                                e.CopyTo(ms);
-                            var image = new BitmapImage();
-                            image.BeginInit();
-                            image.CacheOption = BitmapCacheOption.OnLoad;
-                            image.StreamSource = ms;
-                            image.EndInit();
-                            image.Freeze();
-
-                            return image;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        this.Log().Warn(ex, "Error loading modlist splash image.");
-                        return WabbajackLogo;
-                    }
-                })
-                .ObserveOnGuiThread()
-                .StartWith(default(BitmapImage))
-                .Replay(1)
-                .RefCount();
-
             // Set display items to modlist if configuring or complete,
             // or to the current slideshow data if installing
             this._Image = Observable.CombineLatest(
-                    modListImage
-                        .StartWith(default(BitmapImage)),
+                    this.WhenAny(x => x.ModList)
+                        .SelectMany(x => x?.ImageObservable ?? Observable.Empty<BitmapImage>())
+                        .NotNull()
+                        .StartWith(WabbajackLogo),
                     this.WhenAny(x => x.Slideshow.Image)
                         .StartWith(default(BitmapImage)),
                     this.WhenAny(x => x.Installing),
@@ -205,19 +161,22 @@ namespace Wabbajack
                 .ToProperty(this, nameof(this.Image));
             this._TitleText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Name),
-                    this.WhenAny(x => x.Slideshow.ModName),
+                    this.WhenAny(x => x.Slideshow.TargetMod.ModName)
+                        .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(this.TitleText));
             this._AuthorText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Author),
-                    this.WhenAny(x => x.Slideshow.AuthorName),
+                    this.WhenAny(x => x.Slideshow.TargetMod.ModAuthor)
+                        .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(this.AuthorText));
             this._Description = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Description),
-                    this.WhenAny(x => x.Slideshow.Description),
+                    this.WhenAny(x => x.Slideshow.TargetMod.ModDescription)
+                        .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(this.Description));
@@ -289,7 +248,7 @@ namespace Wabbajack
         {
             this.Installing = true;
             this.InstallingMode = true;
-            var installer = new Installer(this.ModListPath, this.ModList, Location)
+            var installer = new Installer(this.ModListPath, this.ModList.SourceModList, Location)
             {
                 DownloadFolder = DownloadLocation
             };

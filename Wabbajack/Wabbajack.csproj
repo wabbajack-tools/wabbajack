@@ -162,6 +162,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
+    <Compile Include="Extensions\EnumerableExt.cs" />
+    <Compile Include="View Models\ModListVM.cs" />
+    <Compile Include="View Models\ModVM.cs" />
     <Compile Include="Views\CompilerView.xaml.cs">
       <DependentUpon>CompilerView.xaml</DependentUpon>
     </Compile>

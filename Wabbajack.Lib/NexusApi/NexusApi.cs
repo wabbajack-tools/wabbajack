@@ -303,34 +303,6 @@ namespace Wabbajack.Lib.NexusApi
             }
         }
 
-
-        public static IEnumerable<Slide> CachedSlideShow
-        {
-            get
-            {
-                if (!Directory.Exists(Consts.NexusCacheDirectory)) return new Slide[] { };
-
-                return Directory.EnumerateFiles(Consts.NexusCacheDirectory)
-                    .Where(f => f.EndsWith(".json"))
-                    .Select(f =>
-                    {
-                        try
-                        {
-                            return f.FromJSON<ModInfo>();
-                        }
-                        catch (Exception)
-                        {
-                            File.Delete(f);
-                            return null;
-                        }
-                    })
-                    .Where(m => m != null)
-                    .Where(m => m._internal_version == CACHED_VERSION_NUMBER && m.picture_url != null)
-                    .Select(m => new Slide(m.name,m.mod_id,m.summary,m.author,m.contains_adult_content,GetModURL(m.game_name,m.mod_id),m.picture_url));
-            }
-        }
-
-
         private class DownloadLink
         {
             public string URI { get; set; }

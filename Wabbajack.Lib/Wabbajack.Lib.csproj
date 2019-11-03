@@ -103,7 +103,6 @@
     <Compile Include="NexusApi\NexusApiUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReportBuilder.cs" />
-    <Compile Include="UI\Slide.cs" />
     <Compile Include="UI\UIUtils.cs" />
     <Compile Include="Updater\CheckForUpdates.cs" />
     <Compile Include="Validation\DTOs.cs" />
