@@ -29,8 +29,8 @@
             VerticalAlignment="Center"
             Foreground="{StaticResource WarningBrush}"
             Kind="Circle"
-            ToolTip="Path does not exist"
-            Visibility="{Binding Exists, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}" />
+            ToolTip="{Binding ErrorTooltip, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+            Visibility="{Binding InError, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityConverter}}" />
         <Button
             Grid.Column="1"
             Command="{Binding SetTargetPathCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
