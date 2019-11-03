@@ -10,12 +10,12 @@ namespace Wabbajack.Lib.CompilationSteps
     {
         private readonly IEnumerable<string> _allEnabledMods;
 
-        public IgnoreDisabledMods(Compiler compiler) : base(compiler)
+        public IgnoreDisabledMods(ACompiler compiler) : base(compiler)
         {
-            var alwaysEnabled = _compiler.ModInis.Where(f => IsAlwaysEnabled(f.Value)).Select(f => f.Key).ToHashSet();
+            var alwaysEnabled = compiler._mo2Compiler.ModInis.Where(f => IsAlwaysEnabled(f.Value)).Select(f => f.Key).ToHashSet();
 
-            _allEnabledMods = _compiler.SelectedProfiles
-                .SelectMany(p => File.ReadAllLines(Path.Combine(_compiler.MO2Folder, "profiles", p, "modlist.txt")))
+            _allEnabledMods = compiler._mo2Compiler.SelectedProfiles
+                .SelectMany(p => File.ReadAllLines(Path.Combine(compiler._mo2Compiler.MO2Folder, "profiles", p, "modlist.txt")))
                 .Where(line => line.StartsWith("+") || line.EndsWith("_separator"))
                 .Select(line => line.Substring(1))
                 .Concat(alwaysEnabled)
@@ -55,7 +55,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IgnoreDisabledMods")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IgnoreDisabledMods(compiler);
             }

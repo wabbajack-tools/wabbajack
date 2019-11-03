@@ -10,9 +10,9 @@ namespace Wabbajack.Lib.CompilationSteps
     {
         private readonly IEnumerable<string> _correctProfiles;
 
-        public IncludeThisProfile(Compiler compiler) : base(compiler)
+        public IncludeThisProfile(ACompiler compiler) : base(compiler)
         {
-            _correctProfiles = _compiler.SelectedProfiles.Select(p => Path.Combine("profiles", p) + "\\").ToList();
+            _correctProfiles = compiler._mo2Compiler.SelectedProfiles.Select(p => Path.Combine("profiles", p) + "\\").ToList();
         }
 
         public override Directive Run(RawSourceFile source)
@@ -48,7 +48,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IncludeThisProfile")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IncludeThisProfile(compiler);
             }

@@ -9,7 +9,7 @@ namespace Wabbajack.Lib.CompilationSteps
     {
         private readonly HashSet<string> _cruftFiles;
 
-        public IgnoreWabbajackInstallCruft(Compiler compiler) : base(compiler)
+        public IgnoreWabbajackInstallCruft(ACompiler compiler) : base(compiler)
         {
             _cruftFiles = new HashSet<string>
             {
@@ -34,7 +34,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IgnoreWabbajackInstallCruft")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IgnoreWabbajackInstallCruft(compiler);
             }

@@ -6,7 +6,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class DirectMatch : ACompilationStep
     {
-        public DirectMatch(Compiler compiler) : base(compiler)
+        public DirectMatch(ACompiler compiler) : base(compiler)
         {
         }
 
@@ -34,7 +34,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("DirectMatch")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new DirectMatch(compiler);
             }

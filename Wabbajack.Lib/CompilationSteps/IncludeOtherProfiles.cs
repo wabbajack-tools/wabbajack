@@ -9,9 +9,9 @@ namespace Wabbajack.Lib.CompilationSteps
     {
         private readonly IEnumerable<string> _profiles;
 
-        public IgnoreOtherProfiles(Compiler compiler) : base(compiler)
+        public IgnoreOtherProfiles(ACompiler compiler) : base(compiler)
         {
-            _profiles = _compiler.SelectedProfiles
+            _profiles = compiler._mo2Compiler.SelectedProfiles
                 .Select(p => Path.Combine("profiles", p) + "\\")
                 .ToList();
         }
@@ -33,7 +33,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IgnoreOtherProfiles")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IgnoreOtherProfiles(compiler);
             }

@@ -9,7 +9,7 @@ namespace Wabbajack.Lib.CompilationSteps
         private readonly string _pattern;
         private readonly Regex _regex;
 
-        public IncludeRegex(Compiler compiler, string pattern) : base(compiler)
+        public IncludeRegex(ACompiler compiler, string pattern) : base(compiler)
         {
             _pattern = pattern;
             _regex = new Regex(pattern);
@@ -43,7 +43,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             public string Pattern { get; set; }
 
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IncludeRegex(compiler, Pattern);
             }

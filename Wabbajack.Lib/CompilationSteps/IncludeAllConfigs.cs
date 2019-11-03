@@ -6,7 +6,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class IncludeAllConfigs : ACompilationStep
     {
-        public IncludeAllConfigs(Compiler compiler) : base(compiler)
+        public IncludeAllConfigs(ACompiler compiler) : base(compiler)
         {
         }
 
@@ -26,7 +26,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IncludeAllConfigs")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IncludeAllConfigs(compiler);
             }

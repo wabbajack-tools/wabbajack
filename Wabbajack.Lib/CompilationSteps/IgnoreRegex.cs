@@ -9,7 +9,7 @@ namespace Wabbajack.Lib.CompilationSteps
         private readonly Regex _regex;
         private readonly string _pattern;
 
-        public IgnoreRegex(Compiler compiler, string pattern) : base(compiler)
+        public IgnoreRegex(ACompiler compiler, string pattern) : base(compiler)
         {
             _pattern = pattern;
             _reason = $"Ignored because path matches regex {pattern}";
@@ -43,7 +43,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             public string Pattern { get; set; }
 
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IgnoreRegex(compiler, Pattern);
             }

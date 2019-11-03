@@ -8,7 +8,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class PatchStockESMs : ACompilationStep
     {
-        public PatchStockESMs(Compiler compiler) : base(compiler)
+        public PatchStockESMs(ACompiler compiler) : base(compiler)
         {
         }
 
@@ -44,7 +44,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("PatchStockESMs")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new PatchStockESMs(compiler);
             }
