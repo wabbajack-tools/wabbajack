@@ -8,6 +8,6 @@
 
     public interface IState
     {
-        ICompilationStep CreateStep(Compiler compiler);
+        ICompilationStep CreateStep(ACompiler compiler);
     }
 }
