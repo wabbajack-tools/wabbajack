@@ -50,6 +50,7 @@ namespace Wabbajack.Test
                 "[General]",
                 $"gameName={GameName}",
                 $"gamePath={GameFolder.Replace("\\", "\\\\")}",
+                $"download_directory={DownloadsFolder}"
             });
 
             Directory.CreateDirectory(DownloadsFolder);

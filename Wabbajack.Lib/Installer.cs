@@ -155,6 +155,7 @@ namespace Wabbajack.Lib
             BuildFolderStructure();
             InstallArchives();
             InstallIncludedFiles();
+            InctallIncludedDownloadMetas();
             BuildBSAs();
 
             zEditIntegration.GenerateMerges(this);
@@ -163,6 +164,19 @@ namespace Wabbajack.Lib
             // Removed until we decide if we want this functionality
             // Nexus devs weren't sure this was a good idea, I (halgari) agree.
             //AskToEndorse();
+        }
+
+        private void InctallIncludedDownloadMetas()
+        {
+            ModList.Directives
+                   .OfType<ArchiveMeta>()
+                   .PMap(directive =>
+                   {
+                       Status($"Writing included .meta file {directive.To}");
+                       var out_path = Path.Combine(DownloadFolder, directive.To);
+                       if (File.Exists(out_path)) File.Delete(out_path);
+                       File.WriteAllBytes(out_path, LoadBytesFromPath(directive.SourceDataID));
+                   });
         }
 
         private void ValidateGameESMs()

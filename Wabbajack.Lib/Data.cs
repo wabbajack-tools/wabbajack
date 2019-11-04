@@ -118,6 +118,11 @@ namespace Wabbajack.Lib
         public string SourceDataID;
     }
 
+    public class ArchiveMeta : Directive
+    {
+        public string SourceDataID;
+    }
+
     public enum PropertyType { Banner, Readme }
 
     /// <summary>
