@@ -100,15 +100,18 @@ namespace Wabbajack.Lib
             IEnumerable<RawSourceFile> game_files = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Lookup(p))
-                    { Path = Alphaleonis.Win32.Filesystem.Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
+                    { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
 
             Info("Indexing Archives");
             IndexedArchives = Directory.EnumerateFiles(DownloadsFolder)
+                //.Where(f => File.Exists(f+".meta"))
                 .Where(File.Exists)
                 .Select(f => new IndexedArchive
                 {
                     File = VFS.Lookup(f),
-                    Name = Path.GetFileName(f)
+                    Name = Path.GetFileName(f),
+                    //IniData = (f+"meta").LoadIniFile(),
+                    //Meta = File.ReadAllText(f+".meta")
                 })
                 .ToList();
 
@@ -131,7 +134,7 @@ namespace Wabbajack.Lib
                 .Where(fs => fs.Count() > 1)
                 .Select(fs =>
                 {
-                    Utils.Log($"Duplicate files installed to {fs.Key} from : {String.Join(", ", fs.Select(f => f.AbsolutePath))}");
+                    Utils.Log($"Duplicate files installed to {fs.Key} from : {string.Join(", ", fs.Select(f => f.AbsolutePath))}");
                     return fs;
                 }).ToList();
 
@@ -205,7 +208,7 @@ namespace Wabbajack.Lib
                 using (var za = new ZipArchive(fs, ZipArchiveMode.Create))
                 {
                     Directory.EnumerateFiles(ModListOutputFolder, "*.*")
-                        .DoProgress("Compressing Modlist",
+                        .DoProgress("Compressing ModList",
                             f =>
                             {
                                 var ze = za.CreateEntry(Path.GetFileName(f));
@@ -218,7 +221,7 @@ namespace Wabbajack.Lib
                 }
             }
             Utils.Log("Removing ModList staging folder");
-            Directory.Delete(ModListOutputFolder, true);
+            //Directory.Delete(ModListOutputFolder, true);
         }
 
         private void GatherArchives()
@@ -288,12 +291,13 @@ namespace Wabbajack.Lib
             {
                 //new IncludePropertyFiles(this),
 
-                new IgnoreGameFiles(this), 
-
-                new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Data")),
-                new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Papyrus Compiler")),
-                new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Skyrim")),
-                new IgnoreRegex(this, Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
+                new IgnoreGameFiles(this),
+                new IncludeRegex(this, @".*\.zip?$"),
+                //new IncludeRegex(this, "*.zip"),
+                //new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Data")),
+                //new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Papyrus Compiler")),
+                //new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Skyrim")),
+                //new IgnoreRegex(this, Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
 
                 new DirectMatch(this),
 

@@ -196,47 +196,71 @@ namespace Wabbajack
 
         private async Task ExecuteBegin()
         {
-            Compiler compiler;
-            try
+            if (true)
             {
-                compiler = new Compiler(this.Mo2Folder)
+                var compiler = new VortexCompiler("darkestdungeon", "S:\\SteamLibrary\\steamapps\\common\\DarkestDungeon");
+                await Task.Run(() =>
                 {
-                    MO2Profile = this.MOProfile,
-                    ModListName = this.ModListName,
-                    ModListAuthor = this.AuthorText,
-                    ModListDescription = this.Description,
-                    ModListImage = this.ImagePath.TargetPath,
-                    ModListWebsite = this.Website,
-                    ModListReadme = this.ReadMeText.TargetPath,
-                };
-            }
-            catch (Exception ex)
-            {
-                while (ex.InnerException != null) ex = ex.InnerException;
-                Utils.Log($"Compiler error: {ex.ExceptionToString()}");
-                return;
-            }
-            await Task.Run(() =>
-            {
-                Compiling = true;
-                try
-                {
-                    compiler.Compile();
-                    if (compiler.ModList?.ReportHTML != null)
+                    UIReady = false;
+                    try
                     {
-                        this.HTMLReport = compiler.ModList.ReportHTML;
+                        compiler.Compile();
                     }
-                }
-                catch (Exception ex)
+                    catch (Exception ex)
+                    {
+                        while (ex.InnerException != null) ex = ex.InnerException;
+                        this.Log().Warn(ex, "Can't continue");
+                    }
+                    finally
+                    {
+                        UIReady = true;
+                    }
+                });
+            }else{
+                if (this.Mo2Folder != null)
                 {
-                    while (ex.InnerException != null) ex = ex.InnerException;
-                    Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                    Compiler compiler;
+                    try {
+                    compiler = new Compiler(this.Mo2Folder)
+                    {
+                        MO2Profile = this.MOProfile,
+                        ModListName = this.ModListName,
+                        ModListAuthor = this.AuthorText,
+                        ModListDescription = this.Description,
+                        ModListImage = this.ImagePath.TargetPath,
+                        ModListWebsite = this.Website,
+                        ModListReadme = this.ReadMeText.TargetPath,
+                    };
+                    }
+                    catch (Exception ex)
+                    {
+                        while (ex.InnerException != null) ex = ex.InnerException;
+                        Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                        return;
+                    }
+                    await Task.Run(() =>
+                    {
+                        Compiling = true;
+                        try
+                        {
+                            compiler.Compile();
+                            if (compiler.ModList?.ReportHTML != null)
+                            {
+                                this.HTMLReport = compiler.ModList.ReportHTML;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            while (ex.InnerException != null) ex = ex.InnerException;
+                            Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                        }
+                        finally
+                        {
+                            Compiling = false;
+                        }
+                    });
                 }
-                finally
-                {
-                    Compiling = false;
-                }
-            });
+            }
         }
     }
 }
