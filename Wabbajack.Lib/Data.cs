@@ -209,6 +209,7 @@ namespace Wabbajack.Lib
         /// </summary>
         public string Hash;
 
+        /// <summary>
         /// Meta INI for the downloaded archive
         /// </summary>
         public string Meta;
