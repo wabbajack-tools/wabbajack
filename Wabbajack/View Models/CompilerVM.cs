@@ -198,7 +198,8 @@ namespace Wabbajack
         {
             if (true)
             {
-                var compiler = new VortexCompiler("darkestdungeon", "S:\\SteamLibrary\\steamapps\\common\\DarkestDungeon");
+                string[] args = Environment.GetCommandLineArgs();
+                var compiler = new VortexCompiler(args[1], args[2]);
                 await Task.Run(() =>
                 {
                     UIReady = false;
