@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -15,7 +16,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override Directive Run(RawSourceFile source)
         {
-            if (!source.Path.EndsWith("\\vortex.deployment.msgpack") &&
+            if (!source.Path.EndsWith("vortex.deployment.msgpack") &&
                 !source.Path.EndsWith("\\vortex.deployment.json")) return null;
             var inline = source.EvolveTo<InlineFile>();
             inline.SourceDataID = _compiler.IncludeFile(File.ReadAllBytes(source.AbsolutePath));
