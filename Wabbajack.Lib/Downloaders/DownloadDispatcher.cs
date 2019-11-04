@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using Wabbajack.Common;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -49,5 +50,11 @@ namespace Wabbajack.Lib.Downloaders
             return Downloaders.OfType<IUrlDownloader>().Select(d => d.GetDownloaderState(url)).FirstOrDefault(result => result != null);
         }
 
+        public static void PrepareAll(IEnumerable<AbstractDownloadState> states)
+        {
+            states.Select(s => s.GetDownloader().GetType())
+                  .Distinct()
+                  .Do(t => Downloaders.First(d => d.GetType() == t).Prepare());
+        }
     }
 }

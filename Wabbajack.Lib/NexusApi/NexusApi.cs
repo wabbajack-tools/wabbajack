@@ -173,6 +173,9 @@ namespace Wabbajack.Lib.NexusApi
             headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             headers.Add("Application-Name", Consts.AppName);
             headers.Add("Application-Version", $"{Assembly.GetEntryAssembly()?.GetName()?.Version ?? new Version(0, 1)}");
+
+            if (!Directory.Exists(Consts.NexusCacheDirectory))
+                Directory.CreateDirectory(Consts.NexusCacheDirectory);
         }
 
         private T Get<T>(string url)

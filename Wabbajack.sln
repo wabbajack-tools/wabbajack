@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Test", "Wabbajack
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Lib", "Wabbajack.Lib\Wabbajack.Lib.csproj", "{0A820830-A298-497D-85E0-E9A89EFEF5FE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Test.ListValidation", "Wabbajack.Test.ListValidation\Wabbajack.Test.ListValidation.csproj", "{BA013D05-1D70-452F-BB8F-272B31E6C74E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug (no commandargs)|Any CPU = Debug (no commandargs)|Any CPU
@@ -169,8 +171,8 @@ Global
 		{A47FFF32-782B-4D9F-8704-C98FB32FA8CC}.Release|x86.Build.0 = Release|x86
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|Any CPU.ActiveCfg = Debug|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|Any CPU.Build.0 = Debug|Any CPU
-		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|x64.ActiveCfg = Debug|Any CPU
-		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|x64.Build.0 = Debug|Any CPU
+		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|x64.ActiveCfg = Debug|x64
+		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|x64.Build.0 = Debug|x64
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|x86.ActiveCfg = Debug|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|x86.Build.0 = Debug|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -185,6 +187,24 @@ Global
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Release|x64.Build.0 = Release|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Release|x86.ActiveCfg = Release|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Release|x86.Build.0 = Release|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Debug (no commandargs)|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Debug (no commandargs)|Any CPU.Build.0 = Debug|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Debug (no commandargs)|x64.ActiveCfg = Debug|x64
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Debug (no commandargs)|x64.Build.0 = Debug|x64
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Debug (no commandargs)|x86.ActiveCfg = Debug|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Debug (no commandargs)|x86.Build.0 = Debug|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Debug|x64.Build.0 = Debug|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Debug|x86.Build.0 = Debug|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Release|x64.ActiveCfg = Release|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Release|x64.Build.0 = Release|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Release|x86.ActiveCfg = Release|Any CPU
+		{BA013D05-1D70-452F-BB8F-272B31E6C74E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
