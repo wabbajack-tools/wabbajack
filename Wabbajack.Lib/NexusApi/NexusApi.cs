@@ -222,7 +222,6 @@ namespace Wabbajack.Lib.NexusApi
 
         }
 
-
         public string GetNexusDownloadLink(NexusDownloader.State archive, bool cache = false)
         {
             if (cache && TryGetCachedLink(archive, out var result))
@@ -269,7 +268,13 @@ namespace Wabbajack.Lib.NexusApi
             return GetCached<GetModFilesResponse>(url).files;
         }
 
-        public ModInfo GetModInfo(Game game, string modId)
+        public List<NexusFile> GetModFiles(string gameName, string modID)
+        {
+            var url = $"https://api.nexusmods.com/v1/games/{gameName}/mods/{modID}/files.json";
+            return Get<List<NexusFile>>(url);
+        }
+
+        public ModInfo GetModInfo(string gameName, string modId)
         {
             var url = $"https://api.nexusmods.com/v1/games/{GameRegistry.Games[game].NexusName}/mods/{modId}.json";
             return GetCached<ModInfo>(url);
