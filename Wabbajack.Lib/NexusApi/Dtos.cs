@@ -46,6 +46,18 @@ namespace Wabbajack.Lib.NexusApi
         public bool contains_adult_content;
     }
 
+    public class NexusFile
+    {
+        public ulong file_id;
+        public string name;
+        public string version;
+        public string file_name;
+        public string description;
+        public string mod_version;
+        public ulong category_id;
+        public string category_name;
+    }
+
     public class EndorsementResponse
     {
         public string message;
