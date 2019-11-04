@@ -59,8 +59,8 @@ namespace Wabbajack.Common
             "DLCRobot.esm",
             "DLCworkshop01.esm",
             "DLCCoast.esm",
-            "DLCWorkshop02.esm",
-            "DLCWorkshop03.esm",
+            "DLCworkshop02.esm",
+            "DLCworkshop03.esm",
             "DLCNukaWorld.esm",
             "DLCUltraHighResolution.esm"
 
