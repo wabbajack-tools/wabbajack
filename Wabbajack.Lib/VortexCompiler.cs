@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
+using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack.Lib
 {
@@ -44,7 +47,7 @@ namespace Wabbajack.Lib
             // TODO: add custom modlist name
             ModListOutputFile = $"VORTEX_TEST_MODLIST{ExtensionManager.Extension}";
 
-            VFS = VirtualFileSystem.VFS;
+            //VFS = VirtualFileSystem.VFS;
 
             SelectedArchives = new List<Archive>();
             AllFiles = new List<RawSourceFile>();
@@ -87,6 +90,12 @@ namespace Wabbajack.Lib
             VirtualFileSystem.Clean();
             Info($"Starting Vortex compilation for {GameName} at {GamePath} with staging folder at {StagingFolder} and downloads folder at  {DownloadsFolder}.");
 
+            Info("Starting pre-compilation steps");
+            CreateMetaFiles();
+
+            Info($"Indexing {StagingFolder}");
+            VFS.AddRoot(StagingFolder);
+
             Info($"Indexing {GamePath}");
             VFS.AddRoot(GamePath);
 
@@ -96,22 +105,31 @@ namespace Wabbajack.Lib
             Info("Cleaning output folder");
             if (Directory.Exists(ModListOutputFolder)) Directory.Delete(ModListOutputFolder, true);
             Directory.CreateDirectory(ModListOutputFolder);
+            
+            IEnumerable<RawSourceFile> vortexStagingFiles = Directory.EnumerateFiles(StagingFolder, "*", SearchOption.AllDirectories)
+                .Where(p => p.FileExists() && p != "__vortex_staging_folder")
+                .Select(p => new RawSourceFile(VFS.Lookup(p))
+                    {Path = p.RelativeTo(StagingFolder)});
+            
+            IEnumerable<RawSourceFile> vortexDownloads = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.AllDirectories)
+                .Where(p => p.FileExists())
+                .Select(p => new RawSourceFile(VFS.Lookup(p))
+                    {Path = p.RelativeTo(DownloadsFolder)});
 
-            IEnumerable<RawSourceFile> game_files = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
+            IEnumerable<RawSourceFile> gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Lookup(p))
                     { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
 
             Info("Indexing Archives");
             IndexedArchives = Directory.EnumerateFiles(DownloadsFolder)
-                //.Where(f => File.Exists(f+".meta"))
-                .Where(File.Exists)
+                .Where(f => File.Exists(f+".meta"))
                 .Select(f => new IndexedArchive
                 {
                     File = VFS.Lookup(f),
                     Name = Path.GetFileName(f),
-                    //IniData = (f+"meta").LoadIniFile(),
-                    //Meta = File.ReadAllText(f+".meta")
+                    IniData = (f+".meta").LoadIniFile(),
+                    Meta = File.ReadAllText(f+".meta")
                 })
                 .ToList();
 
@@ -125,7 +143,10 @@ namespace Wabbajack.Lib
                 .ToDictionary(f => f.Key, f => f.AsEnumerable());
 
             Info("Searching for mod files");
-            AllFiles = game_files.DistinctBy(f => f.Path).ToList();
+            AllFiles = vortexStagingFiles.Concat(vortexDownloads)
+                .Concat(gameFiles)
+                .DistinctBy(f => f.Path)
+                .ToList();
 
             Info($"Found {AllFiles.Count} files to build into mod list");
 
@@ -224,6 +245,36 @@ namespace Wabbajack.Lib
             //Directory.Delete(ModListOutputFolder, true);
         }
 
+        private void CreateMetaFiles()
+        {
+            Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)
+                .Where(f => File.Exists(f) && (Path.GetExtension(f) == ".zip" || Path.GetExtension(f) == ".rar") && !File.Exists(f+".meta"))
+                .Do(f =>
+                {
+                    var metaString = $"[General]\n" +
+                                     $"repository=Nexus\n" +
+                                     $"installed=true\n" +
+                                     $"uninstalled=false\n" +
+                                     $"paused=false\n" +
+                                     $"removed=false\n" +
+                                     $"gameName={GameName}\n";
+                    var nexusClient = new NexusApiClient();
+                    var hash = "";
+                    using(var md5 = MD5.Create())
+                    using (var stream = File.OpenRead(f))
+                    {
+                        byte[] cH = md5.ComputeHash(stream);
+                        hash = BitConverter.ToString(cH).Replace("-", "").ToLowerInvariant();
+                    }
+
+                    var md5Response = nexusClient.GetModInfoFromMD5(GameName, hash);
+                    var modInfo = md5Response[0].mod;
+                    metaString += $"modID={modInfo.mod_id}\ndescription={NexusApiUtils.FixupSummary(modInfo.summary)}\n" +
+                                  $"modName={modInfo.name}\nfileID={md5Response[0].file_details.file_id}";
+                    File.WriteAllText(f+".meta",metaString, Encoding.UTF8);
+                });
+        }
+
         private void GatherArchives()
         {
             Info("Building a list of archives based on the files required");
@@ -239,16 +290,29 @@ namespace Wabbajack.Lib
             SelectedArchives = shas.PMap(sha => ResolveArchive(sha, archives));
         }
 
-        // TODO: this whole thing
         private Archive ResolveArchive(string sha, IDictionary<string, IndexedArchive> archives)
         {
             if (archives.TryGetValue(sha, out var found))
             {
+                if(found.IniData == null)
+                    Error($"No download metadata found for {found.Name}, please use MO2 to query info or add a .meta file and try again.");
+
                 var result = new Archive();
+                result.State = (AbstractDownloadState) DownloadDispatcher.ResolveArchive(found.IniData);
+
+                if (result.State == null)
+                    Error($"{found.Name} could not be handled by any of the downloaders");
 
                 result.Name = found.Name;
                 result.Hash = found.File.Hash;
+                result.Meta = found.Meta;
                 result.Size = found.File.Size;
+
+                Info($"Checking link for {found.Name}");
+
+                if (!result.State.Verify())
+                    Error(
+                        $"Unable to resolve link for {found.Name}. If this is hosted on the Nexus the file may have been removed.");
 
                 return result;
             }
@@ -290,13 +354,11 @@ namespace Wabbajack.Lib
             return new List<ICompilationStep>
             {
                 //new IncludePropertyFiles(this),
-                //new IncludeRegex(this, "^.*\\.zip"),
                 new IncludeVortexDeployment(this),
-                //new IncludeRegex(this, "*.zip"),
-                //new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Data")),
-                //new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Papyrus Compiler")),
-                //new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Skyrim")),
-                //new IgnoreRegex(this, Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
+                new IncludeRegex(this, "^*\\.meta"),
+                new IgnoreStartsWith(this, " __vortex_staging_folder"),
+                new IgnoreEndsWith(this, "__vortex_staging_folder"),
+                new IgnoreEndsWith(this, "project.xml"),
 
                 new IgnoreGameFiles(this),
 
