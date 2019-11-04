@@ -273,6 +273,7 @@ namespace Wabbajack.Lib
             zEditIntegration.VerifyMerges(this);
 
             GatherArchives();
+            IncludeArchiveMetadata();
             BuildPatches();
 
             ModList = new ModList
@@ -300,6 +301,22 @@ namespace Wabbajack.Lib
 
             Info("Done Building Modlist");
             return true;
+        }
+
+        private void IncludeArchiveMetadata()
+        {
+            Utils.Log($"Including {SelectedArchives.Count} .meta files for downloads");
+            SelectedArchives.Do(a =>
+            {
+                var source = Path.Combine(MO2DownloadsFolder, a.Name + ".meta");
+                InstallDirectives.Add(new ArchiveMeta()
+                {
+                    SourceDataID = IncludeFile(File.ReadAllText(source)),
+                    Size = File.GetSize(source),
+                    Hash = source.FileHash(),
+                    To = Path.GetFileName(source)
+                });
+            });
         }
 
         private void ExportModlist()
@@ -540,7 +557,6 @@ namespace Wabbajack.Lib
             {
                 new IncludePropertyFiles(this),
                 new IgnoreStartsWith(this,"logs\\"),
-                new IncludeRegex(this, "^downloads\\\\.*\\.meta"),
                 new IgnoreStartsWith(this, "downloads\\"),
                 new IgnoreStartsWith(this,"webcache\\"),
                 new IgnoreStartsWith(this, "overwrite\\"),

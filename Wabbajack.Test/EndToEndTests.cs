@@ -63,6 +63,19 @@ namespace Wabbajack.Test
             var modlist = CompileAndInstall(profile);
 
             utils.VerifyAllFiles();
+
+            var loot_folder = Path.Combine(utils.InstallFolder, "LOOT Config Files");
+            if (Directory.Exists(loot_folder))
+                Directory.Delete(loot_folder, true);
+
+            VirtualFileSystem.Reconfigure(utils.TestFolder);
+            var compiler = new Compiler(utils.InstallFolder);
+            compiler.MO2DownloadsFolder = Path.Combine(utils.DownloadsFolder);
+            compiler.VFS.Reset();
+            compiler.MO2Profile = profile;
+            compiler.ShowReportWhenFinished = false;
+            Assert.IsTrue(compiler.Compile());
+
         }
 
         private void DownloadAndInstall(string url, string filename, string mod_name = null)
