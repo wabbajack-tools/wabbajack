@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Wabbajack.UI"
-        Style="{StaticResource {x:Type Window}}" Icon="Icons/wabbajack.ico" WindowStyle="ToolWindow"
+        Style="{StaticResource {x:Type Window}}" Icon="../Resources/Icons/wabbajack.ico" WindowStyle="ToolWindow"
         mc:Ignorable="d"
         Title="Downloading Modlist" Height="200" Width="800">
     <StackPanel Margin="20">
