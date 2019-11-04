@@ -46,7 +46,7 @@ namespace Wabbajack.Common
 
         public static string AppName = "Wabbajack";
 
-        public static HashSet<string> GameESMs = new HashSet<string>
+        public static HashSet<string> GameESMs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             // Skyrim LE/SE
             "Skyrim.esm", 
