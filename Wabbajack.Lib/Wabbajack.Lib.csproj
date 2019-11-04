@@ -102,6 +102,7 @@
     <Compile Include="CompilationSteps\IncludeStubbedConfigFiles.cs" />
     <Compile Include="CompilationSteps\IncludeTaggedMods.cs" />
     <Compile Include="CompilationSteps\IncludeThisProfile.cs" />
+    <Compile Include="CompilationSteps\IncludeVortexDeployment.cs" />
     <Compile Include="CompilationSteps\IStackStep.cs" />
     <Compile Include="CompilationSteps\PatchStockESMs.cs" />
     <Compile Include="CompilationSteps\Serialization.cs" />

@@ -290,14 +290,15 @@ namespace Wabbajack.Lib
             return new List<ICompilationStep>
             {
                 //new IncludePropertyFiles(this),
-
-                new IgnoreGameFiles(this),
-                new IncludeRegex(this, @".*\.zip?$"),
+                //new IncludeRegex(this, "^.*\\.zip"),
+                new IncludeVortexDeployment(this),
                 //new IncludeRegex(this, "*.zip"),
                 //new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Data")),
                 //new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Papyrus Compiler")),
                 //new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Skyrim")),
                 //new IgnoreRegex(this, Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
+
+                new IgnoreGameFiles(this),
 
                 new DirectMatch(this),
 
