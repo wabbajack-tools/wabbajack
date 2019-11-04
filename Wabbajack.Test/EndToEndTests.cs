@@ -63,8 +63,10 @@ namespace Wabbajack.Test
             var modlist = CompileAndInstall(profile);
 
             utils.VerifyAllFiles();
-            
-            Directory.Delete(Path.Combine(utils.InstallFolder, "LOOT Config Files"), true);
+
+            var loot_folder = Path.Combine(utils.InstallFolder, "LOOT Config Files");
+            if (Directory.Exists(loot_folder))
+                Directory.Delete(loot_folder, true);
 
             VirtualFileSystem.Reconfigure(utils.TestFolder);
             var compiler = new Compiler(utils.InstallFolder);
