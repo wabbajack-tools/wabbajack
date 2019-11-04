@@ -32,7 +32,7 @@ namespace Wabbajack.Test.ListValidation
 
         [DataTestMethod]
         [DynamicData(nameof(GetModLists), DynamicDataSourceType.Method)]
-        public void ValidateModLists(ModlistMetadata list)
+        public void ValidateModLists(string name, ModlistMetadata list)
         {
             Log($"Testing {list.Links.MachineURL} - {list.Title}");
 
@@ -76,7 +76,7 @@ namespace Wabbajack.Test.ListValidation
 
         public static IEnumerable<object[]> GetModLists()
         {
-            return ModlistMetadata.LoadFromGithub().Select(l => new object[] {l});
+            return ModlistMetadata.LoadFromGithub().Select(l => new object[] {l.Title, l});
         }
     }
 }
