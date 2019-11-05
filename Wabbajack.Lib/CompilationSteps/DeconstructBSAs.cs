@@ -16,7 +16,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public DeconstructBSAs(ACompiler compiler) : base(compiler)
         {
-            _include_directly = compiler._mo2Compiler.ModInis.Where(kv =>
+            _include_directly = _compiler._mo2Compiler.ModInis.Where(kv =>
                 {
                     var general = kv.Value.General;
                     if (general.notes != null && general.notes.Contains(Consts.WABBAJACK_INCLUDE)) return true;
@@ -28,16 +28,16 @@ namespace Wabbajack.Lib.CompilationSteps
 
             _microstack = new List<ICompilationStep>
             {
-                new DirectMatch(compiler),
-                new IncludePatches(compiler._mo2Compiler),
-                new DropAll(compiler)
+                new DirectMatch(_compiler._mo2Compiler),
+                new IncludePatches(_compiler._mo2Compiler),
+                new DropAll(_compiler._mo2Compiler)
             };
 
             _microstackWithInclude = new List<ICompilationStep>
             {
-                new DirectMatch(compiler),
-                new IncludePatches(compiler._mo2Compiler),
-                new IncludeAll(compiler._mo2Compiler)
+                new DirectMatch(_compiler._mo2Compiler),
+                new IncludePatches(_compiler._mo2Compiler),
+                new IncludeAll(_compiler._mo2Compiler)
             };
         }
 
@@ -61,7 +61,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             var id = Guid.NewGuid().ToString();
 
-            var matches = source_files.PMap(e => _compiler.RunStack(stack, new RawSourceFile(e)
+            var matches = source_files.PMap(e => _compiler._mo2Compiler.RunStack(stack, new RawSourceFile(e)
             {
                 Path = Path.Combine(Consts.BSACreationDir, id, e.Paths.Last())
             }));

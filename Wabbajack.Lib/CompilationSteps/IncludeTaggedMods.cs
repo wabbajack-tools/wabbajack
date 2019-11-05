@@ -14,7 +14,7 @@ namespace Wabbajack.Lib.CompilationSteps
         public IncludeTaggedMods(ACompiler compiler, string tag) : base(compiler)
         {
             _tag = tag;
-            _includeDirectly = compiler._mo2Compiler.ModInis.Where(kv =>
+            _includeDirectly = _compiler._mo2Compiler.ModInis.Where(kv =>
             {
                 var general = kv.Value.General;
                 if (general.notes != null && general.notes.Contains(_tag))

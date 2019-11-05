@@ -12,7 +12,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public IncludeThisProfile(ACompiler compiler) : base(compiler)
         {
-            _correctProfiles = compiler._mo2Compiler.SelectedProfiles.Select(p => Path.Combine("profiles", p) + "\\").ToList();
+            _correctProfiles = _compiler._mo2Compiler.SelectedProfiles.Select(p => Path.Combine("profiles", p) + "\\").ToList();
         }
 
         public override Directive Run(RawSourceFile source)

@@ -26,9 +26,9 @@ namespace Wabbajack.Lib.CompilationSteps
             var data = File.ReadAllText(source.AbsolutePath);
             var originalData = data;
 
-            data = data.Replace(_compiler.GamePath, Consts.GAME_PATH_MAGIC_BACK);
-            data = data.Replace(_compiler.GamePath.Replace("\\", "\\\\"), Consts.GAME_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(_compiler.GamePath.Replace("\\", "/"), Consts.GAME_PATH_MAGIC_FORWARD);
+            data = data.Replace(_compiler._mo2Compiler.GamePath, Consts.GAME_PATH_MAGIC_BACK);
+            data = data.Replace(_compiler._mo2Compiler.GamePath.Replace("\\", "\\\\"), Consts.GAME_PATH_MAGIC_DOUBLE_BACK);
+            data = data.Replace(_compiler._mo2Compiler.GamePath.Replace("\\", "/"), Consts.GAME_PATH_MAGIC_FORWARD);
 
             data = data.Replace(_compiler._mo2Compiler.MO2Folder, Consts.MO2_PATH_MAGIC_BACK);
             data = data.Replace(_compiler._mo2Compiler.MO2Folder.Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
