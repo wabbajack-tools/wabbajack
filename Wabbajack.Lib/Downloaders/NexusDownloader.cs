@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
+using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -54,6 +55,8 @@ namespace Wabbajack.Lib.Downloaders
                 Utils.Error($"Automated installs with Wabbajack requires a premium nexus account. {client.Username} is not a premium account.");
                 return;
             }
+
+            var updated = client.GetModsUpdatedSince(Game.Skyrim,DateTime.Now - TimeSpan.FromDays(30));
         }
 
         public class State : AbstractDownloadState

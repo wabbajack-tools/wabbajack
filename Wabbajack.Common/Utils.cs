@@ -147,11 +147,26 @@ namespace Wabbajack.Common
             return Convert.ToBase64String(data);
         }
 
-        public static string ToHEX(this byte[] bytes)
+        public static string ToHex(this byte[] bytes)
         {
             var builder = new StringBuilder();
             for (var i = 0; i < bytes.Length; i++) builder.Append(bytes[i].ToString("x2"));
             return builder.ToString();
+        }
+
+        public static byte[] FromHex(this string hex)
+        {
+            return Enumerable.Range(0, hex.Length)
+                .Where(x => x % 2 == 0)
+                .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                .ToArray();
+        }
+
+        public static DateTime AsUnixTime(this long timestamp)
+        {
+            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+            dtDateTime = dtDateTime.AddSeconds(timestamp).ToLocalTime();
+            return dtDateTime;
         }
 
         /// <summary>
@@ -535,8 +550,8 @@ namespace Wabbajack.Common
 
         public static void CreatePatch(byte[] a, byte[] b, Stream output)
         {
-            var data_a = a.SHA256().FromBase64().ToHEX();
-            var data_b = b.SHA256().FromBase64().ToHEX();
+            var data_a = a.SHA256().FromBase64().ToHex();
+            var data_b = b.SHA256().FromBase64().ToHex();
             var cache_file = Path.Combine("patch_cache", $"{data_a}_{data_b}.patch");
             if (!Directory.Exists("patch_cache"))
                 Directory.CreateDirectory("patch_cache");
@@ -570,7 +585,7 @@ namespace Wabbajack.Common
         public static void TryGetPatch(string foundHash, string fileHash, out byte[] ePatch)
         {
             var patch_name = Path.Combine("patch_cache",
-                $"{foundHash.FromBase64().ToHEX()}_{fileHash.FromBase64().ToHEX()}.patch");
+                $"{foundHash.FromBase64().ToHex()}_{fileHash.FromBase64().ToHex()}.patch");
             ePatch = File.Exists(patch_name) ? File.ReadAllBytes(patch_name) : null;
         }
 

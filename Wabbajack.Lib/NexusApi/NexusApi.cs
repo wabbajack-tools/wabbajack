@@ -197,7 +197,7 @@ namespace Wabbajack.Lib.NexusApi
 
         private T GetCached<T>(string url)
         {
-            var code = Encoding.UTF8.GetBytes(url).ToHEX();
+            var code = Encoding.UTF8.GetBytes(url).ToHex();
             var cache_file = Path.Combine(Consts.NexusCacheDirectory, code + ".json");
             if (File.Exists(cache_file) && DateTime.Now - File.GetLastWriteTime(cache_file) < Consts.NexusCacheExpiry)
             {
@@ -309,6 +309,40 @@ namespace Wabbajack.Lib.NexusApi
         private class DownloadLink
         {
             public string URI { get; set; }
+        }
+
+        private class UpdatedMod
+        {
+            public long mod_id;
+            public long latest_file_update;
+            public long latest_mod_activity;
+        }
+
+        public IEnumerable<long> GetModsUpdatedSince(Game game, DateTime since)
+        {
+            var result =
+                Get<List<UpdatedMod>>(
+                    $"https://api.nexusmods.com/v1/games/{GameRegistry.Games[game].NexusName}/mods/updated.json?period=1m");
+            return result.Where(r => r.latest_file_update.AsUnixTime() >= since)
+                         .Select(m => m.mod_id)
+                         .ToList();
+        }
+
+        public static void ClearCacheFor(HashSet<(Game, long)> mods)
+        {
+            Directory.EnumerateFiles(Consts.NexusCacheDirectory, "*.json")
+                .PMap(f =>
+                {
+                    Utils.Status("Cleaning Nexus cache for");
+                    var filename = Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f).FromHex());
+                    foreach (var (game, modid) in mods)
+                    {
+                        if (filename.Contains(GameRegistry.Games[game].NexusName) && 
+                            (filename.Contains("\\" + modid + "\\") ||
+                             filename.Contains("\\" + modid + ".")))
+                            File.Delete(f);
+                    }
+                });
         }
     }
 

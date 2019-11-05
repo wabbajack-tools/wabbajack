@@ -61,7 +61,7 @@ namespace Wabbajack.Lib
                 $"#### Download Summary ({lst.Archives.Count} archives - {lst.Archives.Sum(a => a.Size).ToFileSizeString()})");
             foreach (var archive in SortArchives(lst.Archives))
             {
-                var hash = archive.Hash.FromBase64().ToHEX();
+                var hash = archive.Hash.FromBase64().ToHex();
                 NoWrapText(archive.State.GetReportEntry(archive));
                 NoWrapText($"    * Size : {archive.Size.ToFileSizeString()}");
                 NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
