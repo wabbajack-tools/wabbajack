@@ -7,19 +7,16 @@ using Application = System.Windows.Application;
 
 namespace Wabbajack
 {
-    /// <summary>
-    ///     Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        private MainWindowVM _mainVM;
+        private readonly MainWindowVM _mainViewModel;
         private MainSettings _settings;
 
         public MainWindow()
         {
             _settings = MainSettings.LoadSettings();
-            _mainVM = new MainWindowVM(this, _settings);
-            DataContext = _mainVM;
+            _mainViewModel = new MainWindowVM(this, _settings);
+            DataContext = _mainViewModel;
             
             InitializeComponent();
         }
@@ -28,7 +25,7 @@ namespace Wabbajack
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            _mainVM.Dispose();
+            _mainViewModel.Dispose();
             MainSettings.SaveSettings(_settings);
             if (ExitWhenClosing)
             {
