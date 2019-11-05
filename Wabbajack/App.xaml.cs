@@ -17,7 +17,6 @@ namespace Wabbajack
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
                 // Don't do any special logging side effects
-                Utils.SetLoggerFn((s) => { });
                 Utils.Log("Uncaught error:");
                 Utils.Log(((Exception)e.ExceptionObject).ExceptionToString());
             };

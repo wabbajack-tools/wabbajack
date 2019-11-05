@@ -182,7 +182,6 @@
     <Compile Include="Views\InstallationView.xaml.cs">
       <DependentUpon>InstallationView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Util\CPUStatus.cs" />
     <Compile Include="View Models\CompilerVM.cs" />
     <Compile Include="View Models\MainWindowVM.cs" />
     <Compile Include="Views\ModeSelectionWindow.xaml.cs">
