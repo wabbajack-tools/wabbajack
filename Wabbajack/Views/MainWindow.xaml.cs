@@ -12,39 +12,24 @@ namespace Wabbajack
     /// </summary>
     public partial class MainWindow : Window
     {
-        private MainWindowVM _mwvm;
+        private MainWindowVM _mainVM;
         private MainSettings _settings;
 
         public MainWindow()
         {
-            string[] args = Environment.GetCommandLineArgs();
-
-            if (args.Length != 3) return;
-            var modlistPath = args[2];
-            this._settings = MainSettings.LoadSettings();
-            Initialize(RunMode.Install, modlistPath, this._settings);
-        }
-
-        public MainWindow(RunMode mode, string source, MainSettings settings)
-        {
-            Initialize(mode, source, settings);
-        }
-
-        private void Initialize(RunMode mode, string source, MainSettings settings)
-        {
+            _settings = MainSettings.LoadSettings();
+            _mainVM = new MainWindowVM(this, _settings);
+            DataContext = _mainVM;
+            
             InitializeComponent();
-            this._settings = settings;
-            _mwvm = new MainWindowVM(mode, source, this, settings);
-            Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
-            this.DataContext = _mwvm;
         }
 
         internal bool ExitWhenClosing = true;
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            _mwvm.Dispose();
-            MainSettings.SaveSettings(this._settings);
+            _mainVM.Dispose();
+            MainSettings.SaveSettings(_settings);
             if (ExitWhenClosing)
             {
                 Application.Current.Shutdown();

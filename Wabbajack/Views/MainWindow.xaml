@@ -5,25 +5,18 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="Wabbajack"
-    Width="1280"
-    Height="960"
-    MinWidth="850"
-    MinHeight="650"
-    Closing="Window_Closing"
-    Icon="../Resources/Icons/wabbajack.ico"
-    ResizeMode="CanResize"
-    Style="{StaticResource {x:Type Window}}"
-    WindowStyle="ToolWindow"
-    mc:Ignorable="d">
+    Title="Wabbajack" Width="1280" Height="960" MinWidth="850" MinHeight="650" ResizeMode="CanResize"
+    Closing="Window_Closing" Icon="../Resources/Icons/wabbajack.ico"
+    Style="{StaticResource {x:Type Window}}" WindowStyle="ToolWindow" mc:Ignorable="d">
     <ContentPresenter Content="{Binding ActivePane}">
         <ContentPresenter.Resources>
+            <!--
             <DataTemplate DataType="{x:Type local:CompilerVM}">
                 <local:CompilerView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:InstallerVM}">
                 <local:InstallationView />
-            </DataTemplate>
+            </DataTemplate>-->
         </ContentPresenter.Resources>
     </ContentPresenter>
 </Window>
