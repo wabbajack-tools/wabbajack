@@ -11,6 +11,7 @@ using Microsoft.Win32;
 namespace Wabbajack.Common
 {
     public enum Game {
+        //MO2 GAMES
         Morrowind,
         Oblivion,
         Fallout3,
@@ -18,11 +19,14 @@ namespace Wabbajack.Common
         Skyrim,
         SkyrimSpecialEdition,
         Fallout4,
-        SkyrimVR
+        SkyrimVR,
+        //VORTEX GAMES
+        DarkestDungeon
     }
 
     public class GameMetaData
     {
+        public ModManager SupportedModManager { get; internal set; }
         public string MO2ArchiveName { get; internal set; }
         public Game Game { get; internal set; }
         public string NexusName { get; internal set; }
@@ -62,6 +66,7 @@ namespace Wabbajack.Common
             {
                 Game.Oblivion, new GameMetaData
                 {
+                    SupportedModManager = ModManager.MO2,
                     Game = Game.Oblivion,
                     NexusName = "oblivion",
                     MO2Name = "Oblivion",
@@ -73,6 +78,7 @@ namespace Wabbajack.Common
             {
                 Game.Fallout3, new GameMetaData
                 {
+                    SupportedModManager = ModManager.MO2,
                     Game = Game.Fallout3,
                     NexusName = "fallout3",
                     MO2Name = "fallout3",
@@ -83,6 +89,7 @@ namespace Wabbajack.Common
             {
                 Game.FalloutNewVegas, new GameMetaData
                 {
+                    SupportedModManager = ModManager.MO2,
                     Game = Game.FalloutNewVegas,
                     NexusName = "newvegas",
                     MO2Name = "New Vegas",
@@ -93,6 +100,7 @@ namespace Wabbajack.Common
             {
                 Game.Skyrim, new GameMetaData
                 {
+                    SupportedModManager = ModManager.MO2,
                     Game = Game.Skyrim,
                     NexusName = "skyrim",
                     MO2Name = "Skyrim",
@@ -103,6 +111,7 @@ namespace Wabbajack.Common
             {
                 Game.SkyrimSpecialEdition, new GameMetaData
                 {
+                    SupportedModManager = ModManager.MO2,
                     Game = Game.SkyrimSpecialEdition,
                     NexusName = "skyrimspecialedition",
                     MO2Name = "Skyrim Special Edition",
@@ -113,6 +122,7 @@ namespace Wabbajack.Common
             {
                 Game.Fallout4, new GameMetaData
                 {
+                    SupportedModManager = ModManager.MO2,
                     Game = Game.Fallout4,
                     NexusName = "fallout4",
                     MO2Name = "Fallout 4",
@@ -123,11 +133,20 @@ namespace Wabbajack.Common
             {
                 Game.SkyrimVR, new GameMetaData
                 {
+                    SupportedModManager = ModManager.MO2,
                     Game = Game.SkyrimVR,
                     NexusName = "skyrimspecialedition",
                     MO2Name = "Skyrim VR",
                     MO2ArchiveName = "skyrimse",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Skyrim VR"
+                }
+            },
+            {
+                Game.DarkestDungeon, new GameMetaData()
+                {
+                    SupportedModManager = ModManager.Vortex,
+                    Game = Game.DarkestDungeon,
+                    NexusName = "darkestdungeon"
                 }
             }
         };
