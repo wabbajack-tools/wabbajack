@@ -36,13 +36,19 @@ namespace Wabbajack.Test.ListValidation
         public void ValidateModLists(string name, ModlistMetadata list)
         {
             Log($"Testing {list.Links.MachineURL} - {list.Title}");
-
-            var state = DownloadDispatcher.ResolveArchive(list.Links.Download);
-
-            Log($"Downloading {list.Links.MachineURL} - {list.Title}");
-            
             var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + ".wabbajack");
-            state.Download(modlist_path);
+
+            if (list.NeedsDownload(modlist_path))
+            {
+                var state = DownloadDispatcher.ResolveArchive(list.Links.Download);
+                Log($"Downloading {list.Links.MachineURL} - {list.Title}");
+                state.Download(modlist_path);
+            }
+            else
+            {
+                Log($"No changes detected from downloaded modlist");
+            }
+
 
             Log($"Loading {modlist_path}");
 

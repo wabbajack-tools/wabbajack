@@ -51,8 +51,18 @@ namespace Wabbajack.Lib.ModListRegistry
             [JsonProperty("download")]
             public string Download { get; set; }
 
+            [JsonProperty("download_metadata")]
+            public DownloadMetadata DownloadMetadata { get; set; }
+
             [JsonProperty("machineURL")]
             public string MachineURL { get; set; }
+        }
+
+
+        public class DownloadMetadata
+        {
+            public string Hash { get; set; }
+            public long Size { get; set; }
         }
 
 
@@ -63,5 +73,16 @@ namespace Wabbajack.Lib.ModListRegistry
             var result = client.GetStringSync(Consts.ModlistMetadataURL);
             return result.FromJSONString<List<ModlistMetadata>>();
         }
+
+        public bool NeedsDownload(string modlistPath)
+        {
+            if (!File.Exists(modlistPath)) return true;
+            if (Links.DownloadMetadata?.Hash == null)
+            {
+                return false;
+            }
+            return Links.DownloadMetadata.Hash != modlistPath.FileHash();
+        }
     }
+
 }

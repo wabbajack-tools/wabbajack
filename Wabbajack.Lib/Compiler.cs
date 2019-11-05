@@ -15,6 +15,7 @@ using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -346,6 +347,16 @@ namespace Wabbajack.Lib
                     });
                 }
             }
+
+            Utils.Log("Exporting Modlist metadata");
+            var metadata = new ModlistMetadata.DownloadMetadata
+            {
+                Size = File.GetSize(ModListOutputFile),
+                Hash = ModListOutputFile.FileHash()
+            };
+            metadata.ToJSON(ModListOutputFile + ".meta.json");
+
+
             Utils.Log("Removing modlist staging folder");
             Directory.Delete(ModListOutputFolder, true);
 
