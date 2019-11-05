@@ -17,7 +17,10 @@ namespace Wabbajack
             _settings = MainSettings.LoadSettings();
             _mainViewModel = new MainWindowVM(this, _settings);
             DataContext = _mainViewModel;
-            
+            InitializeComponent();
+
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;
+
             InitializeComponent();
         }
 
