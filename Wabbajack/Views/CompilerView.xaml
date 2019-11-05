@@ -127,7 +127,7 @@
                 Background="#444444"
                 Maximum="100"
                 Minimum="0"
-                Value="{Binding MWVM.QueueProgress}" />
+                Value="{Binding MWVM.QueueProgress, Mode=OneWay}" />
 
             <!--  Log  -->
             <TextBlock
