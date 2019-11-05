@@ -33,6 +33,7 @@ namespace Wabbajack.Common
         public string MO2Name { get; internal set; }
         public string GameLocationRegistryKey { get; internal set; }
         public List<int> SteamIDs { get; internal set; }
+        public int GOGID { get; internal set; }
 
         public string GameLocation
         {
@@ -161,12 +162,13 @@ namespace Wabbajack.Common
                 }
             },
             {
-                Game.DarkestDungeon, new GameMetaData()
+                Game.DarkestDungeon, new GameMetaData
                 {
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.DarkestDungeon,
                     NexusName = "darkestdungeon",
-                    SteamIDs = new List<int>{262060}
+                    SteamIDs = new List<int>{262060},
+                    GOGID = 1450711444
                 }
             }
         };
