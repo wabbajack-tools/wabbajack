@@ -153,7 +153,6 @@ namespace Wabbajack.Lib.NexusApi
             }
             catch (Exception)
             {
-                Utils.Log("Couldn't find x-rl-*-remaining headers in Nexus response. Ignoring");
             }
 
         }
