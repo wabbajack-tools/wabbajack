@@ -166,6 +166,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="View Models\ModListVM.cs" />
     <Compile Include="View Models\ModVM.cs" />
+    <Compile Include="View Models\StartupVM.cs" />
     <Compile Include="Views\AppBarView.xaml.cs">
       <DependentUpon>AppBarView.xaml</DependentUpon>
     </Compile>
@@ -190,6 +191,9 @@
     <Compile Include="Converters\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Util\TreeViewItemExtensions.cs" />
     <Compile Include="View Models\SlideShow.cs" />
+    <Compile Include="Views\StartupView.xaml.cs">
+      <DependentUpon>StartupView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\TextViewer.xaml.cs">
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
@@ -231,6 +235,10 @@
     <Page Include="Themes\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\StartupView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\TextViewer.xaml">
       <Generator>MSBuild:Compile</Generator>

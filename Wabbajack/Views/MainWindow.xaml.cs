@@ -1,8 +1,5 @@
-﻿using System;
-using System.ComponentModel;
-using System.Threading;
+﻿using System.ComponentModel;
 using System.Windows;
-using Wabbajack.Common;
 using Application = System.Windows.Application;
 
 namespace Wabbajack
