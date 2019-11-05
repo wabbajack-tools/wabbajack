@@ -9,6 +9,10 @@ trigger:
 
 schedules:
     - cron: 0 * * * *
+      displayName: Daily midnight build
+      branches:
+        include:
+        - master    
 
 pool:
   name: Default
