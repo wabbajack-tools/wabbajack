@@ -19,7 +19,6 @@ namespace Wabbajack.Test
         [TestInitialize]
         public void Setup()
         {
-            WorkQueue.Init();
         }
 
         [TestMethod]

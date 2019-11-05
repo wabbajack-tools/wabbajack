@@ -90,11 +90,6 @@ namespace Wabbajack.Common
         {
             _QueueSize.OnNext((MaxQueueSize, CurrentQueueSize));
         }
-
-        public static void Init()
-        {
-            Init((a, b, c) => { }, (a, b) => { });
-        }
     }
 
     public class CPUStatus

@@ -18,8 +18,7 @@ namespace Wabbajack.Test.ListValidation
         public void Setup()
         {
             Directory.CreateDirectory(Consts.ModListDownloadFolder);
-            Utils.SetLoggerFn(s => TestContext.WriteLine(s));
-            WorkQueue.Init();
+            Utils.LogMessages.Subscribe(s => TestContext.WriteLine(s));
             var api = new NexusApiClient();
             api.ClearUpdatedModsInCache();
         }
