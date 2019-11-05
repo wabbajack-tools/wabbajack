@@ -32,6 +32,7 @@ namespace Wabbajack.Common
         public string NexusName { get; internal set; }
         public string MO2Name { get; internal set; }
         public string GameLocationRegistryKey { get; internal set; }
+        public List<int> SteamIDs { get; internal set; }
 
         public string GameLocation
         {
@@ -71,7 +72,8 @@ namespace Wabbajack.Common
                     NexusName = "oblivion",
                     MO2Name = "Oblivion",
                     MO2ArchiveName = "oblivion",
-                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Oblivion"
+                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Oblivion",
+                    SteamIDs = new List<int>{22330}
                 }
             },
 
@@ -83,7 +85,8 @@ namespace Wabbajack.Common
                     NexusName = "fallout3",
                     MO2Name = "fallout3",
                     MO2ArchiveName = "fallout3",
-                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Fallout3"
+                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Fallout3",
+                    SteamIDs = new List<int>{22300, 22370} // base game and GotY
                 }
             },
             {
@@ -94,7 +97,8 @@ namespace Wabbajack.Common
                     NexusName = "newvegas",
                     MO2Name = "New Vegas",
                     MO2ArchiveName = "falloutnv",
-                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\falloutnv"
+                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\falloutnv",
+                    SteamIDs = new List<int>{22380}
                 }
             },
             {
@@ -105,7 +109,8 @@ namespace Wabbajack.Common
                     NexusName = "skyrim",
                     MO2Name = "Skyrim",
                     MO2ArchiveName = "skyrim",
-                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\skyrim"
+                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\skyrim",
+                    SteamIDs = new List<int>{72850}
                 }
             },
             {
@@ -116,7 +121,8 @@ namespace Wabbajack.Common
                     NexusName = "skyrimspecialedition",
                     MO2Name = "Skyrim Special Edition",
                     MO2ArchiveName = "skyrimse",
-                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Skyrim Special Edition"
+                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Skyrim Special Edition",
+                    SteamIDs = new List<int>{489830}
                 }
             },
             {
@@ -127,9 +133,21 @@ namespace Wabbajack.Common
                     NexusName = "fallout4",
                     MO2Name = "Fallout 4",
                     MO2ArchiveName = "fallout4",
-                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Fallout4"
+                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Fallout4",
+                    SteamIDs = new List<int>{377160}
                 }
             },
+            /*{
+                Game.Fallout4VR, new GameMetaData
+                {
+                    SupportedModManager = ModManager.MO2,
+                    Game = Game.Fallout4VR,
+                    NexusName = "fallout4",
+                    MO2Name = "Fallout 4",
+                    MO2ArchiveName = "fallout4",
+                    SteamIDs = new List<int>{611660}
+                }
+            },*/
             {
                 Game.SkyrimVR, new GameMetaData
                 {
@@ -138,7 +156,8 @@ namespace Wabbajack.Common
                     NexusName = "skyrimspecialedition",
                     MO2Name = "Skyrim VR",
                     MO2ArchiveName = "skyrimse",
-                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Skyrim VR"
+                    GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Skyrim VR",
+                    SteamIDs = new List<int>{611670}
                 }
             },
             {
@@ -146,7 +165,8 @@ namespace Wabbajack.Common
                 {
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.DarkestDungeon,
-                    NexusName = "darkestdungeon"
+                    NexusName = "darkestdungeon",
+                    SteamIDs = new List<int>{262060}
                 }
             }
         };
