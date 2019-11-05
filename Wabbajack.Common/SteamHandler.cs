@@ -35,7 +35,6 @@ namespace Wabbajack.Common
 
         private string SteamConfig => Path.Combine(SteamPath, "config", "config.vdf");
 
-<<<<<<< HEAD
         public SteamHandler(bool init)
         {
             var steamKey = Registry.CurrentUser.OpenSubKey(SteamRegKey);
@@ -43,12 +42,6 @@ namespace Wabbajack.Common
             if(!init) return;
             LoadInstallFolders();
             LoadAllSteamGames();
-=======
-        public SteamHandler()
-        {
-            var steamKey = Registry.CurrentUser.OpenSubKey(SteamRegKey);
-            SteamPath = steamKey?.GetValue("SteamPath").ToString();
->>>>>>> Created SteamHandler
         }
 
         /// <summary>
@@ -71,13 +64,9 @@ namespace Wabbajack.Common
             File.ReadLines(SteamConfig, Encoding.UTF8).Do(l =>
             {
                 if (!l.Contains("BaseInstallFolder_")) return;
-<<<<<<< HEAD
                 var s = GetVdfValue(l);
                 s = Path.Combine(s, "steamapps");
                 paths.Add(s);
-=======
-                paths.Add(GetVdfValue(l));
->>>>>>> Created SteamHandler
             });
 
             InstallFolders = paths;
