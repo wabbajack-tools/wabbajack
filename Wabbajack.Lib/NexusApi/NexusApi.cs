@@ -153,7 +153,6 @@ namespace Wabbajack.Lib.NexusApi
             }
             catch (Exception)
             {
-                Utils.Log("Couldn't find x-rl-*-remaining headers in Nexus response. Ignoring");
             }
 
         }
@@ -173,6 +172,9 @@ namespace Wabbajack.Lib.NexusApi
             headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             headers.Add("Application-Name", Consts.AppName);
             headers.Add("Application-Version", $"{Assembly.GetEntryAssembly()?.GetName()?.Version ?? new Version(0, 1)}");
+
+            if (!Directory.Exists(Consts.NexusCacheDirectory))
+                Directory.CreateDirectory(Consts.NexusCacheDirectory);
         }
 
         private T Get<T>(string url)
@@ -194,16 +196,33 @@ namespace Wabbajack.Lib.NexusApi
 
         private T GetCached<T>(string url)
         {
-            var code = Encoding.UTF8.GetBytes(url).ToHEX();
-            var cache_file = Path.Combine(Consts.NexusCacheDirectory, code + ".json");
-            if (File.Exists(cache_file) && DateTime.Now - File.GetLastWriteTime(cache_file) < Consts.NexusCacheExpiry)
+            var code = Encoding.UTF8.GetBytes(url).ToHex() + ".json";
+
+            if (UseLocalCache)
             {
-                return cache_file.FromJSON<T>();
+                if (!Directory.Exists(LocalCacheDir))
+                    Directory.CreateDirectory(LocalCacheDir);
+
+                var cache_file = Path.Combine(LocalCacheDir, code);
+                if (File.Exists(cache_file))
+                {
+                    return cache_file.FromJSON<T>();
+                }
+
+                var result = Get<T>(url);
+                result.ToJSON(cache_file);
+                return result;
             }
 
-            var result = Get<T>(url);
-            result.ToJSON(cache_file);
-            return result;
+            try
+            {
+                return Get<T>(Consts.WabbajackCacheLocation + code);
+            }
+            catch (Exception)
+            {
+                return Get<T>(url);
+            }
+
         }
 
 
@@ -306,6 +325,77 @@ namespace Wabbajack.Lib.NexusApi
         private class DownloadLink
         {
             public string URI { get; set; }
+        }
+
+        private class UpdatedMod
+        {
+            public long mod_id;
+            public long latest_file_update;
+            public long latest_mod_activity;
+        }
+
+        private static bool? _useLocalCache;
+        public static bool UseLocalCache
+        {
+            get
+            {
+                if (_useLocalCache == null) return LocalCacheDir != null;
+                return _useLocalCache ?? false;
+            }
+            set => _useLocalCache = value;
+        }
+
+        private static string _localCacheDir;
+        public static string LocalCacheDir
+        {
+            get
+            {
+                if (_localCacheDir == null)
+                    _localCacheDir = Environment.GetEnvironmentVariable("NEXUSCACHEDIR");
+                return _localCacheDir;
+            }
+            set => _localCacheDir = value;
+        }
+
+        public void ClearUpdatedModsInCache()
+        {
+            if (!UseLocalCache) return;
+
+            var purge = GameRegistry.Games.Values
+                .Where(game => game.NexusName != null)
+                .Select(game => new
+                {
+                    game = game,
+                    mods = Get<List<UpdatedMod>>(
+                        $"https://api.nexusmods.com/v1/games/{game.NexusName}/mods/updated.json?period=1m")
+                })
+                .SelectMany(r => r.mods.Select(mod => new {game = r.game, 
+                                                           mod = mod}))
+                .ToList();
+
+            Utils.Log($"Found {purge.Count} updated mods in the last month");
+            
+            var to_purge = Directory.EnumerateFiles(LocalCacheDir, "*.json")
+                .Select(f =>
+                {
+                    Utils.Status("Cleaning Nexus cache for");
+                    var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f).FromHex()));
+                    var parts = uri.PathAndQuery.Split('/', '.').ToHashSet();
+                    var found = purge.FirstOrDefault(p => parts.Contains(p.game.NexusName) && parts.Contains(p.mod.mod_id.ToString()));
+                    if (found != null)
+                    {
+                        var should_remove = File.GetLastWriteTimeUtc(f) <= found.mod.latest_file_update.AsUnixTime();
+                        return (should_remove, f);
+                    }
+
+                    return (false, f);
+                })
+                .Where(p => p.Item1)
+                .ToList();
+
+            Utils.Log($"Purging {to_purge.Count} cache entries");
+            to_purge.PMap(f => File.Delete(f.f));
+
         }
     }
 

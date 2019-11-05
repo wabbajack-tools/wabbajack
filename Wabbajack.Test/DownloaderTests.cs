@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
 
@@ -15,6 +16,11 @@ namespace Wabbajack.Test
     [TestClass]
     public class DownloaderTests
     {
+        [TestInitialize]
+        public void Setup()
+        {
+        }
+
         [TestMethod]
         public void TestAllPrepares()
         {
@@ -145,9 +151,9 @@ namespace Wabbajack.Test
         public void MediaFireDownload()
         {
             var ini = @"[General]
-                        directURL=http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt";
+                    directURL=http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt";
 
-            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var state = (AbstractDownloadState) DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
 
@@ -155,44 +161,56 @@ namespace Wabbajack.Test
                 "http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt");
 
             Assert.AreEqual("http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt",
-                ((MediaFireDownloader.State)url_state).Url);
+                ((MediaFireDownloader.State) url_state).Url);
 
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://www.mediafire.com/file/agiqzm1xwebczpx/" } }));
-            Assert.IsFalse(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist
+                {AllowedPrefixes = new List<string> {"http://www.mediafire.com/file/agiqzm1xwebczpx/"}}));
+            Assert.IsFalse(converted.IsWhitelisted(new ServerWhitelist {AllowedPrefixes = new List<string>()}));
 
-            converted.Download(new Archive { Name = "Media Fire Test.txt" }, filename);
+            converted.Download(new Archive {Name = "Media Fire Test.txt"}, filename);
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+
         }
 
         [TestMethod]
         public void NexusDownload()
         {
-            var ini = @"[General]
+            var old_val = NexusApiClient.UseLocalCache;
+            try
+            {
+                NexusApiClient.UseLocalCache = false;
+                var ini = @"[General]
                         gameName=SkyrimSE
                         modID = 12604
                         fileID=35407";
 
-            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+                var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+                Assert.IsNotNull(state);
 
 
-            var converted = state.ViaJSON();
-            Assert.IsTrue(converted.Verify());
-            // Exercise the cache code
-            Assert.IsTrue(converted.Verify());
-            var filename = Guid.NewGuid().ToString();
+                var converted = state.ViaJSON();
+                Assert.IsTrue(converted.Verify());
+                // Exercise the cache code
+                Assert.IsTrue(converted.Verify());
+                var filename = Guid.NewGuid().ToString();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> () }));
+                Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> () }));
 
-            converted.Download(new Archive { Name = "SkyUI.7z" }, filename);
+                converted.Download(new Archive { Name = "SkyUI.7z" }, filename);
 
-            Assert.AreEqual(filename.FileHash(), "dF2yafV2Oks=");
+                Assert.AreEqual(filename.FileHash(), "dF2yafV2Oks=");
+
+            }
+            finally
+            {
+                NexusApiClient.UseLocalCache = old_val;
+            }
         }
 
         [TestMethod]

@@ -41,6 +41,7 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+    testFiltercriteria: 'TestCategory!=ListValidation'
 - task: DownloadSecureFile@1
   inputs:
     secureFile: 'CertFile.p12'
