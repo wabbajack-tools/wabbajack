@@ -9,8 +9,8 @@ namespace Wabbajack
 
         public MainSettings Settings { get; }
 
-        private readonly ObservableAsPropertyHelper<ViewModel> _ActivePane;
-        public ViewModel ActivePane => _ActivePane.Value;
+        private readonly ObservableAsPropertyHelper<ViewModel> _ContentArea;
+        public ViewModel ContentArea => _ContentArea.Value;
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
         {
