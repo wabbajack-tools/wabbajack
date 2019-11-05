@@ -7,6 +7,9 @@
 trigger:
 - master
 
+schedules:
+    - cron: 0 * * * *
+
 pool:
   name: Default
   vmImage: 'windows-latest'
