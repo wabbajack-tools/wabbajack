@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Configuration;
 using System.Net.Http;
+using System.Reactive.Subjects;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -43,22 +44,15 @@ namespace Wabbajack.Common
                 File.Delete(LogFile);
         }
 
-        private static Action<string> _loggerFn;
-        private static Action<string, int> _statusFn;
+        private static readonly Subject<string> _loggerSubj = new Subject<string>();
+        public static IObservable<string> LogMessages => _loggerSubj;
+        private static readonly Subject<(string Message, int Progress)> _statusSubj = new Subject<(string Message, int Progress)>();
+        public static IObservable<(string Message, int Progress)> StatusUpdates => _statusSubj;
 
         private static readonly string[] Suffix = {"B", "KB", "MB", "GB", "TB", "PB", "EB"}; // Longs run out around EB
 
-        public static void SetLoggerFn(Action<string> f)
-        {
-            _loggerFn = f;
-        }
-
-        public static void SetStatusFn(Action<string, int> f)
-        {
-            _statusFn = f;
-        }
-
         private static object _lock = new object();
+
         private static DateTime _startTime;
 
         public static void Log(string msg)
@@ -69,7 +63,7 @@ namespace Wabbajack.Common
 
                 File.AppendAllText(LogFile, msg + "\r\n");
             }
-            _loggerFn?.Invoke(msg);
+            _loggerSubj.OnNext(msg);
         }
 
         public static void LogToFile(string msg)
@@ -87,9 +81,8 @@ namespace Wabbajack.Common
             if (WorkQueue.CustomReportFn != null)
                 WorkQueue.CustomReportFn(progress, msg);
             else
-                _statusFn?.Invoke(msg, progress);
+                _statusSubj.OnNext((msg, progress));
         }
-
 
         /// <summary>
         ///     MurMur3 hashes the file pointed to by this string

@@ -23,9 +23,7 @@ namespace Wabbajack.Test
             utils = new TestUtils();
             utils.GameName = "Skyrim Special Edition";
 
-            Utils.SetStatusFn((f, idx) => { });
-            Utils.SetLoggerFn(f => TestContext.WriteLine(f));
-            WorkQueue.Init((x, y, z) => { }, (min, max) => { });
+            Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f));
 
         }
 

@@ -29,11 +29,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ViewModel> _ActivePane;
         public ViewModel ActivePane => _ActivePane.Value;
 
-        [Reactive]
-        public int QueueProgress { get; set; }
+        private readonly ObservableAsPropertyHelper<int> _QueueProgress;
+        public int QueueProgress => _QueueProgress.Value;
 
-        private readonly Subject<CPUStatus> _statusSubject = new Subject<CPUStatus>();
-        public IObservable<CPUStatus> StatusObservable => _statusSubject;
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
 
         private Subject<string> _logSubj = new Subject<string>();
@@ -53,7 +51,7 @@ namespace Wabbajack
             this._Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this, source));
 
             // Set up logging
-            _logSubj
+            Utils.LogMessages
                 .ToObservableChangeSet()
                 .Buffer(TimeSpan.FromMilliseconds(250))
                 .Where(l => l.Count > 0)
@@ -63,8 +61,9 @@ namespace Wabbajack
                 .Bind(this.Log)
                 .Subscribe()
                 .DisposeWith(this.CompositeDisposable);
-            Utils.SetLoggerFn(s => _logSubj.OnNext(s));
-            Utils.SetStatusFn((msg, progress) => WorkQueue.Report(msg, progress));
+            Utils.StatusUpdates
+                .Subscribe((i) => WorkQueue.Report(i.Message, i.Progress))
+                .DisposeWith(this.CompositeDisposable);
 
             // Wire mode to drive the active pane.
             // Note:  This is currently made into a derivative property driven by mode,
@@ -89,13 +88,8 @@ namespace Wabbajack
                 .Subscribe(vm => vm.ModListPath = source)
                 .DisposeWith(this.CompositeDisposable);
 
-            // Initialize work queue
-            WorkQueue.Init(
-                report_function: (id, msg, progress) => this._statusSubject.OnNext(new CPUStatus() { ID = id, Msg = msg, Progress = progress }),
-                report_queue_size: (max, current) => this.SetQueueSize(max, current));
-
             // Compile progress updates and populate ObservableCollection
-            this._statusSubject
+            WorkQueue.Status
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .ToObservableChangeSet(x => x.ID)
                 .Batch(TimeSpan.FromMilliseconds(250))
@@ -105,19 +99,17 @@ namespace Wabbajack
                 .Bind(this.StatusList)
                 .Subscribe()
                 .DisposeWith(this.CompositeDisposable);
-        }
 
-        private void SetQueueSize(int max, int current)
-        {
-            if (max == 0)
-                max = 1;
-            QueueProgress = current * 100 / max;
-        }
-
-        public override void Dispose()
-        {
-            base.Dispose();
-            Utils.SetLoggerFn(s => { });
+            this._QueueProgress = WorkQueue.QueueSize
+                .Select(progress =>
+                {
+                    if (progress.Max == 0)
+                    {
+                        progress.Max = 1;
+                    }
+                    return progress.Current * 100 / progress.Max;
+                })
+                .ToProperty(this, nameof(this.QueueProgress));
         }
     }
 }

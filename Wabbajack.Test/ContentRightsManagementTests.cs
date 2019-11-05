@@ -48,7 +48,6 @@ namespace Wabbajack.Test
         [TestInitialize]
         public void TestSetup()
         {
-            WorkQueue.Init((x, y, z) => { }, (min, max) => { });
             validate = new ValidateModlist();
             validate.LoadAuthorPermissionsFromString(permissions);
             validate.LoadServerWhitelist(server_whitelist);

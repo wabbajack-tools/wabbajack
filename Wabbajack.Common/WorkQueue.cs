@@ -2,6 +2,10 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 
 namespace Wabbajack.Common
@@ -19,22 +23,17 @@ namespace Wabbajack.Common
 
         public static int MaxQueueSize;
         public static int CurrentQueueSize;
-        private static bool _inited;
 
-        public static Action<int, string, int> ReportFunction { get; private set; }
-        public static Action<int, int> ReportQueueSize { get; private set; }
-        public static int ThreadCount { get; private set; }
+        private readonly static Subject<CPUStatus> _Status = new Subject<CPUStatus>();
+        public static IObservable<CPUStatus> Status => _Status;
+        private readonly static Subject<(int Current, int Max)> _QueueSize = new Subject<(int Current, int Max)>();
+        public static IObservable<(int Current, int Max)> QueueSize => _QueueSize;
+        public static int ThreadCount { get; } = Environment.ProcessorCount;
         public static List<Thread> Threads { get; private set; }
 
-        public static void Init(Action<int, string, int> report_function, Action<int, int> report_queue_size)
+        static WorkQueue()
         {
-            ReportFunction = report_function;
-            ReportQueueSize = report_queue_size;
-            ThreadCount = Environment.ProcessorCount;
-            if (_inited) return;
             StartThreads();
-            _inited = true;
-
         }
 
         private static void StartThreads()
@@ -67,9 +66,19 @@ namespace Wabbajack.Common
         public static void Report(string msg, int progress)
         {
             if (CustomReportFn != null)
+            {
                 CustomReportFn(progress, msg);
+            }
             else
-                ReportFunction(CpuId, msg, progress);
+            {
+                _Status.OnNext(
+                    new CPUStatus
+                    {
+                        Progress = progress,
+                        Msg = msg,
+                        ID = CpuId
+                    });
+            }
         }
 
         public static void QueueTask(Action a)
@@ -79,7 +88,14 @@ namespace Wabbajack.Common
 
         internal static void ReportNow()
         {
-            ReportQueueSize(MaxQueueSize, CurrentQueueSize);
+            _QueueSize.OnNext((MaxQueueSize, CurrentQueueSize));
         }
+    }
+
+    public class CPUStatus
+    {
+        public int Progress { get; internal set; }
+        public string Msg { get; internal set; }
+        public int ID { get; internal set; }
     }
 }
