@@ -197,16 +197,33 @@ namespace Wabbajack.Lib.NexusApi
 
         private T GetCached<T>(string url)
         {
-            var code = Encoding.UTF8.GetBytes(url).ToHex();
-            var cache_file = Path.Combine(Consts.NexusCacheDirectory, code + ".json");
-            if (File.Exists(cache_file) && DateTime.Now - File.GetLastWriteTime(cache_file) < Consts.NexusCacheExpiry)
+            var code = Encoding.UTF8.GetBytes(url).ToHex() + ".json";
+
+            if (UseLocalCache)
             {
-                return cache_file.FromJSON<T>();
+                if (!Directory.Exists(LocalCacheDir))
+                    Directory.CreateDirectory(LocalCacheDir);
+
+                var cache_file = Path.Combine(LocalCacheDir, code);
+                if (File.Exists(cache_file))
+                {
+                    return cache_file.FromJSON<T>();
+                }
+
+                var result = Get<T>(url);
+                result.ToJSON(cache_file);
+                return result;
             }
 
-            var result = Get<T>(url);
-            result.ToJSON(cache_file);
-            return result;
+            try
+            {
+                return Get<T>(Consts.WabbajackCacheLocation + code);
+            }
+            catch (Exception)
+            {
+                return Get<T>(url);
+            }
+
         }
 
 
@@ -318,31 +335,68 @@ namespace Wabbajack.Lib.NexusApi
             public long latest_mod_activity;
         }
 
-        public IEnumerable<long> GetModsUpdatedSince(Game game, DateTime since)
+        private static bool? _useLocalCache;
+        public static bool UseLocalCache
         {
-            var result =
-                Get<List<UpdatedMod>>(
-                    $"https://api.nexusmods.com/v1/games/{GameRegistry.Games[game].NexusName}/mods/updated.json?period=1m");
-            return result.Where(r => r.latest_file_update.AsUnixTime() >= since)
-                         .Select(m => m.mod_id)
-                         .ToList();
+            get
+            {
+                if (_useLocalCache == null) return LocalCacheDir != null;
+                return _useLocalCache ?? false;
+            }
+            set => _useLocalCache = value;
         }
 
-        public static void ClearCacheFor(HashSet<(Game, long)> mods)
+        private static string _localCacheDir;
+        public static string LocalCacheDir
         {
-            Directory.EnumerateFiles(Consts.NexusCacheDirectory, "*.json")
-                .PMap(f =>
+            get
+            {
+                if (_localCacheDir == null)
+                    _localCacheDir = Environment.GetEnvironmentVariable("NEXUSCACHEDIR");
+                return _localCacheDir;
+            }
+            set => _localCacheDir = value;
+        }
+
+        public void ClearUpdatedModsInCache()
+        {
+            if (!UseLocalCache) return;
+
+            var purge = GameRegistry.Games.Values
+                .Where(game => game.NexusName != null)
+                .Select(game => new
+                {
+                    game = game,
+                    mods = Get<List<UpdatedMod>>(
+                        $"https://api.nexusmods.com/v1/games/{game.NexusName}/mods/updated.json?period=1m")
+                })
+                .SelectMany(r => r.mods.Select(mod => new {game = r.game, 
+                                                           mod = mod}))
+                .ToList();
+
+            Utils.Log($"Found {purge.Count} updated mods in the last month");
+            
+            var to_purge = Directory.EnumerateFiles(LocalCacheDir, "*.json")
+                .Select(f =>
                 {
                     Utils.Status("Cleaning Nexus cache for");
-                    var filename = Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f).FromHex());
-                    foreach (var (game, modid) in mods)
+                    var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f).FromHex()));
+                    var parts = uri.PathAndQuery.Split('/', '.').ToHashSet();
+                    var found = purge.FirstOrDefault(p => parts.Contains(p.game.NexusName) && parts.Contains(p.mod.mod_id.ToString()));
+                    if (found != null)
                     {
-                        if (filename.Contains(GameRegistry.Games[game].NexusName) && 
-                            (filename.Contains("\\" + modid + "\\") ||
-                             filename.Contains("\\" + modid + ".")))
-                            File.Delete(f);
+                        var should_remove = File.GetLastWriteTimeUtc(f) <= found.mod.latest_file_update.AsUnixTime();
+                        return (should_remove, f);
                     }
-                });
+
+                    return (false, f);
+                })
+                .Where(p => p.Item1)
+                .ToList();
+
+            Utils.Log($"Purging {to_purge.Count} cache entries");
+            to_purge.PMap(f => File.Delete(f.f));
+
         }
     }
 

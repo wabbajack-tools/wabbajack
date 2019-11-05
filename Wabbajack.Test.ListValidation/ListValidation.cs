@@ -7,6 +7,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack.Test.ListValidation
 {
@@ -19,8 +20,8 @@ namespace Wabbajack.Test.ListValidation
             Directory.CreateDirectory(Consts.ModListDownloadFolder);
             Utils.SetLoggerFn(s => TestContext.WriteLine(s));
             WorkQueue.Init();
-            Utils.ToJSON("ff");
-
+            var api = new NexusApiClient();
+            api.ClearUpdatedModsInCache();
         }
 
         private TestContext testContextInstance;

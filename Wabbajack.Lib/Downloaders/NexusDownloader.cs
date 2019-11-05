@@ -56,7 +56,8 @@ namespace Wabbajack.Lib.Downloaders
                 return;
             }
 
-            var updated = client.GetModsUpdatedSince(Game.Skyrim,DateTime.Now - TimeSpan.FromDays(30));
+            client.ClearUpdatedModsInCache();
+            //var updated = client.GetModsUpdatedSince(Game.Skyrim,DateTime.Now - TimeSpan.FromDays(30));
         }
 
         public class State : AbstractDownloadState
