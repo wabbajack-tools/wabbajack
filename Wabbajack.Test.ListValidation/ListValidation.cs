@@ -30,6 +30,7 @@ namespace Wabbajack.Test.ListValidation
             set { testContextInstance = value; }
         }
 
+        [TestCategory("ListValidation")]
         [DataTestMethod]
         [DynamicData(nameof(GetModLists), DynamicDataSourceType.Method)]
         public void ValidateModLists(string name, ModlistMetadata list)
