@@ -166,6 +166,9 @@
     <Compile Include="Settings.cs" />
     <Compile Include="View Models\ModListVM.cs" />
     <Compile Include="View Models\ModVM.cs" />
+    <Compile Include="Views\AppBarView.xaml.cs">
+      <DependentUpon>AppBarView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\CompilerView.xaml.cs">
       <DependentUpon>CompilerView.xaml</DependentUpon>
     </Compile>
@@ -191,6 +194,10 @@
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\UserControlRx.cs" />
+    <Page Include="Views\AppBarView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\CompilerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

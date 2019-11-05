@@ -3,20 +3,27 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:Wabbajack"
+    xmlns:views="clr-namespace:Wabbajack.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Wabbajack" Width="1280" Height="960" MinWidth="850" MinHeight="650" ResizeMode="CanResize"
     Closing="Window_Closing" Icon="../Resources/Icons/wabbajack.ico"
     Style="{StaticResource {x:Type Window}}" WindowStyle="ToolWindow" mc:Ignorable="d">
-    <ContentPresenter Content="{Binding ActivePane}">
-        <ContentPresenter.Resources>
-            <!--
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <views:AppBarView Grid.Row="0"/>
+        <ContentPresenter Content="{Binding ContentArea}" Grid.Row="1">
+            <ContentPresenter.Resources>
+                <!--
             <DataTemplate DataType="{x:Type local:CompilerVM}">
                 <local:CompilerView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:InstallerVM}">
                 <local:InstallationView />
             </DataTemplate>-->
-        </ContentPresenter.Resources>
-    </ContentPresenter>
+            </ContentPresenter.Resources>
+        </ContentPresenter>
+    </Grid>
 </Window>
