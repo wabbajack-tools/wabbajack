@@ -175,7 +175,6 @@
     <Compile Include="Views\DownloadWindow.xaml.cs">
       <DependentUpon>DownloadWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View Models\ModeSelectionWindowVM.cs" />
     <Compile Include="View Models\ModListDefinition.cs" />
     <Compile Include="Views\FilePicker.xaml.cs">
       <DependentUpon>FilePicker.xaml</DependentUpon>
@@ -185,9 +184,6 @@
     </Compile>
     <Compile Include="View Models\CompilerVM.cs" />
     <Compile Include="View Models\MainWindowVM.cs" />
-    <Compile Include="Views\ModeSelectionWindow.xaml.cs">
-      <DependentUpon>ModeSelectionWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Converters\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Util\TreeViewItemExtensions.cs" />
     <Compile Include="View Models\SlideShow.cs" />
@@ -225,10 +221,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Views\ModeSelectionWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Themes\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
