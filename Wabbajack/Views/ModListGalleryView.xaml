@@ -4,9 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Wabbajack"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DataContext="{d:DesignData local:ModListVM}"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
@@ -15,15 +16,26 @@
         </Style>
     </UserControl.Resources>
     <!--Style="{StaticResource TileStyle}"-->
+    <Grid>
     <ItemsControl
-        ItemsSource="{Binding ModLists}">
+        Name="ItemsControlElement"
+        Visibility="{Binding ItemsControlVisibility}"
+        ItemsSource="{Binding ModLists}"
+        HorizontalAlignment="Center"
+        VerticalAlignment="Top">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <WrapPanel/>
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
         <DataTemplate>
         <mahapps:Tile
-            Width="650"
+            Style="{StaticResource TileStyle}"
+            Width="590"
             Height="Auto">
             <Grid
-                Width="650"
+                Width="590"
                 Background="#222222">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="10*"/>
@@ -32,8 +44,8 @@
                 </Grid.RowDefinitions>
                 <Grid
                     Grid.Row="0"
-                    Width="650"
-                    Height="366">
+                    Width="590"
+                    Height="314">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
@@ -65,4 +77,5 @@
         </DataTemplate>
         </ItemsControl.ItemTemplate>
     </ItemsControl>
+    </Grid>
 </UserControl>
