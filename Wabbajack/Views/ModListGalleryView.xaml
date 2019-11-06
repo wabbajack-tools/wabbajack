@@ -9,8 +9,13 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
+        <Color x:Key="TextBackgroundFill">#92000000</Color>
+        <SolidColorBrush x:Key="TextBackgroundFillBrush" Color="{StaticResource TextBackgroundFill}" />
         <Style x:Key="TileStyle" TargetType="{x:Type mahapps:Tile}">
             <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style x:Key="BackgroundBlurStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="Background" Value="{StaticResource TextBackgroundFillBrush}"/>
         </Style>
     </UserControl.Resources>
     <!--Style="{StaticResource TileStyle}"-->
@@ -50,7 +55,8 @@
                     <Viewbox Grid.Row="0" Stretch="Uniform">
                         <Image Source="{Binding Links.ImageUri}"/>
                     </Viewbox>
-                    <TextBlock FontSize="30" TextWrapping="Wrap" Text="{Binding Title}" 
+                    <TextBlock FontSize="30" TextWrapping="Wrap" Text="{Binding Title}"
+                               Style="{StaticResource BackgroundBlurStyle}" Padding="4,0,4,0"
                                Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Bottom"
                                FontWeight="Bold"/>
                 </Grid>
@@ -62,8 +68,8 @@
                     <TextBlock FontSize="15" FontStyle="Italic" Grid.Row="0" TextWrapping="Wrap" Text="{Binding Game}"/>
                     <TextBlock FontSize="15" Grid.Row="1" TextWrapping="Wrap" Text="{Binding Description}"/>
                 </Grid>
-                <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,8,4" HorizontalAlignment="Right">
-                    <Button Click="Info_OnClick">
+                <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,4,4" HorizontalAlignment="Right">
+                    <Button Click="Info_OnClick" Margin="0,0,4,0">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock FontSize="13" TextWrapping="Wrap" Text="More Info" Margin="4,0,4,0"/>
                         <iconPacks:PackIconMaterial Width="16" Height="16"  Kind="InformationOutline" Margin="0,0,4,0"/>
