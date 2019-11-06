@@ -9,7 +9,7 @@
     Title="Wabbajack" Width="1280" Height="960" MinWidth="850" MinHeight="650" ResizeMode="CanResize"
     Closing="Window_Closing" Icon="../Resources/Icons/wabbajack.ico"
     Style="{StaticResource {x:Type Window}}" WindowStyle="ToolWindow" mc:Ignorable="d">
-    <Grid Margin="8">
+    <Grid Margin="8" IsEnabled="{Binding Disabled}">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="4"/>
