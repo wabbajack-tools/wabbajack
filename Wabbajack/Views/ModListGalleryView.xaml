@@ -4,9 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:local="clr-namespace:Wabbajack"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d"
-             d:DataContext="{d:DesignData local:ModListVM}"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <Style x:Key="TileStyle" TargetType="{x:Type mahapps:Tile}">
@@ -62,14 +62,20 @@
                     <TextBlock FontSize="15" FontStyle="Italic" Grid.Row="0" TextWrapping="Wrap" Text="{Binding Game}"/>
                     <TextBlock FontSize="15" Grid.Row="1" TextWrapping="Wrap" Text="{Binding Description}"/>
                 </Grid>
-                <Grid Grid.Row="2" Margin="0,0,0,4">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="30"/>
-                    </Grid.ColumnDefinitions>
-                    <iconPacks:PackIconMaterial Margin="0,0,4,0" Width="18" Height="18" Grid.Column="1" Kind="InformationOutline" />
-                    <iconPacks:PackIconMaterial Width="18" Height="18" HorizontalAlignment="Right" Grid.Column="0" Kind="Download" />
-                </Grid>
+                <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,8,4" HorizontalAlignment="Right">
+                    <Button Click="Info_OnClick">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontSize="13" TextWrapping="Wrap" Text="More Info" Margin="4,0,4,0"/>
+                        <iconPacks:PackIconMaterial Width="16" Height="16"  Kind="InformationOutline" Margin="0,0,4,0"/>
+                    </StackPanel>
+                    </Button>
+                    <Button Click="Download_OnClick">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock FontSize="13" TextWrapping="Wrap" Text="Download" Margin="4,0,4,0"/>
+                        <iconPacks:PackIconMaterial Width="16" Height="16" Kind="Download" />
+                    </StackPanel>
+                    </Button>
+                </StackPanel>
             </Grid>
         </mahapps:Tile>
         </DataTemplate>

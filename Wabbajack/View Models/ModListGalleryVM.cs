@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Text;
@@ -26,6 +27,19 @@ namespace Wabbajack
         {
             if(ModLists.Count >= 1)
                 ItemsControlVisibility = Visibility.Visible;
+        }
+
+        public void Info_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (!(sender is Button b)) return;
+            if (!(b.DataContext is ModlistMetadata mm)) return;
+            var link = mm.Links.MachineURL;
+            Process.Start($"https://www.wabbajack.org/modlist/{link}");
+        }
+
+        public void Download_OnClick(object sender, RoutedEventArgs routedEventArgs)
+        {
+            throw new NotImplementedException();
         }
     }
 }
