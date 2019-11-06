@@ -8,8 +8,8 @@ trigger:
 - master
 
 schedules:
-    - cron: 0 * * * *
-      displayName: Daily midnight build
+    - cron: 0 */2 * * *
+      displayName: Scheduled Tests
       branches:
         include:
         - master    
@@ -49,3 +49,10 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     testFiltercriteria: 'TestCategory=ListValidation'
+
+- task: ado-discord-webhook@1
+  inputs:
+    channelId: '641636274159091733'
+    webhookKey: '3RdArKCElamRISEoqnXKHegGgwEBcgpu5cieVhr7KSGGXAY3JpHDyjjCvgwcC47dn8Dp'
+    messageType: 'content'
+    content: 'List Validation - $(Agent.JobStatus)'
