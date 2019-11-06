@@ -106,7 +106,7 @@
                         Text="{Binding Summary}"
                         TextWrapping="Wrap" />
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
-                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding NexusSiteURL}" />
+                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding Website}" />
                     <TextBlock
                         Margin="{StaticResource TitleMargin}"
                         Text="Readme Path"

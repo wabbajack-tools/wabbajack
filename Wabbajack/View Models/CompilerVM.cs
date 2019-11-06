@@ -1,4 +1,4 @@
-using ReactiveUI;
+﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.IO;
@@ -44,7 +44,7 @@ namespace Wabbajack
         public BitmapImage Image => _Image.Value;
 
         [Reactive]
-        public string NexusSiteURL { get; set; }
+        public string Website { get; set; }
 
         [Reactive]
         public string ReadMeText { get; set; }
@@ -80,6 +80,36 @@ namespace Wabbajack
                 .ToProperty(this, nameof(this.Image));
 
             ConfigureForBuild(source);
+
+            // Load settings
+            CompilationSettings settings = this.MWVM.Settings.CompilationSettings.TryCreate(source);
+            this.AuthorName = settings.Author;
+            this.ModListName = settings.ModListName;
+            this.Summary = settings.Description;
+            this.ReadMeText = settings.Readme;
+            this.ImagePath = settings.SplashScreen;
+            this.Website = settings.Website;
+            if (!string.IsNullOrWhiteSpace(settings.DownloadLocation))
+            {
+                this.DownloadLocation = settings.DownloadLocation;
+            }
+            if (!string.IsNullOrWhiteSpace(settings.Location))
+            {
+                this.Location = settings.Location;
+            }
+            this.MWVM.Settings.SaveSignal
+                .Subscribe(_ =>
+                {
+                    settings.Author = this.AuthorName;
+                    settings.ModListName = this.ModListName;
+                    settings.Description = this.Summary;
+                    settings.Readme = this.ReadMeText;
+                    settings.SplashScreen = this.ImagePath;
+                    settings.Website = this.Website;
+                    settings.Location = this.Location;
+                    settings.DownloadLocation = this.DownloadLocation;
+                })
+                .DisposeWith(this.CompositeDisposable);
         }
 
         private void ConfigureForBuild(string location)
@@ -109,7 +139,7 @@ namespace Wabbajack
                     ModListAuthor = this.AuthorName,
                     ModListDescription = this.Summary,
                     ModListImage = this.ImagePath,
-                    ModListWebsite = this.NexusSiteURL,
+                    ModListWebsite = this.Website,
                     ModListReadme = this.ReadMeText,
                 };
                 await Task.Run(() =>

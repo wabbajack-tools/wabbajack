@@ -26,6 +26,8 @@ namespace Wabbajack
     {
         public MainWindow MainWindow { get; }
 
+        public MainSettings Settings { get; }
+
         private readonly ObservableAsPropertyHelper<ViewModel> _ActivePane;
         public ViewModel ActivePane => _ActivePane.Value;
 
@@ -34,7 +36,6 @@ namespace Wabbajack
 
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
 
-        private Subject<string> _logSubj = new Subject<string>();
         public ObservableCollectionExtended<string> Log { get; } = new ObservableCollectionExtended<string>();
 
         [Reactive]
@@ -43,11 +44,12 @@ namespace Wabbajack
         private readonly Lazy<CompilerVM> _Compiler;
         private readonly Lazy<InstallerVM> _Installer;
 
-        public MainWindowVM(RunMode mode, string source, MainWindow mainWindow)
+        public MainWindowVM(RunMode mode, string source, MainWindow mainWindow, MainSettings settings)
         {
             this.Mode = mode;
             this.MainWindow = mainWindow;
-            this._Installer = new Lazy<InstallerVM>(() => new InstallerVM(this));
+            this.Settings = settings;
+            this._Installer = new Lazy<InstallerVM>(() => new InstallerVM(this, source));
             this._Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this, source));
 
             // Set up logging
@@ -82,11 +84,6 @@ namespace Wabbajack
                     }
                 })
                 .ToProperty(this, nameof(this.ActivePane));
-            this.WhenAny(x => x.ActivePane)
-                .ObserveOn(RxApp.TaskpoolScheduler)
-                .WhereCastable<ViewModel, InstallerVM>()
-                .Subscribe(vm => vm.ModListPath = source)
-                .DisposeWith(this.CompositeDisposable);
 
             // Compile progress updates and populate ObservableCollection
             WorkQueue.Status
