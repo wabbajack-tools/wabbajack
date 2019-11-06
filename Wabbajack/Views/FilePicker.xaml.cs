@@ -193,7 +193,7 @@ namespace Wabbajack
             this._InError = Observable.CombineLatest(
                     this.WhenAny(x => x.Exists),
                     this.WhenAny(x => x.AdditionalError)
-                        .Select(err => !err?.Succeeded ?? true),
+                        .Select(err => !err?.Succeeded ?? false),
                     resultSelector: (exist, err) => !exist || err)
                 .ToProperty(this, nameof(this.InError));
 
