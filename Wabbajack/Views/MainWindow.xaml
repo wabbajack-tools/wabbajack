@@ -12,10 +12,12 @@
     <Grid Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
+            <RowDefinition Height="4"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <views:AppBarView Grid.Row="0"/>
-        <ContentPresenter Content="{Binding ContentArea}" Grid.Row="1">
+        <Rectangle Grid.Row="1" HorizontalAlignment="Stretch"  VerticalAlignment="Center" Fill="#101010" Height="4"/>
+        <ContentPresenter Content="{Binding ContentArea}" Grid.Row="2">
             <ContentPresenter.Resources>
                 <DataTemplate DataType="{x:Type local:StartupVM}">
                     <views:StartupView/>
