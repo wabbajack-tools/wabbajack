@@ -1,14 +1,20 @@
-﻿using Wabbajack.Lib;
+﻿using ReactiveUI;
+using Wabbajack.Common;
+using Wabbajack.Lib;
 
 namespace Wabbajack
 {
     public class StartupVM : ViewModel
     {
-        public MainWindowVM MainWindow { get; }
+        private MainWindowVM _mainWindow;
+        public IReactiveCommand InstallFile { get; }
 
         public StartupVM(MainWindowVM mainWindow)
         {
-            MainWindow = mainWindow;
+            _mainWindow = mainWindow;
+            InstallFile = ReactiveCommand.Create(() => {Utils.LogToFile("hi"); });
         }
+
+        
     }
 }

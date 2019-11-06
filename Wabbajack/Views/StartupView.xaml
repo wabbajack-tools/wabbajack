@@ -24,19 +24,11 @@
         <!-- Margin of 8 on the sides because of the scroll bar-->
         <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="8,0,8,0">
             <Image Name="Banner"/>
-            <TextBlock FontSize="30" Text="Featured Modlists"/>
-            <!--
-            <RichTextBox IsReadOnly="True" Focusable="False" BorderBrush="Transparent" FocusVisualStyle="{x:Null}">
-            <FlowDocument>
-                <Paragraph FontSize="30">Welcome to Wabbajack - An automated modlist installer for TES/Fallout games</Paragraph>
-                <Paragraph FontSize="20">
-                    You can start by either installing a modlist from a file, download a modlist from the gallery below or
-                    compile your own modlist.
-                </Paragraph>
-            </FlowDocument>
-            </RichTextBox>
-            -->
+            <TextBlock FontSize="30" Text="Featured ModLists"/>
             <views:ModListGalleryView Margin="0,8,0,0"/>
+            <Button Command="{Binding InstallFile}">Install from File</Button>
+            <Button Command="{Binding CompileMO2}">Create a ModList from MO2</Button>
+            <Button Command="{Binding CompileVortex}">Create a ModList from Vortex</Button>
         </StackPanel>
         </ScrollViewer>
     </Grid>
