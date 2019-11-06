@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -15,35 +16,21 @@ namespace Wabbajack
     {
         public ObservableCollection<ModlistMetadata> ModLists { get; internal set; } = new ObservableCollection<ModlistMetadata>(ModlistMetadata.LoadFromGithub());
 
+        private MainWindowVM _mainWindow;
+
         [Reactive]
         public Visibility ItemsControlVisibility { get; set; }
 
-        public ModListGalleryVM()
+        public IReactiveCommand BackCommand { get; }
+
+        public ModListGalleryVM(MainWindowVM mainWindow)
         {
+            _mainWindow = mainWindow;
+
+            BackCommand = ReactiveCommand.Create(() => { mainWindow.Page = 0; });
+
             if(ModLists.Count >= 1)
                 ItemsControlVisibility = Visibility.Visible;
-        }
-
-        public void Info_OnClick(object sender, RoutedEventArgs e)
-        {
-            if (!(sender is Button b)) return;
-            if (!(b.DataContext is ModlistMetadata mm)) return;
-            var link = mm.Links.MachineURL;
-            Process.Start($"https://www.wabbajack.org/modlist/{link}");
-        }
-
-        public void Download_OnClick(object sender, RoutedEventArgs routedEventArgs)
-        {
-            if (!(sender is Button b)) return;
-            if (!(b.DataContext is ModlistMetadata mm)) return;
-            var link = mm.Links.Download;
-
-            if (!Directory.Exists(Consts.ModListDownloadFolder))
-                Directory.CreateDirectory(Consts.ModListDownloadFolder);
-            var dest = Path.Combine(Consts.ModListDownloadFolder, mm.Links.MachineURL + ExtensionManager.Extension);
-
-            var downloadWindow = new DownloadWindow(link, mm.Title, dest);
-            downloadWindow.ShowDialog();
         }
     }
 }

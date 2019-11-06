@@ -19,12 +19,14 @@ namespace Wabbajack
         public int Page { get; set; } = 0;
 
         private readonly Lazy<StartupVM> _startupScreen;
+        private readonly Lazy<ModListGalleryVM> _modlistGallery;
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
         {
             MainWindow = mainWindow;
             Settings = settings;
             _startupScreen = new Lazy<StartupVM>(()=>new StartupVM(this));
+            _modlistGallery = new Lazy<ModListGalleryVM>(()=> new ModListGalleryVM(this));
 
             _ContentArea = this.WhenAny(x => x.Page)
                 .Select<int, ViewModel>(m =>
@@ -32,6 +34,7 @@ namespace Wabbajack
                     switch (m)
                     {
                         case 0: return _startupScreen.Value;
+                        case 1: return _modlistGallery.Value;
                         default: return default;
                     }
                 })

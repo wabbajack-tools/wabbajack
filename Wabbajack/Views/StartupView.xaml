@@ -5,7 +5,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:views="clr-namespace:Wabbajack.Views"
-             mc:Ignorable="d" 
+             xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             mc:Ignorable="d"
+             SizeChanged="Startup_OnSizeChanged"
              d:DesignWidth="1280" d:DesignHeight="960">
     <UserControl.Resources>
         <!-- Stolen from InstallationView :) -->
@@ -14,17 +16,39 @@
         <Style x:Key="BackgroundBlurStyle" TargetType="TextBlock">
             <Setter Property="Background" Value="{StaticResource TextBackgroundFillBrush}" />
         </Style>
+        <Style x:Key="TileStyle" TargetType="{x:Type mahapps:Tile}">
+            <Setter Property="Background" Value="Black"/>
+        </Style>
     </UserControl.Resources>
     <Grid Margin="8,0,8,0">
-        <ScrollViewer HorizontalScrollBarVisibility="Disabled" Background="{x:Null}">
+        <ScrollViewer 
+            HorizontalScrollBarVisibility="Disabled" 
+            VerticalScrollBarVisibility="Disabled"
+            Background="{x:Null}" Name="MainScrollViewer">
         <ScrollViewer.Resources>
-            <!-- VS will complain about not used resource, don't let yourself be fooled! -->
             <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">8</sys:Double>
         </ScrollViewer.Resources>
-        <!-- Margin of 8 on the sides because of the scroll bar-->
         <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="8,0,8,0">
             <Image Name="Banner"/>
-
+            <WrapPanel HorizontalAlignment="Center">
+                <mahapps:Tile Command="{Binding OpenModListGallery}" 
+                              Height="200" Width="390" 
+                              Style="{StaticResource TileStyle}">
+                    <TextBlock FontSize="30" Text="Browse Featured ModLists"/>
+                </mahapps:Tile>
+                <mahapps:Tile Command="{Binding InstallFromFile}" 
+                              Height="200" Width="390" 
+                              Style="{StaticResource TileStyle}">
+                    <TextBlock FontSize="30" Text="Install a ModList from File"/>
+                </mahapps:Tile>
+                <mahapps:Tile Command="{Binding CompileModList}" 
+                              Height="200" Width="390" 
+                              Style="{StaticResource TileStyle}">
+                    <TextBlock FontSize="30" Text="Create a ModList"/>
+                </mahapps:Tile>
+            </WrapPanel>
+            
+            <!--
             <TextBlock FontSize="30" Text="Featured ModLists"/>
             <views:ModListGalleryView Margin="0,8,0,0"/>
 
@@ -52,7 +76,7 @@
                     </Viewbox>
                 </Button>
             </Grid>
-            </StackPanel>
+            </StackPanel>-->
         </StackPanel>
         </ScrollViewer>
     </Grid>

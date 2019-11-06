@@ -1,5 +1,4 @@
 ﻿using ReactiveUI;
-using Wabbajack.Common;
 using Wabbajack.Lib;
 
 namespace Wabbajack
@@ -7,12 +6,14 @@ namespace Wabbajack
     public class StartupVM : ViewModel
     {
         private MainWindowVM _mainWindow;
-        public IReactiveCommand InstallFile { get; }
+        public IReactiveCommand OpenModListGallery { get; }
+        public IReactiveCommand InstallFromFile { get; }
+        public IReactiveCommand CompileModList { get; }
 
         public StartupVM(MainWindowVM mainWindow)
         {
             _mainWindow = mainWindow;
-            InstallFile = ReactiveCommand.Create(() => {Utils.LogToFile("hi"); });
+            OpenModListGallery = ReactiveCommand.Create(() => { _mainWindow.Page = 1; });
         }
 
         
