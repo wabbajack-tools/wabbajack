@@ -1,10 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using ReactiveUI.Fody.Helpers;
+using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.UI;
 
 namespace Wabbajack
 {
@@ -34,7 +37,13 @@ namespace Wabbajack
             if (!(sender is Button b)) return;
             if (!(b.DataContext is ModlistMetadata mm)) return;
             var link = mm.Links.Download;
-            Process.Start($"https://www.wabbajack.org/modlist/{link}");
+
+            if (!Directory.Exists(Consts.ModListDownloadFolder))
+                Directory.CreateDirectory(Consts.ModListDownloadFolder);
+            var dest = Path.Combine(Consts.ModListDownloadFolder, mm.Links.MachineURL + ExtensionManager.Extension);
+
+            var downloadWindow = new DownloadWindow(link, mm.Title, dest);
+            downloadWindow.ShowDialog();
         }
     }
 }
