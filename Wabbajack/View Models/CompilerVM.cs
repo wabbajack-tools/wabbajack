@@ -1,15 +1,10 @@
-﻿using ReactiveUI;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Splat;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
@@ -93,7 +88,7 @@ namespace Wabbajack
             this.Mo2Folder = Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
             if (!File.Exists(Path.Combine(this.Mo2Folder, "ModOrganizer.exe")))
             {
-                this.Log().Error($"Error! No ModOrganizer2.exe found in {this.Mo2Folder}");
+                Utils.Log($"Error! No ModOrganizer2.exe found in {this.Mo2Folder}");
             }
 
             this.MOProfile = Path.GetFileName(profile_folder);
@@ -131,7 +126,7 @@ namespace Wabbajack
                     catch (Exception ex)
                     {
                         while (ex.InnerException != null) ex = ex.InnerException;
-                        this.Log().Warn(ex, "Can't continue");
+                        Utils.Log($"Can't continue: {ex.ExceptionToString()}");
                     }
                     finally
                     {
@@ -141,7 +136,7 @@ namespace Wabbajack
             }
             else
             {
-                this.Log().Warn("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
+                Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
                 UIReady = true;
             }
         }
