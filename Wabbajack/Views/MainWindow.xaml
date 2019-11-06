@@ -28,10 +28,10 @@
                 <!--
             <DataTemplate DataType="{x:Type local:CompilerVM}">
                 <local:CompilerView />
-            </DataTemplate>
-            <DataTemplate DataType="{x:Type local:InstallerVM}">
-                <local:InstallationView />
             </DataTemplate>-->
+                <DataTemplate DataType="{x:Type local:InstallerVM}">
+                    <local:InstallationView />
+                </DataTemplate>
             </ContentPresenter.Resources>
         </ContentPresenter>
     </Grid>
