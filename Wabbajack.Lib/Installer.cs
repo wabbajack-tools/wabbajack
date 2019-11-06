@@ -444,17 +444,27 @@ namespace Wabbajack.Lib
 
             Info("Getting Nexus API Key, if a browser appears, please accept");
 
-            var dispatchers = ModList.Archives.Select(m => m.State.GetDownloader()).Distinct();
+            var dispatchers = missing.Select(m => m.State.GetDownloader()).Distinct();
 
             foreach (var dispatcher in dispatchers)
                 dispatcher.Prepare();
-
+            
             DownloadMissingArchives(missing);
         }
 
         private void DownloadMissingArchives(List<Archive> missing, bool download = true)
         {
-            missing.PMap(archive =>
+            if (download)
+            {
+                foreach (var a in missing.Where(a => a.State.GetType() == typeof(ManualDownloader.State)))
+                {
+                    var output_path = Path.Combine(DownloadFolder, a.Name);
+                    a.State.Download(a, output_path);
+                }
+            }
+
+            missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
+                   .PMap(archive =>
             {
                 Info($"Downloading {archive.Name}");
                 var output_path = Path.Combine(DownloadFolder, archive.Name);
