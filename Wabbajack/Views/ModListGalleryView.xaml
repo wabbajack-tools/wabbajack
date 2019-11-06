@@ -49,6 +49,7 @@
                     <DataTemplate>
                     <mahapps:Tile
                         Style="{StaticResource TileStyle}"
+                        Click="Tile_OnClick"
                         Width="590"
                         Height="Auto">
                         <Grid

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using MahApps.Metro.Controls;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
@@ -37,6 +38,16 @@ namespace Wabbajack.Views
 
             var downloadWindow = new DownloadWindow(link, mm.Title, dest);
             downloadWindow.ShowDialog();
+        }
+
+        private void Tile_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (!(sender is Tile t)) return;
+            if (!t.IsFocused) return;
+            if (!t.IsMouseOver) return;
+            if (!(t.DataContext is ModlistMetadata mm)) return;
+            var link = mm.Links.MachineURL;
+            Process.Start($"https://www.wabbajack.org/modlist/{link}");
         }
     }
 }
