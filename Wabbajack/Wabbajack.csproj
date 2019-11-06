@@ -419,5 +419,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\Wabba_Mouth.png" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\MO2Button.png" />
+    <EmbeddedResource Include="Resources\VortexButton.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
