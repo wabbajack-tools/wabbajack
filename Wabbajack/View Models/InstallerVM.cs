@@ -120,16 +120,7 @@ namespace Wabbajack
                     {
                         MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
                             MessageBoxImage.Error);
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            this.MWVM.MainWindow.ExitWhenClosing = false;
-                            var window = new ModeSelectionWindow
-                            {
-                                ShowActivated = true
-                            };
-                            window.Show();
-                            this.MWVM.MainWindow.Close();
-                        });
+                        MWVM.Page = 0;
                         return default(ModListVM);
                     }
                     return new ModListVM(modList, modListPath);
