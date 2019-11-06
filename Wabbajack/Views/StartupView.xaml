@@ -3,18 +3,41 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:views="clr-namespace:Wabbajack.Views"
              mc:Ignorable="d" 
              d:DesignWidth="1280" d:DesignHeight="960">
+    <UserControl.Resources>
+        <!-- Stolen from InstallationView :) -->
+        <Color x:Key="TextBackgroundFill">#92000000</Color>
+        <SolidColorBrush x:Key="TextBackgroundFillBrush" Color="{StaticResource TextBackgroundFill}" />
+        <Style x:Key="BackgroundBlurStyle" TargetType="TextBlock">
+            <Setter Property="Background" Value="{StaticResource TextBackgroundFillBrush}" />
+        </Style>
+    </UserControl.Resources>
     <Grid Margin="8,0,8,0">
         <ScrollViewer HorizontalScrollBarVisibility="Disabled" Background="{x:Null}">
-            <ScrollViewer.Resources>
-                <!-- VS will complain about not used resource, don't let yourself be fooled! -->
-                <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">8</sys:Double>
-            </ScrollViewer.Resources>
-            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left">
-                <Image Name="Banner"/>
-            </StackPanel>
+        <ScrollViewer.Resources>
+            <!-- VS will complain about not used resource, don't let yourself be fooled! -->
+            <sys:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">8</sys:Double>
+        </ScrollViewer.Resources>
+        <!-- Margin of 8 on the sides because of the scroll bar-->
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="8,0,8,0">
+            <Image Name="Banner"/>
+            <TextBlock FontSize="30" Text="Featured Modlists"/>
+            <!--
+            <RichTextBox IsReadOnly="True" Focusable="False" BorderBrush="Transparent" FocusVisualStyle="{x:Null}">
+            <FlowDocument>
+                <Paragraph FontSize="30">Welcome to Wabbajack - An automated modlist installer for TES/Fallout games</Paragraph>
+                <Paragraph FontSize="20">
+                    You can start by either installing a modlist from a file, download a modlist from the gallery below or
+                    compile your own modlist.
+                </Paragraph>
+            </FlowDocument>
+            </RichTextBox>
+            -->
+            <views:ModListGalleryView Margin="0,8,0,0"/>
+        </StackPanel>
         </ScrollViewer>
     </Grid>
 </UserControl>
