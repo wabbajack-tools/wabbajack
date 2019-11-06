@@ -148,6 +148,34 @@ namespace Wabbajack.Test
         }
 
         [TestMethod]
+        public void ManualDownload()
+        {
+            var ini = @"[General]
+                        manualURL=http://build.wabbajack.org/WABBAJACK_TEST_FILE.zip";
+
+            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.IsNotNull(state);
+
+            var url_state = DownloadDispatcher.ResolveArchive("http://build.wabbajack.org/WABBAJACK_TEST_FILE.zip");
+
+            Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.zip",
+                ((ManualDownloader.State)url_state).Url);
+
+            var converted = state.ViaJSON();
+            Assert.IsTrue(converted.Verify());
+            var filename = Guid.NewGuid().ToString();
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://build.wabbajack.org/" } }));
+
+            converted.Download(new Archive { Name = "WABBAJACK_TEST_FILE.zip", Size = 20, Hash = "eSIyd+KOG3s="}, filename);
+
+            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+
+            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+        }
+
+        [TestMethod]
         public void MediaFireDownload()
         {
             var ini = @"[General]

@@ -229,19 +229,6 @@ namespace Wabbajack.Lib
             Info("Done! You may now exit the application!");
         }
 
-        private bool LocateGameFolder()
-        {
-            var fs = UIUtils.ShowFolderSelectionDialog("Please locate your game installation path");
-            if (fs != null)
-            {
-                GameFolder = fs;
-                return true;
-            }
-
-            return false;
-        }
-
-
         /// <summary>
         ///     We don't want to make the installer index all the archives, that's just a waste of time, so instead
         ///     we'll pass just enough information to VFS to let it know about the files we have.

@@ -103,17 +103,25 @@ namespace Wabbajack.Common
             return sha.Hash.ToBase64();
         }
 
-        public static string FileHash(this string file)
+        public static string FileHash(this string file, bool nullOnIOError = false)
         {
-            var hash = new xxHashConfig();
-            hash.HashSizeInBits = 64;
-            hash.Seed = 0x42;
-            using (var fs = File.OpenRead(file))
+            try
             {
-                var config = new xxHashConfig();
-                config.HashSizeInBits = 64;
-                var value = xxHashFactory.Instance.Create(config).ComputeHash(fs);
-                return value.AsBase64String();
+                var hash = new xxHashConfig();
+                hash.HashSizeInBits = 64;
+                hash.Seed = 0x42;
+                using (var fs = File.OpenRead(file))
+                {
+                    var config = new xxHashConfig();
+                    config.HashSizeInBits = 64;
+                    var value = xxHashFactory.Instance.Create(config).ComputeHash(fs);
+                    return value.AsBase64String();
+                }
+            }
+            catch (IOException ex)
+            {
+                if (nullOnIOError) return null;
+                throw ex;
             }
         }
 
