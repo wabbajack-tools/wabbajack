@@ -164,6 +164,7 @@
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Extensions\EnumerableExt.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="View Models\InstallationConfigVM.cs" />
     <Compile Include="View Models\ModListGalleryVM.cs" />
     <Compile Include="View Models\ModListVM.cs" />
     <Compile Include="View Models\ModVM.cs" />
@@ -191,6 +192,9 @@
     <Compile Include="Converters\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Util\TreeViewItemExtensions.cs" />
     <Compile Include="View Models\SlideShow.cs" />
+    <Compile Include="Views\InstallationConfigView.xaml.cs">
+      <DependentUpon>InstallationConfigView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ModListGalleryView.xaml.cs">
       <DependentUpon>ModListGalleryView.xaml</DependentUpon>
     </Compile>
@@ -218,6 +222,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\InstallationView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\InstallationConfigView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
