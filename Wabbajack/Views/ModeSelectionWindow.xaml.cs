@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using Wabbajack.Common;
@@ -16,7 +17,7 @@ namespace Wabbajack
     /// </summary>
     public partial class ModeSelectionWindow : Window
     {
-        private List<ModlistMetadata> _lists;
+        MainSettings settings;
 
         public ModeSelectionWindow()
         {
@@ -30,6 +31,7 @@ namespace Wabbajack
             var discordIcon = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Icons.discord.png");
             Discord.Source = discordIcon;
 
+            settings = MainSettings.LoadSettings();
             DataContext = new ModeSelectionWindowVM();
         }
 
@@ -37,7 +39,9 @@ namespace Wabbajack
         {
             OpenMainWindow(
                 RunMode.Compile,
-                UIUtils.OpenFileDialog("MO2 Modlist(modlist.txt)|modlist.txt"));
+                UIUtils.OpenFileDialog(
+                    "MO2 Modlist(modlist.txt)|modlist.txt",
+                    initialDirectory: settings.LastCompiledProfileLocation));
         }
 
         private void InstallModlist_Click(object sender, RoutedEventArgs e)
@@ -57,7 +61,18 @@ namespace Wabbajack
         {
             if (file == null) return;
             ShutdownOnClose = false;
-            var window = new MainWindow(mode, file);
+            switch (mode)
+            {
+                case RunMode.Compile:
+                    settings.LastCompiledProfileLocation = Path.GetDirectoryName(file);
+                    break;
+                case RunMode.Install:
+                    settings.LastInstalledListLocation = Path.GetDirectoryName(file);
+                    break;
+                default:
+                    break;
+            }
+            var window = new MainWindow(mode, file, settings);
             window.Left = this.Left;
             window.Top = this.Top;
             window.Show();
@@ -90,7 +105,9 @@ namespace Wabbajack
         private void InstallFromList_Click(object sender, RoutedEventArgs e)
         {
             OpenMainWindow(RunMode.Install, 
-                UIUtils.OpenFileDialog($"*{ExtensionManager.Extension}|*{ExtensionManager.Extension}"));
+                UIUtils.OpenFileDialog(
+                    $"*{ExtensionManager.Extension}|*{ExtensionManager.Extension}",
+                    initialDirectory: settings.LastInstalledListLocation));
         }
     }
 }

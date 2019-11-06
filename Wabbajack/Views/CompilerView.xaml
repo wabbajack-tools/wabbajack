@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="450"
     d:DesignWidth="800"
@@ -99,6 +100,7 @@
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
                     <TextBox
                         Height="150"
+                        mahapps:TextBoxHelper.Watermark="(700 characters max)"
                         AcceptsReturn="True"
                         AcceptsTab="False"
                         MaxLength="700"
@@ -106,7 +108,7 @@
                         Text="{Binding Summary}"
                         TextWrapping="Wrap" />
                     <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
-                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding NexusSiteURL}" />
+                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding Website}" />
                     <TextBlock
                         Margin="{StaticResource TitleMargin}"
                         Text="Readme Path"

@@ -92,10 +92,11 @@ namespace Wabbajack.Lib
             }
         }
 
-        public static string OpenFileDialog(string filter)
+        public static string OpenFileDialog(string filter, string initialDirectory = null)
         {
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter = filter;
+            ofd.InitialDirectory = initialDirectory;
             if (ofd.ShowDialog() == DialogResult.OK)
                 return ofd.FileName;
             return null;

@@ -3,6 +3,7 @@
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:local="clr-namespace:Wabbajack"
+                    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
                     xmlns:darkBlendTheme="clr-namespace:DarkBlendTheme"
                     mc:Ignorable="d">
 
@@ -838,49 +839,120 @@
     </Style>
 
     <!-- TextBox -->
-    <Style x:Key="MainTextBoxStyle" BasedOn="{StaticResource {x:Type Control}}" TargetType="{x:Type TextBox}">
-        <Setter Property="Background" Value="{StaticResource TextBoxBackground}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorder}"/>
-        <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="2,2,2,1"/>
-        <Setter Property="AllowDrop" Value="true"/>
-        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-        <Setter Property="ScrollViewer.PanningMode" Value="VerticalFirst"/>
-        <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+    <Style
+        x:Key="MainTextBoxStyle"
+        BasedOn="{StaticResource {x:Type Control}}"
+        TargetType="{x:Type TextBox}">
+        <Setter Property="Background" Value="{StaticResource TextBoxBackground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="2,2,2,1" />
+        <Setter Property="AllowDrop" Value="true" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="ScrollViewer.PanningMode" Value="VerticalFirst" />
+        <Setter Property="Stylus.IsFlicksEnabled" Value="False" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
-                    <Border x:Name="Bd"
-						BorderBrush="{TemplateBinding BorderBrush}" 
-						BorderThickness="{TemplateBinding BorderThickness}" 
-						Background="{TemplateBinding Background}"
-						CornerRadius="3"
-						SnapsToDevicePixels="true">
-                        <ScrollViewer x:Name="PART_ContentHost" Padding="{TemplateBinding Padding}" 
-							            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                    <Border
+                        x:Name="Bd"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="3"
+                        SnapsToDevicePixels="true">
+                        <Grid>
+                            <ScrollViewer
+                                x:Name="PART_ContentHost"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            <TextBlock
+                                x:Name="PART_Message"
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Padding="{TemplateBinding Padding}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                Foreground="{TemplateBinding Foreground}"
+                                Style="{DynamicResource MahApps.Metro.Styles.MetroWatermarkTextBlock}"
+                                Text="{TemplateBinding mahapps:TextBoxHelper.Watermark}"
+                                TextAlignment="{TemplateBinding mahapps:TextBoxHelper.WatermarkAlignment}"
+                                TextTrimming="{TemplateBinding mahapps:TextBoxHelper.WatermarkTrimming}"
+                                TextWrapping="{TemplateBinding mahapps:TextBoxHelper.WatermarkWrapping}"
+                                Visibility="Collapsed" />
+                        </Grid>
                     </Border>
+                    <ControlTemplate.Resources>
+                        <Storyboard x:Key="enterGotFocus">
+                            <DoubleAnimation
+                                Storyboard.TargetName="PART_Message"
+                                Storyboard.TargetProperty="Opacity"
+                                To=".2"
+                                Duration="0:0:0.2" />
+                        </Storyboard>
+                        <Storyboard x:Key="exitGotFocus">
+                            <DoubleAnimation
+                                Storyboard.TargetName="PART_Message"
+                                Storyboard.TargetProperty="Opacity"
+                                Duration="0:0:0.2" />
+                        </Storyboard>
+
+                        <Storyboard x:Key="enterHasText">
+                            <DoubleAnimation
+                                Storyboard.TargetName="PART_Message"
+                                Storyboard.TargetProperty="Opacity"
+                                From=".2"
+                                To="0"
+                                Duration="0:0:0.2" />
+                        </Storyboard>
+                        <Storyboard x:Key="exitHasText">
+                            <DoubleAnimation
+                                Storyboard.TargetName="PART_Message"
+                                Storyboard.TargetProperty="Opacity"
+                                Duration="0:0:0.2" />
+                        </Storyboard>
+                    </ControlTemplate.Resources>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsEnabled" Value="false">
-                            <Setter Property="Foreground" Value="{StaticResource TextBoxDisabledForeground}"/>
-                            <Setter Property="Background" TargetName="PART_ContentHost" Value="{StaticResource TextBoxDisabledBackground}"/>
-                            <Setter Property="Background" TargetName="Bd" Value="{StaticResource TextBoxDisabledBackground}"/>
-                            <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource TextBoxDisabledBackground}"/>
+                            <Setter Property="Foreground" Value="{StaticResource TextBoxDisabledForeground}" />
+                            <Setter TargetName="PART_ContentHost" Property="Background" Value="{StaticResource TextBoxDisabledBackground}" />
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource TextBoxDisabledBackground}" />
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource TextBoxDisabledBackground}" />
                         </Trigger>
+
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="mahapps:TextBoxHelper.HasText" Value="False" />
+                                <Condition Property="IsFocused" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <MultiTrigger.EnterActions>
+                                <BeginStoryboard Storyboard="{StaticResource enterGotFocus}" />
+                            </MultiTrigger.EnterActions>
+                            <MultiTrigger.ExitActions>
+                                <BeginStoryboard Storyboard="{StaticResource exitGotFocus}" />
+                            </MultiTrigger.ExitActions>
+                        </MultiTrigger>
+
+                        <Trigger Property="mahapps:TextBoxHelper.HasText" Value="True">
+                            <Trigger.EnterActions>
+                                <BeginStoryboard Storyboard="{StaticResource enterHasText}" />
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard Storyboard="{StaticResource exitHasText}" />
+                            </Trigger.ExitActions>
+                        </Trigger>
+
+                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Text}" Value="">
+                            <Setter TargetName="PART_Message" Property="Visibility" Value="Visible" />
+                        </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
         <Style.Triggers>
             <DataTrigger Binding="{Binding Path=(Validation.HasError), RelativeSource={RelativeSource self}}" Value="True">
-                <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}" />
             </DataTrigger>
-            <!--<MultiTrigger>
-                <MultiTrigger.Conditions>
-                    <Condition Property="IsInactiveSelectionHighlightEnabled" Value="true"/>
-                    <Condition Property="IsSelectionActive" Value="false"/>
-                </MultiTrigger.Conditions>
-                <Setter Property="SelectionBrush" Value="{StaticResource InactiveSelectionHighlightBrush}"/>
-            </MultiTrigger>-->
         </Style.Triggers>
     </Style>
     <Style BasedOn="{StaticResource MainTextBoxStyle}" TargetType="TextBox" />

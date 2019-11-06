@@ -1,32 +1,18 @@
 using Syroot.Windows.IO;
 using System;
 using ReactiveUI;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net.Http;
-using System.Reactive.Subjects;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Windows;
-using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using Wabbajack.Common;
-using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.NexusApi;
-using DynamicData;
-using DynamicData.Binding;
-using System.Reactive;
-using System.Text;
 using Wabbajack.Lib;
-using Splat;
 using ReactiveUI.Fody.Helpers;
 
 namespace Wabbajack
@@ -96,7 +82,7 @@ namespace Wabbajack
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand VisitWebsiteCommand { get; }
 
-        public InstallerVM(MainWindowVM mainWindowVM)
+        public InstallerVM(MainWindowVM mainWindowVM, string source)
         {
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly().Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
@@ -110,13 +96,26 @@ namespace Wabbajack
             }
 
             this.MWVM = mainWindowVM;
+            this.ModListPath = source;
+
+            // Load settings
+            InstallationSettings settings = this.MWVM.Settings.InstallationSettings.TryCreate(source);
+            this.Location = settings.InstallationLocation;
+            this.DownloadLocation = settings.DownloadLocation;
+            this.MWVM.Settings.SaveSignal
+                .Subscribe(_ =>
+                {
+                    settings.InstallationLocation = this.Location;
+                    settings.DownloadLocation = this.DownloadLocation;
+                })
+                .DisposeWith(this.CompositeDisposable);
 
             this._ModList = this.WhenAny(x => x.ModListPath)
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .Select(source =>
+                .Select(modListPath =>
                 {
-                    if (source == null) return default(ModListVM);
-                    var modList = Installer.LoadFromFile(source);
+                    if (modListPath == null) return default(ModListVM);
+                    var modList = Installer.LoadFromFile(modListPath);
                     if (modList == null)
                     {
                         MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
@@ -133,7 +132,7 @@ namespace Wabbajack
                         });
                         return default(ModListVM);
                     }
-                    return new ModListVM(modList, source);
+                    return new ModListVM(modList, modListPath);
                 })
                 .ObserveOnGuiThread()
                 .StartWith(default(ModListVM))

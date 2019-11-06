@@ -1,15 +1,10 @@
 ﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Splat;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
@@ -49,7 +44,7 @@ namespace Wabbajack
         public BitmapImage Image => _Image.Value;
 
         [Reactive]
-        public string NexusSiteURL { get; set; }
+        public string Website { get; set; }
 
         [Reactive]
         public string ReadMeText { get; set; }
@@ -85,6 +80,36 @@ namespace Wabbajack
                 .ToProperty(this, nameof(this.Image));
 
             ConfigureForBuild(source);
+
+            // Load settings
+            CompilationSettings settings = this.MWVM.Settings.CompilationSettings.TryCreate(source);
+            this.AuthorName = settings.Author;
+            this.ModListName = settings.ModListName;
+            this.Summary = settings.Description;
+            this.ReadMeText = settings.Readme;
+            this.ImagePath = settings.SplashScreen;
+            this.Website = settings.Website;
+            if (!string.IsNullOrWhiteSpace(settings.DownloadLocation))
+            {
+                this.DownloadLocation = settings.DownloadLocation;
+            }
+            if (!string.IsNullOrWhiteSpace(settings.Location))
+            {
+                this.Location = settings.Location;
+            }
+            this.MWVM.Settings.SaveSignal
+                .Subscribe(_ =>
+                {
+                    settings.Author = this.AuthorName;
+                    settings.ModListName = this.ModListName;
+                    settings.Description = this.Summary;
+                    settings.Readme = this.ReadMeText;
+                    settings.SplashScreen = this.ImagePath;
+                    settings.Website = this.Website;
+                    settings.Location = this.Location;
+                    settings.DownloadLocation = this.DownloadLocation;
+                })
+                .DisposeWith(this.CompositeDisposable);
         }
 
         private void ConfigureForBuild(string location)
@@ -93,7 +118,7 @@ namespace Wabbajack
             this.Mo2Folder = Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
             if (!File.Exists(Path.Combine(this.Mo2Folder, "ModOrganizer.exe")))
             {
-                this.Log().Error($"Error! No ModOrganizer2.exe found in {this.Mo2Folder}");
+                Utils.Log($"Error! No ModOrganizer2.exe found in {this.Mo2Folder}");
             }
 
             this.MOProfile = Path.GetFileName(profile_folder);
@@ -114,7 +139,7 @@ namespace Wabbajack
                     ModListAuthor = this.AuthorName,
                     ModListDescription = this.Summary,
                     ModListImage = this.ImagePath,
-                    ModListWebsite = this.NexusSiteURL,
+                    ModListWebsite = this.Website,
                     ModListReadme = this.ReadMeText,
                 };
                 await Task.Run(() =>
@@ -131,7 +156,7 @@ namespace Wabbajack
                     catch (Exception ex)
                     {
                         while (ex.InnerException != null) ex = ex.InnerException;
-                        this.Log().Warn(ex, "Can't continue");
+                        Utils.Log($"Can't continue: {ex.ExceptionToString()}");
                     }
                     finally
                     {
@@ -141,7 +166,7 @@ namespace Wabbajack
             }
             else
             {
-                this.Log().Warn("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
+                Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
                 UIReady = true;
             }
         }

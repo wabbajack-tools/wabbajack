@@ -92,7 +92,10 @@
     <Compile Include="Error States\ErrorResponse.cs" />
     <Compile Include="Error States\GetResponse.cs" />
     <Compile Include="ExtensionManager.cs" />
+    <Compile Include="Extensions\DictionaryExt.cs" />
     <Compile Include="Extensions\HashHelper.cs" />
+    <Compile Include="Extensions\RxExt.cs" />
+    <Compile Include="Extensions\TaskExt.cs" />
     <Compile Include="FileExtractor.cs" />
     <Compile Include="GameMetaData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
