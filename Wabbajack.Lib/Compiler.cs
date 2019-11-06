@@ -352,7 +352,11 @@ namespace Wabbajack.Lib
             var metadata = new ModlistMetadata.DownloadMetadata
             {
                 Size = File.GetSize(ModListOutputFile),
-                Hash = ModListOutputFile.FileHash()
+                Hash = ModListOutputFile.FileHash(),
+                NumberOfArchives = ModList.Archives.Count,
+                SizeOfArchives = ModList.Archives.Sum(a => a.Size),
+                NumberOfInstalledFiles = ModList.Directives.Count,
+                SizeOfInstalledFiles = ModList.Directives.Sum(a => a.Size)
             };
             metadata.ToJSON(ModListOutputFile + ".meta.json");
 
