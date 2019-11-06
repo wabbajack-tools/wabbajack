@@ -39,7 +39,10 @@ namespace Wabbajack
 
         public void Download_OnClick(object sender, RoutedEventArgs routedEventArgs)
         {
-            throw new NotImplementedException();
+            if (!(sender is Button b)) return;
+            if (!(b.DataContext is ModlistMetadata mm)) return;
+            var link = mm.Links.Download;
+            Process.Start($"https://www.wabbajack.org/modlist/{link}");
         }
     }
 }
