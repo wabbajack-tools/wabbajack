@@ -16,11 +16,6 @@ namespace Wabbajack
         
         public ObservableCollection<ModlistMetadata> ModLists { get; } = new ObservableCollectionExtended<ModlistMetadata>(ModlistMetadata.LoadFromGithub());
 
-        public string TestImage => ModLists[0].Links.ImageUri;
-        public string TestTitle => $"{ModLists[0].Title} by {ModLists[0].Author}";
-        public string TestDescription => ModLists[0].Description;
-        public string TestGame => ModLists[0].Game.ToString();
-
         public ModListGalleryVM()
         {
 

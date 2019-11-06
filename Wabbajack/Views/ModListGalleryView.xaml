@@ -15,47 +15,54 @@
         </Style>
     </UserControl.Resources>
     <!--Style="{StaticResource TileStyle}"-->
-    <mahapps:Tile
-        Width="650"
-        Height="Auto">
-        <Grid
+    <ItemsControl
+        ItemsSource="{Binding ModLists}">
+        <ItemsControl.ItemTemplate>
+        <DataTemplate>
+        <mahapps:Tile
             Width="650"
-            Background="#222222">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="10*"/>
-                <RowDefinition Height="3*"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+            Height="Auto">
             <Grid
-                Grid.Row="0"
                 Width="650"
-                Height="366">
+                Background="#222222">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="10*"/>
+                    <RowDefinition Height="3*"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Viewbox Grid.Row="0" Stretch="Uniform">
-                    <Image Source="{Binding TestImage}"/>
-                </Viewbox>
-                <TextBlock FontSize="30" TextWrapping="Wrap" Text="{Binding TestTitle}" 
-                           Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                           FontWeight="Bold"/>
+                <Grid
+                    Grid.Row="0"
+                    Width="650"
+                    Height="366">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Viewbox Grid.Row="0" Stretch="Uniform">
+                        <Image Source="{Binding Links.ImageUri}"/>
+                    </Viewbox>
+                    <TextBlock FontSize="30" TextWrapping="Wrap" Text="{Binding Title}" 
+                               Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                               FontWeight="Bold"/>
+                </Grid>
+                <Grid Grid.Row="1" Margin="4,0,2,4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="20"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock FontSize="15" FontStyle="Italic" Grid.Row="0" TextWrapping="Wrap" Text="{Binding Game}"/>
+                    <TextBlock FontSize="15" Grid.Row="1" TextWrapping="Wrap" Text="{Binding Description}"/>
+                </Grid>
+                <Grid Grid.Row="2" Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="30"/>
+                    </Grid.ColumnDefinitions>
+                    <iconPacks:PackIconMaterial Margin="0,0,4,0" Width="18" Height="18" Grid.Column="1" Kind="InformationOutline" />
+                    <iconPacks:PackIconMaterial Width="18" Height="18" HorizontalAlignment="Right" Grid.Column="0" Kind="Download" />
+                </Grid>
             </Grid>
-            <Grid Grid.Row="1" Margin="4,0,2,4">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="20"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <TextBlock FontSize="15" FontStyle="Italic" Grid.Row="0" TextWrapping="Wrap" Text="{Binding TestGame}"/>
-                <TextBlock FontSize="15" Grid.Row="1" TextWrapping="Wrap" Text="{Binding TestDescription}"/>
-            </Grid>
-            <Grid Grid.Row="2" Margin="0,0,0,4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="30"/>
-                </Grid.ColumnDefinitions>
-                <iconPacks:PackIconMaterial Margin="0,0,4,0" Width="18" Height="18" Grid.Column="1" Kind="InformationOutline" />
-                <iconPacks:PackIconMaterial Width="18" Height="18" HorizontalAlignment="Right" Grid.Column="0" Kind="Download" />
-            </Grid>
-        </Grid>
-    </mahapps:Tile>
+        </mahapps:Tile>
+        </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
 </UserControl>
