@@ -6,6 +6,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using DynamicData;
+using DynamicData.Binding;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 
@@ -13,7 +15,7 @@ namespace Wabbajack
 {
     public class CompilerVM : ViewModel
     {
-        public MainWindowVM MWVM { get; }
+        private MainWindowVM _mainWindow { get; }
 
         [Reactive]
         public string Mo2Folder { get; set; }
@@ -56,10 +58,51 @@ namespace Wabbajack
 
         public IReactiveCommand BeginCommand { get; }
 
-        public CompilerVM(MainWindowVM mainWindowVM, string source)
+        private readonly ObservableAsPropertyHelper<int> _QueueProgress;
+        public int QueueProgress => _QueueProgress.Value;
+
+        public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
+
+        public ObservableCollectionExtended<string> Log { get; } = new ObservableCollectionExtended<string>();
+
+
+        public CompilerVM(MainWindowVM mainWindow)
         {
-            this.MWVM = mainWindowVM;
-            this.Location = source;
+            _mainWindow = mainWindow;
+
+            Utils.LogMessages.ToObservableChangeSet()
+                .Buffer(TimeSpan.FromMilliseconds(250))
+                .Where(l => l.Count > 0)
+                .FlattenBufferResult()
+                .Top(5000)
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Bind(Log)
+                .Subscribe()
+                .DisposeWith(CompositeDisposable);
+            Utils.StatusUpdates
+                .Subscribe((i) => WorkQueue.Report(i.Message, i.Progress))
+                .DisposeWith(CompositeDisposable);
+            WorkQueue.Status
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .ToObservableChangeSet(x => x.ID)
+                .Batch(TimeSpan.FromMilliseconds(250))
+                .EnsureUniqueChanges()
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
+                .Bind(StatusList)
+                .Subscribe()
+                .DisposeWith(CompositeDisposable);
+            _QueueProgress = WorkQueue.QueueSize
+                .Select(progress =>
+                {
+                    var (current, max) = progress;
+                    if (max == 0)
+                    {
+                        max = 1;
+                    }
+                    return current * 100 / max;
+                })
+                .ToProperty(this, nameof(QueueProgress));
 
             this.BeginCommand = ReactiveCommand.CreateFromTask(
                 execute: this.ExecuteBegin,
@@ -78,10 +121,16 @@ namespace Wabbajack
                 })
                 .ToProperty(this, nameof(this.Image));
 
-            ConfigureForBuild(source);
+            this.WhenAny(x => x.Location).Subscribe(path =>
+            {
+                if (string.IsNullOrWhiteSpace(path)) return;
+                ConfigureForBuild(path);
+            });
+
+            //ConfigureForBuild(source);
 
             // Load settings
-            CompilationSettings settings = this.MWVM.Settings.CompilationSettings.TryCreate(source);
+            /*CompilationSettings settings = this.MWVM.Settings.CompilationSettings.TryCreate(source);
             this.AuthorName = settings.Author;
             this.ModListName = settings.ModListName;
             this.Summary = settings.Description;
@@ -108,7 +157,7 @@ namespace Wabbajack
                     settings.Location = this.Location;
                     settings.DownloadLocation = this.DownloadLocation;
                 })
-                .DisposeWith(this.CompositeDisposable);
+                .DisposeWith(this.CompositeDisposable);*/
         }
 
         private void ConfigureForBuild(string location)

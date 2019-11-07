@@ -58,6 +58,11 @@ namespace Wabbajack
             _configArea = this.WhenAny(x => x.ModManager).Select<bool, ViewModel>(a => a == false ? default : _mo2CompilerConfig.Value).ToProperty(this, nameof(ConfigArea));
         }
 
+        public void Compile(string source)
+        {
+            _mainWindow.Compile(source);
+        }
+
         // swaps the blur between the MO2 and Vortex button
         private void SwapEffects(bool b)
         {

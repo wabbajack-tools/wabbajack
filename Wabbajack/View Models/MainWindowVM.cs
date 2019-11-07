@@ -32,6 +32,7 @@ namespace Wabbajack
         private readonly Lazy<InstallationConfigVM> _installerConfig;
         private readonly Lazy<CompilerConfigVM> _compilerConfig;
         private readonly Lazy<InstallerVM> _installer;
+        private readonly Lazy<CompilerVM> _compiler;
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
         {
@@ -42,6 +43,7 @@ namespace Wabbajack
             _installerConfig = new Lazy<InstallationConfigVM>(() => new InstallationConfigVM(this));
             _installer = new Lazy<InstallerVM>(() => new InstallerVM(this));
             _compilerConfig = new Lazy<CompilerConfigVM>(() => new CompilerConfigVM(this));
+            _compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
 
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
@@ -64,7 +66,7 @@ namespace Wabbajack
                         case Page.InstallerConfig: return _installerConfig.Value;
                         case Page.CompilerConfig: return _compilerConfig.Value;
                         case Page.Installer: return _installer.Value;
-                        case Page.Compiler: return default;
+                        case Page.Compiler: return _compiler.Value;
                         default: return default;
                     }
                 })
@@ -79,8 +81,9 @@ namespace Wabbajack
             CurrentPage = Page.Installer;
         }
 
-        public void Compile()
+        public void Compile(string source)
         {
+            _compiler.Value.Location = source;
             CurrentPage = Page.Compiler;
         }
     }
