@@ -28,7 +28,10 @@ namespace Wabbajack
         [Reactive]
         public ModListVM ModList { get; set; }
 
+        [Reactive]
         public string InstallPath { get; set; }
+
+        [Reactive]
         public string DownloadPath { get; set; }
 
         public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Wabba_Mouth.png");
@@ -147,6 +150,8 @@ namespace Wabbajack
                 (modList, iPath, dPath) =>
                     modList != null && !string.IsNullOrEmpty(iPath) && !string.IsNullOrEmpty(dPath)).Subscribe(
                 x => { if(x) ExecuteBegin(); }).DisposeWith(CompositeDisposable);
+
+            Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
         }
 
         private void ExecuteBegin()
