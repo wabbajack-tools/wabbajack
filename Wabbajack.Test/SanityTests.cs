@@ -35,6 +35,29 @@ namespace Wabbajack.Test
         }
 
         [TestMethod]
+        public void TestDuplicateFilesAreCopied()
+        {
+
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var test_pex = utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
+
+            // Make a copy to make sure it gets picked up and moved around.
+            File.Copy(test_pex, test_pex + ".copy");
+
+            utils.Configure();
+
+            utils.AddManualDownload(
+                new Dictionary<string, byte[]> { { "/baz/biz.pex", File.ReadAllBytes(test_pex) } });
+
+            CompileAndInstall(profile);
+
+            utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
+            utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex.copy");
+        }
+
+
+        [TestMethod]
         public void CleanedESMTest()
         {
 
