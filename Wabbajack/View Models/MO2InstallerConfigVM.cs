@@ -56,7 +56,7 @@ namespace Wabbajack
                 if(modlist == null) return;
                 ModListName = modlist.Name;
                 ModListAuthor = $"by {modlist.Author}";
-                ModListImage = string.IsNullOrEmpty(modlist.ImageURL) ? "https://raw.githubusercontent.com/wabbajack-tools/wabbajack/master/Wabbajack/Resources/none.jpg" : Modlist.ImageURL;
+                ModListImage = string.IsNullOrEmpty(modlist.ImageURL) ? "https://raw.githubusercontent.com/wabbajack-tools/wabbajack/master/Wabbajack/Resources/Wabba_Mouth.png" : Modlist.ImageURL;
             }).DisposeWith(CompositeDisposable);
 
             _installationPathError = this.WhenAny(x => x.InstallationPath)
