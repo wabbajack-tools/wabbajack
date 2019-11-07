@@ -13,9 +13,9 @@ namespace Wabbajack
         public StartupVM(MainWindowVM mainWindow)
         {
             _mainWindow = mainWindow;
-            OpenModListGallery = ReactiveCommand.Create(() => { _mainWindow.Page = 1; });
-            InstallFromFile = ReactiveCommand.Create(() => { _mainWindow.Page = 2; });
-            CompileModList = ReactiveCommand.Create(() => { _mainWindow.Page = 3; });
+            OpenModListGallery = ReactiveCommand.Create(() => { _mainWindow.CurrentPage = Page.Gallery; });
+            InstallFromFile = ReactiveCommand.Create(() => { _mainWindow.CurrentPage = Page.InstallerConfig; });
+            CompileModList = ReactiveCommand.Create(() => { _mainWindow.CurrentPage = Page.CompilerConfig; });
         }
     }
 }

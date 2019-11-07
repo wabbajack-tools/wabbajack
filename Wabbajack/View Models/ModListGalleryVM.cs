@@ -16,8 +16,6 @@ namespace Wabbajack
     {
         public ObservableCollection<ModlistMetadata> ModLists { get; internal set; } = new ObservableCollection<ModlistMetadata>(ModlistMetadata.LoadFromGithub());
 
-        private MainWindowVM _mainWindow;
-
         [Reactive]
         public Visibility ItemsControlVisibility { get; set; }
 
@@ -25,9 +23,7 @@ namespace Wabbajack
 
         public ModListGalleryVM(MainWindowVM mainWindow)
         {
-            _mainWindow = mainWindow;
-
-            BackCommand = ReactiveCommand.Create(() => { mainWindow.Page = 0; });
+            BackCommand = ReactiveCommand.Create(() => { mainWindow.CurrentPage = Page.StartUp; });
 
             if(ModLists.Count >= 1)
                 ItemsControlVisibility = Visibility.Visible;
