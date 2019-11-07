@@ -229,19 +229,6 @@ namespace Wabbajack.Lib
             Info("Done! You may now exit the application!");
         }
 
-        private bool LocateGameFolder()
-        {
-            var fs = UIUtils.ShowFolderSelectionDialog("Please locate your game installation path");
-            if (fs != null)
-            {
-                GameFolder = fs;
-                return true;
-            }
-
-            return false;
-        }
-
-
         /// <summary>
         ///     We don't want to make the installer index all the archives, that's just a waste of time, so instead
         ///     we'll pass just enough information to VFS to let it know about the files we have.
@@ -457,17 +444,27 @@ namespace Wabbajack.Lib
 
             Info("Getting Nexus API Key, if a browser appears, please accept");
 
-            var dispatchers = ModList.Archives.Select(m => m.State.GetDownloader()).Distinct();
+            var dispatchers = missing.Select(m => m.State.GetDownloader()).Distinct();
 
             foreach (var dispatcher in dispatchers)
                 dispatcher.Prepare();
-
+            
             DownloadMissingArchives(missing);
         }
 
         private void DownloadMissingArchives(List<Archive> missing, bool download = true)
         {
-            missing.PMap(archive =>
+            if (download)
+            {
+                foreach (var a in missing.Where(a => a.State.GetType() == typeof(ManualDownloader.State)))
+                {
+                    var output_path = Path.Combine(DownloadFolder, a.Name);
+                    a.State.Download(a, output_path);
+                }
+            }
+
+            missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
+                   .PMap(archive =>
             {
                 Info($"Downloading {archive.Name}");
                 var output_path = Path.Combine(DownloadFolder, archive.Name);
