@@ -25,7 +25,9 @@ namespace Wabbajack
 
         public SlideShow Slideshow { get; }
 
+        [Reactive]
         public ModListVM ModList { get; set; }
+
         public string InstallPath { get; set; }
         public string DownloadPath { get; set; }
 
@@ -138,7 +140,13 @@ namespace Wabbajack
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(this.Description));
 
-            //ExecuteBegin();
+            Observable.CombineLatest(
+                this.WhenAny(x => x.ModList),
+                this.WhenAny(x => x.InstallPath),
+                this.WhenAny(x => x.DownloadPath),
+                (modList, iPath, dPath) =>
+                    modList != null && !string.IsNullOrEmpty(iPath) && !string.IsNullOrEmpty(dPath)).Subscribe(
+                x => { if(x) ExecuteBegin(); }).DisposeWith(CompositeDisposable);
         }
 
         private void ExecuteBegin()

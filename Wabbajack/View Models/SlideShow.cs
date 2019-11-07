@@ -35,7 +35,7 @@ namespace Wabbajack
 
         public SlideShow(InstallerVM appState)
         {
-            this.Installer = appState;
+            Installer = appState;
 
             // Wire target slideshow index
             var intervalSeconds = 10;
