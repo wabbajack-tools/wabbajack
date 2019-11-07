@@ -7,7 +7,6 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Syroot.Windows.IO;
 using Wabbajack.Lib;
-using Wabbajack.View_Models;
 
 namespace Wabbajack
 {
