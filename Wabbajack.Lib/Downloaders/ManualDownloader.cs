@@ -98,7 +98,8 @@ namespace Wabbajack.Lib.Downloaders
                             .Select(x => x.FirstOrDefault())
                             .FirstOrDefaultAsync();
                         Process.Start(Url);
-                        watcher.Wait();
+                        
+                        abs_path = watcher.Wait()?.FullPath;
                         if (!File.Exists(abs_path))
                             throw new InvalidDataException($"File not found after manual download operation");
                         File.Move(abs_path, destination);
