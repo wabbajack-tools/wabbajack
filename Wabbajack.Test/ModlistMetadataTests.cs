@@ -19,8 +19,6 @@ namespace Wabbajack.Test
             Assert.IsTrue(modlists.Count > 0);
         }
 
-        // Disabled until the list of modlists stabalizes a bit
-        /*
         [TestMethod]
         public void VerifyLogoURLs()
         {
@@ -30,11 +28,8 @@ namespace Wabbajack.Test
             {
                 var logo_state = DownloadDispatcher.ResolveArchive(modlist.ImageUri);
                 Assert.IsNotNull(logo_state);
-                //Assert.IsTrue(logo_state.Verify(), $"{modlist.ImageUri} is not valid");
-
-                //modlist.LoadLogo();
-               //Assert.IsNotNull(modlist.Logo);
+                Assert.IsTrue(logo_state.Verify(), $"{modlist.ImageUri} is not valid");
             }
-        }*/
+        }
     }
 }

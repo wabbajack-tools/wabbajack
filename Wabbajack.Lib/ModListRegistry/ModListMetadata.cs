@@ -63,6 +63,12 @@ namespace Wabbajack.Lib.ModListRegistry
         {
             public string Hash { get; set; }
             public long Size { get; set; }
+
+            public long NumberOfArchives { get; set; }
+            public long SizeOfArchives { get; set; }
+            public long NumberOfInstalledFiles { get; set; }
+            public long SizeOfInstalledFiles { get; set; }
+
         }
 
 
@@ -79,7 +85,7 @@ namespace Wabbajack.Lib.ModListRegistry
             if (!File.Exists(modlistPath)) return true;
             if (Links.DownloadMetadata?.Hash == null)
             {
-                return false;
+                return true;
             }
             return Links.DownloadMetadata.Hash != modlistPath.FileHash();
         }
