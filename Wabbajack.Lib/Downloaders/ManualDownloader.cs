@@ -15,7 +15,7 @@ using File = System.IO.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class ManualDownloader : IUrlDownloader
+    public class ManualDownloader : IDownloader
     {
         private FileSystemWatcher _watcher;
         private Subject<FileEvent> _fileEvents = new Subject<FileEvent>();
@@ -70,14 +70,6 @@ namespace Wabbajack.Lib.Downloaders
 
         public void Prepare()
         {
-        }
-
-        public AbstractDownloadState GetDownloaderState(string url)
-        {
-            return new State
-            {
-                Url = url
-            };
         }
 
         public class State : AbstractDownloadState

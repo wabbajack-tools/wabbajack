@@ -157,11 +157,6 @@ namespace Wabbajack.Test
 
             Assert.IsNotNull(state);
 
-            var url_state = DownloadDispatcher.ResolveArchive("http://build.wabbajack.org/WABBAJACK_TEST_FILE.zip");
-
-            Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.zip",
-                ((ManualDownloader.State)url_state).Url);
-
             var converted = state.ViaJSON();
             Assert.IsTrue(converted.Verify());
             var filename = Guid.NewGuid().ToString();
