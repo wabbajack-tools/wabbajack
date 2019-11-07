@@ -1,7 +1,12 @@
 using System;
+using System.IO;
 using System.Reactive.Linq;
+using System.Reflection;
+using System.Windows;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Syroot.Windows.IO;
+using Wabbajack.Common;
 using Wabbajack.Lib;
 
 namespace Wabbajack
@@ -37,6 +42,23 @@ namespace Wabbajack
             _installerConfig = new Lazy<InstallationConfigVM>(() => new InstallationConfigVM(this));
             _installer = new Lazy<InstallerVM>(() => new InstallerVM(this, ""));
 
+            if (Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
+            {
+                MessageBox.Show(
+                    "Wabbajack is running inside your Downloads folder. This folder is often highly monitored by antivirus software and these can often " +
+                    "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your Downloads folder and then restart the app.",
+                    "Cannot run inside Downloads",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Environment.Exit(1);
+            }
+
+            if (Utils.IsProcessRunning("Wabbajack"))
+            {
+                MessageBox.Show(
+                    "Wabbajack is already running. Please only have one instance of Wabbajack running at a time.",
+                    "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
 
             _ContentArea = this.WhenAny(x => x.CurrentPage)
                 .Select<Page, ViewModel>(m =>
