@@ -6,6 +6,11 @@ using Wabbajack.Lib;
 
 namespace Wabbajack
 {
+    public enum Page
+    {
+        StartUp, Gallery, InstallerConfig, CompilerConfig, Installer, Compiler
+    }
+
     public class MainWindowVM : ViewModel
     {
         public MainWindow MainWindow { get; }
@@ -16,7 +21,7 @@ namespace Wabbajack
         public ViewModel ContentArea => _ContentArea.Value;
 
         [Reactive]
-        public int Page { get; set; } = 0;
+        public Page CurrentPage { get; set; } = Page.StartUp;
 
         private readonly Lazy<StartupVM> _startupScreen;
         private readonly Lazy<ModListGalleryVM> _modlistGallery;
@@ -33,19 +38,27 @@ namespace Wabbajack
             _installer = new Lazy<InstallerVM>(() => new InstallerVM(this, ""));
 
 
-            _ContentArea = this.WhenAny(x => x.Page)
-                .Select<int, ViewModel>(m =>
+            _ContentArea = this.WhenAny(x => x.CurrentPage)
+                .Select<Page, ViewModel>(m =>
                 {
                     switch (m)
                     {
-                        case 0: return _startupScreen.Value;
-                        case 1: return _modlistGallery.Value;
-                        case 2: return _installerConfig.Value;
-                        //case 3: return _compiler.Value
+                        case Page.StartUp: return _startupScreen.Value;
+                        case Page.Gallery: return _modlistGallery.Value;
+                        case Page.InstallerConfig: return _installerConfig.Value;
+                        case Page.CompilerConfig: return default;
+                        case Page.Installer: return default;
+                        case Page.Compiler: return default;
                         default: return default;
                     }
                 })
                 .ToProperty(this, nameof(ContentArea));
+        }
+
+        public void Install(ModListVM modList)
+        {
+            CurrentPage = Page.Installer;
+            //_installer.ModList = modlist
         }
     }
 }
