@@ -47,36 +47,6 @@
                     <TextBlock FontSize="30" Text="Create a ModList"/>
                 </mahapps:Tile>
             </WrapPanel>
-            
-            <!--
-            <TextBlock FontSize="30" Text="Featured ModLists"/>
-            <views:ModListGalleryView Margin="0,8,0,0"/>
-
-            <Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Center" Fill="#101010" Height="4"/>
-            <StackPanel Width="700" Margin="0,12,0,0">
-            <Button Command="{Binding InstallFile}">
-                <TextBlock FontSize="30" Text="Install a ModList from File"/>
-            </Button>
-            <Rectangle HorizontalAlignment="Stretch"  VerticalAlignment="Center" Fill="#101010" Height="4"/>
-            <TextBlock Margin="0,6,0,6" FontSize="30" Text="Choose a Mod Manager to create a ModList from:"/>
-            <Grid
-                Height="Auto">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="5*"/>
-                    <ColumnDefinition Width="5*"/>
-                </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Command="{Binding CompileMO2}" Background="Transparent" BorderBrush="Transparent">
-                    <Viewbox Stretch="Uniform">
-                        <Image Name="MO2Image"/>
-                    </Viewbox>
-                </Button>
-                <Button Grid.Column="1" Command="{Binding CompileVortex}" Background="Transparent" BorderBrush="Transparent">
-                    <Viewbox Stretch="Uniform">
-                        <Image Name="VortexImage"/>
-                    </Viewbox>
-                </Button>
-            </Grid>
-            </StackPanel>-->
         </StackPanel>
         </ScrollViewer>
     </Grid>

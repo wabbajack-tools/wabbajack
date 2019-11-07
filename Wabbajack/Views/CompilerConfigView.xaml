@@ -15,5 +15,24 @@
                 <TextBlock FontSize="15" Text="Back" Margin="4,0,0,0"/>
             </StackPanel>
         </Button>
+        <TextBlock FontSize="20" Text="Select the Mod Manager you want to compile from:"/>
+        <Grid
+            HorizontalAlignment="Center"
+            Height="Auto">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="5*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Command="{Binding CompileMO2}" Background="Transparent" BorderBrush="Transparent">
+                <Viewbox Stretch="Uniform">
+                    <Image Source="{Binding MO2Image}"/>
+                </Viewbox>
+            </Button>
+            <Button Grid.Column="1" Command="{Binding CompileVortex}" Background="Transparent" BorderBrush="Transparent">
+                <Viewbox Stretch="Uniform">
+                    <Image Source="{Binding VortexImage}"/>
+                </Viewbox>
+            </Button>
+        </Grid>
     </StackPanel>
 </UserControl>
