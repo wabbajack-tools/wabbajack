@@ -163,6 +163,9 @@
     </ApplicationDefinition>
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Extensions\EnumerableExt.cs" />
+    <Compile Include="Views\TopProgressView.xaml.cs">
+      <DependentUpon>TopProgressView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="View Models\ModListVM.cs" />
     <Compile Include="View Models\ModVM.cs" />
@@ -185,6 +188,9 @@
     </Compile>
     <Compile Include="View Models\CompilerVM.cs" />
     <Compile Include="View Models\MainWindowVM.cs" />
+    <Compile Include="Views\LogCpuView.xaml.cs">
+      <DependentUpon>LogCpuView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ModeSelectionWindow.xaml.cs">
       <DependentUpon>ModeSelectionWindow.xaml</DependentUpon>
     </Compile>
@@ -199,6 +205,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\TopProgressView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\DownloadWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -210,6 +220,10 @@
     <Page Include="Views\InstallationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\LogCpuView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

@@ -57,15 +57,14 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40" />
-            <RowDefinition Height="5" />
+            <RowDefinition Height="45" />
             <RowDefinition Height="4*" />
             <RowDefinition Height="*" MinHeight="150" />
         </Grid.RowDefinitions>
         <Rectangle
             x:Name="BorderEdgeFadeDown"
             Grid.Row="1"
-            Grid.RowSpan="3">
+            Grid.RowSpan="2">
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                     <GradientStop Offset="0" Color="#191919" />
@@ -76,7 +75,7 @@
         <!--  Slideshow  -->
         <Border
             x:Name="Slideshow"
-            Grid.Row="2"
+            Grid.Row="1"
             Margin="5,0,5,5"
             BorderBrush="#171717"
             BorderThickness="1,0,1,1"
@@ -367,176 +366,11 @@
                     Fill="Transparent" />
             </Grid>
         </Border>
-        <!--  Top progress bar  -->
         <!--  Comes after slideshow control, so that any effects/overlap goes on top  -->
-        <Rectangle
-            Grid.Row="2"
-            Height="25"
-            Margin="6,0"
-            VerticalAlignment="Top"
-            IsHitTestVisible="False">
-            <Rectangle.Fill>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Offset="0" Color="#AA000000" />
-                    <GradientStop Offset="1" Color="#00000000" />
-                </LinearGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Rectangle Grid.Row="1" Fill="{StaticResource BackgroundBrush}" />
-        <mahapps:MetroProgressBar
-            x:Name="BottomProgressBarDarkGlow"
-            Grid.Row="1"
-            Grid.RowSpan="2"
-            Height="16"
-            Margin="-4"
-            VerticalAlignment="Top"
-            Background="Transparent"
-            BorderBrush="Transparent"
-            Foreground="{StaticResource PrimaryVariantBrush}"
-            Maximum="1"
-            Value="{Binding ProgressPercent, Mode=OneWay}">
-            <mahapps:MetroProgressBar.Effect>
-                <BlurEffect Radius="25" />
-            </mahapps:MetroProgressBar.Effect>
-        </mahapps:MetroProgressBar>
-        <mahapps:MetroProgressBar
-            x:Name="BottomProgressBarBrightGlow"
-            Grid.Row="1"
-            Grid.RowSpan="2"
-            Height="6"
-            Margin="-4"
-            VerticalAlignment="Top"
-            Background="Transparent"
-            BorderBrush="Transparent"
-            Foreground="{StaticResource PrimaryBrush}"
-            Maximum="1"
-            Value="{Binding ProgressPercent, Mode=OneWay}">
-            <mahapps:MetroProgressBar.Effect>
-                <BlurEffect Radius="20" />
-            </mahapps:MetroProgressBar.Effect>
-        </mahapps:MetroProgressBar>
-        <Grid x:Name="TopBarGrid" Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <mahapps:MetroProgressBar
-                Grid.Column="0"
-                Grid.ColumnSpan="4"
-                Background="{StaticResource WindowBackgroundBrush}"
-                BorderThickness="0"
-                Foreground="Transparent"
-                Maximum="1"
-                Value="{Binding ProgressPercent, Mode=OneWay}" />
-            <mahapps:MetroProgressBar
-                Grid.Column="0"
-                Grid.ColumnSpan="4"
-                Background="Transparent"
-                BorderThickness="0"
-                Foreground="{StaticResource PrimaryVariantBrush}"
-                Maximum="1"
-                Opacity="{Binding ProgressPercent, Mode=OneWay}"
-                Value="{Binding ProgressPercent, Mode=OneWay}" />
-            <TextBlock
-                Grid.Column="0"
-                Width="90"
-                Margin="10,0,0,8"
-                VerticalAlignment="Bottom"
-                FontFamily="Lucida Sans"
-                FontWeight="Black"
-                TextAlignment="Right">
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="Text" Value="Configuring" />
-                        <Setter Property="FontSize" Value="15" />
-                        <Style.Triggers>
-                            <MultiDataTrigger>
-                                <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding InstallingMode}" Value="True" />
-                                    <Condition Binding="{Binding Installing}" Value="True" />
-                                </MultiDataTrigger.Conditions>
-                                <MultiDataTrigger.Setters>
-                                    <Setter Property="Text" Value="Installing" />
-                                    <Setter Property="FontSize" Value="14" />
-                                </MultiDataTrigger.Setters>
-                            </MultiDataTrigger>
-                            <MultiDataTrigger>
-                                <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding InstallingMode}" Value="True" />
-                                    <Condition Binding="{Binding Installing}" Value="False" />
-                                </MultiDataTrigger.Conditions>
-                                <MultiDataTrigger.Setters>
-                                    <Setter Property="Text" Value="Installed" />
-                                    <Setter Property="FontSize" Value="14" />
-                                </MultiDataTrigger.Setters>
-                            </MultiDataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
-            </TextBlock>
-            <TextBlock
-                Grid.Column="1"
-                Margin="15,0,0,0"
-                VerticalAlignment="Center"
-                FontFamily="Lucida Sans"
-                FontSize="25"
-                FontWeight="Black"
-                Text="{Binding ModListName}" />
-            <!--  Readd when Pause/Stop implementations added  -->
-            <!--<Button Grid.Column="2"
-                    ToolTip="Pause Installation"
-                    Margin="0,0,0,5"
-                    Width="50"
-                    Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}">
-                <icon:PackIconMaterial
-                    Kind="Pause" />
-            </Button>
-            <Button Grid.Column="3"
-                    ToolTip="Stop Installation"
-                    Margin="0,0,0,5"
-                    Width="50"
-                    Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}" >
-                <icon:PackIconFontAwesome
-                    Width="25"
-                    Height="25"
-                    Kind="TimesCircleSolid" />
-            </Button>-->
-        </Grid>
-        <mahapps:MetroProgressBar
-            x:Name="BottomProgressBar"
-            Grid.Row="1"
-            Grid.RowSpan="2"
-            Height="5"
-            VerticalAlignment="Top"
-            Background="Transparent"
-            BorderBrush="Transparent"
-            Foreground="{StaticResource PrimaryBrush}"
-            Maximum="1"
-            Value="{Binding ProgressPercent, Mode=OneWay}" />
-        <mahapps:MetroProgressBar
-            x:Name="BottomProgressBarHighlight"
-            Grid.Row="1"
-            Grid.RowSpan="2"
-            Height="5"
-            VerticalAlignment="Top"
-            Background="Transparent"
-            BorderBrush="Transparent"
-            Maximum="1"
-            Value="{Binding ProgressPercent, Mode=OneWay}">
-            <mahapps:MetroProgressBar.Foreground>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Offset="0" Color="#CCFFFFFF" />
-                    <GradientStop Offset="0.3" Color="#00FFFFFF" />
-                    <GradientStop Offset="0.7" Color="#00FFFFFF" />
-                    <GradientStop Offset="1" Color="#CCFFFFFF" />
-                </LinearGradientBrush>
-            </mahapps:MetroProgressBar.Foreground>
-        </mahapps:MetroProgressBar>
+        <local:TopProgressView Grid.Row="0" Grid.RowSpan="2" />
         <!--  Bottom Area  -->
         <Grid
-            Grid.Row="3"
+            Grid.Row="2"
             Margin="5,0,5,5"
             ClipToBounds="True"
             Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
@@ -738,57 +572,10 @@
                 Fill="{StaticResource DarkBackgroundBrush}" />
         </Grid>
         <Grid
-            Grid.Row="3"
+            Grid.Row="2"
             Margin="5,0,5,5"
             Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="4" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <ListBox
-                Grid.Column="0"
-                local:AutoScrollBehavior.ScrollOnNewItem="True"
-                ItemsSource="{Binding MWVM.Log}" />
-            <ListBox
-                x:Name="CpuListBox"
-                Grid.Column="2"
-                ItemsSource="{Binding MWVM.StatusList}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid HorizontalAlignment="Stretch">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ProgressBar
-                                Grid.Column="0"
-                                Width="100"
-                                Maximum="100"
-                                Minimum="0"
-                                Value="{Binding Progress, Mode=OneTime}">
-                                <ProgressBar.Style>
-                                    <Style TargetType="ProgressBar">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Progress, Mode=OneTime}" Value="0">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ProgressBar.Style>
-                            </ProgressBar>
-                            <TextBlock Grid.Column="1" Text=" CPU " />
-                            <TextBlock Grid.Column="2" Text="{Binding ID, Mode=OneTime}" />
-                            <TextBlock Grid.Column="3" Text=" - " />
-                            <TextBlock Grid.Column="4" Text="{Binding Msg, Mode=OneTime}" />
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            <local:LogCpuView DataContext="{Binding MWVM}" />
         </Grid>
     </Grid>
 </UserControl>

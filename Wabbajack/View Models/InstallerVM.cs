@@ -76,6 +76,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _Description;
         public string Description => _Description.Value;
 
+        private readonly ObservableAsPropertyHelper<string> _ProgressTitle;
+        public string ProgressTitle => _ProgressTitle.Value;
+
         // Command properties
         public IReactiveCommand BeginCommand { get; }
         public IReactiveCommand ShowReportCommand { get; }
@@ -231,6 +234,16 @@ namespace Wabbajack
                     }
                 })
                 .DisposeWith(this.CompositeDisposable);
+
+            this._ProgressTitle = Observable.CombineLatest(
+                    this.WhenAny(x => x.Installing),
+                    this.WhenAny(x => x.InstallingMode),
+                    resultSelector: (installing, mode) =>
+                    {
+                        if (!installing) return "Configuring";
+                        return mode ? "Installing" : "Installed";
+                    })
+                .ToProperty(this, nameof(this.ProgressTitle));
         }
 
         private void ShowReport()
