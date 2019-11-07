@@ -79,6 +79,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _ProgressTitle;
         public string ProgressTitle => _ProgressTitle.Value;
 
+        private readonly ObservableAsPropertyHelper<string> _ModListName;
+        public string ModListName => _ModListName.Value;
+
         // Command properties
         public IReactiveCommand BeginCommand { get; }
         public IReactiveCommand ShowReportCommand { get; }
@@ -188,6 +191,9 @@ namespace Wabbajack
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(this.Description));
+            this._ModListName = this.WhenAny(x => x.ModList)
+                .Select(x => x?.Name)
+                .ToProperty(this, nameof(this.ModListName));
 
             this._LocationError = this.WhenAny(x => x.Location)
                 .Select(x => Utils.IsDirectoryPathValid(x))
