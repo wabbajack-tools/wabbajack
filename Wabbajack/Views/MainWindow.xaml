@@ -28,6 +28,9 @@
                 <DataTemplate DataType="{x:Type local:InstallationConfigVM}">
                     <views:InstallationConfigView/>
                 </DataTemplate>
+                <DataTemplate DataType="{x:Type local:CompilerConfigVM}">
+                    <views:CompilerConfigView/>
+                </DataTemplate>
                 <!--
             <DataTemplate DataType="{x:Type local:CompilerVM}">
                 <local:CompilerView />

@@ -6,8 +6,8 @@ using System.Windows;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Syroot.Windows.IO;
-using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.View_Models;
 
 namespace Wabbajack
 {
@@ -31,6 +31,7 @@ namespace Wabbajack
         private readonly Lazy<StartupVM> _startupScreen;
         private readonly Lazy<ModListGalleryVM> _modlistGallery;
         private readonly Lazy<InstallationConfigVM> _installerConfig;
+        private readonly Lazy<CompilerConfigVM> _compilerConfig;
         private readonly Lazy<InstallerVM> _installer;
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
@@ -41,6 +42,7 @@ namespace Wabbajack
             _modlistGallery = new Lazy<ModListGalleryVM>(()=> new ModListGalleryVM(this));
             _installerConfig = new Lazy<InstallationConfigVM>(() => new InstallationConfigVM(this));
             _installer = new Lazy<InstallerVM>(() => new InstallerVM(this));
+            _compilerConfig = new Lazy<CompilerConfigVM>(() => new CompilerConfigVM(this));
 
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
@@ -61,7 +63,7 @@ namespace Wabbajack
                         case Page.StartUp: return _startupScreen.Value;
                         case Page.Gallery: return _modlistGallery.Value;
                         case Page.InstallerConfig: return _installerConfig.Value;
-                        case Page.CompilerConfig: return default;
+                        case Page.CompilerConfig: return _compilerConfig.Value;
                         case Page.Installer: return _installer.Value;
                         case Page.Compiler: return default;
                         default: return default;
@@ -76,6 +78,11 @@ namespace Wabbajack
             _installer.Value.InstallPath = installPath;
             _installer.Value.DownloadPath = downloadPath;
             CurrentPage = Page.Installer;
+        }
+
+        public void Compile()
+        {
+            CurrentPage = Page.Compiler;
         }
     }
 }

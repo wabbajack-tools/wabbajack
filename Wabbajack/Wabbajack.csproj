@@ -164,6 +164,7 @@
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
     <Compile Include="Extensions\EnumerableExt.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="View Models\CompilerConfigVM.cs" />
     <Compile Include="View Models\InstallationConfigVM.cs" />
     <Compile Include="View Models\MO2InstallerConfigVM.cs" />
     <Compile Include="View Models\ModListGalleryVM.cs" />
@@ -172,6 +173,9 @@
     <Compile Include="View Models\StartupVM.cs" />
     <Compile Include="Views\AppBarView.xaml.cs">
       <DependentUpon>AppBarView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\CompilerConfigView.xaml.cs">
+      <DependentUpon>CompilerConfigView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\CompilerView.xaml.cs">
       <DependentUpon>CompilerView.xaml</DependentUpon>
@@ -210,6 +214,10 @@
     </Compile>
     <Compile Include="Views\UserControlRx.cs" />
     <Page Include="Views\AppBarView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\CompilerConfigView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
