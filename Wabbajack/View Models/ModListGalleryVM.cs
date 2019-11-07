@@ -1,14 +1,9 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
-using Wabbajack.UI;
 
 namespace Wabbajack
 {
