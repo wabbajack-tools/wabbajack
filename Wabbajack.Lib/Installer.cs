@@ -410,13 +410,29 @@ namespace Wabbajack.Lib
 
             Status($"Copying files for {archive.Name}");
 
-            vfiles.DoIndexed((idx, file) =>
+            void CopyFile(string from, string to, bool use_move)
+            {
+                if (File.Exists(to))
+                    File.Delete(to);
+                if (use_move)
+                    File.Move(from, to);
+                else
+                    File.Copy(from, to);
+            }
+
+            vfiles.GroupBy(f => f.FromFile)
+                  .DoIndexed((idx, group) =>
             {
                 Utils.Status("Installing files", idx * 100 / vfiles.Count);
-                var dest = Path.Combine(Outputfolder, file.To);
-                if (File.Exists(dest))
-                    File.Delete(dest);
-                File.Copy(file.FromFile.StagedPath, dest);
+                var first_dest = Path.Combine(Outputfolder, group.First().To);
+                CopyFile(group.Key.StagedPath, first_dest, true);
+                
+                foreach (var copy in group.Skip(1))
+                {
+                    var next_dest = Path.Combine(Outputfolder, copy.To);
+                    CopyFile(first_dest, next_dest, false);
+                }
+
             });
 
             Status("Unstaging files");
