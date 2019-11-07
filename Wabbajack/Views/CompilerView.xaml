@@ -129,7 +129,7 @@
                 Background="#444444"
                 Maximum="100"
                 Minimum="0"
-                Value="{Binding MWVM.QueueProgress, Mode=OneWay}" />
+                Value="{Binding QueueProgress, Mode=OneWay}" />
 
             <!--  Log  -->
             <TextBlock
@@ -141,7 +141,7 @@
                 Grid.Row="4"
                 Margin="0,0,2,0"
                 local:AutoScrollBehavior.ScrollOnNewItem="True"
-                ItemsSource="{Binding MWVM.Log}" />
+                ItemsSource="{Binding Log}" />
             <!--  End Log  -->
 
             <!--  Location  -->
@@ -201,7 +201,7 @@
                 Grid.Column="2"
                 Width="Auto"
                 HorizontalAlignment="Stretch"
-                ItemsSource="{Binding MWVM.StatusList}">
+                ItemsSource="{Binding StatusList}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid HorizontalAlignment="Stretch">
