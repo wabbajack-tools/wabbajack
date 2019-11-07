@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:Wabbajack"
              xmlns:view="clr-namespace:Wabbajack.Views"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
     <ScrollViewer HorizontalScrollBarVisibility="Disabled" Background="{x:Null}">
@@ -13,6 +14,13 @@
         <system:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">8</system:Double>
     </ScrollViewer.Resources>
     <StackPanel Margin="8,0,8,0">
+        <Button Width="60" HorizontalAlignment="Left" Command="{Binding BackCommand}"
+                Margin="4,4,0,8">
+            <StackPanel Orientation="Horizontal">
+                <iconPacks:PackIconMaterial Width="20" Height="20" Kind="ArrowLeft" />
+                <TextBlock FontSize="15" Text="Back" Margin="4,0,0,0"/>
+            </StackPanel>
+        </Button>
         <TextBlock FontSize="15" Text="Select a ModList:"/>
         <local:FilePicker 
             Height="30" FontSize="14" 

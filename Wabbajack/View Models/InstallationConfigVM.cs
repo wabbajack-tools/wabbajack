@@ -16,6 +16,8 @@ namespace Wabbajack
 
         private readonly Lazy<MO2InstallerConfigVM> _mo2InstallerConfig;
 
+        public IReactiveCommand BackCommand { get; }
+
         //.wabbajack file stuff
         public string WJFileFilter => $"*{ExtensionManager.Extension}|*{ExtensionManager.Extension}";
 
@@ -54,11 +56,13 @@ namespace Wabbajack
                 _mo2InstallerConfig.Value.Modlist = modList;
                 return _mo2InstallerConfig.Value;
             }).ToProperty(this, nameof(ConfigArea));
+
+            BackCommand = ReactiveCommand.Create(() => { _mainWindow.CurrentPage = Page.StartUp; });
         }
 
         public void Install()
         {
-            _mainWindow.Page = 4;
+            _mainWindow.Install(ModList);
         }
     }
 }
