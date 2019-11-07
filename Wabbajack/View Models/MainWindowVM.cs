@@ -40,7 +40,7 @@ namespace Wabbajack
             _startupScreen = new Lazy<StartupVM>(()=>new StartupVM(this));
             _modlistGallery = new Lazy<ModListGalleryVM>(()=> new ModListGalleryVM(this));
             _installerConfig = new Lazy<InstallationConfigVM>(() => new InstallationConfigVM(this));
-            _installer = new Lazy<InstallerVM>(() => new InstallerVM(this, ""));
+            _installer = new Lazy<InstallerVM>(() => new InstallerVM(this));
 
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
@@ -53,13 +53,6 @@ namespace Wabbajack
                 Environment.Exit(1);
             }
 
-            if (Utils.IsProcessRunning("Wabbajack"))
-            {
-                MessageBox.Show(
-                    "Wabbajack is already running. Please only have one instance of Wabbajack running at a time.",
-                    "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-
             _ContentArea = this.WhenAny(x => x.CurrentPage)
                 .Select<Page, ViewModel>(m =>
                 {
@@ -69,7 +62,7 @@ namespace Wabbajack
                         case Page.Gallery: return _modlistGallery.Value;
                         case Page.InstallerConfig: return _installerConfig.Value;
                         case Page.CompilerConfig: return default;
-                        case Page.Installer: return default;
+                        case Page.Installer: return _installer.Value;
                         case Page.Compiler: return default;
                         default: return default;
                     }
@@ -77,10 +70,12 @@ namespace Wabbajack
                 .ToProperty(this, nameof(ContentArea));
         }
 
-        public void Install(ModListVM modList)
+        public void Install(ModListVM modList, string installPath, string downloadPath)
         {
+            _installer.Value.ModList = modList;
+            _installer.Value.InstallPath = installPath;
+            _installer.Value.DownloadPath = downloadPath;
             CurrentPage = Page.Installer;
-            //_installer.ModList = modlist
         }
     }
 }

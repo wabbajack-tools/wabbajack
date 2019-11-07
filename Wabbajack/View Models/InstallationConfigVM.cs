@@ -41,6 +41,18 @@ namespace Wabbajack
 
             _modList = this.WhenAny(x => x.WJFilePath).Select(path =>
             {
+                /*
+                 *  if (modListPath == null) return default(ModListVM);
+                    var modList = Installer.LoadFromFile(modListPath);
+                    if (modList == null)
+                    {
+                        MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                        MWVM.CurrentPage = Page.StartUp;
+                        return default(ModListVM);
+                    }
+                    return new ModListVM(modList, modListPath);
+                 */
                 if (path == null) return default;
                 var modList = Installer.LoadFromFile(path);
                 return modList == null ? default : new ModListVM(modList, path);
@@ -60,9 +72,9 @@ namespace Wabbajack
             BackCommand = ReactiveCommand.Create(() => { _mainWindow.CurrentPage = Page.StartUp; });
         }
 
-        public void Install()
+        public void Install(string installPath, string downloadPath)
         {
-            _mainWindow.Install(ModList);
+            _mainWindow.Install(ModList, installPath, downloadPath);
         }
     }
 }

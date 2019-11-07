@@ -56,11 +56,7 @@ namespace Wabbajack
                 // When filter switch enabled, fire an initial signal
                 .StartWith(Unit.Default)
                 // Only subscribe to slideshow triggers if enabled and installing
-                .FilterSwitch(
-                    Observable.CombineLatest(
-                        this.WhenAny(x => x.Enable),
-                        this.WhenAny(x => x.Installer.Installing),
-                        resultSelector: (enabled, installing) => enabled && installing))
+                .FilterSwitch(this.WhenAny(x => x.Enable).Select(enabled => enabled))
                 // Block spam
                 .Debounce(TimeSpan.FromMilliseconds(250))
                 .Scan(

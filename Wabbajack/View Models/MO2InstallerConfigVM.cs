@@ -96,7 +96,7 @@ namespace Wabbajack
 
             //begin only if there are no path errors
             BeginCommand = ReactiveCommand.Create(
-                _installationConfig.Install,
+                () => { _installationConfig.Install(InstallationPath, DownloadPath); },
                 this.WhenAny(x => x.InstallationPathError).CombineLatest(this.WhenAny(x => x.DownloadPathError),
                         (iPath, dPath) => (iPath?.Succeeded ?? false) && (dPath?.Succeeded ?? false))
                     .ObserveOnGuiThread());
