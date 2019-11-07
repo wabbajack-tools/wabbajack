@@ -18,8 +18,8 @@ namespace Wabbajack.Lib.Downloaders
             new ModDBDownloader(),
             new NexusDownloader(),
             new MediaFireDownloader(),
+            new HTTPDownloader(),
             new ManualDownloader(),
-            new HTTPDownloader()
         };
 
         private static readonly Dictionary<Type, IDownloader> IndexedDownloaders;
