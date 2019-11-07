@@ -18,13 +18,14 @@ namespace Wabbajack
     {
         public ModList SourceModList { get; }
         public string ModListPath { get; }
-        public string Name => this.SourceModList.Name;
-        public string ReportHTML => this.SourceModList.ReportHTML;
-        public string Readme => this.SourceModList.Readme;
-        public string ImageURL => this.SourceModList.Image;
-        public string Author => this.SourceModList.Author;
-        public string Description => this.SourceModList.Description;
-        public string Website => this.SourceModList.Website;
+        public string Name => SourceModList.Name;
+        public string ReportHTML => SourceModList.ReportHTML;
+        public string Readme => SourceModList.Readme;
+        public string ImageURL => SourceModList.Image;
+        public string Author => SourceModList.Author;
+        public string Description => SourceModList.Description;
+        public string Website => SourceModList.Website;
+        //public ModManager ModManager => SourceModList.ModManager;
 
         // Image isn't exposed as a direct property, but as an observable.
         // This acts as a caching mechanism, as interested parties will trigger it to be created,

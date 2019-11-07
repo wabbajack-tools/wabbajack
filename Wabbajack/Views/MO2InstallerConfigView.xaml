@@ -1,0 +1,44 @@
+﻿<UserControl x:Class="Wabbajack.Views.MO2InstallerConfigView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Wabbajack"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <StackPanel Margin="0,8,0,8">
+        <TextBlock FontSize="30" Text="{Binding ModListName}"/>
+        <TextBlock FontSize="20" Text="{Binding ModListAuthor}"/>
+        <Border Margin="2,2,2,2" BorderBrush="#222222" BorderThickness="2">
+        <Grid Margin="2,2,2,2">
+            <Image Source="{Binding ModListImage}"/>
+        </Grid>
+        </Border>
+        <StackPanel Orientation="Horizontal" Margin="0,4,0,4">
+            <Button Margin="2,0,2,0" Command="{Binding ViewReadmeCommand}">
+                <TextBlock FontSize="20" Text="Readme"/>
+            </Button>
+            <Button Margin="2,0,2,0" Command="{Binding VisitWebsiteCommand}">
+                <TextBlock FontSize="20" Text="Website"/>
+            </Button>
+            <Button Margin="2,0,2,0" Command="{Binding ViewManifestCommand}">
+                <TextBlock FontSize="20" Text="Manifest"/>
+            </Button>
+        </StackPanel>
+        <TextBlock FontSize="30" Text="Installation Configuration:"/>
+        <TextBlock FontSize="20" Text="Installation Location:"/>
+        <local:FilePicker Height="30" FontSize="14" PathType="Folder" DoExistsCheck="False"
+                          PromptTitle="Select the Installation directory"
+                          TargetPath="{Binding InstallationPath}"
+                          AdditionalError="{Binding InstallationPathError}"/>
+        <TextBlock FontSize="20" Text="Download Location:"/>
+        <local:FilePicker Height="30" FontSize="14" PathType="Folder" DoExistsCheck="False"
+                          PromptTitle="Select the Download directory"
+                          TargetPath="{Binding DownloadPath}"
+                          AdditionalError="{Binding DownloadPathError}"/>
+        <Button IsEnabled="{Binding EnableBegin}" HorizontalAlignment="Right" Margin="0,8,0,0"
+                Command="{Binding BeginCommand}">
+            <TextBlock FontSize="20" Text="Begin"/>
+        </Button>
+    </StackPanel>
+</UserControl>

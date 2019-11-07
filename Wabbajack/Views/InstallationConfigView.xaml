@@ -3,10 +3,31 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Wabbajack.Views"
-             mc:Ignorable="d" 
+             xmlns:local="clr-namespace:Wabbajack"
+             xmlns:view="clr-namespace:Wabbajack.Views"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" Background="{x:Null}">
+    <ScrollViewer.Resources>
+        <system:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">8</system:Double>
+    </ScrollViewer.Resources>
+    <StackPanel Margin="8,0,8,0">
+        <TextBlock FontSize="15" Text="Select a ModList:"/>
+        <local:FilePicker 
+            Height="30" FontSize="14" 
+            PathType="File" 
+            PromptTitle="Select the ModList"
+            Filter="{Binding WJFileFilter}"
+            TargetPath="{Binding WJFilePath}"
+            AdditionalError="{Binding WJFileError}"/>
+        <ContentPresenter Content="{Binding ConfigArea}">
+            <ContentPresenter.Resources>
+                <DataTemplate DataType="{x:Type local:MO2InstallerConfigVM}">
+                    <view:MO2InstallerConfigView/>
+                </DataTemplate>
+            </ContentPresenter.Resources>
+        </ContentPresenter>
+    </StackPanel>
+    </ScrollViewer>
 </UserControl>

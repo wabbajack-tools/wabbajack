@@ -165,6 +165,7 @@
     <Compile Include="Extensions\EnumerableExt.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="View Models\InstallationConfigVM.cs" />
+    <Compile Include="View Models\MO2InstallerConfigVM.cs" />
     <Compile Include="View Models\ModListGalleryVM.cs" />
     <Compile Include="View Models\ModListVM.cs" />
     <Compile Include="View Models\ModVM.cs" />
@@ -194,6 +195,9 @@
     <Compile Include="View Models\SlideShow.cs" />
     <Compile Include="Views\InstallationConfigView.xaml.cs">
       <DependentUpon>InstallationConfigView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\MO2InstallerConfigView.xaml.cs">
+      <DependentUpon>MO2InstallerConfigView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ModListGalleryView.xaml.cs">
       <DependentUpon>ModListGalleryView.xaml</DependentUpon>
@@ -246,6 +250,10 @@
     <Page Include="Themes\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\MO2InstallerConfigView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\ModListGalleryView.xaml">
       <SubType>Designer</SubType>
