@@ -1,5 +1,7 @@
-﻿using System.Windows.Media.Imaging;
+﻿using System.Windows.Media.Effects;
+using System.Windows.Media.Imaging;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
 
 namespace Wabbajack
@@ -11,6 +13,14 @@ namespace Wabbajack
         public BitmapImage MO2Image => UIUtils.BitmapImageFromResource("Wabbajack.Resources.MO2Button.png");
         public BitmapImage VortexImage => UIUtils.BitmapImageFromResource("Wabbajack.Resources.VortexButton.png");
 
+        [Reactive]
+        public Effect MO2Effect { get; set; }
+        [Reactive]
+        public Effect VortexEffect { get; set; }
+
+        private readonly Effect StdBlur = new BlurEffect{Radius = 6};
+
+
         public IReactiveCommand BackCommand { get; }
         public IReactiveCommand CompileMO2 { get; }
         public IReactiveCommand CompileVortex { get; }
@@ -19,7 +29,41 @@ namespace Wabbajack
         {
             _mainWindow = mainWindow;
 
+            MO2Effect = null;
+            VortexEffect = null;
+
             BackCommand = ReactiveCommand.Create(() => { _mainWindow.CurrentPage = Page.StartUp; });
+            CompileMO2 = ReactiveCommand.Create(() =>
+            {
+                SwapEffects(true);
+            });
+            CompileVortex = ReactiveCommand.Create(() =>
+            {
+                SwapEffects(false);
+            });
+        }
+
+        // swaps the blur between the MO2 and Vortex button
+        private void SwapEffects(bool b)
+        {
+            if(MO2Effect == null && VortexEffect == null)
+                if (b)
+                    VortexEffect = StdBlur;
+                else
+                    MO2Effect = StdBlur;
+            else
+            {
+                if (MO2Effect == StdBlur && b)
+                {
+                    MO2Effect = null;
+                    VortexEffect = StdBlur;
+                }
+                else if (VortexEffect == StdBlur && !b)
+                {
+                    VortexEffect = null;
+                    MO2Effect = StdBlur;
+                }
+            }
         }
     }
 }

@@ -25,12 +25,12 @@
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" Command="{Binding CompileMO2}" Background="Transparent" BorderBrush="Transparent">
                 <Viewbox Stretch="Uniform">
-                    <Image Source="{Binding MO2Image}"/>
+                    <Image Source="{Binding MO2Image}" Effect="{Binding MO2Effect}"/>
                 </Viewbox>
             </Button>
             <Button Grid.Column="1" Command="{Binding CompileVortex}" Background="Transparent" BorderBrush="Transparent">
                 <Viewbox Stretch="Uniform">
-                    <Image Source="{Binding VortexImage}"/>
+                    <Image Source="{Binding VortexImage}" Effect="{Binding VortexEffect}"/>
                 </Viewbox>
             </Button>
         </Grid>
