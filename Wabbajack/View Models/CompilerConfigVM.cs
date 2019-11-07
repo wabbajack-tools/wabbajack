@@ -1,4 +1,6 @@
-﻿using System.Windows.Media.Effects;
+﻿using System;
+using System.Reactive.Linq;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -10,6 +12,11 @@ namespace Wabbajack
     {
         private MainWindowVM _mainWindow;
 
+        private readonly ObservableAsPropertyHelper<ViewModel> _configArea;
+        public ViewModel ConfigArea => _configArea.Value;
+
+        private readonly Lazy<MO2CompilerConfigVM> _mo2CompilerConfig;
+
         public BitmapImage MO2Image => UIUtils.BitmapImageFromResource("Wabbajack.Resources.MO2Button.png");
         public BitmapImage VortexImage => UIUtils.BitmapImageFromResource("Wabbajack.Resources.VortexButton.png");
 
@@ -20,27 +27,35 @@ namespace Wabbajack
 
         private readonly Effect StdBlur = new BlurEffect{Radius = 6};
 
+        [Reactive]
+        public bool ModManager { get; set; }
 
         public IReactiveCommand BackCommand { get; }
-        public IReactiveCommand CompileMO2 { get; }
-        public IReactiveCommand CompileVortex { get; }
+        public IReactiveCommand UseMO2Command { get; }
+        public IReactiveCommand UseVortexCommand { get; }
 
         public CompilerConfigVM(MainWindowVM mainWindow)
         {
             _mainWindow = mainWindow;
 
+            _mo2CompilerConfig = new Lazy<MO2CompilerConfigVM>(() => new MO2CompilerConfigVM(this));
+
             MO2Effect = null;
             VortexEffect = null;
 
             BackCommand = ReactiveCommand.Create(() => { _mainWindow.CurrentPage = Page.StartUp; });
-            CompileMO2 = ReactiveCommand.Create(() =>
+            UseMO2Command = ReactiveCommand.Create(() =>
             {
                 SwapEffects(true);
+                ModManager = true;
             });
-            CompileVortex = ReactiveCommand.Create(() =>
+            UseVortexCommand = ReactiveCommand.Create(() =>
             {
                 SwapEffects(false);
+                ModManager = false;
             });
+
+            _configArea = this.WhenAny(x => x.ModManager).Select<bool, ViewModel>(a => a == false ? default : _mo2CompilerConfig.Value).ToProperty(this, nameof(ConfigArea));
         }
 
         // swaps the blur between the MO2 and Vortex button

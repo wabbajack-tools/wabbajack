@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Wabbajack.Views"
+             xmlns:local="clr-namespace:Wabbajack"
+             xmlns:view="clr-namespace:Wabbajack.Views"
              xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
@@ -18,21 +19,29 @@
         <TextBlock FontSize="20" Text="Select the Mod Manager you want to compile from:"/>
         <Grid
             HorizontalAlignment="Center"
+            Margin="0,0,0,8"
             Height="Auto">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="5*"/>
                 <ColumnDefinition Width="5*"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Command="{Binding CompileMO2}" Background="Transparent" BorderBrush="Transparent">
+            <Button Grid.Column="0" Command="{Binding UseMO2Command}" Background="Transparent" BorderBrush="Transparent">
                 <Viewbox Stretch="Uniform">
                     <Image Source="{Binding MO2Image}" Effect="{Binding MO2Effect}"/>
                 </Viewbox>
             </Button>
-            <Button Grid.Column="1" Command="{Binding CompileVortex}" Background="Transparent" BorderBrush="Transparent">
+            <Button Grid.Column="1" Command="{Binding UseVortexCommand}" Background="Transparent" BorderBrush="Transparent">
                 <Viewbox Stretch="Uniform">
                     <Image Source="{Binding VortexImage}" Effect="{Binding VortexEffect}"/>
                 </Viewbox>
             </Button>
         </Grid>
+        <ContentPresenter Content="{Binding ConfigArea}">
+            <ContentPresenter.Resources>
+                <DataTemplate DataType="{x:Type local:MO2CompilerConfigVM}">
+                    <view:MO2CompilerConfigView/>
+                </DataTemplate>
+            </ContentPresenter.Resources>
+        </ContentPresenter>
     </StackPanel>
 </UserControl>
