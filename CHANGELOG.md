@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version 1.0 beta 1 - 11/6/2019
+* New Installation GUI
+* Files are now moved during installation instead of copied
+* Many other internal/non-user-facing improvements and optimizations
+
 #### Version 1.0 alpha 5 - 11/2/2019
 * Fix a NPE exception with game ESM verification
 
