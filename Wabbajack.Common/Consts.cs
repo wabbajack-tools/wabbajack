@@ -82,7 +82,5 @@ namespace Wabbajack.Common
         }
 
         public static string WabbajackCacheLocation = "http://build.wabbajack.org/nexus_api_cache/";
-
-        public static TimeSpan NexusCacheExpiry = new TimeSpan(1, 0, 0, 0);
     }
 }

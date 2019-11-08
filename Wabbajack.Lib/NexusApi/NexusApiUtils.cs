@@ -9,9 +9,9 @@ namespace Wabbajack.Lib.NexusApi
             return GameRegistry.GetByMO2ArchiveName(gameName)?.NexusName ?? gameName.ToLower();
         }
 
-        public static string GetModURL(string argGameName, string argModId)
+        public static string GetModURL(Game game, string argModId)
         {
-            return $"https://nexusmods.com/{ConvertGameName(argGameName)}/mods/{argModId}";
+            return $"https://nexusmods.com/{GameRegistry.Games[game].NexusName}/mods/{argModId}";
         }
 
         public static string FixupSummary(string argSummary)

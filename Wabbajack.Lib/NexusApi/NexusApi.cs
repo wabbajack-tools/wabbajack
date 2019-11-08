@@ -272,41 +272,10 @@ namespace Wabbajack.Lib.NexusApi
             return GetCached<GetModFilesResponse>(url).files;
         }
 
-        public ModInfo GetModInfo(string gameName, string modId)
+        public ModInfo GetModInfo(Game game, string modId)
         {
-            if (!Directory.Exists(Consts.NexusCacheDirectory))
-                Directory.CreateDirectory(Consts.NexusCacheDirectory);
-
-            ModInfo result = null;
-        TOP:
-            var path = Path.Combine(Consts.NexusCacheDirectory, $"mod-info-{gameName}-{modId}.json");
-            try
-            {
-                if (File.Exists(path))
-                {
-                    result = path.FromJSON<ModInfo>();
-                    if (result._internal_version != CACHED_VERSION_NUMBER)
-                    {
-                        File.Delete(path);
-                        goto TOP;
-                    }
-
-                    return result;
-                }
-            }
-            catch (Exception)
-            {
-                File.Delete(path);
-            }
-
-            var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(gameName)}/mods/{modId}.json";
-            result = Get<ModInfo>(url);
-
-            result.game_name = gameName;
-            result.mod_id = modId;
-            result._internal_version = CACHED_VERSION_NUMBER;
-            result.ToJSON(path);
-            return result;
+            var url = $"https://api.nexusmods.com/v1/games/{GameRegistry.Games[game].NexusName}/mods/{modId}.json";
+            return GetCached<ModInfo>(url);
         }
 
         public EndorsementResponse EndorseMod(NexusDownloader.State mod)

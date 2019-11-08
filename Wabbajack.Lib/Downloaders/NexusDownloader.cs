@@ -18,7 +18,9 @@ namespace Wabbajack.Lib.Downloaders
 
             if (general.modID != null && general.fileID != null && general.gameName != null)
             {
-                var info = new NexusApiClient().GetModInfo(general.gameName, general.modID);
+                var name = (string)general.gameName;
+                var game = GameRegistry.GetByMO2ArchiveName(name).Game;
+                var info = new NexusApiClient().GetModInfo(game, general.modID);
                 return new State
                 {
                     GameName = general.gameName,
@@ -30,7 +32,7 @@ namespace Wabbajack.Lib.Downloaders
                     UploaderProfile = info.uploaded_users_profile_url,
                     ModName = info.name,
                     SlideShowPic = info.picture_url,
-                    NexusURL = NexusApiUtils.GetModURL(info.game_name, info.mod_id),
+                    NexusURL = NexusApiUtils.GetModURL(game, info.mod_id),
                     Summary = info.summary,
                     Adult = info.contains_adult_content
 
