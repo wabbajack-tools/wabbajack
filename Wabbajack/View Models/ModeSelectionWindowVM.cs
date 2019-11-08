@@ -38,7 +38,10 @@ namespace Wabbajack.UI
 
             string dest = Path.Combine(Consts.ModListDownloadFolder, SelectedModList.Links.MachineURL + ExtensionManager.Extension);
 
-            var window = new DownloadWindow(SelectedModList.Links.Download, SelectedModList.Title, dest);
+            var window = new DownloadWindow(SelectedModList.Links.Download, 
+                                           SelectedModList.Title, 
+                                               SelectedModList.Links.DownloadMetadata?.Size ?? 0,
+                                               dest);
             window.ShowDialog();
 
             if (window.Result == DownloadWindow.WindowResult.Completed)

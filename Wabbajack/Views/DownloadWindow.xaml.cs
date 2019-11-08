@@ -34,10 +34,10 @@ namespace Wabbajack.UI
 
         public WindowResult Result { get; internal set; } = WindowResult.Undefined;
 
-        public DownloadWindow(string url, string name, string destination)
+        public DownloadWindow(string url, string name, long size, string destination)
         {
             InitializeComponent();
-            DataContext = new DownloadWindowViewModel(this, url, name, destination);
+            DataContext = new DownloadWindowViewModel(this, url, name, size, destination);
         }
     }
 
@@ -46,13 +46,15 @@ namespace Wabbajack.UI
 
         private readonly string _destination;
         private readonly DownloadWindow _parent;
+        private long _size;
 
-        public DownloadWindowViewModel(DownloadWindow parent, string url, string name, string destination)
+        public DownloadWindowViewModel(DownloadWindow parent, string url, string name, long size, string destination)
         {
             _parent = parent;
             _url = url;
             _downloadName = name;
             _destination = destination;
+            _size = size;
 
             Start();
         }
@@ -64,7 +66,7 @@ namespace Wabbajack.UI
                 WorkQueue.CustomReportFn = (progress, msg) => { DownloadProgress = progress; };
 
                 var state = DownloadDispatcher.ResolveArchive(_url);
-                state.Download(new Archive {Name = _downloadName}, _destination);
+                state.Download(new Archive {Name = _downloadName, Size = _size}, _destination);
                 _destination.FileHash();
 
 

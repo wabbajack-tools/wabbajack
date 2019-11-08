@@ -105,7 +105,7 @@ namespace Wabbajack.Lib.Downloaders
                 if (!download)
                     return true;
 
-                var header_var = "1";
+                var header_var = a.Size == 0 ? "1" : a.Size.ToString();
                 if (response.Content.Headers.Contains("Content-Length"))
                     header_var = response.Content.Headers.GetValues("Content-Length").FirstOrDefault();
 
