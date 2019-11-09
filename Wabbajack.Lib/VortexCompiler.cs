@@ -287,6 +287,7 @@ namespace Wabbajack.Lib
                 .Where(f => File.Exists(f) && (Path.GetExtension(f) == ".zip" || Path.GetExtension(f) == ".rar") && !File.Exists(f+".meta"))
                 .Do(f =>
                 {
+                    Utils.Log($"Trying to create meta file for {Path.GetFileName(f)}");
                     var metaString = $"[General]\n" +
                                      $"repository=Nexus\n" +
                                      $"installed=true\n" +
@@ -294,20 +295,31 @@ namespace Wabbajack.Lib
                                      $"paused=false\n" +
                                      $"removed=false\n" +
                                      $"gameName={GameName}\n";
+                    Utils.Log("Getting Nexus api_key, please click authorize if a browser window appears");
                     var nexusClient = new NexusApiClient();
-                    var hash = "";
+                    string hash;
                     using(var md5 = MD5.Create())
                     using (var stream = File.OpenRead(f))
                     {
+                        Utils.Log($"Calculating hash for {Path.GetFileName(f)}");
                         byte[] cH = md5.ComputeHash(stream);
                         hash = BitConverter.ToString(cH).Replace("-", "").ToLowerInvariant();
+                        Utils.Log($"Hash is {hash}");
                     }
 
-                    var md5Response = nexusClient.GetModInfoFromMD5(Game, hash);
-                    var modInfo = md5Response[0].mod;
-                    metaString += $"modID={modInfo.mod_id}\ndescription={NexusApiUtils.FixupSummary(modInfo.summary)}\n" +
-                                  $"modName={modInfo.name}\nfileID={md5Response[0].file_details.file_id}";
-                    File.WriteAllText(f+".meta",metaString, Encoding.UTF8);
+                    List<MD5Response> md5Response = nexusClient.GetModInfoFromMD5(Game, hash);
+                    if (md5Response.Count >= 1)
+                    {
+                        var modInfo = md5Response[0].mod;
+                        metaString += $"modID={modInfo.mod_id}\ndescription={NexusApiUtils.FixupSummary(modInfo.summary)}\n" +
+                                      $"modName={modInfo.name}\nfileID={md5Response[0].file_details.file_id}";
+                        File.WriteAllText(f+".meta",metaString, Encoding.UTF8);
+                    }
+                    else
+                    {
+                        Error("Error while getting information from nexusmods via MD5 hash!");
+                    }
+                    
                 });
         }
 
