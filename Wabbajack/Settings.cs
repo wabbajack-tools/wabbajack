@@ -64,7 +64,6 @@ namespace Wabbajack
         public string Website { get; set; }
         public string Readme { get; set; }
         public string SplashScreen { get; set; }
-        public string Location { get; set; }
         public string DownloadLocation { get; set; }
     }
 }

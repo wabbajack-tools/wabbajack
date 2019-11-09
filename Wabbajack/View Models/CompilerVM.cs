@@ -17,11 +17,11 @@ namespace Wabbajack
     {
         public MainWindowVM MWVM { get; }
 
-        [Reactive]
-        public string Mo2Folder { get; set; }
+        private readonly ObservableAsPropertyHelper<string> _Mo2Folder;
+        public string Mo2Folder => _Mo2Folder.Value;
 
-        [Reactive]
-        public string MOProfile { get; set; }
+        private readonly ObservableAsPropertyHelper<string> _MOProfile;
+        public string MOProfile => _MOProfile.Value;
 
         [Reactive]
         public string ModListName { get; set; }
@@ -109,12 +109,64 @@ namespace Wabbajack
                 })
                 .ToProperty(this, nameof(this.Image));
 
-            ConfigureForBuild(source);
+            this._Mo2Folder = this.WhenAny(x => x.ModlistLocation.TargetPath)
+                .Select(loc =>
+                {
+                    try
+                    {
+                        var profile_folder = Path.GetDirectoryName(loc);
+                        return Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
+                    }
+                    catch (Exception)
+                    {
+                        return null;
+                    }
+                })
+                .ToProperty(this, nameof(this.Mo2Folder));
+            this._MOProfile = this.WhenAny(x => x.ModlistLocation.TargetPath)
+                .Select(loc =>
+                {
+                    try
+                    {
+                        var profile_folder = Path.GetDirectoryName(loc);
+                        return Path.GetFileName(profile_folder);
+                    }
+                    catch (Exception)
+                    {
+                        return null;
+                    }
+                })
+                .ToProperty(this, nameof(this.MOProfile));
+
+            // If Mo2 folder changes and download location is empty, set it for convenience
+            this.WhenAny(x => x.Mo2Folder)
+                .Where(x => Directory.Exists(x))
+                .Subscribe(x =>
+                {
+                    try
+                    {
+                        var tmp_compiler = new Compiler(this.Mo2Folder);
+                        this.DownloadLocation.TargetPath = tmp_compiler.MO2DownloadsFolder;
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.Log($"Error setting default download location {ex}");
+                    }
+                })
+                .DisposeWith(this.CompositeDisposable);
 
             // Load settings
             CompilationSettings settings = this.MWVM.Settings.CompilationSettings.TryCreate(source);
             this.AuthorText = settings.Author;
-            this.ModListName = settings.ModListName;
+            if (string.IsNullOrWhiteSpace(settings.ModListName))
+            {
+                // Set ModlistName initially off just the MO2Profile
+                this.ModListName = this.MOProfile;
+            }
+            else
+            {
+                this.ModListName = settings.ModListName;
+            }
             this.Description = settings.Description;
             this.ReadMeText.TargetPath = settings.Readme;
             this.ImagePath.TargetPath = settings.SplashScreen;
@@ -122,10 +174,6 @@ namespace Wabbajack
             if (!string.IsNullOrWhiteSpace(settings.DownloadLocation))
             {
                 this.DownloadLocation.TargetPath = settings.DownloadLocation;
-            }
-            if (!string.IsNullOrWhiteSpace(settings.Location))
-            {
-                this.ModlistLocation.TargetPath = settings.Location;
             }
             this.MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
@@ -136,7 +184,6 @@ namespace Wabbajack
                     settings.Readme = this.ReadMeText.TargetPath;
                     settings.SplashScreen = this.ImagePath.TargetPath;
                     settings.Website = this.Website;
-                    settings.Location = this.ModlistLocation.TargetPath;
                     settings.DownloadLocation = this.DownloadLocation.TargetPath;
                 })
                 .DisposeWith(this.CompositeDisposable);
@@ -145,17 +192,10 @@ namespace Wabbajack
         private void ConfigureForBuild(string location)
         {
             var profile_folder = Path.GetDirectoryName(location);
-            this.Mo2Folder = Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
             if (!File.Exists(Path.Combine(this.Mo2Folder, "ModOrganizer.exe")))
             {
                 Utils.Log($"Error! No ModOrganizer2.exe found in {this.Mo2Folder}");
             }
-
-            this.MOProfile = Path.GetFileName(profile_folder);
-            this.ModListName = this.MOProfile;
-
-            var tmp_compiler = new Compiler(this.Mo2Folder);
-            this.DownloadLocation.TargetPath = tmp_compiler.MO2DownloadsFolder;
         }
 
         private async Task ExecuteBegin()
