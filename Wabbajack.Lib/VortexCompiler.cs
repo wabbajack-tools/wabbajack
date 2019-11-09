@@ -28,22 +28,28 @@ namespace Wabbajack.Lib
 
         public VortexCompiler(string gameName, string gamePath)
         {
+
             _vortexCompiler = this;
             _mo2Compiler = null;
             ModManager = ModManager.Vortex;
 
             // TODO: only for testing
             IgnoreMissingFiles = true;
+            string[] args = Environment.GetCommandLineArgs();
 
             GamePath = gamePath;
             GameName = gameName;
             Game = GameRegistry.GetByNexusName(GameName).Game;
 
-            // currently only works if staging and downloads folder is in the standard directory
-            // aka %APPDATADA%\Vortex\
+            //args: wabbajacke.exe gameName gamePath vortexfolder stagingfolder downloadsfolder
             VortexFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vortex");
             StagingFolder = Path.Combine(VortexFolder, gameName, "mods");
             DownloadsFolder = Path.Combine(VortexFolder, "downloads", gameName);
+
+            if (args.Length >= 4)
+                StagingFolder = args[3];
+            if (args.Length == 5)
+                DownloadsFolder = args[4];
 
             ModListOutputFolder = "output_folder";
 
