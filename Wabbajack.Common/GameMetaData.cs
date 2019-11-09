@@ -30,6 +30,7 @@ namespace Wabbajack.Common
         public string GameLocationRegistryKey { get; internal set; }
         public List<int> SteamIDs { get; internal set; }
         public int GOGID { get; internal set; }
+        public List<string> AdditionalFolders { get; internal set; }
 
         public string GameLocation
         {
@@ -179,7 +180,12 @@ namespace Wabbajack.Common
                     Game = Game.DivinityOriginalSins2,
                     NexusName = "divinityoriginalsins2",
                     SteamIDs = new List<int>{435150},
-                    GOGID = 1584823040
+                    GOGID = 1584823040,
+                    AdditionalFolders = new List<string>
+                    {
+                        "%documents%\\Larian Studios\\Divinity Original Sin 2\\Mods\\",
+                        "%documents%\\Larian Studios\\Divinity Original Sin 2 Definitive Edition\\Mods\\"
+                    }
                 }
             }
         };
