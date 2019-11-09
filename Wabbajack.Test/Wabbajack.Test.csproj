@@ -93,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ACompilerTest.cs" />
+    <Compile Include="CSPTests.cs" />
     <Compile Include="DownloaderTests.cs" />
     <Compile Include="EndToEndTests.cs" />
     <Compile Include="Extensions.cs" />
