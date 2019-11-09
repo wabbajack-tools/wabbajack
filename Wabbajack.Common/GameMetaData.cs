@@ -16,7 +16,8 @@ namespace Wabbajack.Common
         Fallout4,
         SkyrimVR,
         //VORTEX GAMES
-        DarkestDungeon
+        DarkestDungeon,
+        DivinityOriginalSins2
     }
 
     public class GameMetaData
@@ -169,6 +170,16 @@ namespace Wabbajack.Common
                     NexusName = "darkestdungeon",
                     SteamIDs = new List<int>{262060},
                     GOGID = 1450711444
+                }
+            },
+            {
+                Game.DivinityOriginalSins2, new GameMetaData
+                {
+                    SupportedModManager = ModManager.Vortex,
+                    Game = Game.DivinityOriginalSins2,
+                    NexusName = "divinityoriginalsins2",
+                    SteamIDs = new List<int>{435150},
+                    GOGID = 1584823040
                 }
             }
         };
