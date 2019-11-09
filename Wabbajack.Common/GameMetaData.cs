@@ -50,7 +50,7 @@ namespace Wabbajack.Common
         public static GameMetaData GetByMO2ArchiveName(string gameName)
         {
             var gamename = gameName.ToLower();
-            return Games.Values.FirstOrDefault(g => g.MO2ArchiveName == gamename);
+            return Games.Values.FirstOrDefault(g => g.MO2ArchiveName.ToLower() == gamename);
         }
 
 
