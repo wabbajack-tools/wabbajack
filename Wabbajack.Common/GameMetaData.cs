@@ -65,7 +65,7 @@ namespace Wabbajack.Common
                     Game = Game.Oblivion,
                     NexusName = "oblivion",
                     MO2Name = "Oblivion",
-                    MO2ArchiveName = "Oblivion",
+                    MO2ArchiveName = "oblivion",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Oblivion"
                 }
             },
