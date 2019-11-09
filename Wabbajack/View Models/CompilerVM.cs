@@ -26,16 +26,16 @@ namespace Wabbajack
         public string ModListName { get; set; }
 
         [Reactive]
-        public string Location { get; set; }
+        public string ModlistLocation { get; set; }
 
         [Reactive]
-        public bool UIReady { get; set; } = true;
+        public bool Compiling { get; set; }
 
         [Reactive]
-        public string AuthorName { get; set; }
+        public string AuthorText { get; set; }
 
         [Reactive]
-        public string Summary { get; set; } = "Description (700 characters max)";
+        public string Description { get; set; }
 
         [Reactive]
         public string ImagePath { get; set; }
@@ -55,16 +55,23 @@ namespace Wabbajack
         [Reactive]
         public string DownloadLocation { get; set; }
 
+        [Reactive]
+        public bool ModlistLocationInError { get; set; }
+
+        [Reactive]
+        public bool DownloadLocationInError { get; set; }
+
         public IReactiveCommand BeginCommand { get; }
 
         public CompilerVM(MainWindowVM mainWindowVM, string source)
         {
             this.MWVM = mainWindowVM;
-            this.Location = source;
+            this.ModlistLocation = source;
 
             this.BeginCommand = ReactiveCommand.CreateFromTask(
                 execute: this.ExecuteBegin,
-                canExecute: this.WhenAny(x => x.UIReady)
+                canExecute: this.WhenAny(x => x.Compiling)
+                    .Select(compiling => !compiling)
                     .ObserveOnGuiThread());
 
             this._Image = this.WhenAny(x => x.ImagePath)
@@ -83,9 +90,9 @@ namespace Wabbajack
 
             // Load settings
             CompilationSettings settings = this.MWVM.Settings.CompilationSettings.TryCreate(source);
-            this.AuthorName = settings.Author;
+            this.AuthorText = settings.Author;
             this.ModListName = settings.ModListName;
-            this.Summary = settings.Description;
+            this.Description = settings.Description;
             this.ReadMeText = settings.Readme;
             this.ImagePath = settings.SplashScreen;
             this.Website = settings.Website;
@@ -95,18 +102,18 @@ namespace Wabbajack
             }
             if (!string.IsNullOrWhiteSpace(settings.Location))
             {
-                this.Location = settings.Location;
+                this.ModlistLocation = settings.Location;
             }
             this.MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
                 {
-                    settings.Author = this.AuthorName;
+                    settings.Author = this.AuthorText;
                     settings.ModListName = this.ModListName;
-                    settings.Description = this.Summary;
+                    settings.Description = this.Description;
                     settings.Readme = this.ReadMeText;
                     settings.SplashScreen = this.ImagePath;
                     settings.Website = this.Website;
-                    settings.Location = this.Location;
+                    settings.Location = this.ModlistLocation;
                     settings.DownloadLocation = this.DownloadLocation;
                 })
                 .DisposeWith(this.CompositeDisposable);
@@ -136,15 +143,15 @@ namespace Wabbajack
                 {
                     MO2Profile = this.MOProfile,
                     ModListName = this.ModListName,
-                    ModListAuthor = this.AuthorName,
-                    ModListDescription = this.Summary,
+                    ModListAuthor = this.AuthorText,
+                    ModListDescription = this.Description,
                     ModListImage = this.ImagePath,
                     ModListWebsite = this.Website,
                     ModListReadme = this.ReadMeText,
                 };
                 await Task.Run(() =>
                 {
-                    UIReady = false;
+                    Compiling = true;
                     try
                     {
                         compiler.Compile();
@@ -160,14 +167,14 @@ namespace Wabbajack
                     }
                     finally
                     {
-                        UIReady = true;
+                        Compiling = false;
                     }
                 });
             }
             else
             {
                 Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
-                UIReady = true;
+                Compiling = false;
             }
         }
     }
