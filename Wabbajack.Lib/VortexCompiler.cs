@@ -5,12 +5,13 @@ using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Lib.NexusApi;
+using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib
 {
@@ -206,7 +207,8 @@ namespace Wabbajack.Lib
             {
                 Archives = SelectedArchives,
                 ModManager = ModManager.Vortex,
-                Directives = InstallDirectives
+                Directives = InstallDirectives,
+                GameType = Game
             };
             
             ExportModList();
@@ -243,9 +245,41 @@ namespace Wabbajack.Lib
                             });
                 }
             }
+
+            Utils.Log("Exporting ModList metadata");
+            var metadata = new ModlistMetadata.DownloadMetadata
+            {
+                Size = File.GetSize(ModListOutputFile),
+                Hash = ModListOutputFile.FileHash(),
+                NumberOfArchives = ModList.Archives.Count,
+                SizeOfArchives = ModList.Archives.Sum(a => a.Size),
+                NumberOfInstalledFiles = ModList.Directives.Count,
+                SizeOfInstalledFiles = ModList.Directives.Sum(a => a.Size)
+            };
+            metadata.ToJSON(ModListOutputFile + ".meta.json");
+
             Utils.Log("Removing ModList staging folder");
             //Directory.Delete(ModListOutputFolder, true);
         }
+
+        /*private void GenerateReport()
+        {
+            string css;
+            using (var cssStream = Utils.GetResourceStream("Wabbajack.Lib.css-min.css"))
+            using (var reader = new StreamReader(cssStream))
+            {
+                css = reader.ReadToEnd();
+            }
+
+            using (var fs = File.OpenWrite($"{ModList.Name}.md"))
+            {
+               fs.SetLength(0);
+               using (var reporter = new ReportBuilder(fs, ModListOutputFolder))
+               {
+                   reporter.Build(this, ModList);
+               }
+            }
+        }*/
 
         private void CreateMetaFiles()
         {
