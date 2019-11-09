@@ -20,7 +20,8 @@
             Height="25"
             Margin="6,0"
             VerticalAlignment="Top"
-            IsHitTestVisible="False">
+            IsHitTestVisible="False"
+            Visibility="{Binding OverhangShadow, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityConverter}}">
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                     <GradientStop Offset="0" Color="#AA000000" />
@@ -40,7 +41,7 @@
             BorderBrush="Transparent"
             Foreground="{StaticResource PrimaryVariantBrush}"
             Maximum="1"
-            Value="{Binding ProgressPercent, Mode=OneWay}">
+            Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
             <mahapps:MetroProgressBar.Effect>
                 <BlurEffect Radius="25" />
             </mahapps:MetroProgressBar.Effect>
@@ -56,7 +57,7 @@
             BorderBrush="Transparent"
             Foreground="{StaticResource PrimaryBrush}"
             Maximum="1"
-            Value="{Binding ProgressPercent, Mode=OneWay}">
+            Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
             <mahapps:MetroProgressBar.Effect>
                 <BlurEffect Radius="20" />
             </mahapps:MetroProgressBar.Effect>
@@ -66,7 +67,6 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <mahapps:MetroProgressBar
                 Grid.Column="0"
@@ -75,7 +75,7 @@
                 BorderThickness="0"
                 Foreground="Transparent"
                 Maximum="1"
-                Value="{Binding ProgressPercent, Mode=OneWay}" />
+                Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
             <mahapps:MetroProgressBar
                 Grid.Column="0"
                 Grid.ColumnSpan="4"
@@ -83,8 +83,8 @@
                 BorderThickness="0"
                 Foreground="{StaticResource PrimaryVariantBrush}"
                 Maximum="1"
-                Opacity="{Binding ProgressPercent, Mode=OneWay}"
-                Value="{Binding ProgressPercent, Mode=OneWay}" />
+                Opacity="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
             <TextBlock
                 Grid.Column="0"
                 Width="90"
@@ -92,7 +92,7 @@
                 VerticalAlignment="Bottom"
                 FontFamily="Lucida Sans"
                 FontWeight="Black"
-                Text="{Binding ProgressTitle}"
+                Text="{Binding StatePrefixTitle, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                 TextAlignment="Right" />
             <TextBlock
                 Grid.Column="1"
@@ -101,26 +101,8 @@
                 FontFamily="Lucida Sans"
                 FontSize="25"
                 FontWeight="Black"
-                Text="{Binding ModListName}" />
-            <!--  Readd when Pause/Stop implementations added  -->
-            <!--<Button Grid.Column="2"
-                    ToolTip="Pause Installation"
-                    Margin="0,0,0,5"
-                    Width="50"
-                    Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}">
-                <icon:PackIconMaterial
-                    Kind="Pause" />
-            </Button>
-            <Button Grid.Column="3"
-                    ToolTip="Stop Installation"
-                    Margin="0,0,0,5"
-                    Width="50"
-                    Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}" >
-                <icon:PackIconFontAwesome
-                    Width="25"
-                    Height="25"
-                    Kind="TimesCircleSolid" />
-            </Button>-->
+                Text="{Binding Title, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
+            <ContentControl Grid.Column="2" />
         </Grid>
         <mahapps:MetroProgressBar
             x:Name="BottomProgressBar"
@@ -132,7 +114,7 @@
             BorderBrush="Transparent"
             Foreground="{StaticResource PrimaryBrush}"
             Maximum="1"
-            Value="{Binding ProgressPercent, Mode=OneWay}" />
+            Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
         <mahapps:MetroProgressBar
             x:Name="BottomProgressBarHighlight"
             Grid.Row="1"
@@ -142,7 +124,7 @@
             Background="Transparent"
             BorderBrush="Transparent"
             Maximum="1"
-            Value="{Binding ProgressPercent, Mode=OneWay}">
+            Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
             <mahapps:MetroProgressBar.Foreground>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                     <GradientStop Offset="0" Color="#CCFFFFFF" />
