@@ -268,10 +268,10 @@ namespace Wabbajack.Lib.NexusApi
             return GetCached<GetModFilesResponse>(url).files;
         }
 
-        public List<MD5Response> GetModInfoFromMD5(string gameName, string md5Hash)
+        public List<MD5Response> GetModInfoFromMD5(Game game, string md5Hash)
         {
-            var url = $"https://api.nexusmods.com/v1/games/{gameName}/mods/md5_search/{md5Hash}.json";
-            return Get<List<MD5Response>>(url);
+            var url = $"https://api.nexusmods.com/v1/games/{GameRegistry.Games[game].NexusName}/mods/md5_search/{md5Hash}.json";
+            return GetCached<List<MD5Response>>(url);
         }
 
         public ModInfo GetModInfo(Game game, string modId)
