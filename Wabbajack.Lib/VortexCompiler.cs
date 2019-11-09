@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.WindowsAPICodePack.Shell;
 using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
@@ -110,6 +111,8 @@ namespace Wabbajack.Lib
 
             Info($"Indexing {DownloadsFolder}");
             VFS.AddRoot(DownloadsFolder);
+
+            AddExternalFolder();
 
             Info("Cleaning output folder");
             if (Directory.Exists(ModListOutputFolder)) Directory.Delete(ModListOutputFolder, true);
@@ -221,6 +224,22 @@ namespace Wabbajack.Lib
 
             Info("Done Building ModList");
             return true;
+        }
+
+        /// <summary>
+        /// Some have mods outside their game folder located
+        /// </summary>
+        private void AddExternalFolder()
+        {
+            var currentGame = GameRegistry.Games[Game];
+            if (currentGame.AdditionalFolders == null || currentGame.AdditionalFolders.Count == 0) return;
+            currentGame.AdditionalFolders.Do(f =>
+            {
+                var path = f.Replace("%documents%", KnownFolders.Documents.Path);
+                if (!Directory.Exists(path)) return;
+                Info($"Indexing {path}");
+                VFS.AddRoot(path);
+            });
         }
 
         private void ExportModList()
