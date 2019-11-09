@@ -134,6 +134,7 @@
     <Compile Include="Validation\ValidateModlist.cs" />
     <Compile Include="ViewModel.cs" />
     <Compile Include="VortexCompiler.cs" />
+    <Compile Include="VortexInstaller.cs" />
     <Compile Include="WebAutomation\WebAutomation.cs" />
     <Compile Include="WebAutomation\WebAutomationWindow.xaml.cs">
       <DependentUpon>WebAutomationWindow.xaml</DependentUpon>
