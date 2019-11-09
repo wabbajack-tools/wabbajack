@@ -34,7 +34,11 @@ namespace Wabbajack.Common.CSP
             List<TOut> acc = new List<TOut>();
             while (true)
             {
-                acc.Add(await chan.Take());
+                var (open, val) = await chan.Take();
+                
+                if (!open) break;
+                
+                acc.Add(val);
             }
             return acc;
         }

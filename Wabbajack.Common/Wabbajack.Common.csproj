@@ -121,6 +121,7 @@
     <EmbeddedResource Include="7z.dll.gz" />
     <EmbeddedResource Include="7z.exe.gz" />
     <None Include="app.config" />
+    <None Include="CSP\CSP Readme.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj">

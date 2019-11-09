@@ -23,7 +23,7 @@ namespace Wabbajack.Common.CSP
     {
         public const int MAX_QUEUE_SIZE = 1024;
 
-        private RingBuffer<Handler<Action<Box<TOut>>>> _takes = new RingBuffer<Handler<Action<Box<TOut>>>>(8);
+        private RingBuffer<Handler<Action<TOut>>> _takes = new RingBuffer<Handler<Action<TOut>>>(8);
         private RingBuffer<(Handler<Action<bool>>, TIn)> _puts = new RingBuffer<(Handler<Action<bool>>, TIn)>(8);
         private IBuffer<TOut> _buf;
         private Func<IBuffer<TOut>, TIn, bool> _add;
@@ -47,7 +47,7 @@ namespace Wabbajack.Common.CSP
             _converter = converter;
         }
 
-        private static bool IsActiveTake(Handler<Action<Box<TOut>>> handler)
+        private static bool IsActiveTake(Handler<Action<TOut>> handler)
         {
             return handler.IsActive;
         }
@@ -57,13 +57,19 @@ namespace Wabbajack.Common.CSP
             return input.Item1.IsActive;
         }
 
-        public override Box<bool> Put(TIn val, Handler<Action<bool>> handler)
+        /// <summary>
+        /// Tries to put a put into the channel
+        /// </summary>
+        /// <param name="val"></param>
+        /// <param name="handler"></param>
+        /// <returns>(result_type, w)</returns>
+        public override (AsyncResult, bool) Put(TIn val, Handler<Action<bool>> handler)
         {
             Monitor.Enter(this);
             if (_isClosed)
             {
                 Monitor.Exit(this);
-                return new Box<bool>(false);
+                return (AsyncResult.Completed, false);
             }
 
             if (_buf != null && !_buf.IsFull && !_takes.IsEmpty)
@@ -80,7 +86,7 @@ namespace Wabbajack.Common.CSP
                         Monitor.Exit(this);
                         foreach (var action in take_cbs)
                         {
-                            Task.Run(() => action());
+                            Task.Run(action);
                         }
                     }
                     else
@@ -88,12 +94,13 @@ namespace Wabbajack.Common.CSP
                         if (is_done)
                             Abort();
                         Monitor.Exit(this);
-                        return Box<bool>.Empty;
+                        return (AsyncResult.Closed, false);
                     }
-                    return new Box<bool>(true);
+
+                    return (AsyncResult.Completed, true);
                 }
                 Monitor.Exit(this);
-                return Box<bool>.Empty;
+                return (AsyncResult.Canceled, false);
             }
 
             var (put_cb2, take_cb) = GetCallbacks(handler, _takes);
@@ -101,8 +108,8 @@ namespace Wabbajack.Common.CSP
             if (put_cb2 != null && take_cb != null)
             {
                 Monitor.Exit(this);
-                Task.Run(() => take_cb(new Box<TOut>(_converter(val))));
-                return new Box<bool>(true);
+                Task.Run(() => take_cb(_converter(val)));
+                return (AsyncResult.Completed, true);
             }
 
             if (_buf != null && !_buf.IsFull)
@@ -114,10 +121,10 @@ namespace Wabbajack.Common.CSP
                         Abort();
                     }
                     Monitor.Exit(this);
-                    return new Box<bool>(true);
+                    return (AsyncResult.Completed, true);
                 }
                 Monitor.Exit(this);
-                return Box<bool>.Empty;
+                return (AsyncResult.Canceled, true);
             }
 
             if (handler.IsActive && handler.IsBlockable)
@@ -130,10 +137,10 @@ namespace Wabbajack.Common.CSP
                 _puts.Unshift((handler, val));
             }
             Monitor.Exit(this);
-            return Box<bool>.Empty;
+            return (AsyncResult.Enqueued, true);
         }
 
-        public override Box<TOut> Take(Handler<Action<Box<TOut>>> handler)
+        public override (AsyncResult, TOut) Take(Handler<Action<TOut>> handler)
         {
             Monitor.Enter(this);
             Cleanup();
@@ -154,11 +161,11 @@ namespace Wabbajack.Common.CSP
                     foreach (var cb in cbs)
                         Task.Run(() => cb(true));
 
-                    return new Box<TOut>(val);
+                    return (AsyncResult.Completed, val);
 
                 }
                 Monitor.Exit(this);
-                return Box<TOut>.Empty;
+                return (AsyncResult.Canceled, default);
             }
 
             var (take_cb2, put_cb, val2, found) = FindMatchingPut(handler);
@@ -167,7 +174,7 @@ namespace Wabbajack.Common.CSP
             {
                 Monitor.Exit(this);
                 Task.Run(() => put_cb(true));
-                return new Box<TOut>(_converter(val2));
+                return (AsyncResult.Completed, _converter(val2));
             }
 
             if (_isClosed)
@@ -182,10 +189,10 @@ namespace Wabbajack.Common.CSP
                 {
                     var val = has_val ? _buf.Remove() : default;
                     Monitor.Exit(this);
-                    return has_val ? new Box<TOut>(val) : Box<TOut>.Empty;
+                    return has_val ? (AsyncResult.Completed, val) : (AsyncResult.Closed, default);
                 }
                 Monitor.Exit(this);
-                return Box<TOut>.Empty;
+                return (AsyncResult.Closed, default);
             }
 
             if (handler.IsBlockable)
@@ -196,7 +203,7 @@ namespace Wabbajack.Common.CSP
 
             }
             Monitor.Exit(this);
-            return Box<TOut>.Empty;
+            return (AsyncResult.Enqueued, default);
         }
 
         public override bool IsClosed => _isClosed;
@@ -216,7 +223,7 @@ namespace Wabbajack.Common.CSP
                 _finalize(_buf);
         }
 
-        private (Action<Box<TOut>>, Action<bool>, TIn, bool) FindMatchingPut(Handler<Action<Box<TOut>>> handler)
+        private (Action<TOut>, Action<bool>, TIn, bool) FindMatchingPut(Handler<Action<TOut>> handler)
         {
             while (!_puts.IsEmpty)
             {
@@ -319,7 +326,7 @@ namespace Wabbajack.Common.CSP
                 if (take_cp != null)
                 {
                     var val = _buf.Remove();
-                    ret.Add(() => take_cp(new Box<TOut>(val)));
+                    ret.Add(() => take_cp(val));
                 }
             }
 

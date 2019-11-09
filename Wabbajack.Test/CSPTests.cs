@@ -14,9 +14,11 @@ namespace Wabbajack.Test
         {
             var channel = Channel.Create<int>();
             var ptask = channel.Put(1);
-            Assert.AreEqual(1, await channel.Take());
-            Assert.IsTrue(await ptask);
+            var (open, val) = await channel.Take();
 
+            Assert.AreEqual(1, val);
+            Assert.IsTrue(open);
+            Assert.IsTrue(await ptask);
         }
 
         [TestMethod]
@@ -27,7 +29,11 @@ namespace Wabbajack.Test
                 await channel.Put(itm);
 
             foreach (var itm in Enumerable.Range(0, 10))
-                Assert.AreEqual(itm, await channel.Take());
+            {
+                var (is_open, val) = await channel.Take();
+                Assert.AreEqual(itm, val);
+                Assert.IsTrue(is_open);
+            }
         }
 
         [TestMethod]
@@ -36,7 +42,11 @@ namespace Wabbajack.Test
             var channel = Enumerable.Range(0, 10).ToChannel();
 
             foreach (var itm in Enumerable.Range(0, 10))
-                Assert.AreEqual(itm, await channel.Take());
+            {
+                var (is_open, val) = await channel.Take();
+                Assert.AreEqual(itm, val);
+                Assert.IsTrue(is_open);
+            }
         }
 
         [TestMethod]
@@ -44,7 +54,7 @@ namespace Wabbajack.Test
         {
             var results = await Enumerable.Range(0, 10).ToChannel().TakeAll();
 
-            Assert.AreEqual(Enumerable.Range(0, 10).ToList(), results);
+            CollectionAssert.AreEqual(Enumerable.Range(0, 10).ToList(), results);
         }
     }
 }

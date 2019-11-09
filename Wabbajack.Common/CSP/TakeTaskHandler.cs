@@ -7,32 +7,39 @@ using System.Threading.Tasks;
 
 namespace Wabbajack.Common.CSP
 {
-    public class TakeTaskHandler<T> : Handler<Action<Box<T>>>
+    public class TakeTaskHandler<T> : Handler<Action<T>>
     {
         private readonly bool _blockable;
-        private readonly TaskCompletionSource<T> _tcs;
+        private TaskCompletionSource<(bool, T)> _tcs;
 
         public TakeTaskHandler(TaskCompletionSource<T> tcs = null, bool blockable = true)
         {
             _blockable = blockable;
-            _tcs = tcs ?? new TaskCompletionSource<T>();
+        }
+
+        public TaskCompletionSource<(bool, T)> TaskCompletionSource
+        {
+            get
+            {
+                if (_tcs == null)
+                    _tcs = new TaskCompletionSource<(bool, T)>();
+                return _tcs;
+            }
         }
 
 
         public bool IsActive => true;
         public bool IsBlockable => _blockable;
         public uint LockId => 0;
-        public Task<T> Task => _tcs.Task;
-        public Action<Box<T>> Commit()
+        public Task<(bool, T)> Task => TaskCompletionSource.Task;
+        public Action<T> Commit()
         {
             return Handle;
         }
 
-        private void Handle(Box<T> a)
+        private void Handle(T a)
         {
-            if (a.IsSet)
-                _tcs.SetResult(a.Value);
-            _tcs.SetCanceled();
+            TaskCompletionSource.SetResult((true, a));
         }
     }
 }
