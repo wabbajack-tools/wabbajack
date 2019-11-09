@@ -56,9 +56,9 @@ namespace Wabbajack.Common
 
         public static Dictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>
         {
-            {
+            /*{
                 Game.Morrowind, new GameMetaData()
-            },
+            },*/
             {
                 Game.Oblivion, new GameMetaData
                 {
