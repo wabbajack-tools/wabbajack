@@ -210,7 +210,7 @@ namespace Wabbajack
                     catch (Exception ex)
                     {
                         while (ex.InnerException != null) ex = ex.InnerException;
-                        this.Log().Warn(ex, "Can't continue");
+                        Utils.Log($"Can't continue: {ex.ExceptionToString()}");
                     }
                     finally
                     {
