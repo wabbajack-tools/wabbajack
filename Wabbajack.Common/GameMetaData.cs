@@ -54,6 +54,11 @@ namespace Wabbajack.Common
             return Games.Values.FirstOrDefault(g => g.MO2ArchiveName?.ToLower() == gamename);
         }
 
+        public static GameMetaData GetByNexusName(string gameName)
+        {
+            return Games.Values.FirstOrDefault(g => g.NexusName == gameName.ToLower());
+        }
+
 
         public static Dictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>
         {

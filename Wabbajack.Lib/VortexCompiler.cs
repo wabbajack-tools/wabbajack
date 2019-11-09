@@ -16,6 +16,7 @@ namespace Wabbajack.Lib
 {
     public class VortexCompiler : ACompiler
     {
+        public Game Game { get; }
         public string GameName { get; }
 
         public string VortexFolder { get; }
@@ -35,6 +36,7 @@ namespace Wabbajack.Lib
 
             GamePath = gamePath;
             GameName = gameName;
+            Game = GameRegistry.GetByNexusName(GameName).Game;
 
             // currently only works if staging and downloads folder is in the standard directory
             // aka %APPDATADA%\Vortex\
@@ -267,7 +269,7 @@ namespace Wabbajack.Lib
                         hash = BitConverter.ToString(cH).Replace("-", "").ToLowerInvariant();
                     }
 
-                    var md5Response = nexusClient.GetModInfoFromMD5(GameName, hash);
+                    var md5Response = nexusClient.GetModInfoFromMD5(game, hash);
                     var modInfo = md5Response[0].mod;
                     metaString += $"modID={modInfo.mod_id}\ndescription={NexusApiUtils.FixupSummary(modInfo.summary)}\n" +
                                   $"modName={modInfo.name}\nfileID={md5Response[0].file_details.file_id}";
