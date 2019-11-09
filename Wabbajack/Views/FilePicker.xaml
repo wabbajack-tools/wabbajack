@@ -1,4 +1,4 @@
-﻿<local:UserControlRx
+﻿<UserControl
     x:Class="Wabbajack.FilePicker"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -20,8 +20,8 @@
             Margin="0,0,-4,0"
             VerticalContentAlignment="Center"
             Background="{StaticResource DarkBackgroundBrush}"
-            Text="{Binding TargetPath, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            Visibility="{Binding ShowTextBoxInput, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
+            Text="{Binding TargetPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            Visibility="{Binding ShowTextBoxInput}" />
         <icon:PackIconMaterial
             Margin="0,4,4,4"
             Padding="0,3"
@@ -29,11 +29,11 @@
             VerticalAlignment="Center"
             Foreground="{StaticResource WarningBrush}"
             Kind="Circle"
-            ToolTip="{Binding ErrorTooltip, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-            Visibility="{Binding InError, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityConverter}}" />
+            ToolTip="{Binding ErrorTooltip}"
+            Visibility="{Binding InError, Converter={StaticResource bool2VisibilityConverter}}" />
         <Button
             Grid.Column="1"
-            Command="{Binding SetTargetPathCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+            Command="{Binding SetTargetPathCommand}"
             ToolTip="Set target path">
             <icon:PackIconMaterial
                 Width="16"
@@ -42,4 +42,4 @@
                 Kind="DotsHorizontal" />
         </Button>
     </Grid>
-</local:UserControlRx>
+</UserControl>

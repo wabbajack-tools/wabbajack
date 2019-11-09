@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.IO;
@@ -25,8 +26,7 @@ namespace Wabbajack
         [Reactive]
         public string ModListName { get; set; }
 
-        [Reactive]
-        public string Location { get; set; }
+        public FilePickerVM Location { get; }
 
         [Reactive]
         public bool UIReady { get; set; } = true;
@@ -37,8 +37,7 @@ namespace Wabbajack
         [Reactive]
         public string Summary { get; set; } = "Description (700 characters max)";
 
-        [Reactive]
-        public string ImagePath { get; set; }
+        public FilePickerVM ImagePath { get; }
 
         private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
         public BitmapImage Image => _Image.Value;
@@ -46,28 +45,50 @@ namespace Wabbajack
         [Reactive]
         public string Website { get; set; }
 
-        [Reactive]
-        public string ReadMeText { get; set; }
+        public FilePickerVM ReadMeText { get; }
 
         [Reactive]
         public string HTMLReport { get; set; }
 
-        [Reactive]
-        public string DownloadLocation { get; set; }
+        public FilePickerVM DownloadLocation { get; }
 
         public IReactiveCommand BeginCommand { get; }
 
         public CompilerVM(MainWindowVM mainWindowVM, string source)
         {
             this.MWVM = mainWindowVM;
-            this.Location = source;
+            this.Location = new FilePickerVM()
+            {
+                TargetPath = source,
+                DoExistsCheck = false,
+                PathType = FilePickerVM.PathTypeOptions.File,
+            };
+            this.DownloadLocation = new FilePickerVM()
+            {
+                DoExistsCheck = false,
+                PathType = FilePickerVM.PathTypeOptions.Folder,
+            };
+            this.ImagePath = new FilePickerVM()
+            {
+                DoExistsCheck = false,
+                PathType = FilePickerVM.PathTypeOptions.File,
+                Filters =
+                {
+                    new CommonFileDialogFilter("Banner image", "*.png")
+                }
+            };
+            this.ReadMeText = new FilePickerVM()
+            {
+                PathType = FilePickerVM.PathTypeOptions.File,
+                DoExistsCheck = true,
+            };
 
             this.BeginCommand = ReactiveCommand.CreateFromTask(
                 execute: this.ExecuteBegin,
                 canExecute: this.WhenAny(x => x.UIReady)
                     .ObserveOnGuiThread());
 
-            this._Image = this.WhenAny(x => x.ImagePath)
+            this._Image = this.WhenAny(x => x.ImagePath.TargetPath)
                 .Select(path =>
                 {
                     if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Wabbajack.Resources.Banner_Dark.png");
@@ -86,16 +107,16 @@ namespace Wabbajack
             this.AuthorName = settings.Author;
             this.ModListName = settings.ModListName;
             this.Summary = settings.Description;
-            this.ReadMeText = settings.Readme;
-            this.ImagePath = settings.SplashScreen;
+            this.ReadMeText.TargetPath = settings.Readme;
+            this.ImagePath.TargetPath = settings.SplashScreen;
             this.Website = settings.Website;
             if (!string.IsNullOrWhiteSpace(settings.DownloadLocation))
             {
-                this.DownloadLocation = settings.DownloadLocation;
+                this.DownloadLocation.TargetPath = settings.DownloadLocation;
             }
             if (!string.IsNullOrWhiteSpace(settings.Location))
             {
-                this.Location = settings.Location;
+                this.Location.TargetPath = settings.Location;
             }
             this.MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
@@ -103,11 +124,11 @@ namespace Wabbajack
                     settings.Author = this.AuthorName;
                     settings.ModListName = this.ModListName;
                     settings.Description = this.Summary;
-                    settings.Readme = this.ReadMeText;
-                    settings.SplashScreen = this.ImagePath;
+                    settings.Readme = this.ReadMeText.TargetPath;
+                    settings.SplashScreen = this.ImagePath.TargetPath;
                     settings.Website = this.Website;
-                    settings.Location = this.Location;
-                    settings.DownloadLocation = this.DownloadLocation;
+                    settings.Location = this.Location.TargetPath;
+                    settings.DownloadLocation = this.DownloadLocation.TargetPath;
                 })
                 .DisposeWith(this.CompositeDisposable);
         }
@@ -125,7 +146,7 @@ namespace Wabbajack
             this.ModListName = this.MOProfile;
 
             var tmp_compiler = new Compiler(this.Mo2Folder);
-            this.DownloadLocation = tmp_compiler.MO2DownloadsFolder;
+            this.DownloadLocation.TargetPath = tmp_compiler.MO2DownloadsFolder;
         }
 
         private async Task ExecuteBegin()
@@ -138,9 +159,9 @@ namespace Wabbajack
                     ModListName = this.ModListName,
                     ModListAuthor = this.AuthorName,
                     ModListDescription = this.Summary,
-                    ModListImage = this.ImagePath,
+                    ModListImage = this.ImagePath.TargetPath,
                     ModListWebsite = this.Website,
-                    ModListReadme = this.ReadMeText,
+                    ModListReadme = this.ReadMeText.TargetPath,
                 };
                 await Task.Run(() =>
                 {

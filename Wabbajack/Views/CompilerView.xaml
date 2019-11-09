@@ -62,11 +62,8 @@
                         Grid.Column="1"
                         Width="534"
                         HorizontalAlignment="Left"
-                        DoExistsCheck="False"
-                        Filter="Banner image|*.png"
-                        IsEnabled="{Binding UIReady}"
-                        PathType="File"
-                        TargetPath="{Binding ImagePath}" />
+                        DataContext="{Binding ImagePath}"
+                        IsEnabled="{Binding UIReady}" />
                 </Grid>
             </Grid>
 
@@ -114,9 +111,7 @@
                         Text="Readme Path"
                         ToolTip="Path to a readme file." />
                     <local:FilePicker
-                        DoExistsCheck="False"
-                        PathType="File"
-                        TargetPath="{Binding ReadMeText}"
+                        DataContext="{Binding ReadMeText}"
                         ToolTip="Path to a readme file." />
                 </StackPanel>
             </ScrollViewer>
@@ -167,11 +162,8 @@
                 <local:FilePicker
                     Grid.Row="0"
                     Grid.Column="1"
-                    DoExistsCheck="False"
                     IsEnabled="{Binding UIReady}"
-                    PathType="Folder"
-                    SetTargetPathCommand="{Binding ChangePathCommand}"
-                    TargetPath="{Binding Location}" />
+                    DataContext="{Binding Location}" />
                 <Label
                     Grid.Row="2"
                     Grid.Column="0"
@@ -179,11 +171,8 @@
                 <local:FilePicker
                     Grid.Row="2"
                     Grid.Column="1"
-                    DoExistsCheck="False"
                     IsEnabled="{Binding UIReady}"
-                    PathType="Folder"
-                    SetTargetPathCommand="{Binding ChangeDownloadPathCommand}"
-                    TargetPath="{Binding DownloadLocation}" />
+                    DataContext="{Binding DownloadLocation}" />
             </Grid>
             <!--  End Location  -->
 
