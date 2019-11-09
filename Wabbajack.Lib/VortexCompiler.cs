@@ -176,7 +176,7 @@ namespace Wabbajack.Lib
             IEnumerable<ICompilationStep> stack = MakeStack();
 
             Info("Running Compilation Stack");
-            List<Directive> results = AllFiles.PMap(f => RunStack(stack, f)).ToList();
+            List<Directive> results = AllFiles.PMap(f => RunStack(stack.Where(s => s != null), f)).ToList();
 
             IEnumerable<NoMatch> noMatch = results.OfType<NoMatch>().ToList();
             Info($"No match for {noMatch.Count()} files");
@@ -410,9 +410,11 @@ namespace Wabbajack.Lib
                 //new IncludePropertyFiles(this),
                 new IncludeVortexDeployment(this),
                 new IncludeRegex(this, "^*\\.meta"),
+
+                Game == Game.DarkestDungeon ? new IncludeRegex(this, "project\\.xml$") : null,
+
                 new IgnoreStartsWith(this, " __vortex_staging_folder"),
                 new IgnoreEndsWith(this, "__vortex_staging_folder"),
-                new IgnoreEndsWith(this, "project.xml"), // darkest dungeon specific
 
                 new IgnoreGameFiles(this),
 

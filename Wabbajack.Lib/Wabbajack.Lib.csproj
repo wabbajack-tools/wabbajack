@@ -93,7 +93,6 @@
     <Compile Include="CompilationSteps\IncludeAll.cs" />
     <Compile Include="CompilationSteps\IncludeAllConfigs.cs" />
     <Compile Include="CompilationSteps\IncludeDummyESPs.cs" />
-    <Compile Include="CompilationSteps\RunIfGame.cs" />
     <Compile Include="CompilationSteps\IncludeLootFiles.cs" />
     <Compile Include="CompilationSteps\IncludeModIniData.cs" />
     <Compile Include="CompilationSteps\IncludeOtherProfiles.cs" />
