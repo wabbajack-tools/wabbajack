@@ -269,7 +269,7 @@ namespace Wabbajack.Lib
                         hash = BitConverter.ToString(cH).Replace("-", "").ToLowerInvariant();
                     }
 
-                    var md5Response = nexusClient.GetModInfoFromMD5(game, hash);
+                    var md5Response = nexusClient.GetModInfoFromMD5(Game, hash);
                     var modInfo = md5Response[0].mod;
                     metaString += $"modID={modInfo.mod_id}\ndescription={NexusApiUtils.FixupSummary(modInfo.summary)}\n" +
                                   $"modName={modInfo.name}\nfileID={md5Response[0].file_details.file_id}";
