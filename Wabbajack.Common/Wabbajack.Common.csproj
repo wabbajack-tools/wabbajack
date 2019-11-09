@@ -101,6 +101,7 @@
     <Compile Include="GOGHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SplittingStream.cs" />
+    <Compile Include="SteamHandler.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="WorkQueue.cs" />
   </ItemGroup>
