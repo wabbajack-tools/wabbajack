@@ -50,22 +50,22 @@ namespace Wabbajack.Common
         public static GameMetaData GetByMO2ArchiveName(string gameName)
         {
             var gamename = gameName.ToLower();
-            return Games.Values.FirstOrDefault(g => g.MO2ArchiveName == gamename);
+            return Games.Values.FirstOrDefault(g => g.MO2ArchiveName?.ToLower() == gamename);
         }
 
 
         public static Dictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>
         {
-            {
+            /*{
                 Game.Morrowind, new GameMetaData()
-            },
+            },*/
             {
                 Game.Oblivion, new GameMetaData
                 {
                     Game = Game.Oblivion,
                     NexusName = "oblivion",
                     MO2Name = "Oblivion",
-                    MO2ArchiveName = "Oblivion",
+                    MO2ArchiveName = "oblivion",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Oblivion"
                 }
             },
