@@ -646,12 +646,8 @@
                             Grid.Column="2"
                             Height="30"
                             VerticalAlignment="Center"
-                            AdditionalError="{Binding LocationError}"
-                            DoExistsCheck="False"
-                            FontSize="14"
-                            PathType="Folder"
-                            PromptTitle="Select Installation directory"
-                            TargetPath="{Binding Location}" />
+                            DataContext="{Binding Location}"
+                            FontSize="14" />
                         <TextBlock
                             Grid.Row="2"
                             Grid.Column="0"
@@ -665,12 +661,8 @@
                             Grid.Column="2"
                             Height="30"
                             VerticalAlignment="Center"
-                            AdditionalError="{Binding DownloadLocationError}"
-                            DoExistsCheck="False"
-                            FontSize="14"
-                            PathType="Folder"
-                            PromptTitle="Select a location for MO2 downloads"
-                            TargetPath="{Binding DownloadLocation}" />
+                            DataContext="{Binding DownloadLocation}"
+                            FontSize="14" />
                         <Button
                             x:Name="BeginButton"
                             Grid.Row="1"
