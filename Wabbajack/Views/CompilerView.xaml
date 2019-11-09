@@ -71,11 +71,7 @@
                         Margin="{StaticResource TitleMargin}"
                         Text="Readme Path"
                         ToolTip="Path to a readme file." />
-                    <local:FilePicker
-                        DoExistsCheck="False"
-                        PathType="File"
-                        TargetPath="{Binding ReadMeText}"
-                        ToolTip="Path to a readme file." />
+                    <local:FilePicker DataContext="{Binding ReadMeText}" ToolTip="Path to a readme file." />
                 </StackPanel>
             </ScrollViewer>
             <local:DetailImageView
@@ -149,11 +145,8 @@
                     Grid.Column="2"
                     Height="30"
                     VerticalAlignment="Center"
-                    DoExistsCheck="True"
-                    FontSize="14"
-                    PathType="File"
-                    PromptTitle="Select Modlist"
-                    TargetPath="{Binding ModlistLocation}" />
+                    DataContext="{Binding ModlistLocation}"
+                    FontSize="14" />
                 <TextBlock
                     Grid.Row="1"
                     Grid.Column="0"
@@ -167,11 +160,8 @@
                     Grid.Column="2"
                     Height="30"
                     VerticalAlignment="Center"
-                    DoExistsCheck="True"
-                    FontSize="14"
-                    PathType="Folder"
-                    PromptTitle="Select Download Location"
-                    TargetPath="{Binding DownloadLocation}" />
+                    DataContext="{Binding DownloadLocation}"
+                    FontSize="14" />
                 <local:BeginButton
                     Grid.Row="0"
                     Grid.RowSpan="2"

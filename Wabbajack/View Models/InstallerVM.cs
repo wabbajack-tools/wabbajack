@@ -50,17 +50,9 @@ namespace Wabbajack
         [Reactive]
         public bool InstallingMode { get; set; }
 
-        [Reactive]
-        public string Location { get; set; }
+        public FilePickerVM Location { get; }
 
-        private readonly ObservableAsPropertyHelper<IErrorResponse> _LocationError;
-        public IErrorResponse LocationError => _LocationError.Value;
-
-        [Reactive]
-        public string DownloadLocation { get; set; }
-
-        private readonly ObservableAsPropertyHelper<IErrorResponse> _DownloadLocationError;
-        public IErrorResponse DownloadLocationError => _DownloadLocationError.Value;
+        public FilePickerVM DownloadLocation { get; }
 
         private readonly ObservableAsPropertyHelper<float> _ProgressPercent;
         public float ProgressPercent => _ProgressPercent.Value;
@@ -105,15 +97,32 @@ namespace Wabbajack
             this.MWVM = mainWindowVM;
             this.ModListPath = source;
 
+            this.Location = new FilePickerVM()
+            {
+                DoExistsCheck = false,
+                PathType = FilePickerVM.PathTypeOptions.Folder,
+                PromptTitle = "Select Installation Directory",
+            };
+            this.Location.AdditionalError = this.WhenAny(x => x.Location.TargetPath)
+                .Select(x => Utils.IsDirectoryPathValid(x));
+            this.DownloadLocation = new FilePickerVM()
+            {
+                DoExistsCheck = false,
+                PathType = FilePickerVM.PathTypeOptions.Folder,
+                PromptTitle = "Select a location for MO2 downloads",
+            };
+            this.DownloadLocation.AdditionalError = this.WhenAny(x => x.DownloadLocation.TargetPath)
+                .Select(x => Utils.IsDirectoryPathValid(x));
+
             // Load settings
             InstallationSettings settings = this.MWVM.Settings.InstallationSettings.TryCreate(source);
-            this.Location = settings.InstallationLocation;
-            this.DownloadLocation = settings.DownloadLocation;
+            this.Location.TargetPath = settings.InstallationLocation;
+            this.DownloadLocation.TargetPath = settings.DownloadLocation;
             this.MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
                 {
-                    settings.InstallationLocation = this.Location;
-                    settings.DownloadLocation = this.DownloadLocation;
+                    settings.InstallationLocation = this.Location.TargetPath;
+                    settings.DownloadLocation = this.DownloadLocation.TargetPath;
                 })
                 .DisposeWith(this.CompositeDisposable);
 
@@ -197,14 +206,6 @@ namespace Wabbajack
                 .Select(x => x?.Name)
                 .ToProperty(this, nameof(this.ModListName));
 
-            this._LocationError = this.WhenAny(x => x.Location)
-                .Select(x => Utils.IsDirectoryPathValid(x))
-                .ToProperty(this, nameof(this.LocationError));
-
-            this._DownloadLocationError = this.WhenAny(x => x.DownloadLocation)
-                .Select(x => Utils.IsDirectoryPathValid(x))
-                .ToProperty(this, nameof(this.DownloadLocationError));
-
             // Define commands
             this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
             this.OpenReadmeCommand = ReactiveCommand.Create(
@@ -216,13 +217,12 @@ namespace Wabbajack
                 execute: this.ExecuteBegin,
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.Installing),
-                        this.WhenAny(x => x.LocationError),
-                        this.WhenAny(x => x.DownloadLocationError),
+                        this.WhenAny(x => x.Location.InError),
+                        this.WhenAny(x => x.DownloadLocation.InError),
                         resultSelector: (installing, loc, download) =>
                         {
                             if (installing) return false;
-                            return (loc?.Succeeded ?? false)
-                                && (download?.Succeeded ?? false);
+                            return !loc && !download;
                         })
                     .ObserveOnGuiThread());
             this.VisitWebsiteCommand = ReactiveCommand.Create(
@@ -232,13 +232,13 @@ namespace Wabbajack
                     .ObserveOnGuiThread());
 
             // Have Installation location updates modify the downloads location if empty
-            this.WhenAny(x => x.Location)
+            this.WhenAny(x => x.Location.TargetPath)
                 .Skip(1) // Don't do it initially
                 .Subscribe(installPath =>
                 {
-                    if (string.IsNullOrWhiteSpace(this.DownloadLocation))
+                    if (string.IsNullOrWhiteSpace(this.DownloadLocation.TargetPath))
                     {
-                       this.DownloadLocation = Path.Combine(installPath, "downloads");
+                       this.DownloadLocation.TargetPath = Path.Combine(installPath, "downloads");
                     }
                 })
                 .DisposeWith(this.CompositeDisposable);
@@ -291,9 +291,9 @@ namespace Wabbajack
         {
             this.Installing = true;
             this.InstallingMode = true;
-            var installer = new Installer(this.ModListPath, this.ModList.SourceModList, Location)
+            var installer = new Installer(this.ModListPath, this.ModList.SourceModList, Location.TargetPath)
             {
-                DownloadFolder = DownloadLocation
+                DownloadFolder = DownloadLocation.TargetPath
             };
             var th = new Thread(() =>
             {

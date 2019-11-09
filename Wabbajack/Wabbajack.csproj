@@ -173,6 +173,7 @@
       <DependentUpon>TopProgressView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
+    <Compile Include="View Models\FilePickerVM.cs" />
     <Compile Include="View Models\ModListVM.cs" />
     <Compile Include="View Models\ModVM.cs" />
     <Compile Include="Views\CompilerView.xaml.cs">

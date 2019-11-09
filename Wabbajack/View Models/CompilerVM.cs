@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.IO;
@@ -25,8 +26,7 @@ namespace Wabbajack
         [Reactive]
         public string ModListName { get; set; }
 
-        [Reactive]
-        public string ModlistLocation { get; set; }
+        public FilePickerVM ModlistLocation { get; }
 
         [Reactive]
         public bool Compiling { get; set; }
@@ -37,8 +37,7 @@ namespace Wabbajack
         [Reactive]
         public string Description { get; set; }
 
-        [Reactive]
-        public string ImagePath { get; set; }
+        public FilePickerVM ImagePath { get; }
 
         private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
         public BitmapImage Image => _Image.Value;
@@ -46,14 +45,12 @@ namespace Wabbajack
         [Reactive]
         public string Website { get; set; }
 
-        [Reactive]
-        public string ReadMeText { get; set; }
+        public FilePickerVM ReadMeText { get; }
 
         [Reactive]
         public string HTMLReport { get; set; }
 
-        [Reactive]
-        public string DownloadLocation { get; set; }
+        public FilePickerVM DownloadLocation { get; }
 
         [Reactive]
         public bool ModlistLocationInError { get; set; }
@@ -66,7 +63,33 @@ namespace Wabbajack
         public CompilerVM(MainWindowVM mainWindowVM, string source)
         {
             this.MWVM = mainWindowVM;
-            this.ModlistLocation = source;
+            this.ModlistLocation = new FilePickerVM()
+            {
+                TargetPath = source,
+                DoExistsCheck = true,
+                PathType = FilePickerVM.PathTypeOptions.File,
+                PromptTitle = "Select Modlist"
+            };
+            this.DownloadLocation = new FilePickerVM()
+            {
+                DoExistsCheck = true,
+                PathType = FilePickerVM.PathTypeOptions.Folder,
+                PromptTitle = "Select Download Location",
+            };
+            this.ImagePath = new FilePickerVM()
+            {
+                DoExistsCheck = false,
+                PathType = FilePickerVM.PathTypeOptions.File,
+                Filters =
+                {
+                    new CommonFileDialogFilter("Banner image", "*.png")
+                }
+            };
+            this.ReadMeText = new FilePickerVM()
+            {
+                PathType = FilePickerVM.PathTypeOptions.File,
+                DoExistsCheck = true,
+            };
 
             this.BeginCommand = ReactiveCommand.CreateFromTask(
                 execute: this.ExecuteBegin,
@@ -74,7 +97,7 @@ namespace Wabbajack
                     .Select(compiling => !compiling)
                     .ObserveOnGuiThread());
 
-            this._Image = this.WhenAny(x => x.ImagePath)
+            this._Image = this.WhenAny(x => x.ImagePath.TargetPath)
                 .Select(path =>
                 {
                     if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Wabbajack.Resources.Banner_Dark.png");
@@ -93,16 +116,16 @@ namespace Wabbajack
             this.AuthorText = settings.Author;
             this.ModListName = settings.ModListName;
             this.Description = settings.Description;
-            this.ReadMeText = settings.Readme;
-            this.ImagePath = settings.SplashScreen;
+            this.ReadMeText.TargetPath = settings.Readme;
+            this.ImagePath.TargetPath = settings.SplashScreen;
             this.Website = settings.Website;
             if (!string.IsNullOrWhiteSpace(settings.DownloadLocation))
             {
-                this.DownloadLocation = settings.DownloadLocation;
+                this.DownloadLocation.TargetPath = settings.DownloadLocation;
             }
             if (!string.IsNullOrWhiteSpace(settings.Location))
             {
-                this.ModlistLocation = settings.Location;
+                this.ModlistLocation.TargetPath = settings.Location;
             }
             this.MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
@@ -110,11 +133,11 @@ namespace Wabbajack
                     settings.Author = this.AuthorText;
                     settings.ModListName = this.ModListName;
                     settings.Description = this.Description;
-                    settings.Readme = this.ReadMeText;
-                    settings.SplashScreen = this.ImagePath;
+                    settings.Readme = this.ReadMeText.TargetPath;
+                    settings.SplashScreen = this.ImagePath.TargetPath;
                     settings.Website = this.Website;
-                    settings.Location = this.ModlistLocation;
-                    settings.DownloadLocation = this.DownloadLocation;
+                    settings.Location = this.ModlistLocation.TargetPath;
+                    settings.DownloadLocation = this.DownloadLocation.TargetPath;
                 })
                 .DisposeWith(this.CompositeDisposable);
         }
@@ -132,7 +155,7 @@ namespace Wabbajack
             this.ModListName = this.MOProfile;
 
             var tmp_compiler = new Compiler(this.Mo2Folder);
-            this.DownloadLocation = tmp_compiler.MO2DownloadsFolder;
+            this.DownloadLocation.TargetPath = tmp_compiler.MO2DownloadsFolder;
         }
 
         private async Task ExecuteBegin()
@@ -145,9 +168,9 @@ namespace Wabbajack
                     ModListName = this.ModListName,
                     ModListAuthor = this.AuthorText,
                     ModListDescription = this.Description,
-                    ModListImage = this.ImagePath,
+                    ModListImage = this.ImagePath.TargetPath,
                     ModListWebsite = this.Website,
-                    ModListReadme = this.ReadMeText,
+                    ModListReadme = this.ReadMeText.TargetPath,
                 };
                 await Task.Run(() =>
                 {
