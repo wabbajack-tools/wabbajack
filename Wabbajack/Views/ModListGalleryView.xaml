@@ -1,0 +1,116 @@
+﻿<UserControl x:Class="Wabbajack.Views.ModListGalleryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:local="clr-namespace:Wabbajack"
+             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Color x:Key="TextBackgroundFill">#92000000</Color>
+        <SolidColorBrush x:Key="TextBackgroundFillBrush" Color="{StaticResource TextBackgroundFill}" />
+        <Style x:Key="TileStyle" TargetType="{x:Type mahapps:Tile}">
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style x:Key="BackgroundBlurStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="Background" Value="{StaticResource TextBackgroundFillBrush}"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" Background="{x:Null}">
+        <ScrollViewer.Resources>
+            <system:Double x:Key="{x:Static SystemParameters.VerticalScrollBarWidthKey}">8</system:Double>
+        </ScrollViewer.Resources>
+            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="8,0,8,0">
+                <!--<Image Name="Banner"/>
+                <Button Width="60" HorizontalAlignment="Left" Command="{Binding BackCommand}"
+                        Margin="4,0,0,8">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Width="20" Height="20" Kind="ArrowLeft" />
+                        <TextBlock FontSize="15" Text="Back" Margin="4,0,0,0"/>
+                    </StackPanel>
+                </Button>-->
+                <WrapPanel HorizontalAlignment="Center">
+                <ItemsControl
+                    Name="ItemsControlElement"
+                    Visibility="{Binding ItemsControlVisibility}"
+                    ItemsSource="{Binding ModLists}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                    <mahapps:Tile
+                        Style="{StaticResource TileStyle}"
+                        Click="Tile_OnClick"
+                        Width="590"
+                        Height="Auto">
+                        <Grid
+                            Width="590"
+                            Background="#222222">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="10*"/>
+                                <RowDefinition Height="3*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Grid
+                                Grid.Row="0"
+                                Width="590"
+                                Height="Auto">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Viewbox Grid.Row="0" Stretch="Uniform">
+                                    <Image Source="{Binding Links.ImageUri}"/>
+                                </Viewbox>
+                                <TextBlock FontSize="30" TextWrapping="Wrap" Text="{Binding Title}"
+                                           Style="{StaticResource BackgroundBlurStyle}" Padding="4,0,4,0"
+                                           Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                           FontWeight="Bold"/>
+                            </Grid>
+                            <Grid Grid.Row="1" Margin="4,0,2,4">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="20"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock FontSize="15" FontStyle="Italic" Grid.Row="0" TextWrapping="Wrap" Text="{Binding Game}"/>
+                                <TextBlock FontSize="15" Grid.Row="1" TextWrapping="Wrap" Text="{Binding Description}"/>
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,0,4,4" HorizontalAlignment="Right">
+                                <Button Click="Info_OnClick" Margin="0,0,4,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <!--<TextBlock FontSize="13" TextWrapping="Wrap" Text="More Info" Margin="4,0,4,0"/>-->
+                                    <iconPacks:PackIconMaterial Width="16" Height="16"  Kind="InformationOutline" Margin="0,0,4,0"/>
+                                </StackPanel>
+                                </Button>
+                                <Button Click="Download_OnClick">
+                                <StackPanel Orientation="Horizontal">
+                                    <!--<TextBlock FontSize="13" TextWrapping="Wrap" Text="Download" Margin="4,0,4,0"/>-->
+                                    <iconPacks:PackIconMaterial Width="16" Height="16" Kind="Download" />
+                                </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </mahapps:Tile>
+                    </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </WrapPanel>
+                <!--<Button Width="60" HorizontalAlignment="Left" Command="{Binding BackCommand}"
+                        Margin="4,0,12,0">
+                    <StackPanel Orientation="Horizontal">
+                        <iconPacks:PackIconMaterial Width="20" Height="20" Kind="ArrowLeft" />
+                        <TextBlock FontSize="15" Text="Back" Margin="4,0,0,0"/>
+                    </StackPanel>
+                </Button>-->
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
