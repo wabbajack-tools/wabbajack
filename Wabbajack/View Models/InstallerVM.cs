@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using ReactiveUI.Fody.Helpers;
+using System.Windows.Media;
 
 namespace Wabbajack
 {
@@ -64,8 +65,8 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<float> _ProgressPercent;
         public float ProgressPercent => _ProgressPercent.Value;
 
-        private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
-        public BitmapImage Image => _Image.Value;
+        private readonly ObservableAsPropertyHelper<ImageSource> _Image;
+        public ImageSource Image => _Image.Value;
 
         private readonly ObservableAsPropertyHelper<string> _TitleText;
         public string TitleText => _TitleText.Value;
@@ -169,6 +170,7 @@ namespace Wabbajack
                         .StartWith(default(BitmapImage)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, slideshow, installing) => installing ? slideshow : modList)
+                .Select<BitmapImage, ImageSource>(x => x)
                 .ToProperty(this, nameof(this.Image));
             this._TitleText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Name),

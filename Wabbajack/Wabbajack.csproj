@@ -162,6 +162,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
+    <Compile Include="Views\DetailImageView.xaml.cs">
+      <DependentUpon>DetailImageView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Extensions\EnumerableExt.cs" />
     <Compile Include="Views\TopProgressView.xaml.cs">
       <DependentUpon>TopProgressView.xaml</DependentUpon>
@@ -201,6 +204,10 @@
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\UserControlRx.cs" />
+    <Page Include="Views\DetailImageView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\CompilerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
