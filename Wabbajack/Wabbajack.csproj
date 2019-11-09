@@ -191,6 +191,9 @@
     <Compile Include="Converters\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Util\TreeViewItemExtensions.cs" />
     <Compile Include="View Models\SlideShow.cs" />
+    <Compile Include="Views\ModListGalleryView.xaml.cs">
+      <DependentUpon>ModListGalleryView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\TextViewer.xaml.cs">
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
@@ -232,6 +235,10 @@
     <Page Include="Themes\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ModListGalleryView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\TextViewer.xaml">
       <Generator>MSBuild:Compile</Generator>
