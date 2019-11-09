@@ -13,7 +13,7 @@ namespace Wabbajack.Common.CSP
         public abstract bool IsClosed { get; }
         public abstract void Close();
         public abstract (AsyncResult, bool) Put(TIn val, Handler<Action<bool>> handler);
-        public abstract (AsyncResult, TOut) Take(Handler<Action<TOut>> handler);
+        public abstract (AsyncResult, TOut) Take(Handler<Action<bool, TOut>> handler);
 
         private Task<(bool, TOut)> _take_cancelled_task;
 

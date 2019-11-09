@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reactive.Subjects;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -46,6 +48,12 @@ namespace Wabbajack.Common.CSP
                 return false;
             },
                 b => {}, buffer);
+        }
+
+        public static IChannel<TIn, TOut> Create<TIn, TOut>(int buffer_size, Func<IObservable<TIn>, IObservable<TOut>> transform)
+        {
+            var buf = new RxBuffer<TIn, TOut>(buffer_size, transform);
+            return new ManyToManyChannel<TIn, TOut>(null, RxBuffer<TIn,TOut>.TransformAdd, RxBuffer<TIn, TOut>.Finalize, buf);
         }
     }
 }

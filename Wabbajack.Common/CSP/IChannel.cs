@@ -34,7 +34,7 @@ namespace Wabbajack.Common.CSP
         void Close();
 
         (AsyncResult, bool) Put(TIn val, Handler<Action<bool>> handler);
-        (AsyncResult, TOut) Take(Handler<Action<TOut>> handler);
+        (AsyncResult, TOut) Take(Handler<Action<bool, TOut>> handler);
         ValueTask<(bool, TOut)> Take(bool onCaller = true);
         ValueTask<bool> Put(TIn val, bool onCaller = true);
     }

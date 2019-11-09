@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Wabbajack.Common.CSP
 {
-    public class TakeTaskHandler<T> : Handler<Action<T>>
+    public class TakeTaskHandler<T> : Handler<Action<bool, T>>
     {
         private readonly bool _blockable;
         private TaskCompletionSource<(bool, T)> _tcs;
@@ -32,14 +32,14 @@ namespace Wabbajack.Common.CSP
         public bool IsBlockable => _blockable;
         public uint LockId => 0;
         public Task<(bool, T)> Task => TaskCompletionSource.Task;
-        public Action<T> Commit()
+        public Action<bool, T> Commit()
         {
             return Handle;
         }
 
-        private void Handle(T a)
+        private void Handle(bool is_open, T a)
         {
-            TaskCompletionSource.SetResult((true, a));
+            TaskCompletionSource.SetResult((is_open, a));
         }
     }
 }

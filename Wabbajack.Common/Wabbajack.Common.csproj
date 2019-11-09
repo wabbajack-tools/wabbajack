@@ -101,6 +101,7 @@
     <Compile Include="CSP\ManyToManyChannel.cs" />
     <Compile Include="CSP\PutTaskHandler.cs" />
     <Compile Include="CSP\RingBuffer.cs" />
+    <Compile Include="CSP\RxBuffer.cs" />
     <Compile Include="CSP\TakeTaskHandler.cs" />
     <Compile Include="DynamicIniData.cs" />
     <Compile Include="Error States\ErrorResponse.cs" />

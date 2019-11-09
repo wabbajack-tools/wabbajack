@@ -23,7 +23,7 @@ namespace Wabbajack.Common.CSP
     {
         public const int MAX_QUEUE_SIZE = 1024;
 
-        private RingBuffer<Handler<Action<TOut>>> _takes = new RingBuffer<Handler<Action<TOut>>>(8);
+        private RingBuffer<Handler<Action<bool, TOut>>> _takes = new RingBuffer<Handler<Action<bool, TOut>>>(8);
         private RingBuffer<(Handler<Action<bool>>, TIn)> _puts = new RingBuffer<(Handler<Action<bool>>, TIn)>(8);
         private IBuffer<TOut> _buf;
         private Func<IBuffer<TOut>, TIn, bool> _add;
@@ -47,7 +47,7 @@ namespace Wabbajack.Common.CSP
             _converter = converter;
         }
 
-        private static bool IsActiveTake(Handler<Action<TOut>> handler)
+        private static bool IsActiveTake(Handler<Action<bool, TOut>> handler)
         {
             return handler.IsActive;
         }
@@ -108,7 +108,7 @@ namespace Wabbajack.Common.CSP
             if (put_cb2 != null && take_cb != null)
             {
                 Monitor.Exit(this);
-                Task.Run(() => take_cb(_converter(val)));
+                Task.Run(() => take_cb(true, _converter(val)));
                 return (AsyncResult.Completed, true);
             }
 
@@ -140,7 +140,7 @@ namespace Wabbajack.Common.CSP
             return (AsyncResult.Enqueued, true);
         }
 
-        public override (AsyncResult, TOut) Take(Handler<Action<TOut>> handler)
+        public override (AsyncResult, TOut) Take(Handler<Action<bool, TOut>> handler)
         {
             Monitor.Enter(this);
             Cleanup();
@@ -221,9 +221,22 @@ namespace Wabbajack.Common.CSP
             _isClosed = true;
             if (_buf != null && _puts.IsEmpty)
                 _finalize(_buf);
+            var cbs = GetTakersForBuffer();
+
+            while (!_takes.IsEmpty)
+            {
+                var take_cb = LockIfActiveCommit(_takes.Pop());
+                if (take_cb != null)
+                    cbs.Add(() => take_cb(false, default));
+            }
+            
+            Monitor.Exit(this);
+            
+            foreach (var cb in cbs)
+                Task.Run(cb);
         }
 
-        private (Action<TOut>, Action<bool>, TIn, bool) FindMatchingPut(Handler<Action<TOut>> handler)
+        private (Action<bool, TOut>, Action<bool>, TIn, bool) FindMatchingPut(Handler<Action<bool, TOut>> handler)
         {
             while (!_puts.IsEmpty)
             {
@@ -326,7 +339,7 @@ namespace Wabbajack.Common.CSP
                 if (take_cp != null)
                 {
                     var val = _buf.Remove();
-                    ret.Add(() => take_cp(val));
+                    ret.Add(() => take_cp(true, val));
                 }
             }
 

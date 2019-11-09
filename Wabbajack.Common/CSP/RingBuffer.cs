@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CodeDom.Compiler;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ using System.Windows.Forms;
 
 namespace Wabbajack.Common.CSP
 {
-    public struct RingBuffer<T>
+    public struct RingBuffer<T> : IEnumerable<T>
     {
         private int _size;
         private int _length;
@@ -103,6 +104,17 @@ namespace Wabbajack.Common.CSP
                     Unshift(v);
                 }
             }
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            while (!IsEmpty)
+                yield return Pop();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
