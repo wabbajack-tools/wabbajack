@@ -288,33 +288,6 @@
                             <RowDefinition Height="40" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <Border
-                            x:Name="BeginButtonPurpleGlow"
-                            Grid.Row="1"
-                            Grid.RowSpan="2"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="5"
-                            Width="76"
-                            Height="76"
-                            Margin="0,0,14,0"
-                            HorizontalAlignment="Right"
-                            Background="{StaticResource PrimaryVariantBrush}"
-                            CornerRadius="43"
-                            Visibility="{Binding IsEnabled, ElementName=BeginButton, Converter={StaticResource bool2VisibilityConverter}}">
-                            <Border.Effect>
-                                <BlurEffect Radius="10" />
-                            </Border.Effect>
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Opacity" Value="0.5" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsMouseOver, ElementName=BeginButton}" Value="True">
-                                            <Setter Property="Opacity" Value="0.8" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                        </Border>
                         <TextBlock
                             Grid.Row="1"
                             Grid.Column="0"
@@ -353,61 +326,13 @@
                             PathType="Folder"
                             PromptTitle="Select a location for MO2 downloads"
                             TargetPath="{Binding DownloadLocation}" />
-                        <Button
-                            x:Name="BeginButton"
+                        <local:BeginButton
                             Grid.Row="1"
                             Grid.RowSpan="2"
                             Grid.Column="4"
-                            Width="55"
-                            Height="55"
                             Margin="0,0,25,0"
                             HorizontalAlignment="Right"
-                            Command="{Binding BeginCommand}">
-                            <icon:PackIconMaterial
-                                Width="25"
-                                Height="25"
-                                Margin="5,0,0,0"
-                                Kind="Play">
-                                <icon:PackIconMaterial.Style>
-                                    <Style TargetType="icon:PackIconMaterial">
-                                        <Setter Property="Foreground" Value="#666666" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsEnabled, ElementName=BeginButton}" Value="True">
-                                                <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}" />
-                                            </DataTrigger>
-                                            <MultiDataTrigger>
-                                                <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding IsMouseOver, ElementName=BeginButton}" Value="True" />
-                                                    <Condition Binding="{Binding IsEnabled, ElementName=BeginButton}" Value="True" />
-                                                </MultiDataTrigger.Conditions>
-                                                <MultiDataTrigger.Setters>
-                                                    <Setter Property="Foreground" Value="#00ffe7" />
-                                                </MultiDataTrigger.Setters>
-                                            </MultiDataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </icon:PackIconMaterial.Style>
-                            </icon:PackIconMaterial>
-                            <Button.Style>
-                                <Style BasedOn="{StaticResource CircleButtonStyle}" TargetType="Button">
-                                    <Setter Property="Background" Value="#333333" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsEnabled, ElementName=BeginButton}" Value="True">
-                                            <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
-                                            <Setter Property="Background" Value="#222222" />
-                                            <Setter Property="Effect">
-                                                <Setter.Value>
-                                                    <DropShadowEffect
-                                                        BlurRadius="15"
-                                                        ShadowDepth="0"
-                                                        Color="{StaticResource Secondary}" />
-                                                </Setter.Value>
-                                            </Setter>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
+                            Command="{Binding BeginCommand, Mode=OneWay}" />
                     </Grid>
                 </ScrollViewer>
             </Grid>
@@ -424,7 +349,7 @@
         <Grid
             Grid.Row="2"
             Margin="5,0,5,5"
-            Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}">
+            Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
             <local:LogCpuView DataContext="{Binding MWVM}" />
         </Grid>
     </Grid>
