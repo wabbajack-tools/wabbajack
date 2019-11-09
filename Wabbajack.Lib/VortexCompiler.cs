@@ -412,7 +412,7 @@ namespace Wabbajack.Lib
                 new IncludeRegex(this, "^*\\.meta"),
                 new IgnoreStartsWith(this, " __vortex_staging_folder"),
                 new IgnoreEndsWith(this, "__vortex_staging_folder"),
-                new IgnoreEndsWith(this, "project.xml"),
+                new IgnoreEndsWith(this, "project.xml"), // darkest dungeon specific
 
                 new IgnoreGameFiles(this),
 
