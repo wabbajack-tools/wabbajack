@@ -9,6 +9,7 @@
 
     <!--Converters-->
     <local:BoolToVisibilityConverter x:Key="bool2VisibilityConverter" />
+    <local:BoolToVisibilityHiddenConverter x:Key="bool2VisibilityHiddenConverter" />
     <local:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter"/>
 
     <!--Colors-->

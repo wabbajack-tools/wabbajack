@@ -87,8 +87,11 @@ namespace Wabbajack
 
             this.BeginCommand = ReactiveCommand.CreateFromTask(
                 execute: this.ExecuteBegin,
-                canExecute: this.WhenAny(x => x.Compiling)
-                    .Select(compiling => !compiling)
+                canExecute: Observable.CombineLatest(
+                        this.WhenAny(x => x.Compiling),
+                        this.WhenAny(x => x.ModlistLocation.InError),
+                        this.WhenAny(x => x.DownloadLocation.InError),
+                        resultSelector: (c, ml, down) => !c && !ml && !down)
                     .ObserveOnGuiThread());
 
             this._Image = this.WhenAny(x => x.ImagePath.TargetPath)
@@ -154,7 +157,7 @@ namespace Wabbajack
                 .Select<string, IErrorResponse>(moFolder =>
                 {
                     if (Directory.Exists(moFolder)) return ErrorResponse.Success;
-                    return ErrorResponse.Fail("MO2 Folder could not be located from the given modlist location.  Make sure your modlist is inside a valid MO2 distribution.");
+                    return ErrorResponse.Fail($"MO2 Folder could not be located from the given modlist location.{Environment.NewLine}Make sure your modlist is inside a valid MO2 distribution.");
                 });
 
             // Load settings
@@ -193,9 +196,10 @@ namespace Wabbajack
 
         private async Task ExecuteBegin()
         {
-            if (this.Mo2Folder != null)
+            Compiler compiler;
+            try
             {
-                var compiler = new Compiler(this.Mo2Folder)
+                compiler = new Compiler(this.Mo2Folder)
                 {
                     MO2Profile = this.MOProfile,
                     ModListName = this.ModListName,
@@ -205,33 +209,34 @@ namespace Wabbajack
                     ModListWebsite = this.Website,
                     ModListReadme = this.ReadMeText.TargetPath,
                 };
-                await Task.Run(() =>
-                {
-                    Compiling = true;
-                    try
-                    {
-                        compiler.Compile();
-                        if (compiler.ModList?.ReportHTML != null)
-                        {
-                            this.HTMLReport = compiler.ModList.ReportHTML;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Log($"Can't continue: {ex.ExceptionToString()}");
-                    }
-                    finally
-                    {
-                        Compiling = false;
-                    }
-                });
             }
-            else
+            catch (Exception ex)
             {
-                Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
-                Compiling = false;
+                while (ex.InnerException != null) ex = ex.InnerException;
+                Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                return;
             }
+            await Task.Run(() =>
+            {
+                Compiling = true;
+                try
+                {
+                    compiler.Compile();
+                    if (compiler.ModList?.ReportHTML != null)
+                    {
+                        this.HTMLReport = compiler.ModList.ReportHTML;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    while (ex.InnerException != null) ex = ex.InnerException;
+                    Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                }
+                finally
+                {
+                    Compiling = false;
+                }
+            });
         }
     }
 }

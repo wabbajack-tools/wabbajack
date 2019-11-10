@@ -161,6 +161,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\BoolToVisibilityHiddenConverter.cs" />
     <Compile Include="Views\BeginButton.xaml.cs">
       <DependentUpon>BeginButton.xaml</DependentUpon>
     </Compile>

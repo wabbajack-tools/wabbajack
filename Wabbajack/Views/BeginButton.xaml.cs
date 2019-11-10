@@ -26,7 +26,7 @@ namespace Wabbajack
             set => SetValue(CommandProperty, value);
         }
         public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(BeginButton),
-             new FrameworkPropertyMetadata(default(ICommand), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+             new FrameworkPropertyMetadata(default(ICommand)));
 
         public BeginButton()
         {

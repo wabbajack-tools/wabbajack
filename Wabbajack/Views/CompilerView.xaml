@@ -165,7 +165,8 @@
                 <local:BeginButton
                     Grid.Row="0"
                     Grid.RowSpan="2"
-                    Grid.Column="4" />
+                    Grid.Column="4"
+                    Command="{Binding BeginCommand}" />
             </Grid>
         </Grid>
         <Grid
