@@ -10,8 +10,10 @@
     Height="800"
     Closing="Close_Window"
     Icon="../Resources/Icons/wabbajack.ico"
+    RenderOptions.BitmapScalingMode="HighQuality"
     ResizeMode="CanResize"
     Style="{StaticResource {x:Type Window}}"
+    UseLayoutRounding="True"
     WindowStyle="ToolWindow"
     mc:Ignorable="d">
     <Grid Margin="20">

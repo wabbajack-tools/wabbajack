@@ -168,5 +168,10 @@ namespace Wabbajack
                 .Select(x => x as R)
                 .NotNull();
         }
+
+        public static IObservable<bool> Invert(this IObservable<bool> source)
+        {
+            return source.Select(x => !x);
+        }
     }
 }

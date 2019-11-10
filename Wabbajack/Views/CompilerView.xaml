@@ -6,251 +6,203 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance local:CompilerVM}"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Viewbox Stretch="Uniform">
-        <Grid Margin="4,0,4,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="435" />
-                <RowDefinition Height="10" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="320" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="638" />
-                <ColumnDefinition Width="4" />
-                <ColumnDefinition Width="638" />
-            </Grid.ColumnDefinitions>
-
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="45" />
+            <RowDefinition Height="4*" />
+            <RowDefinition Height="*" MinHeight="150" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="1" />
+            <ColumnDefinition Width="5*" />
+            <ColumnDefinition Width="5" />
+        </Grid.ColumnDefinitions>
+        <local:BorderFadeDownView
+            Grid.Row="1"
+            Grid.RowSpan="2"
+            Grid.Column="0" />
+        <local:BorderFadeDownView
+            Grid.Row="1"
+            Grid.RowSpan="2"
+            Grid.Column="4" />
+        <local:DetailImageView
+            Title="{Binding ModListName}"
+            Grid.Row="1"
+            Grid.Column="3"
+            Author="{Binding AuthorText}"
+            BorderThickness="0"
+            Description="{Binding Description}"
+            Image="{Binding Image}" />
+        <Rectangle
+            x:Name="ControlVerticalThinSeparator"
+            Grid.Row="1"
+            Grid.Column="2"
+            Width="1"
+            HorizontalAlignment="Center"
+            Fill="{StaticResource DarkBackgroundBrush}"
+            SnapsToDevicePixels="True" />
+        <!--  Comes after image area so shadow can overlay  -->
+        <local:TopProgressView
+            Title="{Binding ModListName, Mode=OneWay}"
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="5"
+            OverhangShadow="True"
+            ProgressPercent="{Binding ProgressPercent}"
+            StatePrefixTitle="Compiling" />
+        <ScrollViewer
+            Grid.Row="1"
+            Grid.Column="1"
+            Margin="5,0,5,5"
+            Background="Transparent"
+            HorizontalScrollBarVisibility="Disabled"
+            IsEnabled="{Binding Compiling, Converter={StaticResource InverseBooleanConverter}}"
+            VerticalScrollBarVisibility="Auto">
             <StackPanel
-                Grid.Row="0"
-                Margin="0,8,0,8"
-                Orientation="Horizontal">
-                <TextBlock
-                    FontSize="16"
-                    FontWeight="Bold"
-                    Text="Compiling" />
-                <TextBlock FontSize="16" Text=" : " />
-                <TextBlock FontSize="16" Text="{Binding MOProfile}" />
-            </StackPanel>
-
-            <Grid
-                Grid.Row="1"
-                Grid.Column="0"
-                Margin="0,8,0,8"
-                IsEnabled="{Binding UIReady}">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Image
-                    Grid.Row="0"
-                    Source="{Binding Image}"
-                    Stretch="Fill" />
-                <Grid Grid.Row="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Label Grid.Column="0" Content="Splash Screen Path:" />
-                    <local:FilePicker
-                        Grid.Column="1"
-                        Width="534"
-                        HorizontalAlignment="Left"
-                        DataContext="{Binding ImagePath}"
-                        IsEnabled="{Binding UIReady}" />
-                </Grid>
-            </Grid>
-
-            <ScrollViewer
-                Grid.Row="1"
-                Grid.Column="2"
+                Margin="0,5,0,0"
                 Background="Transparent"
-                HorizontalScrollBarVisibility="Disabled"
-                IsEnabled="{Binding UIReady}"
-                VerticalScrollBarVisibility="Auto">
-                <StackPanel Background="Transparent" Orientation="Vertical">
-                    <StackPanel.Resources>
-                        <Thickness
-                            x:Key="TitleMargin"
-                            Bottom="1"
-                            Left="5" />
-                        <Style
-                            x:Key="ValueStyle"
-                            BasedOn="{StaticResource MainTextBoxStyle}"
-                            TargetType="TextBox">
-                            <Setter Property="MaxLength" Value="50" />
-                            <Setter Property="AcceptsTab" Value="False" />
-                            <Setter Property="FontSize" Value="15" />
-                            <Setter Property="Margin" Value="0,0,0,6" />
-                        </Style>
-                    </StackPanel.Resources>
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="ModList Name" />
-                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding ModListName}" />
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
-                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding AuthorName}" />
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
-                    <TextBox
-                        Height="150"
-                        mahapps:TextBoxHelper.Watermark="(700 characters max)"
-                        AcceptsReturn="True"
-                        AcceptsTab="False"
-                        MaxLength="700"
-                        Style="{StaticResource ValueStyle}"
-                        Text="{Binding Summary}"
-                        TextWrapping="Wrap" />
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
-                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding Website}" />
-                    <TextBlock
-                        Margin="{StaticResource TitleMargin}"
-                        Text="Readme Path"
-                        ToolTip="Path to a readme file." />
-                    <local:FilePicker
-                        DataContext="{Binding ReadMeText}"
-                        ToolTip="Path to a readme file." />
-                </StackPanel>
-            </ScrollViewer>
-
-            <ProgressBar
-                Grid.Row="2"
-                Grid.Column="0"
-                Grid.ColumnSpan="3"
-                Margin="1,0,1,0"
-                Background="#444444"
-                Maximum="100"
-                Minimum="0"
-                Value="{Binding MWVM.QueueProgress, Mode=OneWay}" />
-
-            <!--  Log  -->
-            <TextBlock
-                Grid.Row="3"
-                Margin="0,16,0,8"
-                FontSize="14"
-                Text="Log:" />
-            <ListBox
-                Grid.Row="4"
-                Margin="0,0,2,0"
-                local:AutoScrollBehavior.ScrollOnNewItem="True"
-                ItemsSource="{Binding MWVM.Log}" />
-            <!--  End Log  -->
-
-            <!--  Location  -->
+                Orientation="Vertical">
+                <StackPanel.Resources>
+                    <Thickness
+                        x:Key="TitleMargin"
+                        Bottom="1"
+                        Left="5" />
+                    <Style
+                        x:Key="ValueStyle"
+                        BasedOn="{StaticResource MainTextBoxStyle}"
+                        TargetType="TextBox">
+                        <Setter Property="MaxLength" Value="50" />
+                        <Setter Property="AcceptsTab" Value="False" />
+                        <Setter Property="FontSize" Value="15" />
+                        <Setter Property="Margin" Value="0,0,0,6" />
+                    </Style>
+                    <Style x:Key="PickerStyle" TargetType="local:FilePicker">
+                        <Setter Property="Margin" Value="0,0,0,6" />
+                    </Style>
+                </StackPanel.Resources>
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="ModList Name" />
+                <TextBox Style="{StaticResource ValueStyle}" Text="{Binding ModListName, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
+                <TextBox Style="{StaticResource ValueStyle}" Text="{Binding AuthorText, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
+                <TextBox
+                    Height="150"
+                    mahapps:TextBoxHelper.Watermark="(700 characters max)"
+                    AcceptsReturn="True"
+                    AcceptsTab="False"
+                    MaxLength="700"
+                    Style="{StaticResource ValueStyle}"
+                    Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Image" />
+                <local:FilePicker
+                    DataContext="{Binding ImagePath}"
+                    Style="{StaticResource PickerStyle}"
+                    ToolTip="Path to an image to display for the modlist." />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
+                <TextBox Style="{StaticResource ValueStyle}" Text="{Binding Website}" />
+                <TextBlock
+                    Margin="{StaticResource TitleMargin}"
+                    Text="Readme Path"
+                    ToolTip="Path to a readme file." />
+                <local:FilePicker
+                    DataContext="{Binding ReadMeText}"
+                    Style="{StaticResource PickerStyle}"
+                    ToolTip="Path to a readme file." />
+            </StackPanel>
+        </ScrollViewer>
+        <Rectangle
+            x:Name="ControlTopThinSeparator"
+            Grid.Row="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="5"
+            Height="1"
+            Margin="25,0"
+            VerticalAlignment="Top"
+            Fill="{StaticResource DarkBackgroundBrush}"
+            SnapsToDevicePixels="True" />
+        <Grid
+            Grid.Row="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="5"
+            MaxWidth="1000">
+            <Border
+                x:Name="ConfigurationBackgroundHaze"
+                Height="120"
+                Background="{StaticResource PrimaryVariantBrush}"
+                CornerRadius="50"
+                Opacity="0.10">
+                <Border.Effect>
+                    <BlurEffect Radius="45" />
+                </Border.Effect>
+            </Border>
             <Grid
-                Grid.Row="5"
-                Grid.RowSpan="2"
-                Grid.Column="0"
-                Margin="-4,10,0,10"
-                HorizontalAlignment="Stretch">
+                Margin="35,0,35,0"
+                VerticalAlignment="Center"
+                ClipToBounds="False"
+                Visibility="{Binding Compiling, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40" />
+                    <RowDefinition Height="40" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition MinHeight="10" />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-                <Label
+                <TextBlock
                     Grid.Row="0"
                     Grid.Column="0"
-                    Content="Installation Location:" />
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    FontSize="14"
+                    Text="Modlist Location"
+                    TextAlignment="Center" />
                 <local:FilePicker
                     Grid.Row="0"
-                    Grid.Column="1"
-                    IsEnabled="{Binding UIReady}"
-                    DataContext="{Binding Location}" />
-                <Label
-                    Grid.Row="2"
-                    Grid.Column="0"
-                    Content="Download Location:" />
-                <local:FilePicker
-                    Grid.Row="2"
-                    Grid.Column="1"
-                    IsEnabled="{Binding UIReady}"
-                    DataContext="{Binding DownloadLocation}" />
-            </Grid>
-            <!--  End Location  -->
-
-
-            <!--  Work Queue Start  -->
-            <TextBlock
-                Grid.Row="3"
-                Grid.Column="2"
-                Margin="0,16,0,8"
-                FontSize="14"
-                Text="Work Queue:" />
-
-            <ListBox
-                Grid.Row="4"
-                Grid.Column="2"
-                Width="Auto"
-                HorizontalAlignment="Stretch"
-                ItemsSource="{Binding MWVM.StatusList}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid HorizontalAlignment="Stretch">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <ProgressBar
-                                Grid.Column="0"
-                                Width="100"
-                                Maximum="100"
-                                Minimum="0"
-                                Value="{Binding Progress, Mode=OneTime}">
-                                <ProgressBar.Style>
-                                    <Style TargetType="ProgressBar">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Progress}" Value="0">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </ProgressBar.Style>
-                            </ProgressBar>
-                            <TextBlock Grid.Column="1" Text=" CPU " />
-                            <TextBlock Grid.Column="2" Text="{Binding ID}" />
-                            <TextBlock Grid.Column="3" Text=" - " />
-                            <TextBlock Grid.Column="4" Text="{Binding Msg}" />
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-            <!--  Work Queue End  -->
-
-            <Grid
-                Grid.Row="5"
-                Grid.RowSpan="2"
-                Grid.Column="2"
-                Margin="0,10,0,10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="30" />
-                    <RowDefinition Height="30" />
-                </Grid.RowDefinitions>
-                <Button
-                    Grid.Row="0"
-                    Margin="0,0,0,4"
-                    Command="{Binding ShowReportCommand}"
-                    Visibility="{Binding HTMLReport, Converter={StaticResource IsNotNullVisibilityConverter}}">
-                    <TextBlock FontSize="13" FontWeight="Bold">View ModList Contents</TextBlock>
-                </Button>
-                <Button
+                    Grid.Column="2"
+                    Height="30"
+                    VerticalAlignment="Center"
+                    DataContext="{Binding ModlistLocation}"
+                    FontSize="14" />
+                <TextBlock
                     Grid.Row="1"
-                    Margin="0,4,0,0"
-                    Command="{Binding BeginCommand}">
-                    <TextBlock FontSize="13" FontWeight="Bold">Begin</TextBlock>
-                </Button>
+                    Grid.Column="0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    FontSize="14"
+                    Text="Download Location"
+                    TextAlignment="Center" />
+                <local:FilePicker
+                    Grid.Row="1"
+                    Grid.Column="2"
+                    Height="30"
+                    VerticalAlignment="Center"
+                    DataContext="{Binding DownloadLocation}"
+                    FontSize="14" />
+                <local:BeginButton
+                    Grid.Row="0"
+                    Grid.RowSpan="2"
+                    Grid.Column="4"
+                    Command="{Binding BeginCommand}" />
             </Grid>
         </Grid>
-    </Viewbox>
+        <Grid
+            Grid.Row="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="5"
+            Margin="5"
+            Visibility="{Binding Compiling, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
+            <local:LogCpuView DataContext="{Binding MWVM}" />
+        </Grid>
+    </Grid>
 </UserControl>

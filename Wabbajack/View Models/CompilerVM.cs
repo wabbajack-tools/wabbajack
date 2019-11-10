@@ -17,25 +17,25 @@ namespace Wabbajack
     {
         public MainWindowVM MWVM { get; }
 
-        [Reactive]
-        public string Mo2Folder { get; set; }
+        private readonly ObservableAsPropertyHelper<string> _Mo2Folder;
+        public string Mo2Folder => _Mo2Folder.Value;
 
-        [Reactive]
-        public string MOProfile { get; set; }
+        private readonly ObservableAsPropertyHelper<string> _MOProfile;
+        public string MOProfile => _MOProfile.Value;
 
         [Reactive]
         public string ModListName { get; set; }
 
-        public FilePickerVM Location { get; }
+        public FilePickerVM ModlistLocation { get; }
 
         [Reactive]
-        public bool UIReady { get; set; } = true;
+        public bool Compiling { get; set; }
 
         [Reactive]
-        public string AuthorName { get; set; }
+        public string AuthorText { get; set; }
 
         [Reactive]
-        public string Summary { get; set; } = "Description (700 characters max)";
+        public string Description { get; set; }
 
         public FilePickerVM ImagePath { get; }
 
@@ -57,16 +57,18 @@ namespace Wabbajack
         public CompilerVM(MainWindowVM mainWindowVM, string source)
         {
             this.MWVM = mainWindowVM;
-            this.Location = new FilePickerVM()
+            this.ModlistLocation = new FilePickerVM()
             {
                 TargetPath = source,
-                DoExistsCheck = false,
+                DoExistsCheck = true,
                 PathType = FilePickerVM.PathTypeOptions.File,
+                PromptTitle = "Select Modlist"
             };
             this.DownloadLocation = new FilePickerVM()
             {
-                DoExistsCheck = false,
+                DoExistsCheck = true,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
+                PromptTitle = "Select Download Location",
             };
             this.ImagePath = new FilePickerVM()
             {
@@ -85,7 +87,11 @@ namespace Wabbajack
 
             this.BeginCommand = ReactiveCommand.CreateFromTask(
                 execute: this.ExecuteBegin,
-                canExecute: this.WhenAny(x => x.UIReady)
+                canExecute: Observable.CombineLatest(
+                        this.WhenAny(x => x.Compiling),
+                        this.WhenAny(x => x.ModlistLocation.InError),
+                        this.WhenAny(x => x.DownloadLocation.InError),
+                        resultSelector: (c, ml, down) => !c && !ml && !down)
                     .ObserveOnGuiThread());
 
             this._Image = this.WhenAny(x => x.ImagePath.TargetPath)
@@ -100,13 +106,73 @@ namespace Wabbajack
                 })
                 .ToProperty(this, nameof(this.Image));
 
-            ConfigureForBuild(source);
+            this._Mo2Folder = this.WhenAny(x => x.ModlistLocation.TargetPath)
+                .Select(loc =>
+                {
+                    try
+                    {
+                        var profile_folder = Path.GetDirectoryName(loc);
+                        return Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
+                    }
+                    catch (Exception)
+                    {
+                        return null;
+                    }
+                })
+                .ToProperty(this, nameof(this.Mo2Folder));
+            this._MOProfile = this.WhenAny(x => x.ModlistLocation.TargetPath)
+                .Select(loc =>
+                {
+                    try
+                    {
+                        var profile_folder = Path.GetDirectoryName(loc);
+                        return Path.GetFileName(profile_folder);
+                    }
+                    catch (Exception)
+                    {
+                        return null;
+                    }
+                })
+                .ToProperty(this, nameof(this.MOProfile));
+
+            // If Mo2 folder changes and download location is empty, set it for convenience
+            this.WhenAny(x => x.Mo2Folder)
+                .Where(x => Directory.Exists(x))
+                .Subscribe(x =>
+                {
+                    try
+                    {
+                        var tmp_compiler = new Compiler(this.Mo2Folder);
+                        this.DownloadLocation.TargetPath = tmp_compiler.MO2DownloadsFolder;
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.Log($"Error setting default download location {ex}");
+                    }
+                })
+                .DisposeWith(this.CompositeDisposable);
+
+            // Wire missing Mo2Folder to signal error state for Modlist Location
+            this.ModlistLocation.AdditionalError = this.WhenAny(x => x.Mo2Folder)
+                .Select<string, IErrorResponse>(moFolder =>
+                {
+                    if (Directory.Exists(moFolder)) return ErrorResponse.Success;
+                    return ErrorResponse.Fail($"MO2 Folder could not be located from the given modlist location.{Environment.NewLine}Make sure your modlist is inside a valid MO2 distribution.");
+                });
 
             // Load settings
             CompilationSettings settings = this.MWVM.Settings.CompilationSettings.TryCreate(source);
-            this.AuthorName = settings.Author;
-            this.ModListName = settings.ModListName;
-            this.Summary = settings.Description;
+            this.AuthorText = settings.Author;
+            if (string.IsNullOrWhiteSpace(settings.ModListName))
+            {
+                // Set ModlistName initially off just the MO2Profile
+                this.ModListName = this.MOProfile;
+            }
+            else
+            {
+                this.ModListName = settings.ModListName;
+            }
+            this.Description = settings.Description;
             this.ReadMeText.TargetPath = settings.Readme;
             this.ImagePath.TargetPath = settings.SplashScreen;
             this.Website = settings.Website;
@@ -114,82 +180,63 @@ namespace Wabbajack
             {
                 this.DownloadLocation.TargetPath = settings.DownloadLocation;
             }
-            if (!string.IsNullOrWhiteSpace(settings.Location))
-            {
-                this.Location.TargetPath = settings.Location;
-            }
             this.MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
                 {
-                    settings.Author = this.AuthorName;
+                    settings.Author = this.AuthorText;
                     settings.ModListName = this.ModListName;
-                    settings.Description = this.Summary;
+                    settings.Description = this.Description;
                     settings.Readme = this.ReadMeText.TargetPath;
                     settings.SplashScreen = this.ImagePath.TargetPath;
                     settings.Website = this.Website;
-                    settings.Location = this.Location.TargetPath;
                     settings.DownloadLocation = this.DownloadLocation.TargetPath;
                 })
                 .DisposeWith(this.CompositeDisposable);
         }
 
-        private void ConfigureForBuild(string location)
-        {
-            var profile_folder = Path.GetDirectoryName(location);
-            this.Mo2Folder = Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
-            if (!File.Exists(Path.Combine(this.Mo2Folder, "ModOrganizer.exe")))
-            {
-                Utils.Log($"Error! No ModOrganizer2.exe found in {this.Mo2Folder}");
-            }
-
-            this.MOProfile = Path.GetFileName(profile_folder);
-            this.ModListName = this.MOProfile;
-
-            var tmp_compiler = new Compiler(this.Mo2Folder);
-            this.DownloadLocation.TargetPath = tmp_compiler.MO2DownloadsFolder;
-        }
-
         private async Task ExecuteBegin()
         {
-            if (this.Mo2Folder != null)
+            Compiler compiler;
+            try
             {
-                var compiler = new Compiler(this.Mo2Folder)
+                compiler = new Compiler(this.Mo2Folder)
                 {
                     MO2Profile = this.MOProfile,
                     ModListName = this.ModListName,
-                    ModListAuthor = this.AuthorName,
-                    ModListDescription = this.Summary,
+                    ModListAuthor = this.AuthorText,
+                    ModListDescription = this.Description,
                     ModListImage = this.ImagePath.TargetPath,
                     ModListWebsite = this.Website,
                     ModListReadme = this.ReadMeText.TargetPath,
                 };
-                await Task.Run(() =>
-                {
-                    UIReady = false;
-                    try
-                    {
-                        compiler.Compile();
-                        if (compiler.ModList?.ReportHTML != null)
-                        {
-                            this.HTMLReport = compiler.ModList.ReportHTML;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Log($"Can't continue: {ex.ExceptionToString()}");
-                    }
-                    finally
-                    {
-                        UIReady = true;
-                    }
-                });
             }
-            else
+            catch (Exception ex)
             {
-                Utils.Log("Cannot compile modlist: no valid Mod Organizer profile directory selected.");
-                UIReady = true;
+                while (ex.InnerException != null) ex = ex.InnerException;
+                Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                return;
             }
+            await Task.Run(() =>
+            {
+                Compiling = true;
+                try
+                {
+                    compiler.Compile();
+                    if (compiler.ModList?.ReportHTML != null)
+                    {
+                        this.HTMLReport = compiler.ModList.ReportHTML;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    while (ex.InnerException != null) ex = ex.InnerException;
+                    Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                }
+                finally
+                {
+                    Compiling = false;
+                }
+            });
         }
     }
 }

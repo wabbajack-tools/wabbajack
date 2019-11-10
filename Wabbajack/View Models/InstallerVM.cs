@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using ReactiveUI.Fody.Helpers;
+using System.Windows.Media;
 
 namespace Wabbajack
 {
@@ -56,8 +57,8 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<float> _ProgressPercent;
         public float ProgressPercent => _ProgressPercent.Value;
 
-        private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
-        public BitmapImage Image => _Image.Value;
+        private readonly ObservableAsPropertyHelper<ImageSource> _Image;
+        public ImageSource Image => _Image.Value;
 
         private readonly ObservableAsPropertyHelper<string> _TitleText;
         public string TitleText => _TitleText.Value;
@@ -67,6 +68,12 @@ namespace Wabbajack
 
         private readonly ObservableAsPropertyHelper<string> _Description;
         public string Description => _Description.Value;
+
+        private readonly ObservableAsPropertyHelper<string> _ProgressTitle;
+        public string ProgressTitle => _ProgressTitle.Value;
+
+        private readonly ObservableAsPropertyHelper<string> _ModListName;
+        public string ModListName => _ModListName.Value;
 
         // Command properties
         public IReactiveCommand BeginCommand { get; }
@@ -172,6 +179,7 @@ namespace Wabbajack
                         .StartWith(default(BitmapImage)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, slideshow, installing) => installing ? slideshow : modList)
+                .Select<BitmapImage, ImageSource>(x => x)
                 .ToProperty(this, nameof(this.Image));
             this._TitleText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Name),
@@ -194,6 +202,9 @@ namespace Wabbajack
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(this.Description));
+            this._ModListName = this.WhenAny(x => x.ModList)
+                .Select(x => x?.Name)
+                .ToProperty(this, nameof(this.ModListName));
 
             // Define commands
             this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
@@ -231,6 +242,16 @@ namespace Wabbajack
                     }
                 })
                 .DisposeWith(this.CompositeDisposable);
+
+            this._ProgressTitle = Observable.CombineLatest(
+                    this.WhenAny(x => x.Installing),
+                    this.WhenAny(x => x.InstallingMode),
+                    resultSelector: (installing, mode) =>
+                    {
+                        if (!installing) return "Configuring";
+                        return mode ? "Installing" : "Installed";
+                    })
+                .ToProperty(this, nameof(this.ProgressTitle));
         }
 
         private void ShowReport()
