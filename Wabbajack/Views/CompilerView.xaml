@@ -83,6 +83,9 @@
                         <Setter Property="FontSize" Value="15" />
                         <Setter Property="Margin" Value="0,0,0,6" />
                     </Style>
+                    <Style x:Key="PickerStyle" TargetType="local:FilePicker">
+                        <Setter Property="Margin" Value="0,0,0,6" />
+                    </Style>
                 </StackPanel.Resources>
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="ModList Name" />
                 <TextBox Style="{StaticResource ValueStyle}" Text="{Binding ModListName, UpdateSourceTrigger=PropertyChanged}" />
@@ -98,13 +101,21 @@
                     Style="{StaticResource ValueStyle}"
                     Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
                     TextWrapping="Wrap" />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Image" />
+                <local:FilePicker
+                    DataContext="{Binding ImagePath}"
+                    Style="{StaticResource PickerStyle}"
+                    ToolTip="Path to an image to display for the modlist." />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
                 <TextBox Style="{StaticResource ValueStyle}" Text="{Binding Website}" />
                 <TextBlock
                     Margin="{StaticResource TitleMargin}"
                     Text="Readme Path"
                     ToolTip="Path to a readme file." />
-                <local:FilePicker DataContext="{Binding ReadMeText}" ToolTip="Path to a readme file." />
+                <local:FilePicker
+                    DataContext="{Binding ReadMeText}"
+                    Style="{StaticResource PickerStyle}"
+                    ToolTip="Path to a readme file." />
             </StackPanel>
         </ScrollViewer>
         <Rectangle
