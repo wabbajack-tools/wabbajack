@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -140,6 +141,44 @@ namespace Wabbajack.Test.CSP
 
             var results = (await o.TakeAll()).OrderBy(e => e).ToList();
             var expected = Enumerable.Range(0, 1024).Select(i => i.ToString()).OrderBy(e => e).ToList();
+            CollectionAssert.AreEqual(expected, results);
+            await finished;
+        }
+
+        [TestMethod]
+        public async Task UnorderedTaskPipeline()
+        {
+            // Do it a hundred times to try and catch rare deadlocks
+            var o = Channel.Create<int>(3);
+            var finished = Enumerable.Range(0, 1024)
+                .ToChannel()
+                .UnorderedPipeline(4, o, async v =>
+                {
+                    await Task.Delay(1);
+                    return v;
+                });
+
+            var results = (await o.TakeAll()).OrderBy(e => e).ToList();
+            var expected = Enumerable.Range(0, 1024).ToList();
+            CollectionAssert.AreEqual(expected, results);
+            await finished;
+        }
+
+        [TestMethod]
+        public async Task UnorderedThreadPipeline()
+        {
+            // Do it a hundred times to try and catch rare deadlocks
+            var o = Channel.Create<int>(3);
+            var finished = Enumerable.Range(0, 1024)
+                .ToChannel()
+                .UnorderedThreadedPipeline(4, o, v =>
+                {
+                    Thread.Sleep(1);
+                    return v;
+                });
+
+            var results = (await o.TakeAll()).OrderBy(e => e).ToList();
+            var expected = Enumerable.Range(0, 1024).ToList();
             CollectionAssert.AreEqual(expected, results);
             await finished;
         }

@@ -99,6 +99,7 @@
     <Compile Include="CSP\IChannel.cs" />
     <Compile Include="CSP\EnumeratorBuffer.cs" />
     <Compile Include="CSP\ManyToManyChannel.cs" />
+    <Compile Include="CSP\Pipelines.cs" />
     <Compile Include="CSP\PutTaskHandler.cs" />
     <Compile Include="CSP\RingBuffer.cs" />
     <Compile Include="CSP\RxBuffer.cs" />
