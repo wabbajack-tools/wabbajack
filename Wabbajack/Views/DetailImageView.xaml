@@ -9,7 +9,6 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     ClipToBounds="True"
-    UseLayoutRounding="True"
     mc:Ignorable="d">
     <UserControl.Resources>
         <Color x:Key="TextBackgroundFill">#92000000</Color>

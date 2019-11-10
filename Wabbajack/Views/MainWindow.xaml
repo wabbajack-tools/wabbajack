@@ -12,8 +12,10 @@
     MinHeight="650"
     Closing="Window_Closing"
     Icon="../Resources/Icons/wabbajack.ico"
+    RenderOptions.BitmapScalingMode="HighQuality"
     ResizeMode="CanResize"
     Style="{StaticResource {x:Type Window}}"
+    UseLayoutRounding="True"
     WindowStyle="ToolWindow"
     mc:Ignorable="d">
     <ContentPresenter Content="{Binding ActivePane}">
