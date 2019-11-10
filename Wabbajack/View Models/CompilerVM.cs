@@ -13,6 +13,12 @@ using Wabbajack.Lib;
 
 namespace Wabbajack
 {
+    public enum CompilerType
+    {
+        MO2,
+        Vortex
+    }
+
     public class CompilerVM : ViewModel
     {
         public MainWindowVM MWVM { get; }
@@ -53,6 +59,9 @@ namespace Wabbajack
         public FilePickerVM DownloadLocation { get; }
 
         public IReactiveCommand BeginCommand { get; }
+
+        [Reactive]
+        public CompilerType SelectedCompilerType { get; set; }
 
         public CompilerVM(MainWindowVM mainWindowVM, string source)
         {

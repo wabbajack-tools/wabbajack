@@ -161,11 +161,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="BorderFadeDownView.xaml.cs">
+    <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="Views\BorderFadeDownView.xaml.cs">
       <DependentUpon>BorderFadeDownView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\InverseBooleanConverter.cs" />
     <Compile Include="Converters\BoolToVisibilityHiddenConverter.cs" />
+    <Compile Include="Views\RadioButtonView.xaml.cs">
+      <DependentUpon>RadioButtonView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\BeginButton.xaml.cs">
       <DependentUpon>BeginButton.xaml</DependentUpon>
     </Compile>
@@ -216,7 +220,11 @@
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\UserControlRx.cs" />
-    <Page Include="BorderFadeDownView.xaml">
+    <Page Include="Views\BorderFadeDownView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\RadioButtonView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -449,6 +457,10 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Wabba_Mouth.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\MO2Button.png" />
+    <Resource Include="Resources\VortexButton.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
