@@ -16,96 +16,104 @@
             <RowDefinition Height="4*" />
             <RowDefinition Height="*" MinHeight="150" />
         </Grid.RowDefinitions>
-        <Grid
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="5" />
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="1" />
+            <ColumnDefinition Width="5*" />
+            <ColumnDefinition Width="5" />
+        </Grid.ColumnDefinitions>
+        <local:DetailImageView
+            Title="{Binding ModListName}"
             Grid.Row="1"
-            Margin="5,0"
-            ClipToBounds="False">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="1" />
-                <ColumnDefinition Width="5*" />
-            </Grid.ColumnDefinitions>
-            <ScrollViewer
-                Grid.Column="0"
-                Margin="5,0,5,5"
-                Background="Transparent"
-                HorizontalScrollBarVisibility="Disabled"
-                IsEnabled="{Binding Compiling, Converter={StaticResource InverseBooleanConverter}}"
-                VerticalScrollBarVisibility="Auto">
-                <StackPanel
-                    Margin="0,20,0,0"
-                    Background="Transparent"
-                    Orientation="Vertical">
-                    <StackPanel.Resources>
-                        <Thickness
-                            x:Key="TitleMargin"
-                            Bottom="1"
-                            Left="5" />
-                        <Style
-                            x:Key="ValueStyle"
-                            BasedOn="{StaticResource MainTextBoxStyle}"
-                            TargetType="TextBox">
-                            <Setter Property="MaxLength" Value="50" />
-                            <Setter Property="AcceptsTab" Value="False" />
-                            <Setter Property="FontSize" Value="15" />
-                            <Setter Property="Margin" Value="0,0,0,6" />
-                        </Style>
-                    </StackPanel.Resources>
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="ModList Name" />
-                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding ModListName, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
-                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding AuthorText, UpdateSourceTrigger=PropertyChanged}" />
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
-                    <TextBox
-                        Height="150"
-                        mahapps:TextBoxHelper.Watermark="(700 characters max)"
-                        AcceptsReturn="True"
-                        AcceptsTab="False"
-                        MaxLength="700"
-                        Style="{StaticResource ValueStyle}"
-                        Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
-                        TextWrapping="Wrap" />
-                    <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
-                    <TextBox Style="{StaticResource ValueStyle}" Text="{Binding Website}" />
-                    <TextBlock
-                        Margin="{StaticResource TitleMargin}"
-                        Text="Readme Path"
-                        ToolTip="Path to a readme file." />
-                    <local:FilePicker DataContext="{Binding ReadMeText}" ToolTip="Path to a readme file." />
-                </StackPanel>
-            </ScrollViewer>
-            <local:DetailImageView
-                Title="{Binding ModListName}"
-                Grid.Column="2"
-                Author="{Binding AuthorText}"
-                BorderThickness="0"
-                Description="{Binding Description}"
-                Image="{Binding Image}" />
-            <Rectangle
-                x:Name="ControlVerticalThinSeparator"
-                Grid.Column="1"
-                Width="1"
-                HorizontalAlignment="Center"
-                Fill="{StaticResource DarkBackgroundBrush}"
-                SnapsToDevicePixels="True" />
-        </Grid>
-        <!--  Comes after center area so shadow can overlay  -->
+            Grid.Column="3"
+            Author="{Binding AuthorText}"
+            BorderThickness="0"
+            Description="{Binding Description}"
+            Image="{Binding Image}" />
+        <Rectangle
+            x:Name="ControlVerticalThinSeparator"
+            Grid.Row="1"
+            Grid.Column="2"
+            Width="1"
+            HorizontalAlignment="Center"
+            Fill="{StaticResource DarkBackgroundBrush}"
+            SnapsToDevicePixels="True" />
+        <!--  Comes after image area so shadow can overlay  -->
         <local:TopProgressView
             Title="{Binding ModListName, Mode=OneWay}"
             Grid.Row="0"
             Grid.RowSpan="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="5"
             OverhangShadow="True"
             ProgressPercent="{Binding ProgressPercent}"
             StatePrefixTitle="Compiling" />
+        <ScrollViewer
+            Grid.Row="1"
+            Grid.Column="1"
+            Margin="5,0,5,5"
+            Background="Transparent"
+            HorizontalScrollBarVisibility="Disabled"
+            IsEnabled="{Binding Compiling, Converter={StaticResource InverseBooleanConverter}}"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel
+                Margin="0,5,0,0"
+                Background="Transparent"
+                Orientation="Vertical">
+                <StackPanel.Resources>
+                    <Thickness
+                        x:Key="TitleMargin"
+                        Bottom="1"
+                        Left="5" />
+                    <Style
+                        x:Key="ValueStyle"
+                        BasedOn="{StaticResource MainTextBoxStyle}"
+                        TargetType="TextBox">
+                        <Setter Property="MaxLength" Value="50" />
+                        <Setter Property="AcceptsTab" Value="False" />
+                        <Setter Property="FontSize" Value="15" />
+                        <Setter Property="Margin" Value="0,0,0,6" />
+                    </Style>
+                </StackPanel.Resources>
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="ModList Name" />
+                <TextBox Style="{StaticResource ValueStyle}" Text="{Binding ModListName, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
+                <TextBox Style="{StaticResource ValueStyle}" Text="{Binding AuthorText, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
+                <TextBox
+                    Height="150"
+                    mahapps:TextBoxHelper.Watermark="(700 characters max)"
+                    AcceptsReturn="True"
+                    AcceptsTab="False"
+                    MaxLength="700"
+                    Style="{StaticResource ValueStyle}"
+                    Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap" />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
+                <TextBox Style="{StaticResource ValueStyle}" Text="{Binding Website}" />
+                <TextBlock
+                    Margin="{StaticResource TitleMargin}"
+                    Text="Readme Path"
+                    ToolTip="Path to a readme file." />
+                <local:FilePicker DataContext="{Binding ReadMeText}" ToolTip="Path to a readme file." />
+            </StackPanel>
+        </ScrollViewer>
         <Rectangle
             x:Name="ControlTopThinSeparator"
             Grid.Row="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="5"
             Height="1"
             Margin="25,0"
             VerticalAlignment="Top"
             Fill="{StaticResource DarkBackgroundBrush}"
             SnapsToDevicePixels="True" />
-        <Grid Grid.Row="2" MaxWidth="1000">
+        <Grid
+            Grid.Row="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="5"
+            MaxWidth="1000">
             <Border
                 x:Name="ConfigurationBackgroundHaze"
                 Height="120"
@@ -171,7 +179,9 @@
         </Grid>
         <Grid
             Grid.Row="2"
-            Margin="5,0,5,5"
+            Grid.Column="0"
+            Grid.ColumnSpan="5"
+            Margin="5"
             Visibility="{Binding Compiling, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
             <local:LogCpuView DataContext="{Binding MWVM}" />
         </Grid>
