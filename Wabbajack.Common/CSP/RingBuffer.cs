@@ -39,8 +39,7 @@ namespace Wabbajack.Common.CSP
 
         public T Peek()
         {
-            if (_length == 0) return default;
-            return _arr[_tail];
+            return _length == 0 ? default : _arr[_tail];
         }
 
         public void Unshift(T x)

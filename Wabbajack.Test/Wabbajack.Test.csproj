@@ -93,7 +93,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ACompilerTest.cs" />
-    <Compile Include="CSPTests.cs" />
+    <Compile Include="CSP\ChannelTests.cs" />
+    <Compile Include="CSP\CSPTests.cs" />
     <Compile Include="DownloaderTests.cs" />
     <Compile Include="EndToEndTests.cs" />
     <Compile Include="Extensions.cs" />
@@ -147,6 +148,7 @@
       <Version>4.2.0</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

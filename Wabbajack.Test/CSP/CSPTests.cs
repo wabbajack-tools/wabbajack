@@ -2,14 +2,29 @@
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common.CSP;
 
-namespace Wabbajack.Test
+namespace Wabbajack.Test.CSP
 {
     [TestClass]
     public class CSPTests
     {
+
+        public TestContext TestContext { get; set; }
+
+        public void Log(string msg)
+        {
+            TestContext.WriteLine(msg);
+        }
+
+        [TestInitialize]
+        public void Startup()
+        {
+            
+        }
+
         /// <summary>
         /// Test that we can put a value onto a channel without a buffer, and that the put is released once the
         /// take finalizes
@@ -137,7 +152,9 @@ namespace Wabbajack.Test
             var putter = Task.Run(async () =>
             {
                 for (var i = 0; i < 1000; i++)
-                    await chan.Put(i);
+                {
+                    var result = await chan.Put(i);
+                }
             });
 
             var taker = Task.Run(async () =>
@@ -168,7 +185,9 @@ namespace Wabbajack.Test
             var putter = Task.Run(async () =>
             {
                 for (var i = 0; i < 1000; i++)
+                {
                     await chan.Put(i);
+                }
             });
 
             var taker = Task.Run(async () =>

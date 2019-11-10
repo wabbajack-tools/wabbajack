@@ -9,7 +9,7 @@ namespace Wabbajack.Common.CSP
     class PutTaskHandler<T> : Handler<Action<bool>>
     {
         private readonly bool _blockable;
-        private TaskCompletionSource<bool> _tcs;
+        private TaskCompletionSource<bool> _tcs = new TaskCompletionSource<bool>();
 
         public PutTaskHandler(bool blockable = true)
         {

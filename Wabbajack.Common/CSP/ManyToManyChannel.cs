@@ -29,7 +29,7 @@ namespace Wabbajack.Common.CSP
         private Func<IBuffer<TOut>, TIn, bool> _add;
         private Action<IBuffer<TOut>> _finalize;
         private Func<TIn, TOut> _converter;
-        bool _isClosed = false;
+        volatile bool _isClosed = false;
 
         public ManyToManyChannel(Func<TIn, TOut> converter)
         {
@@ -323,7 +323,7 @@ namespace Wabbajack.Common.CSP
                 var put_cb = LockIfActiveCommit(handler);
                 if (put_cb != null)
                 {
-                    Task.Run(() => put_cb(true));
+                    Task.Run(() => put_cb(false));
                 }
             }
             _puts.Cleanup(x => false);
@@ -345,12 +345,6 @@ namespace Wabbajack.Common.CSP
             }
 
             return ret;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static T IfActiveCommit<T>(Handler<T> handler)
-        {
-            return handler.IsActive ? handler.Commit() : default;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

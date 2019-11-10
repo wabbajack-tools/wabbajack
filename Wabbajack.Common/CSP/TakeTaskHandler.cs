@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Wabbajack.Common.CSP
@@ -22,7 +23,11 @@ namespace Wabbajack.Common.CSP
             get
             {
                 if (_tcs == null)
-                    _tcs = new TaskCompletionSource<(bool, T)>();
+                {
+                    var new_tcs = new TaskCompletionSource<(bool, T)>();
+                    Interlocked.CompareExchange(ref _tcs, new_tcs, null);
+                }
+
                 return _tcs;
             }
         }
