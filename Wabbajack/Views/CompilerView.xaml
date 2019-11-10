@@ -30,7 +30,7 @@
                 Margin="5,0,5,5"
                 Background="Transparent"
                 HorizontalScrollBarVisibility="Disabled"
-                IsEnabled="{Binding UIReady}"
+                IsEnabled="{Binding Compiling, Converter={StaticResource InverseBooleanConverter}}"
                 VerticalScrollBarVisibility="Auto">
                 <StackPanel
                     Margin="0,20,0,0"
