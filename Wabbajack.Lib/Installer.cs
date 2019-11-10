@@ -412,7 +412,6 @@ namespace Wabbajack.Lib
                     var fi = new FileInfo(from);
                     if (fi.IsReadOnly)
                         fi.IsReadOnly = false;
-                    File.Delete(from);
                 }
 
 
