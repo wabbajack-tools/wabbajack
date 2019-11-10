@@ -400,7 +400,22 @@ namespace Wabbajack.Lib
             void CopyFile(string from, string to, bool use_move)
             {
                 if (File.Exists(to))
+                {
+                    var fi = new FileInfo(to);
+                    if (fi.IsReadOnly)
+                        fi.IsReadOnly = false;
                     File.Delete(to);
+                }
+
+                if (File.Exists(from))
+                {
+                    var fi = new FileInfo(from);
+                    if (fi.IsReadOnly)
+                        fi.IsReadOnly = false;
+                    File.Delete(from);
+                }
+
+
                 if (use_move)
                     File.Move(from, to);
                 else
