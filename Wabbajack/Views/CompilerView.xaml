@@ -23,6 +23,14 @@
             <ColumnDefinition Width="5*" />
             <ColumnDefinition Width="5" />
         </Grid.ColumnDefinitions>
+        <local:BorderFadeDownView
+            Grid.Row="1"
+            Grid.RowSpan="2"
+            Grid.Column="0" />
+        <local:BorderFadeDownView
+            Grid.Row="1"
+            Grid.RowSpan="2"
+            Grid.Column="4" />
         <local:DetailImageView
             Title="{Binding ModListName}"
             Grid.Row="1"
