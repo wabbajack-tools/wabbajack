@@ -52,12 +52,6 @@ namespace Wabbajack
 
         public FilePickerVM DownloadLocation { get; }
 
-        [Reactive]
-        public bool ModlistLocationInError { get; set; }
-
-        [Reactive]
-        public bool DownloadLocationInError { get; set; }
-
         public IReactiveCommand BeginCommand { get; }
 
         public CompilerVM(MainWindowVM mainWindowVM, string source)
@@ -155,6 +149,14 @@ namespace Wabbajack
                 })
                 .DisposeWith(this.CompositeDisposable);
 
+            // Wire missing Mo2Folder to signal error state for Modlist Location
+            this.ModlistLocation.AdditionalError = this.WhenAny(x => x.Mo2Folder)
+                .Select<string, IErrorResponse>(moFolder =>
+                {
+                    if (Directory.Exists(moFolder)) return ErrorResponse.Success;
+                    return ErrorResponse.Fail("MO2 Folder could not be located from the given modlist location.  Make sure your modlist is inside a valid MO2 distribution.");
+                });
+
             // Load settings
             CompilationSettings settings = this.MWVM.Settings.CompilationSettings.TryCreate(source);
             this.AuthorText = settings.Author;
@@ -187,15 +189,6 @@ namespace Wabbajack
                     settings.DownloadLocation = this.DownloadLocation.TargetPath;
                 })
                 .DisposeWith(this.CompositeDisposable);
-        }
-
-        private void ConfigureForBuild(string location)
-        {
-            var profile_folder = Path.GetDirectoryName(location);
-            if (!File.Exists(Path.Combine(this.Mo2Folder, "ModOrganizer.exe")))
-            {
-                Utils.Log($"Error! No ModOrganizer2.exe found in {this.Mo2Folder}");
-            }
         }
 
         private async Task ExecuteBegin()

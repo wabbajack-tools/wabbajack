@@ -46,6 +46,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<bool> _Exists;
         public bool Exists => _Exists.Value;
 
+        private readonly ObservableAsPropertyHelper<ErrorResponse> _ErrorState;
+        public ErrorResponse ErrorState => _ErrorState.Value;
+
         private readonly ObservableAsPropertyHelper<bool> _InError;
         public bool InError => _InError.Value;
 
@@ -96,15 +99,25 @@ namespace Wabbajack
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .ToProperty(this, nameof(this.Exists));
 
-            this._InError = Observable.CombineLatest(
-                    this.WhenAny(x => x.Exists),
+            this._ErrorState = Observable.CombineLatest(
+                    this.WhenAny(x => x.Exists)
+                        .Select(exists => ErrorResponse.Create(successful: exists, exists ? default(string) : "Path does not exist")),
                     this.WhenAny(x => x.AdditionalError)
                         .Select(x => x ?? Observable.Return<IErrorResponse>(ErrorResponse.Success))
-                        .Switch()
-                        .Select(err => !err?.Succeeded ?? false),
-                    resultSelector: (exist, err) => !exist || err)
+                        .Switch(),
+                    resultSelector: (exist, err) =>
+                    {
+                        if (exist.Failed) return exist;
+                        return ErrorResponse.Convert(err);
+                    })
+                .ToProperty(this, nameof(this.ErrorState));
+
+            this._InError = this.WhenAny(x => x.ErrorState)
+                .Select(x => !x.Succeeded)
                 .ToProperty(this, nameof(this.InError));
 
+            // Doesn't derive from ErrorState, as we want to bubble non-empty tooltips,
+            // which is slightly different logic
             this._ErrorTooltip = Observable.CombineLatest(
                     this.WhenAny(x => x.Exists)
                         .Select(exists => exists ? default(string) : "Path does not exist"),
@@ -113,12 +126,8 @@ namespace Wabbajack
                         .Switch(),
                     resultSelector: (exists, err) =>
                     {
-                        if ((!err?.Succeeded ?? false)
-                            && !string.IsNullOrWhiteSpace(err.Reason))
-                        {
-                            return err.Reason;
-                        }
-                        return exists;
+                        if (!string.IsNullOrWhiteSpace(exists)) return exists;
+                        return err?.Reason;
                     })
                 .ToProperty(this, nameof(this.ErrorTooltip));
         }
