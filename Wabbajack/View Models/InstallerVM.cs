@@ -289,35 +289,64 @@ namespace Wabbajack
 
         private void ExecuteBegin()
         {
-            this.Installing = true;
-            this.InstallingMode = true;
-            var installer = new Installer(this.ModListPath, this.ModList.SourceModList, Location.TargetPath)
+            Installing = true;
+            InstallingMode = true;
+            if (true)
             {
-                DownloadFolder = DownloadLocation.TargetPath
-            };
-            var th = new Thread(() =>
+                var installer = new VortexInstaller(ModListPath, ModList.SourceModList);
+                var th = new Thread(() =>
+                {
+                    try
+                    {
+                        installer.Install();
+                    }
+                    catch (Exception ex)
+                    {
+                        while (ex.InnerException != null) ex = ex.InnerException;
+                        Utils.Log(ex.StackTrace);
+                        Utils.Log(ex.ToString());
+                        Utils.Log($"{ex.Message} - Can't continue");
+                    }
+                    finally
+                    {
+                        Installing = false;
+                    }
+                })
+                {
+                    Priority = ThreadPriority.BelowNormal
+                };
+                th.Start();
+            }
+            else
             {
-                try
+                var installer = new Installer(this.ModListPath, this.ModList.SourceModList, Location.TargetPath)
                 {
-                    installer.Install();
-                }
-                catch (Exception ex)
+                    DownloadFolder = DownloadLocation.TargetPath
+                };
+                var th = new Thread(() =>
                 {
-                    while (ex.InnerException != null) ex = ex.InnerException;
-                    Utils.Log(ex.StackTrace);
-                    Utils.Log(ex.ToString());
-                    Utils.Log($"{ex.Message} - Can't continue");
-                }
-                finally
-                {
+                    try
+                    {
+                        installer.Install();
+                    }
+                    catch (Exception ex)
+                    {
+                        while (ex.InnerException != null) ex = ex.InnerException;
+                        Utils.Log(ex.StackTrace);
+                        Utils.Log(ex.ToString());
+                        Utils.Log($"{ex.Message} - Can't continue");
+                    }
+                    finally
+                    {
 
-                    this.Installing = false;
-                }
-            })
-            {
-                Priority = ThreadPriority.BelowNormal
-            };
-            th.Start();
+                        this.Installing = false;
+                    }
+                })
+                {
+                    Priority = ThreadPriority.BelowNormal
+                };
+                th.Start();
+            }
         }
     }
 }
