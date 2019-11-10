@@ -10,7 +10,7 @@ using System.Windows.Forms;
 
 namespace Wabbajack.Common.CSP
 {
-    public struct RingBuffer<T> : IEnumerable<T>
+    public class RingBuffer<T> : IEnumerable<T>
     {
         private int _size;
         private int _length;

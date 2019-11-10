@@ -88,16 +88,13 @@ namespace Wabbajack.Common.CSP
                         {
                             Task.Run(action);
                         }
-                    }
-                    else
-                    {
-                        if (is_done)
-                            Abort();
-                        Monitor.Exit(this);
-                        return (AsyncResult.Closed, false);
+                        return (AsyncResult.Completed, true);
                     }
 
-                    return (AsyncResult.Completed, true);
+                    if (is_done)
+                        Abort();
+                    Monitor.Exit(this);
+                    return (AsyncResult.Closed, false);
                 }
                 Monitor.Exit(this);
                 return (AsyncResult.Canceled, false);
@@ -198,9 +195,12 @@ namespace Wabbajack.Common.CSP
             if (handler.IsBlockable)
             {
                 if (_takes.Length >= MAX_QUEUE_SIZE)
+                {
+                    Monitor.Exit(this);
                     throw new TooManyHanldersException();
-                _takes.Unshift(handler);
+                }
 
+                _takes.Unshift(handler);
             }
             Monitor.Exit(this);
             return (AsyncResult.Enqueued, default);
@@ -221,7 +221,8 @@ namespace Wabbajack.Common.CSP
             _isClosed = true;
             if (_buf != null && _puts.IsEmpty)
                 _finalize(_buf);
-            var cbs = GetTakersForBuffer();
+
+            var cbs = _buf == null? new List<Action>() : GetTakersForBuffer();
 
             while (!_takes.IsEmpty)
             {

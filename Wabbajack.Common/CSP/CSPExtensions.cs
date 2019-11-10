@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms.VisualStyles;
 
 namespace Wabbajack.Common.CSP
 {
@@ -157,7 +158,6 @@ namespace Wabbajack.Common.CSP
                                 if (!await to.Put(pval))
                                     break;
                         }
-                        if (propagateClose) to.Close();
                         break;
                     }
                 }
@@ -165,7 +165,14 @@ namespace Wabbajack.Common.CSP
 
             await Task.WhenAll(Enumerable.Range(0, parallelism)
                 .Select(idx => Task.Run(Pump)));
-            
+
+            if (propagateClose)
+            {
+                from.Close();
+                to.Close();
+            }
+
         }
     }
+
 }

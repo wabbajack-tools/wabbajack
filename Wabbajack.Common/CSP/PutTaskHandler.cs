@@ -36,7 +36,7 @@ namespace Wabbajack.Common.CSP
 
         private void Handle(bool val)
         {
-            _tcs.SetResult(val);
+            TaskCompletionSource.SetResult(val);
         }
     }
 }

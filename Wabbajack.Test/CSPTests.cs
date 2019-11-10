@@ -109,9 +109,86 @@ namespace Wabbajack.Test
                 .UnorderedPipeline(1, o, obs => obs.Select(itm => itm.ToString()));
 
             var results = (await o.TakeAll()).OrderBy(e => e).ToList();
-            var expected = Enumerable.Range(0, 3).Select(i => i.ToString()).ToList();
+            var expected = Enumerable.Range(0, 3).Select(i => i.ToString()).OrderBy(e => e).ToList();
             CollectionAssert.AreEqual(expected, results);
 
+        }
+
+        [TestMethod]
+        public async Task UnorderedPipelineWithParallelism()
+        {
+            // Do it a hundred times to try and catch rare deadlocks
+            var o = Channel.Create<string>(3);
+            var finished = Enumerable.Range(0, 1024)
+                .ToChannel()
+                .UnorderedPipeline(4, o, obs => obs.Select(itm => itm.ToString()));
+
+            var results = (await o.TakeAll()).OrderBy(e => e).ToList();
+            var expected = Enumerable.Range(0, 1024).Select(i => i.ToString()).OrderBy(e => e).ToList();
+            CollectionAssert.AreEqual(expected, results);
+            await finished;
+        }
+
+        [TestMethod]
+        public async Task ChannelStressTest()
+        {
+            var chan = Channel.Create<int>();
+
+            var putter = Task.Run(async () =>
+            {
+                for (var i = 0; i < 1000; i++)
+                    await chan.Put(i);
+            });
+
+            var taker = Task.Run(async () =>
+            {
+                try
+                {
+                    for (var i = 0; i < 1000; i++)
+                    {
+                        var (is_open, val) = await chan.Take();
+                        Assert.AreEqual(i, val);
+                    }
+                }
+                finally
+                {
+                    chan.Close();
+                }
+            });
+
+            await putter;
+            await taker;
+        }
+
+        [TestMethod]
+        public async Task ChannelStressWithBuffer()
+        {
+            var chan = Channel.Create<int>(1);
+
+            var putter = Task.Run(async () =>
+            {
+                for (var i = 0; i < 1000; i++)
+                    await chan.Put(i);
+            });
+
+            var taker = Task.Run(async () =>
+            {
+                try
+                {
+                    for (var i = 0; i < 1000; i++)
+                    {
+                        var (is_open, val) = await chan.Take();
+                        Assert.AreEqual(i, val);
+                    }
+                }
+                finally
+                {
+                    chan.Close();
+                }
+            });
+
+            await putter;
+            await taker;
         }
     }
 }
