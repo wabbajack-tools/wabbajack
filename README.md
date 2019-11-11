@@ -46,7 +46,7 @@ let's do a rundown of all the supported features:
   - A mod split across multiple mod folders
   - ENBSeries files that exist in the game folder
   - Any tools installed in the MO2 folder. Want your users to have BethINI or xEdit? Just put them in a folder inside the MO2 install folder
-  - Script Extenders
+  - SKSE
 - The following situations are automatically detected and handled by the automated binary patcher (not an exhaustive list)
   - ESP cleaning
   - form 44 conversion
