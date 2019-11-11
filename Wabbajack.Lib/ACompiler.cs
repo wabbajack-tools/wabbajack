@@ -12,8 +12,6 @@ namespace Wabbajack.Lib
     public abstract class ACompiler
     {
         public ModManager ModManager;
-        public Compiler _mo2Compiler;
-        public VortexCompiler _vortexCompiler;
 
         public string GamePath;
 

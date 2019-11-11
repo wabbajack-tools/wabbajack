@@ -29,9 +29,6 @@ namespace Wabbajack.Lib
 
         public VortexCompiler(string gameName, string gamePath)
         {
-
-            _vortexCompiler = this;
-            _mo2Compiler = null;
             ModManager = ModManager.Vortex;
 
             // TODO: only for testing

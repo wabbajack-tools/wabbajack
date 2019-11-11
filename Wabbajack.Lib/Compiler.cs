@@ -42,8 +42,6 @@ namespace Wabbajack.Lib
 
         public Compiler(string mo2_folder)
         {
-            _vortexCompiler = null;
-            _mo2Compiler = this;
             ModManager = ModManager.MO2;
 
             MO2Folder = mo2_folder;

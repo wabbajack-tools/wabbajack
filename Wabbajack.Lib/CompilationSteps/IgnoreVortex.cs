@@ -11,7 +11,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public IgnoreVortex(ACompiler compiler) : base(compiler)
         {
-            _vortex = compiler._vortexCompiler;
+            _vortex = (VortexCompiler) compiler;
         }
 
         public override Directive Run(RawSourceFile source)

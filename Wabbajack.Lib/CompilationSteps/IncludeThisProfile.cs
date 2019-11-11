@@ -9,10 +9,12 @@ namespace Wabbajack.Lib.CompilationSteps
     public class IncludeThisProfile : ACompilationStep
     {
         private readonly IEnumerable<string> _correctProfiles;
+        private readonly Compiler _mo2Compiler;
 
         public IncludeThisProfile(ACompiler compiler) : base(compiler)
         {
-            _correctProfiles = _compiler._mo2Compiler.SelectedProfiles.Select(p => Path.Combine("profiles", p) + "\\").ToList();
+            _mo2Compiler = (Compiler) compiler;
+            _correctProfiles = _mo2Compiler.SelectedProfiles.Select(p => Path.Combine("profiles", p) + "\\").ToList();
         }
 
         public override Directive Run(RawSourceFile source)

@@ -8,10 +8,13 @@ namespace Wabbajack.Lib.CompilationSteps
     public class IgnoreOtherProfiles : ACompilationStep
     {
         private readonly IEnumerable<string> _profiles;
+        private readonly Compiler _mo2Compiler;
 
         public IgnoreOtherProfiles(ACompiler compiler) : base(compiler)
         {
-            _profiles = compiler._mo2Compiler.SelectedProfiles
+            _mo2Compiler = (Compiler) compiler;
+
+                _profiles = _mo2Compiler.SelectedProfiles
                 .Select(p => Path.Combine("profiles", p) + "\\")
                 .ToList();
         }
