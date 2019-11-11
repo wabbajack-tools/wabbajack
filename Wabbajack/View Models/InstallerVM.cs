@@ -267,7 +267,7 @@ namespace Wabbajack
                             if (installing) return false;
                             if (IsMO2ModList)
                                 return !loc && !download;
-                            return !loc && !staging;
+                            return !staging && !download;
                         })
                     .ObserveOnGuiThread());
             this.VisitWebsiteCommand = ReactiveCommand.Create(
