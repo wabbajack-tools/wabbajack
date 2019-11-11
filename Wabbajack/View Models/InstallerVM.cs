@@ -147,6 +147,13 @@ namespace Wabbajack
                             this.MWVM.MainWindow.Close();
                         });
                         return default(ModListVM);
+                    }else if (modList.ModManager == ModManager.Vortex)
+                    {
+                        MessageBox.Show(
+                            "The ModList you are about to install was compiled from a Vortex installation. " +
+                            "Vortex support is still very bleeding edge and installing this ModList WILL OVERRIDE your existing mods. " +
+                            "If you encounter any errors during installation go to our discord and ping erri120#2285 with your error and a log file.",
+                            "Important information regarding Vortex support", MessageBoxButton.OK, MessageBoxImage.Stop);
                     }
                     return new ModListVM(modList, modListPath);
                 })
