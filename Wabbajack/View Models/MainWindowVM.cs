@@ -54,8 +54,9 @@ namespace Wabbajack
 
             // Set up logging
             Utils.LogMessages
+                .ObserveOn(RxApp.TaskpoolScheduler)
                 .ToObservableChangeSet()
-                .Buffer(TimeSpan.FromMilliseconds(250))
+                .Buffer(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
                 .Where(l => l.Count > 0)
                 .FlattenBufferResult()
                 .Top(5000)
@@ -89,7 +90,7 @@ namespace Wabbajack
             WorkQueue.Status
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .ToObservableChangeSet(x => x.ID)
-                .Batch(TimeSpan.FromMilliseconds(250))
+                .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
