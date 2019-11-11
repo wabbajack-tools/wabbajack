@@ -186,6 +186,8 @@ namespace Wabbajack
                     }
                     else
                     {
+                        Location = settings.InstallationLocation;
+                        DownloadLocation = settings.DownloadLocation;
                         IsMO2ModList = true;
                     }
                     return new ModListVM(modList, modListPath);
