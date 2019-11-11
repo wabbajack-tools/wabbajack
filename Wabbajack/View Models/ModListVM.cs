@@ -1,13 +1,8 @@
 ﻿using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -18,13 +13,14 @@ namespace Wabbajack
     {
         public ModList SourceModList { get; }
         public string ModListPath { get; }
-        public string Name => this.SourceModList.Name;
-        public string ReportHTML => this.SourceModList.ReportHTML;
-        public string Readme => this.SourceModList.Readme;
-        public string ImageURL => this.SourceModList.Image;
-        public string Author => this.SourceModList.Author;
-        public string Description => this.SourceModList.Description;
-        public string Website => this.SourceModList.Website;
+        public string Name => SourceModList.Name;
+        public string ReportHTML => SourceModList.ReportHTML;
+        public string Readme => SourceModList.Readme;
+        public string ImageURL => SourceModList.Image;
+        public string Author => SourceModList.Author;
+        public string Description => SourceModList.Description;
+        public string Website => SourceModList.Website;
+        public ModManager ModManager => SourceModList.ModManager;
 
         // Image isn't exposed as a direct property, but as an observable.
         // This acts as a caching mechanism, as interested parties will trigger it to be created,
@@ -33,10 +29,10 @@ namespace Wabbajack
 
         public ModListVM(ModList sourceModList, string modListPath)
         {
-            this.ModListPath = modListPath;
-            this.SourceModList = sourceModList;
+            ModListPath = modListPath;
+            SourceModList = sourceModList;
 
-            this.ImageObservable = Observable.Return(this.ImageURL)
+            ImageObservable = Observable.Return(this.ImageURL)
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(url =>
                 {
