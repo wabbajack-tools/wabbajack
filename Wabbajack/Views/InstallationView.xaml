@@ -281,33 +281,6 @@
                             <RowDefinition Height="40" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <Border
-                            x:Name="BeginButtonPurpleGlow"
-                            Grid.Row="1"
-                            Grid.RowSpan="2"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="5"
-                            Width="76"
-                            Height="76"
-                            Margin="0,0,14,0"
-                            HorizontalAlignment="Right"
-                            Background="{StaticResource PrimaryVariantBrush}"
-                            CornerRadius="43"
-                            Visibility="{Binding IsEnabled, ElementName=BeginButton, Converter={StaticResource bool2VisibilityConverter}}">
-                            <Border.Effect>
-                                <BlurEffect Radius="10" />
-                            </Border.Effect>
-                            <Border.Style>
-                                <Style TargetType="Border">
-                                    <Setter Property="Opacity" Value="0.5" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsMouseOver, ElementName=BeginButton}" Value="True">
-                                            <Setter Property="Opacity" Value="0.8" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Border.Style>
-                        </Border>
                         <Grid Grid.Row="1" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="3" Visibility="{Binding IsMO2ModList, Converter={StaticResource bool2VisibilityConverter}}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="40" />
@@ -342,7 +315,7 @@
                                 Text="Download Location"
                                 TextAlignment="Center" />
                             <local:FilePicker
-                                Grid.Row="2"
+                                Grid.Row="1"
                                 Grid.Column="2"
                                 Height="30"
                                 VerticalAlignment="Center"
@@ -368,16 +341,12 @@
                                 Text="Staging Folder"
                                 TextAlignment="Center" />
                             <local:FilePicker
-                                Grid.Row="0"
+                                Grid.Row="1"
                                 Grid.Column="2"
                                 Height="30"
                                 VerticalAlignment="Center"
-                                AdditionalError="{Binding StagingLocationError}"
-                                DoExistsCheck="False"
-                                FontSize="14"
-                                PathType="Folder"
-                                PromptTitle="Select the Vortex staging directory"
-                                TargetPath="{Binding StagingLocation}" />
+                                DataContext="{Binding StagingLocation}"
+                                FontSize="14" />
                             <TextBlock
                                 Grid.Row="1"
                                 Grid.Column="0"
@@ -391,12 +360,8 @@
                                 Grid.Column="2"
                                 Height="30"
                                 VerticalAlignment="Center"
-                                AdditionalError="{Binding DownloadLocationError}"
-                                DoExistsCheck="False"
-                                FontSize="14"
-                                PathType="Folder"
-                                PromptTitle="Select the Vortex downloads directory"
-                                TargetPath="{Binding DownloadLocation}" />
+                                DataContext="{Binding DownloadLocation}"
+                                FontSize="14" />
                         </Grid>
                         <Button
                             x:Name="BeginButton"

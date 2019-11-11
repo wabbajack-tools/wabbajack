@@ -1,4 +1,4 @@
-using Syroot.Windows.IO;
+        using Syroot.Windows.IO;
 using System;
 using ReactiveUI;
 using System.Diagnostics;
@@ -50,21 +50,14 @@ namespace Wabbajack
         [Reactive]
         public bool InstallingMode { get; set; }
 
-        public FilePickerVM Location { get; }
-
         [Reactive]
         public bool IsMO2ModList { get; set; }
 
-        [Reactive]
-        public string DownloadLocation { get; set; }
+        public FilePickerVM Location { get; }
 
         public FilePickerVM DownloadLocation { get; }
 
-        [Reactive]
-        public string StagingLocation { get; set; }
-
-        private readonly ObservableAsPropertyHelper<IErrorResponse> _stagingLocationError;
-        public IErrorResponse StagingLocationError => _stagingLocationError.Value;
+        public FilePickerVM StagingLocation { get; }
 
         private readonly ObservableAsPropertyHelper<float> _ProgressPercent;
         public float ProgressPercent => _ProgressPercent.Value;
@@ -126,10 +119,17 @@ namespace Wabbajack
             this.DownloadLocation.AdditionalError = this.WhenAny(x => x.DownloadLocation.TargetPath)
                 .Select(x => Utils.IsDirectoryPathValid(x));
 
+            StagingLocation = new FilePickerVM
+            {
+                DoExistsCheck = true,
+                PathType = FilePickerVM.PathTypeOptions.Folder,
+                PromptTitle = "Select your Vortex Staging Folder",
+                AdditionalError = this.WhenAny(x => x.StagingLocation.TargetPath)
+                    .Select(Utils.IsDirectoryPathValid)
+            };
+
             // Load settings
             InstallationSettings settings = this.MWVM.Settings.InstallationSettings.TryCreate(source);
-            this.Location.TargetPath = settings.InstallationLocation;
-            this.DownloadLocation.TargetPath = settings.DownloadLocation;
             this.MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
                 {
@@ -179,15 +179,15 @@ namespace Wabbajack
                         if (!Directory.Exists(vortexFolder)) return new ModListVM(modList, modListPath);
                         if (Directory.Exists(stagingFolder) &&
                             File.Exists(Path.Combine(stagingFolder, "__vortex_staging_folder")))
-                            StagingLocation = stagingFolder;
+                            StagingLocation.TargetPath = stagingFolder;
                         if (Directory.Exists(Path.Combine(vortexFolder, "downloads")) &&
                             File.Exists(Path.Combine(vortexFolder, "downloads", "__vortex_downloads_folder")))
-                            DownloadLocation = downloadFolder;
+                            DownloadLocation.TargetPath = downloadFolder;
                     }
                     else
                     {
-                        Location = settings.InstallationLocation;
-                        DownloadLocation = settings.DownloadLocation;
+                        Location.TargetPath = settings.InstallationLocation;
+                        DownloadLocation.TargetPath = settings.DownloadLocation;
                         IsMO2ModList = true;
                     }
                     return new ModListVM(modList, modListPath);
@@ -248,10 +248,6 @@ namespace Wabbajack
                 .Select(x => x?.Name)
                 .ToProperty(this, nameof(this.ModListName));
 
-            _stagingLocationError = this.WhenAny(x => x.StagingLocation)
-                .Select(Utils.IsDirectoryPathValid)
-                .ToProperty(this, nameof(StagingLocationError));
-
             // Define commands
             this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
             this.OpenReadmeCommand = ReactiveCommand.Create(
@@ -263,9 +259,9 @@ namespace Wabbajack
                 execute: this.ExecuteBegin,
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.Installing),
-                        this.WhenAny(x => x.LocationError.InError),
-                        this.WhenAny(x => x.DownloadLocationError.InError),
-                        this.WhenAny(x => x.StagingLocationError.InError),
+                        this.WhenAny(x => x.Location.InError),
+                        this.WhenAny(x => x.DownloadLocation.InError),
+                        this.WhenAny(x => x.StagingLocation.InError),
                         resultSelector: (installing, loc, download, staging) =>
                         {
                             if (installing) return false;
@@ -344,8 +340,8 @@ namespace Wabbajack
             {
                 var installer = new VortexInstaller(ModListPath, ModList.SourceModList)
                 {
-                    StagingFolder = StagingLocation,
-                    DownloadFolder = DownloadLocation
+                    StagingFolder = StagingLocation.TargetPath,
+                    DownloadFolder = DownloadLocation.TargetPath
                 };
                 var th = new Thread(() =>
                 {
