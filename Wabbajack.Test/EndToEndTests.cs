@@ -115,7 +115,7 @@ namespace Wabbajack.Test
                     $"fileID={file.file_id}"
                 });
 
-            if (!File.Exists(file.file_name))
+            if (!File.Exists(src))
             {
 
                 var state = DownloadDispatcher.ResolveArchive(ini.LoadIniString());
