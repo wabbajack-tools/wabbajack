@@ -52,7 +52,19 @@ namespace Wabbajack
 
         public FilePickerVM Location { get; }
 
+        [Reactive]
+        public bool IsMO2ModList { get; set; }
+
+        [Reactive]
+        public string DownloadLocation { get; set; }
+
         public FilePickerVM DownloadLocation { get; }
+
+        [Reactive]
+        public string StagingLocation { get; set; }
+
+        private readonly ObservableAsPropertyHelper<IErrorResponse> _stagingLocationError;
+        public IErrorResponse StagingLocationError => _stagingLocationError.Value;
 
         private readonly ObservableAsPropertyHelper<float> _ProgressPercent;
         public float ProgressPercent => _ProgressPercent.Value;
@@ -147,13 +159,19 @@ namespace Wabbajack
                             this.MWVM.MainWindow.Close();
                         });
                         return default(ModListVM);
-                    }else if (modList.ModManager == ModManager.Vortex)
+                    }
+                    if (modList.ModManager == ModManager.Vortex)
                     {
+                        IsMO2ModList = false;
                         MessageBox.Show(
                             "The ModList you are about to install was compiled from a Vortex installation. " +
                             "Vortex support is still very bleeding edge and installing this ModList WILL OVERRIDE your existing mods. " +
                             "If you encounter any errors during installation go to our discord and ping erri120#2285 with your error and a log file.",
                             "Important information regarding Vortex support", MessageBoxButton.OK, MessageBoxImage.Stop);
+                    }
+                    else
+                    {
+                        IsMO2ModList = true;
                     }
                     return new ModListVM(modList, modListPath);
                 })
@@ -212,6 +230,10 @@ namespace Wabbajack
             this._ModListName = this.WhenAny(x => x.ModList)
                 .Select(x => x?.Name)
                 .ToProperty(this, nameof(this.ModListName));
+
+            _stagingLocationError = this.WhenAny(x => x.StagingLocation)
+                .Select(Utils.IsDirectoryPathValid)
+                .ToProperty(this, nameof(StagingLocationError));
 
             // Define commands
             this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
