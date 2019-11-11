@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Subjects;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms.VisualStyles;
 
@@ -84,24 +85,43 @@ namespace Wabbajack.Common.CSP
             }
         }
 
-        /*
-        private static void PipelineInner<TInSrc, TOutSrc, TInDest, TOutDest>(int n,
-            IChannel<TInSrc, TOutSrc> from,
-            Func<TOutSrc, Task<TInDest>> fn,
-            IChannel<TInDest, TOutDest> to,
-            bool closeOnFinished)
+        public static Task<T> ThreadedTask<T>(Func<T> action)
         {
-            var jobs = Channel.Create<TOutSrc>(n);
-            var results = Channel.Create<TInDest>(n);
-
+            var src = new TaskCompletionSource<T>();
+            var th = new Thread(() =>
             {
-                bool Process(TOutSrc val, )
+                try
                 {
-                    if ()
-
+                    src.SetResult(action());
                 }
-            }
-        }*/
+                catch (Exception ex)
+                {
+                    src.SetException(ex);
+                }
+            }) {Priority = ThreadPriority.BelowNormal};
+            th.Start();
+            return src.Task;
+        }
+
+        public static Task ThreadedTask<T>(Action action)
+        {
+            var src = new TaskCompletionSource<bool>();
+            var th = new Thread(() =>
+                {
+                    try
+                    {
+                        action();
+                        src.SetResult(true);
+                    }
+                    catch (Exception ex)
+                    {
+                        src.SetException(ex);
+                    }
+                })
+                { Priority = ThreadPriority.BelowNormal };
+            th.Start();
+            return src.Task;
+        }
 
     }
 

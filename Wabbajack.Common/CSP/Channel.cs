@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Security.Cryptography;
 using System.Text;
@@ -53,7 +54,23 @@ namespace Wabbajack.Common.CSP
         public static IChannel<TIn, TOut> Create<TIn, TOut>(int buffer_size, Func<IObservable<TIn>, IObservable<TOut>> transform)
         {
             var buf = new RxBuffer<TIn, TOut>(buffer_size, transform);
+            return ChannelForRxBuf(buf);
+        }
+
+        private static ManyToManyChannel<TIn, TOut> ChannelForRxBuf<TIn, TOut>(RxBuffer<TIn, TOut> buf)
+        {
             return new ManyToManyChannel<TIn, TOut>(null, RxBuffer<TIn,TOut>.TransformAdd, RxBuffer<TIn, TOut>.Finalize, buf);
+        }
+
+        /// <summary>
+        /// Creates a channel that discards every value
+        /// </summary>
+        /// <typeparam name="TIn"></typeparam>
+        /// <returns></returns>
+        public static IChannel<TIn, TIn> CreateSink<TIn>()
+        {
+            var buf = new RxBuffer<TIn, TIn>(1, e => e.Where(itm => false));
+            return ChannelForRxBuf(buf);
         }
     }
 }

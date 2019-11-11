@@ -93,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ACompilerTest.cs" />
+    <Compile Include="CSP\AsyncWorkQueueTests.cs" />
     <Compile Include="CSP\ChannelTests.cs" />
     <Compile Include="CSP\CSPTests.cs" />
     <Compile Include="DownloaderTests.cs" />

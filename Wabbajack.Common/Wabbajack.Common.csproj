@@ -85,6 +85,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AsyncWorkQueue.cs" />
+    <Compile Include="AsyncWorkQueueExtensions.cs" />
     <Compile Include="BSDiff.cs" />
     <Compile Include="ChildProcessTracker.cs" />
     <Compile Include="Consts.cs" />
