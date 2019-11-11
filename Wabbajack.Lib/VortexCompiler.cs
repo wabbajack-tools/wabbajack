@@ -308,8 +308,11 @@ namespace Wabbajack.Lib
 
         private void CreateMetaFiles()
         {
+            Utils.Log("Getting Nexus api_key, please click authorize if a browser window appears");
+            var nexusClient = new NexusApiClient();
+
             Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)
-                .Where(f => File.Exists(f) && (Path.GetExtension(f) == ".zip" || Path.GetExtension(f) == ".rar") && !File.Exists(f+".meta"))
+                .Where(f => File.Exists(f) && Path.GetExtension(f) != ".meta" && !File.Exists(f+".meta"))
                 .Do(f =>
                 {
                     Utils.Log($"Trying to create meta file for {Path.GetFileName(f)}");
@@ -320,8 +323,6 @@ namespace Wabbajack.Lib
                                      $"paused=false\n" +
                                      $"removed=false\n" +
                                      $"gameName={GameName}\n";
-                    Utils.Log("Getting Nexus api_key, please click authorize if a browser window appears");
-                    var nexusClient = new NexusApiClient();
                     string hash;
                     using(var md5 = MD5.Create())
                     using (var stream = File.OpenRead(f))
@@ -429,6 +430,7 @@ namespace Wabbajack.Lib
                 //new IncludePropertyFiles(this),
                 new IncludeVortexDeployment(this),
                 new IncludeRegex(this, "^*\\.meta"),
+                new IgnoreVortex(this),
 
                 Game == Game.DarkestDungeon ? new IncludeRegex(this, "project\\.xml$") : null,
 

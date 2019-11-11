@@ -89,6 +89,7 @@
     <Compile Include="CompilationSteps\IgnorePathContains.cs" />
     <Compile Include="CompilationSteps\IgnoreRegex.cs" />
     <Compile Include="CompilationSteps\IgnoreStartsWith.cs" />
+    <Compile Include="CompilationSteps\IgnoreVortex.cs" />
     <Compile Include="CompilationSteps\IgnoreWabbajackInstallCruft.cs" />
     <Compile Include="CompilationSteps\IncludeAll.cs" />
     <Compile Include="CompilationSteps\IncludeAllConfigs.cs" />
