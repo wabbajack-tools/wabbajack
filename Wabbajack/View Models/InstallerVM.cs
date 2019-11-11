@@ -291,7 +291,7 @@ namespace Wabbajack
         {
             Installing = true;
             InstallingMode = true;
-            if (true)
+            if (ModList.ModManager == ModManager.Vortex)
             {
                 var installer = new VortexInstaller(ModListPath, ModList.SourceModList);
                 var th = new Thread(() =>
