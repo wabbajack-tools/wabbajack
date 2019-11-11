@@ -14,9 +14,12 @@ namespace Wabbajack.Lib
 {
     public class zEditIntegration
     {
+        private static Compiler _mo2Compiler;
+
         public static string FindzEditPath(ACompiler compiler)
         {
-            var executables = compiler._mo2Compiler.MO2Ini.customExecutables;
+            _mo2Compiler = (Compiler) compiler;
+            var executables = _mo2Compiler.MO2Ini.customExecutables;
             if (executables.size == null) return null;
 
             foreach (var idx in Enumerable.Range(1, int.Parse(executables.size)))
@@ -63,7 +66,7 @@ namespace Wabbajack.Lib
 
                 _mergesIndexed =
                     merges.ToDictionary(
-                        m => Path.Combine(compiler._mo2Compiler.MO2Folder, "mods", m.Key.name, m.Key.filename),
+                        m => Path.Combine(_mo2Compiler.MO2Folder, "mods", m.Key.name, m.Key.filename),
                         m => m.First());
             }
 
@@ -89,12 +92,12 @@ namespace Wabbajack.Lib
 
                     return new SourcePatch
                     {
-                        RelativePath = abs_path.RelativeTo(_compiler._mo2Compiler.MO2Folder),
+                        RelativePath = abs_path.RelativeTo(_mo2Compiler.MO2Folder),
                         Hash = _compiler.VFS[abs_path].Hash
                     };
                 }).ToList();
 
-                var src_data = result.Sources.Select(f => File.ReadAllBytes(Path.Combine(_compiler._mo2Compiler.MO2Folder, f.RelativePath)))
+                var src_data = result.Sources.Select(f => File.ReadAllBytes(Path.Combine(_mo2Compiler.MO2Folder, f.RelativePath)))
                     .ConcatArrays();
 
                 var dst_data = File.ReadAllBytes(source.AbsolutePath);
