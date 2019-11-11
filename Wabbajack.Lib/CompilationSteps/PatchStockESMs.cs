@@ -15,7 +15,7 @@ namespace Wabbajack.Lib.CompilationSteps
         public override Directive Run(RawSourceFile source)
         {
             var filename = Path.GetFileName(source.Path);
-            var gameFile = Path.Combine(_compiler.GamePath, "Data", filename);
+            var gameFile = Path.Combine(_compiler._mo2Compiler.GamePath, "Data", filename);
             if (!Consts.GameESMs.Contains(filename) || !source.Path.StartsWith("mods\\") ||
                 !File.Exists(gameFile)) return null;
 
