@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting.Channels;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.CSP;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -100,7 +100,7 @@ namespace Compression.BSA.Test
             TestContext.WriteLine($"Reading {bsa}");
             using (var a = await BSADispatch.OpenRead(bsa))
             {
-                foreach (var file in a.Files)
+                await a.Files.UnorderedParallelDo(async file =>
                 {
                     var abs_name = Path.Combine(TempDir, file.Path);
                     ViaJson(file.State);
@@ -113,22 +113,23 @@ namespace Compression.BSA.Test
                     {
                         await file.CopyDataToAsync(fs);
                     }
+
                     Assert.AreEqual(file.Size, new FileInfo(abs_name).Length);
-                }
+                });
 
                 Console.WriteLine($"Building {bsa}");
                 string TempFile = Path.Combine("tmp.bsa");
 
                 using (var w = ViaJson(a.State).MakeBuilder())
                 {
-                    foreach(var file in a.Files)
+                    await a.Files.UnorderedParallelDo(async file =>
                     {
                         var abs_path = Path.Combine(TempDir, file.Path);
                         using (var str = File.OpenRead(abs_path))
                         {
                             await w.AddFile(ViaJson(file.State), str);
                         }
-                    }
+                    });
                     await w.Build(TempFile);
                 }
 
@@ -139,23 +140,22 @@ namespace Compression.BSA.Test
                     Console.WriteLine($"Performing A/B tests on {bsa}");
                     Assert.AreEqual(JsonConvert.SerializeObject(a.State), JsonConvert.SerializeObject(b.State));
 
-                    //Equal((uint) a.ArchiveFlags, (uint) b.ArchiveFlags);
-                    //Equal((uint) a.FileFlags, (uint) b.FileFlags);
-
                     // Check same number of files
                     Assert.AreEqual(a.Files.Count(), b.Files.Count());
                     var idx = 0;
-                    foreach (var pair in a.Files.Zip(b.Files, (ai, bi) => (ai, bi)))
-                    {
-                        idx++;
-                        Assert.AreEqual(JsonConvert.SerializeObject(pair.ai.State),
-                            JsonConvert.SerializeObject(pair.bi.State));
-                        //Console.WriteLine($"   - {pair.ai.Path}");
-                        Assert.AreEqual(pair.ai.Path, pair.bi.Path);
-                        //Equal(pair.ai.Compressed, pair.bi.Compressed);
-                        Assert.AreEqual(pair.ai.Size, pair.bi.Size);
-                        CollectionAssert.AreEqual(await GetData(pair.ai), await GetData(pair.bi));
-                    }
+
+                    await a.Files.Zip(b.Files, (ai, bi) => (ai, bi))
+                                .UnorderedParallelDo(async pair =>
+                                {
+                                    idx++;
+                                    Assert.AreEqual(JsonConvert.SerializeObject(pair.ai.State),
+                                        JsonConvert.SerializeObject(pair.bi.State));
+                                    //Console.WriteLine($"   - {pair.ai.Path}");
+                                    Assert.AreEqual(pair.ai.Path, pair.bi.Path);
+                                    //Equal(pair.ai.Compressed, pair.bi.Compressed);
+                                    Assert.AreEqual(pair.ai.Size, pair.bi.Size);
+                                    CollectionAssert.AreEqual(await GetData(pair.ai), await GetData(pair.bi));
+                                });
                 }
             }
         }

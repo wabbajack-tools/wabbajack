@@ -75,6 +75,10 @@
       <Project>{b3f3fb6e-b9eb-4f49-9875-d78578bc7ae5}</Project>
       <Name>Wabbajack.Common</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Wabbajack.CSP\Wabbajack.Common.CSP.csproj">
+      <Project>{9E69BC98-1512-4977-B683-6E7E5292C0B8}</Project>
+      <Name>Wabbajack.Common.CSP</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj">
       <Project>{0a820830-a298-497d-85e0-e9a89efef5fe}</Project>
       <Name>Wabbajack.Lib</Name>

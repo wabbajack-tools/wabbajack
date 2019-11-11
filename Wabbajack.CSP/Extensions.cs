@@ -61,6 +61,19 @@ namespace Wabbajack.Common.CSP
             return to;
         }
 
+        public static async Task UnorderedParallelDo<T>(this IEnumerable<T> coll, Func<T, Task> f)
+        {
+            var sink = Channel.CreateSink<bool>();
+            await coll.ToChannel()
+                .UnorderedPipeline(Environment.ProcessorCount,
+                    sink,
+                    async itm =>
+                    {
+                        await f(itm);
+                        return true;
+                    });
+        }
+
         /// <summary>
         /// Takes all the values from chan, once the channel closes returns a List of the values taken.
         /// </summary>
