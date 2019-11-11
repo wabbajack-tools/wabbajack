@@ -21,7 +21,6 @@ namespace Wabbajack.Lib
 
         public GameMetaData GameInfo { get; internal set; }
 
-        public string VortexFolder { get; set; }
         public string StagingFolder { get; set; }
         public string DownloadFolder { get; set; }
 
@@ -38,10 +37,6 @@ namespace Wabbajack.Lib
             IgnoreMissingFiles = true;
 
             GameInfo = GameRegistry.Games[ModList.GameType];
-
-            VortexFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vortex");
-            StagingFolder = Path.Combine(VortexFolder, GameInfo.NexusName, "mods");
-            DownloadFolder = Path.Combine(VortexFolder, "downloads", GameInfo.NexusName);
         }
 
         public void Info(string msg)

@@ -322,7 +322,11 @@ namespace Wabbajack
             InstallingMode = true;
             if (ModList.ModManager == ModManager.Vortex)
             {
-                var installer = new VortexInstaller(ModListPath, ModList.SourceModList);
+                var installer = new VortexInstaller(ModListPath, ModList.SourceModList)
+                {
+                    StagingFolder = StagingLocation,
+                    DownloadFolder = DownloadLocation
+                };
                 var th = new Thread(() =>
                 {
                     try
