@@ -88,20 +88,6 @@
     <Compile Include="BSDiff.cs" />
     <Compile Include="ChildProcessTracker.cs" />
     <Compile Include="Consts.cs" />
-    <Compile Include="CSP\AChannel.cs" />
-    <Compile Include="CSP\Channel.cs" />
-    <Compile Include="CSP\CSPExtensions.cs" />
-    <Compile Include="CSP\FixedSizeBuffer.cs" />
-    <Compile Include="CSP\IBuffer.cs" />
-    <Compile Include="CSP\Handler.cs" />
-    <Compile Include="CSP\IChannel.cs" />
-    <Compile Include="CSP\EnumeratorBuffer.cs" />
-    <Compile Include="CSP\ManyToManyChannel.cs" />
-    <Compile Include="CSP\Pipelines.cs" />
-    <Compile Include="CSP\PutTaskHandler.cs" />
-    <Compile Include="CSP\RingBuffer.cs" />
-    <Compile Include="CSP\RxBuffer.cs" />
-    <Compile Include="CSP\TakeTaskHandler.cs" />
     <Compile Include="DynamicIniData.cs" />
     <Compile Include="Error States\ErrorResponse.cs" />
     <Compile Include="Error States\GetResponse.cs" />
@@ -123,12 +109,15 @@
     <EmbeddedResource Include="7z.dll.gz" />
     <EmbeddedResource Include="7z.exe.gz" />
     <None Include="app.config" />
-    <None Include="CSP\CSP Readme.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj">
       <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
       <Name>Compression.BSA</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Wabbajack.CSP\Wabbajack.Common.CSP.csproj">
+      <Project>{9E69BC98-1512-4977-B683-6E7E5292C0B8}</Project>
+      <Name>Wabbajack.Common.CSP</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

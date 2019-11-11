@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
@@ -449,7 +450,7 @@ namespace Wabbajack.Lib
                     using (var output = new MemoryStream())
                     {
                         var a = origin.ReadAll();
-                        var b = LoadDataForTo(entry.To, absolute_paths);
+                        var b = LoadDataForTo(entry.To, absolute_paths).Result;
                         Utils.CreatePatch(a, b, output);
                         entry.PatchID = IncludeFile(output.ToArray());
                         var file_size = File.GetSize(Path.Combine(ModListOutputFolder, entry.PatchID));
@@ -459,7 +460,7 @@ namespace Wabbajack.Lib
             }
         }
 
-        private byte[] LoadDataForTo(string to, Dictionary<string, string> absolute_paths)
+        private async Task<byte[]> LoadDataForTo(string to, Dictionary<string, string> absolute_paths)
         {
             if (absolute_paths.TryGetValue(to, out var absolute))
                 return File.ReadAllBytes(absolute);
@@ -469,13 +470,13 @@ namespace Wabbajack.Lib
                 var bsa_id = to.Split('\\')[1];
                 var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsa_id);
 
-                using (var a = BSADispatch.OpenRead(Path.Combine(MO2Folder, bsa.To)))
+                using (var a = await BSADispatch.OpenRead(Path.Combine(MO2Folder, bsa.To)))
                 {
                     var find = Path.Combine(to.Split('\\').Skip(2).ToArray());
                     var file = a.Files.First(e => e.Path.Replace('/', '\\') == find);
                     using (var ms = new MemoryStream())
                     {
-                        file.CopyDataTo(ms);
+                        await file.CopyDataToAsync(ms);
                         return ms.ToArray();
                     }
                 }

@@ -59,21 +59,24 @@ namespace Compression.BSA.Test
 
         private static string DownloadMod((Game, int) info)
         {
-            var client = new NexusApiClient();
-            var results = client.GetModFiles(info.Item1, info.Item2);
-            var file = results.FirstOrDefault(f => f.is_primary) ?? results.OrderByDescending(f => f.uploaded_timestamp).First();
-            var src = Path.Combine(StagingFolder, file.file_name);
-
-            if (File.Exists(src)) return src;
-            
-            var state = new NexusDownloader.State
+            using (var client = new NexusApiClient())
             {
-                ModID = info.Item2.ToString(),
-                GameName = GameRegistry.Games[info.Item1].NexusName,
-                FileID = file.file_id.ToString()
-            };
-            state.Download(src);
-            return src;
+                var results = client.GetModFiles(info.Item1, info.Item2);
+                var file = results.FirstOrDefault(f => f.is_primary) ??
+                           results.OrderByDescending(f => f.uploaded_timestamp).First();
+                var src = Path.Combine(StagingFolder, file.file_name);
+
+                if (File.Exists(src)) return src;
+
+                var state = new NexusDownloader.State
+                {
+                    ModID = info.Item2.ToString(),
+                    GameName = GameRegistry.Games[info.Item1].NexusName,
+                    FileID = file.file_id.ToString()
+                };
+                state.Download(src);
+                return src;
+            }
         }
 
         public static IEnumerable<object[]> BSAs()
@@ -86,7 +89,7 @@ namespace Compression.BSA.Test
         [TestMethod]
         [DataTestMethod]
         [DynamicData(nameof(BSAs), DynamicDataSourceType.Method)]
-        public void BSACompressionRecompression(string bsa)
+        public async Task BSACompressionRecompression(string bsa)
         {
             TestContext.WriteLine($"From {bsa}");
             TestContext.WriteLine("Cleaning Output Dir");
@@ -95,9 +98,9 @@ namespace Compression.BSA.Test
             Directory.CreateDirectory(TempDir);
 
             TestContext.WriteLine($"Reading {bsa}");
-            using (var a = BSADispatch.OpenRead(bsa))
+            using (var a = await BSADispatch.OpenRead(bsa))
             {
-                Parallel.ForEach(a.Files, file =>
+                foreach (var file in a.Files)
                 {
                     var abs_name = Path.Combine(TempDir, file.Path);
                     ViaJson(file.State);
@@ -108,51 +111,29 @@ namespace Compression.BSA.Test
 
                     using (var fs = File.OpenWrite(abs_name))
                     {
-                        file.CopyDataTo(fs);
+                        await file.CopyDataToAsync(fs);
                     }
-
-
                     Assert.AreEqual(file.Size, new FileInfo(abs_name).Length);
-
-                });
-
-                /*
-                Console.WriteLine("Extracting via Archive.exe");
-                if (bsa.ToLower().EndsWith(".ba2"))
-                {
-                    var p = Process.Start(Archive2Location, $"\"{bsa}\" -e=\"{ArchiveTempDir}\"");
-                    p.WaitForExit();
-
-                    foreach (var file in a.Files)
-                    {
-                        var a_path = Path.Combine(TempDir, file.Path);
-                        var b_path = Path.Combine(ArchiveTempDir, file.Path);
-                        Equal(new FileInfo(a_path).Length, new FileInfo(b_path).Length);
-                        Equal(File.ReadAllBytes(a_path), File.ReadAllBytes(b_path));
-                    }
-                }*/
-
+                }
 
                 Console.WriteLine($"Building {bsa}");
                 string TempFile = Path.Combine("tmp.bsa");
 
                 using (var w = ViaJson(a.State).MakeBuilder())
                 {
-
-                    Parallel.ForEach(a.Files, file =>
+                    foreach(var file in a.Files)
                     {
                         var abs_path = Path.Combine(TempDir, file.Path);
                         using (var str = File.OpenRead(abs_path))
                         {
-                            w.AddFile(ViaJson(file.State), str);
+                            await w.AddFile(ViaJson(file.State), str);
                         }
-                    });
-
-                    w.Build(TempFile);
+                    }
+                    await w.Build(TempFile);
                 }
 
                 Console.WriteLine($"Verifying {bsa}");
-                using (var b = BSADispatch.OpenRead(TempFile))
+                using (var b = await BSADispatch.OpenRead(TempFile))
                 {
 
                     Console.WriteLine($"Performing A/B tests on {bsa}");
@@ -173,17 +154,17 @@ namespace Compression.BSA.Test
                         Assert.AreEqual(pair.ai.Path, pair.bi.Path);
                         //Equal(pair.ai.Compressed, pair.bi.Compressed);
                         Assert.AreEqual(pair.ai.Size, pair.bi.Size);
-                        CollectionAssert.AreEqual(GetData(pair.ai), GetData(pair.bi));
+                        CollectionAssert.AreEqual(await GetData(pair.ai), await GetData(pair.bi));
                     }
                 }
             }
         }
 
-        private static byte[] GetData(IFile pairAi)
+        private static async Task<byte[]> GetData(IFile pairAi)
         {
             using (var ms = new MemoryStream())
             {
-                pairAi.CopyDataTo(ms);
+                await pairAi.CopyDataToAsync(ms);
                 return ms.ToArray();
             }
         }

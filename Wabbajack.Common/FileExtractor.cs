@@ -2,10 +2,12 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.GZip;
 using OMODFramework;
+using Wabbajack.Common.CSP;
 
 namespace Wabbajack.Common
 {
@@ -36,7 +38,7 @@ namespace Wabbajack.Common
             try
             {
                 if (Consts.SupportedBSAs.Any(b => source.ToLower().EndsWith(b)))
-                    ExtractAllWithBSA(source, dest);
+                    ExtractAllWithBSA(source, dest).Wait();
                 else if (source.EndsWith(".exe"))
                     ExtractAllWithInno(source, dest);
                 else if (source.EndsWith(".omod"))
@@ -61,29 +63,34 @@ namespace Wabbajack.Common
             omod.ExtractPlugins();
         }
 
-        private static void ExtractAllWithBSA(string source, string dest)
+        private static async Task ExtractAllWithBSA(string source, string dest)
         {
             try
             {
-                using (var arch = BSADispatch.OpenRead(source))
+                using (var arch = await BSADispatch.OpenRead(source))
                 {
-                    arch.Files.PMap(f =>
-                    {
-                        var path = f.Path;
-                        if (f.Path.StartsWith("\\"))
-                            path = f.Path.Substring(1);
-                        Utils.Status($"Extracting {path}");
-                        var out_path = Path.Combine(dest, path);
-                        var parent = Path.GetDirectoryName(out_path);
+                    await arch.Files.ToChannel()
+                                    .UnorderedPipeline(
+                                        Channel.CreateSink<IFile>(), 
+                                        async f =>
+                                    {
+                                        var path = f.Path;
+                                        if (f.Path.StartsWith("\\"))
+                                            path = f.Path.Substring(1);
+                                        Utils.Status($"Extracting {path}");
+                                        var out_path = Path.Combine(dest, path);
+                                        var parent = Path.GetDirectoryName(out_path);
 
-                        if (!Directory.Exists(parent))
-                            Directory.CreateDirectory(parent);
+                                        if (!Directory.Exists(parent))
+                                            Directory.CreateDirectory(parent);
 
-                        using (var fs = File.OpenWrite(out_path))
-                        {
-                            f.CopyDataTo(fs);
-                        }
-                    });
+                                        using (var fs = File.OpenWrite(out_path))
+                                        {
+                                            await f.CopyDataToAsync(fs);
+                                        }
+
+                                        return f;
+                                    });
                 }
             }
             catch (Exception ex)
