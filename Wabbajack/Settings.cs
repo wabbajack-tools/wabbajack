@@ -53,6 +53,7 @@ namespace Wabbajack
     public class InstallationSettings
     {
         public string InstallationLocation { get; set; }
+        public string StagingLocation { get; set; }
         public string DownloadLocation { get; set; }
     }
 

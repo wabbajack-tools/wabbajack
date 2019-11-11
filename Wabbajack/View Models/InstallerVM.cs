@@ -129,12 +129,15 @@ namespace Wabbajack
             };
 
             // Load settings
-            InstallationSettings settings = this.MWVM.Settings.InstallationSettings.TryCreate(source);
+            var settings = MWVM.Settings.InstallationSettings.TryCreate(source);
             this.MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
                 {
-                    settings.InstallationLocation = this.Location.TargetPath;
-                    settings.DownloadLocation = this.DownloadLocation.TargetPath;
+                    settings.DownloadLocation = DownloadLocation.TargetPath;
+                    if (IsMO2ModList)
+                        settings.InstallationLocation = Location.TargetPath;
+                    else
+                        settings.StagingLocation = StagingLocation.TargetPath;
                 })
                 .DisposeWith(this.CompositeDisposable);
 
@@ -163,6 +166,8 @@ namespace Wabbajack
                     if (modList.ModManager == ModManager.Vortex)
                     {
                         IsMO2ModList = false;
+                        StagingLocation.TargetPath = settings.StagingLocation;
+
                         var vortexFolder =
                             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                                 "Vortex");
