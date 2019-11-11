@@ -202,7 +202,7 @@ namespace Wabbajack
                 var compiler = new VortexCompiler(args[1], args[2]);
                 await Task.Run(() =>
                 {
-                    UIReady = false;
+                    Compiling = false;
                     try
                     {
                         compiler.Compile();
@@ -214,53 +214,50 @@ namespace Wabbajack
                     }
                     finally
                     {
-                        UIReady = true;
+                        Compiling = true;
                     }
                 });
             }else{
-                if (this.Mo2Folder != null)
+                Compiler compiler;
+                try {
+                compiler = new Compiler(this.Mo2Folder)
                 {
-                    Compiler compiler;
-                    try {
-                    compiler = new Compiler(this.Mo2Folder)
+                    MO2Profile = this.MOProfile,
+                    ModListName = this.ModListName,
+                    ModListAuthor = this.AuthorText,
+                    ModListDescription = this.Description,
+                    ModListImage = this.ImagePath.TargetPath,
+                    ModListWebsite = this.Website,
+                    ModListReadme = this.ReadMeText.TargetPath,
+                };
+                }
+                catch (Exception ex)
+                {
+                    while (ex.InnerException != null) ex = ex.InnerException;
+                    Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                    return;
+                }
+                await Task.Run(() =>
+                {
+                    Compiling = true;
+                    try
                     {
-                        MO2Profile = this.MOProfile,
-                        ModListName = this.ModListName,
-                        ModListAuthor = this.AuthorText,
-                        ModListDescription = this.Description,
-                        ModListImage = this.ImagePath.TargetPath,
-                        ModListWebsite = this.Website,
-                        ModListReadme = this.ReadMeText.TargetPath,
-                    };
+                        compiler.Compile();
+                        if (compiler.ModList?.ReportHTML != null)
+                        {
+                            this.HTMLReport = compiler.ModList.ReportHTML;
+                        }
                     }
                     catch (Exception ex)
                     {
                         while (ex.InnerException != null) ex = ex.InnerException;
                         Utils.Log($"Compiler error: {ex.ExceptionToString()}");
-                        return;
                     }
-                    await Task.Run(() =>
+                    finally
                     {
-                        Compiling = true;
-                        try
-                        {
-                            compiler.Compile();
-                            if (compiler.ModList?.ReportHTML != null)
-                            {
-                                this.HTMLReport = compiler.ModList.ReportHTML;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            while (ex.InnerException != null) ex = ex.InnerException;
-                            Utils.Log($"Compiler error: {ex.ExceptionToString()}");
-                        }
-                        finally
-                        {
-                            Compiling = false;
-                        }
-                    });
-                }
+                        Compiling = false;
+                    }
+                });
             }
         }
     }
