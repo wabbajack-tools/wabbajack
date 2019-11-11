@@ -134,6 +134,7 @@ namespace Compression.BSA.Test
 
 
                 Console.WriteLine($"Building {bsa}");
+                string TempFile = Path.Combine("tmp.bsa");
 
                 using (var w = ViaJson(a.State).MakeBuilder())
                 {
@@ -147,11 +148,11 @@ namespace Compression.BSA.Test
                         }
                     });
 
-                    w.Build("c:\\tmp\\tmp.bsa");
+                    w.Build(TempFile);
                 }
 
                 Console.WriteLine($"Verifying {bsa}");
-                using (var b = BSADispatch.OpenRead("c:\\tmp\\tmp.bsa"))
+                using (var b = BSADispatch.OpenRead(TempFile))
                 {
 
                     Console.WriteLine($"Performing A/B tests on {bsa}");
