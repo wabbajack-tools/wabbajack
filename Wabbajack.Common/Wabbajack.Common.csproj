@@ -85,17 +85,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AsyncWorkQueue.cs" />
-    <Compile Include="AsyncWorkQueueExtensions.cs" />
     <Compile Include="BSDiff.cs" />
     <Compile Include="ChildProcessTracker.cs" />
     <Compile Include="Consts.cs" />
     <Compile Include="CSP\AChannel.cs" />
-    <Compile Include="CSP\Box.cs" />
     <Compile Include="CSP\Channel.cs" />
     <Compile Include="CSP\CSPExtensions.cs" />
     <Compile Include="CSP\FixedSizeBuffer.cs" />
-    <Compile Include="CSP\FnHandler.cs" />
     <Compile Include="CSP\IBuffer.cs" />
     <Compile Include="CSP\Handler.cs" />
     <Compile Include="CSP\IChannel.cs" />
