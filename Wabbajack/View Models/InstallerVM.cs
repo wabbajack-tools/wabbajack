@@ -263,12 +263,15 @@ namespace Wabbajack
                 execute: this.ExecuteBegin,
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.Installing),
-                        this.WhenAny(x => x.Location.InError),
-                        this.WhenAny(x => x.DownloadLocation.InError),
-                        resultSelector: (installing, loc, download) =>
+                        this.WhenAny(x => x.LocationError.InError),
+                        this.WhenAny(x => x.DownloadLocationError.InError),
+                        this.WhenAny(x => x.StagingLocationError.InError),
+                        resultSelector: (installing, loc, download, staging) =>
                         {
                             if (installing) return false;
-                            return !loc && !download;
+                            if (IsMO2ModList)
+                                return !loc && !download;
+                            return !loc && !staging;
                         })
                     .ObserveOnGuiThread());
             this.VisitWebsiteCommand = ReactiveCommand.Create(
