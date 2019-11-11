@@ -163,11 +163,26 @@ namespace Wabbajack
                     if (modList.ModManager == ModManager.Vortex)
                     {
                         IsMO2ModList = false;
+                        var vortexFolder =
+                            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                                "Vortex");
+                        var stagingFolder = Path.Combine(vortexFolder, GameRegistry.Games[modList.GameType].NexusName,
+                            "mods");
+                        var downloadFolder = Path.Combine(vortexFolder, "downloads",
+                            GameRegistry.Games[modList.GameType].NexusName);
                         MessageBox.Show(
                             "The ModList you are about to install was compiled from a Vortex installation. " +
                             "Vortex support is still very bleeding edge and installing this ModList WILL OVERRIDE your existing mods. " +
                             "If you encounter any errors during installation go to our discord and ping erri120#2285 with your error and a log file.",
                             "Important information regarding Vortex support", MessageBoxButton.OK, MessageBoxImage.Stop);
+
+                        if (!Directory.Exists(vortexFolder)) return new ModListVM(modList, modListPath);
+                        if (Directory.Exists(stagingFolder) &&
+                            File.Exists(Path.Combine(stagingFolder, "__vortex_staging_folder")))
+                            StagingLocation = stagingFolder;
+                        if (Directory.Exists(Path.Combine(vortexFolder, "downloads")) &&
+                            File.Exists(Path.Combine(vortexFolder, "downloads", "__vortex_downloads_folder")))
+                            DownloadLocation = downloadFolder;
                     }
                     else
                     {
