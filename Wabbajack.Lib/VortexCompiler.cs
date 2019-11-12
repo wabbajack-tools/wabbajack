@@ -21,9 +21,9 @@ namespace Wabbajack.Lib
         public Game Game { get; }
         public string GameName { get; }
 
-        public string VortexFolder { get; }
-        public string StagingFolder { get; }
-        public string DownloadsFolder { get; }
+        public string VortexFolder { get; set; }
+        public string StagingFolder { get; set; }
+        public string DownloadsFolder { get; set; }
 
         public bool IgnoreMissingFiles { get; set; }
 
