@@ -42,7 +42,7 @@ namespace Compression.BSA
             switch (_state.Type)
             {
                 case EntryType.GNRL:
-                    var result = new BA2FileEntryBuilder((BA2FileEntryState)state, src);
+                    var result = await BA2FileEntryBuilder.Create((BA2FileEntryState)state, src);
                     lock(_entries) _entries.Add(result);
                     break;
                 case EntryType.DX10:
@@ -111,10 +111,12 @@ namespace Compression.BSA
             var header_size = DDS.HeaderSizeForFormat((DXGI_FORMAT) state.PixelFormat) + 4;
             new BinaryReader(src).ReadBytes((int)header_size);
 
-            // TODO: Use ordered pipeline here
-            builder._chunks = await state.Chunks.ToChannel()
-                                                .Select(async ch => await ChunkBuilder.Create(state, ch, src))
-                                                .TakeAll();
+            // This can't be parallel because it all runs off the same base IO stream.
+            builder._chunks = new List<ChunkBuilder>();
+
+            foreach (var chunk in state.Chunks)
+                builder._chunks.Add(await ChunkBuilder.Create(state, chunk, src));
+
             return builder;
         }
 
@@ -166,18 +168,19 @@ namespace Compression.BSA
                 builder._data = ms.ToArray();
             }
 
-            if (chunk.Compressed)
+            if (!chunk.Compressed) return builder;
+            
+            using (var ms = new MemoryStream())
             {
-                using (var ms = new MemoryStream())
+                using (var ds = new DeflaterOutputStream(ms))
                 {
-                    using (var ds = new DeflaterOutputStream(ms))
-                    {
-                        ds.Write(builder._data, 0, builder._data.Length);
-                    }
-                    builder._data = ms.ToArray();
+                    ds.Write(builder._data, 0, builder._data.Length);
                 }
-                builder._packSize = (uint)builder._data.Length;
+
+                builder._data = ms.ToArray();
             }
+
+            builder._packSize = (uint) builder._data.Length;
 
             return builder;
         }
@@ -212,15 +215,17 @@ namespace Compression.BSA
         private BA2FileEntryState _state;
         private long _offsetOffset;
 
-        public BA2FileEntryBuilder(BA2FileEntryState state, Stream src)
+        public static async Task<BA2FileEntryBuilder> Create(BA2FileEntryState state, Stream src)
         {
-            _state = state;
+            var builder = new BA2FileEntryBuilder();
+            builder._state = state;
+
             using (var ms = new MemoryStream())
             {
-                src.CopyTo(ms);
-                _data = ms.ToArray();
+                await src.CopyToAsync(ms);
+                builder._data = ms.ToArray();
             }
-            _rawSize = _data.Length;
+            builder._rawSize = builder._data.Length;
 
             if (state.Compressed)
             {
@@ -228,14 +233,13 @@ namespace Compression.BSA
                 {
                     using (var ds = new DeflaterOutputStream(ms))
                     {
-                        ds.Write(_data, 0, _data.Length);
+                        await ds.WriteAsync(builder._data, 0, builder._data.Length);
                     }
-                    _data = ms.ToArray();
+                    builder._data = ms.ToArray();
                 }
-
-                _size = _data.Length;
+                builder._size = builder._data.Length;
             }
-
+            return builder;
         }
 
         public uint FileHash => _state.NameHash;
