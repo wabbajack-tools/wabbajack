@@ -9,7 +9,7 @@ namespace Wabbajack.Common.CSP
 {
     public static class CSPExtensions
     {
-        public static async Task OntoChannel<TIn, TOut>(this IEnumerable<TIn> coll, IChannel<TIn, TOut> chan)
+        public static async Task OntoChannel<T>(this IEnumerable<T> coll, IWritePort<T> chan)
         {
             foreach (var val in coll)
             {
@@ -24,14 +24,14 @@ namespace Wabbajack.Common.CSP
         /// <typeparam name="T"></typeparam>
         /// <param name="coll">Collection to spool out of the channel.</param>
         /// <returns></returns>
-        public static IChannel<T, T> ToChannel<T>(this IEnumerable<T> coll)
+        public static IReadPort<T> ToChannel<T>(this IEnumerable<T> coll)
         {
             var chan = Channel.Create(coll.GetEnumerator());
             chan.Close();
             return chan;
         }
 
-        public static IChannel<TOut, TOut> Select<TInSrc, TOutSrc, TOut>(this IChannel<TInSrc, TOutSrc> from, Func<TOutSrc, Task<TOut>> f, bool propagateClose = true)
+        public static IReadPort<TOut> Select<TIn, TOut>(this IReadPort<TIn> from, Func<TIn, Task<TOut>> f, bool propagateClose = true)
         {
             var to = Channel.Create<TOut>(4);
             Task.Run(async () =>
@@ -81,9 +81,9 @@ namespace Wabbajack.Common.CSP
         /// <typeparam name="TIn"></typeparam>
         /// <param name="chan"></param>
         /// <returns></returns>
-        public static async Task<List<TOut>> TakeAll<TOut, TIn>(this IChannel<TIn, TOut> chan)
+        public static async Task<List<T>> TakeAll<T>(this IReadPort<T> chan)
         {
-            List<TOut> acc = new List<TOut>();
+            List<T> acc = new List<T>();
             while (true)
             {
                 var (open, val) = await chan.Take();
@@ -106,7 +106,7 @@ namespace Wabbajack.Common.CSP
         /// <param name="to">destination channel</param>
         /// <param name="closeOnFinished">Tf true, will close the other channel when one channel closes</param>
         /// <returns></returns>
-        public static async Task Pipe<TIn, TMid, TOut>(this IChannel<TIn, TMid> from, IChannel<TMid, TOut> to, bool closeOnFinished = true)
+        public static async Task Pipe<T>(this IReadPort<T> from, IWritePort<T> to, bool closeOnFinished = true)
         {
             while (true)
             {

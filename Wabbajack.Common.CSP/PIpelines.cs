@@ -29,17 +29,17 @@ namespace Wabbajack.Common.CSP
         /// <param name="transform"></param>
         /// <param name="propagateClose"></param>
         /// <returns></returns>
-        public static async Task UnorderedPipeline<TInSrc, TOutSrc, TInDest, TOutDest>(
-            this IChannel<TInSrc, TOutSrc> from,
+        public static async Task UnorderedPipeline<TIn, TOut>(
+            this IReadPort<TIn> from,
             int parallelism,
-            IChannel<TInDest, TOutDest> to,
-            Func<IObservable<TOutSrc>, IObservable<TInDest>> transform,
+            IWritePort<TOut> to,
+            Func<IObservable<TIn>, IObservable<TOut>> transform,
             bool propagateClose = true)
         {
             async Task Pump()
             {
-                var pipeline = new Subject<TOutSrc>();
-                var buffer = new List<TInDest>();
+                var pipeline = new Subject<TIn>();
+                var buffer = new List<TOut>();
                 var dest = transform(pipeline);
                 dest.Subscribe(itm => buffer.Add(itm));
                 while (true)
@@ -82,20 +82,20 @@ namespace Wabbajack.Common.CSP
 
         }
 
-        public static async Task UnorderedPipeline<TInSrc, TOutSrc, TInDest, TOutDest>(
-            this IChannel<TInSrc, TOutSrc> from,
-            IChannel<TInDest, TOutDest> to,
-            Func<TOutSrc, Task<TInDest>> f,
+        public static async Task UnorderedPipeline<TIn, TOut>(
+            this IReadPort<TIn> from,
+            IWritePort<TOut> to,
+            Func<TIn, Task<TOut>> f,
             bool propagateClose = true)
         {
             await UnorderedPipeline(from, Environment.ProcessorCount, to, f, propagateClose);
         }
 
-        public static async Task UnorderedPipeline<TInSrc, TOutSrc, TInDest, TOutDest>(
-            this IChannel<TInSrc, TOutSrc> from,
+        public static async Task UnorderedPipeline<TIn, TOut>(
+            this IReadPort<TIn> from,
             int parallelism,
-            IChannel<TInDest, TOutDest> to,
-            Func<TOutSrc, Task<TInDest>> f,
+            IWritePort<TOut> to,
+            Func<TIn, Task<TOut>> f,
             bool propagateClose = true)
         {
             async Task Pump()
@@ -121,11 +121,11 @@ namespace Wabbajack.Common.CSP
 
         }
 
-        public static async Task UnorderedThreadedPipeline<TInSrc, TOutSrc, TInDest, TOutDest>(
-            this IChannel<TInSrc, TOutSrc> from,
+        public static async Task UnorderedThreadedPipeline<TIn, TOut>(
+            this IReadPort<TIn> from,
             int parallelism,
-            IChannel<TInDest, TOutDest> to,
-            Func<TOutSrc, TInDest> f,
+            IWritePort<TOut> to,
+            Func<TIn, TOut> f,
             bool propagateClose = true)
         {
             Task Pump()

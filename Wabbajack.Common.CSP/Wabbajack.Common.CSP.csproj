@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AChannel.cs" />
+    <Compile Include="AsyncResult.cs" />
     <Compile Include="Channel.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="EnumeratorBuffer.cs" />
@@ -64,6 +65,9 @@
     <Compile Include="Handler.cs" />
     <Compile Include="IBuffer.cs" />
     <Compile Include="IChannel.cs" />
+    <Compile Include="ICloseable.cs" />
+    <Compile Include="IReadPort.cs" />
+    <Compile Include="IWritePort.cs" />
     <Compile Include="ManyToManyChannel.cs" />
     <Compile Include="PIpelines.cs" />
     <Compile Include="PutTaskHandler.cs" />

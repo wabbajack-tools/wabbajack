@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace Wabbajack.Common.CSP
 {
-    public interface IChannel<TIn, TOut> : IReadPort<TOut>, IWritePort<TIn>
+    public interface ICloseable
     {
+        bool IsClosed { get; }
+        void Close();
     }
 }
