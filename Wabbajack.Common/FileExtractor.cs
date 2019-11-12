@@ -33,18 +33,16 @@ namespace Wabbajack.Common
         }
 
 
-        public static void ExtractAll(string source, string dest)
+        public static async Task ExtractAll(string source, string dest)
         {
             try
             {
                 if (Consts.SupportedBSAs.Any(b => source.ToLower().EndsWith(b)))
-                    ExtractAllWithBSA(source, dest).Wait();
-                else if (source.EndsWith(".exe"))
-                    ExtractAllWithInno(source, dest);
+                    await ExtractAllWithBSA(source, dest);
                 else if (source.EndsWith(".omod"))
-                    ExtractAllWithOMOD(source, dest);
+                    await ExtractAllWithOMOD(source, dest);
                 else
-                    ExtractAllWith7Zip(source, dest);
+                    await ExtractAllWith7Zip(source, dest);
             }
             catch (Exception ex)
             {
@@ -53,14 +51,18 @@ namespace Wabbajack.Common
             }
         }
 
-        private static void ExtractAllWithOMOD(string source, string dest)
+        private static Task ExtractAllWithOMOD(string source, string dest)
         {
-            Utils.Log($"Extracting {Path.GetFileName(source)}");
-            var f = new Framework();
-            f.SetTempDirectory(dest);
-            var omod = new OMOD(source, ref f);
-            omod.ExtractDataFiles();
-            omod.ExtractPlugins();
+            return CSPExtensions.ThreadedTask(() =>
+            {
+                Utils.Log($"Extracting {Path.GetFileName(source)}");
+                var f = new Framework();
+                f.SetTempDirectory(dest);
+                var omod = new OMOD(source, ref f);
+                omod.ExtractDataFiles();
+                omod.ExtractPlugins();
+                return dest;
+            });
         }
 
         private static async Task ExtractAllWithBSA(string source, string dest)
@@ -100,7 +102,7 @@ namespace Wabbajack.Common
             }
         }
 
-        private static void ExtractAllWith7Zip(string source, string dest)
+        private static async Task ExtractAllWith7Zip(string source, string dest)
         {
             Utils.Log($"Extracting {Path.GetFileName(source)}");
 
@@ -135,73 +137,14 @@ namespace Wabbajack.Common
             {
                 while (!p.HasExited)
                 {
-                    var line = p.StandardOutput.ReadLine();
+                    var line = await p.StandardOutput.ReadLineAsync();
                     if (line == null)
                         break;
-                    var percent = 0;
-                    if (line.Length > 4 && line[3] == '%')
-                    {
-                        int.TryParse(line.Substring(0, 3), out percent);
-                        Utils.Status($"Extracting {name} - {line.Trim()}", percent);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-
-            p.WaitForExit();
-            if (p.ExitCode != 0)
-            {
-                Utils.Log(p.StandardOutput.ReadToEnd());
-                Utils.Log($"Extraction error extracting {source}");
-            }
-        }
-
-        private static void ExtractAllWithInno(string source, string dest)
-        {
-            Utils.Log($"Extracting {Path.GetFileName(source)}");
-
-            var info = new ProcessStartInfo
-            {
-                FileName = "innounp.exe",
-                Arguments = $"-x -y -b -d\"{dest}\" \"{source}\"",
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            var p = new Process
-            {
-                StartInfo = info
-            };
-
-            p.Start();
-            ChildProcessTracker.AddProcess(p);
-            try
-            {
-                p.PriorityClass = ProcessPriorityClass.BelowNormal;
-            }
-            catch (Exception)
-            {
-            }
-
-            var name = Path.GetFileName(source);
-            try
-            {
-                while (!p.HasExited)
-                {
-                    var line = p.StandardOutput.ReadLine();
-                    if (line == null)
-                        break;
-                    var percent = 0;
-                    if (line.Length > 4 && line[3] == '%')
-                    {
-                        int.TryParse(line.Substring(0, 3), out percent);
-                        Utils.Status($"Extracting {name} - {line.Trim()}", percent);
-                    }
+                    
+                    if (line.Length <= 4 || line[3] != '%') continue;
+                    
+                    int.TryParse(line.Substring(0, 3), out var percent);
+                    Utils.Status($"Extracting {name} - {line.Trim()}", percent);
                 }
             }
             catch (Exception)
@@ -225,12 +168,6 @@ namespace Wabbajack.Common
         {
             v = v.ToLower();
             return Consts.SupportedArchives.Contains(v) || Consts.SupportedBSAs.Contains(v);
-        }
-
-        public class Entry
-        {
-            public string Name;
-            public ulong Size;
         }
     }
 }

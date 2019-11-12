@@ -28,7 +28,7 @@ namespace Compression.BSA.Test
         public TestContext TestContext { get; set; }
 
         [ClassInitialize]
-        public static void Setup(TestContext TestContext)
+        public static async Task Setup(TestContext TestContext)
         {
 
             Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f));
@@ -46,15 +46,14 @@ namespace Compression.BSA.Test
                 (Game.Fallout4, 22223) // 10mm SMG
             };
 
-            mod_ids.Do(info =>
+            foreach (var info in mod_ids)
             {
                 var filename = DownloadMod(info);
                 var folder = Path.Combine(BSAFolder, info.Item1.ToString(), info.Item2.ToString());
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
-                FileExtractor.ExtractAll(filename, folder);
-            });
-
+                await FileExtractor.ExtractAll(filename, folder);
+            }
         }
 
         private static string DownloadMod((Game, int) info)

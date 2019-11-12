@@ -368,7 +368,7 @@ namespace VFS
             var tmp_dir = Path.Combine(_stagedRoot, Guid.NewGuid().ToString());
             Utils.Status($"Extracting Archive {Path.GetFileName(f.StagedPath)}");
 
-            FileExtractor.ExtractAll(f.StagedPath, tmp_dir);
+            FileExtractor.ExtractAll(f.StagedPath, tmp_dir).Wait();
 
 
             Utils.Status($"Updating Archive {Path.GetFileName(f.StagedPath)}");
@@ -422,7 +422,7 @@ namespace VFS
             foreach (var group in grouped)
             {
                 var tmp_path = Path.Combine(_stagedRoot, Guid.NewGuid().ToString());
-                FileExtractor.ExtractAll(group.Key.StagedPath, tmp_path);
+                FileExtractor.ExtractAll(group.Key.StagedPath, tmp_path).Wait();
                 Paths.Add(tmp_path);
                 foreach (var file in group)
                     file._stagedPath = Path.Combine(tmp_path, file.Paths[group.Key.Paths.Length]);
