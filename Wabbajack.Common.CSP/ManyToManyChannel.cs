@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.ServiceModel;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Threading.Tasks.Sources;
-using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
-using ICSharpCode.SharpZipLib.Zip;
-using YamlDotNet.Serialization.NodeTypeResolvers;
 
 namespace Wabbajack.Common.CSP
 {

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Subjects;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms.VisualStyles;
 
 namespace Wabbajack.Common.CSP
 {
@@ -33,6 +31,48 @@ namespace Wabbajack.Common.CSP
             return chan;
         }
 
+        public static IChannel<TOut, TOut> Select<TInSrc, TOutSrc, TOut>(this IChannel<TInSrc, TOutSrc> from, Func<TOutSrc, Task<TOut>> f, bool propagateClose = true)
+        {
+            var to = Channel.Create<TOut>(4);
+            Task.Run(async () =>
+            {
+                try
+                {
+                    while (true)
+                    {
+                        var (is_open_src, val) = await from.Take();
+                        if (!is_open_src) break;
+
+                        var is_open_dest = await to.Put(await f(val));
+                        if (!is_open_dest) break;
+                    }
+
+                }
+                finally
+                {
+                    if (propagateClose)
+                    {
+                        from.Close();
+                        to.Close();
+                    }
+                }
+            });
+
+            return to;
+        }
+
+        public static async Task UnorderedParallelDo<T>(this IEnumerable<T> coll, Func<T, Task> f)
+        {
+            var sink = Channel.CreateSink<bool>();
+            await coll.ToChannel()
+                .UnorderedPipeline(Environment.ProcessorCount,
+                    sink,
+                    async itm =>
+                    {
+                        await f(itm);
+                        return true;
+                    });
+        }
 
         /// <summary>
         /// Takes all the values from chan, once the channel closes returns a List of the values taken.

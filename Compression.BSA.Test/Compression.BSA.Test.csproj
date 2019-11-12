@@ -58,9 +58,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ReactiveUI">
-      <HintPath>..\..\..\Users\tbald\.nuget\packages\reactiveui\10.5.7\lib\net461\ReactiveUI.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Transactions" />
@@ -73,6 +70,10 @@
     <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj">
       <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
       <Name>Compression.BSA</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj">
+      <Project>{9e69bc98-1512-4977-b683-6e7e5292c0b8}</Project>
+      <Name>Wabbajack.Common.CSP</Name>
     </ProjectReference>
     <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj">
       <Project>{b3f3fb6e-b9eb-4f49-9875-d78578bc7ae5}</Project>

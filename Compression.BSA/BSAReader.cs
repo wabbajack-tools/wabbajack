@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Compression.LZ4.Streams;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -302,7 +303,7 @@ namespace Compression.BSA
             _name = rdr.ReadStringTerm(_bsa.HeaderType);
         }
 
-        public void CopyDataTo(Stream output)
+        public async Task CopyDataToAsync(Stream output)
         {
             using (var in_file = File.OpenRead(_bsa._fileName))
             using (var rdr = new BinaryReader(in_file))
@@ -314,11 +315,11 @@ namespace Compression.BSA
                     if (Compressed)
                     {
                         var r = LZ4Stream.Decode(rdr.BaseStream);
-                        r.CopyToLimit(output, (int) _originalSize);
+                        await r.CopyToLimitAsync(output, (int) _originalSize);
                     }
                     else
                     {
-                        rdr.BaseStream.CopyToLimit(output, (int) _onDiskSize);
+                        await rdr.BaseStream.CopyToLimitAsync(output, (int) _onDiskSize);
                     }
                 }
                 else
@@ -326,18 +327,18 @@ namespace Compression.BSA
                     if (Compressed)
                         using (var z = new InflaterInputStream(rdr.BaseStream))
                         {
-                            z.CopyToLimit(output, (int) _originalSize);
+                            await z.CopyToLimitAsync(output, (int) _originalSize);
                         }
                     else
-                        rdr.BaseStream.CopyToLimit(output, (int) _onDiskSize);
+                        await rdr.BaseStream.CopyToLimitAsync(output, (int) _onDiskSize);
                 }
             }
         }
 
-        public byte[] GetData()
+        public async Task<byte[]> GetData()
         {
             var ms = new MemoryStream();
-            CopyDataTo(ms);
+            await CopyDataToAsync(ms);
             return ms.ToArray();
         }
     }

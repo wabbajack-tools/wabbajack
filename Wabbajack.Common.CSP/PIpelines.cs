@@ -84,6 +84,15 @@ namespace Wabbajack.Common.CSP
 
         public static async Task UnorderedPipeline<TInSrc, TOutSrc, TInDest, TOutDest>(
             this IChannel<TInSrc, TOutSrc> from,
+            IChannel<TInDest, TOutDest> to,
+            Func<TOutSrc, Task<TInDest>> f,
+            bool propagateClose = true)
+        {
+            await UnorderedPipeline(from, Environment.ProcessorCount, to, f, propagateClose);
+        }
+
+        public static async Task UnorderedPipeline<TInSrc, TOutSrc, TInDest, TOutDest>(
+            this IChannel<TInSrc, TOutSrc> from,
             int parallelism,
             IChannel<TInDest, TOutDest> to,
             Func<TOutSrc, Task<TInDest>> f,

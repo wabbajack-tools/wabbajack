@@ -110,5 +110,11 @@
       <Version>1.2.0</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj">
+      <Project>{9e69bc98-1512-4977-b683-6e7e5292c0b8}</Project>
+      <Name>Wabbajack.Common.CSP</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
