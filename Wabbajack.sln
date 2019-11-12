@@ -30,7 +30,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Test.ListValidati
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compression.BSA.Test", "Compression.BSA.Test\Compression.BSA.Test.csproj", "{9C004392-571A-4D28-A9F6-0E25115E6727}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Common.CSP", "Wabbajack.CSP\Wabbajack.Common.CSP.csproj", "{9E69BC98-1512-4977-B683-6E7E5292C0B8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Common.CSP", "Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj", "{9E69BC98-1512-4977-B683-6E7E5292C0B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

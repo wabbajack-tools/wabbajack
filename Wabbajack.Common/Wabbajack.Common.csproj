@@ -115,8 +115,8 @@
       <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
       <Name>Compression.BSA</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Wabbajack.CSP\Wabbajack.Common.CSP.csproj">
-      <Project>{9E69BC98-1512-4977-B683-6E7E5292C0B8}</Project>
+    <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj">
+      <Project>{9e69bc98-1512-4977-b683-6e7e5292c0b8}</Project>
       <Name>Wabbajack.Common.CSP</Name>
     </ProjectReference>
   </ItemGroup>
