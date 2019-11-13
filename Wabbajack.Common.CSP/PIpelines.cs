@@ -121,6 +121,47 @@ namespace Wabbajack.Common.CSP
 
         }
 
+        public static IReadPort<TOut> UnorderedPipelineSync<TIn, TOut>(
+            this IReadPort<TIn> from,
+            Func<TIn, TOut> f,
+            bool propagateClose = true)
+        {
+            var parallelism = Environment.ProcessorCount;
+            var to = Channel.Create<TOut>(parallelism * 2);
+
+            async Task Pump()
+            {
+                while (true)
+                {
+                    var (is_open, job) = await from.Take();
+                    if (!is_open) break;
+                    try
+                    {
+                        var putIsOpen = await to.Put(f(job));
+                        if (!putIsOpen) return;
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                }
+            }
+
+            Task.Run(async () =>
+            {
+                await Task.WhenAll(Enumerable.Range(0, parallelism)
+                    .Select(idx => Task.Run(Pump)));
+
+                if (propagateClose)
+                {
+                    from.Close();
+                    to.Close();
+                }
+            });
+
+            return to;
+        }
+
         public static async Task UnorderedThreadedPipeline<TIn, TOut>(
             this IReadPort<TIn> from,
             int parallelism,
