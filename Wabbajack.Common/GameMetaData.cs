@@ -18,7 +18,8 @@ namespace Wabbajack.Common
         //VORTEX GAMES
         DarkestDungeon,
         DivinityOriginalSins2,
-        DivinityOriginalSins2DE //definitive edition has its own nexus page but same Steam/GOG ids
+        DivinityOriginalSins2DE, //definitive edition has its own nexus page but same Steam/GOG ids
+        Starbound
     }
 
     public class GameMetaData
@@ -200,6 +201,16 @@ namespace Wabbajack.Common
                     {
                         "%documents%\\Larian Studios\\Divinity Original Sin 2 Definitive Edition\\Mods\\"
                     }
+                }
+            },
+            {
+                Game.Starbound, new GameMetaData
+                {
+                    SupportedModManager = ModManager.Vortex,
+                    Game = Game.Starbound,
+                    NexusName = "starbound",
+                    SteamIDs = new List<int>{211820},
+                    GOGID = 1452598881
                 }
             }
         };
