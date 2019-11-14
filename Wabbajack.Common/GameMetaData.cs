@@ -19,7 +19,9 @@ namespace Wabbajack.Common
         DarkestDungeon,
         DivinityOriginalSins2,
         DivinityOriginalSins2DE, //definitive edition has its own nexus page but same Steam/GOG ids
-        Starbound
+        Starbound,
+        SWKOTOR,
+        SWKOTOR2
     }
 
     public class GameMetaData
@@ -30,8 +32,11 @@ namespace Wabbajack.Common
         public string NexusName { get; internal set; }
         public string MO2Name { get; internal set; }
         public string GameLocationRegistryKey { get; internal set; }
+        // to get steam ids: https://steamdb.info
         public List<int> SteamIDs { get; internal set; }
+        // to get gog ids: https://www.gogdb.org
         public int GOGID { get; internal set; }
+        // these are additional folders when a game installs mods outside the game folder
         public List<string> AdditionalFolders { get; internal set; }
 
         public string GameLocation
@@ -211,6 +216,26 @@ namespace Wabbajack.Common
                     NexusName = "starbound",
                     SteamIDs = new List<int>{211820},
                     GOGID = 1452598881
+                }
+            },
+            {
+                Game.SWKOTOR, new GameMetaData
+                {
+                    SupportedModManager = ModManager.Vortex,
+                    Game = Game.SWKOTOR,
+                    NexusName = "kotor",
+                    SteamIDs = new List<int>{32370},
+                    GOGID = 1207666283
+                }
+            },
+            {
+                Game.SWKOTOR2, new GameMetaData
+                {
+                    SupportedModManager = ModManager.Vortex,
+                    Game = Game.SWKOTOR2,
+                    NexusName = "kotor2",
+                    SteamIDs = new List<int>{208580},
+                    GOGID = 1421404581
                 }
             }
         };
