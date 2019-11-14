@@ -17,7 +17,8 @@ namespace Wabbajack.Common
         SkyrimVR,
         //VORTEX GAMES
         DarkestDungeon,
-        DivinityOriginalSins2
+        DivinityOriginalSins2,
+        DivinityOriginalSins2DE //definitive edition has its own nexus page but same Steam/GOG ids
     }
 
     public class GameMetaData
@@ -76,7 +77,7 @@ namespace Wabbajack.Common
                     MO2Name = "Oblivion",
                     MO2ArchiveName = "oblivion",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Oblivion",
-                    SteamIDs = new List<int>{22330}
+                    SteamIDs = new List<int> {22330}
                 }
             },
 
@@ -89,7 +90,7 @@ namespace Wabbajack.Common
                     MO2Name = "fallout3",
                     MO2ArchiveName = "fallout3",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Fallout3",
-                    SteamIDs = new List<int>{22300, 22370} // base game and GotY
+                    SteamIDs = new List<int> {22300, 22370} // base game and GotY
                 }
             },
             {
@@ -101,7 +102,7 @@ namespace Wabbajack.Common
                     MO2Name = "New Vegas",
                     MO2ArchiveName = "falloutnv",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\falloutnv",
-                    SteamIDs = new List<int>{22380}
+                    SteamIDs = new List<int> {22380}
                 }
             },
             {
@@ -113,7 +114,7 @@ namespace Wabbajack.Common
                     MO2Name = "Skyrim",
                     MO2ArchiveName = "skyrim",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\skyrim",
-                    SteamIDs = new List<int>{72850}
+                    SteamIDs = new List<int> {72850}
                 }
             },
             {
@@ -125,7 +126,7 @@ namespace Wabbajack.Common
                     MO2Name = "Skyrim Special Edition",
                     MO2ArchiveName = "skyrimse",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Skyrim Special Edition",
-                    SteamIDs = new List<int>{489830}
+                    SteamIDs = new List<int> {489830}
                 }
             },
             {
@@ -137,7 +138,7 @@ namespace Wabbajack.Common
                     MO2Name = "Fallout 4",
                     MO2ArchiveName = "fallout4",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Fallout4",
-                    SteamIDs = new List<int>{377160}
+                    SteamIDs = new List<int> {377160}
                 }
             },
             /*{
@@ -160,7 +161,7 @@ namespace Wabbajack.Common
                     MO2Name = "Skyrim VR",
                     MO2ArchiveName = "skyrimse",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Skyrim VR",
-                    SteamIDs = new List<int>{611670}
+                    SteamIDs = new List<int> {611670}
                 }
             },
             {
@@ -169,7 +170,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.DarkestDungeon,
                     NexusName = "darkestdungeon",
-                    SteamIDs = new List<int>{262060},
+                    SteamIDs = new List<int> {262060},
                     GOGID = 1450711444
                 }
             },
@@ -179,11 +180,24 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.DivinityOriginalSins2,
                     NexusName = "divinityoriginalsins2",
-                    SteamIDs = new List<int>{435150},
+                    SteamIDs = new List<int> {435150},
                     GOGID = 1584823040,
                     AdditionalFolders = new List<string>
                     {
                         "%documents%\\Larian Studios\\Divinity Original Sin 2\\Mods\\",
+                    }
+                }
+            },
+            {
+                Game.DivinityOriginalSins2DE, new GameMetaData
+                {
+                    SupportedModManager = ModManager.Vortex,
+                    Game = Game.DivinityOriginalSins2DE,
+                    NexusName = "divinityoriginalsin2definitiveedition",
+                    SteamIDs = new List<int> {435150},
+                    GOGID = 1584823040,
+                    AdditionalFolders = new List<string>
+                    {
                         "%documents%\\Larian Studios\\Divinity Original Sin 2 Definitive Edition\\Mods\\"
                     }
                 }
