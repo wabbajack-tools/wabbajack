@@ -161,6 +161,40 @@ namespace Wabbajack.VirtualFileSystem.Test
                 cleanup();
             }
 
+            [TestMethod]
+            public async Task CanRequestPortableFileTrees()
+            {
+                AddFile("archive/test.txt", "This is a test");
+                ZipUpFolder("archive", "test.zip");
+
+                Directory.CreateDirectory(Path.Combine(VFS_TEST_DIR_FULL, @"archive\other\dir"));
+                File.Move(Path.Combine(VFS_TEST_DIR_FULL, "test.zip"),
+                    Path.Combine(VFS_TEST_DIR_FULL, @"archive\other\dir\nested.zip"));
+                ZipUpFolder("archive", "test.zip");
+
+                await AddTestRoot();
+
+                var files = context.Index.ByHash["qX0GZvIaTKM="];
+                var archive = context.Index.ByRootPath[Path.Combine(VFS_TEST_DIR_FULL, "test.zip")];
+
+                var state = context.GetPortableState(files);
+
+                var new_context = new Context();
+
+                await new_context.IntegrateFromPortable(state,
+                    new Dictionary<string, string> {{archive.Hash, archive.FullPath}});
+
+                var new_files = new_context.Index.ByHash["qX0GZvIaTKM="];
+
+                var close = new_context.Stage(new_files);
+
+                foreach (var file in new_files)
+                    Assert.AreEqual("This is a test", File.ReadAllText(file.StagedPath));
+
+                close();
+
+            }
+
         private void AddFile(string filename, string thisIsATest)
             {
                 var fullpath = Path.Combine(VFS_TEST_DIR, filename);

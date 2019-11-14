@@ -165,6 +165,32 @@ namespace Wabbajack.VirtualFileSystem
                 });
             };
         }
+
+        public List<PortableFile> GetPortableState(IEnumerable<VirtualFile> files)
+        {
+            return files.SelectMany(f => f.FilesInFullPath)
+                .Distinct()
+                .Select(f => new PortableFile()
+                {
+                    Name = f.Parent != null ? f.Name : null,
+                    Hash = f.Hash,
+                    ParentHash = f.Parent?.Hash,
+                    Size = f.Size
+                }).ToList();
+        }
+
+        public async Task IntegrateFromPortable(List<PortableFile> state, Dictionary<string, string> links)
+        {
+            var indexed_state = state.GroupBy(f => f.ParentHash).ToDictionary(f => f.Key ?? "", f => (IEnumerable<PortableFile>)f);
+            var parents = await indexed_state[""]
+                .ToChannel()
+                .UnorderedPipelineSync(f => VirtualFile.CreateFromPortable(this, indexed_state, links, f))
+                .TakeAll();
+
+            var new_index = await Index.Integrate(parents);
+            lock (this)
+                Index = new_index;
+        }
     }
 
     public class IndexRoot

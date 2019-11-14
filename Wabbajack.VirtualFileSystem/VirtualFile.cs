@@ -207,6 +207,41 @@ namespace Wabbajack.VirtualFileSystem
 
             return vf;
         }
+
+        public static VirtualFile CreateFromPortable(Context context, Dictionary<string, IEnumerable<PortableFile>> state, Dictionary<string, string> links, PortableFile portableFile)
+        {
+            var vf = new VirtualFile
+            {
+                Parent = null,
+                Context = context,
+                Name = links[portableFile.Hash],
+                Hash = portableFile.Hash,
+                Size = portableFile.Size,
+            };
+            if (state.TryGetValue(portableFile.Hash, out var children))
+            {
+                vf.Children = children.Select(child => CreateFromPortable(context, vf, state, child)).ToImmutableList();
+            }
+            return vf;
+        }
+
+        public static VirtualFile CreateFromPortable(Context context, VirtualFile parent,
+            Dictionary<string, IEnumerable<PortableFile>> state, PortableFile portableFile)
+        {
+            var vf = new VirtualFile
+            {
+                Parent = parent,
+                Context = context,
+                Name = portableFile.Name,
+                Hash = portableFile.Hash,
+                Size = portableFile.Size,
+            };
+            if (state.TryGetValue(portableFile.Hash, out var children))
+            {
+                vf.Children = children.Select(child => CreateFromPortable(context, vf, state, child)).ToImmutableList();
+            }
+            return vf;
+        }
     }
 
     public class CannotStageNativeFile : Exception
