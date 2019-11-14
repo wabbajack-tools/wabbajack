@@ -202,7 +202,7 @@ namespace Wabbajack
                 var compiler = new VortexCompiler(args[1], args[2]);
                 await Task.Run(() =>
                 {
-                    Compiling = false;
+                    Compiling = true;
                     try
                     {
                         compiler.Compile();
@@ -214,7 +214,7 @@ namespace Wabbajack
                     }
                     finally
                     {
-                        Compiling = true;
+                        Compiling = false;
                     }
                 });
             }else{
