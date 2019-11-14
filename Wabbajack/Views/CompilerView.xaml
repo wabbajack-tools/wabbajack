@@ -6,6 +6,7 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:wabbacommon="clr-namespace:Wabbajack.Common;assembly=Wabbajack.Common"
     d:DataContext="{d:DesignInstance local:CompilerVM}"
     d:DesignHeight="450"
     d:DesignWidth="800"
@@ -177,7 +178,7 @@
                         Grid.Row="0"
                         Height="35"
                         Margin="4"
-                        IsChecked="{Binding SelectedCompilerType, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter={x:Static local:CompilerType.MO2}}">
+                        IsChecked="{Binding SelectedCompilerType, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter={x:Static wabbacommon:ModManager.MO2}}">
                         <local:ImageRadioButtonView.Image>
                             <BitmapImage UriSource="../Resources/MO2Button.png" />
                         </local:ImageRadioButtonView.Image>
@@ -186,7 +187,7 @@
                         Grid.Row="1"
                         Height="35"
                         Margin="4"
-                        IsChecked="{Binding SelectedCompilerType, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter={x:Static local:CompilerType.Vortex}}">
+                        IsChecked="{Binding SelectedCompilerType, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter={x:Static wabbacommon:ModManager.Vortex}}">
                         <local:ImageRadioButtonView.Image>
                             <BitmapImage UriSource="../Resources/VortexButton.png" />
                         </local:ImageRadioButtonView.Image>

@@ -115,7 +115,7 @@ namespace Wabbajack
                 .Select(x => Utils.IsDirectoryPathValid(x));
 
             // Load settings
-            InstallationSettings settings = this.MWVM.Settings.InstallationSettings.TryCreate(source);
+            ModlistInstallationSettings settings = this.MWVM.Settings.Installer.ModlistSettings.TryCreate(source);
             this.Location.TargetPath = settings.InstallationLocation;
             this.DownloadLocation.TargetPath = settings.DownloadLocation;
             this.MWVM.Settings.SaveSignal

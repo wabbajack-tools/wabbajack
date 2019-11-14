@@ -162,6 +162,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="View Models\Compilers\ISubCompilerVM.cs" />
+    <Compile Include="View Models\Compilers\MO2CompilerVM.cs" />
+    <Compile Include="View Models\Compilers\ModlistSettingsEditorVM.cs" />
+    <Compile Include="View Models\Compilers\VortexCompilerVM.cs" />
     <Compile Include="Views\BorderFadeDownView.xaml.cs">
       <DependentUpon>BorderFadeDownView.xaml</DependentUpon>
     </Compile>
@@ -201,7 +205,7 @@
     <Compile Include="Views\InstallationView.xaml.cs">
       <DependentUpon>InstallationView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View Models\CompilerVM.cs" />
+    <Compile Include="View Models\Compilers\CompilerVM.cs" />
     <Compile Include="View Models\MainWindowVM.cs" />
     <Compile Include="Views\LogCpuView.xaml.cs">
       <DependentUpon>LogCpuView.xaml</DependentUpon>

@@ -173,5 +173,16 @@ namespace Wabbajack
         {
             return source.Select(x => !x);
         }
+
+        public static IObservable<(T Previous, T Current)> Pairwise<T>(this IObservable<T> source)
+        {
+            T prevStorage = default;
+            return source.Select(i =>
+            {
+                var prev = prevStorage;
+                prevStorage = i;
+                return (prev, i);
+            });
+        }
     }
 }
