@@ -409,13 +409,14 @@ namespace Wabbajack.Lib
 
         public override IEnumerable<ICompilationStep> GetStack()
         {
-            var userConfig = Path.Combine(VortexFolder, "compilation_stack.yml");
+            var s = Consts.TestMode ? DownloadsFolder : VortexFolder;
+            var userConfig = Path.Combine(s, "compilation_stack.yml");
             if (File.Exists(userConfig))
                 return Serialization.Deserialize(File.ReadAllText(userConfig), this);
 
             IEnumerable<ICompilationStep> stack = MakeStack();
 
-            File.WriteAllText(Path.Combine(VortexFolder, "_current_compilation_stack.yml"),
+            File.WriteAllText(Path.Combine(s, "_current_compilation_stack.yml"),
                 Serialization.Serialize(stack));
 
             return stack;
