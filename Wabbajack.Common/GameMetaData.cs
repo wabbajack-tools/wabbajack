@@ -21,7 +21,10 @@ namespace Wabbajack.Common
         DivinityOriginalSins2DE, //definitive edition has its own nexus page but same Steam/GOG ids
         Starbound,
         SWKOTOR,
-        SWKOTOR2
+        SWKOTOR2,
+        WITCHER,
+        WITCHER2,
+        WITCHER3
     }
 
     public class GameMetaData
@@ -236,6 +239,36 @@ namespace Wabbajack.Common
                     NexusName = "kotor2",
                     SteamIDs = new List<int>{208580},
                     GOGIDs = new List<int>{1421404581}
+                }
+            },
+            {
+                Game.WITCHER, new GameMetaData
+                {
+                    SupportedModManager = ModManager.Vortex,
+                    Game = Game.WITCHER,
+                    NexusName = "witcher",
+                    SteamIDs = new List<int>{20900},
+                    GOGIDs = new List<int>{1207658924}
+                }
+            },
+            {
+                Game.WITCHER2, new GameMetaData
+                {
+                    SupportedModManager = ModManager.Vortex,
+                    Game = Game.WITCHER2,
+                    NexusName = "witcher2",
+                    SteamIDs = new List<int>{20920},
+                    GOGIDs = new List<int>{1207658930}
+                }
+            },
+            {
+                Game.WITCHER3, new GameMetaData
+                {
+                    SupportedModManager = ModManager.Vortex,
+                    Game = Game.WITCHER3,
+                    NexusName = "witcher3",
+                    SteamIDs = new List<int>{292030, 499450}, // normal and GotY
+                    GOGIDs = new List<int>{1207664643, 1495134320, 1207664663, 1640424747} // normal, GotY and both in packages
                 }
             }
         };
