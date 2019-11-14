@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9C004392-571A-4D28-A9F6-0E25115E6727}</ProjectGuid>
+    <ProjectGuid>{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Compression.BSA.Test</RootNamespace>
-    <AssemblyName>Compression.BSA.Test</AssemblyName>
+    <RootNamespace>Wabbajack.VirtualFileSystem.Test</RootNamespace>
+    <AssemblyName>Wabbajack.VirtualFileSystem.Test</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -60,28 +60,24 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Transactions" />
+    <Reference Include="System.Windows" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BSATests.cs" />
+    <Compile Include="VirtualFileSystemTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj">
-      <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
-      <Name>Compression.BSA</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj">
-      <Project>{9e69bc98-1512-4977-b683-6e7e5292c0b8}</Project>
-      <Name>Wabbajack.Common.CSP</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj">
-      <Project>{b3f3fb6e-b9eb-4f49-9875-d78578bc7ae5}</Project>
+      <Project>{B3F3FB6E-B9EB-4F49-9875-D78578BC7AE5}</Project>
       <Name>Wabbajack.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj">
-      <Project>{0a820830-a298-497d-85e0-e9a89efef5fe}</Project>
-      <Name>Wabbajack.Lib</Name>
+    <ProjectReference Include="..\Wabbajack.VirtualFileSystem\Wabbajack.VirtualFileSystem.csproj">
+      <Project>{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}</Project>
+      <Name>Wabbajack.VirtualFileSystem</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -93,6 +89,9 @@
     </PackageReference>
     <PackageReference Include="MSTest.TestFramework">
       <Version>2.0.0</Version>
+    </PackageReference>
+    <PackageReference Include="System.Reactive">
+      <Version>4.2.0</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

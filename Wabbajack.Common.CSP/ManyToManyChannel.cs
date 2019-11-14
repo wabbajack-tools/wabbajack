@@ -122,7 +122,7 @@ namespace Wabbajack.Common.CSP
                     Monitor.Exit(this);
                     throw new TooManyHanldersException();
                 }
-                _puts.Unshift((handler, val));
+                _puts.UnboundedUnshift((handler, val));
             }
             Monitor.Exit(this);
             return (AsyncResult.Enqueued, true);
@@ -191,7 +191,7 @@ namespace Wabbajack.Common.CSP
                     throw new TooManyHanldersException();
                 }
 
-                _takes.Unshift(handler);
+                _takes.UnboundedUnshift(handler);
             }
             Monitor.Exit(this);
             return (AsyncResult.Enqueued, default);
