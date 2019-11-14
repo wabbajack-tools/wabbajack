@@ -35,7 +35,7 @@ namespace Wabbajack.Common
         // to get steam ids: https://steamdb.info
         public List<int> SteamIDs { get; internal set; }
         // to get gog ids: https://www.gogdb.org
-        public int GOGID { get; internal set; }
+        public List<int> GOGIDs { get; internal set; }
         // these are additional folders when a game installs mods outside the game folder
         public List<string> AdditionalFolders { get; internal set; }
 
@@ -177,7 +177,7 @@ namespace Wabbajack.Common
                     Game = Game.DarkestDungeon,
                     NexusName = "darkestdungeon",
                     SteamIDs = new List<int> {262060},
-                    GOGID = 1450711444
+                    GOGIDs = new List<int>{1450711444}
                 }
             },
             {
@@ -187,7 +187,7 @@ namespace Wabbajack.Common
                     Game = Game.DivinityOriginalSins2,
                     NexusName = "divinityoriginalsins2",
                     SteamIDs = new List<int> {435150},
-                    GOGID = 1584823040,
+                    GOGIDs = new List<int>{1584823040},
                     AdditionalFolders = new List<string>
                     {
                         "%documents%\\Larian Studios\\Divinity Original Sin 2\\Mods\\",
@@ -201,7 +201,7 @@ namespace Wabbajack.Common
                     Game = Game.DivinityOriginalSins2DE,
                     NexusName = "divinityoriginalsin2definitiveedition",
                     SteamIDs = new List<int> {435150},
-                    GOGID = 1584823040,
+                    GOGIDs = new List<int>{1584823040},
                     AdditionalFolders = new List<string>
                     {
                         "%documents%\\Larian Studios\\Divinity Original Sin 2 Definitive Edition\\Mods\\"
@@ -215,7 +215,7 @@ namespace Wabbajack.Common
                     Game = Game.Starbound,
                     NexusName = "starbound",
                     SteamIDs = new List<int>{211820},
-                    GOGID = 1452598881
+                    GOGIDs = new List<int>{1452598881}
                 }
             },
             {
@@ -225,7 +225,7 @@ namespace Wabbajack.Common
                     Game = Game.SWKOTOR,
                     NexusName = "kotor",
                     SteamIDs = new List<int>{32370},
-                    GOGID = 1207666283
+                    GOGIDs = new List<int>{1207666283}
                 }
             },
             {
@@ -235,7 +235,7 @@ namespace Wabbajack.Common
                     Game = Game.SWKOTOR2,
                     NexusName = "kotor2",
                     SteamIDs = new List<int>{208580},
-                    GOGID = 1421404581
+                    GOGIDs = new List<int>{1421404581}
                 }
             }
         };
