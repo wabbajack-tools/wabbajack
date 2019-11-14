@@ -196,7 +196,7 @@ namespace Wabbajack
 
         private async Task ExecuteBegin()
         {
-            if (true)
+            if (false)
             {
                 string[] args = Environment.GetCommandLineArgs();
                 var compiler = new VortexCompiler(args[1], args[2]);
