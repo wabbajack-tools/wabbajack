@@ -136,8 +136,35 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        
+        public Action Stage(IEnumerable<VirtualFile> files)
+        {
+            var grouped = files.SelectMany(f => f.FilesInFullPath)
+                .Distinct()
+                .Where(f => f.Parent != null)
+                .GroupBy(f => f.Parent)
+                .OrderBy(f => f.Key?.NestingFactor ?? 0)
+                .ToList();
 
+            var Paths = new List<string>();
+
+            foreach (var group in grouped)
+            {
+                var tmp_path = Path.Combine(_stagingFolder, Guid.NewGuid().ToString());
+                FileExtractor.ExtractAll(group.Key.StagedPath, tmp_path).Wait();
+                Paths.Add(tmp_path);
+                foreach (var file in group)
+                    file.StagedPath = Path.Combine(tmp_path, file.Name);
+            }
+
+            return () =>
+            {
+                Paths.Do(p =>
+                {
+                    if (Directory.Exists(p)) 
+                        Directory.Delete(p, true, true);
+                });
+            };
+        }
     }
 
     public class IndexRoot

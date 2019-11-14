@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
@@ -121,7 +122,46 @@ namespace Wabbajack.VirtualFileSystem.Test
                 Assert.AreEqual(old_time, new_file.LastAnalyzed);
             }
 
-            private void AddFile(string filename, string thisIsATest)
+            [TestMethod]
+            public async Task CanStageSimpleArchives()
+            {
+                AddFile("archive/test.txt", "This is a test");
+                ZipUpFolder("archive", "test.zip");
+                await AddTestRoot();
+
+                var abs_path = Path.Combine(VFS_TEST_DIR_FULL, "test.zip");
+                var file = context.Index.ByFullPath[abs_path + "|test.txt"];
+
+                var cleanup = context.Stage(new List<VirtualFile> {file});
+                Assert.AreEqual("This is a test", File.ReadAllText(file.StagedPath));
+
+                cleanup();
+            }
+
+            [TestMethod]
+            public async Task CanStageNestedArchives()
+            {
+                AddFile("archive/test.txt", "This is a test");
+                ZipUpFolder("archive", "test.zip");
+
+                Directory.CreateDirectory(Path.Combine(VFS_TEST_DIR_FULL, @"archive\other\dir"));
+                File.Move(Path.Combine(VFS_TEST_DIR_FULL, "test.zip"),
+                    Path.Combine(VFS_TEST_DIR_FULL, @"archive\other\dir\nested.zip"));
+                ZipUpFolder("archive", "test.zip");
+
+                await AddTestRoot();
+
+                var files = context.Index.ByHash["qX0GZvIaTKM="];
+
+                var cleanup = context.Stage(files);
+
+                foreach(var file in files)
+                    Assert.AreEqual("This is a test", File.ReadAllText(file.StagedPath));
+
+                cleanup();
+            }
+
+        private void AddFile(string filename, string thisIsATest)
             {
                 var fullpath = Path.Combine(VFS_TEST_DIR, filename);
                 if (!Directory.Exists(Path.GetDirectoryName(fullpath)))

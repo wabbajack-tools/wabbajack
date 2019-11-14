@@ -6,7 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
-using Ceras;
 using Wabbajack.Common;
 using Wabbajack.Common.CSP;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -21,9 +20,8 @@ namespace Wabbajack.VirtualFileSystem
     {
         public string Name { get; internal set; }
 
-        [Exclude] private string _fullPath;
+        private string _fullPath;
 
-        [Exclude]
         public string FullPath
         {
             get
@@ -50,20 +48,77 @@ namespace Wabbajack.VirtualFileSystem
 
         public long LastAnalyzed { get; internal set; }
 
-        [Exclude] public VirtualFile Parent { get; internal set; }
+        public VirtualFile Parent { get; internal set; }
 
-        [Exclude] public Context Context { get; set; }
+        public Context Context { get; set; }
 
+        private string _stagedPath;
+
+        public string StagedPath
+        {
+            get
+            {
+                if (IsNative)
+                    return Name;
+                if (_stagedPath == null)
+                    throw new UnstagedFileException(FullPath);
+                return _stagedPath;
+            }
+            internal set
+            {
+                if (IsNative)
+                    throw new CannotStageNativeFile("Cannot stage a native file");
+                _stagedPath = value;
+            }
+        }
+
+        /// <summary>
+        /// Returns the nesting factor for this file. Native files will have a nesting of 1, the factor
+        /// goes up for each nesting of a file in an archive.
+        /// </summary>
+        public int NestingFactor
+        {
+            get
+            {
+                var cnt = 0;
+                var cur = this;
+                while (cur != null)
+                {
+                    cnt += 1;
+                    cur = cur.Parent;
+                }
+
+                return cnt;
+            }
+        }
 
         public ImmutableList<VirtualFile> Children { get; internal set; } = ImmutableList<VirtualFile>.Empty;
 
-        [Exclude] public bool IsArchive => Children != null && Children.Count > 0;
+        public bool IsArchive => Children != null && Children.Count > 0;
 
-        [Exclude] public bool IsNative => Parent == null;
+        public bool IsNative => Parent == null;
 
-        [Exclude]
         public IEnumerable<VirtualFile> ThisAndAllChildren =>
             Children.SelectMany(child => child.ThisAndAllChildren).Append(this);
+
+
+        /// <summary>
+        /// Returns all the virtual files in the path to this file, starting from the root file.
+        /// </summary>
+        public IEnumerable<VirtualFile> FilesInFullPath
+        {
+            get
+            {
+                var stack = ImmutableStack<VirtualFile>.Empty;
+                var cur = this;
+                while (cur != null)
+                {
+                    stack = stack.Push(cur);
+                    cur = cur.Parent;
+                }
+                return stack;
+            }
+        }
 
         public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, string abs_path,
             string rel_path)
@@ -151,6 +206,22 @@ namespace Wabbajack.VirtualFileSystem
             }
 
             return vf;
+        }
+    }
+
+    public class CannotStageNativeFile : Exception
+    {
+        public CannotStageNativeFile(string cannotStageANativeFile) : base (cannotStageANativeFile)
+        {
+        }
+    }
+
+    public class UnstagedFileException : Exception
+    {
+        private readonly string _fullPath;
+        public UnstagedFileException(string fullPath) : base($"File {fullPath} is unstaged, cannot get staged name")
+        {
+            _fullPath = fullPath;
         }
     }
 }
