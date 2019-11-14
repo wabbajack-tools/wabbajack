@@ -17,9 +17,6 @@ namespace Wabbajack
     {
         public MainWindowVM MWVM { get; }
 
-        [Reactive]
-        public bool Compiling { get; set; }
-
         private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
         public BitmapImage Image => _Image.Value;
 

@@ -166,30 +166,30 @@
     <Compile Include="View Models\Compilers\MO2CompilerVM.cs" />
     <Compile Include="View Models\Compilers\ModlistSettingsEditorVM.cs" />
     <Compile Include="View Models\Compilers\VortexCompilerVM.cs" />
-    <Compile Include="Views\BorderFadeDownView.xaml.cs">
+    <Compile Include="Views\Common\BorderFadeDownView.xaml.cs">
       <DependentUpon>BorderFadeDownView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\InverseBooleanConverter.cs" />
     <Compile Include="Converters\BoolToVisibilityHiddenConverter.cs" />
-    <Compile Include="Views\RadioButtonView.xaml.cs">
+    <Compile Include="Views\Common\RadioButtonView.xaml.cs">
       <DependentUpon>RadioButtonView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\BeginButton.xaml.cs">
+    <Compile Include="Views\Common\BeginButton.xaml.cs">
       <DependentUpon>BeginButton.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\BoolToVisibilityConverter.cs" />
-    <Compile Include="Views\DetailImageView.xaml.cs">
+    <Compile Include="Views\Common\DetailImageView.xaml.cs">
       <DependentUpon>DetailImageView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Extensions\EnumerableExt.cs" />
-    <Compile Include="Views\TopProgressView.xaml.cs">
+    <Compile Include="Views\Common\TopProgressView.xaml.cs">
       <DependentUpon>TopProgressView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="View Models\FilePickerVM.cs" />
     <Compile Include="View Models\ModListVM.cs" />
     <Compile Include="View Models\ModVM.cs" />
-    <Compile Include="Views\CompilerView.xaml.cs">
+    <Compile Include="Views\Compilers\CompilerView.xaml.cs">
       <DependentUpon>CompilerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\IsNotNullVisibilityConverter.cs" />
@@ -199,7 +199,7 @@
     </Compile>
     <Compile Include="View Models\ModeSelectionWindowVM.cs" />
     <Compile Include="View Models\ModListDefinition.cs" />
-    <Compile Include="Views\FilePicker.xaml.cs">
+    <Compile Include="Views\Common\FilePicker.xaml.cs">
       <DependentUpon>FilePicker.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\InstallationView.xaml.cs">
@@ -207,7 +207,7 @@
     </Compile>
     <Compile Include="View Models\Compilers\CompilerVM.cs" />
     <Compile Include="View Models\MainWindowVM.cs" />
-    <Compile Include="Views\LogCpuView.xaml.cs">
+    <Compile Include="Views\Common\LogCpuView.xaml.cs">
       <DependentUpon>LogCpuView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ModeSelectionWindow.xaml.cs">
@@ -223,27 +223,27 @@
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\UserControlRx.cs" />
-    <Page Include="Views\BorderFadeDownView.xaml">
+    <Page Include="Views\Common\BorderFadeDownView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\RadioButtonView.xaml">
+    <Page Include="Views\Common\RadioButtonView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\BeginButton.xaml">
+    <Page Include="Views\Common\BeginButton.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\DetailImageView.xaml">
+    <Page Include="Views\Common\DetailImageView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\CompilerView.xaml">
+    <Page Include="Views\Compilers\CompilerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\TopProgressView.xaml">
+    <Page Include="Views\Common\TopProgressView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -251,7 +251,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\FilePicker.xaml">
+    <Page Include="Views\Common\FilePicker.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -259,7 +259,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\LogCpuView.xaml">
+    <Page Include="Views\Common\LogCpuView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
