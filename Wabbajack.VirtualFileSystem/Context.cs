@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
@@ -11,6 +12,7 @@ using Wabbajack.Common;
 using Wabbajack.Common.CSP;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = System.IO.File;
+using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.VirtualFileSystem
@@ -33,17 +35,33 @@ namespace Wabbajack.VirtualFileSystem
             if (!Path.IsPathRooted(root))
                 throw new InvalidDataException($"Path is not absolute: {root}");
 
+            var filtered = await Index.AllFiles
+                .ToChannel()
+                .UnorderedPipelineRx(o => o.Where(file => File.Exists(file.Name)))
+                .TakeAll();
+
+            var by_path = filtered.ToImmutableDictionary(f => f.Name);
+
             var results = Channel.Create<VirtualFile>(1024);
             var pipeline = Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive)
                 .ToChannel()
-                .UnorderedPipeline(results, async f => { return await VirtualFile.Analyze(this, null, f, f); });
+                .UnorderedPipeline(results, async f =>
+                {
+                    if (by_path.TryGetValue(f, out var found))
+                    {
+                        var fi = new FileInfo(f);
+                        if (found.LastModified == fi.LastWriteTimeUtc.Ticks && found.Size == fi.Length)
+                            return found;
+                    }
+                    return await VirtualFile.Analyze(this, null, f, f);
+                });
 
             var all_files = await results.TakeAll();
             
             // Should already be done but let's make the async tracker happy
             await pipeline;
 
-            var new_index = await Index.Integrate(all_files);
+            var new_index = await IndexRoot.Empty.Integrate(filtered.Concat(all_files).ToList());
 
             lock (this)
                 Index = new_index;

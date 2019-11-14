@@ -121,6 +121,18 @@ namespace Wabbajack.Common.CSP
 
         }
 
+        public static IReadPort<TOut> UnorderedPipelineRx<TIn, TOut>(
+            this IReadPort<TIn> from,
+            Func<IObservable<TIn>, IObservable<TOut>> f,
+            bool propagateClose = true)
+        {
+            var parallelism = Environment.ProcessorCount;
+            var to = Channel.Create<TOut>(parallelism * 2);
+            var pipeline = from.UnorderedPipeline(parallelism, to, f);
+            return to;
+
+        }
+
         public static IReadPort<TOut> UnorderedPipelineSync<TIn, TOut>(
             this IReadPort<TIn> from,
             Func<TIn, TOut> f,

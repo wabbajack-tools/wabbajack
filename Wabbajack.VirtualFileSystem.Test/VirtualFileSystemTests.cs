@@ -86,7 +86,42 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             }
 
-        private void AddFile(string filename, string thisIsATest)
+            [TestMethod]
+            public async Task DeletedFilesAreRemoved()
+            {
+                AddFile("test.txt", "This is a test");
+                await AddTestRoot();
+
+                var file = context.Index.ByFullPath[Path.Combine(VFS_TEST_DIR_FULL, "test.txt")];
+                Assert.IsNotNull(file);
+
+                Assert.AreEqual(file.Size, 14);
+                Assert.AreEqual(file.Hash, "qX0GZvIaTKM=");
+
+                File.Delete(Path.Combine(VFS_TEST_DIR_FULL, "test.txt"));
+
+                await AddTestRoot();
+
+                CollectionAssert.DoesNotContain(context.Index.ByFullPath, Path.Combine(VFS_TEST_DIR_FULL, "test.txt"));
+            }
+
+            [TestMethod]
+            public async Task UnmodifiedFilesAreNotReIndexed()
+            {
+                AddFile("test.txt", "This is a test");
+                await AddTestRoot();
+
+                var old_file = context.Index.ByFullPath[Path.Combine(VFS_TEST_DIR_FULL, "test.txt")];
+                var old_time = old_file.LastAnalyzed;
+
+                await AddTestRoot();
+
+                var new_file = context.Index.ByFullPath[Path.Combine(VFS_TEST_DIR_FULL, "test.txt")];
+
+                Assert.AreEqual(old_time, new_file.LastAnalyzed);
+            }
+
+            private void AddFile(string filename, string thisIsATest)
             {
                 var fullpath = Path.Combine(VFS_TEST_DIR, filename);
                 if (!Directory.Exists(Path.GetDirectoryName(fullpath)))

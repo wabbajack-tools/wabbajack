@@ -48,6 +48,8 @@ namespace Wabbajack.VirtualFileSystem
         
         public long LastModified { get; internal set; }
 
+        public long LastAnalyzed { get; internal set; }
+
         [Exclude] public VirtualFile Parent { get; internal set; }
 
         [Exclude] public Context Context { get; set; }
@@ -75,7 +77,8 @@ namespace Wabbajack.VirtualFileSystem
                 Name = rel_path,
                 Parent = parent,
                 Size = fi.Length,
-                LastModified = fi.LastWriteTimeUtc.Ticks
+                LastModified = fi.LastWriteTimeUtc.Ticks,
+                LastAnalyzed = DateTime.Now.Ticks
             };
 
             if (FileExtractor.CanExtract(Path.GetExtension(abs_path)))
@@ -114,6 +117,7 @@ namespace Wabbajack.VirtualFileSystem
             bw.Write(Hash);
             bw.Write(Size);
             bw.Write(LastModified);
+            bw.Write(LastAnalyzed);
             bw.Write(Children.Count);
             foreach (var child in Children)
                 child.Write(bw);
@@ -136,6 +140,7 @@ namespace Wabbajack.VirtualFileSystem
                 Hash = br.ReadString(),
                 Size = br.ReadInt64(),
                 LastModified = br.ReadInt64(),
+                LastAnalyzed = br.ReadInt64(),
                 Children = ImmutableList<VirtualFile>.Empty
             };
 
