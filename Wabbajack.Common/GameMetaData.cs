@@ -17,8 +17,8 @@ namespace Wabbajack.Common
         SkyrimVR,
         //VORTEX GAMES
         DarkestDungeon,
-        DivinityOriginalSins2,
-        DivinityOriginalSins2DE, //definitive edition has its own nexus page but same Steam/GOG ids
+        DivinityOriginalSin2,
+        DivinityOriginalSin2DE, //definitive edition has its own nexus page but same Steam/GOG ids
         Starbound,
         SWKOTOR,
         SWKOTOR2,
@@ -184,11 +184,11 @@ namespace Wabbajack.Common
                 }
             },
             {
-                Game.DivinityOriginalSins2, new GameMetaData
+                Game.DivinityOriginalSin2, new GameMetaData
                 {
                     SupportedModManager = ModManager.Vortex,
-                    Game = Game.DivinityOriginalSins2,
-                    NexusName = "divinityoriginalsins2",
+                    Game = Game.DivinityOriginalSin2,
+                    NexusName = "divinityoriginalsin2",
                     SteamIDs = new List<int> {435150},
                     GOGIDs = new List<int>{1584823040},
                     AdditionalFolders = new List<string>
@@ -198,10 +198,10 @@ namespace Wabbajack.Common
                 }
             },
             {
-                Game.DivinityOriginalSins2DE, new GameMetaData
+                Game.DivinityOriginalSin2DE, new GameMetaData
                 {
                     SupportedModManager = ModManager.Vortex,
-                    Game = Game.DivinityOriginalSins2DE,
+                    Game = Game.DivinityOriginalSin2DE,
                     NexusName = "divinityoriginalsin2definitiveedition",
                     SteamIDs = new List<int> {435150},
                     GOGIDs = new List<int>{1584823040},

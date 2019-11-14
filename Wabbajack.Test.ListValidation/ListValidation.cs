@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Documents;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -15,8 +16,9 @@ namespace Wabbajack.Test.ListValidation
     public class ListValidation
     {
         [ClassInitialize]
-        public static void SetupNexus()
+        public static void SetupNexus(TestContext context)
         {
+            Utils.LogMessages.Subscribe(context.WriteLine);
             var api = new NexusApiClient();
             api.ClearUpdatedModsInCache();
         }
