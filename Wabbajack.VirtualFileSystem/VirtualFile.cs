@@ -5,22 +5,20 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Common.CSP;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
-using File = System.IO.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
-using SearchOption = System.IO.SearchOption;
 
 namespace Wabbajack.VirtualFileSystem
 {
     public class VirtualFile
     {
-        public string Name { get; internal set; }
-
         private string _fullPath;
+
+        private string _stagedPath;
+        public string Name { get; internal set; }
 
         public string FullPath
         {
@@ -43,7 +41,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public string Hash { get; internal set; }
         public long Size { get; internal set; }
-        
+
         public long LastModified { get; internal set; }
 
         public long LastAnalyzed { get; internal set; }
@@ -51,8 +49,6 @@ namespace Wabbajack.VirtualFileSystem
         public VirtualFile Parent { get; internal set; }
 
         public Context Context { get; set; }
-
-        private string _stagedPath;
 
         public string StagedPath
         {
@@ -73,8 +69,8 @@ namespace Wabbajack.VirtualFileSystem
         }
 
         /// <summary>
-        /// Returns the nesting factor for this file. Native files will have a nesting of 1, the factor
-        /// goes up for each nesting of a file in an archive.
+        ///     Returns the nesting factor for this file. Native files will have a nesting of 1, the factor
+        ///     goes up for each nesting of a file in an archive.
         /// </summary>
         public int NestingFactor
         {
@@ -103,7 +99,7 @@ namespace Wabbajack.VirtualFileSystem
 
 
         /// <summary>
-        /// Returns all the virtual files in the path to this file, starting from the root file.
+        ///     Returns all the virtual files in the path to this file, starting from the root file.
         /// </summary>
         public IEnumerable<VirtualFile> FilesInFullPath
         {
@@ -116,6 +112,7 @@ namespace Wabbajack.VirtualFileSystem
                     stack = stack.Push(cur);
                     cur = cur.Parent;
                 }
+
                 return stack;
             }
         }
@@ -123,7 +120,6 @@ namespace Wabbajack.VirtualFileSystem
         public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, string abs_path,
             string rel_path)
         {
-
             var hasher = abs_path.FileHashAsync();
             var fi = new FileInfo(abs_path);
             var self = new VirtualFile
@@ -137,7 +133,6 @@ namespace Wabbajack.VirtualFileSystem
             };
 
             if (FileExtractor.CanExtract(Path.GetExtension(abs_path)))
-            {
                 using (var tempFolder = context.GetTemporaryFolder())
                 {
                     await FileExtractor.ExtractAll(abs_path, tempFolder.FullName);
@@ -146,13 +141,9 @@ namespace Wabbajack.VirtualFileSystem
                     var files = Directory.EnumerateFiles(tempFolder.FullName, "*", SearchOption.AllDirectories)
                         .ToChannel()
                         .UnorderedPipeline(results,
-                            async abs_src =>
-                            {
-                                return await Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName));
-                            });
+                            async abs_src => await Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName)));
                     self.Children = (await results.TakeAll()).ToImmutableList();
                 }
-            }
 
             self.Hash = await hasher;
             return self;
@@ -182,7 +173,9 @@ namespace Wabbajack.VirtualFileSystem
         {
             using (var ms = new MemoryStream(data))
             using (var br = new BinaryReader(ms))
-                return Read(context,null, br);
+            {
+                return Read(context, null, br);
+            }
         }
 
         private static VirtualFile Read(Context context, VirtualFile parent, BinaryReader br)
@@ -200,15 +193,14 @@ namespace Wabbajack.VirtualFileSystem
             };
 
             var childrenCount = br.ReadInt32();
-            for (var idx = 0; idx < childrenCount; idx += 1)
-            {
-                vf.Children = vf.Children.Add(Read(context, vf, br));
-            }
+            for (var idx = 0; idx < childrenCount; idx += 1) vf.Children = vf.Children.Add(Read(context, vf, br));
 
             return vf;
         }
 
-        public static VirtualFile CreateFromPortable(Context context, Dictionary<string, IEnumerable<PortableFile>> state, Dictionary<string, string> links, PortableFile portableFile)
+        public static VirtualFile CreateFromPortable(Context context,
+            Dictionary<string, IEnumerable<PortableFile>> state, Dictionary<string, string> links,
+            PortableFile portableFile)
         {
             var vf = new VirtualFile
             {
@@ -216,12 +208,10 @@ namespace Wabbajack.VirtualFileSystem
                 Context = context,
                 Name = links[portableFile.Hash],
                 Hash = portableFile.Hash,
-                Size = portableFile.Size,
+                Size = portableFile.Size
             };
             if (state.TryGetValue(portableFile.Hash, out var children))
-            {
                 vf.Children = children.Select(child => CreateFromPortable(context, vf, state, child)).ToImmutableList();
-            }
             return vf;
         }
 
@@ -234,19 +224,17 @@ namespace Wabbajack.VirtualFileSystem
                 Context = context,
                 Name = portableFile.Name,
                 Hash = portableFile.Hash,
-                Size = portableFile.Size,
+                Size = portableFile.Size
             };
             if (state.TryGetValue(portableFile.Hash, out var children))
-            {
                 vf.Children = children.Select(child => CreateFromPortable(context, vf, state, child)).ToImmutableList();
-            }
             return vf;
         }
     }
 
     public class CannotStageNativeFile : Exception
     {
-        public CannotStageNativeFile(string cannotStageANativeFile) : base (cannotStageANativeFile)
+        public CannotStageNativeFile(string cannotStageANativeFile) : base(cannotStageANativeFile)
         {
         }
     }
@@ -254,6 +242,7 @@ namespace Wabbajack.VirtualFileSystem
     public class UnstagedFileException : Exception
     {
         private readonly string _fullPath;
+
         public UnstagedFileException(string fullPath) : base($"File {fullPath} is unstaged, cannot get staged name")
         {
             _fullPath = fullPath;

@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Wabbajack.VirtualFileSystem
 {
     public static class Extensions
     {
-        public static ImmutableDictionary<TK, TI> ToImmutableDictionary<TI, TK>(this IEnumerable<TI> coll, Func<TI, TK> keyFunc)
+        public static ImmutableDictionary<TK, TI> ToImmutableDictionary<TI, TK>(this IEnumerable<TI> coll,
+            Func<TI, TK> keyFunc)
         {
             var builder = ImmutableDictionary<TK, TI>.Empty.ToBuilder();
             foreach (var itm in coll)
@@ -18,7 +15,8 @@ namespace Wabbajack.VirtualFileSystem
             return builder.ToImmutable();
         }
 
-        public static ImmutableDictionary<TK, ImmutableStack<TI>> ToGroupedImmutableDictionary<TI, TK>(this IEnumerable<TI> coll, Func<TI, TK> keyFunc)
+        public static ImmutableDictionary<TK, ImmutableStack<TI>> ToGroupedImmutableDictionary<TI, TK>(
+            this IEnumerable<TI> coll, Func<TI, TK> keyFunc)
         {
             var builder = ImmutableDictionary<TK, ImmutableStack<TI>>.Empty.ToBuilder();
             foreach (var itm in coll)
@@ -29,6 +27,7 @@ namespace Wabbajack.VirtualFileSystem
                 else
                     builder[key] = ImmutableStack<TI>.Empty.Push(itm);
             }
+
             return builder.ToImmutable();
         }
     }
