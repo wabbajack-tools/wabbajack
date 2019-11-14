@@ -15,8 +15,9 @@ namespace Wabbajack.Test.ListValidation
     public class ListValidation
     {
         [ClassInitialize]
-        public static void SetupNexus()
+        public static void SetupNexus(TestContext context)
         {
+            Utils.LogMessages.Subscribe(context.WriteLine);
             var api = new NexusApiClient();
             api.ClearUpdatedModsInCache();
         }
