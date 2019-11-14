@@ -93,9 +93,9 @@ namespace Wabbajack.Test
             File.Copy(src, Path.Combine(utils.DownloadsFolder, filename));
 
             if (mod_name == null)
-                FileExtractor.ExtractAll(src, utils.MO2Folder);
+                FileExtractor.ExtractAll(src, utils.MO2Folder).Wait();
             else
-                FileExtractor.ExtractAll(src, Path.Combine(utils.ModsFolder, mod_name));
+                FileExtractor.ExtractAll(src, Path.Combine(utils.ModsFolder, mod_name)).Wait();
 
         }
 
@@ -115,7 +115,7 @@ namespace Wabbajack.Test
                     $"fileID={file.file_id}"
                 });
 
-            if (!File.Exists(file.file_name))
+            if (!File.Exists(src))
             {
 
                 var state = DownloadDispatcher.ResolveArchive(ini.LoadIniString());
@@ -130,7 +130,7 @@ namespace Wabbajack.Test
             var dest = Path.Combine(utils.DownloadsFolder, file.file_name);
             File.Copy(src, dest);
 
-            FileExtractor.ExtractAll(src, Path.Combine(utils.ModsFolder, mod_name));
+            FileExtractor.ExtractAll(src, Path.Combine(utils.ModsFolder, mod_name)).Wait();
 
             File.WriteAllText(dest + ".meta", ini);
         }

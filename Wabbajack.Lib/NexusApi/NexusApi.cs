@@ -24,9 +24,6 @@ namespace Wabbajack.Lib.NexusApi
     {
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
 
-        private static readonly uint CACHED_VERSION_NUMBER = 1;
-
-
         private readonly HttpClient _httpClient;
 
 

@@ -19,8 +19,8 @@ namespace Compression.BSA
 
     public interface IBSABuilder : IDisposable
     {
-        void AddFile(FileStateObject state, Stream src);
-        void Build(string filename);
+        Task AddFile(FileStateObject state, Stream src);
+        Task Build(string filename);
     }
 
     public class ArchiveStateObject
@@ -59,6 +59,6 @@ namespace Compression.BSA
         /// in order to maintain thread-safe access. 
         /// </summary>
         /// <param name="output"></param>
-        void CopyDataTo(Stream output);
+        Task CopyDataToAsync(Stream output);
     }
 }
