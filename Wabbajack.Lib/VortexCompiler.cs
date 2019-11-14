@@ -43,7 +43,7 @@ namespace Wabbajack.Lib
             VortexFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vortex");
             if (File.Exists(Path.Combine(VortexFolder, gameName, "mods", "__vortex_staging_folder")))
                 StagingFolder = Path.Combine(VortexFolder, gameName, "mods");
-            if (File.Exists(Path.Combine(VortexFolder, "downloads", gameName, "__vortex_downloads_folder")))
+            if (File.Exists(Path.Combine(VortexFolder, "downloads", "__vortex_downloads_folder")))
                 DownloadsFolder = Path.Combine(VortexFolder, "downloads", gameName);
 
             if (args.Length >= 4)
