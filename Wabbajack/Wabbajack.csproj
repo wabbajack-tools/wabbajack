@@ -162,6 +162,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="Views\Compilers\MO2CompilerConfigView.xaml.cs">
+      <DependentUpon>MO2CompilerConfigView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View Models\Compilers\ISubCompilerVM.cs" />
     <Compile Include="View Models\Compilers\MO2CompilerVM.cs" />
     <Compile Include="View Models\Compilers\ModlistSettingsEditorVM.cs" />
@@ -223,6 +226,10 @@
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\UserControlRx.cs" />
+    <Page Include="Views\Compilers\MO2CompilerConfigView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Common\BorderFadeDownView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
