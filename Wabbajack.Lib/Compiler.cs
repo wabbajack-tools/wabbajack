@@ -53,7 +53,6 @@ namespace Wabbajack.Lib
         }
 
         public dynamic MO2Ini { get; }
-        public string GamePath { get; }
 
         public bool ShowReportWhenFinished { get; set; } = true;
 
