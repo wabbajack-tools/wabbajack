@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
@@ -183,6 +183,24 @@ namespace Wabbajack
                 prevStorage = i;
                 return (prev, i);
             });
+        }
+
+        public static IObservable<T> DelayInitial<T>(this IObservable<T> source, TimeSpan delay)
+        {
+            return source.FilterSwitch(
+                Observable.Return(System.Reactive.Unit.Default)
+                    .Delay(delay)
+                    .Select(_ => true)
+                    .StartWith(false));
+        }
+
+        public static IObservable<T> DelayInitial<T>(this IObservable<T> source, TimeSpan delay, IScheduler scheduler)
+        {
+            return source.FilterSwitch(
+                Observable.Return(System.Reactive.Unit.Default)
+                    .Delay(delay, scheduler)
+                    .Select(_ => true)
+                    .StartWith(false));
         }
     }
 }

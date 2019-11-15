@@ -1,4 +1,4 @@
-using ReactiveUI;
+﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
@@ -77,23 +77,6 @@ namespace Wabbajack
                     }
                 })
                 .ToProperty(this, nameof(this.MOProfile));
-
-            // If Mo2 folder changes and download location is empty, set it for convenience
-            this.WhenAny(x => x.Mo2Folder)
-                .Where(x => Directory.Exists(x))
-                .Subscribe(x =>
-                {
-                    try
-                    {
-                        var tmp_compiler = new Compiler(this.Mo2Folder);
-                        this.DownloadLocation.TargetPath = tmp_compiler.MO2DownloadsFolder;
-                    }
-                    catch (Exception ex)
-                    {
-                        Utils.Log($"Error setting default download location {ex}");
-                    }
-                })
-                .DisposeWith(this.CompositeDisposable);
 
             // Wire missing Mo2Folder to signal error state for Modlist Location
             this.ModlistLocation.AdditionalError = this.WhenAny(x => x.Mo2Folder)
@@ -188,6 +171,29 @@ namespace Wabbajack
                 // Save to property
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(this.ModlistSettings));
+
+            // If Mo2 folder changes and download location is empty, set it for convenience
+            this.WhenAny(x => x.Mo2Folder)
+                .DelayInitial(TimeSpan.FromMilliseconds(100))
+                .Where(x => Directory.Exists(x))
+                .FilterSwitch(
+                    this.WhenAny(x => x.DownloadLocation.Exists)
+                        .Invert())
+                .Subscribe(x =>
+                {
+                    try
+                    {
+                        var tmp_compiler = new Compiler(this.Mo2Folder);
+                        this.DownloadLocation.TargetPath = tmp_compiler.MO2DownloadsFolder;
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.Log($"Error setting default download location {ex}");
+                    }
+                })
+                .DisposeWith(this.CompositeDisposable);
+
+
         }
     }
 }

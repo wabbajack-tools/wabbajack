@@ -1,4 +1,4 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
@@ -45,6 +45,8 @@ namespace Wabbajack
 
             // Swap to proper sub VM based on selected type
             this._Compiler = this.WhenAny(x => x.SelectedCompilerType)
+                // Delay so the initial VM swap comes in immediately, subVM comes right after
+                .DelayInitial(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
                 .Select<ModManager, ISubCompilerVM>(type =>
                 {
                     switch (type)
@@ -64,6 +66,8 @@ namespace Wabbajack
                 .ToProperty(this, nameof(this.CurrentModlistSettings));
 
             this._Image = this.WhenAny(x => x.CurrentModlistSettings.ImagePath.TargetPath)
+                // Delay so the initial VM swap comes in immediately, image comes right after
+                .DelayInitial(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
                 .Select(path =>
                 {
                     if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Wabbajack.Resources.Banner_Dark.png");
