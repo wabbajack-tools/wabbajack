@@ -1,4 +1,4 @@
-        using Syroot.Windows.IO;
+using Syroot.Windows.IO;
 using System;
 using ReactiveUI;
 using System.Diagnostics;
@@ -50,14 +50,9 @@ namespace Wabbajack
         [Reactive]
         public bool InstallingMode { get; set; }
 
-        [Reactive]
-        public bool IsMO2ModList { get; set; }
-
         public FilePickerVM Location { get; }
 
         public FilePickerVM DownloadLocation { get; }
-
-        public FilePickerVM StagingLocation { get; }
 
         private readonly ObservableAsPropertyHelper<float> _ProgressPercent;
         public float ProgressPercent => _ProgressPercent.Value;
@@ -119,25 +114,15 @@ namespace Wabbajack
             this.DownloadLocation.AdditionalError = this.WhenAny(x => x.DownloadLocation.TargetPath)
                 .Select(x => Utils.IsDirectoryPathValid(x));
 
-            StagingLocation = new FilePickerVM
-            {
-                DoExistsCheck = true,
-                PathType = FilePickerVM.PathTypeOptions.Folder,
-                PromptTitle = "Select your Vortex Staging Folder",
-                AdditionalError = this.WhenAny(x => x.StagingLocation.TargetPath)
-                    .Select(Utils.IsDirectoryPathValid)
-            };
-
             // Load settings
-            var settings = MWVM.Settings.InstallationSettings.TryCreate(source);
+            InstallationSettings settings = this.MWVM.Settings.InstallationSettings.TryCreate(source);
+            this.Location.TargetPath = settings.InstallationLocation;
+            this.DownloadLocation.TargetPath = settings.DownloadLocation;
             this.MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
                 {
-                    settings.DownloadLocation = DownloadLocation.TargetPath;
-                    if (IsMO2ModList)
-                        settings.InstallationLocation = Location.TargetPath;
-                    else
-                        settings.StagingLocation = StagingLocation.TargetPath;
+                    settings.InstallationLocation = this.Location.TargetPath;
+                    settings.DownloadLocation = this.DownloadLocation.TargetPath;
                 })
                 .DisposeWith(this.CompositeDisposable);
 
@@ -162,38 +147,6 @@ namespace Wabbajack
                             this.MWVM.MainWindow.Close();
                         });
                         return default(ModListVM);
-                    }
-                    if (modList.ModManager == ModManager.Vortex)
-                    {
-                        IsMO2ModList = false;
-                        StagingLocation.TargetPath = settings.StagingLocation;
-
-                        var vortexFolder =
-                            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                                "Vortex");
-                        var stagingFolder = Path.Combine(vortexFolder, GameRegistry.Games[modList.GameType].NexusName,
-                            "mods");
-                        var downloadFolder = Path.Combine(vortexFolder, "downloads",
-                            GameRegistry.Games[modList.GameType].NexusName);
-                        MessageBox.Show(
-                            "The ModList you are about to install was compiled from a Vortex installation. " +
-                            "Vortex support is still very bleeding edge and installing this ModList WILL OVERRIDE your existing mods. " +
-                            "If you encounter any errors during installation go to our discord and ping erri120#2285 with your error and a log file.",
-                            "Important information regarding Vortex support", MessageBoxButton.OK, MessageBoxImage.Stop);
-
-                        if (!Directory.Exists(vortexFolder)) return new ModListVM(modList, modListPath);
-                        if (Directory.Exists(stagingFolder) &&
-                            File.Exists(Path.Combine(stagingFolder, "__vortex_staging_folder")))
-                            StagingLocation.TargetPath = stagingFolder;
-                        if (Directory.Exists(Path.Combine(vortexFolder, "downloads")) &&
-                            File.Exists(Path.Combine(vortexFolder, "downloads", "__vortex_downloads_folder")))
-                            DownloadLocation.TargetPath = downloadFolder;
-                    }
-                    else
-                    {
-                        Location.TargetPath = settings.InstallationLocation;
-                        DownloadLocation.TargetPath = settings.DownloadLocation;
-                        IsMO2ModList = true;
                     }
                     return new ModListVM(modList, modListPath);
                 })
@@ -266,13 +219,10 @@ namespace Wabbajack
                         this.WhenAny(x => x.Installing),
                         this.WhenAny(x => x.Location.InError),
                         this.WhenAny(x => x.DownloadLocation.InError),
-                        this.WhenAny(x => x.StagingLocation.InError),
-                        resultSelector: (installing, loc, download, staging) =>
+                        resultSelector: (installing, loc, download) =>
                         {
                             if (installing) return false;
-                            if (IsMO2ModList)
-                                return !loc && !download;
-                            return !staging && !download;
+                            return !loc && !download;
                         })
                     .ObserveOnGuiThread());
             this.VisitWebsiteCommand = ReactiveCommand.Create(
@@ -288,7 +238,7 @@ namespace Wabbajack
                 {
                     if (string.IsNullOrWhiteSpace(this.DownloadLocation.TargetPath))
                     {
-                       this.DownloadLocation.TargetPath = Path.Combine(installPath, "downloads");
+                        this.DownloadLocation.TargetPath = Path.Combine(installPath, "downloads");
                     }
                 })
                 .DisposeWith(this.CompositeDisposable);
@@ -339,68 +289,35 @@ namespace Wabbajack
 
         private void ExecuteBegin()
         {
-            Installing = true;
-            InstallingMode = true;
-            if (ModList.ModManager == ModManager.Vortex)
+            this.Installing = true;
+            this.InstallingMode = true;
+            var installer = new Installer(this.ModListPath, this.ModList.SourceModList, Location.TargetPath)
             {
-                var installer = new VortexInstaller(ModListPath, ModList.SourceModList)
-                {
-                    StagingFolder = StagingLocation.TargetPath,
-                    DownloadFolder = DownloadLocation.TargetPath
-                };
-                var th = new Thread(() =>
-                {
-                    try
-                    {
-                        installer.Install();
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Log(ex.StackTrace);
-                        Utils.Log(ex.ToString());
-                        Utils.Log($"{ex.Message} - Can't continue");
-                    }
-                    finally
-                    {
-                        Installing = false;
-                    }
-                })
-                {
-                    Priority = ThreadPriority.BelowNormal
-                };
-                th.Start();
-            }
-            else
+                DownloadFolder = DownloadLocation.TargetPath
+            };
+            var th = new Thread(() =>
             {
-                var installer = new Installer(this.ModListPath, this.ModList.SourceModList, Location.TargetPath)
+                try
                 {
-                    DownloadFolder = DownloadLocation.TargetPath
-                };
-                var th = new Thread(() =>
+                    installer.Install();
+                }
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        installer.Install();
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Log(ex.StackTrace);
-                        Utils.Log(ex.ToString());
-                        Utils.Log($"{ex.Message} - Can't continue");
-                    }
-                    finally
-                    {
+                    while (ex.InnerException != null) ex = ex.InnerException;
+                    Utils.Log(ex.StackTrace);
+                    Utils.Log(ex.ToString());
+                    Utils.Log($"{ex.Message} - Can't continue");
+                }
+                finally
+                {
 
-                        this.Installing = false;
-                    }
-                })
-                {
-                    Priority = ThreadPriority.BelowNormal
-                };
-                th.Start();
-            }
+                    this.Installing = false;
+                }
+            })
+            {
+                Priority = ThreadPriority.BelowNormal
+            };
+            th.Start();
         }
     }
 }
