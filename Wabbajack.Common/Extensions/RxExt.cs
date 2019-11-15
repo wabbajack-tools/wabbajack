@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
@@ -172,6 +172,35 @@ namespace Wabbajack
         public static IObservable<bool> Invert(this IObservable<bool> source)
         {
             return source.Select(x => !x);
+        }
+
+        public static IObservable<(T Previous, T Current)> Pairwise<T>(this IObservable<T> source)
+        {
+            T prevStorage = default;
+            return source.Select(i =>
+            {
+                var prev = prevStorage;
+                prevStorage = i;
+                return (prev, i);
+            });
+        }
+
+        public static IObservable<T> DelayInitial<T>(this IObservable<T> source, TimeSpan delay)
+        {
+            return source.FilterSwitch(
+                Observable.Return(System.Reactive.Unit.Default)
+                    .Delay(delay)
+                    .Select(_ => true)
+                    .StartWith(false));
+        }
+
+        public static IObservable<T> DelayInitial<T>(this IObservable<T> source, TimeSpan delay, IScheduler scheduler)
+        {
+            return source.FilterSwitch(
+                Observable.Return(System.Reactive.Unit.Default)
+                    .Delay(delay, scheduler)
+                    .Select(_ => true)
+                    .StartWith(false));
         }
     }
 }

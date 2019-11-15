@@ -50,7 +50,7 @@ namespace Wabbajack
             this.MainWindow = mainWindow;
             this.Settings = settings;
             this._Installer = new Lazy<InstallerVM>(() => new InstallerVM(this, source));
-            this._Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this, source));
+            this._Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
 
             // Set up logging
             Utils.LogMessages

@@ -49,15 +49,9 @@ namespace Wabbajack.Lib
 
             ModListOutputFolder = "output_folder";
             ModListOutputFile = MO2Profile + ExtensionManager.Extension;
-            
-            SelectedArchives = new List<Archive>();
-            InstallDirectives = new List<Directive>();
-            AllFiles = new List<RawSourceFile>();
-            ModList = new ModList();
         }
 
         public dynamic MO2Ini { get; }
-        public string GamePath { get; }
 
         public bool ShowReportWhenFinished { get; set; } = true;
 

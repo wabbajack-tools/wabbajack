@@ -19,10 +19,11 @@ namespace Wabbajack.Lib
         public string ModListOutputFolder;
         public string ModListOutputFile;
 
-        public List<Archive> SelectedArchives;
-        public List<Directive> InstallDirectives;
+        public List<Archive> SelectedArchives = new List<Archive>();
+        public List<Directive> InstallDirectives = new List<Directive>();
         public List<RawSourceFile> AllFiles = new List<RawSourceFile>();
-        public ModList ModList;
+        public ModList ModList = new ModList();
+
         public List<IndexedArchive> IndexedArchives = new List<IndexedArchive>();
         public Dictionary<string, IEnumerable<VirtualFile>> IndexedFiles = new Dictionary<string, IEnumerable<VirtualFile>>();
 

@@ -37,42 +37,37 @@ namespace Wabbajack
 
         private void CreateModlist_Click(object sender, RoutedEventArgs e)
         {
-            OpenMainWindow(
-                RunMode.Compile,
-                UIUtils.OpenFileDialog(
-                    "MO2 Modlist(modlist.txt)|modlist.txt",
-                    initialDirectory: settings.LastCompiledProfileLocation));
+            ShutdownOnClose = false;
+            var window = new MainWindow(RunMode.Compile, null, settings);
+            window.Left = this.Left;
+            window.Top = this.Top;
+            window.Show();
+            Close();
         }
 
         private void InstallModlist_Click(object sender, RoutedEventArgs e)
         {
-            //OpenMainWindow(
-            //    RunMode.Install,
-            //    UIUtils.OpenFileDialog($"Wabbajack Modlist (*{Consts.ModlistExtension})|*{Consts.ModlistExtension}"));
-
             var result = ((ModeSelectionWindowVM)DataContext).Download();
             if (result != null)
             {
-                OpenMainWindow(RunMode.Install, result);
+                OpenMainWindowInstall(result);
             }
         }
 
-        private void OpenMainWindow(RunMode mode, string file)
+        private void InstallFromList_Click(object sender, RoutedEventArgs e)
+        {
+            OpenMainWindowInstall(
+                UIUtils.OpenFileDialog(
+                    $"*{ExtensionManager.Extension}|*{ExtensionManager.Extension}",
+                    initialDirectory: settings.Installer.LastInstalledListLocation));
+        }
+
+        private void OpenMainWindowInstall(string file)
         {
             if (file == null) return;
             ShutdownOnClose = false;
-            switch (mode)
-            {
-                case RunMode.Compile:
-                    settings.LastCompiledProfileLocation = Path.GetDirectoryName(file);
-                    break;
-                case RunMode.Install:
-                    settings.LastInstalledListLocation = Path.GetDirectoryName(file);
-                    break;
-                default:
-                    break;
-            }
-            var window = new MainWindow(mode, file, settings);
+            settings.Installer.LastInstalledListLocation = Path.GetDirectoryName(file);
+            var window = new MainWindow(RunMode.Install, file, settings);
             window.Left = this.Left;
             window.Top = this.Top;
             window.Show();
@@ -100,14 +95,6 @@ namespace Wabbajack
         private void Discord_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             Process.Start("https://discord.gg/zgbrkmA");
-        }
-
-        private void InstallFromList_Click(object sender, RoutedEventArgs e)
-        {
-            OpenMainWindow(RunMode.Install, 
-                UIUtils.OpenFileDialog(
-                    $"*{ExtensionManager.Extension}|*{ExtensionManager.Extension}",
-                    initialDirectory: settings.LastInstalledListLocation));
         }
     }
 }
