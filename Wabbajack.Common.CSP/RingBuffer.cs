@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 
 namespace Wabbajack.Common.CSP
 {
@@ -23,7 +25,8 @@ namespace Wabbajack.Common.CSP
 
         public T Pop()
         {
-            if (_length == 0) return default;
+            if (_length == 0) 
+                throw new InvalidDataException("Pop on empty buffer");
             var val = _arr[_tail];
             _arr[_tail] = default;
             _tail = (_tail + 1) % _size;
@@ -45,7 +48,7 @@ namespace Wabbajack.Common.CSP
 
         public void UnboundedUnshift(T x)
         {
-            if (_length == _size)
+            if (_length + 1 == _size)
                 Resize();
             Unshift(x);
         }
@@ -67,8 +70,8 @@ namespace Wabbajack.Common.CSP
             }
             else if (_tail > _head)
             {
-                Array.Copy(_arr, _tail, new_arr, 0, _length - _tail);
-                Array.Copy(_arr, 0, new_arr, (_length - _tail), _head);
+                Array.Copy(_arr, _tail, new_arr, 0, _size - _tail);
+                Array.Copy(_arr, 0, new_arr, (_size - _tail), _head);
                 _tail = 0;
                 _head = _length;
                 _arr = new_arr;

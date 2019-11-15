@@ -8,7 +8,7 @@ namespace Wabbajack.Lib.CompilationSteps
     {
         private readonly string _prefix;
 
-        public IncludeLootFiles(Compiler compiler) : base(compiler)
+        public IncludeLootFiles(ACompiler compiler) : base(compiler)
         {
             _prefix = Consts.LOOTFolderFilesDir + "\\";
         }
@@ -29,7 +29,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IncludeLootFiles")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IncludeLootFiles(compiler);
             }

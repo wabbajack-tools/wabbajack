@@ -13,7 +13,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 .ToJSON(TypeNameHandling.Auto, TypeNameAssemblyFormatHandling.Simple);
         }
 
-        public static List<ICompilationStep> Deserialize(string stack, Compiler compiler)
+        public static List<ICompilationStep> Deserialize(string stack, ACompiler compiler)
         {
             return stack.FromJSONString<List<IState>>(TypeNameHandling.Auto, TypeNameAssemblyFormatHandling.Simple)
                 .Select(s => s.CreateStep(compiler)).ToList();

@@ -77,6 +77,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ACompiler.cs" />
     <Compile Include="CerasConfig.cs" />
     <Compile Include="CompilationSteps\ACompilationStep.cs" />
     <Compile Include="CompilationSteps\DeconstructBSAs.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="CompilationSteps\IgnorePathContains.cs" />
     <Compile Include="CompilationSteps\IgnoreRegex.cs" />
     <Compile Include="CompilationSteps\IgnoreStartsWith.cs" />
+    <Compile Include="CompilationSteps\IgnoreVortex.cs" />
     <Compile Include="CompilationSteps\IgnoreWabbajackInstallCruft.cs" />
     <Compile Include="CompilationSteps\IncludeAll.cs" />
     <Compile Include="CompilationSteps\IncludeAllConfigs.cs" />
@@ -101,6 +103,7 @@
     <Compile Include="CompilationSteps\IncludeStubbedConfigFiles.cs" />
     <Compile Include="CompilationSteps\IncludeTaggedMods.cs" />
     <Compile Include="CompilationSteps\IncludeThisProfile.cs" />
+    <Compile Include="CompilationSteps\IncludeVortexDeployment.cs" />
     <Compile Include="CompilationSteps\IStackStep.cs" />
     <Compile Include="CompilationSteps\PatchStockESMs.cs" />
     <Compile Include="CompilationSteps\Serialization.cs" />
@@ -131,6 +134,8 @@
     <Compile Include="Validation\DTOs.cs" />
     <Compile Include="Validation\ValidateModlist.cs" />
     <Compile Include="ViewModel.cs" />
+    <Compile Include="VortexCompiler.cs" />
+    <Compile Include="VortexInstaller.cs" />
     <Compile Include="WebAutomation\WebAutomation.cs" />
     <Compile Include="WebAutomation\WebAutomationWindow.xaml.cs">
       <DependentUpon>WebAutomationWindow.xaml</DependentUpon>

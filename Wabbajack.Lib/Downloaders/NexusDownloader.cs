@@ -19,7 +19,8 @@ namespace Wabbajack.Lib.Downloaders
             if (general.modID != null && general.fileID != null && general.gameName != null)
             {
                 var name = (string)general.gameName;
-                var game = GameRegistry.GetByMO2ArchiveName(name).Game;
+                var gameMeta = GameRegistry.GetByMO2ArchiveName(name);
+                var game = gameMeta != null ? GameRegistry.GetByMO2ArchiveName(name).Game : GameRegistry.GetByNexusName(name).Game;
                 var info = new NexusApiClient().GetModInfo(game, general.modID);
                 return new State
                 {
@@ -52,14 +53,8 @@ namespace Wabbajack.Lib.Downloaders
                 return;
             }
 
-            if (!status.is_premium)
-            {
-                Utils.Error($"Automated installs with Wabbajack requires a premium nexus account. {client.Username} is not a premium account.");
-                return;
-            }
-
-            client.ClearUpdatedModsInCache();
-            //var updated = client.GetModsUpdatedSince(Game.Skyrim,DateTime.Now - TimeSpan.FromDays(30));
+            if (status.is_premium) return;
+            Utils.Error($"Automated installs with Wabbajack requires a premium nexus account. {client.Username} is not a premium account.");
         }
 
         public class State : AbstractDownloadState

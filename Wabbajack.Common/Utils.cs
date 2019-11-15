@@ -125,6 +125,28 @@ namespace Wabbajack.Common
             }
         }
 
+        public static async Task<string> FileHashAsync(this string file, bool nullOnIOError = false)
+        {
+            try
+            {
+                var hash = new xxHashConfig();
+                hash.HashSizeInBits = 64;
+                hash.Seed = 0x42;
+                using (var fs = File.OpenRead(file))
+                {
+                    var config = new xxHashConfig();
+                    config.HashSizeInBits = 64;
+                    var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(fs);
+                    return value.AsBase64String();
+                }
+            }
+            catch (IOException ex)
+            {
+                if (nullOnIOError) return null;
+                throw ex;
+            }
+        }
+
         public static void CopyToWithStatus(this Stream istream, long maxSize, Stream ostream, string status)
         {
             var buffer = new byte[1024 * 64];

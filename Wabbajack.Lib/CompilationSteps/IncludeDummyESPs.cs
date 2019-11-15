@@ -5,7 +5,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class IncludeDummyESPs : ACompilationStep
     {
-        public IncludeDummyESPs(Compiler compiler) : base(compiler)
+        public IncludeDummyESPs(ACompiler compiler) : base(compiler)
         {
         }
 
@@ -36,7 +36,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IncludeDummyESPs")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IncludeDummyESPs(compiler);
             }

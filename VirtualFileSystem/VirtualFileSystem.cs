@@ -44,7 +44,10 @@ namespace VFS
         public static void Reconfigure(string root)
         {
             RootFolder = root;
-            _stagedRoot = Path.Combine(RootFolder, "vfs_staged_files");
+            if (RootFolder != null)
+                _stagedRoot = Path.Combine(RootFolder, "vfs_staged_files");
+            else
+                _stagedRoot = "vfs_staged_files";
         }
 
         public static void Clean()

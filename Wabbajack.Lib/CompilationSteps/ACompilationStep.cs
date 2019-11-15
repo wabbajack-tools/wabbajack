@@ -2,9 +2,9 @@
 {
     public abstract class ACompilationStep : ICompilationStep
     {
-        protected Compiler _compiler;
+        protected ACompiler _compiler;
 
-        public ACompilationStep(Compiler compiler)
+        public ACompilationStep(ACompiler compiler)
         {
             _compiler = compiler;
         }

@@ -7,7 +7,7 @@ namespace Wabbajack.Lib.CompilationSteps
     {
         private readonly string _startDir;
 
-        public IgnoreGameFiles(Compiler compiler) : base(compiler)
+        public IgnoreGameFiles(ACompiler compiler) : base(compiler)
         {
             _startDir = Consts.GameFolderFilesDir + "\\";
         }
@@ -28,7 +28,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IgnoreGameFiles")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IgnoreGameFiles(compiler);
             }

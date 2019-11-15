@@ -189,7 +189,6 @@
       <DependentUpon>CompilerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\IsNotNullVisibilityConverter.cs" />
-    <Compile Include="Enums\RunMode.cs" />
     <Compile Include="Extensions\ReactiveUIExt.cs" />
     <Compile Include="Views\DownloadWindow.xaml.cs">
       <DependentUpon>DownloadWindow.xaml</DependentUpon>

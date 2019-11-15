@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Documents;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -14,21 +15,22 @@ namespace Wabbajack.Test.ListValidation
     [TestClass]
     public class ListValidation
     {
-        [TestInitialize]
-        public void Setup()
+        [ClassInitialize]
+        public static void SetupNexus(TestContext context)
         {
-            Directory.CreateDirectory(Consts.ModListDownloadFolder);
-            Utils.LogMessages.Subscribe(s => TestContext.WriteLine(s));
+            Utils.LogMessages.Subscribe(context.WriteLine);
             var api = new NexusApiClient();
             api.ClearUpdatedModsInCache();
         }
 
-        private TestContext testContextInstance;
-        public TestContext TestContext
+        [TestInitialize]
+        public void SetupTest()
         {
-            get { return testContextInstance; }
-            set { testContextInstance = value; }
+            Directory.CreateDirectory(Consts.ModListDownloadFolder);
+            Utils.LogMessages.Subscribe(s => TestContext.WriteLine(s));
         }
+
+        public TestContext TestContext { get; set; }
 
         [TestCategory("ListValidation")]
         [DataTestMethod]
