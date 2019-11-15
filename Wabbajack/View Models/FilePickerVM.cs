@@ -77,7 +77,9 @@ namespace Wabbajack
                         this.WhenAny(x => x.DoExistsCheck),
                         this.WhenAny(x => x.PathType),
                         this.WhenAny(x => x.TargetPath)
-                            .Throttle(TimeSpan.FromMilliseconds(200)),
+                            // Dont want to debounce the initial value, because we know it's null
+                            .Skip(1)
+                            .Debounce(TimeSpan.FromMilliseconds(200)),
                     resultSelector: (_, DoExists, Type, Path) => (DoExists, Type, Path))
                 // Refresh exists
                 .Select(t =>
@@ -95,6 +97,7 @@ namespace Wabbajack
                             return true;
                     }
                 })
+                .StartWith(false)
                 .DistinctUntilChanged()
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .ToProperty(this, nameof(this.Exists));
