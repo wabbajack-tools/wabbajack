@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
@@ -24,6 +25,22 @@ namespace Wabbajack.VirtualFileSystem
         private readonly string _stagingFolder = "vfs_staging";
         public IndexRoot Index { get; private set; } = IndexRoot.Empty;
 
+        /// <summary>
+        /// A stream of tuples of ("Update Title", 0.25) which represent the name of the current task
+        /// and the current progress.
+        /// </summary>
+        public IObservable<(string, float)> ProgressUpdates => _progressUpdates;
+        private readonly Subject<(string, float)> _progressUpdates = new Subject<(string, float)>();
+
+        /// <summary>
+        /// A high throughput firehose of updates from the VFS. These go into more detail on the status
+        /// of what's happening in the context, but is probably too high bandwidth to tie driectly to the
+        /// UI.
+        /// </summary>
+        public IObservable<string> LogSpam => _logSpam;
+        internal readonly Subject<string> _logSpam = new Subject<string>();
+
+
         public TemporaryDirectory GetTemporaryFolder()
         {
             return new TemporaryDirectory(Path.Combine(_stagingFolder, Guid.NewGuid().ToString()));
@@ -41,8 +58,11 @@ namespace Wabbajack.VirtualFileSystem
 
             var byPath = filtered.ToImmutableDictionary(f => f.Name);
 
-            var results = Channel.Create<VirtualFile>(1024);
-            var pipeline = Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive)
+            var filesToIndex = Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive).ToList();
+            
+            var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing {root}", filesToIndex.Count));
+
+            var pipeline = filesToIndex
                 .ToChannel()
                 .UnorderedPipeline(results, async f =>
                 {
@@ -69,6 +89,25 @@ namespace Wabbajack.VirtualFileSystem
             }
 
             return newIndex;
+        }
+
+        class Box<T>
+        {
+            public T Value { get; set; }
+        }
+
+        private Func<IObservable<T>, IObservable<T>> ProgressUpdater<T>(string s, float totalCount)
+        {
+            if (totalCount == 0)
+                totalCount = 1;
+
+            var box = new Box<float>();
+            return sub => sub.Select(itm =>
+            {
+                box.Value += 1;
+                _progressUpdates.OnNext((s, box.Value / totalCount));
+                return itm;
+            });
         }
 
         public async Task WriteToFile(string filename)
@@ -105,39 +144,45 @@ namespace Wabbajack.VirtualFileSystem
 
         public async Task IntegrateFromFile(string filename)
         {
-            using (var fs = File.OpenRead(filename))
-            using (var br = new BinaryReader(fs, Encoding.UTF8, true))
+            try
             {
-                var magic = Encoding.ASCII.GetString(br.ReadBytes(Encoding.ASCII.GetBytes(Magic).Length));
-                var fileVersion = br.ReadUInt64();
-                if (fileVersion != FileVersion || magic != magic)
-                    throw new InvalidDataException("Bad Data Format");
-
-                var numFiles = br.ReadUInt64();
-
-                var input = Channel.Create<byte[]>(1024);
-                var pipeline = input.UnorderedPipelineSync(
-                        data => VirtualFile.Read(this, data))
-                    .TakeAll();
-
-                Utils.Log($"Loading {numFiles} files from {filename}");
-
-                for (ulong idx = 0; idx < numFiles; idx++)
+                using (var fs = File.OpenRead(filename))
+                using (var br = new BinaryReader(fs, Encoding.UTF8, true))
                 {
-                    var size = br.ReadUInt64();
-                    var bytes = new byte[size];
-                    await br.BaseStream.ReadAsync(bytes, 0, (int) size);
-                    await input.Put(bytes);
-                }
+                    var magic = Encoding.ASCII.GetString(br.ReadBytes(Encoding.ASCII.GetBytes(Magic).Length));
+                    var fileVersion = br.ReadUInt64();
+                    if (fileVersion != FileVersion || magic != magic)
+                        throw new InvalidDataException("Bad Data Format");
 
-                input.Close();
+                    var numFiles = br.ReadUInt64();
 
-                var files = await pipeline;
-                var newIndex = await Index.Integrate(files);
-                lock (this)
-                {
-                    Index = newIndex;
+                    var input = Channel.Create(1024, ProgressUpdater<byte[]>("Loading VFS", numFiles));
+                    var pipeline = input.UnorderedPipelineSync(
+                            data => VirtualFile.Read(this, data))
+                        .TakeAll();
+
+                    for (ulong idx = 0; idx < numFiles; idx++)
+                    {
+                        var size = br.ReadUInt64();
+                        var bytes = new byte[size];
+                        await br.BaseStream.ReadAsync(bytes, 0, (int) size);
+                        await input.Put(bytes);
+                    }
+
+                    input.Close();
+
+                    var files = await pipeline;
+                    var newIndex = await Index.Integrate(files);
+                    lock (this)
+                    {
+                        Index = newIndex;
+                    }
                 }
+            }
+            catch (IOException)
+            {
+                if (File.Exists(filename))
+                    File.Delete(filename);
             }
         }
 
@@ -258,7 +303,6 @@ namespace Wabbajack.VirtualFileSystem
         }
         
         #endregion
-
     }
 
     public class KnownFile
@@ -317,6 +361,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public async Task<IndexRoot> Integrate(List<VirtualFile> files)
         {
+            Utils.Log($"Integrating");
             var allFiles = AllFiles.Concat(files).GroupBy(f => f.Name).Select(g => g.Last()).ToImmutableList();
 
             var byFullPath = Task.Run(() =>
@@ -334,11 +379,13 @@ namespace Wabbajack.VirtualFileSystem
 
             var byRootPath = Task.Run(() => allFiles.ToImmutableDictionary(f => f.Name));
 
-            return new IndexRoot(allFiles,
-                await byFullPath,
-                await byHash,
-                await byRootPath,
-                await byName);
+            var result = new IndexRoot(allFiles,
+                await byFullPath.ConfigureAwait(false),
+                await byHash.ConfigureAwait(false),
+                await byRootPath.ConfigureAwait(false),
+                await byName.ConfigureAwait(false));
+            Utils.Log($"Done integrating");
+            return result;
         }
 
         public VirtualFile FileForArchiveHashPath(string[] argArchiveHashPath)

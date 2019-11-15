@@ -144,7 +144,7 @@ namespace Compression.BSA
 
         public static async Task CopyToLimitAsync(this Stream frm, Stream tw, int limit)
         {
-            var buff = new byte[1024];
+            var buff = new byte[1024 * 16];
             while (limit > 0)
             {
                 var to_read = Math.Min(buff.Length, limit);
@@ -153,7 +153,7 @@ namespace Compression.BSA
                 limit -= read;
             }
 
-            tw.Flush();
+            await tw.FlushAsync();
         }
 
         public static void CopyToLimit(this Stream frm, Stream tw, int limit)

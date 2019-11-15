@@ -120,8 +120,9 @@ namespace Wabbajack.VirtualFileSystem
         public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, string abs_path,
             string rel_path)
         {
-            var hasher = abs_path.FileHashAsync();
+            var hasher = abs_path.FileHashAsync().ConfigureAwait(false);
             var fi = new FileInfo(abs_path);
+            context._logSpam.OnNext($"Analyzing {rel_path}");
             var self = new VirtualFile
             {
                 Context = context,
@@ -131,19 +132,27 @@ namespace Wabbajack.VirtualFileSystem
                 LastModified = fi.LastWriteTimeUtc.Ticks,
                 LastAnalyzed = DateTime.Now.Ticks
             };
-
             if (FileExtractor.CanExtract(Path.GetExtension(abs_path)))
+            {
+                context._logSpam.OnNext($"Extracting {rel_path}");
+
                 using (var tempFolder = context.GetTemporaryFolder())
                 {
-                    await FileExtractor.ExtractAll(abs_path, tempFolder.FullName);
+                    await FileExtractor.ExtractAll(abs_path, tempFolder.FullName).ConfigureAwait(false);
+
+                    context._logSpam.OnNext($"Analyzing Contents {rel_path}");
 
                     var results = Channel.Create<VirtualFile>(1024);
                     var files = Directory.EnumerateFiles(tempFolder.FullName, "*", SearchOption.AllDirectories)
                         .ToChannel()
                         .UnorderedPipeline(results,
-                            async abs_src => await Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName)));
+                            async abs_src =>
+                                await Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName))
+                                    .ConfigureAwait(false));
                     self.Children = (await results.TakeAll()).ToImmutableList();
                 }
+
+            }
 
             self.Hash = await hasher;
             return self;

@@ -28,6 +28,7 @@ namespace Wabbajack.Lib
 {
     public class Compiler : ACompiler
     {
+
         private string _mo2DownloadsFolder;
 
         public Dictionary<string, IEnumerable<IndexedFileMatch>> DirectMatchIndex;
@@ -49,6 +50,8 @@ namespace Wabbajack.Lib
 
             ModListOutputFolder = "output_folder";
             ModListOutputFile = MO2Profile + ExtensionManager.Extension;
+            VFS.ProgressUpdates.Debounce(new TimeSpan(0, 0, 0, 0, 100))
+                .Subscribe(itm => _progressUpdates.OnNext(itm));
         }
 
         public dynamic MO2Ini { get; }
@@ -119,13 +122,24 @@ namespace Wabbajack.Lib
 
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
 
+            VFS.IntegrateFromFile(_vfsCacheName).Wait();
+
             Info($"Indexing {MO2Folder}");
             VFS.AddRoot(MO2Folder).Wait();
+
+            VFS.WriteToFile(_vfsCacheName).Wait();
+
             Info($"Indexing {GamePath}");
             VFS.AddRoot(GamePath).Wait();
 
+            VFS.WriteToFile(_vfsCacheName).Wait();
+
+
             Info($"Indexing {MO2DownloadsFolder}");
             VFS.AddRoot(MO2DownloadsFolder).Wait();
+
+            VFS.WriteToFile(_vfsCacheName).Wait();
+
 
             Info("Cleaning output folder");
             if (Directory.Exists(ModListOutputFolder))
@@ -151,6 +165,8 @@ namespace Wabbajack.Lib
             {
                 Info($"Indexing {loot_path}");
                 VFS.AddRoot(loot_path).Wait();
+                VFS.WriteToFile(_vfsCacheName).Wait();
+
 
                 loot_files = Directory.EnumerateFiles(loot_path, "userlist.yaml", SearchOption.AllDirectories)
                     .Where(p => p.FileExists())
