@@ -375,9 +375,6 @@
     <EmbeddedResource Include="Resources\Icons\next.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\none.jpg" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\Icons\github_light.png" />
     <EmbeddedResource Include="Resources\Icons\patreon_light.png" />
   </ItemGroup>

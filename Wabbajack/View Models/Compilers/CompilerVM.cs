@@ -1,4 +1,4 @@
-using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
@@ -75,7 +75,7 @@ namespace Wabbajack
                     {
                         return image;
                     }
-                    return UIUtils.BitmapImageFromResource("Wabbajack.Resources.none.png");
+                    return null;
                 })
                 .ToProperty(this, nameof(this.Image));
         }
