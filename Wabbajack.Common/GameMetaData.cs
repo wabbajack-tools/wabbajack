@@ -71,8 +71,7 @@ namespace Wabbajack.Common
             return Games.Values.FirstOrDefault(g => g.NexusName == gameName.ToLower());
         }
 
-
-        public static Dictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>
+        public static IReadOnlyDictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>
         {
             /*{
                 Game.Morrowind, new GameMetaData()
