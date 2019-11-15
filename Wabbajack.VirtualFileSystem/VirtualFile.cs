@@ -245,6 +245,11 @@ namespace Wabbajack.VirtualFileSystem
             }
             return path;
         }
+
+        public Stream OpenRead()
+        {
+            return File.OpenRead(StagedPath);
+        }
     }
 
     public class CannotStageNativeFile : Exception

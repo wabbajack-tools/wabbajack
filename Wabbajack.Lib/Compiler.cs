@@ -425,11 +425,9 @@ namespace Wabbajack.Lib
         private void BuildArchivePatches(string archive_sha, IEnumerable<PatchedFromArchive> group,
             Dictionary<string, string> absolute_paths)
         {
-            throw new NotImplementedException();
-            /*
             using (var files = VFS.StageWith(group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath))).Result)
             {
-                var by_path = files.GroupBy(f => string.Join("|", f.Paths.Skip(1)))
+                var by_path = files.GroupBy(f => string.Join("|", f.FilesInFullPath.Skip(1).Select(i => i.Name)))
                     .ToDictionary(f => f.Key, f => f.First());
                 // Now Create the patches
                 group.PMap(entry =>
@@ -448,7 +446,6 @@ namespace Wabbajack.Lib
                     }
                 });
             }
-            */
         }
 
         private async Task<byte[]> LoadDataForTo(string to, Dictionary<string, string> absolute_paths)
