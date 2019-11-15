@@ -22,9 +22,9 @@ namespace Wabbajack.Common
         Starbound,
         SWKOTOR,
         SWKOTOR2,
-        WITCHER,
-        WITCHER2,
-        WITCHER3
+        Witcher,
+        Witcher2,
+        Witcher3
     }
 
     public class GameMetaData
@@ -71,8 +71,7 @@ namespace Wabbajack.Common
             return Games.Values.FirstOrDefault(g => g.NexusName == gameName.ToLower());
         }
 
-
-        public static Dictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>
+        public static IReadOnlyDictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>
         {
             /*{
                 Game.Morrowind, new GameMetaData()
@@ -242,30 +241,30 @@ namespace Wabbajack.Common
                 }
             },
             {
-                Game.WITCHER, new GameMetaData
+                Game.Witcher, new GameMetaData
                 {
                     SupportedModManager = ModManager.Vortex,
-                    Game = Game.WITCHER,
+                    Game = Game.Witcher,
                     NexusName = "witcher",
                     SteamIDs = new List<int>{20900},
                     GOGIDs = new List<int>{1207658924}
                 }
             },
             {
-                Game.WITCHER2, new GameMetaData
+                Game.Witcher2, new GameMetaData
                 {
                     SupportedModManager = ModManager.Vortex,
-                    Game = Game.WITCHER2,
+                    Game = Game.Witcher2,
                     NexusName = "witcher2",
                     SteamIDs = new List<int>{20920},
                     GOGIDs = new List<int>{1207658930}
                 }
             },
             {
-                Game.WITCHER3, new GameMetaData
+                Game.Witcher3, new GameMetaData
                 {
                     SupportedModManager = ModManager.Vortex,
-                    Game = Game.WITCHER3,
+                    Game = Game.Witcher3,
                     NexusName = "witcher3",
                     SteamIDs = new List<int>{292030, 499450}, // normal and GotY
                     GOGIDs = new List<int>{1207664643, 1495134320, 1207664663, 1640424747} // normal, GotY and both in packages
