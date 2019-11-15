@@ -10,6 +10,7 @@ using System.Reactive.Subjects;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Wabbajack.Common;
 
 namespace Wabbajack
 {
@@ -22,10 +23,8 @@ namespace Wabbajack
         public double PosY { get; set; }
         public double Height { get; set; }
         public double Width { get; set; }
-        public string LastInstalledListLocation { get; set; }
-        public Dictionary<string, InstallationSettings> InstallationSettings { get; } = new Dictionary<string, InstallationSettings>();
-        public string LastCompiledProfileLocation { get; set; }
-        public Dictionary<string, CompilationSettings> CompilationSettings { get; } = new Dictionary<string, CompilationSettings>();
+        public InstallerSettings Installer { get; set; } = new InstallerSettings();
+        public CompilerSettings Compiler { get; set; } = new CompilerSettings();
 
         [JsonIgnoreAttribute]
         private Subject<Unit> _saveSignal = new Subject<Unit>();
@@ -50,14 +49,27 @@ namespace Wabbajack
         }
     }
 
-    public class InstallationSettings
+    public class InstallerSettings
+    {
+        public string LastInstalledListLocation { get; set; }
+        public Dictionary<string, ModlistInstallationSettings> ModlistSettings { get; } = new Dictionary<string, ModlistInstallationSettings>();
+    }
+
+    public class ModlistInstallationSettings
     {
         public string InstallationLocation { get; set; }
         public string StagingLocation { get; set; }
         public string DownloadLocation { get; set; }
     }
 
-    public class CompilationSettings
+    public class CompilerSettings
+    {
+        public ModManager LastCompiledModManager { get; set; }
+        public MO2CompilationSettings MO2Compilation { get; } = new MO2CompilationSettings();
+        public VortexCompilationSettings VortexCompilation { get; } = new VortexCompilationSettings();
+    }
+
+    public class CompilationModlistSettings
     {
         public string ModListName { get; set; }
         public string Author { get; set; }
@@ -65,6 +77,19 @@ namespace Wabbajack
         public string Website { get; set; }
         public string Readme { get; set; }
         public string SplashScreen { get; set; }
+    }
+
+    public class MO2CompilationSettings
+    {
         public string DownloadLocation { get; set; }
+        public string LastCompiledProfileLocation { get; set; }
+        public Dictionary<string, CompilationModlistSettings> ModlistSettings { get; } = new Dictionary<string, CompilationModlistSettings>();
+    }
+
+    public class VortexCompilationSettings
+    {
+        public string StagingLocation { get; set; }
+        public Game LastCompiledGame { get; set; }
+        public Dictionary<Game, CompilationModlistSettings> ModlistSettings { get; } = new Dictionary<Game, CompilationModlistSettings>();
     }
 }
