@@ -55,13 +55,6 @@ namespace Wabbajack.Lib
 
             // TODO: add custom modlist name
             ModListOutputFile = $"VORTEX_TEST_MODLIST{ExtensionManager.Extension}";
-
-            VFS = VirtualFileSystem.VFS;
-
-            SelectedArchives = new List<Archive>();
-            AllFiles = new List<RawSourceFile>();
-            IndexedArchives = new List<IndexedArchive>();
-            IndexedFiles = new Dictionary<string, IEnumerable<VirtualFile>>();
         }
 
         public override void Info(string msg)
