@@ -1,8 +1,8 @@
 ﻿using Ceras;
 using Compression.BSA;
-using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.Lib
 {

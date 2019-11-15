@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 
@@ -36,7 +35,6 @@ namespace Wabbajack.Test
         protected Compiler ConfigureAndRunCompiler(string profile)
         {
             var compiler = MakeCompiler();
-            compiler.VFS.Reset();
             compiler.MO2Profile = profile;
             compiler.ShowReportWhenFinished = false;
             Assert.IsTrue(compiler.Compile());
@@ -45,7 +43,6 @@ namespace Wabbajack.Test
 
         protected Compiler MakeCompiler()
         {
-            VirtualFileSystem.Reconfigure(utils.TestFolder);
             var compiler = new Compiler(utils.MO2Folder);
             return compiler;
         }

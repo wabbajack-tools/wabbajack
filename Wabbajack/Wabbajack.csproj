@@ -313,10 +313,6 @@
       <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
       <Name>Compression.BSA</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VirtualFileSystem\VirtualFileSystem.csproj">
-      <Project>{5128b489-bc28-4f66-9f0b-b4565af36cbc}</Project>
-      <Name>VirtualFileSystem</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj">
       <Project>{b3f3fb6e-b9eb-4f49-9875-d78578bc7ae5}</Project>
       <Name>Wabbajack.Common</Name>

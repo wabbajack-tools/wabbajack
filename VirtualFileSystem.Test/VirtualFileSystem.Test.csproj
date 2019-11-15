@@ -92,10 +92,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\VirtualFileSystem\VirtualFileSystem.csproj">
-      <Project>{5128b489-bc28-4f66-9f0b-b4565af36cbc}</Project>
-      <Name>VirtualFileSystem</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj">
       <Project>{B3F3FB6E-B9EB-4F49-9875-D78578BC7AE5}</Project>
       <Name>Wabbajack.Common</Name>

@@ -114,10 +114,6 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\VirtualFileSystem\VirtualFileSystem.csproj">
-      <Project>{5128b489-bc28-4f66-9f0b-b4565af36cbc}</Project>
-      <Name>VirtualFileSystem</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj">
       <Project>{9e69bc98-1512-4977-b683-6e7e5292c0b8}</Project>
       <Name>Wabbajack.Common.CSP</Name>

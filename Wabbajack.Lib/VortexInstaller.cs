@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -24,7 +24,7 @@ namespace Wabbajack.Lib
         public string StagingFolder { get; set; }
         public string DownloadFolder { get; set; }
 
-        public VirtualFileSystem VFS => VirtualFileSystem.VFS;
+        public Context VFS { get; } = new Context();
 
         public bool IgnoreMissingFiles { get; internal set; }
 
@@ -89,8 +89,6 @@ namespace Wabbajack.Lib
         {
             Directory.CreateDirectory(DownloadFolder);
 
-            VirtualFileSystem.Clean();
-
             HashArchives();
             DownloadArchives();
             HashArchives();
@@ -153,12 +151,12 @@ namespace Wabbajack.Lib
 
             var vFiles = grouping.Select(g =>
             {
-                var file = VFS.FileForArchiveHashPath(g.ArchiveHashPath);
+                var file = VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath);
                 g.FromFile = file;
                 return g;
             }).ToList();
 
-            var onFinish = VFS.Stage(vFiles.Select(f => f.FromFile).Distinct());
+            var onFinish = VFS.Stage(vFiles.Select(f => f.FromFile).Distinct()).Result;
 
             Status($"Copying files for {archive.Name}");
 
@@ -203,24 +201,27 @@ namespace Wabbajack.Lib
                 });
         }
 
+        /// <summary>
+        ///     We don't want to make the installer index all the archives, that's just a waste of time, so instead
+        ///     we'll pass just enough information to VFS to let it know about the files we have.
+        /// </summary>
         private void PrimeVFS()
         {
-            HashedArchives.Do(a => VFS.AddKnown(new VirtualFile
+            VFS.AddKnown(HashedArchives.Select(a => new KnownFile
             {
                 Paths = new[] { a.Value },
                 Hash = a.Key
             }));
-            VFS.RefreshIndexes();
 
 
             ModList.Directives
                 .OfType<FromArchive>()
-                .Do(f =>
+                .Select(f =>
                 {
                     var updated_path = new string[f.ArchiveHashPath.Length];
                     f.ArchiveHashPath.CopyTo(updated_path, 0);
-                    updated_path[0] = VFS.HashIndex[updated_path[0]].Where(e => e.IsConcrete).First().FullPath;
-                    VFS.AddKnown(new VirtualFile { Paths = updated_path });
+                    updated_path[0] = VFS.Index.ByHash[updated_path[0]].First(e => e.IsNative).FullPath;
+                    return new KnownFile { Paths = updated_path };
                 });
 
             VFS.BackfillMissing();
