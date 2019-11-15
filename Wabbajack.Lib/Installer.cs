@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
@@ -149,7 +150,7 @@ namespace Wabbajack.Lib
                     Error("Cannot continue, was unable to download one or more archives");
             }
 
-            PrimeVFS();
+            PrimeVFS().Wait();
 
             BuildFolderStructure();
             InstallArchives();
@@ -232,7 +233,7 @@ namespace Wabbajack.Lib
         ///     We don't want to make the installer index all the archives, that's just a waste of time, so instead
         ///     we'll pass just enough information to VFS to let it know about the files we have.
         /// </summary>
-        private void PrimeVFS()
+        private async Task PrimeVFS()
         {
             VFS.AddKnown(HashedArchives.Select(a => new KnownFile
             {
@@ -240,18 +241,13 @@ namespace Wabbajack.Lib
                 Hash = a.Key
             }));
 
-
+            
+            VFS.AddKnown(
             ModList.Directives
                 .OfType<FromArchive>()
-                .Select(f =>
-                {
-                    var updated_path = new string[f.ArchiveHashPath.Length];
-                    f.ArchiveHashPath.CopyTo(updated_path, 0);
-                    updated_path[0] = VFS.Index.ByHash[updated_path[0]].First(e => e.IsNative).FullPath;
-                    return new KnownFile { Paths = updated_path};
-                });
+                .Select(f => new KnownFile { Paths = f.ArchiveHashPath}));
 
-            VFS.BackfillMissing();
+            await VFS.BackfillMissing();
         }
 
         private void BuildBSAs()

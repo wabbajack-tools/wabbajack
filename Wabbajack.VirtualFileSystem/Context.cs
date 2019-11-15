@@ -205,15 +205,60 @@ namespace Wabbajack.VirtualFileSystem
             return new DisposableList<VirtualFile>(await Stage(files), files);
         }
 
+
+        #region KnownFiles
+
+        private List<KnownFile> _knownFiles = new List<KnownFile>();
         public void AddKnown(IEnumerable<KnownFile> known)
         {
-            throw new NotImplementedException();
+            _knownFiles.AddRange(known);
         }
 
-        public void BackfillMissing()
+        public async Task BackfillMissing()
         {
-            throw new NotImplementedException();
+            var newFiles = _knownFiles.Where(f => f.Paths.Length == 1)
+                                       .GroupBy(f => f.Hash)
+                                       .ToDictionary(f => f.Key, s => new VirtualFile()
+                                       {
+                                           Name = s.First().Paths[0],
+                                           Hash = s.First().Hash,
+                                           Context = this
+                                       });
+
+            var parentchild = new Dictionary<(VirtualFile, string), VirtualFile>();
+
+            void BackFillOne(KnownFile file)
+            {
+                var parent = newFiles[file.Paths[0]];
+                foreach (var path in file.Paths.Skip(1))
+                {
+                    if (parentchild.TryGetValue((parent, path), out var foundParent))
+                    {
+                        parent = foundParent;
+                        continue;
+                    }
+
+                    var nf = new VirtualFile();
+                    nf.Name = path;
+                    nf.Parent = parent;
+                    parent.Children = parent.Children.Add(nf);
+                    parentchild.Add((parent, path), nf);
+                    parent = nf;
+                }
+            }
+            _knownFiles.Where(f => f.Paths.Length > 1).Do(BackFillOne);
+
+            var newIndex = await Index.Integrate(newFiles.Values.ToList());
+
+            lock (this)
+                Index = newIndex;
+
+            _knownFiles = new List<KnownFile>();
+
         }
+        
+        #endregion
+
     }
 
     public class KnownFile
@@ -280,6 +325,7 @@ namespace Wabbajack.VirtualFileSystem
 
             var byHash = Task.Run(() =>
                 allFiles.SelectMany(f => f.ThisAndAllChildren)
+                    .Where(f => f.Hash != null)
                     .ToGroupedImmutableDictionary(f => f.Hash));
 
             var byName = Task.Run(() =>
