@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 
@@ -35,7 +34,6 @@ namespace Wabbajack.Test
         protected VortexCompiler ConfigureAndRunCompiler()
         {
             var vortexCompiler = MakeCompiler();
-            vortexCompiler.VFS.Reset();
             vortexCompiler.DownloadsFolder = utils.DownloadsFolder;
             vortexCompiler.StagingFolder = utils.InstallFolder;
             Directory.CreateDirectory(utils.InstallFolder);
@@ -45,7 +43,6 @@ namespace Wabbajack.Test
 
         protected VortexCompiler MakeCompiler()
         {
-            VirtualFileSystem.Reconfigure(utils.TestFolder);
             var vortexCompiler = new VortexCompiler(utils.GameName, utils.GameFolder);
             return vortexCompiler;
         }

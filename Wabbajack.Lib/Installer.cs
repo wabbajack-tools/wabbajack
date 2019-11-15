@@ -4,12 +4,13 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
-using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
+using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -28,7 +29,7 @@ namespace Wabbajack.Lib
             ModList = mod_list;
         }
 
-        public VirtualFileSystem VFS => VirtualFileSystem.VFS;
+        public Context VFS { get; } = new Context();
 
         public string Outputfolder { get; }
 
@@ -116,7 +117,6 @@ namespace Wabbajack.Lib
             ValidateGameESMs();
             ValidateModlist.RunValidation(ModList);
 
-            VirtualFileSystem.Clean();
             Directory.CreateDirectory(Outputfolder);
             Directory.CreateDirectory(DownloadFolder);
 
@@ -150,7 +150,7 @@ namespace Wabbajack.Lib
                     Error("Cannot continue, was unable to download one or more archives");
             }
 
-            PrimeVFS();
+            PrimeVFS().Wait();
 
             BuildFolderStructure();
             InstallArchives();
@@ -233,27 +233,21 @@ namespace Wabbajack.Lib
         ///     We don't want to make the installer index all the archives, that's just a waste of time, so instead
         ///     we'll pass just enough information to VFS to let it know about the files we have.
         /// </summary>
-        private void PrimeVFS()
+        private async Task PrimeVFS()
         {
-            HashedArchives.Do(a => VFS.AddKnown(new VirtualFile
+            VFS.AddKnown(HashedArchives.Select(a => new KnownFile
             {
                 Paths = new[] { a.Value },
                 Hash = a.Key
             }));
-            VFS.RefreshIndexes();
 
-
+            
+            VFS.AddKnown(
             ModList.Directives
                 .OfType<FromArchive>()
-                .Do(f =>
-                {
-                    var updated_path = new string[f.ArchiveHashPath.Length];
-                    f.ArchiveHashPath.CopyTo(updated_path, 0);
-                    updated_path[0] = VFS.HashIndex[updated_path[0]].Where(e => e.IsConcrete).First().FullPath;
-                    VFS.AddKnown(new VirtualFile { Paths = updated_path });
-                });
+                .Select(f => new KnownFile { Paths = f.ArchiveHashPath}));
 
-            VFS.BackfillMissing();
+            await VFS.BackfillMissing();
         }
 
         private void BuildBSAs()
@@ -287,7 +281,7 @@ namespace Wabbajack.Lib
             if (Directory.Exists(bsa_dir))
             {
                 Info($"Removing temp folder {Consts.BSACreationDir}");
-                VirtualFileSystem.DeleteDirectory(bsa_dir);
+                Directory.Delete(bsa_dir, true, true);
             }
         }
 
@@ -387,12 +381,12 @@ namespace Wabbajack.Lib
 
             var vfiles = grouping.Select(g =>
             {
-                var file = VFS.FileForArchiveHashPath(g.ArchiveHashPath);
+                var file = VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath);
                 g.FromFile = file;
                 return g;
             }).ToList();
 
-            var on_finish = VFS.Stage(vfiles.Select(f => f.FromFile).Distinct());
+            var on_finish = VFS.Stage(vfiles.Select(f => f.FromFile).Distinct()).Result;
 
 
             Status($"Copying files for {archive.Name}");

@@ -6,12 +6,12 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.WindowsAPICodePack.Shell;
-using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Lib.NexusApi;
+using Wabbajack.VirtualFileSystem;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib
@@ -89,20 +89,19 @@ namespace Wabbajack.Lib
 
         public override bool Compile()
         {
-            VirtualFileSystem.Clean();
             Info($"Starting Vortex compilation for {GameName} at {GamePath} with staging folder at {StagingFolder} and downloads folder at  {DownloadsFolder}.");
 
             Info("Starting pre-compilation steps");
             CreateMetaFiles();
 
             Info($"Indexing {StagingFolder}");
-            VFS.AddRoot(StagingFolder);
+            VFS.AddRoot(StagingFolder).Wait();
 
             Info($"Indexing {GamePath}");
-            VFS.AddRoot(GamePath);
+            VFS.AddRoot(GamePath).Wait();
 
             Info($"Indexing {DownloadsFolder}");
-            VFS.AddRoot(DownloadsFolder);
+            VFS.AddRoot(DownloadsFolder).Wait();
 
             AddExternalFolder();
 
@@ -112,37 +111,34 @@ namespace Wabbajack.Lib
             
             IEnumerable<RawSourceFile> vortexStagingFiles = Directory.EnumerateFiles(StagingFolder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists() && p != "__vortex_staging_folder")
-                .Select(p => new RawSourceFile(VFS.Lookup(p))
+                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     {Path = p.RelativeTo(StagingFolder)});
             
             IEnumerable<RawSourceFile> vortexDownloads = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Lookup(p))
+                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     {Path = p.RelativeTo(DownloadsFolder)});
 
             IEnumerable<RawSourceFile> gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Lookup(p))
+                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
 
             Info("Indexing Archives");
             IndexedArchives = Directory.EnumerateFiles(DownloadsFolder)
-                .Where(f => File.Exists(f+".meta"))
+                .Where(f => File.Exists(f + ".meta"))
                 .Select(f => new IndexedArchive
                 {
-                    File = VFS.Lookup(f),
+                    File = VFS.Index.ByRootPath[f],
                     Name = Path.GetFileName(f),
-                    IniData = (f+".meta").LoadIniFile(),
-                    Meta = File.ReadAllText(f+".meta")
+                    IniData = (f + ".meta").LoadIniFile(),
+                    Meta = File.ReadAllText(f + ".meta")
                 })
                 .ToList();
 
             Info("Indexing Files");
-            IDictionary<VirtualFile, IEnumerable<VirtualFile>> grouped = VFS.GroupedByArchive();
-            IndexedFiles = IndexedArchives.Select(f => grouped.TryGetValue(f.File, out var result) ? result : new List<VirtualFile>())
-                .SelectMany(fs => fs)
-                .Concat(IndexedArchives.Select(f => f.File))
-                .OrderByDescending(f => f.TopLevelArchive.LastModified)
+            IndexedFiles = IndexedArchives.SelectMany(f => f.File.ThisAndAllChildren)
+                .OrderBy(f => f.NestingFactor)
                 .GroupBy(f => f.Hash)
                 .ToDictionary(f => f.Key, f => f.AsEnumerable());
 

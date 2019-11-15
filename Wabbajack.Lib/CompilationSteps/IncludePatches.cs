@@ -2,8 +2,8 @@
 using System.Linq;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
-using VFS;
 using Wabbajack.Common;
+using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -15,16 +15,16 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             _indexed = _compiler.IndexedFiles.Values
                 .SelectMany(f => f)
-                .GroupBy(f => Path.GetFileName(Enumerable.Last(f.Paths)).ToLower())
+                .GroupBy(f => Path.GetFileName(f.Name).ToLower())
                 .ToDictionary(f => f.Key);
         }
 
         public override Directive Run(RawSourceFile source)
         {
-            if (!_indexed.TryGetValue(Path.GetFileName(Enumerable.Last(source.File.Paths).ToLower()), out var value))
+            if (!_indexed.TryGetValue(Path.GetFileName(source.File.Name.ToLower()), out var value))
                 return null;
 
-            var found = value.OrderByDescending(f => (f.TopLevelArchive ?? f).LastModified).First();
+            var found = value.OrderByDescending(f => (f.FilesInFullPath.First() ?? f).LastModified).First();
 
             var e = source.EvolveTo<PatchedFromArchive>();
             e.ArchiveHashPath = found.MakeRelativePaths();

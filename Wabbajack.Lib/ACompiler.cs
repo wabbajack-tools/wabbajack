@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
+using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.Lib
 {
     public abstract class ACompiler
     {
+        public Context VFS { get; internal set; } = new Context();
         public ModManager ModManager;
 
         public string GamePath;
@@ -22,7 +23,7 @@ namespace Wabbajack.Lib
         public List<Directive> InstallDirectives = new List<Directive>();
         public List<RawSourceFile> AllFiles = new List<RawSourceFile>();
         public ModList ModList = new ModList();
-        public VirtualFileSystem VFS = VirtualFileSystem.VFS;
+
         public List<IndexedArchive> IndexedArchives = new List<IndexedArchive>();
         public Dictionary<string, IEnumerable<VirtualFile>> IndexedFiles = new Dictionary<string, IEnumerable<VirtualFile>>();
 

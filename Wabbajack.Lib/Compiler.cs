@@ -12,13 +12,13 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
+using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -31,8 +31,7 @@ namespace Wabbajack.Lib
         private string _mo2DownloadsFolder;
 
         public Dictionary<string, IEnumerable<IndexedFileMatch>> DirectMatchIndex;
-
-
+        
         public string MO2Folder;
 
 
@@ -112,7 +111,6 @@ namespace Wabbajack.Lib
 
         public override bool Compile()
         {
-            VirtualFileSystem.Clean();
             Info("Looking for other profiles");
             var other_profiles_path = Path.Combine(MO2ProfileDir, "otherprofiles.txt");
             SelectedProfiles = new HashSet<string>();
@@ -122,12 +120,12 @@ namespace Wabbajack.Lib
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
 
             Info($"Indexing {MO2Folder}");
-            VFS.AddRoot(MO2Folder);
+            VFS.AddRoot(MO2Folder).Wait();
             Info($"Indexing {GamePath}");
-            VFS.AddRoot(GamePath);
+            VFS.AddRoot(GamePath).Wait();
 
             Info($"Indexing {MO2DownloadsFolder}");
-            VFS.AddRoot(MO2DownloadsFolder);
+            VFS.AddRoot(MO2DownloadsFolder).Wait();
 
             Info("Cleaning output folder");
             if (Directory.Exists(ModListOutputFolder))
@@ -137,11 +135,11 @@ namespace Wabbajack.Lib
 
             var mo2_files = Directory.EnumerateFiles(MO2Folder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Lookup(p)) { Path = p.RelativeTo(MO2Folder) });
+                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p]) { Path = p.RelativeTo(MO2Folder) });
 
             var game_files = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Lookup(p))
+                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                 { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
 
             var loot_path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -152,11 +150,11 @@ namespace Wabbajack.Lib
             if (Directory.Exists(loot_path))
             {
                 Info($"Indexing {loot_path}");
-                VFS.AddRoot(loot_path);
+                VFS.AddRoot(loot_path).Wait();
 
                 loot_files = Directory.EnumerateFiles(loot_path, "userlist.yaml", SearchOption.AllDirectories)
                     .Where(p => p.FileExists())
-                    .Select(p => new RawSourceFile(VFS.Lookup(p))
+                    .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(loot_path)) });
             }
 
@@ -168,7 +166,7 @@ namespace Wabbajack.Lib
                 .Where(f => File.Exists(f + ".meta"))
                 .Select(f => new IndexedArchive
                 {
-                    File = VFS.Lookup(f),
+                    File = VFS.Index.ByRootPath[f],
                     Name = Path.GetFileName(f),
                     IniData = (f + ".meta").LoadIniFile(),
                     Meta = File.ReadAllText(f + ".meta")
@@ -176,16 +174,8 @@ namespace Wabbajack.Lib
                 .ToList();
 
             Info("Indexing Files");
-            var grouped = VFS.GroupedByArchive();
-            IndexedFiles = IndexedArchives.Select(f =>
-                {
-                    if (grouped.TryGetValue(f.File, out var result))
-                        return result;
-                    return new List<VirtualFile>();
-                })
-                .SelectMany(fs => fs)
-                .Concat(IndexedArchives.Select(f => f.File))
-                .OrderByDescending(f => f.TopLevelArchive.LastModified)
+            IndexedFiles = IndexedArchives.SelectMany(f => f.File.ThisAndAllChildren)
+                .OrderBy(f => f.NestingFactor)
                 .GroupBy(f => f.Hash)
                 .ToDictionary(f => f.Key, f => f.AsEnumerable());
 
@@ -429,10 +419,9 @@ namespace Wabbajack.Lib
         private void BuildArchivePatches(string archive_sha, IEnumerable<PatchedFromArchive> group,
             Dictionary<string, string> absolute_paths)
         {
-            var archive = VFS.HashIndex[archive_sha];
-            using (var files = VFS.StageWith(group.Select(g => VFS.FileForArchiveHashPath(g.ArchiveHashPath))))
+            using (var files = VFS.StageWith(group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath))).Result)
             {
-                var by_path = files.GroupBy(f => string.Join("|", f.Paths.Skip(1)))
+                var by_path = files.GroupBy(f => string.Join("|", f.FilesInFullPath.Skip(1).Select(i => i.Name)))
                     .ToDictionary(f => f.Key, f => f.First());
                 // Now Create the patches
                 group.PMap(entry =>

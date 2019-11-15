@@ -129,7 +129,7 @@ namespace Wabbajack.VirtualFileSystem.Test
             var abs_path = Path.Combine(VFS_TEST_DIR_FULL, "test.zip");
             var file = context.Index.ByFullPath[abs_path + "|test.txt"];
 
-            var cleanup = context.Stage(new List<VirtualFile> {file});
+            var cleanup = await context.Stage(new List<VirtualFile> {file});
             Assert.AreEqual("This is a test", File.ReadAllText(file.StagedPath));
 
             cleanup();
@@ -150,7 +150,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             var files = context.Index.ByHash["qX0GZvIaTKM="];
 
-            var cleanup = context.Stage(files);
+            var cleanup = await context.Stage(files);
 
             foreach (var file in files)
                 Assert.AreEqual("This is a test", File.ReadAllText(file.StagedPath));
@@ -183,7 +183,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             var new_files = new_context.Index.ByHash["qX0GZvIaTKM="];
 
-            var close = new_context.Stage(new_files);
+            var close = await new_context.Stage(new_files);
 
             foreach (var file in new_files)
                 Assert.AreEqual("This is a test", File.ReadAllText(file.StagedPath));

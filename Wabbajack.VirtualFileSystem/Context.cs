@@ -141,7 +141,7 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        public Action Stage(IEnumerable<VirtualFile> files)
+        public async Task<Action> Stage(IEnumerable<VirtualFile> files)
         {
             var grouped = files.SelectMany(f => f.FilesInFullPath)
                 .Distinct()
@@ -155,7 +155,7 @@ namespace Wabbajack.VirtualFileSystem
             foreach (var group in grouped)
             {
                 var tmpPath = Path.Combine(_stagingFolder, Guid.NewGuid().ToString());
-                FileExtractor.ExtractAll(group.Key.StagedPath, tmpPath).Wait();
+                await FileExtractor.ExtractAll(group.Key.StagedPath, tmpPath);
                 paths.Add(tmpPath);
                 foreach (var file in group)
                     file.StagedPath = Path.Combine(tmpPath, file.Name);
@@ -199,6 +199,87 @@ namespace Wabbajack.VirtualFileSystem
                 Index = newIndex;
             }
         }
+
+        public async Task<DisposableList<VirtualFile>> StageWith(IEnumerable<VirtualFile> files)
+        {
+            return new DisposableList<VirtualFile>(await Stage(files), files);
+        }
+
+
+        #region KnownFiles
+
+        private List<KnownFile> _knownFiles = new List<KnownFile>();
+        public void AddKnown(IEnumerable<KnownFile> known)
+        {
+            _knownFiles.AddRange(known);
+        }
+
+        public async Task BackfillMissing()
+        {
+            var newFiles = _knownFiles.Where(f => f.Paths.Length == 1)
+                                       .GroupBy(f => f.Hash)
+                                       .ToDictionary(f => f.Key, s => new VirtualFile()
+                                       {
+                                           Name = s.First().Paths[0],
+                                           Hash = s.First().Hash,
+                                           Context = this
+                                       });
+
+            var parentchild = new Dictionary<(VirtualFile, string), VirtualFile>();
+
+            void BackFillOne(KnownFile file)
+            {
+                var parent = newFiles[file.Paths[0]];
+                foreach (var path in file.Paths.Skip(1))
+                {
+                    if (parentchild.TryGetValue((parent, path), out var foundParent))
+                    {
+                        parent = foundParent;
+                        continue;
+                    }
+
+                    var nf = new VirtualFile();
+                    nf.Name = path;
+                    nf.Parent = parent;
+                    parent.Children = parent.Children.Add(nf);
+                    parentchild.Add((parent, path), nf);
+                    parent = nf;
+                }
+            }
+            _knownFiles.Where(f => f.Paths.Length > 1).Do(BackFillOne);
+
+            var newIndex = await Index.Integrate(newFiles.Values.ToList());
+
+            lock (this)
+                Index = newIndex;
+
+            _knownFiles = new List<KnownFile>();
+
+        }
+        
+        #endregion
+
+    }
+
+    public class KnownFile
+    {
+        public string[] Paths { get; set; }
+        public string Hash { get; set; }
+    }
+
+    public class DisposableList<T> : List<T>, IDisposable
+    {
+        private Action _unstage;
+
+        public DisposableList(Action unstage, IEnumerable<T> files) : base(files)
+        {
+            _unstage = unstage;
+        }
+
+        public void Dispose()
+        {
+            _unstage();
+        }
     }
 
     public class IndexRoot
@@ -208,12 +289,14 @@ namespace Wabbajack.VirtualFileSystem
         public IndexRoot(ImmutableList<VirtualFile> aFiles,
             ImmutableDictionary<string, VirtualFile> byFullPath,
             ImmutableDictionary<string, ImmutableStack<VirtualFile>> byHash,
-            ImmutableDictionary<string, VirtualFile> byRoot)
+            ImmutableDictionary<string, VirtualFile> byRoot,
+            ImmutableDictionary<string, ImmutableStack<VirtualFile>> byName)
         {
             AllFiles = aFiles;
             ByFullPath = byFullPath;
             ByHash = byHash;
             ByRootPath = byRoot;
+            ByName = byName;
         }
 
         public IndexRoot()
@@ -222,11 +305,14 @@ namespace Wabbajack.VirtualFileSystem
             ByFullPath = ImmutableDictionary<string, VirtualFile>.Empty;
             ByHash = ImmutableDictionary<string, ImmutableStack<VirtualFile>>.Empty;
             ByRootPath = ImmutableDictionary<string, VirtualFile>.Empty;
+            ByName = ImmutableDictionary<string, ImmutableStack<VirtualFile>>.Empty;
         }
+
 
         public ImmutableList<VirtualFile> AllFiles { get; }
         public ImmutableDictionary<string, VirtualFile> ByFullPath { get; }
         public ImmutableDictionary<string, ImmutableStack<VirtualFile>> ByHash { get; }
+        public ImmutableDictionary<string, ImmutableStack<VirtualFile>> ByName { get; set; }
         public ImmutableDictionary<string, VirtualFile> ByRootPath { get; }
 
         public async Task<IndexRoot> Integrate(List<VirtualFile> files)
@@ -239,14 +325,26 @@ namespace Wabbajack.VirtualFileSystem
 
             var byHash = Task.Run(() =>
                 allFiles.SelectMany(f => f.ThisAndAllChildren)
+                    .Where(f => f.Hash != null)
                     .ToGroupedImmutableDictionary(f => f.Hash));
+
+            var byName = Task.Run(() =>
+                allFiles.SelectMany(f => f.ThisAndAllChildren)
+                    .ToGroupedImmutableDictionary(f => f.Name));
 
             var byRootPath = Task.Run(() => allFiles.ToImmutableDictionary(f => f.Name));
 
             return new IndexRoot(allFiles,
                 await byFullPath,
                 await byHash,
-                await byRootPath);
+                await byRootPath,
+                await byName);
+        }
+
+        public VirtualFile FileForArchiveHashPath(string[] argArchiveHashPath)
+        {
+            var cur = ByHash[argArchiveHashPath[0]].First(f => f.Parent == null);
+            return argArchiveHashPath.Skip(1).Aggregate(cur, (current, itm) => ByName[itm].First(f => f.Parent == current));
         }
     }
 

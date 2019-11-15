@@ -57,7 +57,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 if (_include_directly.Any(path => source.Path.StartsWith(path)))
                     defaultInclude = true;
 
-            var source_files = source.File.FileInArchive;
+            var source_files = source.File.Children;
 
             var stack = defaultInclude ? _microstackWithInclude : _microstack;
 
@@ -65,7 +65,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             var matches = source_files.PMap(e => _mo2Compiler.RunStack(stack, new RawSourceFile(e)
             {
-                Path = Path.Combine(Consts.BSACreationDir, id, e.Paths.Last())
+                Path = Path.Combine(Consts.BSACreationDir, id, e.Name)
             }));
 
 

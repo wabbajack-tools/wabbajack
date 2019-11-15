@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using VFS;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
@@ -66,10 +65,8 @@ namespace Wabbajack.Test
             if (Directory.Exists(loot_folder))
                 Directory.Delete(loot_folder, true);
 
-            VirtualFileSystem.Reconfigure(utils.TestFolder);
             var compiler = new Compiler(utils.InstallFolder);
             compiler.MO2DownloadsFolder = Path.Combine(utils.DownloadsFolder);
-            compiler.VFS.Reset();
             compiler.MO2Profile = profile;
             compiler.ShowReportWhenFinished = false;
             Assert.IsTrue(compiler.Compile());
@@ -153,9 +150,7 @@ namespace Wabbajack.Test
 
         private Compiler ConfigureAndRunCompiler(string profile)
         {
-            VirtualFileSystem.Reconfigure(utils.TestFolder);
             var compiler = new Compiler(utils.MO2Folder);
-            compiler.VFS.Reset();
             compiler.MO2Profile = profile;
             compiler.ShowReportWhenFinished = false;
             Assert.IsTrue(compiler.Compile());

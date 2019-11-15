@@ -18,10 +18,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		RECIPES.md = RECIPES.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualFileSystem", "VirtualFileSystem\VirtualFileSystem.csproj", "{5128B489-BC28-4F66-9F0B-B4565AF36CBC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualFileSystem.Test", "VirtualFileSystem.Test\VirtualFileSystem.Test.csproj", "{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Test", "Wabbajack.Test\Wabbajack.Test.csproj", "{A47FFF32-782B-4D9F-8704-C98FB32FA8CC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Lib", "Wabbajack.Lib\Wabbajack.Lib.csproj", "{0A820830-A298-497D-85E0-E9A89EFEF5FE}"
@@ -103,42 +99,6 @@ Global
 		{FF5D892F-8FF4-44FC-8F7F-CD58F307AD1B}.Release|x64.Build.0 = Release|x64
 		{FF5D892F-8FF4-44FC-8F7F-CD58F307AD1B}.Release|x86.ActiveCfg = Release|x86
 		{FF5D892F-8FF4-44FC-8F7F-CD58F307AD1B}.Release|x86.Build.0 = Release|x86
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Debug (no commandargs)|Any CPU.ActiveCfg = Debug|Any CPU
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Debug (no commandargs)|Any CPU.Build.0 = Debug|Any CPU
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Debug (no commandargs)|x64.ActiveCfg = Debug|x64
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Debug (no commandargs)|x64.Build.0 = Debug|x64
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Debug (no commandargs)|x86.ActiveCfg = Debug|x86
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Debug (no commandargs)|x86.Build.0 = Debug|x86
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Debug|x64.ActiveCfg = Debug|x64
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Debug|x64.Build.0 = Debug|x64
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Debug|x86.ActiveCfg = Debug|x86
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Debug|x86.Build.0 = Debug|x86
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Release|x64.ActiveCfg = Release|Any CPU
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Release|x64.Build.0 = Release|Any CPU
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Release|x86.ActiveCfg = Release|x86
-		{5128B489-BC28-4F66-9F0B-B4565AF36CBC}.Release|x86.Build.0 = Release|x86
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Debug (no commandargs)|Any CPU.ActiveCfg = Debug|Any CPU
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Debug (no commandargs)|Any CPU.Build.0 = Debug|Any CPU
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Debug (no commandargs)|x64.ActiveCfg = Debug|x64
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Debug (no commandargs)|x64.Build.0 = Debug|x64
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Debug (no commandargs)|x86.ActiveCfg = Debug|x86
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Debug (no commandargs)|x86.Build.0 = Debug|x86
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Debug|x64.ActiveCfg = Debug|x64
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Debug|x64.Build.0 = Debug|x64
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Debug|x86.ActiveCfg = Debug|x86
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Debug|x86.Build.0 = Debug|x86
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Release|x64.ActiveCfg = Release|Any CPU
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Release|x64.Build.0 = Release|Any CPU
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Release|x86.ActiveCfg = Release|x86
-		{A2913DFE-18FF-468B-A6C1-55F7C0CC0CE8}.Release|x86.Build.0 = Release|x86
 		{A47FFF32-782B-4D9F-8704-C98FB32FA8CC}.Debug (no commandargs)|Any CPU.ActiveCfg = Debug|Any CPU
 		{A47FFF32-782B-4D9F-8704-C98FB32FA8CC}.Debug (no commandargs)|Any CPU.Build.0 = Debug|Any CPU
 		{A47FFF32-782B-4D9F-8704-C98FB32FA8CC}.Debug (no commandargs)|x64.ActiveCfg = Debug|x64

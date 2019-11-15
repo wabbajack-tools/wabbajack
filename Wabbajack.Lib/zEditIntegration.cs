@@ -93,7 +93,7 @@ namespace Wabbajack.Lib
                     return new SourcePatch
                     {
                         RelativePath = abs_path.RelativeTo(_mo2Compiler.MO2Folder),
-                        Hash = _compiler.VFS[abs_path].Hash
+                        Hash = _compiler.VFS.Index.ByFullPath[abs_path].Hash
                     };
                 }).ToList();
 

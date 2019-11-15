@@ -230,6 +230,26 @@ namespace Wabbajack.VirtualFileSystem
                 vf.Children = children.Select(child => CreateFromPortable(context, vf, state, child)).ToImmutableList();
             return vf;
         }
+
+        public string[] MakeRelativePaths()
+        {
+            var path = new string[NestingFactor];
+            path[0] = FilesInFullPath.First().Hash;
+            
+            var idx = 1;
+
+            foreach (var itm in FilesInFullPath.Skip(1))
+            {
+                path[idx] = itm.Name;
+                idx += 1;
+            }
+            return path;
+        }
+
+        public Stream OpenRead()
+        {
+            return File.OpenRead(StagedPath);
+        }
     }
 
     public class CannotStageNativeFile : Exception

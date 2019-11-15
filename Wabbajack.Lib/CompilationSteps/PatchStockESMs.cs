@@ -25,7 +25,7 @@ namespace Wabbajack.Lib.CompilationSteps
             Utils.Log(
                 $"A ESM named {filename} was found in a mod that shares a name with a core game ESMs, it is assumed this is a cleaned ESM and it will be binary patched.");
             var result = source.EvolveTo<CleanedESM>();
-            result.SourceESMHash = _compiler.VFS.Lookup(gameFile).Hash;
+            result.SourceESMHash = _compiler.VFS.Index.ByRootPath[gameFile].Hash;
 
             Utils.Status($"Generating patch of {filename}");
             using (var ms = new MemoryStream())
