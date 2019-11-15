@@ -1,206 +1,128 @@
-﻿## Wabbajack - An automated modlist installer for TES/Fallout games
+﻿# Wabbajack
 
 [![Build Status](https://dev.azure.com/tbaldridge/tbaldridge/_apis/build/status/wabbajack-tools.wabbajack?branchName=master)](https://dev.azure.com/tbaldridge/tbaldridge/_build/latest?definitionId=3&branchName=master)
 
-The general idea behind this program is fairly simple. Given a Mod Organizer 2 folder and profile, generate a list of instructions that will allow
-a program to automatically recreate the contents of the folder on another machine. Think of it as replication, but without ever distributing copyrighted
-files or syncing data between the source and destination machine. The end result is a program that recreates a modlist on a computer while respecting the
-rights of the game publisher and the mod authors.
+Wabbajack is an automated ModList installer that can recreate contents of a folder on another machine without ever distributing copyrighted materials or syncing data between the source and destination machine. Wabbajack will create _instructions_ for a ModList when compiling, those can be as simple as _Download Mod abc from the Nexus_ or complex as _Clean the Game ESM files using zEdit_.
 
-### Installing a modlist
-Please visit our Discord link below for information on how to obtain and install a modlist. 
+## Social Links
 
-### Social Links
+- [wabbajack.org](https://www.wabbajack.org) The official Wabbajack website where you can find instructions and a [Gallery](https://www.wabbajack.org/gallery) for some ModLists.
+- [Discord](https://discord.gg/zgbrkmA) The official Wabbajack discord for instructions, ModLists, support or friendly chatting with fellow modders.
+- [Patreon](https://www.patreon.com/user?u=11907933) contains update posts and keeps the [Code Signing Certificate](https://www.digicert.com/code-signing/) alive.
 
-- [Discord](https://discord.gg/zgbrkmA) Obtain modlists here, ask for support or have a friendly chat with fellow modders.
-- [Patreon](https://www.patreon.com/user?u=11907933) Check out this page for update posts, patrons are able to vote on the direction of development.
+## Supported Games and Mod Manager
 
-### What Wabbajack can do
+| Game                      | Platform  | Mod Manager   | Notes |
+|---------------------------|-----------|---------------|-------|
+| Oblivion                  | Steam     | MO2           |       |
+| Fallout 3                 | Steam     | MO2           |       |
+| Fallout New Vegas         | Steam     | MO2           |       |
+| Skyrim                    | Steam     | MO2           |       |
+| Skyrim Special Edition    | Steam     | MO2           |       |
+| Fallout 4                 | Steam     | MO2           |       |
+| Skyrim VR                 | Steam     | MO2           |       |
+| Darkest Dungeon           | Steam, GOG| Vortex        |       |
+| Divinity Original Sin 2   | Steam, GOG| Vortex        | Normal and Definitive Edition      |
+| Starbound                 | Steam, GOG| Vortex        |       |
+| SW: KotOR                 | Steam, GOG| Vortex        |       |
+| SW: KotOR 2               | Steam, GOG| Vortex        |       |
+| The Witcher               | Steam, GOG| Vortex        | Enhanced Edition      |
+| The Witcher 2             | Steam, GOG| Vortex        |       |
+| The Witcher 3             | Steam, GOG| Vortex        | Normal and GotY Edition      |
 
-At this point you may be wondering how much of a complex modlist Wabbajack can handle. At this point it's more about what Wabbajack *can't* handle, but
-let's do a rundown of all the supported features:
+### Note about Vortex Support
 
-- Support for the following games is tested on a regular basis
-  - Fallout 4
-  - Fallout New Vegas
-  - Skyrim SE
-  - Skyrim LE
-- Support for automatic downloads from the following sources
-  - Nexus Mods (Premium accounts only, due to specific API calls)
-  - Dropbox
-  - Google Drive
-  - Mega
-  - ModDB
-  - Direct URLs (with custom header support)
-- Supports the following archive types
-  - `.zip`
-  - `.7z`
-  - `.rar`
-  - `.fomod` (FNV archives)
-- The following mod installation types are supported
-  - Files installed with our without fomod installers
-  - Files from `.omod` mods like `DarNified UI` or `DarkUId Darn`
-  - Manually installed mods
-  - Renamed/deleted/moved files are detected and handled
-  - Multiple mods installed into the same mod folder
-  - A mod split across multiple mod folders
-  - ENBSeries files that exist in the game folder
-  - Any tools installed in the MO2 folder. Want your users to have BethINI or xEdit? Just put them in a folder inside the MO2 install folder
-  - SKSE
-- The following situations are automatically detected and handled by the automated binary patcher (not an exhaustive list)
-  - ESP cleaning
-  - form 44 conversion
-  - ESP to ESL conversion
-  - Adding masters
-  - Dummy ESPs created by CAO
-  - (really any ESP modifications are handled)
-  - Mesh fixing
-  - Texture compression / fixing
-  The following BSA operations are detected by extracting or creating BSAs via Wabbajack's custom BSA routines
-  - BSA Unpacking
-  - BSA Creation (packing loose files)
-  - BSA repacking (unpacking, fixing files and repacking)
+As you can probably guess from the table above: You will not be able to create ModLists from a Vortex installation for TES/Fallout games. The Vortex Support we're offering is designed for smaller games like Darkest Dungeon where you simply install mods, rearrange load order and be done. You do not need external tools like xEdit, DynDOLOD, CAO, FNIS and what not to mod these smaller games.
 
-That being said, there are some cases where we would need to do a bit more work to develop:
+It is also important to note that Vortex Support is still in **early beta** meaning that stuff can go wrong, very fast. If you encounter such problems be sure to join our [Discord](https://discord.gg/zgbrkmA) and message `erri120#2285` about the error.
 
-- Manually downloaded files
-- LL Files (currently no plans to implement)
-- esp to esm conversion (there are hacks for this)
-- binary patching of non-bsa huge files. 256MB is the largest size Wabbajack can currently handle with the binary patcher
+## Installing a ModList
 
-### The Wabbajack Permissions System
-While Wabbajack can perform a large variety of operations on mod files, we recognize that some authors don't want to deal with 
-the support requests that come from some users performing operations on these files. Therefore we worked together with several 
-authors to create a permissions system Wabbajack will follow during installation and creation of a modlist. This permissions file 
-can be found on [Github](https://github.com/wabbajack-tools/opt-out-lists/blob/master/NexusModPermissions.yml). Feel free to contact
-us via discord about any questions you may have. 
+Every ModList comes with its own set of instructions which you **should** read before doing anything. The following steps are the general steps you would take, but every ModList is different from one another so don't rely on those.
 
-### Creating A Modlist Installer
+A ModList comes as a `.wabbajack` file. You might have a `.zip`, `.7z` or `.rar` file which contains the ModList so extract the archive using [7zip](https://www.7-zip.org/) before starting Wabbajack. Once extracted, start Wabbajack and click on the _Install a ModList from Disk_ button and select the extracted `.wabbajack` file.
 
-Overview video [`https://www.youtube.com/watch?v=5Fwr0Chtcuc`](https://www.youtube.com/watch?v=5Fwr0Chtcuc)
+Wabbajack will know if this ModList was compiled from an MO2 profile or a Vortex installation. For the former it downloads MO2 for you but for the latter you need an existing Vortex installation.
 
-1) Download Wabbajack and install it somewhere outside of your normal Mod Organizer 2 folder
-(otherwise Wabbajack will try to figure out how to install itself and that might cause a collapse in the time-space
-continuum).
-2) Make sure every archive you used in your MO2 profile has some sort of download information attached.
-   - If the file was downloaded via MO2 you're good, no extra work is needed
-   - If the file was downloaded manually from the Nexus, copy it into the MO2 downloads folder, go back to MO2
-   - and go to the `downloads` tab. Find the file and click `Query Info` from the right-click menu. MO2 should find
-   the download info for you
-   - For other files (ENBSeries, SKSE, SRO, etc.) Look at the [`RECIPES.md`] file
-   - for instructions specific to your file source.
-3) Now load Wabbajack, and point it to the `\<MO2 Folder>\mods\<your profile>\modlist.txt` file.
-4) Click `Begin`.
-5) Wabbajack will start by indexing all your downloaded archives. This will take some time on most machines as the application
-has to perform a `SHA-256` hash on every file in every archive. However the results of this operation are cached, so you'll only need
-to do this once for every downloaded file.
-6) Once completed, Wabbajack will collect the files required for the modlist install and begin running them through the compilation stack.
-7) If all goes well, you should see a new `<your profile name>.wabbajack` file next to `Wabbajack.exe` that you just ran. This new `.wabbajack` file is the one
-you want to hand out, users can select the file in Wabbajack and install your modlist.
+On the installation screen, configure the installation/staging and downloads folder before clicking the begin button. Once everything is correctly setup, the button will be clickable and you can proceed with the installation.
 
-### Installing A Modlist
+The installation can take everything from a few minutes to hours depending on the size of the ModList, your Internet speed and your hardware so just be patient and wait for _Installation complete! You may exit the program._ to appear in the log.
 
-There are two options for installing a modlist. You can either
-1a) Install a modlist from the built-in menu. Simply select your preferred option in Wabbajack and click on 'Download and Install'.
-1b) Get a Wabbajack Modlist installer file (ending in `.wabbajack`), and install it by clicking the 'Install from Disk' button in Wabbajack.
-2) Click `Begin` to start installation. At some point you will be prompted for SSO authorization on the Nexus, after authorization all of the files
-will be automatically downloaded and installed.
-3) After installation has completed, run `Mod Organizer 2.exe` in the installation folder, and make sure to select `Portable` and your game type.
-If Mod Organizer does not show you these options when starting it, click on the top left button and you should see the instance menu.
+## Creating your own ModList
 
-### How It Works
+### Caching before compilation
 
-At a technical level the process is as follows.
+Wabbajack will index all files in the game folder during compilation. It is highly recommended that you run a compilation with an empty ModList and copy the `vfs_cache.bin` file to a safe location. Depending on the game, indexing can take a long time for the game files alone so having done it already will save you time.
 
-1) Hash and cache the contents of every archive in the `\downloads` folder. This lets Wabbajack know of all the possible locations where you could have installed mods
-2) Apply the `resolution stack` to every file in both the game's root folder and in the MO2 folder.
-3) Take the install directives and required archives and write their metadata to a JSON file.
-4) Attach the JSON file to Wabbajack itself, creating a new Auto-installer for the profile
+### Notes before compiling
 
-### The Resolution Stack
+Overview video on [YouTube](https://www.youtube.com/watch?v=5Fwr0Chtcuc).
 
-Every file analyzed by Wabbajack is passed through a stack of rules. The first rule to match the file creates a `Install Directive` or a instruction on how to install that specific file.
+Before doing anything make sure that:
 
-Currently the Resolution stack looks like this:
+1. Wabbajack is not inside commonly used folders like `Documents`, `Downloads`, `Desktop` but rather on a very high level directory like `C:\Wabbajack\`.
+2. The game you modded is not inside the default Steam folder `C:\Program Files (x86)\Steam\steamapps\common`, see [this](https://support.steampowered.com/kb_article.php?ref=7418-YUBN-8129) post on how to move your library.
+3. You have a stable connection to the Internet
 
-1) Ignore the contents of `logs\`
-2) Directly include .meta files int the `downloads\` folder
-3) Ignore the contents of `downloads\`
-4) Ignore the contents of `webcache\`
-5) Ignore the contents of `overwrite\`
-6) Ignore any files with `temporary_logs` as a folder in the path
-7) Ignore `.pyc` files
-8) Ignore `.log` files
-9) Ignore any files in `profiles` that are not for the selected MO2 profile
-10) Ignore any disabled mods
-11) Include any profile settings for the selected profile by including them directly in the modlist
-12) Ignore "ModOrganizer.ini", it will be re-created when MO2 starts on the new machine
-13) Ignore "Data" in the Game directly (in your Steam folder)
-14) Ignore "Papyrus Compiler" in the game folder
-15) Ignore the "Skyrim" folder in the game folder
-16) Ignore any BSAs in the game folder
-17) Include all meta.ini files from all (selected) mods
-18) Include archive and file meta information for any file that matches a file in an archive directly via a SHA256 comparison
-19) Rip apart any `.bsa` files and run a mini resolution stack on the contents to figure out how to build the .bsa from the input files
-20) Generate patches for files that may have been modified after being installed from an archive (see section on Patching for more info)
-21) Include dummy ESPs directly into the modlist
-22) Ignore files in the game directory
-23) Ignore .ini files
-24) Ignore .html files (normally these are logs)
-25) Ignore .txt files
-26) Ignore `HavockBehaviourPostProcess.exe` this seems to get copied around by tools for some reason
-27) Ignore `splash.png` it's created for some games (like FO4) by MO2
-28) Error for any file that survives to this point.
+### Creating a ModList from an MO2 Profile
 
-So as you can see we handle a lot of possible installation situations. See the section on [`Creating a Modlist`](README.md#Creating_a_modlist_installer) for information on creating an installer.
+Wabbajack **must not** be located inside the MO2 folder or else the entire universe and the time-space continuum we know and love will be destroyed... this includes all kitten and puppies you have ever seen so be careful!
 
-### Wabbajack Flags
+MO2 **must** be in _Portable_ and every archive you used in your MO2 profile has some sort of download information attached:
 
-The if the following words are found in a mod's notes or comments they trigger special behavior in Wabbajack.
+- You need all archives and all `.meta` files for those archives inside your `MO2/downloads/` folder.
+- If you downloaded a file manually from the Nexus, make sure its in the `MO2/downloads/` folder and click `Query Info` from the right-click menu in MO2.
+- For other files like `ENBSeries`, `SKSE`, `SRO`, etc. look at the [RECIPES.md](https://github.com/halgari/wabbajack/blob/master/RECIPES.md) file.
 
-- `WABBAJACK_INCLUDE` - All the files in the mod will be inlined into the installer
+#### Wabbajack Flags
+
+There are special flags that can be placed in a mod's notes or comments to trigger special behavior in Wabbajack:
+
+- `WABBAJACK_INCLUDE` - All mod files will be inlined into the `.wabbajack` file
 - `WABBAJACK_ALWAYS_ENABLE` - The mod's files will be considered by the compiler even if the mod is disabled in the profile
+- `WABBAJACK_NOMATCH_INCLUDE` - The mod's files will be included as inline files inside the `.wabbajack` file even if Wabbajack did not found any match for them
 
-### Patches
+#### Patches
 
-Wabbajack can create binary patches for files that have been modified after installation. This could be `.esp` files that have been cleaned or patched. Or
-it could be meshes and textures that have been optimized to work better in a given game. In any case a BSDiff file is generated. The output of this process
-is copied directly into the modlist instructions. However! It is important to note that the patch file is 100% useless without the source file. So `original + patch = final_file`. Without the original file, the final file cannot be recreated. This allows us to distribute arbitrary changes without violating copyrights as we do not copy
-copyrighted material. Instead, we copy instructions on how to modify the copyrighted material.
+Wabbajack can create binary patches for files that have been modified after installation. This could be an `.esp` that has been cleaned or patched. It could also be a mesh or texture that has been optimized to work better in a given game.
 
-### FAQ
+In any case, a BSDiff file is generated. The output of this process is copied directly into the ModList instructions. However! It is important to note that the patch file 100% useless without the source file. So `original + patch = final_file`. Without the original file, the final file cannot be recreated. This allows us to distribute arbitrary changes without violating copyrights as we do not copy copyrighted material. Instead, we copy instructions on how to modify the copyrighted material.
 
-**How do I get Wabbajack to handle mods from `X`?
+#### Starting Wabbajack
 
-Look at the [`RECIPES.md`] file, we keep a knowledge base of how to deal with given types of mods in that file.
+Once you have everything setup, launch Wabbajack and click the _Create a ModList_ button. Select MO2 as your Mod Manager and point to your _modlist.txt_ file located at `MO2\profile\<profile_name>\modlist.txt`. Make sure that the downloads folder is set correctly.
+
+You now also have the option to change some properties for your ModList. Users will see those information when they select your ModList before installation. **You can not change these properties during/after compilation!**
+
+When everything is correctly set up, click the begin button and wait for Wabbajack to finish. Depeding on your hardware, size of your MO2 folder and game of choice, this can take up anything from a few minutes to hours. Do note that whenever Wabbajack has an error you can restart the compilation and Wabbajack will resume at the exact position.
+
+Wabbajack is finished when you see _Done Building ModList_ in the log. At that point you can close Wabbajack and the `.wabbajack` file will be located in the same folder as `Wabbajack.exe`.
+
+### Creating a ModList from an Vortex installation
+
+**THIS IS STILL IN BETA** for more info see [this](#note-about-vortex-support) section.
+
+Before you start compiling a ModList, make sure that the Vortex download folder for your game of choice only contains mods downloaded from the Nexus. The `VortexCompiler` will create an MD5 hash for the archive and search the Nexus using said hash.
+
+Open Wabbajack and click on _Create a ModList_. Select Vortex and your game of choice. The _Staging_ and _Downloads_ folder will be filled automatically if they are at the default location. If you have changed these folders, be sure to change the paths in Wabbajack.
+
+When everything is correctly set up, click the begin button and wait for Wabbajack to finish. Depeding on your hardware, size of your Vortex staging folder and game of choice, this can take up anything from a few minutes to hours. Do note that whenever Wabbajack has an error you can restart the compilation and Wabbajack will resume at the exact position.
+
+Wabbajack is finished when you see _Done Building ModList_ in the log. At that point you can close Wabbajack and the `.wabbajack` file will be located in the same folder as `Wabbajack.exe`.
+
+## FAQ
+
+**How can I get Wabbajack to handle mods from `X`?**
+
+Look at the [RECIPES.md](https://github.com/halgari/wabbajack/blob/master/RECIPES.md) file, we keep a knowledge base of how to deal with given types of mods in that file.
 
 **How do I contribute to Wabbajack?**
 
 Look at the [`CONTRIBUTING.md`](https://github.com/halgari/wabbajack/blob/master/CONTRIBUTING.md) file for detailed guidelines.
 
-**Why does each modlist install another copy of Mod Organizer 2?**
-
-Self-contained folders are a cleaner abstraction than dumping tons of modlists into the same set of folders. It's easy to uninstall a modlist (simply delete the folder),
-and MO2 really isn't designed to support lots of disparate modlists. For example if two modlists both wanted a given texture mod, but different options they would
-somehow have to keep the names of their mods separate. MO2 isn't that big of an app, so there's really no reason not to install a new copy for each modlist.
-
-**Why don't I see any mods when I open Mod Organizer 2 after the modlist installation has finished?**
-
-Make sure you selected the "Portable" mode when starting MO2 for the first time. In addition, make sure you haven't installed MO2 in a non-portable way on the same box.
-Really, always use "Portable Mode" it's cleaner and there really isn't a reason not too do so. Make the data self-contained. It's cleaner that way.
-
-**Will Wabbajack ever support Vortex/other mod managers?**
-
-I'll be honest, I don't use anything but MO2, so I probably won't write the code. If someone were to write a patch for the functionality
-I wouldn't throw away the code, but it would have to be done in a way that was relatively seamless for users. Since Wabbajack treats all files in the same way
-it doesn't know what mod manager a user is using. This means that if the modlist creator used Vortex all users of the modlist would have to use Vortex. This doesn't seem
-optimal. It's possible perhaps, but it's at the bottom of the priority list.
-
 **How does Wabbajack differ from Automaton?**
 
-I (halgari) used to be a developer working on Automaton. Sadly development was moving a bit too slowly for my liking, and I realized that a complete rewrite would allow the
-implementation of some really nice features (like BSA packing). As such I made the decision to strike out on my own and make an app that worked first, and then make it pretty.
-The end result is an app with a ton of features, and a less than professional UI. But that's my motto when coding "make it work, then make it pretty".
+I (_halgari_) used to be a developer working on Automaton. Sadly development was moving a bit too slowly for my liking, and I realized that a complete rewrite would allow the implementation of some really nice features (like BSA packing). As such I made the decision to strike out on my own and make an app that worked first, and then make it pretty. The end result is an app with a ton of features, and a less than professional UI. But that's my motto when coding "_make it work, then make it pretty_".
 
 ## Thanks to
 
@@ -217,7 +139,7 @@ Our testers and Discord members who encourage development and help test the buil
 - metherul
 - Decopauge123
 
-#### Patreon Supporters
+#### Chicken and Mudcrab level Supporters
 
 - Druwski
 - Soothsayre
@@ -238,8 +160,4 @@ Our testers and Discord members who encourage development and help test the buil
 
 ### License & Copyright
 
-All original code in Wabbajack is given freely via the GPL3 license. Parts of Wabbajack use libraries that carry their own Open Sources licenses, those parts
-retain their original copyrights. Note: Wabbajack installers contain code from Wabbajack. Therefore, selling of modlist files is strictly forbidden. As is hosting
-the files behind any sort of paywall. You recieved this tool free of charge, respect this by giving freely as you were given.
-
-[`RECIPES.md`]: https://github.com/halgari/wabbajack/blob/master/RECIPES.md
+All original code in Wabbajack is given freely via the GPL3 license. Parts of Wabbajack use libraries that carry their own Open Sources licenses, those parts retain their original copyrights. Note: Wabbajack installers contain code from Wabbajack. Therefore, selling of modlist files is strictly forbidden. As is hosting the files behind any sort of paywall. You recieved this tool free of charge, respect this by giving freely as you were given.
