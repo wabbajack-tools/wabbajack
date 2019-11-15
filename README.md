@@ -160,4 +160,4 @@ Our testers and Discord members who encourage development and help test the buil
 
 ### License & Copyright
 
-All original code in Wabbajack is given freely via the GPL3 license. Parts of Wabbajack use libraries that carry their own Open Sources licenses, those parts retain their original copyrights. Note: Wabbajack installers contain code from Wabbajack. Therefore, selling of modlist files is strictly forbidden. As is hosting the files behind any sort of paywall. You recieved this tool free of charge, respect this by giving freely as you were given.
+All original code in Wabbajack is given freely via the GPL3 license. Parts of Wabbajack use libraries that carry their own Open Sources licenses, those parts retain their original copyrights. Selling of ModList files is strictly forbidden. As is hosting the files behind any sort of paywall. You recieved this tool free of charge, respect this by giving freely as you were given.
