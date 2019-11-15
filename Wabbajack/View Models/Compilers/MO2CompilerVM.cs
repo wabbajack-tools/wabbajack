@@ -1,4 +1,4 @@
-﻿using ReactiveUI;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
@@ -150,6 +150,7 @@ namespace Wabbajack
 
             // Load settings
             var settings = parent.MWVM.Settings.Compiler.MO2Compilation;
+            this.ModlistLocation.TargetPath = settings.LastCompiledProfileLocation;
             if (!string.IsNullOrWhiteSpace(settings.DownloadLocation))
             {
                 this.DownloadLocation.TargetPath = settings.DownloadLocation;
@@ -158,6 +159,7 @@ namespace Wabbajack
                 .Subscribe(_ =>
                 {
                     settings.DownloadLocation = this.DownloadLocation.TargetPath;
+                    settings.LastCompiledProfileLocation = this.ModlistLocation.TargetPath;
                     this.ModlistSettings?.Save();
                 })
                 .DisposeWith(this.CompositeDisposable);
