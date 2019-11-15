@@ -6,7 +6,7 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Wabbajack")]
-[assembly: AssemblyDescription("An automated modlist installer for TES/Fallout games")]
+[assembly: AssemblyDescription("An automated ModList installer")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Wabbajack")]
 [assembly: AssemblyProduct("Wabbajack")]
