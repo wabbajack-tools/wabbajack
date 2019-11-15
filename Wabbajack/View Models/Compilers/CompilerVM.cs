@@ -66,8 +66,9 @@ namespace Wabbajack
                 .ToProperty(this, nameof(this.CurrentModlistSettings));
 
             this._Image = this.WhenAny(x => x.CurrentModlistSettings.ImagePath.TargetPath)
-                // Delay so the initial VM swap comes in immediately, image comes right after
-                .DelayInitial(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
+                // Throttle so that it only loads image after any sets of swaps have completed
+                .Throttle(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
+                .DistinctUntilChanged()
                 .Select(path =>
                 {
                     if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Wabbajack.Resources.Banner_Dark.png");
