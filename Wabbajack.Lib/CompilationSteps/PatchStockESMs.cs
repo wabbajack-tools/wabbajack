@@ -8,14 +8,17 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class PatchStockESMs : ACompilationStep
     {
-        public PatchStockESMs(Compiler compiler) : base(compiler)
+        private readonly Compiler _mo2Compiler;
+
+        public PatchStockESMs(ACompiler compiler) : base(compiler)
         {
+            _mo2Compiler = (Compiler) compiler;
         }
 
         public override Directive Run(RawSourceFile source)
         {
             var filename = Path.GetFileName(source.Path);
-            var gameFile = Path.Combine(_compiler.GamePath, "Data", filename);
+            var gameFile = Path.Combine(_mo2Compiler.GamePath, "Data", filename);
             if (!Consts.GameESMs.Contains(filename) || !source.Path.StartsWith("mods\\") ||
                 !File.Exists(gameFile)) return null;
 
@@ -44,7 +47,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("PatchStockESMs")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new PatchStockESMs(compiler);
             }

@@ -7,7 +7,7 @@ namespace Wabbajack.Lib.CompilationSteps
         private readonly string _prefix;
         private readonly string _reason;
 
-        public IgnoreStartsWith(Compiler compiler, string prefix) : base(compiler)
+        public IgnoreStartsWith(ACompiler compiler, string prefix) : base(compiler)
         {
             _prefix = prefix;
             _reason = string.Format("Ignored because path starts with {0}", _prefix);
@@ -44,7 +44,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             public string Prefix { get; set; }
 
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IgnoreStartsWith(compiler, Prefix);
             }

@@ -1,4 +1,5 @@
-﻿using Wabbajack.Common;
+﻿using System.Text.RegularExpressions;
+using Wabbajack.Common;
 
 namespace Wabbajack.Lib.NexusApi
 {
@@ -6,6 +7,8 @@ namespace Wabbajack.Lib.NexusApi
     {
         public static string ConvertGameName(string gameName)
         {
+            if (Regex.IsMatch(gameName, @"^[^a-z\s]+\.[^a-z\s]+$"))
+                return gameName;
             return GameRegistry.GetByMO2ArchiveName(gameName)?.NexusName ?? gameName.ToLower();
         }
 

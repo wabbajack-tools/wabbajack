@@ -1,16 +1,23 @@
-﻿using Alphaleonis.Win32.Filesystem;
-using Newtonsoft.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
-    public class IncludeAll : ACompilationStep
+    public class IncludeVortexDeployment : ACompilationStep
     {
-        public IncludeAll(ACompiler compiler) : base(compiler)
+        public IncludeVortexDeployment(ACompiler compiler) : base(compiler)
         {
         }
 
         public override Directive Run(RawSourceFile source)
         {
+            if (!source.Path.EndsWith("vortex.deployment.msgpack") &&
+                !source.Path.EndsWith("\\vortex.deployment.json")) return null;
             var inline = source.EvolveTo<InlineFile>();
             inline.SourceDataID = _compiler.IncludeFile(File.ReadAllBytes(source.AbsolutePath));
             return inline;
@@ -21,12 +28,11 @@ namespace Wabbajack.Lib.CompilationSteps
             return new State();
         }
 
-        [JsonObject("IncludeAll")]
         public class State : IState
         {
             public ICompilationStep CreateStep(ACompiler compiler)
             {
-                return new IncludeAll(compiler);
+                return new IncludeVortexDeployment(compiler);
             }
         }
     }

@@ -41,6 +41,11 @@ namespace Wabbajack.Lib
         public List<Archive> Archives;
 
         /// <summary>
+        /// The Mod Manager used to create the modlist
+        /// </summary>
+        public ModManager ModManager;
+
+        /// <summary>
         /// The game variant to which this game applies
         /// </summary>
         public Game GameType;
@@ -204,6 +209,7 @@ namespace Wabbajack.Lib
         /// </summary>
         public string Hash;
 
+        /// <summary>
         /// Meta INI for the downloaded archive
         /// </summary>
         public string Meta;

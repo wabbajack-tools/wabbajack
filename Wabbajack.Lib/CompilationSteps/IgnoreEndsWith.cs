@@ -7,7 +7,7 @@ namespace Wabbajack.Lib.CompilationSteps
         private readonly string _postfix;
         private readonly string _reason;
 
-        public IgnoreEndsWith(Compiler compiler, string postfix) : base(compiler)
+        public IgnoreEndsWith(ACompiler compiler, string postfix) : base(compiler)
         {
             _postfix = postfix;
             _reason = $"Ignored because path ends with {postfix}";
@@ -40,7 +40,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             public string Postfix { get; set; }
 
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IgnoreEndsWith(compiler, Postfix);
             }

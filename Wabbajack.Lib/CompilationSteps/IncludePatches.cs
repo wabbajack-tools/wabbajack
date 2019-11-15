@@ -11,7 +11,7 @@ namespace Wabbajack.Lib.CompilationSteps
     {
         private readonly Dictionary<string, IGrouping<string, VirtualFile>> _indexed;
 
-        public IncludePatches(Compiler compiler) : base(compiler)
+        public IncludePatches(ACompiler compiler) : base(compiler)
         {
             _indexed = _compiler.IndexedFiles.Values
                 .SelectMany(f => f)
@@ -47,7 +47,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IncludePatches")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IncludePatches(compiler);
             }

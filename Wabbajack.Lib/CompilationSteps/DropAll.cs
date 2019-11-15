@@ -5,7 +5,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class DropAll : ACompilationStep
     {
-        public DropAll(Compiler compiler) : base(compiler)
+        public DropAll(ACompiler compiler) : base(compiler)
         {
         }
 
@@ -25,7 +25,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("DropAll")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new DropAll(compiler);
             }

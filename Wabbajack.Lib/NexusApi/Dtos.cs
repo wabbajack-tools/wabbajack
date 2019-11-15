@@ -46,6 +46,12 @@ namespace Wabbajack.Lib.NexusApi
         public bool contains_adult_content;
     }
 
+    public class MD5Response
+    {
+        public ModInfo mod;
+        public NexusFileInfo file_details;
+    }
+
     public class EndorsementResponse
     {
         public string message;

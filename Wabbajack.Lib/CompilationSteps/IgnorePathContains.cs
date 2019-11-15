@@ -7,7 +7,7 @@ namespace Wabbajack.Lib.CompilationSteps
         private readonly string _pattern;
         private readonly string _reason;
 
-        public IgnorePathContains(Compiler compiler, string pattern) : base(compiler)
+        public IgnorePathContains(ACompiler compiler, string pattern) : base(compiler)
         {
             _pattern = $"\\{pattern.Trim('\\')}\\";
             _reason = $"Ignored because path contains {_pattern}";
@@ -40,7 +40,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             public string Pattern { get; set; }
 
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IgnorePathContains(compiler, Pattern);
             }

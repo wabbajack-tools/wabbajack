@@ -9,12 +9,13 @@ namespace Wabbajack.Lib.CompilationSteps
     {
         private readonly IEnumerable<string> _includeDirectly;
         private readonly string _tag;
+        private readonly Compiler _mo2Compiler;
 
-
-        public IncludeTaggedMods(Compiler compiler, string tag) : base(compiler)
+        public IncludeTaggedMods(ACompiler compiler, string tag) : base(compiler)
         {
+            _mo2Compiler = (Compiler) compiler;
             _tag = tag;
-            _includeDirectly = _compiler.ModInis.Where(kv =>
+            _includeDirectly = _mo2Compiler.ModInis.Where(kv =>
             {
                 var general = kv.Value.General;
                 if (general.notes != null && general.notes.Contains(_tag))
@@ -56,7 +57,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             public string Tag { get; set; }
 
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IncludeTaggedMods(compiler, Tag);
             }

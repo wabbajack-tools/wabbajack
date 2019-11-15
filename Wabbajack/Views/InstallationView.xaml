@@ -277,43 +277,93 @@
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
-                            <RowDefinition Height="40" />
-                            <RowDefinition Height="40" />
+                            <RowDefinition Height="80" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <TextBlock
-                            Grid.Row="1"
-                            Grid.Column="0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            FontSize="14"
-                            Text="Installation Location"
-                            TextAlignment="Center" />
-                        <local:FilePicker
-                            Grid.Row="1"
-                            Grid.Column="2"
-                            Height="30"
-                            VerticalAlignment="Center"
-                            DataContext="{Binding Location}"
-                            FontSize="14" />
-                        <TextBlock
-                            Grid.Row="2"
-                            Grid.Column="0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            FontSize="14"
-                            Text="Download Location"
-                            TextAlignment="Center" />
-                        <local:FilePicker
-                            Grid.Row="2"
-                            Grid.Column="2"
-                            Height="30"
-                            VerticalAlignment="Center"
-                            DataContext="{Binding DownloadLocation}"
-                            FontSize="14" />
+                        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Visibility="{Binding IsMO2ModList, Converter={StaticResource bool2VisibilityConverter}}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="40" />
+                                <RowDefinition Height="40" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                FontSize="14"
+                                Text="Installation Location"
+                                TextAlignment="Center" />
+                            <local:FilePicker
+                                Grid.Row="1"
+                                Grid.Column="2"
+                                Height="30"
+                                VerticalAlignment="Center"
+                                DataContext="{Binding Location}"
+                                FontSize="14" />
+                            <TextBlock
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                FontSize="14"
+                                Text="Download Location"
+                                TextAlignment="Center" />
+                            <local:FilePicker
+                                Grid.Row="1"
+                                Grid.Column="2"
+                                Height="30"
+                                VerticalAlignment="Center"
+                                DataContext="{Binding DownloadLocation}"
+                                FontSize="14" />
+                        </Grid>
+                        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Visibility="{Binding IsMO2ModList, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="40" />
+                                <RowDefinition Height="40" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                FontSize="14"
+                                Text="Staging Folder"
+                                TextAlignment="Center" />
+                            <local:FilePicker
+                                Grid.Row="0"
+                                Grid.Column="2"
+                                Height="30"
+                                VerticalAlignment="Center"
+                                DataContext="{Binding StagingLocation}"
+                                FontSize="14" />
+                            <TextBlock
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                FontSize="14"
+                                Text="Download Folder"
+                                TextAlignment="Center" />
+                            <local:FilePicker
+                                Grid.Row="1"
+                                Grid.Column="2"
+                                Height="30"
+                                VerticalAlignment="Center"
+                                DataContext="{Binding DownloadLocation}"
+                                FontSize="14" />
+                        </Grid>
                         <local:BeginButton
                             Grid.Row="1"
-                            Grid.RowSpan="2"
                             Grid.Column="4"
                             Margin="0,0,25,0"
                             HorizontalAlignment="Right"

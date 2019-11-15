@@ -7,8 +7,11 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class IncludeStubbedConfigFiles : ACompilationStep
     {
-        public IncludeStubbedConfigFiles(Compiler compiler) : base(compiler)
+        private readonly Compiler _mo2Compiler;
+
+        public IncludeStubbedConfigFiles(ACompiler compiler) : base(compiler)
         {
+            _mo2Compiler = (Compiler) compiler;
         }
 
         public override Directive Run(RawSourceFile source)
@@ -26,18 +29,18 @@ namespace Wabbajack.Lib.CompilationSteps
             var data = File.ReadAllText(source.AbsolutePath);
             var originalData = data;
 
-            data = data.Replace(_compiler.GamePath, Consts.GAME_PATH_MAGIC_BACK);
-            data = data.Replace(_compiler.GamePath.Replace("\\", "\\\\"), Consts.GAME_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(_compiler.GamePath.Replace("\\", "/"), Consts.GAME_PATH_MAGIC_FORWARD);
+            data = data.Replace(_mo2Compiler.GamePath, Consts.GAME_PATH_MAGIC_BACK);
+            data = data.Replace(_mo2Compiler.GamePath.Replace("\\", "\\\\"), Consts.GAME_PATH_MAGIC_DOUBLE_BACK);
+            data = data.Replace(_mo2Compiler.GamePath.Replace("\\", "/"), Consts.GAME_PATH_MAGIC_FORWARD);
 
-            data = data.Replace(_compiler.MO2Folder, Consts.MO2_PATH_MAGIC_BACK);
-            data = data.Replace(_compiler.MO2Folder.Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(_compiler.MO2Folder.Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
+            data = data.Replace(_mo2Compiler.MO2Folder, Consts.MO2_PATH_MAGIC_BACK);
+            data = data.Replace(_mo2Compiler.MO2Folder.Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
+            data = data.Replace(_mo2Compiler.MO2Folder.Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
 
-            data = data.Replace(_compiler.MO2DownloadsFolder, Consts.DOWNLOAD_PATH_MAGIC_BACK);
-            data = data.Replace(_compiler.MO2DownloadsFolder.Replace("\\", "\\\\"),
+            data = data.Replace(_mo2Compiler.MO2DownloadsFolder, Consts.DOWNLOAD_PATH_MAGIC_BACK);
+            data = data.Replace(_mo2Compiler.MO2DownloadsFolder.Replace("\\", "\\\\"),
                 Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(_compiler.MO2DownloadsFolder.Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD);
+            data = data.Replace(_mo2Compiler.MO2DownloadsFolder.Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD);
 
             if (data == originalData)
                 return null;
@@ -49,7 +52,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IncludeStubbedConfigFiles")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new IncludeStubbedConfigFiles(compiler);
             }

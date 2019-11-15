@@ -13,10 +13,12 @@ namespace Wabbajack.Lib.CompilationSteps
         private readonly IEnumerable<string> _include_directly;
         private readonly List<ICompilationStep> _microstack;
         private readonly List<ICompilationStep> _microstackWithInclude;
+        private readonly Compiler _mo2Compiler;
 
-        public DeconstructBSAs(Compiler compiler) : base(compiler)
+        public DeconstructBSAs(ACompiler compiler) : base(compiler)
         {
-            _include_directly = _compiler.ModInis.Where(kv =>
+            _mo2Compiler = (Compiler) compiler;
+            _include_directly = _mo2Compiler.ModInis.Where(kv =>
                 {
                     var general = kv.Value.General;
                     if (general.notes != null && general.notes.Contains(Consts.WABBAJACK_INCLUDE)) return true;
@@ -28,16 +30,16 @@ namespace Wabbajack.Lib.CompilationSteps
 
             _microstack = new List<ICompilationStep>
             {
-                new DirectMatch(_compiler),
-                new IncludePatches(_compiler),
-                new DropAll(_compiler)
+                new DirectMatch(_mo2Compiler),
+                new IncludePatches(_mo2Compiler),
+                new DropAll(_mo2Compiler)
             };
 
             _microstackWithInclude = new List<ICompilationStep>
             {
-                new DirectMatch(_compiler),
-                new IncludePatches(_compiler),
-                new IncludeAll(_compiler)
+                new DirectMatch(_mo2Compiler),
+                new IncludePatches(_mo2Compiler),
+                new IncludeAll(_mo2Compiler)
             };
         }
 
@@ -61,7 +63,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             var id = Guid.NewGuid().ToString();
 
-            var matches = source_files.PMap(e => Compiler.RunStack(stack, new RawSourceFile(e)
+            var matches = source_files.PMap(e => _mo2Compiler.RunStack(stack, new RawSourceFile(e)
             {
                 Path = Path.Combine(Consts.BSACreationDir, id, e.Paths.Last())
             }));
@@ -71,7 +73,7 @@ namespace Wabbajack.Lib.CompilationSteps
             {
                 if (match is IgnoredDirectly)
                     Utils.Error($"File required for BSA {source.Path} creation doesn't exist: {match.To}");
-                _compiler.ExtraFiles.Add(match);
+                _mo2Compiler.ExtraFiles.Add(match);
             }
 
             CreateBSA directive;
@@ -92,7 +94,7 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("DeconstructBSAs")]
         public class State : IState
         {
-            public ICompilationStep CreateStep(Compiler compiler)
+            public ICompilationStep CreateStep(ACompiler compiler)
             {
                 return new DeconstructBSAs(compiler);
             }
