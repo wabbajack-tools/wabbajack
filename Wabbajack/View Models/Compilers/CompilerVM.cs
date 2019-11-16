@@ -1,4 +1,4 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
@@ -71,7 +71,7 @@ namespace Wabbajack
                 .DistinctUntilChanged()
                 .Select(path =>
                 {
-                    if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Wabbajack.Resources.Banner_Dark.png");
+                    if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Wabbajack.Resources.Wabba_Mouth.png");
                     if (UIUtils.TryGetBitmapImageFromFile(path, out var image))
                     {
                         return image;
