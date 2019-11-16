@@ -61,28 +61,11 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             FontSize="14"
-            Text="Vortex Location"
-            TextAlignment="Center"
-            ToolTip="The Vortex program installation location" />
-        <local:FilePicker
-            Grid.Row="0"
-            Grid.Column="6"
-            Height="30"
-            VerticalAlignment="Center"
-            DataContext="{Binding VortexLocation}"
-            FontSize="14"
-            ToolTip="The Vortex program installation location" />
-        <TextBlock
-            Grid.Row="1"
-            Grid.Column="4"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Center"
-            FontSize="14"
             Text="Download Location"
             TextAlignment="Center"
             ToolTip="The folder to downloads your mods" />
         <local:FilePicker
-            Grid.Row="1"
+            Grid.Row="0"
             Grid.Column="6"
             Height="30"
             VerticalAlignment="Center"
@@ -90,7 +73,7 @@
             FontSize="14"
             ToolTip="The folder to downloads your mods" />
         <TextBlock
-            Grid.Row="2"
+            Grid.Row="1"
             Grid.Column="4"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
@@ -98,7 +81,7 @@
             Text="Staging Location"
             TextAlignment="Center" />
         <local:FilePicker
-            Grid.Row="2"
+            Grid.Row="1"
             Grid.Column="6"
             Height="30"
             VerticalAlignment="Center"

@@ -31,9 +31,6 @@ namespace Wabbajack
         public FilePickerVM GameLocation { get; set; }
 
         [Reactive]
-        public FilePickerVM VortexLocation { get; set; }
-
-        [Reactive]
         public FilePickerVM DownloadsLocation { get; set; }
 
         [Reactive]
@@ -46,12 +43,6 @@ namespace Wabbajack
                 DoExistsCheck = true,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Game Folder Location"
-            };
-            this.VortexLocation = new FilePickerVM()
-            {
-                DoExistsCheck = true,
-                PathType = FilePickerVM.PathTypeOptions.Folder,
-                PromptTitle = "Select Vortex Install Folder"
             };
             this.DownloadsLocation = new FilePickerVM()
             {
@@ -70,10 +61,9 @@ namespace Wabbajack
             this.BeginCommand = ReactiveCommand.CreateFromTask(
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.GameLocation.InError),
-                        this.WhenAny(x => x.VortexLocation.InError),
                         this.WhenAny(x => x.DownloadsLocation.InError),
                         this.WhenAny(x => x.StagingLocation.InError),
-                        resultSelector: (g, v, d, s) => !g && !v && !d && !s)
+                        resultSelector: (g, d, s) => !g && !d && !s)
                     .ObserveOnGuiThread(),
                 execute: async () =>
                 {
@@ -83,7 +73,7 @@ namespace Wabbajack
                         compiler = new VortexCompiler(
                             game: this.SelectedGame,
                             gamePath: this.GameLocation.TargetPath,
-                            vortexFolder: this.VortexLocation.TargetPath,
+                            vortexFolder: VortexCompiler.TypicalVortexFolder(),
                             downloadsFolder: this.DownloadsLocation.TargetPath,
                             stagingFolder: this.StagingLocation.TargetPath);
                     }
