@@ -226,6 +226,9 @@
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\UserControlRx.cs" />
+    <Compile Include="Views\Compilers\VortexCompilerConfigView.xaml.cs">
+      <DependentUpon>VortexCompilerConfigView.xaml</DependentUpon>
+    </Compile>
     <Page Include="Views\Compilers\MO2CompilerConfigView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -299,6 +302,10 @@
     <Page Include="Views\TextViewer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Compilers\VortexCompilerConfigView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>

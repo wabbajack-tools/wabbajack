@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
@@ -87,8 +87,15 @@ namespace Wabbajack
 
     public class VortexCompilationSettings
     {
+        public string DownloadLocation { get; set; }
         public string StagingLocation { get; set; }
         public Game LastCompiledGame { get; set; }
-        public Dictionary<Game, CompilationModlistSettings> ModlistSettings { get; } = new Dictionary<Game, CompilationModlistSettings>();
+        public Dictionary<Game, VortexGameSettings> ModlistSettings { get; } = new Dictionary<Game, VortexGameSettings>();
+    }
+
+    public class VortexGameSettings
+    {
+        public string GameLocation { get; set; }
+        public CompilationModlistSettings ModlistSettings { get; } = new CompilationModlistSettings();
     }
 }

@@ -1,4 +1,4 @@
-using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
@@ -54,7 +54,7 @@ namespace Wabbajack
                         case ModManager.MO2:
                             return new MO2CompilerVM(this);
                         case ModManager.Vortex:
-                            return new VortexCompilerVM();
+                            return new VortexCompilerVM(this);
                         default:
                             return null;
                     }
