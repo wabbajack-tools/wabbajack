@@ -59,6 +59,13 @@ namespace Wabbajack
                             return null;
                     }
                 })
+                // Unload old VM
+                .Pairwise()
+                .Do(pair =>
+                {
+                    pair.Previous?.Unload();
+                })
+                .Select(p => p.Current)
                 .ToProperty(this, nameof(this.Compiler));
 
             // Let sub VM determine what settings we're displaying and when

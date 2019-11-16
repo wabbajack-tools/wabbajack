@@ -15,5 +15,7 @@ namespace Wabbajack
         public bool Compiling => throw new NotImplementedException();
 
         public ModlistSettingsEditorVM ModlistSettings => throw new NotImplementedException();
+
+        public void Unload() => throw new NotImplementedException();
     }
 }

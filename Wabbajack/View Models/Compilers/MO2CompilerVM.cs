@@ -16,6 +16,8 @@ namespace Wabbajack
 {
     public class MO2CompilerVM : ViewModel, ISubCompilerVM
     {
+        private readonly MO2CompilationSettings settings;
+
         private readonly ObservableAsPropertyHelper<string> _Mo2Folder;
         public string Mo2Folder => _Mo2Folder.Value;
 
@@ -132,19 +134,14 @@ namespace Wabbajack
                 .ToProperty(this, nameof(this.Compiling));
 
             // Load settings
-            var settings = parent.MWVM.Settings.Compiler.MO2Compilation;
+            this.settings = parent.MWVM.Settings.Compiler.MO2Compilation;
             this.ModlistLocation.TargetPath = settings.LastCompiledProfileLocation;
             if (!string.IsNullOrWhiteSpace(settings.DownloadLocation))
             {
                 this.DownloadLocation.TargetPath = settings.DownloadLocation;
             }
             parent.MWVM.Settings.SaveSignal
-                .Subscribe(_ =>
-                {
-                    settings.DownloadLocation = this.DownloadLocation.TargetPath;
-                    settings.LastCompiledProfileLocation = this.ModlistLocation.TargetPath;
-                    this.ModlistSettings?.Save();
-                })
+                .Subscribe(_ => Unload())
                 .DisposeWith(this.CompositeDisposable);
 
             // Load custom modlist settings per MO2 profile
@@ -195,8 +192,13 @@ namespace Wabbajack
                     }
                 })
                 .DisposeWith(this.CompositeDisposable);
+        }
 
-
+        public void Unload()
+        {
+            settings.DownloadLocation = this.DownloadLocation.TargetPath;
+            settings.LastCompiledProfileLocation = this.ModlistLocation.TargetPath;
+            this.ModlistSettings?.Save();
         }
     }
 }

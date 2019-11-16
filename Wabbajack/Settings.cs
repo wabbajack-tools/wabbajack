@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
@@ -58,7 +58,6 @@ namespace Wabbajack
     public class ModlistInstallationSettings
     {
         public string InstallationLocation { get; set; }
-        public string StagingLocation { get; set; }
         public string DownloadLocation { get; set; }
     }
 
