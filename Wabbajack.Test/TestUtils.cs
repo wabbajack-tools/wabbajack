@@ -30,7 +30,7 @@ namespace Wabbajack.Test
         public string ID { get; }
         public Random RNG { get; }
 
-        public string GameName { get; set; }
+        public Game Game { get; set; }
 
         public string TestFolder => Path.Combine(WorkingDirectory, ID);
         public string GameFolder => Path.Combine(WorkingDirectory, ID, "game_folder");
@@ -50,7 +50,7 @@ namespace Wabbajack.Test
             File.WriteAllLines(Path.Combine(MO2Folder, "ModOrganizer.ini"), new []
             {
                 "[General]",
-                $"gameName={GameName}",
+                $"gameName={GameRegistry.Games[this.Game].MO2Name}",
                 $"gamePath={GameFolder.Replace("\\", "\\\\")}",
                 $"download_directory={DownloadsFolder}"
             });

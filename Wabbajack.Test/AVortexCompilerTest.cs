@@ -19,7 +19,7 @@ namespace Wabbajack.Test
 
             utils = new TestUtils
             {
-                GameName = "darkestdungeon"
+                Game = Game.DarkestDungeon
             };
 
             Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f));
@@ -43,7 +43,7 @@ namespace Wabbajack.Test
 
         protected VortexCompiler MakeCompiler()
         {
-            var vortexCompiler = new VortexCompiler(utils.GameName, utils.GameFolder);
+            var vortexCompiler = new VortexCompiler(GameRegistry.Games[utils.Game].NexusName, utils.GameFolder);
             return vortexCompiler;
         }
 

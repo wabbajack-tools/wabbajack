@@ -20,7 +20,7 @@ namespace Wabbajack.Test
             Consts.TestMode = true;
 
             utils = new TestUtils();
-            utils.GameName = "Skyrim Special Edition";
+            utils.Game = Game.SkyrimSpecialEdition;
 
             Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f));
 
