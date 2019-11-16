@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Compression.LZ4;
 using K4os.Compression.LZ4.Streams;
@@ -77,11 +76,11 @@ namespace Compression.BSA
         public void Dispose()
         {
         }
-        public async Task AddFile(FileStateObject state, Stream src)
+        public void AddFile(FileStateObject state, Stream src)
         {
             var ostate = (BSAFileStateObject) state;
 
-            var r = await FileEntry.Create(this, ostate.Path, src, ostate.FlipCompression);
+            var r = FileEntry.Create(this, ostate.Path, src, ostate.FlipCompression);
 
             lock (this)
             {
@@ -89,7 +88,7 @@ namespace Compression.BSA
             }
         }
 
-        public async Task Build(string outputName)
+        public void Build(string outputName)
         {
             RegenFolderRecords();
             if (File.Exists(outputName)) File.Delete(outputName);
@@ -122,7 +121,7 @@ namespace Compression.BSA
                 foreach (var file in _files) wtr.Write(file._nameBytes);
 
                 foreach (var file in _files) 
-                    await file.WriteData(wtr);
+                    file.WriteData(wtr);
             }
         }
 
@@ -237,7 +236,7 @@ namespace Compression.BSA
         internal byte[] _pathBytes;
         internal byte[] _rawData;
 
-        public static async Task<FileEntry> Create(BSABuilder bsa, string path, Stream src, bool flipCompression)
+        public static FileEntry Create(BSABuilder bsa, string path, Stream src, bool flipCompression)
         {
             var entry = new FileEntry();
             entry._bsa = bsa;
@@ -250,7 +249,7 @@ namespace Compression.BSA
             entry._flipCompression = flipCompression;
 
             var ms = new MemoryStream();
-            await src.CopyToAsync(ms);
+            src.CopyTo(ms);
             entry._rawData = ms.ToArray();
             entry._originalSize = entry._rawData.Length;
 
@@ -321,7 +320,7 @@ namespace Compression.BSA
             wtr.Write(0xDEADBEEF);
         }
 
-        internal async Task WriteData(BinaryWriter wtr)
+        internal void WriteData(BinaryWriter wtr)
         {
             var offset = (uint) wtr.BaseStream.Position;
             wtr.BaseStream.Position = _offsetOffset;
@@ -333,11 +332,11 @@ namespace Compression.BSA
             if (Compressed)
             {
                 wtr.Write((uint) _originalSize);
-                await wtr.BaseStream.WriteAsync(_rawData, 0, _rawData.Length);
+                wtr.BaseStream.Write(_rawData, 0, _rawData.Length);
             }
             else
             {
-                await wtr.BaseStream.WriteAsync(_rawData, 0, _rawData.Length);
+                wtr.BaseStream.Write(_rawData, 0, _rawData.Length);
             }
         }
     }

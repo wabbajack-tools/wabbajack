@@ -77,7 +77,7 @@ namespace Wabbajack.Lib.CompilationSteps
             }
 
             CreateBSA directive;
-            using (var bsa = BSADispatch.OpenRead(source.AbsolutePath).Result)
+            using (var bsa = BSADispatch.OpenRead(source.AbsolutePath))
             {
                 directive = new CreateBSA
                 {

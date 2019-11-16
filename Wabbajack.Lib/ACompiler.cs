@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
@@ -11,7 +12,16 @@ namespace Wabbajack.Lib
 {
     public abstract class ACompiler
     {
+        protected static string _vfsCacheName = "vfs_compile_cache.bin";
+        /// <summary>
+        /// A stream of tuples of ("Update Title", 0.25) which represent the name of the current task
+        /// and the current progress.
+        /// </summary>
+        public IObservable<(string, float)> ProgressUpdates => _progressUpdates;
+        protected readonly Subject<(string, float)> _progressUpdates = new Subject<(string, float)>();
+
         public Context VFS { get; internal set; } = new Context();
+
         public ModManager ModManager;
 
         public string GamePath;
@@ -39,5 +49,11 @@ namespace Wabbajack.Lib
         public abstract Directive RunStack(IEnumerable<ICompilationStep> stack, RawSourceFile source);
         public abstract IEnumerable<ICompilationStep> GetStack();
         public abstract IEnumerable<ICompilationStep> MakeStack();
+
+        protected ACompiler()
+        {
+            ProgressUpdates.Subscribe(itm => Utils.Log($"{itm.Item2} - {itm.Item1}"));
+            VFS.LogSpam.Subscribe(itm => Utils.Status(itm));
+        }
     }
 }
