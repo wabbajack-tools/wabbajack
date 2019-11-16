@@ -19,7 +19,6 @@ namespace Wabbajack.Test
 {
     public class TestUtils : IDisposable
     {
-
         public TestUtils()
         {
             RNG = new Random();
@@ -42,6 +41,9 @@ namespace Wabbajack.Test
 
         public string InstallFolder => Path.Combine(TestFolder, "installed");
 
+        public HashSet<string> Profiles = new HashSet<string>();
+
+        public List<string> Mods = new List<string>();
 
         public void Configure()
         {
@@ -70,7 +72,6 @@ namespace Wabbajack.Test
             Profiles.Add(profile_name);
             return profile_name;
         }
-        public HashSet<string> Profiles = new HashSet<string>();
 
         public string AddMod(string name = null)
         {
@@ -81,8 +82,6 @@ namespace Wabbajack.Test
             Mods.Add(mod_name);
             return mod_name;
         }
-
-        public List<string> Mods = new List<string>();
 
         /// <summary>
         /// Adds a file to the given mod with a given path in the mod. Fills it with random data unless
@@ -129,11 +128,9 @@ namespace Wabbajack.Test
             });
         }
 
-
         /// <summary>
         /// Returns a random string name (with spaces)
         /// </summary>
-        private char[] _nameChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'+=-_ ".ToCharArray();
         public string RandomName()
         {
             return Guid.NewGuid().ToString();
@@ -210,16 +207,12 @@ namespace Wabbajack.Test
                 var fi_src = new FileInfo(src_file);
                 var fi_dest = new FileInfo(dest_file);
 
-
-
                 if (!skip_extensions.Contains(Path.GetExtension(src_file)))
                 {
                     Assert.AreEqual(fi_src.Length, fi_dest.Length, $"Differing sizes {rel_file}");
                     Assert.AreEqual(src_file.FileHash(), dest_file.FileHash(), $"Differing content hash {rel_file}");
                 }
             }
-
-
         }
     }
 }
