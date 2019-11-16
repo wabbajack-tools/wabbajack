@@ -27,29 +27,18 @@ namespace Wabbajack.Lib
 
         public bool IgnoreMissingFiles { get; set; }
 
-        public VortexCompiler(string gameName, string gamePath)
+        public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder)
         {
             ModManager = ModManager.Vortex;
 
             // TODO: only for testing
             IgnoreMissingFiles = true;
-            string[] args = Environment.GetCommandLineArgs();
 
             GamePath = gamePath;
-            GameName = gameName;
-            Game = GameRegistry.GetByNexusName(GameName).Game;
-
-            //args: wabbajacke.exe gameName gamePath vortexfolder stagingfolder downloadsfolder
-            VortexFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vortex");
-            if (File.Exists(Path.Combine(VortexFolder, gameName, "mods", "__vortex_staging_folder")))
-                StagingFolder = Path.Combine(VortexFolder, gameName, "mods");
-            if (File.Exists(Path.Combine(VortexFolder, "downloads", "__vortex_downloads_folder")))
-                DownloadsFolder = Path.Combine(VortexFolder, "downloads", gameName);
-
-            if (args.Length >= 4)
-                StagingFolder = args[3];
-            if (args.Length == 5)
-                DownloadsFolder = args[4];
+            GameName = GameRegistry.Games[game].NexusName;
+            this.VortexFolder = vortexFolder;
+            this.DownloadsFolder = downloadsFolder;
+            this.StagingFolder = stagingFolder;
 
             ModListOutputFolder = "output_folder";
 
@@ -436,6 +425,54 @@ namespace Wabbajack.Lib
 
                 new DropAll(this)
             };
+        }
+
+        public static string TypicalVortexFolder()
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vortex");
+        }
+
+        public static bool TryRetrieveDownloadLocation(Game game, out string downloads, string vortexFolderPath = null)
+        {
+            vortexFolderPath = vortexFolderPath ?? TypicalVortexFolder();
+            if (!File.Exists(Path.Combine(vortexFolderPath, "downloads", "__vortex_downloads_folder")))
+            {
+                downloads = default;
+                return false;
+            }
+            downloads = Path.Combine(vortexFolderPath, "downloads", GameRegistry.Games[game].NexusName);
+            return true;
+        }
+
+        public static string RetrieveDownloadLocation(Game game, string vortexFolderPath = null)
+        {
+            if (!TryRetrieveDownloadLocation(game, out var loc, vortexFolderPath))
+            {
+                throw new ArgumentException("Could not locate downloads folder");
+            }
+            return loc;
+        }
+
+        public static bool TryRetrieveStagingLocation(Game game, out string staging, string vortexFolderPath = null)
+        {
+            vortexFolderPath = vortexFolderPath ?? TypicalVortexFolder();
+            var gameName = GameRegistry.Games[game].NexusName;
+            if (!File.Exists(Path.Combine(vortexFolderPath, gameName, "mods", "__vortex_staging_folder")))
+            {
+                staging = default;
+                return false;
+            }
+            staging = Path.Combine(vortexFolderPath, gameName, "mods");
+            return true;
+        }
+
+        public static string RetrieveStagingLocation(Game game, string vortexFolderPath = null)
+        {
+            if (!TryRetrieveStagingLocation(game, out var loc, vortexFolderPath))
+            {
+                throw new ArgumentException("Could not locate staging folder");
+            }
+            return loc;
         }
     }
 }

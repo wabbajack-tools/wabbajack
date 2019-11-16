@@ -43,8 +43,16 @@ namespace Wabbajack.Test
 
         protected VortexCompiler MakeCompiler()
         {
-            var vortexCompiler = new VortexCompiler(GameRegistry.Games[utils.Game].NexusName, utils.GameFolder);
-            return vortexCompiler;
+            if (VortexCompiler.TryRetrieveDownloadLocation(utils.Game, out var downloads))
+            {
+                throw new ArgumentException("Could not locate downloads folder");
+            }
+            return new VortexCompiler(
+                game: utils.Game,
+                gamePath: utils.GameFolder,
+                vortexFolder: VortexCompiler.TypicalVortexFolder(),
+                downloadsFolder: VortexCompiler.RetrieveDownloadLocation(utils.Game),
+                stagingFolder: VortexCompiler.RetrieveStagingLocation(utils.Game));
         }
 
         protected ModList CompileAndInstall()
