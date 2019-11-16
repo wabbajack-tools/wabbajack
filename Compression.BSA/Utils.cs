@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Compression.BSA
@@ -140,20 +139,6 @@ namespace Compression.BSA
             for (var i = 0; i < ext.Length; i++) hash3 = hash3 * 0x1003f + (byte) ext[i];
 
             return ((ulong) (hash2 + hash3) << 32) + hash1;
-        }
-
-        public static async Task CopyToLimitAsync(this Stream frm, Stream tw, int limit)
-        {
-            var buff = new byte[1024 * 16];
-            while (limit > 0)
-            {
-                var to_read = Math.Min(buff.Length, limit);
-                var read = await frm.ReadAsync(buff, 0, to_read);
-                await tw.WriteAsync(buff, 0, read);
-                limit -= read;
-            }
-
-            await tw.FlushAsync();
         }
 
         public static void CopyToLimit(this Stream frm, Stream tw, int limit)

@@ -122,23 +122,23 @@ namespace Wabbajack.Lib
 
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
 
-            VFS.IntegrateFromFile(_vfsCacheName).Wait();
+            VFS.IntegrateFromFile(_vfsCacheName);
 
             Info($"Indexing {MO2Folder}");
-            VFS.AddRoot(MO2Folder).Wait();
+            VFS.AddRoot(MO2Folder);
 
-            VFS.WriteToFile(_vfsCacheName).Wait();
+            VFS.WriteToFile(_vfsCacheName);
 
             Info($"Indexing {GamePath}");
-            VFS.AddRoot(GamePath).Wait();
+            VFS.AddRoot(GamePath);
 
-            VFS.WriteToFile(_vfsCacheName).Wait();
+            VFS.WriteToFile(_vfsCacheName);
 
 
             Info($"Indexing {MO2DownloadsFolder}");
-            VFS.AddRoot(MO2DownloadsFolder).Wait();
+            VFS.AddRoot(MO2DownloadsFolder);
 
-            VFS.WriteToFile(_vfsCacheName).Wait();
+            VFS.WriteToFile(_vfsCacheName);
 
 
             Info("Cleaning output folder");
@@ -164,8 +164,8 @@ namespace Wabbajack.Lib
             if (Directory.Exists(loot_path))
             {
                 Info($"Indexing {loot_path}");
-                VFS.AddRoot(loot_path).Wait();
-                VFS.WriteToFile(_vfsCacheName).Wait();
+                VFS.AddRoot(loot_path);
+                VFS.WriteToFile(_vfsCacheName);
 
 
                 loot_files = Directory.EnumerateFiles(loot_path, "userlist.yaml", SearchOption.AllDirectories)
@@ -468,13 +468,13 @@ namespace Wabbajack.Lib
                 var bsa_id = to.Split('\\')[1];
                 var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsa_id);
 
-                using (var a = await BSADispatch.OpenRead(Path.Combine(MO2Folder, bsa.To)))
+                using (var a = BSADispatch.OpenRead(Path.Combine(MO2Folder, bsa.To)))
                 {
                     var find = Path.Combine(to.Split('\\').Skip(2).ToArray());
                     var file = a.Files.First(e => e.Path.Replace('/', '\\') == find);
                     using (var ms = new MemoryStream())
                     {
-                        await file.CopyDataToAsync(ms);
+                        file.CopyDataTo(ms);
                         return ms.ToArray();
                     }
                 }

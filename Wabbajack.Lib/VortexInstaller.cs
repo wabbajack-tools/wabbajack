@@ -156,7 +156,7 @@ namespace Wabbajack.Lib
                 return g;
             }).ToList();
 
-            var onFinish = VFS.Stage(vFiles.Select(f => f.FromFile).Distinct()).Result;
+            var onFinish = VFS.Stage(vFiles.Select(f => f.FromFile).Distinct());
 
             Status($"Copying files for {archive.Name}");
 

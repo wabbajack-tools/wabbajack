@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Wabbajack.Common;
-using Wabbajack.Common.CSP;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -28,7 +26,7 @@ namespace Compression.BSA.Test
         public TestContext TestContext { get; set; }
 
         [ClassInitialize]
-        public static async Task Setup(TestContext TestContext)
+        public static void Setup(TestContext TestContext)
         {
 
             Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f));
@@ -52,7 +50,7 @@ namespace Compression.BSA.Test
                 var folder = Path.Combine(BSAFolder, info.Item1.ToString(), info.Item2.ToString());
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
-                await FileExtractor.ExtractAll(filename, folder);
+                FileExtractor.ExtractAll(filename, folder);
             }
         }
 
@@ -88,7 +86,7 @@ namespace Compression.BSA.Test
         [TestMethod]
         [DataTestMethod]
         [DynamicData(nameof(BSAs), DynamicDataSourceType.Method)]
-        public async Task BSACompressionRecompression(string bsa)
+        public void BSACompressionRecompression(string bsa)
         {
             TestContext.WriteLine($"From {bsa}");
             TestContext.WriteLine("Cleaning Output Dir");
@@ -97,9 +95,10 @@ namespace Compression.BSA.Test
             Directory.CreateDirectory(TempDir);
 
             TestContext.WriteLine($"Reading {bsa}");
-            using (var a = await BSADispatch.OpenRead(bsa))
+            string TempFile = Path.Combine("tmp.bsa");
+            using (var a = BSADispatch.OpenRead(bsa))
             {
-                await a.Files.UnorderedParallelDo(async file =>
+                a.Files.PMap(file =>
                 {
                     var abs_name = Path.Combine(TempDir, file.Path);
                     ViaJson(file.State);
@@ -110,30 +109,29 @@ namespace Compression.BSA.Test
 
                     using (var fs = File.OpenWrite(abs_name))
                     {
-                        await file.CopyDataToAsync(fs);
+                        file.CopyDataTo(fs);
                     }
 
                     Assert.AreEqual(file.Size, new FileInfo(abs_name).Length);
                 });
 
                 Console.WriteLine($"Building {bsa}");
-                string TempFile = Path.Combine("tmp.bsa");
 
                 using (var w = ViaJson(a.State).MakeBuilder())
                 {
-                    await a.Files.UnorderedParallelDo(async file =>
+                    a.Files.PMap(file =>
                     {
                         var abs_path = Path.Combine(TempDir, file.Path);
                         using (var str = File.OpenRead(abs_path))
                         {
-                            await w.AddFile(ViaJson(file.State), str);
+                            w.AddFile(ViaJson(file.State), str);
                         }
                     });
-                    await w.Build(TempFile);
+                    w.Build(TempFile);
                 }
 
                 Console.WriteLine($"Verifying {bsa}");
-                using (var b = await BSADispatch.OpenRead(TempFile))
+                using (var b = BSADispatch.OpenRead(TempFile))
                 {
 
                     Console.WriteLine($"Performing A/B tests on {bsa}");
@@ -143,8 +141,8 @@ namespace Compression.BSA.Test
                     Assert.AreEqual(a.Files.Count(), b.Files.Count());
                     var idx = 0;
 
-                    await a.Files.Zip(b.Files, (ai, bi) => (ai, bi))
-                                .UnorderedParallelDo(async pair =>
+                    a.Files.Zip(b.Files, (ai, bi) => (ai, bi))
+                                .PMap(pair =>
                                 {
                                     idx++;
                                     Assert.AreEqual(JsonConvert.SerializeObject(pair.ai.State),
@@ -153,17 +151,17 @@ namespace Compression.BSA.Test
                                     Assert.AreEqual(pair.ai.Path, pair.bi.Path);
                                     //Equal(pair.ai.Compressed, pair.bi.Compressed);
                                     Assert.AreEqual(pair.ai.Size, pair.bi.Size);
-                                    CollectionAssert.AreEqual(await GetData(pair.ai), await GetData(pair.bi));
+                                    CollectionAssert.AreEqual(GetData(pair.ai), GetData(pair.bi));
                                 });
                 }
             }
         }
 
-        private static async Task<byte[]> GetData(IFile pairAi)
+        private static byte[] GetData(IFile pairAi)
         {
             using (var ms = new MemoryStream())
             {
-                await pairAi.CopyDataToAsync(ms);
+                pairAi.CopyDataTo(ms);
                 return ms.ToArray();
             }
         }

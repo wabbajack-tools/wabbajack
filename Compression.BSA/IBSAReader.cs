@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Compression.BSA
 {
@@ -19,8 +16,8 @@ namespace Compression.BSA
 
     public interface IBSABuilder : IDisposable
     {
-        Task AddFile(FileStateObject state, Stream src);
-        Task Build(string filename);
+        void AddFile(FileStateObject state, Stream src);
+        void Build(string filename);
     }
 
     public class ArchiveStateObject
@@ -59,6 +56,6 @@ namespace Compression.BSA
         /// in order to maintain thread-safe access. 
         /// </summary>
         /// <param name="output"></param>
-        Task CopyDataToAsync(Stream output);
+        void CopyDataTo(Stream output);
     }
 }

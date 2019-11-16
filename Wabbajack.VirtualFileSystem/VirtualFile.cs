@@ -117,10 +117,9 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, string abs_path,
+        public static VirtualFile Analyze(Context context, VirtualFile parent, string abs_path,
             string rel_path)
         {
-            var hasher = abs_path.FileHashAsync().ConfigureAwait(false);
             var fi = new FileInfo(abs_path);
             context._logSpam.OnNext($"Analyzing {rel_path}");
             var self = new VirtualFile
@@ -130,31 +129,26 @@ namespace Wabbajack.VirtualFileSystem
                 Parent = parent,
                 Size = fi.Length,
                 LastModified = fi.LastWriteTimeUtc.Ticks,
-                LastAnalyzed = DateTime.Now.Ticks
+                LastAnalyzed = DateTime.Now.Ticks,
+                Hash = abs_path.FileHash()
             };
+
             if (FileExtractor.CanExtract(Path.GetExtension(abs_path)))
             {
                 context._logSpam.OnNext($"Extracting {rel_path}");
 
                 using (var tempFolder = context.GetTemporaryFolder())
                 {
-                    await FileExtractor.ExtractAll(abs_path, tempFolder.FullName).ConfigureAwait(false);
+                    FileExtractor.ExtractAll(abs_path, tempFolder.FullName);
 
                     context._logSpam.OnNext($"Analyzing Contents {rel_path}");
-
-                    var results = Channel.Create<VirtualFile>(1024);
-                    var files = Directory.EnumerateFiles(tempFolder.FullName, "*", SearchOption.AllDirectories)
-                        .ToChannel()
-                        .UnorderedPipeline(results,
-                            async abs_src =>
-                                await Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName))
-                                    .ConfigureAwait(false));
-                    self.Children = (await results.TakeAll()).ToImmutableList();
+                    self.Children = Directory.EnumerateFiles(tempFolder.FullName, "*", SearchOption.AllDirectories)
+                                        .PMap(abs_src => Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName)))
+                                        .ToImmutableList();
                 }
 
             }
 
-            self.Hash = await hasher;
             return self;
         }
 

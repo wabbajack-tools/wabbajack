@@ -95,13 +95,13 @@ namespace Wabbajack.Lib
             CreateMetaFiles();
 
             Info($"Indexing {StagingFolder}");
-            VFS.AddRoot(StagingFolder).Wait();
+            VFS.AddRoot(StagingFolder);
 
             Info($"Indexing {GamePath}");
-            VFS.AddRoot(GamePath).Wait();
+            VFS.AddRoot(GamePath);
 
             Info($"Indexing {DownloadsFolder}");
-            VFS.AddRoot(DownloadsFolder).Wait();
+            VFS.AddRoot(DownloadsFolder);
 
             AddExternalFolder();
 

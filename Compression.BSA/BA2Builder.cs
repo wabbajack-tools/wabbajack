@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
-using Wabbajack.Common.CSP;
 
 namespace Compression.BSA
 {
@@ -19,7 +15,7 @@ namespace Compression.BSA
 
         int Index { get; }
 
-        Task WriteData(BinaryWriter wtr);
+        void WriteData(BinaryWriter wtr);
         void WriteHeader(BinaryWriter wtr);
 
     }
@@ -37,22 +33,22 @@ namespace Compression.BSA
         {
         }
 
-        public async Task AddFile(FileStateObject state, Stream src)
+        public void AddFile(FileStateObject state, Stream src)
         {
             switch (_state.Type)
             {
                 case EntryType.GNRL:
-                    var result = await BA2FileEntryBuilder.Create((BA2FileEntryState)state, src);
+                    var result = BA2FileEntryBuilder.Create((BA2FileEntryState)state, src);
                     lock(_entries) _entries.Add(result);
                     break;
                 case EntryType.DX10:
-                    var resultdx10 = await BA2DX10FileEntryBuilder.Create((BA2DX10EntryState)state, src);
+                    var resultdx10 = BA2DX10FileEntryBuilder.Create((BA2DX10EntryState)state, src);
                     lock(_entries) _entries.Add(resultdx10);
                     break;
             }
         }
 
-        public async Task Build(string filename)
+        public void Build(string filename)
         {
             SortEntries();
             using (var fs = File.OpenWrite(filename))
@@ -72,7 +68,7 @@ namespace Compression.BSA
 
                 foreach (var entry in _entries)
                 {
-                    await entry.WriteData(bw);
+                    entry.WriteData(bw);
                 }
 
                 if (_state.HasNameTable)
@@ -86,7 +82,7 @@ namespace Compression.BSA
                     {
                         var bytes = Encoding.UTF7.GetBytes(entry.FullName);
                         bw.Write((ushort)bytes.Length);
-                        await bw.BaseStream.WriteAsync(bytes, 0, bytes.Length);
+                        bw.BaseStream.Write(bytes, 0, bytes.Length);
                     }
                 }
             }
@@ -103,10 +99,9 @@ namespace Compression.BSA
         private BA2DX10EntryState _state;
         private List<ChunkBuilder> _chunks;
 
-        public static async Task<BA2DX10FileEntryBuilder> Create(BA2DX10EntryState state, Stream src)
+        public static BA2DX10FileEntryBuilder Create(BA2DX10EntryState state, Stream src)
         {
-            var builder = new BA2DX10FileEntryBuilder();
-            builder._state = state;
+            var builder = new BA2DX10FileEntryBuilder {_state = state};
 
             var header_size = DDS.HeaderSizeForFormat((DXGI_FORMAT) state.PixelFormat) + 4;
             new BinaryReader(src).ReadBytes((int)header_size);
@@ -115,7 +110,7 @@ namespace Compression.BSA
             builder._chunks = new List<ChunkBuilder>();
 
             foreach (var chunk in state.Chunks)
-                builder._chunks.Add(await ChunkBuilder.Create(state, chunk, src));
+                builder._chunks.Add(ChunkBuilder.Create(state, chunk, src));
 
             return builder;
         }
@@ -143,10 +138,10 @@ namespace Compression.BSA
                 chunk.WriteHeader(bw);
         }
 
-        public async Task WriteData(BinaryWriter wtr)
+        public void WriteData(BinaryWriter wtr)
         {
             foreach (var chunk in _chunks)
-                await chunk.WriteData(wtr);
+                chunk.WriteData(wtr);
         }
 
     }
@@ -158,13 +153,13 @@ namespace Compression.BSA
         private uint _packSize;
         private long _offsetOffset;
 
-        public static async Task<ChunkBuilder> Create(BA2DX10EntryState state, ChunkState chunk, Stream src)
+        public static ChunkBuilder Create(BA2DX10EntryState state, ChunkState chunk, Stream src)
         {
             var builder = new ChunkBuilder {_chunk = chunk};
 
             using (var ms = new MemoryStream())
             {
-                await src.CopyToLimitAsync(ms, (int)chunk.FullSz);
+                src.CopyToLimit(ms, (int)chunk.FullSz);
                 builder._data = ms.ToArray();
             }
 
@@ -197,13 +192,13 @@ namespace Compression.BSA
 
         }
 
-        public async Task WriteData(BinaryWriter bw)
+        public void WriteData(BinaryWriter bw)
         {
             var pos = bw.BaseStream.Position;
             bw.BaseStream.Position = _offsetOffset;
             bw.Write((ulong)pos);
             bw.BaseStream.Position = pos;
-            await bw.BaseStream.WriteAsync(_data, 0, _data.Length);
+            bw.BaseStream.Write(_data, 0, _data.Length);
         }
     }
 
@@ -215,14 +210,13 @@ namespace Compression.BSA
         private BA2FileEntryState _state;
         private long _offsetOffset;
 
-        public static async Task<BA2FileEntryBuilder> Create(BA2FileEntryState state, Stream src)
+        public static BA2FileEntryBuilder Create(BA2FileEntryState state, Stream src)
         {
-            var builder = new BA2FileEntryBuilder();
-            builder._state = state;
+            var builder = new BA2FileEntryBuilder {_state = state};
 
             using (var ms = new MemoryStream())
             {
-                await src.CopyToAsync(ms);
+                src.CopyTo(ms);
                 builder._data = ms.ToArray();
             }
             builder._rawSize = builder._data.Length;
@@ -233,7 +227,7 @@ namespace Compression.BSA
                 {
                     using (var ds = new DeflaterOutputStream(ms))
                     {
-                        await ds.WriteAsync(builder._data, 0, builder._data.Length);
+                        ds.Write(builder._data, 0, builder._data.Length);
                     }
                     builder._data = ms.ToArray();
                 }
@@ -260,13 +254,13 @@ namespace Compression.BSA
             wtr.Write(_state.Align);
         }
 
-        public async Task WriteData(BinaryWriter wtr)
+        public void WriteData(BinaryWriter wtr)
         {
             var pos = wtr.BaseStream.Position;
             wtr.BaseStream.Seek(_offsetOffset, SeekOrigin.Begin);
             wtr.Write((ulong)pos);
             wtr.BaseStream.Position = pos;
-            await wtr.BaseStream.WriteAsync(_data, 0, _data.Length);
+            wtr.BaseStream.Write(_data, 0, _data.Length);
         }
     }
 }

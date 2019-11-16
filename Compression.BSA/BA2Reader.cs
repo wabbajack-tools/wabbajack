@@ -1,17 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using ICSharpCode.SharpZipLib.Zip;
 using ICSharpCode.SharpZipLib.Zip.Compression;
-using Microsoft.SqlServer.Server;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
@@ -188,7 +180,7 @@ namespace Compression.BSA
 
         public uint HeaderSize => DDS.HeaderSizeForFormat((DXGI_FORMAT)_format);
 
-        public async Task CopyDataToAsync(Stream output)
+        public void CopyDataTo(Stream output)
         {
             var bw = new BinaryWriter(output);
 
@@ -206,18 +198,18 @@ namespace Compression.BSA
 
                     if (!isCompressed)
                     {
-                        await br.BaseStream.ReadAsync(full, 0, full.Length);
+                        br.BaseStream.Read(full, 0, full.Length);
                     }
                     else
                     {
                         byte[] compressed = new byte[chunk._packSz];
-                        await br.BaseStream.ReadAsync(compressed, 0, compressed.Length);
+                        br.BaseStream.Read(compressed, 0, compressed.Length);
                         var inflater = new Inflater();
                         inflater.SetInput(compressed);
                         inflater.Inflate(full);
                     }
 
-                    await bw.BaseStream.WriteAsync(full, 0, full.Length);
+                    bw.BaseStream.Write(full, 0, full.Length);
                 }
             }
 
@@ -450,7 +442,7 @@ namespace Compression.BSA
         public uint Size => _realSize;
         public FileStateObject State => new BA2FileEntryState(this);
 
-        public async Task CopyDataToAsync(Stream output)
+        public void CopyDataTo(Stream output)
         {
             using (var fs = File.OpenRead(_bsa._filename))
             {
@@ -458,11 +450,11 @@ namespace Compression.BSA
                 uint len = Compressed ? _size : _realSize;
 
                 var bytes = new byte[len];
-                await fs.ReadAsync(bytes, 0, (int) len);
+                fs.Read(bytes, 0, (int) len);
 
                 if (!Compressed)
                 {
-                    await output.WriteAsync(bytes, 0, bytes.Length);
+                    output.Write(bytes, 0, bytes.Length);
                 }
                 else
                 {
@@ -470,7 +462,7 @@ namespace Compression.BSA
                     var inflater = new Inflater();
                     inflater.SetInput(bytes);
                     inflater.Inflate(uncompressed);
-                    await output.WriteAsync(uncompressed, 0, uncompressed.Length);
+                    output.Write(uncompressed, 0, uncompressed.Length);
                 }
             }
         }
