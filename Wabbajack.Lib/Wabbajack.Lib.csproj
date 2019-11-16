@@ -79,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ACompiler.cs" />
+    <Compile Include="AInstaller.cs" />
     <Compile Include="CerasConfig.cs" />
     <Compile Include="CompilationSteps\ACompilationStep.cs" />
     <Compile Include="CompilationSteps\DeconstructBSAs.cs" />
