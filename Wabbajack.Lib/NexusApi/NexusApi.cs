@@ -11,8 +11,11 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.Serialization.Json;
 using System.Security.Authentication;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.WindowsAPICodePack.Shell;
+using Syroot.Windows.IO;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using WebSocketSharp;
@@ -23,6 +26,7 @@ namespace Wabbajack.Lib.NexusApi
     public class NexusApiClient : ViewModel
     {
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
+        private static string _additionalEntropy = "vtP2HF6ezg";
 
         private readonly HttpClient _httpClient;
 
@@ -55,11 +59,31 @@ namespace Wabbajack.Lib.NexusApi
         {
             lock (_getAPIKeyLock)
             {
-                // check if there exists a cached api key
-                var fi = new FileInfo(API_KEY_CACHE_FILE);
-                if (fi.Exists)
+                // Clean up old location
+                if (File.Exists(API_KEY_CACHE_FILE))
                 {
-                    return File.ReadAllText(API_KEY_CACHE_FILE);
+                    File.Delete(API_KEY_CACHE_FILE);
+                }
+
+                var cacheFolder = Path.Combine(new KnownFolder(KnownFolderType.LocalAppData).Path, "Wabbajack");
+                if (!Directory.Exists(cacheFolder))
+                {
+                    Directory.CreateDirectory(cacheFolder);
+                }
+
+                var cacheFile = Path.Combine(cacheFolder, _additionalEntropy);
+                if (File.Exists(cacheFile))
+                {
+                    try
+                    {
+                        return Encoding.UTF8.GetString(
+                            ProtectedData.Unprotect(File.ReadAllBytes(cacheFile),
+                            Encoding.UTF8.GetBytes(_additionalEntropy), DataProtectionScope.CurrentUser));
+                    }
+                    catch (CryptographicException)
+                    {
+                        File.Delete(cacheFile);
+                    }
                 }
 
                 var env_key = Environment.GetEnvironmentVariable("NEXUSAPIKEY");
@@ -90,7 +114,8 @@ namespace Wabbajack.Lib.NexusApi
                 // get the api key from the socket and cache it
                 api_key.Task.Wait();
                 var result = api_key.Task.Result;
-                File.WriteAllText(API_KEY_CACHE_FILE, result);
+                File.WriteAllBytes(cacheFile, ProtectedData.Protect(Encoding.UTF8.GetBytes(result), 
+                    Encoding.UTF8.GetBytes(_additionalEntropy), DataProtectionScope.CurrentUser));
 
                 return result;
             }
