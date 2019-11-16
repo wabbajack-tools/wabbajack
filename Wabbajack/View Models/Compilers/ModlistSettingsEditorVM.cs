@@ -14,7 +14,6 @@ namespace Wabbajack
     public class ModlistSettingsEditorVM : ViewModel
     {
         private CompilationModlistSettings settings;
-        private string mo2Profile;
 
         [Reactive]
         public string ModListName { get; set; }
@@ -32,10 +31,9 @@ namespace Wabbajack
         [Reactive]
         public string Website { get; set; }
 
-        public ModlistSettingsEditorVM(CompilationModlistSettings settings, string mo2Profile)
+        public ModlistSettingsEditorVM(CompilationModlistSettings settings)
         {
             this.settings = settings;
-            this.mo2Profile = mo2Profile;
             this.ImagePath = new FilePickerVM()
             {
                 DoExistsCheck = false,
@@ -55,12 +53,7 @@ namespace Wabbajack
         public void Init()
         {
             this.AuthorText = settings.Author;
-            if (string.IsNullOrWhiteSpace(settings.ModListName))
-            {
-                // Set ModlistName initially off just the MO2Profile
-                this.ModListName = mo2Profile;
-            }
-            else
+            if (!string.IsNullOrWhiteSpace(settings.ModListName))
             {
                 this.ModListName = settings.ModListName;
             }

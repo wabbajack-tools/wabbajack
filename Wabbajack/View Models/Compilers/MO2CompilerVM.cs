@@ -158,7 +158,10 @@ namespace Wabbajack
                 {
                     if (u.State.Failed) return null;
                     var modlistSettings = settings.ModlistSettings.TryCreate(u.Path);
-                    return new ModlistSettingsEditorVM(modlistSettings, this.MOProfile);
+                    return new ModlistSettingsEditorVM(modlistSettings)
+                    {
+                        ModListName = this.MOProfile
+                    };
                 })
                 // Interject and save old while loading new
                 .Pairwise()
