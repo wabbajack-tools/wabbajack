@@ -169,12 +169,12 @@ namespace Wabbajack.Lib
                 {
                     Utils.LogStatus($"Generating zEdit merge: {m.To}");
 
-                    var src_data = m.Sources.Select(s => File.ReadAllBytes(Path.Combine(installer.Outputfolder, s.RelativePath)))
+                    var src_data = m.Sources.Select(s => File.ReadAllBytes(Path.Combine(installer.OutputFolder, s.RelativePath)))
                         .ConcatArrays();
 
                     var patch_data = installer.LoadBytesFromPath(m.PatchID);
 
-                    using (var fs = File.OpenWrite(Path.Combine(installer.Outputfolder, m.To))) 
+                    using (var fs = File.OpenWrite(Path.Combine(installer.OutputFolder, m.To))) 
                         BSDiff.Apply(new MemoryStream(src_data), () => new MemoryStream(patch_data), fs);
                 });
         }

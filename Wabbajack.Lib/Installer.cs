@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
@@ -18,90 +15,22 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
 {
-    public class Installer
+    public class Installer : AInstaller
     {
-        private string _downloadsFolder;
-
-        private WorkQueue Queue { get; set; }
-
         public Installer(string archive, ModList mod_list, string output_folder)
         {
-            Queue = new WorkQueue();
-            VFS = new Context(Queue);
+            UpdateTracker = new StatusUpdateTracker(10);
+            VFS = new Context(Queue) {UpdateTracker = UpdateTracker};
+            ModManager = ModManager.MO2;
             ModListArchive = archive;
-            Outputfolder = output_folder;
+            OutputFolder = output_folder;
+            DownloadFolder = Path.Combine(OutputFolder, "downloads");
             ModList = mod_list;
         }
 
-        public Context VFS { get; }
-
-        public string Outputfolder { get; }
-
-        public string DownloadFolder
-        {
-            get => _downloadsFolder ?? Path.Combine(Outputfolder, "downloads");
-            set => _downloadsFolder = value;
-        }
-
-        public string ModListArchive { get; }
-        public ModList ModList { get; }
-        public Dictionary<string, string> HashedArchives { get; private set; }
-
-        public bool IgnoreMissingFiles { get; internal set; }
         public string GameFolder { get; set; }
 
-        public void Info(string msg)
-        {
-            Utils.Log(msg);
-        }
-
-        public void Status(string msg)
-        {
-            Queue.Report(msg, 0);
-        }
-
-        public void Status(string msg, int progress)
-        {
-            Queue.Report(msg, progress);
-        }
-
-        private void Error(string msg)
-        {
-            Utils.Log(msg);
-            throw new Exception(msg);
-        }
-
-        public byte[] LoadBytesFromPath(string path)
-        {
-            using (var fs = new FileStream(ModListArchive, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
-            using (var ms = new MemoryStream())
-            {
-                var entry = ar.GetEntry(path);
-                using (var e = entry.Open())
-                    e.CopyTo(ms);
-                return ms.ToArray();
-            }
-        }
-
-        public static ModList LoadFromFile(string path)
-        {
-            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
-            {
-                var entry = ar.GetEntry("modlist");
-                if (entry == null)
-                {
-                    entry = ar.GetEntry("modlist.json");
-                    using (var e = entry.Open())
-                        return e.FromJSON<ModList>();
-                }
-                using (var e = entry.Open())
-                    return e.FromCERAS<ModList>(ref CerasConfig.Config);
-            }
-        }
-
-        public void Install()
+        public override void Install()
         {
             var game = GameRegistry.Games[ModList.GameType];
 
@@ -121,10 +50,10 @@ namespace Wabbajack.Lib
             ValidateGameESMs();
             ValidateModlist.RunValidation(ModList);
 
-            Directory.CreateDirectory(Outputfolder);
+            Directory.CreateDirectory(OutputFolder);
             Directory.CreateDirectory(DownloadFolder);
 
-            if (Directory.Exists(Path.Combine(Outputfolder, "mods")))
+            if (Directory.Exists(Path.Combine(OutputFolder, "mods")))
             {
                 if (MessageBox.Show(
                         "There already appears to be a Mod Organizer 2 install in this folder, are you sure you wish to continue" +
@@ -159,7 +88,7 @@ namespace Wabbajack.Lib
             BuildFolderStructure();
             InstallArchives();
             InstallIncludedFiles();
-            InctallIncludedDownloadMetas();
+            InstallIncludedDownloadMetas();
             BuildBSAs();
 
             zEditIntegration.GenerateMerges(this);
@@ -170,7 +99,7 @@ namespace Wabbajack.Lib
             //AskToEndorse();
         }
 
-        private void InctallIncludedDownloadMetas()
+        private void InstallIncludedDownloadMetas()
         {
             ModList.Directives
                    .OfType<ArchiveMeta>()
@@ -233,27 +162,6 @@ namespace Wabbajack.Lib
             Info("Done! You may now exit the application!");
         }
 
-        /// <summary>
-        ///     We don't want to make the installer index all the archives, that's just a waste of time, so instead
-        ///     we'll pass just enough information to VFS to let it know about the files we have.
-        /// </summary>
-        private void PrimeVFS()
-        {
-            VFS.AddKnown(HashedArchives.Select(a => new KnownFile
-            {
-                Paths = new[] { a.Value },
-                Hash = a.Key
-            }));
-
-            
-            VFS.AddKnown(
-            ModList.Directives
-                .OfType<FromArchive>()
-                .Select(f => new KnownFile { Paths = f.ArchiveHashPath}));
-
-            VFS.BackfillMissing();
-        }
-
         private void BuildBSAs()
         {
             var bsas = ModList.Directives.OfType<CreateBSA>().ToList();
@@ -262,7 +170,7 @@ namespace Wabbajack.Lib
             bsas.Do(bsa =>
             {
                 Status($"Building {bsa.To}");
-                var source_dir = Path.Combine(Outputfolder, Consts.BSACreationDir, bsa.TempID);
+                var source_dir = Path.Combine(OutputFolder, Consts.BSACreationDir, bsa.TempID);
 
                 using (var a = bsa.State.MakeBuilder())
                 {
@@ -276,12 +184,12 @@ namespace Wabbajack.Lib
                     });
 
                     Info($"Writing {bsa.To}");
-                    a.Build(Path.Combine(Outputfolder, bsa.To));
+                    a.Build(Path.Combine(OutputFolder, bsa.To));
                 }
             });
 
 
-            var bsa_dir = Path.Combine(Outputfolder, Consts.BSACreationDir);
+            var bsa_dir = Path.Combine(OutputFolder, Consts.BSACreationDir);
             if (Directory.Exists(bsa_dir))
             {
                 Info($"Removing temp folder {Consts.BSACreationDir}");
@@ -297,7 +205,7 @@ namespace Wabbajack.Lib
                 .PMap(Queue, directive =>
                 {
                     Status($"Writing included file {directive.To}");
-                    var out_path = Path.Combine(Outputfolder, directive.To);
+                    var out_path = Path.Combine(OutputFolder, directive.To);
                     if (File.Exists(out_path)) File.Delete(out_path);
                     if (directive is RemappedInlineFile)
                         WriteRemappedFile((RemappedInlineFile)directive);
@@ -321,7 +229,7 @@ namespace Wabbajack.Lib
                     $"Cannot patch {filename} from the game folder hashes don't match have you already cleaned the file?");
 
             var patch_data = LoadBytesFromPath(directive.SourceDataID);
-            var to_file = Path.Combine(Outputfolder, directive.To);
+            var to_file = Path.Combine(OutputFolder, directive.To);
             Status($"Patching {filename}");
             using (var output = File.OpenWrite(to_file))
             using (var input = File.OpenRead(game_file))
@@ -338,209 +246,15 @@ namespace Wabbajack.Lib
             data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, GameFolder.Replace("\\", "\\\\"));
             data = data.Replace(Consts.GAME_PATH_MAGIC_FORWARD, GameFolder.Replace("\\", "/"));
 
-            data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, Outputfolder);
-            data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK, Outputfolder.Replace("\\", "\\\\"));
-            data = data.Replace(Consts.MO2_PATH_MAGIC_FORWARD, Outputfolder.Replace("\\", "/"));
+            data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, OutputFolder);
+            data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK, OutputFolder.Replace("\\", "\\\\"));
+            data = data.Replace(Consts.MO2_PATH_MAGIC_FORWARD, OutputFolder.Replace("\\", "/"));
 
             data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_BACK, DownloadFolder);
             data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK, DownloadFolder.Replace("\\", "\\\\"));
             data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_FORWARD, DownloadFolder.Replace("\\", "/"));
 
-            File.WriteAllText(Path.Combine(Outputfolder, directive.To), data);
-        }
-
-        private void BuildFolderStructure()
-        {
-            Info("Building Folder Structure");
-            ModList.Directives
-                .Select(d => Path.Combine(Outputfolder, Path.GetDirectoryName(d.To)))
-                .ToHashSet()
-                .Do(f =>
-                {
-                    if (Directory.Exists(f)) return;
-                    Directory.CreateDirectory(f);
-                });
-        }
-
-        private void InstallArchives()
-        {
-            Info("Installing Archives");
-            Info("Grouping Install Files");
-            var grouped = ModList.Directives
-                .OfType<FromArchive>()
-                .GroupBy(e => e.ArchiveHashPath[0])
-                .ToDictionary(k => k.Key);
-            var archives = ModList.Archives
-                .Select(a => new { Archive = a, AbsolutePath = HashedArchives.GetOrDefault(a.Hash) })
-                .Where(a => a.AbsolutePath != null)
-                .ToList();
-
-            Info("Installing Archives");
-            archives.PMap(Queue, a => InstallArchive(a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
-        }
-
-        private void InstallArchive(Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
-        {
-            Status($"Extracting {archive.Name}");
-
-            var vfiles = grouping.Select(g =>
-            {
-                var file = VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath);
-                g.FromFile = file;
-                return g;
-            }).ToList();
-
-            var on_finish = VFS.Stage(vfiles.Select(f => f.FromFile).Distinct());
-
-
-            Status($"Copying files for {archive.Name}");
-
-            void CopyFile(string from, string to, bool use_move)
-            {
-                if (File.Exists(to))
-                {
-                    var fi = new FileInfo(to);
-                    if (fi.IsReadOnly)
-                        fi.IsReadOnly = false;
-                    File.Delete(to);
-                }
-
-                if (File.Exists(from))
-                {
-                    var fi = new FileInfo(from);
-                    if (fi.IsReadOnly)
-                        fi.IsReadOnly = false;
-                }
-
-
-                if (use_move)
-                    File.Move(from, to);
-                else
-                    File.Copy(from, to);
-            }
-
-            vfiles.GroupBy(f => f.FromFile)
-                  .DoIndexed((idx, group) =>
-            {
-                Utils.Status("Installing files", idx * 100 / vfiles.Count);
-                var first_dest = Path.Combine(Outputfolder, group.First().To);
-                CopyFile(group.Key.StagedPath, first_dest, true);
-                
-                foreach (var copy in group.Skip(1))
-                {
-                    var next_dest = Path.Combine(Outputfolder, copy.To);
-                    CopyFile(first_dest, next_dest, false);
-                }
-
-            });
-
-            Status("Unstaging files");
-            on_finish();
-
-            // Now patch all the files from this archive
-            foreach (var to_patch in grouping.OfType<PatchedFromArchive>())
-                using (var patch_stream = new MemoryStream())
-                {
-                    Status($"Patching {Path.GetFileName(to_patch.To)}");
-                    // Read in the patch data
-
-                    var patch_data = LoadBytesFromPath(to_patch.PatchID);
-
-                    var to_file = Path.Combine(Outputfolder, to_patch.To);
-                    var old_data = new MemoryStream(File.ReadAllBytes(to_file));
-
-                    // Remove the file we're about to patch
-                    File.Delete(to_file);
-
-                    // Patch it
-                    using (var out_stream = File.OpenWrite(to_file))
-                    {
-                        BSDiff.Apply(old_data, () => new MemoryStream(patch_data), out_stream);
-                    }
-
-                    Status($"Verifying Patch {Path.GetFileName(to_patch.To)}");
-                    var result_sha = to_file.FileHash();
-                    if (result_sha != to_patch.Hash)
-                        throw new InvalidDataException($"Invalid Hash for {to_patch.To} after patching");
-                }
-        }
-
-        private void DownloadArchives()
-        {
-            var missing = ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash)).ToList();
-            Info($"Missing {missing.Count} archives");
-
-            Info("Getting Nexus API Key, if a browser appears, please accept");
-
-            var dispatchers = missing.Select(m => m.State.GetDownloader()).Distinct();
-
-            foreach (var dispatcher in dispatchers)
-                dispatcher.Prepare();
-            
-            DownloadMissingArchives(missing);
-        }
-
-        private void DownloadMissingArchives(List<Archive> missing, bool download = true)
-        {
-            if (download)
-            {
-                foreach (var a in missing.Where(a => a.State.GetType() == typeof(ManualDownloader.State)))
-                {
-                    var output_path = Path.Combine(DownloadFolder, a.Name);
-                    a.State.Download(a, output_path);
-                }
-            }
-
-            missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
-                   .PMap(Queue, archive =>
-                   {
-                       Info($"Downloading {archive.Name}");
-                       var output_path = Path.Combine(DownloadFolder, archive.Name);
-
-                       if (download)
-                           if (output_path.FileExists())
-                               File.Delete(output_path);
-
-                       return DownloadArchive(archive, download);
-                   });
-        }
-
-        public bool DownloadArchive(Archive archive, bool download)
-        {
-            try
-            {
-                archive.State.Download(archive, Path.Combine(DownloadFolder, archive.Name));
-            }
-            catch (Exception ex)
-            {
-                Utils.Log($"Download error for file {archive.Name}");
-                Utils.Log(ex.ToString());
-                return false;
-            }
-
-            return false;
-        }
-
-        private void HashArchives()
-        {
-            HashedArchives = Directory.EnumerateFiles(DownloadFolder)
-                .Where(e => !e.EndsWith(".sha"))
-                .PMap(Queue, e => (HashArchive(e), e))
-                .OrderByDescending(e => File.GetLastWriteTime(e.Item2))
-                .GroupBy(e => e.Item1)
-                .Select(e => e.First())
-                .ToDictionary(e => e.Item1, e => e.Item2);
-        }
-
-        private string HashArchive(string e)
-        {
-            var cache = e + ".sha";
-            if (cache.FileExists() && new FileInfo(cache).LastWriteTime >= new FileInfo(e).LastWriteTime)
-                return File.ReadAllText(cache);
-
-            Status($"Hashing {Path.GetFileName(e)}");
-            File.WriteAllText(cache, e.FileHash());
-            return HashArchive(e);
+            File.WriteAllText(Path.Combine(OutputFolder, directive.To), data);
         }
     }
 }

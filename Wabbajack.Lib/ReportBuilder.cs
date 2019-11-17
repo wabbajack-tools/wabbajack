@@ -44,18 +44,26 @@ namespace Wabbajack.Lib
             wtr.WriteLine(txt);
         }
 
-        public void Build(Compiler c, ModList lst)
+        public void Build(ACompiler c, ModList lst)
         {
+            Compiler compiler = null;
+            if (lst.ModManager == ModManager.MO2)
+                compiler = (Compiler) c;
+
             Text($"### {lst.Name} by {lst.Author} - Installation Summary");
             Text($"Build with Wabbajack Version {lst.WabbajackVersion}");
             Text(lst.Description);
-            Text($"#### Website:");
+            Text("#### Website:");
             NoWrapText($"[{lst.Website}]({lst.Website})");
+            Text($"Mod Manager: {lst.ModManager.ToString()}");
 
-            var readme_file = Path.Combine(c.MO2ProfileDir, "readme.md");
-            if (File.Exists(readme_file))
-                File.ReadAllLines(readme_file)
-                    .Do(NoWrapText);
+            if (lst.ModManager == ModManager.MO2)
+            {
+                var readme_file = Path.Combine(compiler?.MO2ProfileDir, "readme.md");
+                if (File.Exists(readme_file))
+                    File.ReadAllLines(readme_file)
+                        .Do(NoWrapText);
+            }
 
             Text(
                 $"#### Download Summary ({lst.Archives.Count} archives - {lst.Archives.Sum(a => a.Size).ToFileSizeString()})");

@@ -79,12 +79,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ACompiler.cs" />
+    <Compile Include="AInstaller.cs" />
     <Compile Include="CerasConfig.cs" />
     <Compile Include="CompilationSteps\ACompilationStep.cs" />
     <Compile Include="CompilationSteps\DeconstructBSAs.cs" />
     <Compile Include="CompilationSteps\DirectMatch.cs" />
     <Compile Include="CompilationSteps\DropAll.cs" />
     <Compile Include="CompilationSteps\IgnoreDisabledMods.cs" />
+    <Compile Include="CompilationSteps\IgnoreDisabledVortexMods.cs" />
     <Compile Include="CompilationSteps\IgnoreEndsWith.cs" />
     <Compile Include="CompilationSteps\IgnoreGameFiles.cs" />
     <Compile Include="CompilationSteps\IgnorePathContains.cs" />

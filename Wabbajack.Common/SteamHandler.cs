@@ -105,7 +105,11 @@ namespace Wabbajack.Common
                     });
 
                     steamGame.Game = GameRegistry.Games.Values
-                        .FirstOrDefault(g => g.SteamIDs.Contains(steamGame.AppId))?.Game;
+                        .FirstOrDefault(g => 
+                            g.SteamIDs.Contains(steamGame.AppId)
+                            &&
+                            g.RequiredFiles.TrueForAll(s => File.Exists(Path.Combine(steamGame.InstallDir, s)))
+                            )?.Game;
                     games.Add(steamGame);
                 });
             });

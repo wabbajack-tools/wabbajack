@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.WindowsAPICodePack.Shell;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
-using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.VirtualFileSystem;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -18,6 +16,14 @@ namespace Wabbajack.Lib
 {
     public class VortexCompiler : ACompiler
     {
+        /*  vortex creates a vortex.deployment.json file that contains information
+            about all deployed files, parsing that file, we can get a list of all 'active'
+            archives so we don't force the user to install all archives found in the downloads folder.
+            Similar to how IgnoreDisabledMods for MO2 works
+        */
+        public VortexDeployment VortexDeployment;
+        public List<string> ActiveArchives;
+
         public Game Game { get; }
         public string GameName { get; }
 
@@ -32,57 +38,31 @@ namespace Wabbajack.Lib
 
         public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder)
         {
-            ModManager = ModManager.Vortex;
+            UpdateTracker = new StatusUpdateTracker(10);
+            VFS = new Context(Queue) {UpdateTracker = UpdateTracker};
 
-            // TODO: only for testing
-            IgnoreMissingFiles = true;
+            ModManager = ModManager.Vortex;
+            Game = game;
 
             GamePath = gamePath;
             GameName = GameRegistry.Games[game].NexusName;
-            this.VortexFolder = vortexFolder;
-            this.DownloadsFolder = downloadsFolder;
-            this.StagingFolder = stagingFolder;
-            Queue = new WorkQueue();
-            VFS = new Context(Queue);
+            VortexFolder = vortexFolder;
+            DownloadsFolder = downloadsFolder;
+            StagingFolder = stagingFolder;
             ModListOutputFolder = "output_folder";
 
-            // TODO: add custom modlist name
-            ModListOutputFile = $"VORTEX_TEST_MODLIST{ExtensionManager.Extension}";
-        }
-
-        public override void Info(string msg)
-        {
-            Utils.Log(msg);
-        }
-
-        public override void Status(string msg)
-        {
-            Queue.Report(msg, 0);
-        }
-
-        public override void Error(string msg)
-        {
-            Utils.Log(msg);
-            throw new Exception(msg);
-        }
-
-        internal override string IncludeFile(byte[] data)
-        {
-            var id = Guid.NewGuid().ToString();
-            File.WriteAllBytes(Path.Combine(ModListOutputFolder, id), data);
-            return id;
-        }
-
-        internal override string IncludeFile(string data)
-        {
-            var id = Guid.NewGuid().ToString();
-            File.WriteAllText(Path.Combine(ModListOutputFolder, id), data);
-            return id;
+            ActiveArchives = new List<string>();
         }
 
         public override bool Compile()
         {
+            if (string.IsNullOrEmpty(ModListName))
+                ModListName = $"Vortex ModList for {Game.ToString()}";
+            ModListOutputFile = $"{ModListName}{ExtensionManager.Extension}";
+
             Info($"Starting Vortex compilation for {GameName} at {GamePath} with staging folder at {StagingFolder} and downloads folder at  {DownloadsFolder}.");
+
+            ParseDeploymentFile();
 
             Info("Starting pre-compilation steps");
             CreateMetaFiles();
@@ -195,16 +175,65 @@ namespace Wabbajack.Lib
 
             ModList = new ModList
             {
+                Name = ModListName ?? "",
+                Author = ModListAuthor ?? "",
+                Description = ModListDescription ?? "",
+                Readme = ModListReadme ?? "",
+                Image = ModListImage ?? "",
+                Website = ModListWebsite ?? "",
                 Archives = SelectedArchives,
                 ModManager = ModManager.Vortex,
                 Directives = InstallDirectives,
                 GameType = Game
             };
             
+            GenerateReport();
             ExportModList();
 
             Info("Done Building ModList");
+
+            ShowReport();
             return true;
+        }
+
+        private void ParseDeploymentFile()
+        {
+            Info("Searching for vortex.deployment.json...");
+
+            var deploymentFile = "";
+            Directory.EnumerateFiles(GamePath, "vortex.deployment.json", SearchOption.AllDirectories)
+                .Where(File.Exists)
+                .Do(f => deploymentFile = f);
+            var currentGame = GameRegistry.Games[Game];
+            if (currentGame.AdditionalFolders != null && currentGame.AdditionalFolders.Count != 0)
+                currentGame.AdditionalFolders.Do(f => Directory.EnumerateFiles(f, "vortex.deployment.json", SearchOption.AllDirectories)
+                    .Where(File.Exists)
+                    .Do(d => deploymentFile = d));
+
+            if (string.IsNullOrEmpty(deploymentFile))
+            {
+                Info("vortex.deployment.json not found!");
+                return;
+            }
+            Info("vortex.deployment.json found at "+deploymentFile);
+
+            Info("Parsing vortex.deployment.json...");
+            try
+            {
+                VortexDeployment = deploymentFile.FromJSON<VortexDeployment>();
+            }
+            catch (JsonSerializationException e)
+            {
+                Info("Failed to parse vortex.deployment.json!");
+                Utils.LogToFile(e.Message);
+                Utils.LogToFile(e.StackTrace);
+            }
+
+            VortexDeployment.files.Do(f =>
+            {
+                var archive = f.source;
+                if(!ActiveArchives.Contains(archive)) ActiveArchives.Add(archive);
+            });
         }
 
         /// <summary>
@@ -223,77 +252,13 @@ namespace Wabbajack.Lib
             });
         }
 
-        private void ExportModList()
-        {
-            Utils.Log($"Exporting ModList to: {ModListOutputFolder}");
-
-            // using JSON for better debugging
-            ModList.ToJSON(Path.Combine(ModListOutputFolder, "modlist.json"));
-            //ModList.ToCERAS(Path.Combine(ModListOutputFolder, "modlist"), ref CerasConfig.Config);
-
-            if(File.Exists(ModListOutputFile))
-                File.Delete(ModListOutputFile);
-
-            using (var fs = new FileStream(ModListOutputFile, FileMode.Create))
-            {
-                using (var za = new ZipArchive(fs, ZipArchiveMode.Create))
-                {
-                    Directory.EnumerateFiles(ModListOutputFolder, "*.*")
-                        .DoProgress("Compressing ModList",
-                            f =>
-                            {
-                                var ze = za.CreateEntry(Path.GetFileName(f));
-                                using (var os = ze.Open())
-                                using (var ins = File.OpenRead(f))
-                                {
-                                    ins.CopyTo(os);
-                                }
-                            });
-                }
-            }
-
-            Utils.Log("Exporting ModList metadata");
-            var metadata = new ModlistMetadata.DownloadMetadata
-            {
-                Size = File.GetSize(ModListOutputFile),
-                Hash = ModListOutputFile.FileHash(),
-                NumberOfArchives = ModList.Archives.Count,
-                SizeOfArchives = ModList.Archives.Sum(a => a.Size),
-                NumberOfInstalledFiles = ModList.Directives.Count,
-                SizeOfInstalledFiles = ModList.Directives.Sum(a => a.Size)
-            };
-            metadata.ToJSON(ModListOutputFile + ".meta.json");
-
-            Utils.Log("Removing ModList staging folder");
-            //Directory.Delete(ModListOutputFolder, true);
-        }
-
-        /*private void GenerateReport()
-        {
-            string css;
-            using (var cssStream = Utils.GetResourceStream("Wabbajack.Lib.css-min.css"))
-            using (var reader = new StreamReader(cssStream))
-            {
-                css = reader.ReadToEnd();
-            }
-
-            using (var fs = File.OpenWrite($"{ModList.Name}.md"))
-            {
-               fs.SetLength(0);
-               using (var reporter = new ReportBuilder(fs, ModListOutputFolder))
-               {
-                   reporter.Build(this, ModList);
-               }
-            }
-        }*/
-
         private void CreateMetaFiles()
         {
             Utils.Log("Getting Nexus api_key, please click authorize if a browser window appears");
             var nexusClient = new NexusApiClient();
 
             Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)
-                .Where(f => File.Exists(f) && Path.GetExtension(f) != ".meta" && !File.Exists(f+".meta"))
+                .Where(f => File.Exists(f) && Path.GetExtension(f) != ".meta" && !File.Exists(f+".meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
                 .Do(f =>
                 {
                     Utils.Log($"Trying to create meta file for {Path.GetFileName(f)}");
@@ -330,65 +295,6 @@ namespace Wabbajack.Lib
                 });
         }
 
-        private void GatherArchives()
-        {
-            Info("Building a list of archives based on the files required");
-
-            var shas = InstallDirectives.OfType<FromArchive>()
-                .Select(a => a.ArchiveHashPath[0])
-                .Distinct();
-
-            var archives = IndexedArchives.OrderByDescending(f => f.File.LastModified)
-                .GroupBy(f => f.File.Hash)
-                .ToDictionary(f => f.Key, f => f.First());
-
-            SelectedArchives = shas.PMap(Queue, sha => ResolveArchive(sha, archives));
-        }
-
-        private Archive ResolveArchive(string sha, IDictionary<string, IndexedArchive> archives)
-        {
-            if (archives.TryGetValue(sha, out var found))
-            {
-                if(found.IniData == null)
-                    Error($"No download metadata found for {found.Name}, please use MO2 to query info or add a .meta file and try again.");
-
-                var result = new Archive();
-                result.State = (AbstractDownloadState) DownloadDispatcher.ResolveArchive(found.IniData);
-
-                if (result.State == null)
-                    Error($"{found.Name} could not be handled by any of the downloaders");
-
-                result.Name = found.Name;
-                result.Hash = found.File.Hash;
-                result.Meta = found.Meta;
-                result.Size = found.File.Size;
-
-                Info($"Checking link for {found.Name}");
-
-                if (!result.State.Verify())
-                    Error(
-                        $"Unable to resolve link for {found.Name}. If this is hosted on the Nexus the file may have been removed.");
-
-                return result;
-            }
-
-            Error($"No match found for Archive sha: {sha} this shouldn't happen");
-            return null;
-        }
-
-        public override Directive RunStack(IEnumerable<ICompilationStep> stack, RawSourceFile source)
-        {
-            Utils.Status($"Compiling {source.Path}");
-            foreach (var step in stack)
-            {
-                var result = step.Run(source);
-                if (result != null) return result;
-            }
-
-            throw new InvalidDataException("Data fell out of the compilation stack");
-
-        }
-
         public override IEnumerable<ICompilationStep> GetStack()
         {
             var s = Consts.TestMode ? DownloadsFolder : VortexFolder;
@@ -409,10 +315,11 @@ namespace Wabbajack.Lib
             Utils.Log("Generating compilation stack");
             return new List<ICompilationStep>
             {
-                //new IncludePropertyFiles(this),
+                new IncludePropertyFiles(this),
+                new IgnoreDisabledVortexMods(this),
                 new IncludeVortexDeployment(this),
-                new IncludeRegex(this, "^*\\.meta"),
                 new IgnoreVortex(this),
+                new IgnoreRegex(this, "^*__vortex_staging_folder$"),
 
                 Game == Game.DarkestDungeon ? new IncludeRegex(this, "project\\.xml$") : null,
 
@@ -472,5 +379,20 @@ namespace Wabbajack.Lib
         {
             return IsValidBaseStagingFolder(Path.GetDirectoryName(path));
         }
+    }
+
+    public class VortexDeployment
+    {
+        public string instance;
+        public int version;
+        public string deploymentMethod;
+        public List<VortexFile> files;
+    }
+
+    public class VortexFile
+    {
+        public string relPath;
+        public string source;
+        public string target;
     }
 }

@@ -9,7 +9,7 @@ namespace Wabbajack.Common
     public enum Game 
     {
         //MO2 GAMES
-        Morrowind,
+        //Morrowind,
         Oblivion,
         [Description("Fallout 3")]
         Fallout3,
@@ -55,6 +55,8 @@ namespace Wabbajack.Common
         public List<int> GOGIDs { get; internal set; }
         // these are additional folders when a game installs mods outside the game folder
         public List<string> AdditionalFolders { get; internal set; }
+        // file to check if the game is present, useful when steamIds and gogIds dont help
+        public List<string> RequiredFiles { get; internal set; }
 
         public string GameLocation
         {
@@ -99,7 +101,11 @@ namespace Wabbajack.Common
                     MO2Name = "Oblivion",
                     MO2ArchiveName = "oblivion",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Oblivion",
-                    SteamIDs = new List<int> {22330}
+                    SteamIDs = new List<int> {22330},
+                    RequiredFiles = new List<string>
+                    {
+                        "oblivion.exe"
+                    }
                 }
             },
 
@@ -112,7 +118,12 @@ namespace Wabbajack.Common
                     MO2Name = "fallout3",
                     MO2ArchiveName = "fallout3",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Fallout3",
-                    SteamIDs = new List<int> {22300, 22370} // base game and GotY
+                    SteamIDs = new List<int> {22300, 22370}, // base game and GotY
+                    RequiredFiles = new List<string>
+                    {
+                        "falloutlauncher.exe",
+                        "data\\fallout3.esm"
+                    }
                 }
             },
             {
@@ -124,7 +135,11 @@ namespace Wabbajack.Common
                     MO2Name = "New Vegas",
                     MO2ArchiveName = "falloutnv",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\falloutnv",
-                    SteamIDs = new List<int> {22380}
+                    SteamIDs = new List<int> {22380},
+                    RequiredFiles = new List<string>
+                    {
+                        "FalloutNV.exe"
+                    }
                 }
             },
             {
@@ -136,7 +151,11 @@ namespace Wabbajack.Common
                     MO2Name = "Skyrim",
                     MO2ArchiveName = "skyrim",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\skyrim",
-                    SteamIDs = new List<int> {72850}
+                    SteamIDs = new List<int> {72850},
+                    RequiredFiles = new List<string>
+                    {
+                        "tesv.exe"
+                    }
                 }
             },
             {
@@ -148,7 +167,11 @@ namespace Wabbajack.Common
                     MO2Name = "Skyrim Special Edition",
                     MO2ArchiveName = "skyrimse",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Skyrim Special Edition",
-                    SteamIDs = new List<int> {489830}
+                    SteamIDs = new List<int> {489830},
+                    RequiredFiles = new List<string>
+                    {
+                        "SkyrimSE.exe"
+                    }
                 }
             },
             {
@@ -160,7 +183,11 @@ namespace Wabbajack.Common
                     MO2Name = "Fallout 4",
                     MO2ArchiveName = "fallout4",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Fallout4",
-                    SteamIDs = new List<int> {377160}
+                    SteamIDs = new List<int> {377160},
+                    RequiredFiles = new List<string>
+                    {
+                        "Fallout4.exe"
+                    }
                 }
             },
             /*{
@@ -183,7 +210,11 @@ namespace Wabbajack.Common
                     MO2Name = "Skyrim VR",
                     MO2ArchiveName = "skyrimse",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Skyrim VR",
-                    SteamIDs = new List<int> {611670}
+                    SteamIDs = new List<int> {611670},
+                    RequiredFiles = new List<string>
+                    {
+                        "SkyrimVR.exe"
+                    }
                 }
             },
             {
@@ -193,20 +224,10 @@ namespace Wabbajack.Common
                     Game = Game.DarkestDungeon,
                     NexusName = "darkestdungeon",
                     SteamIDs = new List<int> {262060},
-                    GOGIDs = new List<int>{1450711444}
-                }
-            },
-            {
-                Game.DivinityOriginalSin2, new GameMetaData
-                {
-                    SupportedModManager = ModManager.Vortex,
-                    Game = Game.DivinityOriginalSin2,
-                    NexusName = "divinityoriginalsin2",
-                    SteamIDs = new List<int> {435150},
-                    GOGIDs = new List<int>{1584823040},
-                    AdditionalFolders = new List<string>
+                    GOGIDs = new List<int>{1450711444},
+                    RequiredFiles = new List<string>
                     {
-                        "%documents%\\Larian Studios\\Divinity Original Sin 2\\Mods\\",
+                        "_windows\\Darkest.exe"
                     }
                 }
             },
@@ -221,6 +242,28 @@ namespace Wabbajack.Common
                     AdditionalFolders = new List<string>
                     {
                         "%documents%\\Larian Studios\\Divinity Original Sin 2 Definitive Edition\\Mods\\"
+                    },
+                    RequiredFiles = new List<string>
+                    {
+                        "DefEd\\bin\\SupportTool.exe"
+                    }
+                }
+            },
+            {
+                Game.DivinityOriginalSin2, new GameMetaData
+                {
+                    SupportedModManager = ModManager.Vortex,
+                    Game = Game.DivinityOriginalSin2,
+                    NexusName = "divinityoriginalsin2",
+                    SteamIDs = new List<int> {435150},
+                    GOGIDs = new List<int>{1584823040},
+                    AdditionalFolders = new List<string>
+                    {
+                        "%documents%\\Larian Studios\\Divinity Original Sin 2\\Mods\\",
+                    },
+                    RequiredFiles = new List<string>
+                    {
+                        "bin\\SupportTool.exe"
                     }
                 }
             },
@@ -231,7 +274,11 @@ namespace Wabbajack.Common
                     Game = Game.Starbound,
                     NexusName = "starbound",
                     SteamIDs = new List<int>{211820},
-                    GOGIDs = new List<int>{1452598881}
+                    GOGIDs = new List<int>{1452598881},
+                    RequiredFiles = new List<string>
+                    {
+                        "win64\\starbound.exe"
+                    }
                 }
             },
             {
@@ -241,7 +288,11 @@ namespace Wabbajack.Common
                     Game = Game.SWKOTOR,
                     NexusName = "kotor",
                     SteamIDs = new List<int>{32370},
-                    GOGIDs = new List<int>{1207666283}
+                    GOGIDs = new List<int>{1207666283},
+                    RequiredFiles = new List<string>
+                    {
+                        "swkotor.exe"
+                    }
                 }
             },
             {
@@ -251,7 +302,11 @@ namespace Wabbajack.Common
                     Game = Game.SWKOTOR2,
                     NexusName = "kotor2",
                     SteamIDs = new List<int>{208580},
-                    GOGIDs = new List<int>{1421404581}
+                    GOGIDs = new List<int>{1421404581},
+                    RequiredFiles = new List<string>
+                    {
+                        "swkotor2.exe"
+                    }
                 }
             },
             {
@@ -261,7 +316,11 @@ namespace Wabbajack.Common
                     Game = Game.Witcher,
                     NexusName = "witcher",
                     SteamIDs = new List<int>{20900},
-                    GOGIDs = new List<int>{1207658924}
+                    GOGIDs = new List<int>{1207658924},
+                    RequiredFiles = new List<string>
+                    {
+                        "system\\witcher.exe"
+                    }
                 }
             },
             {
@@ -271,7 +330,12 @@ namespace Wabbajack.Common
                     Game = Game.Witcher2,
                     NexusName = "witcher2",
                     SteamIDs = new List<int>{20920},
-                    GOGIDs = new List<int>{1207658930}
+                    GOGIDs = new List<int>{1207658930},
+                    RequiredFiles = new List<string>
+                    {
+                        "bin\\witcher2.exe",
+                        "bin\\userContentManager.exe"
+                    }
                 }
             },
             {
@@ -281,7 +345,11 @@ namespace Wabbajack.Common
                     Game = Game.Witcher3,
                     NexusName = "witcher3",
                     SteamIDs = new List<int>{292030, 499450}, // normal and GotY
-                    GOGIDs = new List<int>{1207664643, 1495134320, 1207664663, 1640424747} // normal, GotY and both in packages
+                    GOGIDs = new List<int>{1207664643, 1495134320, 1207664663, 1640424747}, // normal, GotY and both in packages
+                    RequiredFiles = new List<string>
+                    {
+                        "bin\\x64\\witcher2.exe"
+                    }
                 }
             }
         };

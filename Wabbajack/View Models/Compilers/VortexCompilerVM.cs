@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData.Binding;
@@ -16,25 +14,26 @@ namespace Wabbajack
 {
     public class VortexCompilerVM : ViewModel, ISubCompilerVM
     {
-        private readonly VortexCompilationSettings settings;
+        private readonly VortexCompilationSettings _settings;
 
         public IReactiveCommand BeginCommand { get; }
 
-        private readonly ObservableAsPropertyHelper<bool> _Compiling;
-        public bool Compiling => _Compiling.Value;
+        private readonly ObservableAsPropertyHelper<bool> _compiling;
+        public bool Compiling => _compiling.Value;
 
-        private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _ModlistSettings;
-        public ModlistSettingsEditorVM ModlistSettings => _ModlistSettings.Value;
+        private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _modListSettings;
+        public ModlistSettingsEditorVM ModlistSettings => _modListSettings.Value;
 
-        private static ObservableCollectionExtended<GameVM> gameOptions = new ObservableCollectionExtended<GameVM>(
+        private static readonly ObservableCollectionExtended<GameVM> _gameOptions = new ObservableCollectionExtended<GameVM>(
             EnumExt.GetValues<Game>()
-                   .Select(g => new GameVM(g))
-                   .OrderBy(g => g.DisplayName));
+                .Where(g => GameRegistry.Games[g].SupportedModManager == ModManager.Vortex)
+                .Select(g => new GameVM(g))
+                .OrderBy(g => g.DisplayName));
 
-        public ObservableCollectionExtended<GameVM> GameOptions => gameOptions;
+        public ObservableCollectionExtended<GameVM> GameOptions => _gameOptions;
 
         [Reactive]
-        public GameVM SelectedGame { get; set; } = gameOptions.First(x => x.Game == Game.SkyrimSpecialEdition);
+        public GameVM SelectedGame { get; set; }
 
         [Reactive]
         public FilePickerVM GameLocation { get; set; }
@@ -54,19 +53,19 @@ namespace Wabbajack
 
         public VortexCompilerVM(CompilerVM parent)
         {
-            this.GameLocation = new FilePickerVM()
+            GameLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Game Folder Location"
             };
-            this.DownloadsLocation = new FilePickerVM()
+            DownloadsLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Downloads Folder"
             };
-            this.StagingLocation = new FilePickerVM()
+            StagingLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
@@ -74,12 +73,12 @@ namespace Wabbajack
             };
 
             // Wire start command
-            this.BeginCommand = ReactiveCommand.CreateFromTask(
+            BeginCommand = ReactiveCommand.CreateFromTask(
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.GameLocation.InError),
                         this.WhenAny(x => x.DownloadsLocation.InError),
                         this.WhenAny(x => x.StagingLocation.InError),
-                        resultSelector: (g, d, s) => !g && !d && !s)
+                        (g, d, s) => !g && !d && !s)
                     .ObserveOnGuiThread(),
                 execute: async () =>
                 {
@@ -87,11 +86,19 @@ namespace Wabbajack
                     try
                     {
                         compiler = new VortexCompiler(
-                            game: this.SelectedGame.Game,
-                            gamePath: this.GameLocation.TargetPath,
-                            vortexFolder: VortexCompiler.TypicalVortexFolder(),
-                            downloadsFolder: this.DownloadsLocation.TargetPath,
-                            stagingFolder: this.StagingLocation.TargetPath);
+                            SelectedGame.Game,
+                            GameLocation.TargetPath,
+                            VortexCompiler.TypicalVortexFolder(),
+                            DownloadsLocation.TargetPath,
+                            StagingLocation.TargetPath)
+                        {
+                            ModListName = ModlistSettings.ModListName,
+                            ModListAuthor = ModlistSettings.AuthorText,
+                            ModListDescription = ModlistSettings.Description,
+                            ModListImage = ModlistSettings.ImagePath.TargetPath,
+                            ModListWebsite = ModlistSettings.Website,
+                            ModListReadme = ModlistSettings.ReadMeText.TargetPath
+                        };
                     }
                     catch (Exception ex)
                     {
@@ -117,105 +124,99 @@ namespace Wabbajack
                         }
                     });
                 });
-            this._Compiling = this.BeginCommand.IsExecuting
-                .ToProperty(this, nameof(this.Compiling));
+            _compiling = BeginCommand.IsExecuting
+                .ToProperty(this, nameof(Compiling));
 
             // Load settings
-            this.settings = parent.MWVM.Settings.Compiler.VortexCompilation;
-            this.SelectedGame = gameOptions.First(x => x.Game == settings.LastCompiledGame);
+            _settings = parent.MWVM.Settings.Compiler.VortexCompilation;
+            SelectedGame = _gameOptions.FirstOrDefault(x => x.Game == _settings.LastCompiledGame) ?? _gameOptions[0];
             parent.MWVM.Settings.SaveSignal
                 .Subscribe(_ => Unload())
-                .DisposeWith(this.CompositeDisposable);
+                .DisposeWith(CompositeDisposable);
 
             // Load custom game settings when game type changes
             this.WhenAny(x => x.SelectedGame)
-                .Select(game => settings.ModlistSettings.TryCreate(game.Game))
+                .Select(game => _settings.ModlistSettings.TryCreate(game.Game))
                 .Pairwise()
                 .Subscribe(pair =>
                 {
                     // Save old
-                    if (pair.Previous != null)
+                    var (previous, current) = pair;
+                    if (previous != null)
                     {
-                        pair.Previous.GameLocation = this.GameLocation.TargetPath;
+                        previous.GameLocation = GameLocation.TargetPath;
                     }
 
                     // Load new
-                    this.GameLocation.TargetPath = pair.Current?.GameLocation ?? null;
-                    if (string.IsNullOrWhiteSpace(this.GameLocation.TargetPath))
+                    GameLocation.TargetPath = current?.GameLocation;
+                    if (string.IsNullOrWhiteSpace(GameLocation.TargetPath))
                     {
-                        this.SetGameToSteamLocation();
+                        SetGameToSteamLocation();
                     }
-                    if (string.IsNullOrWhiteSpace(this.GameLocation.TargetPath))
+                    if (string.IsNullOrWhiteSpace(GameLocation.TargetPath))
                     {
-                        this.SetGameToGogLocation();
+                        SetGameToGogLocation();
                     }
-                    this.DownloadsLocation.TargetPath = pair.Current?.DownloadLocation ?? null;
-                     if (string.IsNullOrWhiteSpace(this.DownloadsLocation.TargetPath))
+                    DownloadsLocation.TargetPath = current?.DownloadLocation;
+                     if (string.IsNullOrWhiteSpace(DownloadsLocation.TargetPath))
                     {
-                        this.DownloadsLocation.TargetPath = VortexCompiler.RetrieveDownloadLocation(this.SelectedGame.Game);
+                        DownloadsLocation.TargetPath = VortexCompiler.RetrieveDownloadLocation(SelectedGame.Game);
                     }
-                    this.StagingLocation.TargetPath = pair.Current?.StagingLocation ?? null;
-                    if (string.IsNullOrWhiteSpace(this.StagingLocation.TargetPath))
+                    StagingLocation.TargetPath = current?.StagingLocation;
+                    if (string.IsNullOrWhiteSpace(StagingLocation.TargetPath))
                     {
-                        this.StagingLocation.TargetPath = VortexCompiler.RetrieveStagingLocation(this.SelectedGame.Game);
+                        StagingLocation.TargetPath = VortexCompiler.RetrieveStagingLocation(SelectedGame.Game);
                     }
                 })
-                .DisposeWith(this.CompositeDisposable);
+                .DisposeWith(CompositeDisposable);
 
-            // Load custom modlist settings when game type changes
-            this._ModlistSettings = this.WhenAny(x => x.SelectedGame)
+            // Load custom ModList settings when game type changes
+            this._modListSettings = this.WhenAny(x => x.SelectedGame)
                 .Select(game =>
                 {
-                    var gameSettings = settings.ModlistSettings.TryCreate(game.Game);
+                    var gameSettings = _settings.ModlistSettings.TryCreate(game.Game);
                     return new ModlistSettingsEditorVM(gameSettings.ModlistSettings);
                 })
                 // Interject and save old while loading new
                 .Pairwise()
                 .Do(pair =>
                 {
-                    pair.Previous?.Save();
-                    pair.Current?.Init();
+                    var (previous, current) = pair;
+                    previous?.Save();
+                    current?.Init();
                 })
                 .Select(x => x.Current)
                 // Save to property
                 .ObserveOnGuiThread()
-                .ToProperty(this, nameof(this.ModlistSettings));
+                .ToProperty(this, nameof(ModlistSettings));
 
             // Find game commands
-            this.FindGameInSteamCommand = ReactiveCommand.Create(SetGameToSteamLocation);
-            this.FindGameInGogCommand = ReactiveCommand.Create(SetGameToGogLocation);
+            FindGameInSteamCommand = ReactiveCommand.Create(SetGameToSteamLocation);
+            FindGameInGogCommand = ReactiveCommand.Create(SetGameToGogLocation);
 
             // Add additional criteria to download/staging folders
-            this.DownloadsLocation.AdditionalError = this.WhenAny(x => x.DownloadsLocation.TargetPath)
-                .Select(path =>
-                {
-                    if (path == null) return ErrorResponse.Success;
-                    return VortexCompiler.IsValidDownloadsFolder(path);
-                });
-            this.StagingLocation.AdditionalError = this.WhenAny(x => x.StagingLocation.TargetPath)
-                .Select(path =>
-                {
-                    if (path == null) return ErrorResponse.Success;
-                    return VortexCompiler.IsValidBaseStagingFolder(path);
-                });
+            DownloadsLocation.AdditionalError = this.WhenAny(x => x.DownloadsLocation.TargetPath)
+                .Select(path => path == null ? ErrorResponse.Success : VortexCompiler.IsValidDownloadsFolder(path));
+            StagingLocation.AdditionalError = this.WhenAny(x => x.StagingLocation.TargetPath)
+                .Select(path => path == null ? ErrorResponse.Success : VortexCompiler.IsValidBaseStagingFolder(path));
         }
 
         public void Unload()
         {
-            settings.LastCompiledGame = this.SelectedGame.Game;
-            this.ModlistSettings?.Save();
+            _settings.LastCompiledGame = SelectedGame.Game;
+            ModlistSettings?.Save();
         }
 
         private void SetGameToSteamLocation()
         {
-            var steamGame = SteamHandler.Instance.Games.FirstOrDefault(g => g.Game.HasValue && g.Game == this.SelectedGame.Game);
-            this.GameLocation.TargetPath = steamGame?.InstallDir;
+            var steamGame = SteamHandler.Instance.Games.FirstOrDefault(g => g.Game.HasValue && g.Game == SelectedGame.Game);
+            GameLocation.TargetPath = steamGame?.InstallDir;
         }
 
         private void SetGameToGogLocation()
         {
-            var gogGame = GOGHandler.Instance.Games.FirstOrDefault(g => g.Game.HasValue && g.Game == this.SelectedGame.Game);
-            this.GameLocation.TargetPath = gogGame?.Path;
+            var gogGame = GOGHandler.Instance.Games.FirstOrDefault(g => g.Game.HasValue && g.Game == SelectedGame.Game);
+            GameLocation.TargetPath = gogGame?.Path;
         }
     }
 }
