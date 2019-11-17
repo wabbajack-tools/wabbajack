@@ -28,13 +28,14 @@ namespace Wabbajack
 
         private static ObservableCollectionExtended<GameVM> gameOptions = new ObservableCollectionExtended<GameVM>(
             EnumExt.GetValues<Game>()
-                   .Select(g => new GameVM(g))
-                   .OrderBy(g => g.DisplayName));
+                .Where(g => GameRegistry.Games[g].SupportedModManager == ModManager.Vortex)
+                .Select(g => new GameVM(g))
+                .OrderBy(g => g.DisplayName));
 
         public ObservableCollectionExtended<GameVM> GameOptions => gameOptions;
 
         [Reactive]
-        public GameVM SelectedGame { get; set; } = gameOptions.First(x => x.Game == Game.SkyrimSpecialEdition);
+        public GameVM SelectedGame { get; set; }
 
         [Reactive]
         public FilePickerVM GameLocation { get; set; }
@@ -54,19 +55,19 @@ namespace Wabbajack
 
         public VortexCompilerVM(CompilerVM parent)
         {
-            this.GameLocation = new FilePickerVM()
+            GameLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Game Folder Location"
             };
-            this.DownloadsLocation = new FilePickerVM()
+            DownloadsLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Downloads Folder"
             };
-            this.StagingLocation = new FilePickerVM()
+            StagingLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
@@ -74,7 +75,7 @@ namespace Wabbajack
             };
 
             // Wire start command
-            this.BeginCommand = ReactiveCommand.CreateFromTask(
+            BeginCommand = ReactiveCommand.CreateFromTask(
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.GameLocation.InError),
                         this.WhenAny(x => x.DownloadsLocation.InError),
@@ -117,12 +118,12 @@ namespace Wabbajack
                         }
                     });
                 });
-            this._Compiling = this.BeginCommand.IsExecuting
+            _Compiling = this.BeginCommand.IsExecuting
                 .ToProperty(this, nameof(this.Compiling));
 
             // Load settings
-            this.settings = parent.MWVM.Settings.Compiler.VortexCompilation;
-            this.SelectedGame = gameOptions.First(x => x.Game == settings.LastCompiledGame);
+            settings = parent.MWVM.Settings.Compiler.VortexCompilation;
+            SelectedGame = gameOptions.FirstOrDefault(x => x.Game == settings.LastCompiledGame) ?? gameOptions[0];
             parent.MWVM.Settings.SaveSignal
                 .Subscribe(_ => Unload())
                 .DisposeWith(this.CompositeDisposable);
