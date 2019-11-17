@@ -9,7 +9,7 @@ namespace Wabbajack.Common
     public enum Game 
     {
         //MO2 GAMES
-        Morrowind,
+        //Morrowind,
         Oblivion,
         [Description("Fallout 3")]
         Fallout3,
