@@ -59,13 +59,13 @@ namespace Wabbajack
             };
             this.DownloadsLocation = new FilePickerVM()
             {
-                DoExistsCheck = false,
+                DoExistsCheck = true,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Downloads Folder"
             };
             this.StagingLocation = new FilePickerVM()
             {
-                DoExistsCheck = false,
+                DoExistsCheck = true,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Staging Folder"
             };
@@ -115,14 +115,6 @@ namespace Wabbajack
             // Load settings
             this.settings = parent.MWVM.Settings.Compiler.VortexCompilation;
             this.SelectedGame = gameOptions.First(x => x.Game == settings.LastCompiledGame);
-            if (!string.IsNullOrWhiteSpace(settings.DownloadLocation))
-            {
-                this.DownloadsLocation.TargetPath = settings.DownloadLocation;
-            }
-            if (!string.IsNullOrWhiteSpace(settings.StagingLocation))
-            {
-                this.StagingLocation.TargetPath = settings.StagingLocation;
-            }
             parent.MWVM.Settings.SaveSignal
                 .Subscribe(_ => Unload())
                 .DisposeWith(this.CompositeDisposable);
@@ -149,6 +141,16 @@ namespace Wabbajack
                     {
                         this.SetGameToGogLocation();
                     }
+                    this.DownloadsLocation.TargetPath = pair.Current?.DownloadLocation ?? null;
+                     if (string.IsNullOrWhiteSpace(this.DownloadsLocation.TargetPath))
+                    {
+                        this.DownloadsLocation.TargetPath = VortexCompiler.RetrieveDownloadLocation(this.SelectedGame.Game);
+                    }
+                    this.StagingLocation.TargetPath = pair.Current?.StagingLocation ?? null;
+                    if (string.IsNullOrWhiteSpace(this.StagingLocation.TargetPath))
+                    {
+                        this.StagingLocation.TargetPath = VortexCompiler.RetrieveStagingLocation(this.SelectedGame.Game);
+                    }
                 })
                 .DisposeWith(this.CompositeDisposable);
 
@@ -174,12 +176,24 @@ namespace Wabbajack
             // Find game commands
             this.FindGameInSteamCommand = ReactiveCommand.Create(SetGameToSteamLocation);
             this.FindGameInGogCommand = ReactiveCommand.Create(SetGameToGogLocation);
+
+            // Add additional criteria to download/staging folders
+            this.DownloadsLocation.AdditionalError = this.WhenAny(x => x.DownloadsLocation.TargetPath)
+                .Select(path =>
+                {
+                    if (path == null) return ErrorResponse.Success;
+                    return VortexCompiler.IsValidDownloadsFolder(path);
+                });
+            this.StagingLocation.AdditionalError = this.WhenAny(x => x.StagingLocation.TargetPath)
+                .Select(path =>
+                {
+                    if (path == null) return ErrorResponse.Success;
+                    return VortexCompiler.IsValidBaseStagingFolder(path);
+                });
         }
 
         public void Unload()
         {
-            settings.DownloadLocation = this.DownloadsLocation.TargetPath;
-            settings.StagingLocation = this.StagingLocation.TargetPath;
             settings.LastCompiledGame = this.SelectedGame.Game;
             this.ModlistSettings?.Save();
         }

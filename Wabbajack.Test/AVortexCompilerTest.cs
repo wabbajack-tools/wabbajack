@@ -43,10 +43,6 @@ namespace Wabbajack.Test
 
         protected VortexCompiler MakeCompiler()
         {
-            if (VortexCompiler.TryRetrieveDownloadLocation(utils.Game, out var downloads))
-            {
-                throw new ArgumentException("Could not locate downloads folder");
-            }
             return new VortexCompiler(
                 game: utils.Game,
                 gamePath: utils.GameFolder,

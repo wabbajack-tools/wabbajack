@@ -87,8 +87,6 @@ namespace Wabbajack
 
     public class VortexCompilationSettings
     {
-        public string DownloadLocation { get; set; }
-        public string StagingLocation { get; set; }
         public Game LastCompiledGame { get; set; }
         public Dictionary<Game, VortexGameSettings> ModlistSettings { get; } = new Dictionary<Game, VortexGameSettings>();
     }
@@ -96,6 +94,8 @@ namespace Wabbajack
     public class VortexGameSettings
     {
         public string GameLocation { get; set; }
+        public string DownloadLocation { get; set; }
+        public string StagingLocation { get; set; }
         public CompilationModlistSettings ModlistSettings { get; } = new CompilationModlistSettings();
     }
 }

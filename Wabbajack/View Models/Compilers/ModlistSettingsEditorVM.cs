@@ -46,7 +46,7 @@ namespace Wabbajack
             this.ReadMeText = new FilePickerVM()
             {
                 PathType = FilePickerVM.PathTypeOptions.File,
-                DoExistsCheck = true,
+                DoExistsCheck = false,
             };
         }
 

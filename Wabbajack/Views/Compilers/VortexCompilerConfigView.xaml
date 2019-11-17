@@ -110,7 +110,7 @@
             Grid.Column="6"
             Height="30"
             VerticalAlignment="Center"
-            DataContext="{Binding DownloadLocation}"
+            DataContext="{Binding DownloadsLocation}"
             FontSize="14"
             ToolTip="The folder to downloads your mods" />
         <TextBlock
