@@ -44,9 +44,6 @@ namespace Wabbajack.Lib
             ModManager = ModManager.Vortex;
             Game = game;
 
-            // TODO: only for testing
-            IgnoreMissingFiles = true;
-
             GamePath = gamePath;
             GameName = GameRegistry.Games[game].NexusName;
             VortexFolder = vortexFolder;
