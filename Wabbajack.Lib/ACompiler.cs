@@ -12,6 +12,9 @@ namespace Wabbajack.Lib
 {
     public abstract class ACompiler
     {
+        public string ModListName, ModListAuthor, ModListDescription, ModListImage, ModListWebsite, ModListReadme;
+        public string WabbajackVersion;
+
         public StatusUpdateTracker UpdateTracker { get; protected set; }
 
         public WorkQueue Queue { get; protected set; }

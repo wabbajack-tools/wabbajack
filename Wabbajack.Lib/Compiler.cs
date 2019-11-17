@@ -1,18 +1,12 @@
 ﻿using CommonMark;
 using Compression.BSA;
 using System;
-using System.CodeDom;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Reactive.Subjects;
-using System.Reflection;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
@@ -23,7 +17,6 @@ using Wabbajack.Lib.Validation;
 using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
@@ -37,10 +30,7 @@ namespace Wabbajack.Lib
         
         public string MO2Folder;
 
-
         public string MO2Profile;
-        public string ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModListImage, ModListReadme;
-        public string WabbajackVersion;
 
         public Compiler(string mo2_folder)
         {

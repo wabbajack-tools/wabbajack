@@ -47,9 +47,6 @@ namespace Wabbajack.Lib
             DownloadsFolder = downloadsFolder;
             StagingFolder = stagingFolder;
             ModListOutputFolder = "output_folder";
-
-            // TODO: add custom modlist name
-            ModListOutputFile = $"VORTEX_TEST_MODLIST{ExtensionManager.Extension}";
         }
 
         public override void Info(string msg)
@@ -84,6 +81,8 @@ namespace Wabbajack.Lib
 
         public override bool Compile()
         {
+            ModListOutputFile = $"{ModListName}{ExtensionManager.Extension}";
+
             Info($"Starting Vortex compilation for {GameName} at {GamePath} with staging folder at {StagingFolder} and downloads folder at  {DownloadsFolder}.");
 
             Info("Starting pre-compilation steps");
@@ -197,6 +196,12 @@ namespace Wabbajack.Lib
 
             ModList = new ModList
             {
+                Name = ModListName ?? $"Vortex ModList for {Game.ToString()}",
+                Author = ModListAuthor ?? "",
+                Description = ModListDescription ?? "",
+                Readme = ModListReadme ?? "",
+                Image = ModListImage ?? "",
+                Website = ModListWebsite ?? "",
                 Archives = SelectedArchives,
                 ModManager = ModManager.Vortex,
                 Directives = InstallDirectives,
@@ -411,7 +416,7 @@ namespace Wabbajack.Lib
             Utils.Log("Generating compilation stack");
             return new List<ICompilationStep>
             {
-                //new IncludePropertyFiles(this),
+                new IncludePropertyFiles(this),
                 new IncludeVortexDeployment(this),
                 new IncludeRegex(this, "^*\\.meta"),
                 new IgnoreVortex(this),

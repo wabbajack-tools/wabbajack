@@ -90,7 +90,15 @@ namespace Wabbajack
                             GameLocation.TargetPath,
                             VortexCompiler.TypicalVortexFolder(),
                             DownloadsLocation.TargetPath,
-                            StagingLocation.TargetPath);
+                            StagingLocation.TargetPath)
+                        {
+                            ModListName = ModlistSettings.ModListName,
+                            ModListAuthor = ModlistSettings.AuthorText,
+                            ModListDescription = ModlistSettings.Description,
+                            ModListImage = ModlistSettings.ImagePath.TargetPath,
+                            ModListWebsite = ModlistSettings.Website,
+                            ModListReadme = ModlistSettings.ReadMeText.TargetPath
+                        };
                     }
                     catch (Exception ex)
                     {
