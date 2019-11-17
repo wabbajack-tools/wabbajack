@@ -33,17 +33,18 @@ namespace Wabbajack.Lib
         public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder)
         {
             ModManager = ModManager.Vortex;
+            Game = game;
 
             // TODO: only for testing
             IgnoreMissingFiles = true;
 
             GamePath = gamePath;
             GameName = GameRegistry.Games[game].NexusName;
-            this.VortexFolder = vortexFolder;
-            this.DownloadsFolder = downloadsFolder;
-            this.StagingFolder = stagingFolder;
             Queue = new WorkQueue();
             VFS = new Context(Queue);
+            VortexFolder = vortexFolder;
+            DownloadsFolder = downloadsFolder;
+            StagingFolder = stagingFolder;
             ModListOutputFolder = "output_folder";
 
             // TODO: add custom modlist name
@@ -413,6 +414,7 @@ namespace Wabbajack.Lib
                 new IncludeVortexDeployment(this),
                 new IncludeRegex(this, "^*\\.meta"),
                 new IgnoreVortex(this),
+                new IgnoreRegex(this, "^*__vortex_staging_folder$"),
 
                 Game == Game.DarkestDungeon ? new IncludeRegex(this, "project\\.xml$") : null,
 
