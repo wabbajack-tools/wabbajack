@@ -54,7 +54,7 @@ namespace Wabbajack.Common
         public void LoadAllGames()
         {
             Games = new HashSet<GOGGame>();
-            if (this.GOGKey == null) return;
+            if (GOGKey == null) return;
             string[] keys = GOGKey.GetSubKeyNames();
             foreach (var key in keys)
             {
@@ -66,7 +66,7 @@ namespace Wabbajack.Common
                 };
 
                 game.Game = GameRegistry.Games.Values
-                    .FirstOrDefault(g => g.GOGIDs.Contains(game.GameID))?.Game;
+                    .FirstOrDefault(g => g.GOGIDs != null && g.GOGIDs.Contains(game.GameID))?.Game;
 
                 Games.Add(game);
             }
