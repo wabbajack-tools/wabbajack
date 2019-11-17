@@ -955,7 +955,7 @@
         <Setter Property="Background" Value="{StaticResource TextBoxBackground}" />
         <Setter Property="BorderBrush" Value="{StaticResource TextBoxBorder}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="2,2,2,1" />
+        <Setter Property="Padding" Value="3" />
         <Setter Property="AllowDrop" Value="true" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="ScrollViewer.PanningMode" Value="VerticalFirst" />
@@ -3616,4 +3616,11 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <!--  FilePicker  -->
+    <Style x:Key="MainFilePickerStyle" TargetType="{x:Type local:FilePicker}">
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+    <Style BasedOn="{StaticResource MainFilePickerStyle}" TargetType="{x:Type local:FilePicker}" />
+
 </ResourceDictionary>

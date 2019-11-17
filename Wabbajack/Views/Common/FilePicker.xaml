@@ -24,7 +24,7 @@
             CornerRadius="3" />
         <TextBox
             Grid.Column="0"
-            Margin="5,0,-2,0"
+            Margin="5,1,-2,1"
             VerticalContentAlignment="Center"
             Background="{StaticResource DarkBackgroundBrush}"
             Text="{Binding TargetPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

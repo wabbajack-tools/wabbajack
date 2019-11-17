@@ -46,7 +46,7 @@
             ToolTip="The game you wish to target">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding DisplayName}" />
+                    <TextBlock Margin="6,2" Text="{Binding DisplayName}" />
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
