@@ -23,12 +23,22 @@ namespace Wabbajack.Test.ListValidation
             api.ClearUpdatedModsInCache();
         }
 
+        private WorkQueue Queue { get; set; }
         [TestInitialize]
-        public void SetupTest()
+        public void Setup()
         {
             Directory.CreateDirectory(Consts.ModListDownloadFolder);
             Utils.LogMessages.Subscribe(s => TestContext.WriteLine(s));
+            Queue = new WorkQueue();
         }
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            Queue.Shutdown();
+            Queue = null;
+        }
+
 
         public TestContext TestContext { get; set; }
 
@@ -59,7 +69,7 @@ namespace Wabbajack.Test.ListValidation
             Log($"{installer.Archives.Count} archives to validate");
 
             var invalids = installer.Archives
-                .PMap(archive =>
+                .PMap(Queue,archive =>
                 {
                     Log($"Validating: {archive.Name}");
                     return new {archive, is_valid = archive.State.Verify()};

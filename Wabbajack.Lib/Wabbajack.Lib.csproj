@@ -131,7 +131,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReportBuilder.cs" />
     <Compile Include="UI\UIUtils.cs" />
-    <Compile Include="Updater\CheckForUpdates.cs" />
     <Compile Include="Validation\DTOs.cs" />
     <Compile Include="Validation\ValidateModlist.cs" />
     <Compile Include="ViewModel.cs" />

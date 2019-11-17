@@ -390,7 +390,7 @@ namespace Wabbajack.Lib.NexusApi
                 .ToList();
 
             Utils.Log($"Purging {to_purge.Count} cache entries");
-            to_purge.PMap(f => File.Delete(f.f));
+            to_purge.Do(f => File.Delete(f.f));
 
         }
     }

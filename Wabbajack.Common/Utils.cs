@@ -78,10 +78,7 @@ namespace Wabbajack.Common
 
         public static void Status(string msg, int progress = 0)
         {
-            if (WorkQueue.CustomReportFn != null)
-                WorkQueue.CustomReportFn(progress, msg);
-            else
-                _statusSubj.OnNext((msg, progress));
+            _statusSubj.OnNext((msg, progress));
         }
 
         /// <summary>
@@ -413,18 +410,29 @@ namespace Wabbajack.Common
             }
         }
 
-        public static List<TR> PMap<TI, TR>(this IEnumerable<TI> coll, Func<TI, TR> f)
+        public static List<TR> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
+            Func<TI, TR> f)
+        {
+            var cnt = 0;
+            var collist = coll.ToList();
+            return collist.PMap(queue, itm =>
+            {
+                updateTracker.MakeUpdate(collist.Count, Interlocked.Increment(ref cnt));
+                return f(itm);
+            });
+        }
+
+        public static List<TR> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue,
+            Func<TI, TR> f)
         {
             var colllst = coll.ToList();
-            Interlocked.Add(ref WorkQueue.MaxQueueSize, colllst.Count);
-            //WorkQueue.CurrentQueueSize = 0;
 
             var remaining_tasks = colllst.Count;
 
             var tasks = coll.Select(i =>
             {
                 var tc = new TaskCompletionSource<TR>();
-                WorkQueue.QueueTask(() =>
+                queue.QueueTask(() =>
                 {
                     try
                     {
@@ -434,10 +442,7 @@ namespace Wabbajack.Common
                     {
                         tc.SetException(ex);
                     }
-
-                    Interlocked.Increment(ref WorkQueue.CurrentQueueSize);
                     Interlocked.Decrement(ref remaining_tasks);
-                    WorkQueue.ReportNow();
                 });
                 return tc.Task;
             }).ToList();
@@ -445,14 +450,8 @@ namespace Wabbajack.Common
             // To avoid thread starvation, we'll start to help out in the work queue
             if (WorkQueue.WorkerThread)
                 while (remaining_tasks > 0)
-                    if (WorkQueue.Queue.TryTake(out var a, 500))
+                    if (queue.Queue.TryTake(out var a, 500))
                         a();
-
-            if (WorkQueue.CurrentQueueSize == WorkQueue.MaxQueueSize)
-            {
-                WorkQueue.MaxQueueSize = 0;
-                WorkQueue.MaxQueueSize = 0;
-            }
 
             return tasks.Select(t =>
             {
@@ -463,9 +462,9 @@ namespace Wabbajack.Common
             }).ToList();
         }
 
-        public static void PMap<TI>(this IEnumerable<TI> coll, Action<TI> f)
+        public static void PMap<TI>(this IEnumerable<TI> coll, WorkQueue queue, Action<TI> f)
         {
-            coll.PMap(i =>
+            coll.PMap(queue, i =>
             {
                 f(i);
                 return false;

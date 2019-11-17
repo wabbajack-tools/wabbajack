@@ -139,11 +139,11 @@ namespace Wabbajack.VirtualFileSystem
 
                 using (var tempFolder = context.GetTemporaryFolder())
                 {
-                    FileExtractor.ExtractAll(abs_path, tempFolder.FullName);
+                    FileExtractor.ExtractAll(context.Queue, abs_path, tempFolder.FullName);
 
                     context._logSpam.OnNext($"Analyzing Contents {rel_path}");
                     self.Children = Directory.EnumerateFiles(tempFolder.FullName, "*", SearchOption.AllDirectories)
-                                        .PMap(abs_src => Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName)))
+                                        .PMap(context.Queue, abs_src => Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName)))
                                         .ToImmutableList();
                 }
 

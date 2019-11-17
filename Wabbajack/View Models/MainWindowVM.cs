@@ -64,9 +64,13 @@ namespace Wabbajack
                 .Bind(this.Log)
                 .Subscribe()
                 .DisposeWith(this.CompositeDisposable);
+
+            // TODO: fix this
+            /*
             Utils.StatusUpdates
                 .Subscribe((i) => WorkQueue.Report(i.Message, i.Progress))
                 .DisposeWith(this.CompositeDisposable);
+                */
 
             // Wire mode to drive the active pane.
             // Note:  This is currently made into a derivative property driven by mode,
@@ -86,7 +90,9 @@ namespace Wabbajack
                 })
                 .ToProperty(this, nameof(this.ActivePane));
 
+            // TODO: fix this
             // Compile progress updates and populate ObservableCollection
+            /*
             WorkQueue.Status
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .ToObservableChangeSet(x => x.ID)
@@ -96,18 +102,7 @@ namespace Wabbajack
                 .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
                 .Bind(this.StatusList)
                 .Subscribe()
-                .DisposeWith(this.CompositeDisposable);
-
-            this._QueueProgress = WorkQueue.QueueSize
-                .Select(progress =>
-                {
-                    if (progress.Max == 0)
-                    {
-                        progress.Max = 1;
-                    }
-                    return progress.Current * 100 / progress.Max;
-                })
-                .ToProperty(this, nameof(this.QueueProgress));
+                .DisposeWith(this.CompositeDisposable);*/
         }
     }
 }

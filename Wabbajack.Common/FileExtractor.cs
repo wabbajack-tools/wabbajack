@@ -31,12 +31,12 @@ namespace Wabbajack.Common
         }
 
 
-        public static void ExtractAll(string source, string dest)
+        public static void ExtractAll(WorkQueue queue, string source, string dest)
         {
             try
             {
                 if (Consts.SupportedBSAs.Any(b => source.ToLower().EndsWith(b)))
-                    ExtractAllWithBSA(source, dest);
+                    ExtractAllWithBSA(queue, source, dest);
                 else if (source.EndsWith(".omod"))
                     ExtractAllWithOMOD(source, dest);
                 else
@@ -60,14 +60,14 @@ namespace Wabbajack.Common
             return dest;
         }
 
-        private static void ExtractAllWithBSA(string source, string dest)
+        private static void ExtractAllWithBSA(WorkQueue queue, string source, string dest)
         {
             try
             {
                 using (var arch = BSADispatch.OpenRead(source))
                 {
                     arch.Files
-                        .PMap(f =>
+                        .PMap(queue, f =>
                         {
                             var path = f.Path;
                             if (f.Path.StartsWith("\\"))

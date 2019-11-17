@@ -108,6 +108,13 @@ namespace Wabbajack
                             ModListWebsite = this.ModlistSettings.Website,
                             ModListReadme = this.ModlistSettings.ReadMeText.TargetPath,
                         };
+                        var update_tracker = compiler.UpdateTracker;
+                        update_tracker.Progress
+                            .CombineLatest(update_tracker.StepName, update_tracker.MaxStep, update_tracker.Step,
+                                (progress, name, max, step) => new {progress, name, max, step})
+                            .Debounce(new TimeSpan(0, 0, 0, 0, 100))
+                            .Subscribe(a =>
+                                Utils.Log($"{a.progress} - ({a.step}/{a.max}) {a.name}"));
                     }
                     catch (Exception ex)
                     {

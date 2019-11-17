@@ -17,6 +17,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         private Context context;
 
         public TestContext TestContext { get; set; }
+        public WorkQueue Queue { get; set; }
 
         [TestInitialize]
         public void Setup()
@@ -25,7 +26,8 @@ namespace Wabbajack.VirtualFileSystem.Test
             if (Directory.Exists(VFS_TEST_DIR))
                 Directory.Delete(VFS_TEST_DIR, true);
             Directory.CreateDirectory(VFS_TEST_DIR);
-            context = new Context();
+            Queue = new WorkQueue();
+            context = new Context(Queue);
         }
 
         [TestMethod]
@@ -176,7 +178,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             var state = context.GetPortableState(files);
 
-            var new_context = new Context();
+            var new_context = new Context(Queue);
 
             new_context.IntegrateFromPortable(state,
                 new Dictionary<string, string> {{archive.Hash, archive.FullPath}});

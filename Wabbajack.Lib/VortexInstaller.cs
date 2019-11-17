@@ -24,12 +24,16 @@ namespace Wabbajack.Lib
         public string StagingFolder { get; set; }
         public string DownloadFolder { get; set; }
 
-        public Context VFS { get; } = new Context();
+        public WorkQueue Queue { get; }
+        public Context VFS { get; }
 
         public bool IgnoreMissingFiles { get; internal set; }
 
         public VortexInstaller(string archive, ModList modList)
         {
+            Queue = new WorkQueue();
+            VFS = new Context(Queue);
+
             ModListArchive = archive;
             ModList = modList;
 
@@ -46,7 +50,7 @@ namespace Wabbajack.Lib
 
         public void Status(string msg)
         {
-            WorkQueue.Report(msg, 0);
+            Queue.Report(msg, 0);
         }
 
         private void Error(string msg)
@@ -142,7 +146,7 @@ namespace Wabbajack.Lib
                 .ToList();
 
             Info("Installing Archives");
-            archives.PMap(a => InstallArchive(a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
+            archives.PMap(Queue,a => InstallArchive(a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
         }
 
         private void InstallArchive(Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
@@ -192,7 +196,7 @@ namespace Wabbajack.Lib
         {
             Info("Writing inline files");
             ModList.Directives.OfType<InlineFile>()
-                .PMap(directive =>
+                .PMap(Queue,directive =>
                 {
                     Status($"Writing included file {directive.To}");
                     var outPath = Path.Combine(StagingFolder, directive.To);
@@ -254,7 +258,7 @@ namespace Wabbajack.Lib
             }
 
             missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
-                .PMap(archive =>
+                .PMap(Queue, archive =>
                 {
                     Info($"Downloading {archive.Name}");
                     var output_path = Path.Combine(DownloadFolder, archive.Name);
@@ -287,7 +291,7 @@ namespace Wabbajack.Lib
         {
             HashedArchives = Directory.EnumerateFiles(DownloadFolder)
                 .Where(e => !e.EndsWith(".sha"))
-                .PMap(e => (HashArchive(e), e))
+                .PMap(Queue,e => (HashArchive(e), e))
                 .OrderByDescending(e => File.GetLastWriteTime(e.Item2))
                 .GroupBy(e => e.Item1)
                 .Select(e => e.First())

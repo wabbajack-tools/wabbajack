@@ -165,7 +165,7 @@ namespace Wabbajack.Lib
             installer.ModList
                 .Directives
                 .OfType<MergedPatch>()
-                .PMap(m =>
+                .PMap(_mo2Compiler.Queue, m =>
                 {
                     Utils.LogStatus($"Generating zEdit merge: {m.To}");
 
