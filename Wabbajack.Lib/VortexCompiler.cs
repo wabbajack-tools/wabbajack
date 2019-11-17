@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using CommonMark;
 using Microsoft.WindowsAPICodePack.Shell;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
@@ -81,6 +83,8 @@ namespace Wabbajack.Lib
 
         public override bool Compile()
         {
+            if (string.IsNullOrEmpty(ModListName))
+                ModListName = $"Vortex ModList for {Game.ToString()}";
             ModListOutputFile = $"{ModListName}{ExtensionManager.Extension}";
 
             Info($"Starting Vortex compilation for {GameName} at {GamePath} with staging folder at {StagingFolder} and downloads folder at  {DownloadsFolder}.");
@@ -196,7 +200,7 @@ namespace Wabbajack.Lib
 
             ModList = new ModList
             {
-                Name = ModListName ?? $"Vortex ModList for {Game.ToString()}",
+                Name = ModListName ?? "",
                 Author = ModListAuthor ?? "",
                 Description = ModListDescription ?? "",
                 Readme = ModListReadme ?? "",
@@ -208,9 +212,12 @@ namespace Wabbajack.Lib
                 GameType = Game
             };
             
+            GenerateReport();
             ExportModList();
 
             Info("Done Building ModList");
+
+            ShowReport();
             return true;
         }
 
@@ -275,7 +282,7 @@ namespace Wabbajack.Lib
             Directory.Delete(ModListOutputFolder, true);
         }
 
-        /*private void GenerateReport()
+        private void GenerateReport()
         {
             string css;
             using (var cssStream = Utils.GetResourceStream("Wabbajack.Lib.css-min.css"))
@@ -292,7 +299,16 @@ namespace Wabbajack.Lib
                    reporter.Build(this, ModList);
                }
             }
-        }*/
+
+            ModList.ReportHTML = "<style>" + css + "</style>" + CommonMarkConverter.Convert(File.ReadAllText($"{ModList.Name}.md"));
+        }
+
+        private void ShowReport()
+        {
+            var file = Alphaleonis.Win32.Filesystem.Path.GetTempFileName() + ".html";
+            File.WriteAllText(file, ModList.ReportHTML);
+            Process.Start(file);
+        }
 
         private void CreateMetaFiles()
         {
