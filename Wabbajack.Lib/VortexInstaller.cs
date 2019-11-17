@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
+﻿using System.Linq;
 using Wabbajack.Common;
-using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
@@ -17,13 +11,10 @@ namespace Wabbajack.Lib
     {
         public GameMetaData GameInfo { get; internal set; }
 
-        public WorkQueue Queue { get; }
-
-        public bool IgnoreMissingFiles { get; internal set; }
-
         public VortexInstaller(string archive, ModList modList)
         {
-            Queue = new WorkQueue();
+            UpdateTracker = new StatusUpdateTracker(10);
+            VFS = new Context(Queue) {UpdateTracker = UpdateTracker};
             ModManager = ModManager.Vortex;
             ModListArchive = archive;
             ModList = modList;

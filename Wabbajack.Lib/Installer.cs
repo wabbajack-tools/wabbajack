@@ -7,6 +7,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
+using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -16,12 +17,10 @@ namespace Wabbajack.Lib
 {
     public class Installer : AInstaller
     {
-        private WorkQueue Queue { get; set; }
-
         public Installer(string archive, ModList mod_list, string output_folder)
         {
-            Queue = new WorkQueue();
-            VFS = new Context(Queue);
+            UpdateTracker = new StatusUpdateTracker(10);
+            VFS = new Context(Queue) {UpdateTracker = UpdateTracker};
             ModManager = ModManager.MO2;
             ModListArchive = archive;
             OutputFolder = output_folder;

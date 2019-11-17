@@ -16,7 +16,9 @@ namespace Wabbajack.Lib
     {
         public bool IgnoreMissingFiles { get; internal set; } = false;
 
-        public Context VFS { get; internal set; } = new Context();
+        public StatusUpdateTracker UpdateTracker { get; protected set; }
+        public WorkQueue Queue { get; protected set; }
+        public Context VFS { get; internal set; }
 
         public string OutputFolder { get; set; }
         public string DownloadFolder { get; set; }
@@ -27,6 +29,11 @@ namespace Wabbajack.Lib
         public ModList ModList { get; internal set; }
         public Dictionary<string, string> HashedArchives { get; set; }
 
+        protected AInstaller()
+        {
+            Queue = new WorkQueue();
+        }
+
         public abstract void Install();
 
         public void Info(string msg)
@@ -36,7 +43,7 @@ namespace Wabbajack.Lib
 
         public void Status(string msg)
         {
-            WorkQueue.Report(msg, 0);
+            Queue.Report(msg, 0);
         }
 
         public void Error(string msg)
@@ -123,7 +130,7 @@ namespace Wabbajack.Lib
                 .ToList();
 
             Info("Installing Archives");
-            archives.PMap(a => InstallArchive(a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
+            archives.PMap(Queue,a => InstallArchive(a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
         }
 
         private void InstallArchive(Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
@@ -239,7 +246,7 @@ namespace Wabbajack.Lib
             }
 
             missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
-                .PMap(archive =>
+                .PMap(Queue, archive =>
                 {
                     Info($"Downloading {archive.Name}");
                     var outputPath = Path.Combine(DownloadFolder, archive.Name);
@@ -272,7 +279,7 @@ namespace Wabbajack.Lib
         {
             HashedArchives = Directory.EnumerateFiles(DownloadFolder)
                 .Where(e => !e.EndsWith(".sha"))
-                .PMap(e => (HashArchive(e), e))
+                .PMap(Queue, e => (HashArchive(e), e))
                 .OrderByDescending(e => File.GetLastWriteTime(e.Item2))
                 .GroupBy(e => e.Item1)
                 .Select(e => e.First())

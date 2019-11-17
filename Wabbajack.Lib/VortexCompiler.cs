@@ -32,6 +32,9 @@ namespace Wabbajack.Lib
 
         public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder)
         {
+            UpdateTracker = new StatusUpdateTracker(10);
+            VFS = new Context(Queue) {UpdateTracker = UpdateTracker};
+
             ModManager = ModManager.Vortex;
             Game = game;
 
@@ -40,8 +43,6 @@ namespace Wabbajack.Lib
 
             GamePath = gamePath;
             GameName = GameRegistry.Games[game].NexusName;
-            Queue = new WorkQueue();
-            VFS = new Context(Queue);
             VortexFolder = vortexFolder;
             DownloadsFolder = downloadsFolder;
             StagingFolder = stagingFolder;
