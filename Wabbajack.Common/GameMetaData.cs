@@ -245,7 +245,7 @@ namespace Wabbajack.Common
                     },
                     RequiredFiles = new List<string>
                     {
-                        "DefEd\\bin\\SuppportTool.exe"
+                        "DefEd\\bin\\SupportTool.exe"
                     }
                 }
             },
@@ -263,7 +263,7 @@ namespace Wabbajack.Common
                     },
                     RequiredFiles = new List<string>
                     {
-                        "bin\\SuppportTool.exe"
+                        "bin\\SupportTool.exe"
                     }
                 }
             },
