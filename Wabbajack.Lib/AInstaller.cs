@@ -12,13 +12,9 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
 {
-    public abstract class AInstaller
+    public abstract class AInstaller : ABatchProcessor
     {
         public bool IgnoreMissingFiles { get; internal set; } = false;
-
-        public StatusUpdateTracker UpdateTracker { get; protected set; }
-        public WorkQueue Queue { get; protected set; }
-        public Context VFS { get; internal set; }
 
         public string OutputFolder { get; set; }
         public string DownloadFolder { get; set; }
@@ -28,13 +24,6 @@ namespace Wabbajack.Lib
         public string ModListArchive { get; internal set; }
         public ModList ModList { get; internal set; }
         public Dictionary<string, string> HashedArchives { get; set; }
-
-        protected AInstaller()
-        {
-            Queue = new WorkQueue();
-        }
-
-        public abstract void Install();
 
         public void Info(string msg)
         {

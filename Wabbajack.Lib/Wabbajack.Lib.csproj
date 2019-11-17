@@ -78,6 +78,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ABatchProcessor.cs" />
     <Compile Include="ACompiler.cs" />
     <Compile Include="AInstaller.cs" />
     <Compile Include="CerasConfig.cs" />
@@ -125,6 +126,7 @@
     <Compile Include="Downloaders\MEGADownloader.cs" />
     <Compile Include="Downloaders\ModDBDownloader.cs" />
     <Compile Include="Downloaders\NexusDownloader.cs" />
+    <Compile Include="IBatchProcessor.cs" />
     <Compile Include="Installer.cs" />
     <Compile Include="ModListRegistry\ModListMetadata.cs" />
     <Compile Include="NexusApi\Dtos.cs" />

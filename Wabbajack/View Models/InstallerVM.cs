@@ -9,6 +9,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
@@ -295,11 +296,11 @@ namespace Wabbajack
             {
                 DownloadFolder = DownloadLocation.TargetPath
             };
-            var th = new Thread(() =>
+            Task.Run(async () =>
             {
                 try
                 {
-                    installer.Install();
+                    await installer.Begin();
                 }
                 catch (Exception ex)
                 {
@@ -313,11 +314,7 @@ namespace Wabbajack
 
                     this.Installing = false;
                 }
-            })
-            {
-                Priority = ThreadPriority.BelowNormal
-            };
-            th.Start();
+            });
         }
     }
 }

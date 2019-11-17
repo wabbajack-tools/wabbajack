@@ -23,17 +23,16 @@ namespace Wabbajack.Common
         private static readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
 
-        public static int ThreadCount { get; } = Environment.ProcessorCount;
         public static List<Thread> Threads { get; private set; }
 
-        public WorkQueue()
+        public WorkQueue(int threadCount = 0)
         {
-            StartThreads();
+            StartThreads(threadCount == 0 ? Environment.ProcessorCount : threadCount);
         }
 
-        private void StartThreads()
+        private void StartThreads(int threadCount)
         {
-            Threads = Enumerable.Range(0, ThreadCount)
+            Threads = Enumerable.Range(0, threadCount)
                 .Select(idx =>
                 {
                     var thread = new Thread(() => ThreadBody(idx));

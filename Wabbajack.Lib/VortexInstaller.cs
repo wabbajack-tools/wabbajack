@@ -13,8 +13,6 @@ namespace Wabbajack.Lib
 
         public VortexInstaller(string archive, ModList modList)
         {
-            UpdateTracker = new StatusUpdateTracker(10);
-            VFS = new Context(Queue) {UpdateTracker = UpdateTracker};
             ModManager = ModManager.Vortex;
             ModListArchive = archive;
             ModList = modList;
@@ -25,8 +23,9 @@ namespace Wabbajack.Lib
             GameInfo = GameRegistry.Games[ModList.GameType];
         }
 
-        public override void Install()
+        protected override bool _Begin()
         {
+            ConfigureProcessor(10);
             Directory.CreateDirectory(DownloadFolder);
 
             HashArchives();
@@ -52,6 +51,7 @@ namespace Wabbajack.Lib
             //InstallIncludedDownloadMetas();
 
             Info("Installation complete! You may exit the program.");
+            return true;
         }
 
         private void InstallIncludedFiles()

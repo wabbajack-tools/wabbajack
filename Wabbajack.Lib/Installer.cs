@@ -19,8 +19,6 @@ namespace Wabbajack.Lib
     {
         public Installer(string archive, ModList mod_list, string output_folder)
         {
-            UpdateTracker = new StatusUpdateTracker(10);
-            VFS = new Context(Queue) {UpdateTracker = UpdateTracker};
             ModManager = ModManager.MO2;
             ModListArchive = archive;
             OutputFolder = output_folder;
@@ -30,8 +28,9 @@ namespace Wabbajack.Lib
 
         public string GameFolder { get; set; }
 
-        public override void Install()
+        protected override bool _Begin()
         {
+            ConfigureProcessor(10);
             var game = GameRegistry.Games[ModList.GameType];
 
             if (GameFolder == null)
@@ -44,7 +43,7 @@ namespace Wabbajack.Lib
                     "game location up in the windows registry but were unable to find it, please make sure you launch the game once before running this installer. ",
                     "Could not find game location", MessageBoxButton.OK);
                 Utils.Log("Exiting because we couldn't find the game folder.");
-                return;
+                return false;
             }
 
             ValidateGameESMs();
@@ -63,7 +62,7 @@ namespace Wabbajack.Lib
                         MessageBoxImage.Exclamation) == MessageBoxResult.No)
                 {
                     Utils.Log("Existing installation at the request of the user, existing mods folder found.");
-                    return;
+                    return false;
                 }
             }
 
@@ -97,6 +96,7 @@ namespace Wabbajack.Lib
             // Removed until we decide if we want this functionality
             // Nexus devs weren't sure this was a good idea, I (halgari) agree.
             //AskToEndorse();
+            return true;
         }
 
         private void InstallIncludedDownloadMetas()

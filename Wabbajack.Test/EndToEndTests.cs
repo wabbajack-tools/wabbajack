@@ -77,7 +77,7 @@ namespace Wabbajack.Test
             compiler.MO2DownloadsFolder = Path.Combine(utils.DownloadsFolder);
             compiler.MO2Profile = profile;
             compiler.ShowReportWhenFinished = false;
-            Assert.IsTrue(compiler.Compile());
+            Assert.IsTrue(compiler.Begin().Result);
 
         }
 
@@ -150,7 +150,7 @@ namespace Wabbajack.Test
             var installer = new Installer(compiler.ModListOutputFile, modlist, utils.InstallFolder);
             installer.DownloadFolder = utils.DownloadsFolder;
             installer.GameFolder = utils.GameFolder;
-            installer.Install();
+            installer.Begin().Wait();
         }
 
         private Compiler ConfigureAndRunCompiler(string profile)
@@ -158,7 +158,7 @@ namespace Wabbajack.Test
             var compiler = new Compiler(utils.MO2Folder);
             compiler.MO2Profile = profile;
             compiler.ShowReportWhenFinished = false;
-            Assert.IsTrue(compiler.Compile());
+            Assert.IsTrue(compiler.Begin().Result);
             return compiler;
         }
     }

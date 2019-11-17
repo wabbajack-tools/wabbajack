@@ -17,14 +17,10 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
 {
-    public abstract class ACompiler
+    public abstract class ACompiler : ABatchProcessor
     {
         public string ModListName, ModListAuthor, ModListDescription, ModListImage, ModListWebsite, ModListReadme;
         public string WabbajackVersion;
-
-        public StatusUpdateTracker UpdateTracker { get; protected set; }
-
-        public WorkQueue Queue { get; protected set; }
 
         protected static string _vfsCacheName = "vfs_compile_cache.bin";
         /// <summary>
@@ -34,14 +30,14 @@ namespace Wabbajack.Lib
         public IObservable<(string, float)> ProgressUpdates => _progressUpdates;
         protected readonly Subject<(string, float)> _progressUpdates = new Subject<(string, float)>();
 
-        public Context VFS { get; internal set; }
-
         public ModManager ModManager;
 
         public string GamePath;
 
         public string ModListOutputFolder;
         public string ModListOutputFile;
+
+        public bool ShowReportWhenFinished { get; set; } = true;
 
         public List<Archive> SelectedArchives = new List<Archive>();
         public List<Directive> InstallDirectives = new List<Directive>();
@@ -128,7 +124,7 @@ namespace Wabbajack.Lib
 
         public void ShowReport()
         {
-            //if (!ShowReportWhenFinished) return;
+            if (!ShowReportWhenFinished) return;
 
             var file = Path.GetTempFileName() + ".html";
             File.WriteAllText(file, ModList.ReportHTML);
@@ -207,8 +203,6 @@ namespace Wabbajack.Lib
             return null;
         }
 
-        public abstract bool Compile();
-
         public Directive RunStack(IEnumerable<ICompilationStep> stack, RawSourceFile source)
         {
             Utils.Status($"Compiling {source.Path}");
@@ -223,11 +217,5 @@ namespace Wabbajack.Lib
 
         public abstract IEnumerable<ICompilationStep> GetStack();
         public abstract IEnumerable<ICompilationStep> MakeStack();
-
-        protected ACompiler()
-        {
-            ProgressUpdates.Subscribe(itm => Utils.Log($"{itm.Item2} - {itm.Item1}"));
-            Queue = new WorkQueue();
-        }
     }
 }

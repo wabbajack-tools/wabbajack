@@ -120,12 +120,11 @@ namespace Wabbajack
                         Utils.Log($"Compiler error: {ex.ExceptionToString()}");
                         return;
                     }
-                    await Task.Run(() =>
+                    await Task.Run(async () =>
                     {
                         try
                         {
-                            this.StatusTracker = compiler.UpdateTracker;
-                            compiler.Compile();
+                            await compiler.Begin();
                         }
                         catch (Exception ex)
                         {

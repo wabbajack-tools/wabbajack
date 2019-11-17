@@ -37,7 +37,7 @@ namespace Wabbajack.Test
             vortexCompiler.DownloadsFolder = utils.DownloadsFolder;
             vortexCompiler.StagingFolder = utils.InstallFolder;
             Directory.CreateDirectory(utils.InstallFolder);
-            Assert.IsTrue(vortexCompiler.Compile());
+            Assert.IsTrue(vortexCompiler.Begin().Result);
             return vortexCompiler;
         }
 
@@ -66,7 +66,7 @@ namespace Wabbajack.Test
                 DownloadFolder = utils.DownloadsFolder,
                 GameFolder = utils.GameFolder,
             };
-            installer.Install();
+            installer.Begin().Wait();
         }
     }
 }

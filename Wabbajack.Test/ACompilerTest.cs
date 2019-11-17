@@ -37,7 +37,7 @@ namespace Wabbajack.Test
             var compiler = MakeCompiler();
             compiler.MO2Profile = profile;
             compiler.ShowReportWhenFinished = false;
-            Assert.IsTrue(compiler.Compile());
+            Assert.IsTrue(compiler.Begin().Result);
             return compiler;
         }
 
@@ -59,7 +59,7 @@ namespace Wabbajack.Test
             var installer = new Installer(compiler.ModListOutputFile, modlist, utils.InstallFolder);
             installer.DownloadFolder = utils.DownloadsFolder;
             installer.GameFolder = utils.GameFolder;
-            installer.Install();
+            installer.Begin().Wait();
         }
     }
 }

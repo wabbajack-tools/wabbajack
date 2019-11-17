@@ -77,8 +77,8 @@ namespace Wabbajack.Test
 
             // Update the file and verify that it throws an error.
             utils.GenerateRandomFileData(game_file, 20);
-            var exception = Assert.ThrowsException<Exception>(() => Install(compiler));
-            Assert.AreEqual(exception.Message, "Game ESM hash doesn't match, is the ESM already cleaned? Please verify your local game files.");
+            var exception = Assert.ThrowsException<AggregateException>(() => Install(compiler));
+            Assert.AreEqual(exception.InnerExceptions.First().Message, "Game ESM hash doesn't match, is the ESM already cleaned? Please verify your local game files.");
 
 
         }
