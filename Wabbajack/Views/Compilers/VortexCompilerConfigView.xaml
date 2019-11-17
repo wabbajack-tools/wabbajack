@@ -81,6 +81,7 @@
                 Grid.Column="0"
                 Margin="0,0,5,0"
                 Background="Transparent"
+                Command="{Binding FindGameInSteamCommand}"
                 Style="{StaticResource CircleButtonStyle}"
                 ToolTip="Attempt to locate the game in Steam">
                 <Image Margin="1" Source="../../Resources/Icons/steam.png" />
@@ -88,6 +89,7 @@
             <Button
                 Grid.Column="1"
                 Background="Transparent"
+                Command="{Binding FindGameInGogCommand}"
                 Style="{StaticResource CircleButtonStyle}"
                 ToolTip="Attempt to locate game in GoG">
                 <Image Margin="1" Source="../../Resources/Icons/gog.png" />

@@ -45,6 +45,10 @@ namespace Wabbajack
         [Reactive]
         public FilePickerVM StagingLocation { get; set; }
 
+        public ICommand FindGameInSteamCommand { get; }
+
+        public ICommand FindGameInGogCommand { get; }
+
         public VortexCompilerVM(CompilerVM parent)
         {
             this.GameLocation = new FilePickerVM()
@@ -129,11 +133,22 @@ namespace Wabbajack
                 .Pairwise()
                 .Subscribe(pair =>
                 {
+                    // Save old
                     if (pair.Previous != null)
                     {
                         pair.Previous.GameLocation = this.GameLocation.TargetPath;
                     }
+
+                    // Load new
                     this.GameLocation.TargetPath = pair.Current?.GameLocation ?? null;
+                    if (string.IsNullOrWhiteSpace(this.GameLocation.TargetPath))
+                    {
+                        this.SetGameToSteamLocation();
+                    }
+                    if (string.IsNullOrWhiteSpace(this.GameLocation.TargetPath))
+                    {
+                        this.SetGameToGogLocation();
+                    }
                 })
                 .DisposeWith(this.CompositeDisposable);
 
@@ -155,6 +170,10 @@ namespace Wabbajack
                 // Save to property
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(this.ModlistSettings));
+
+            // Find game commands
+            this.FindGameInSteamCommand = ReactiveCommand.Create(SetGameToSteamLocation);
+            this.FindGameInGogCommand = ReactiveCommand.Create(SetGameToGogLocation);
         }
 
         public void Unload()
@@ -163,6 +182,18 @@ namespace Wabbajack
             settings.StagingLocation = this.StagingLocation.TargetPath;
             settings.LastCompiledGame = this.SelectedGame.Game;
             this.ModlistSettings?.Save();
+        }
+
+        private void SetGameToSteamLocation()
+        {
+            var steamGame = SteamHandler.Instance.Games.FirstOrDefault(g => g.Game.HasValue && g.Game == this.SelectedGame.Game);
+            this.GameLocation.TargetPath = steamGame?.InstallDir;
+        }
+
+        private void SetGameToGogLocation()
+        {
+            var gogGame = GOGHandler.Instance.Games.FirstOrDefault(g => g.Game.HasValue && g.Game == this.SelectedGame.Game);
+            this.GameLocation.TargetPath = gogGame?.Path;
         }
     }
 }

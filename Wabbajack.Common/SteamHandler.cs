@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace Wabbajack.Common
         public int AppId;
         public string Name;
         public string InstallDir;
+        public Game? Game;
     }
 
     /// <summary>
@@ -18,6 +20,11 @@ namespace Wabbajack.Common
     /// </summary>
     public class SteamHandler
     {
+        private static readonly Lazy<SteamHandler> instance = new Lazy<SteamHandler>(
+            () => new SteamHandler(true),
+            isThreadSafe: true);
+        public static SteamHandler Instance => instance.Value;
+
         private const string SteamRegKey = @"Software\Valve\Steam";
 
         /// <summary>
@@ -95,6 +102,8 @@ namespace Wabbajack.Common
                             steamGame.InstallDir = Path.Combine(p, "common", GetVdfValue(l));
                     });
 
+                    steamGame.Game = GameRegistry.Games.Values
+                        .FirstOrDefault(g => g.SteamIDs.Contains(steamGame.AppId))?.Game;
                     games.Add(steamGame);
                 });
             });
