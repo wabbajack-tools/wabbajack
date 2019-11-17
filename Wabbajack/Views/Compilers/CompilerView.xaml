@@ -198,6 +198,9 @@
                         <DataTemplate DataType="{x:Type local:MO2CompilerVM}">
                             <local:MO2CompilerConfigView />
                         </DataTemplate>
+                        <DataTemplate DataType="{x:Type local:VortexCompilerVM}">
+                            <local:VortexCompilerConfigView />
+                        </DataTemplate>
                     </ContentPresenter.Resources>
                 </ContentPresenter>
                 <local:BeginButton

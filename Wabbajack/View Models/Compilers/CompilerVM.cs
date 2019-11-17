@@ -54,11 +54,18 @@ namespace Wabbajack
                         case ModManager.MO2:
                             return new MO2CompilerVM(this);
                         case ModManager.Vortex:
-                            return new VortexCompilerVM();
+                            return new VortexCompilerVM(this);
                         default:
                             return null;
                     }
                 })
+                // Unload old VM
+                .Pairwise()
+                .Do(pair =>
+                {
+                    pair.Previous?.Unload();
+                })
+                .Select(p => p.Current)
                 .ToProperty(this, nameof(this.Compiler));
 
             // Let sub VM determine what settings we're displaying and when
@@ -71,7 +78,7 @@ namespace Wabbajack
                 .DistinctUntilChanged()
                 .Select(path =>
                 {
-                    if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Wabbajack.Resources.Banner_Dark.png");
+                    if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Wabbajack.Resources.Wabba_Mouth.png");
                     if (UIUtils.TryGetBitmapImageFromFile(path, out var image))
                     {
                         return image;

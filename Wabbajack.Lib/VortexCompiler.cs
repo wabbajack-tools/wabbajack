@@ -27,29 +27,21 @@ namespace Wabbajack.Lib
 
         public bool IgnoreMissingFiles { get; set; }
 
-        public VortexCompiler(string gameName, string gamePath)
+        public const string StagingMarkerName = "__vortex_staging_folder";
+        public const string DownloadMarkerName = "__vortex_downloads_folder";
+
+        public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder)
         {
             ModManager = ModManager.Vortex;
 
             // TODO: only for testing
             IgnoreMissingFiles = true;
-            string[] args = Environment.GetCommandLineArgs();
 
             GamePath = gamePath;
-            GameName = gameName;
-            Game = GameRegistry.GetByNexusName(GameName).Game;
-
-            //args: wabbajacke.exe gameName gamePath vortexfolder stagingfolder downloadsfolder
-            VortexFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vortex");
-            if (File.Exists(Path.Combine(VortexFolder, gameName, "mods", "__vortex_staging_folder")))
-                StagingFolder = Path.Combine(VortexFolder, gameName, "mods");
-            if (File.Exists(Path.Combine(VortexFolder, "downloads", "__vortex_downloads_folder")))
-                DownloadsFolder = Path.Combine(VortexFolder, "downloads", gameName);
-
-            if (args.Length >= 4)
-                StagingFolder = args[3];
-            if (args.Length == 5)
-                DownloadsFolder = args[4];
+            GameName = GameRegistry.Games[game].NexusName;
+            this.VortexFolder = vortexFolder;
+            this.DownloadsFolder = downloadsFolder;
+            this.StagingFolder = stagingFolder;
 
             ModListOutputFolder = "output_folder";
 
@@ -110,7 +102,7 @@ namespace Wabbajack.Lib
             Directory.CreateDirectory(ModListOutputFolder);
             
             IEnumerable<RawSourceFile> vortexStagingFiles = Directory.EnumerateFiles(StagingFolder, "*", SearchOption.AllDirectories)
-                .Where(p => p.FileExists() && p != "__vortex_staging_folder")
+                .Where(p => p.FileExists() && p != StagingMarkerName)
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     {Path = p.RelativeTo(StagingFolder)});
             
@@ -423,8 +415,8 @@ namespace Wabbajack.Lib
 
                 Game == Game.DarkestDungeon ? new IncludeRegex(this, "project\\.xml$") : null,
 
-                new IgnoreStartsWith(this, " __vortex_staging_folder"),
-                new IgnoreEndsWith(this, "__vortex_staging_folder"),
+                new IgnoreStartsWith(this, StagingFolder),
+                new IgnoreEndsWith(this, StagingFolder),
 
                 new IgnoreGameFiles(this),
 
@@ -436,6 +428,48 @@ namespace Wabbajack.Lib
 
                 new DropAll(this)
             };
+        }
+
+        public static string TypicalVortexFolder()
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Vortex");
+        }
+
+        public static string RetrieveDownloadLocation(Game game, string vortexFolderPath = null)
+        {
+            vortexFolderPath = vortexFolderPath ?? TypicalVortexFolder();
+            return Path.Combine(vortexFolderPath, "downloads", GameRegistry.Games[game].NexusName);
+        }
+
+        public static string RetrieveStagingLocation(Game game, string vortexFolderPath = null)
+        {
+            vortexFolderPath = vortexFolderPath ?? TypicalVortexFolder();
+            var gameName = GameRegistry.Games[game].NexusName;
+            return Path.Combine(vortexFolderPath, gameName, "mods");
+        }
+
+        public static IErrorResponse IsValidBaseDownloadsFolder(string path)
+        {
+            if (!Directory.Exists(path)) return ErrorResponse.Fail($"Path does not exist: {path}");
+            if (Directory.EnumerateFiles(path, DownloadMarkerName, SearchOption.TopDirectoryOnly).Any()) return ErrorResponse.Success;
+            return ErrorResponse.Fail($"Folder must contain {DownloadMarkerName} file");
+        }
+
+        public static IErrorResponse IsValidDownloadsFolder(string path)
+        {
+            return IsValidBaseDownloadsFolder(Path.GetDirectoryName(path));
+        }
+
+        public static IErrorResponse IsValidBaseStagingFolder(string path)
+        {
+            if (!Directory.Exists(path)) return ErrorResponse.Fail($"Path does not exist: {path}");
+            if (Directory.EnumerateFiles(path, StagingMarkerName, SearchOption.TopDirectoryOnly).Any()) return ErrorResponse.Success;
+            return ErrorResponse.Fail($"Folder must contain {StagingMarkerName} file");
+        }
+
+        public static IErrorResponse IsValidStagingFolder(string path)
+        {
+            return IsValidBaseStagingFolder(Path.GetDirectoryName(path));
         }
     }
 }

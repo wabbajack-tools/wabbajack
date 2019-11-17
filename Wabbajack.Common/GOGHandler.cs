@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Win32;
@@ -9,6 +10,7 @@ namespace Wabbajack.Common
         public int GameID;
         public string Path;
         public string GameName;
+        public Game? Game;
     }
 
     /// <summary>
@@ -16,6 +18,11 @@ namespace Wabbajack.Common
     /// </summary>
     public class GOGHandler
     {
+        private static readonly Lazy<GOGHandler> instance = new Lazy<GOGHandler>(
+            () => new GOGHandler(true),
+            isThreadSafe: true);
+        public static GOGHandler Instance => instance.Value;
+
         private const string GOGRegKey = @"Software\GOG.com\Games";
         private const string GOG64RegKey = @"Software\WOW6432Node\GOG.com\Games";
 
@@ -47,6 +54,7 @@ namespace Wabbajack.Common
         public void LoadAllGames()
         {
             Games = new HashSet<GOGGame>();
+            if (this.GOGKey == null) return;
             string[] keys = GOGKey.GetSubKeyNames();
             foreach (var key in keys)
             {
@@ -56,6 +64,9 @@ namespace Wabbajack.Common
                     GameName = GOGKey.OpenSubKey(key)?.GetValue("GAMENAME").ToString(),
                     Path = GOGKey.OpenSubKey(key)?.GetValue("PATH").ToString()
                 };
+
+                game.Game = GameRegistry.Games.Values
+                    .FirstOrDefault(g => g.GOGIDs.Contains(game.GameID))?.Game;
 
                 Games.Add(game);
             }
