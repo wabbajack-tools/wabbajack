@@ -1,4 +1,4 @@
-﻿<UserControl
+﻿<local:UserControlRx
     x:Class="Wabbajack.DetailImageView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -97,7 +97,8 @@
             FontWeight="Bold"
             Style="{StaticResource BackgroundBlurStyle}"
             Text="{Binding Title, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-            TextWrapping="WrapWithOverflow">
+            TextWrapping="WrapWithOverflow"
+            Visibility="{Binding ShowTitle, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityHiddenConverter}}">
             <TextBlock.Effect>
                 <BlurEffect Radius="85" />
             </TextBlock.Effect>
@@ -113,7 +114,8 @@
             FontSize="30"
             FontWeight="Bold"
             Style="{StaticResource BackgroundBlurStyle}"
-            TextWrapping="WrapWithOverflow">
+            TextWrapping="WrapWithOverflow"
+            Visibility="{Binding ShowAuthor, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityHiddenConverter}}">
             <TextBlock.Effect>
                 <BlurEffect Radius="55" />
             </TextBlock.Effect>
@@ -130,7 +132,8 @@
             FontSize="65"
             FontWeight="Bold"
             Text="{Binding Title, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-            TextWrapping="WrapWithOverflow">
+            TextWrapping="WrapWithOverflow"
+            Visibility="{Binding ShowTitle, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityHiddenConverter}}">
             <TextBlock.Effect>
                 <DropShadowEffect />
             </TextBlock.Effect>
@@ -142,7 +145,8 @@
             FontFamily="Lucida Sans"
             FontSize="30"
             FontWeight="Bold"
-            TextWrapping="Wrap">
+            TextWrapping="Wrap"
+            Visibility="{Binding ShowAuthor, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityHiddenConverter}}">
             <TextBlock.Effect>
                 <DropShadowEffect />
             </TextBlock.Effect>
@@ -163,7 +167,8 @@
             Style="{StaticResource BackgroundBlurStyle}"
             Text="{Binding Description, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
             TextAlignment="Right"
-            TextWrapping="Wrap">
+            TextWrapping="Wrap"
+            Visibility="{Binding ShowDescription, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityHiddenConverter}}">
             <TextBlock.Effect>
                 <BlurEffect Radius="55" />
             </TextBlock.Effect>
@@ -179,7 +184,8 @@
             FontSize="16"
             Text="{Binding Description, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
             TextAlignment="Right"
-            TextWrapping="Wrap">
+            TextWrapping="Wrap"
+            Visibility="{Binding ShowDescription, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityHiddenConverter}}">
             <TextBlock.Effect>
                 <DropShadowEffect />
             </TextBlock.Effect>
@@ -192,4 +198,4 @@
             Grid.ColumnSpan="2"
             Fill="Transparent" />
     </Grid>
-</UserControl>
+</local:UserControlRx>
