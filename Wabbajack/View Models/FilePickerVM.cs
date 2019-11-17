@@ -23,6 +23,13 @@ namespace Wabbajack
             Folder
         }
 
+        public enum ExistCheckOptions
+        {
+            Off,
+            IfNotEmpty,
+            On
+        }
+
         public object Parent { get; }
 
         [Reactive]
@@ -38,7 +45,7 @@ namespace Wabbajack
         public PathTypeOptions PathType { get; set; }
 
         [Reactive]
-        public bool DoExistsCheck { get; set; }
+        public ExistCheckOptions ExistCheckOption { get; set; }
 
         [Reactive]
         public IObservable<IErrorResponse> AdditionalError { get; set; }
@@ -63,28 +70,60 @@ namespace Wabbajack
             this.SetTargetPathCommand = ConstructTypicalPickerCommand();
 
             // Check that file exists
-            this._Exists = Observable.Interval(TimeSpan.FromSeconds(3))
-                .FilterSwitch(
-                    Observable.CombineLatest(
-                        this.WhenAny(x => x.PathType),
-                        this.WhenAny(x => x.DoExistsCheck),
-                        resultSelector: (type, doExists) => type != PathTypeOptions.Off && doExists))
-                .Unit()
-                // Also do it when fields change
-                .Merge(this.WhenAny(x => x.PathType).Unit())
-                .Merge(this.WhenAny(x => x.DoExistsCheck).Unit())
-                .CombineLatest(
-                        this.WhenAny(x => x.DoExistsCheck),
-                        this.WhenAny(x => x.PathType),
-                        this.WhenAny(x => x.TargetPath)
+
+            var existsCheckTuple = Observable.CombineLatest(
+                    this.WhenAny(x => x.ExistCheckOption),
+                    this.WhenAny(x => x.PathType),
+                    this.WhenAny(x => x.TargetPath)
                             // Dont want to debounce the initial value, because we know it's null
                             .Skip(1)
-                            .Debounce(TimeSpan.FromMilliseconds(200)),
-                    resultSelector: (_, DoExists, Type, Path) => (DoExists, Type, Path))
+                            .Debounce(TimeSpan.FromMilliseconds(200))
+                            .StartWith(default(string)),
+                    resultSelector: (ExistsOption, Type, Path) => (ExistsOption, Type, Path))
+                .Publish()
+                .RefCount();
+
+            this._Exists = Observable.Interval(TimeSpan.FromSeconds(3))
+                // Only check exists on timer if desired
+                .FilterSwitch(existsCheckTuple
+                    .Select(t =>
+                    {
+                        // Don't do exists type if we don't know what path type we're tracking
+                        if (t.Type == PathTypeOptions.Off) return false;
+                        switch (t.ExistsOption)
+                        {
+                            case ExistCheckOptions.Off:
+                                return false;
+                            case ExistCheckOptions.IfNotEmpty:
+                                return !string.IsNullOrWhiteSpace(t.Path);
+                            case ExistCheckOptions.On:
+                                return true;
+                            default:
+                                throw new NotImplementedException();
+                        }
+                    }))
+                .Unit()
+                // Also check though, when fields change
+                .Merge(this.WhenAny(x => x.PathType).Unit())
+                .Merge(this.WhenAny(x => x.ExistCheckOption).Unit())
+                .Merge(this.WhenAny(x => x.TargetPath).Unit())
+                // Signaled to check, get latest params for actual use
+                .CombineLatest(existsCheckTuple,
+                    resultSelector: (_, tuple) => tuple)
                 // Refresh exists
                 .Select(t =>
                 {
-                    if (!t.DoExists) return true;
+                    switch (t.ExistsOption)
+                    {
+                        case ExistCheckOptions.IfNotEmpty:
+                            if (string.IsNullOrWhiteSpace(t.Path)) return true;
+                            break;
+                        case ExistCheckOptions.On:
+                            break;
+                        case ExistCheckOptions.Off:
+                        default:
+                            return true;
+                    }
                     switch (t.Type)
                     {
                         case PathTypeOptions.Either:

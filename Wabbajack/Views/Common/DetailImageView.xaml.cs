@@ -1,6 +1,8 @@
-﻿using System;
+﻿using ReactiveUI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -18,7 +20,7 @@ namespace Wabbajack
     /// <summary>
     /// Interaction logic for DetailImageView.xaml
     /// </summary>
-    public partial class DetailImageView : UserControl
+    public partial class DetailImageView : UserControlRx
     {
         public ImageSource Image
         {
@@ -42,7 +44,7 @@ namespace Wabbajack
             set => SetValue(TitleProperty, value);
         }
         public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(nameof(Title), typeof(string), typeof(DetailImageView),
-             new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+             new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
         public string Author
         {
@@ -50,7 +52,7 @@ namespace Wabbajack
             set => SetValue(AuthorProperty, value);
         }
         public static readonly DependencyProperty AuthorProperty = DependencyProperty.Register(nameof(Author), typeof(string), typeof(DetailImageView),
-             new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+             new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
         public string Description
         {
@@ -58,11 +60,32 @@ namespace Wabbajack
             set => SetValue(DescriptionProperty, value);
         }
         public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(nameof(Description), typeof(string), typeof(DetailImageView),
-             new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+             new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
+
+        private readonly ObservableAsPropertyHelper<bool> _ShowAuthor;
+        public bool ShowAuthor => _ShowAuthor.Value;
+
+        private readonly ObservableAsPropertyHelper<bool> _ShowDescription;
+        public bool ShowDescription => _ShowDescription.Value;
+
+        private readonly ObservableAsPropertyHelper<bool> _ShowTitle;
+        public bool ShowTitle => _ShowTitle.Value;
 
         public DetailImageView()
         {
             InitializeComponent();
+
+            this._ShowAuthor = this.WhenAny(x => x.Author)
+                .Select(x => !string.IsNullOrWhiteSpace(x))
+                .ToProperty(this, nameof(this.ShowAuthor));
+
+            this._ShowDescription = this.WhenAny(x => x.Description)
+                .Select(x => !string.IsNullOrWhiteSpace(x))
+                .ToProperty(this, nameof(this.ShowDescription));
+
+            this._ShowTitle = this.WhenAny(x => x.Title)
+                .Select(x => !string.IsNullOrWhiteSpace(x))
+                .ToProperty(this, nameof(this.ShowTitle));
         }
     }
 }

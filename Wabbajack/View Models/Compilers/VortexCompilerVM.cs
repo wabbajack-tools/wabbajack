@@ -56,19 +56,19 @@ namespace Wabbajack
         {
             this.GameLocation = new FilePickerVM()
             {
-                DoExistsCheck = true,
+                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Game Folder Location"
             };
             this.DownloadsLocation = new FilePickerVM()
             {
-                DoExistsCheck = true,
+                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Downloads Folder"
             };
             this.StagingLocation = new FilePickerVM()
             {
-                DoExistsCheck = true,
+                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Staging Folder"
             };
