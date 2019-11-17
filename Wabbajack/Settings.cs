@@ -58,7 +58,6 @@ namespace Wabbajack
     public class ModlistInstallationSettings
     {
         public string InstallationLocation { get; set; }
-        public string StagingLocation { get; set; }
         public string DownloadLocation { get; set; }
     }
 
@@ -88,8 +87,15 @@ namespace Wabbajack
 
     public class VortexCompilationSettings
     {
-        public string StagingLocation { get; set; }
         public Game LastCompiledGame { get; set; }
-        public Dictionary<Game, CompilationModlistSettings> ModlistSettings { get; } = new Dictionary<Game, CompilationModlistSettings>();
+        public Dictionary<Game, VortexGameSettings> ModlistSettings { get; } = new Dictionary<Game, VortexGameSettings>();
+    }
+
+    public class VortexGameSettings
+    {
+        public string GameLocation { get; set; }
+        public string DownloadLocation { get; set; }
+        public string StagingLocation { get; set; }
+        public CompilationModlistSettings ModlistSettings { get; } = new CompilationModlistSettings();
     }
 }

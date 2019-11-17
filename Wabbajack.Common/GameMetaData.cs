@@ -1,29 +1,43 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.Win32;
 
 namespace Wabbajack.Common
 {
-    public enum Game {
+    public enum Game 
+    {
         //MO2 GAMES
         Morrowind,
         Oblivion,
+        [Description("Fallout 3")]
         Fallout3,
+        [Description("Fallout New Vegas")]
         FalloutNewVegas,
         Skyrim,
+        [Description("Skyrim Special Edition")]
         SkyrimSpecialEdition,
+        [Description("Fallout 4")]
         Fallout4,
+        [Description("Skyrim VR")]
         SkyrimVR,
         //VORTEX GAMES
+        [Description("Darkest Dungeon")]
         DarkestDungeon,
+        [Description("Divinity Original Sin 2")]
         DivinityOriginalSin2,
+        [Description("Divinity Original Sin 2 Definitive Edition")]
         DivinityOriginalSin2DE, //definitive edition has its own nexus page but same Steam/GOG ids
         Starbound,
+        [Description("Star Wars: Knights of the Old Republic")]
         SWKOTOR,
+        [Description("Star Wars: Knights of the Old Republic 2")]
         SWKOTOR2,
         Witcher,
+        [Description("Witcher 2")]
         Witcher2,
+        [Description("Witcher 3")]
         Witcher3
     }
 
