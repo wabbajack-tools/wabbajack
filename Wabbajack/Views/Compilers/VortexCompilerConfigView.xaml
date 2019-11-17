@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DataContext="{d:DesignInstance local:VortexCompilerVM}"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -19,12 +20,13 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="28" />
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
-            <RowDefinition Height="40" />
+            <RowDefinition Height="28" />
         </Grid.RowDefinitions>
         <TextBlock
-            Grid.Row="0"
+            Grid.Row="1"
             Grid.Column="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
@@ -33,13 +35,23 @@
             TextAlignment="Center"
             ToolTip="The game you wish to target" />
         <ComboBox
-            Grid.Row="0"
+            Grid.Row="1"
             Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
-            ToolTip="The game you wish to target" />
+            VerticalContentAlignment="Center"
+            FontSize="14"
+            ItemsSource="{Binding GameOptions}"
+            SelectedValue="{Binding SelectedGame}"
+            ToolTip="The game you wish to target">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding DisplayName}" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
         <TextBlock
-            Grid.Row="1"
+            Grid.Row="2"
             Grid.Column="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
@@ -48,15 +60,42 @@
             TextAlignment="Center"
             ToolTip="The install folder for the game" />
         <local:FilePicker
-            Grid.Row="1"
+            Grid.Row="2"
             Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
             DataContext="{Binding GameLocation}"
             FontSize="14"
             ToolTip="The install folder for the game" />
+        <Grid
+            Grid.Row="3"
+            Grid.Column="2"
+            Height="28"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button
+                Grid.Column="0"
+                Margin="0,0,5,0"
+                Background="Transparent"
+                Style="{StaticResource CircleButtonStyle}"
+                ToolTip="Attempt to locate the game in Steam">
+                <Image Margin="1" Source="../../Resources/Icons/steam.png" />
+            </Button>
+            <Button
+                Grid.Column="1"
+                Background="Transparent"
+                Style="{StaticResource CircleButtonStyle}"
+                ToolTip="Attempt to locate game in GoG">
+                <Image Margin="1" Source="../../Resources/Icons/gog.png" />
+            </Button>
+        </Grid>
+
         <TextBlock
-            Grid.Row="0"
+            Grid.Row="1"
             Grid.Column="4"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
@@ -65,7 +104,7 @@
             TextAlignment="Center"
             ToolTip="The folder to downloads your mods" />
         <local:FilePicker
-            Grid.Row="0"
+            Grid.Row="1"
             Grid.Column="6"
             Height="30"
             VerticalAlignment="Center"
@@ -73,7 +112,7 @@
             FontSize="14"
             ToolTip="The folder to downloads your mods" />
         <TextBlock
-            Grid.Row="1"
+            Grid.Row="2"
             Grid.Column="4"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
@@ -81,7 +120,7 @@
             Text="Staging Location"
             TextAlignment="Center" />
         <local:FilePicker
-            Grid.Row="1"
+            Grid.Row="2"
             Grid.Column="6"
             Height="30"
             VerticalAlignment="Center"

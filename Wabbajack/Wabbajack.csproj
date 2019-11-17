@@ -162,6 +162,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="View Models\GameVM.cs" />
     <Compile Include="Views\Compilers\MO2CompilerConfigView.xaml.cs">
       <DependentUpon>MO2CompilerConfigView.xaml</DependentUpon>
     </Compile>
@@ -471,6 +472,10 @@
   <ItemGroup>
     <Resource Include="Resources\MO2Button.png" />
     <Resource Include="Resources\VortexButton.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Icons\gog.png" />
+    <Resource Include="Resources\Icons\steam.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

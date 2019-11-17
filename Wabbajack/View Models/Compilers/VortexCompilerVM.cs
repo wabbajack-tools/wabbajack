@@ -5,6 +5,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
@@ -24,8 +26,15 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _ModlistSettings;
         public ModlistSettingsEditorVM ModlistSettings => _ModlistSettings.Value;
 
+        private static ObservableCollectionExtended<GameVM> gameOptions = new ObservableCollectionExtended<GameVM>(
+            EnumExt.GetValues<Game>()
+                   .Select(g => new GameVM(g))
+                   .OrderBy(g => g.DisplayName));
+
+        public ObservableCollectionExtended<GameVM> GameOptions => gameOptions;
+
         [Reactive]
-        public Game SelectedGame { get; set; }
+        public GameVM SelectedGame { get; set; } = gameOptions.First(x => x.Game == Game.SkyrimSpecialEdition);
 
         [Reactive]
         public FilePickerVM GameLocation { get; set; }
@@ -71,7 +80,7 @@ namespace Wabbajack
                     try
                     {
                         compiler = new VortexCompiler(
-                            game: this.SelectedGame,
+                            game: this.SelectedGame.Game,
                             gamePath: this.GameLocation.TargetPath,
                             vortexFolder: VortexCompiler.TypicalVortexFolder(),
                             downloadsFolder: this.DownloadsLocation.TargetPath,
@@ -101,7 +110,7 @@ namespace Wabbajack
 
             // Load settings
             this.settings = parent.MWVM.Settings.Compiler.VortexCompilation;
-            this.SelectedGame = settings.LastCompiledGame;
+            this.SelectedGame = gameOptions.First(x => x.Game == settings.LastCompiledGame);
             if (!string.IsNullOrWhiteSpace(settings.DownloadLocation))
             {
                 this.DownloadsLocation.TargetPath = settings.DownloadLocation;
@@ -116,7 +125,7 @@ namespace Wabbajack
 
             // Load custom game settings when game type changes
             this.WhenAny(x => x.SelectedGame)
-                .Select(game => settings.ModlistSettings.TryCreate(game))
+                .Select(game => settings.ModlistSettings.TryCreate(game.Game))
                 .Pairwise()
                 .Subscribe(pair =>
                 {
@@ -132,7 +141,7 @@ namespace Wabbajack
             this._ModlistSettings = this.WhenAny(x => x.SelectedGame)
                 .Select(game =>
                 {
-                    var gameSettings = settings.ModlistSettings.TryCreate(game);
+                    var gameSettings = settings.ModlistSettings.TryCreate(game.Game);
                     return new ModlistSettingsEditorVM(gameSettings.ModlistSettings);
                 })
                 // Interject and save old while loading new
@@ -152,7 +161,7 @@ namespace Wabbajack
         {
             settings.DownloadLocation = this.DownloadsLocation.TargetPath;
             settings.StagingLocation = this.StagingLocation.TargetPath;
-            settings.LastCompiledGame = this.SelectedGame;
+            settings.LastCompiledGame = this.SelectedGame.Game;
             this.ModlistSettings?.Save();
         }
     }

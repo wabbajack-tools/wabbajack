@@ -95,6 +95,7 @@
     <Compile Include="Enums\RunMode.cs" />
     <Compile Include="ExtensionManager.cs" />
     <Compile Include="Extensions\DictionaryExt.cs" />
+    <Compile Include="Extensions\EnumExt.cs" />
     <Compile Include="Extensions\HashHelper.cs" />
     <Compile Include="Extensions\RxExt.cs" />
     <Compile Include="Extensions\TaskExt.cs" />
