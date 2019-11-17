@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Win32;
 
@@ -66,7 +67,9 @@ namespace Wabbajack.Common
                 };
 
                 game.Game = GameRegistry.Games.Values
-                    .FirstOrDefault(g => g.GOGIDs != null && g.GOGIDs.Contains(game.GameID))?.Game;
+                    .FirstOrDefault(g => g.GOGIDs != null && g.GOGIDs.Contains(game.GameID)
+                      &&
+                      g.RequiredFiles.TrueForAll(s => File.Exists(Path.Combine(game.Path, s))))?.Game;
 
                 Games.Add(game);
             }
