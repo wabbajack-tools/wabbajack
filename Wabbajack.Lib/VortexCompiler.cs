@@ -266,7 +266,7 @@ namespace Wabbajack.Lib
             metadata.ToJSON(ModListOutputFile + ".meta.json");
 
             Utils.Log("Removing ModList staging folder");
-            //Directory.Delete(ModListOutputFolder, true);
+            Directory.Delete(ModListOutputFolder, true);
         }
 
         /*private void GenerateReport()
