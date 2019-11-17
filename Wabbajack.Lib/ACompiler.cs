@@ -12,6 +12,10 @@ namespace Wabbajack.Lib
 {
     public abstract class ACompiler
     {
+        public StatusUpdateTracker UpdateTracker { get; protected set; }
+
+        public WorkQueue Queue { get; protected set; }
+
         protected static string _vfsCacheName = "vfs_compile_cache.bin";
         /// <summary>
         /// A stream of tuples of ("Update Title", 0.25) which represent the name of the current task
@@ -20,7 +24,7 @@ namespace Wabbajack.Lib
         public IObservable<(string, float)> ProgressUpdates => _progressUpdates;
         protected readonly Subject<(string, float)> _progressUpdates = new Subject<(string, float)>();
 
-        public Context VFS { get; internal set; } = new Context();
+        public Context VFS { get; internal set; }
 
         public ModManager ModManager;
 
@@ -53,7 +57,7 @@ namespace Wabbajack.Lib
         protected ACompiler()
         {
             ProgressUpdates.Subscribe(itm => Utils.Log($"{itm.Item2} - {itm.Item1}"));
-            VFS.LogSpam.Subscribe(itm => Utils.Status(itm));
+            Queue = new WorkQueue();
         }
     }
 }

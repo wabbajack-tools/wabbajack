@@ -36,6 +36,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _ModlistSettings;
         public ModlistSettingsEditorVM ModlistSettings => _ModlistSettings.Value;
 
+        [Reactive]
+        public StatusUpdateTracker StatusTracker { get; private set; }
+
         public MO2CompilerVM(CompilerVM parent)
         {
             this.ModlistLocation = new FilePickerVM()
@@ -121,12 +124,17 @@ namespace Wabbajack
                     {
                         try
                         {
+                            this.StatusTracker = compiler.UpdateTracker;
                             compiler.Compile();
                         }
                         catch (Exception ex)
                         {
                             while (ex.InnerException != null) ex = ex.InnerException;
                             Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                        }
+                        finally
+                        {
+                            this.StatusTracker = null;
                         }
                     });
                 });

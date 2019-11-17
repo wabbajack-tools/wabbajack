@@ -21,9 +21,12 @@ namespace Wabbajack.Test
 
         public TestContext TestContext { get; set; }
 
+        public WorkQueue Queue { get; set; }
+
         [TestInitialize]
         public void TestInitialize()
         {
+            Queue = new WorkQueue();
             Consts.TestMode = true;
 
             utils = new TestUtils();
@@ -33,7 +36,12 @@ namespace Wabbajack.Test
 
             if (!Directory.Exists(DOWNLOAD_FOLDER))
                 Directory.CreateDirectory(DOWNLOAD_FOLDER);
+        }
 
+        [TestCleanup]
+        public void Cleanup()
+        {
+            Queue.Shutdown();
         }
 
         [TestMethod]
@@ -89,11 +97,8 @@ namespace Wabbajack.Test
 
             File.Copy(src, Path.Combine(utils.DownloadsFolder, filename));
 
-            if (mod_name == null)
-                FileExtractor.ExtractAll(src, utils.MO2Folder);
-            else
-                FileExtractor.ExtractAll(src, Path.Combine(utils.ModsFolder, mod_name));
-
+            FileExtractor.ExtractAll(Queue, src,
+                mod_name == null ? utils.MO2Folder : Path.Combine(utils.ModsFolder, mod_name));
         }
 
         private void DownloadAndInstall(Game game, int modid, string mod_name)
@@ -127,7 +132,7 @@ namespace Wabbajack.Test
             var dest = Path.Combine(utils.DownloadsFolder, file.file_name);
             File.Copy(src, dest);
 
-            FileExtractor.ExtractAll(src, Path.Combine(utils.ModsFolder, mod_name));
+            FileExtractor.ExtractAll(Queue, src, Path.Combine(utils.ModsFolder, mod_name));
 
             File.WriteAllText(dest + ".meta", ini);
         }

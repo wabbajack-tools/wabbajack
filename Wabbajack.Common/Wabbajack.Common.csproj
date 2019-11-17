@@ -104,6 +104,7 @@
     <Compile Include="GOGHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SplittingStream.cs" />
+    <Compile Include="StatusUpdate.cs" />
     <Compile Include="SteamHandler.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="WorkQueue.cs" />
@@ -145,6 +146,9 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json.Bson">
       <Version>1.0.2</Version>
+    </PackageReference>
+    <PackageReference Include="ReactiveUI">
+      <Version>10.5.7</Version>
     </PackageReference>
     <PackageReference Include="System.Data.HashFunction.xxHash">
       <Version>2.0.0</Version>

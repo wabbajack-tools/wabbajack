@@ -31,9 +31,6 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ViewModel> _ActivePane;
         public ViewModel ActivePane => _ActivePane.Value;
 
-        private readonly ObservableAsPropertyHelper<int> _QueueProgress;
-        public int QueueProgress => _QueueProgress.Value;
-
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
 
         public ObservableCollectionExtended<string> Log { get; } = new ObservableCollectionExtended<string>();
@@ -64,9 +61,6 @@ namespace Wabbajack
                 .Bind(this.Log)
                 .Subscribe()
                 .DisposeWith(this.CompositeDisposable);
-            Utils.StatusUpdates
-                .Subscribe((i) => WorkQueue.Report(i.Message, i.Progress))
-                .DisposeWith(this.CompositeDisposable);
 
             // Wire mode to drive the active pane.
             // Note:  This is currently made into a derivative property driven by mode,
@@ -86,7 +80,9 @@ namespace Wabbajack
                 })
                 .ToProperty(this, nameof(this.ActivePane));
 
+
             // Compile progress updates and populate ObservableCollection
+            /*
             WorkQueue.Status
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .ToObservableChangeSet(x => x.ID)
@@ -96,18 +92,7 @@ namespace Wabbajack
                 .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
                 .Bind(this.StatusList)
                 .Subscribe()
-                .DisposeWith(this.CompositeDisposable);
-
-            this._QueueProgress = WorkQueue.QueueSize
-                .Select(progress =>
-                {
-                    if (progress.Max == 0)
-                    {
-                        progress.Max = 1;
-                    }
-                    return progress.Current * 100 / progress.Max;
-                })
-                .ToProperty(this, nameof(this.QueueProgress));
+                .DisposeWith(this.CompositeDisposable);*/
         }
     }
 }

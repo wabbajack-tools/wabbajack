@@ -32,14 +32,14 @@ namespace Wabbajack.VirtualFileSystem
         public IObservable<(string, float)> ProgressUpdates => _progressUpdates;
         private readonly Subject<(string, float)> _progressUpdates = new Subject<(string, float)>();
 
-        /// <summary>
-        /// A high throughput firehose of updates from the VFS. These go into more detail on the status
-        /// of what's happening in the context, but is probably too high bandwidth to tie driectly to the
-        /// UI.
-        /// </summary>
-        public IObservable<string> LogSpam => _logSpam;
-        internal readonly Subject<string> _logSpam = new Subject<string>();
+        public StatusUpdateTracker UpdateTracker { get; set; } = new StatusUpdateTracker(1);
 
+        public WorkQueue  Queue { get; }
+
+        public Context(WorkQueue queue)
+        {
+            Queue = queue;
+        }
 
         public TemporaryDirectory GetTemporaryFolder()
         {
@@ -60,7 +60,7 @@ namespace Wabbajack.VirtualFileSystem
             var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing {root}", filesToIndex.Count));
 
             var allFiles= filesToIndex
-                            .PMap(f =>
+                            .PMap(Queue, f =>
                             {
                                 if (byPath.TryGetValue(f, out var found))
                                 {
@@ -112,20 +112,19 @@ namespace Wabbajack.VirtualFileSystem
                 bw.Write(FileVersion);
                 bw.Write((ulong) Index.AllFiles.Count);
 
-                var sizes = Index.AllFiles
-                    .PMap(f =>
+                Index.AllFiles
+                    .PMap(Queue, f =>
                     {
                         var ms = new MemoryStream();
                         f.Write(ms);
                         return ms;
                     })
-                    .Select(ms =>
+                    .Do(ms =>
                     {
                         var size = ms.Position;
                         ms.Position = 0;
                         bw.Write((ulong) size);
                         ms.CopyTo(fs);
-                        return ms.Position;
                     });
                 Utils.Log($"Wrote {fs.Position.ToFileSizeString()} file as vfs cache file {filename}");
             }
@@ -181,7 +180,7 @@ namespace Wabbajack.VirtualFileSystem
             foreach (var group in grouped)
             {
                 var tmpPath = Path.Combine(_stagingFolder, Guid.NewGuid().ToString());
-                FileExtractor.ExtractAll(group.Key.StagedPath, tmpPath);
+                FileExtractor.ExtractAll(Queue, group.Key.StagedPath, tmpPath);
                 paths.Add(tmpPath);
                 foreach (var file in group)
                     file.StagedPath = Path.Combine(tmpPath, file.Name);
@@ -215,7 +214,7 @@ namespace Wabbajack.VirtualFileSystem
             var indexedState = state.GroupBy(f => f.ParentHash)
                 .ToDictionary(f => f.Key ?? "", f => (IEnumerable<PortableFile>) f);
             var parents = indexedState[""]
-                .PMap(f => VirtualFile.CreateFromPortable(this, indexedState, links, f));
+                .PMap(Queue,f => VirtualFile.CreateFromPortable(this, indexedState, links, f));
 
             var newIndex = Index.Integrate(parents);
             lock (this)

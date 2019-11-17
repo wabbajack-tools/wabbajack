@@ -63,7 +63,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             var id = Guid.NewGuid().ToString();
 
-            var matches = source_files.PMap(e => _mo2Compiler.RunStack(stack, new RawSourceFile(e)
+            var matches = source_files.PMap(_mo2Compiler.Queue, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e)
             {
                 Path = Path.Combine(Consts.BSACreationDir, id, e.Name)
             }));

@@ -49,6 +49,9 @@ namespace Wabbajack
 
         public ICommand FindGameInGogCommand { get; }
 
+        [Reactive]
+        public StatusUpdateTracker StatusTracker { get; private set; }
+
         public VortexCompilerVM(CompilerVM parent)
         {
             this.GameLocation = new FilePickerVM()
@@ -100,12 +103,17 @@ namespace Wabbajack
                     {
                         try
                         {
+                            this.StatusTracker = compiler.UpdateTracker;
                             compiler.Compile();
                         }
                         catch (Exception ex)
                         {
                             while (ex.InnerException != null) ex = ex.InnerException;
                             Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                        }
+                        finally
+                        {
+                            this.StatusTracker = null;
                         }
                     });
                 });

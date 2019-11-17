@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Windows;
 using Wabbajack.Common;
-using Wabbajack.Lib.Updater;
 
 namespace Wabbajack
 {

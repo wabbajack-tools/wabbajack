@@ -16,6 +16,8 @@ namespace Wabbajack.Lib.Validation
     public class ValidateModlist
     {
         public Dictionary<string, Author> AuthorPermissions { get; set; } = new Dictionary<string, Author>();
+
+        private WorkQueue Queue = new WorkQueue();
         public ServerWhitelist ServerWhitelist { get; set; } = new ServerWhitelist();
 
         public void LoadAuthorPermissionsFromString(string s)
@@ -101,12 +103,12 @@ namespace Wabbajack.Lib.Validation
             
             var nexus_mod_permissions = modlist.Archives
                 .Where(a => a.State is NexusDownloader.State)
-                .PMap(a => (a.Hash, FilePermissions((NexusDownloader.State)a.State), a))
+                .PMap(Queue, a => (a.Hash, FilePermissions((NexusDownloader.State)a.State), a))
                 .ToDictionary(a => a.Hash, a => new { permissions = a.Item2, archive = a.a });
 
             modlist.Directives
                 .OfType<PatchedFromArchive>()
-                .PMap(p =>
+                .PMap(Queue, p =>
                 {
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {
@@ -125,7 +127,7 @@ namespace Wabbajack.Lib.Validation
 
             modlist.Directives
                 .OfType<FromArchive>()
-                .PMap(p =>
+                .PMap(Queue,p =>
                 {
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {

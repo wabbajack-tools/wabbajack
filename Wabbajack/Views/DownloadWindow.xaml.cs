@@ -63,8 +63,6 @@ namespace Wabbajack.UI
         {
             _downloadThread = new Thread(() =>
             {
-                WorkQueue.CustomReportFn = (progress, msg) => { DownloadProgress = progress; };
-
                 var state = DownloadDispatcher.ResolveArchive(_url);
                 state.Download(new Archive {Name = _downloadName, Size = _size}, _destination);
                 _destination.FileHash();

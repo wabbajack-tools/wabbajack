@@ -25,10 +25,12 @@ namespace Compression.BSA.Test
 
         public TestContext TestContext { get; set; }
 
+        private static WorkQueue Queue { get; set; }
+
         [ClassInitialize]
         public static void Setup(TestContext TestContext)
         {
-
+            Queue = new WorkQueue();
             Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f));
             if (!Directory.Exists(StagingFolder))
                 Directory.CreateDirectory(StagingFolder);
@@ -50,9 +52,12 @@ namespace Compression.BSA.Test
                 var folder = Path.Combine(BSAFolder, info.Item1.ToString(), info.Item2.ToString());
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
-                FileExtractor.ExtractAll(filename, folder);
+                FileExtractor.ExtractAll(Queue, filename, folder);
             }
         }
+
+
+
 
         private static string DownloadMod((Game, int) info)
         {
@@ -98,7 +103,7 @@ namespace Compression.BSA.Test
             string TempFile = Path.Combine("tmp.bsa");
             using (var a = BSADispatch.OpenRead(bsa))
             {
-                a.Files.PMap(file =>
+                a.Files.PMap(Queue, file =>
                 {
                     var abs_name = Path.Combine(TempDir, file.Path);
                     ViaJson(file.State);
@@ -119,7 +124,7 @@ namespace Compression.BSA.Test
 
                 using (var w = ViaJson(a.State).MakeBuilder())
                 {
-                    a.Files.PMap(file =>
+                    a.Files.PMap(Queue, file =>
                     {
                         var abs_path = Path.Combine(TempDir, file.Path);
                         using (var str = File.OpenRead(abs_path))
@@ -142,7 +147,7 @@ namespace Compression.BSA.Test
                     var idx = 0;
 
                     a.Files.Zip(b.Files, (ai, bi) => (ai, bi))
-                                .PMap(pair =>
+                                .PMap(Queue, pair =>
                                 {
                                     idx++;
                                     Assert.AreEqual(JsonConvert.SerializeObject(pair.ai.State),

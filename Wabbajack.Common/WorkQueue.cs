@@ -12,31 +12,26 @@ namespace Wabbajack.Common
 {
     public class WorkQueue
     {
-        internal static BlockingCollection<Action>
+        internal BlockingCollection<Action>
             Queue = new BlockingCollection<Action>(new ConcurrentStack<Action>());
 
         [ThreadStatic] private static int CpuId;
 
-        [ThreadStatic] internal static bool WorkerThread;
+        internal static bool WorkerThread => CurrentQueue != null;
+        [ThreadStatic] internal static WorkQueue CurrentQueue;
 
-        [ThreadStatic] public static Action<int, string> CustomReportFn;
+        private static readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
+        public IObservable<CPUStatus> Status => _Status;
 
-        public static int MaxQueueSize;
-        public static int CurrentQueueSize;
-
-        private readonly static Subject<CPUStatus> _Status = new Subject<CPUStatus>();
-        public static IObservable<CPUStatus> Status => _Status;
-        private readonly static Subject<(int Current, int Max)> _QueueSize = new Subject<(int Current, int Max)>();
-        public static IObservable<(int Current, int Max)> QueueSize => _QueueSize;
         public static int ThreadCount { get; } = Environment.ProcessorCount;
         public static List<Thread> Threads { get; private set; }
 
-        static WorkQueue()
+        public WorkQueue()
         {
             StartThreads();
         }
 
-        private static void StartThreads()
+        private void StartThreads()
         {
             Threads = Enumerable.Range(0, ThreadCount)
                 .Select(idx =>
@@ -50,10 +45,10 @@ namespace Wabbajack.Common
                 }).ToList();
         }
 
-        private static void ThreadBody(int idx)
+        private void ThreadBody(int idx)
         {
             CpuId = idx;
-            WorkerThread = true;
+            CurrentQueue = this;
 
             while (true)
             {
@@ -63,32 +58,25 @@ namespace Wabbajack.Common
             }
         }
 
-        public static void Report(string msg, int progress)
+        public void Report(string msg, int progress)
         {
-            if (CustomReportFn != null)
-            {
-                CustomReportFn(progress, msg);
-            }
-            else
-            {
-                _Status.OnNext(
-                    new CPUStatus
-                    {
-                        Progress = progress,
-                        Msg = msg,
-                        ID = CpuId
-                    });
-            }
+            _Status.OnNext(
+                new CPUStatus
+                {
+                    Progress = progress,
+                    Msg = msg,
+                    ID = CpuId
+                });
         }
 
-        public static void QueueTask(Action a)
+        public void QueueTask(Action a)
         {
             Queue.Add(a);
         }
 
-        internal static void ReportNow()
+        public void Shutdown()
         {
-            _QueueSize.OnNext((MaxQueueSize, CurrentQueueSize));
+            Threads.Do(th => th.Abort());
         }
     }
 

@@ -29,6 +29,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _CurrentModlistSettings;
         public ModlistSettingsEditorVM CurrentModlistSettings => _CurrentModlistSettings.Value;
 
+        private readonly ObservableAsPropertyHelper<StatusUpdateTracker> _CurrentStatusTracker;
+        public StatusUpdateTracker CurrentStatusTracker => _CurrentStatusTracker.Value;
+
         public CompilerVM(MainWindowVM mainWindowVM)
         {
             this.MWVM = mainWindowVM;
@@ -71,6 +74,10 @@ namespace Wabbajack
             // Let sub VM determine what settings we're displaying and when
             this._CurrentModlistSettings = this.WhenAny(x => x.Compiler.ModlistSettings)
                 .ToProperty(this, nameof(this.CurrentModlistSettings));
+
+            // Let sub VM determine what progress we're seeing
+            this._CurrentStatusTracker = this.WhenAny(x => x.Compiler.StatusTracker)
+                .ToProperty(this, nameof(this.CurrentStatusTracker));
 
             this._Image = this.WhenAny(x => x.CurrentModlistSettings.ImagePath.TargetPath)
                 // Throttle so that it only loads image after any sets of swaps have completed

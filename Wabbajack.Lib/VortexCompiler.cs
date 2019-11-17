@@ -42,7 +42,8 @@ namespace Wabbajack.Lib
             this.VortexFolder = vortexFolder;
             this.DownloadsFolder = downloadsFolder;
             this.StagingFolder = stagingFolder;
-
+            Queue = new WorkQueue();
+            VFS = new Context(Queue);
             ModListOutputFolder = "output_folder";
 
             // TODO: add custom modlist name
@@ -56,7 +57,7 @@ namespace Wabbajack.Lib
 
         public override void Status(string msg)
         {
-            WorkQueue.Report(msg, 0);
+            Queue.Report(msg, 0);
         }
 
         public override void Error(string msg)
@@ -159,7 +160,7 @@ namespace Wabbajack.Lib
             IEnumerable<ICompilationStep> stack = MakeStack();
 
             Info("Running Compilation Stack");
-            List<Directive> results = AllFiles.PMap(f => RunStack(stack.Where(s => s != null), f)).ToList();
+            List<Directive> results = AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f)).ToList();
 
             IEnumerable<NoMatch> noMatch = results.OfType<NoMatch>().ToList();
             Info($"No match for {noMatch.Count()} files");
@@ -341,7 +342,7 @@ namespace Wabbajack.Lib
                 .GroupBy(f => f.File.Hash)
                 .ToDictionary(f => f.Key, f => f.First());
 
-            SelectedArchives = shas.PMap(sha => ResolveArchive(sha, archives));
+            SelectedArchives = shas.PMap(Queue, sha => ResolveArchive(sha, archives));
         }
 
         private Archive ResolveArchive(string sha, IDictionary<string, IndexedArchive> archives)
