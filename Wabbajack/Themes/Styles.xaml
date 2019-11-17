@@ -12,8 +12,8 @@
     <local:BoolToVisibilityConverter x:Key="bool2VisibilityConverter" />
     <local:BoolToVisibilityHiddenConverter x:Key="bool2VisibilityHiddenConverter" />
     <local:InverseBooleanConverter x:Key="InverseBooleanConverter" />
-    <local:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter"/>
-    <local:EqualsToBoolConverter x:Key="EqualsToBoolConverter"/>
+    <local:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter" />
+    <local:EqualsToBoolConverter x:Key="EqualsToBoolConverter" />
 
     <!--  Colors  -->
     <Color x:Key="WindowBackgroundColor">#121212</Color>
@@ -21,6 +21,7 @@
     <Color x:Key="LightBackgroundColor">#414141</Color>
     <Color x:Key="BackgroundColor">#3D3D3D</Color>
     <Color x:Key="DisabledBackgroundColor">#424242</Color>
+    <Color x:Key="PressedBackgroundColor">#394140</Color>
     <Color x:Key="LightDisabledBackgroundColor">#666666</Color>
 
     <Color x:Key="ForegroundColor">#EFEFEF</Color>
@@ -35,6 +36,7 @@
     <Color x:Key="Primary">#BB86FC</Color>
     <Color x:Key="PrimaryVariant">#3700B3</Color>
     <Color x:Key="Secondary">#03DAC6</Color>
+    <Color x:Key="DarkSecondary">#0e8f83</Color>
     <Color x:Key="Complementary">#C7FC86</Color>
     <Color x:Key="Analogous1">#868CFC</Color>
     <Color x:Key="Analogous2">#F686FC</Color>
@@ -58,6 +60,7 @@
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="PrimaryVariantBrush" Color="{StaticResource PrimaryVariant}" />
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}" />
+    <SolidColorBrush x:Key="DarkSecondaryBrush" Color="{StaticResource DarkSecondary}" />
     <SolidColorBrush x:Key="ComplementaryBrush" Color="{StaticResource Complementary}" />
     <SolidColorBrush x:Key="Analogous1Brush" Color="{StaticResource Analogous1}" />
     <SolidColorBrush x:Key="Analogous2Brush" Color="{StaticResource Analogous2}" />
@@ -93,11 +96,11 @@
     <SolidColorBrush x:Key="ButtonNormalBorder" Color="#4C4C4C" />
 
     <SolidColorBrush x:Key="ButtonForeground" Color="{StaticResource ForegroundColor}" />
-    <SolidColorBrush x:Key="MouseOverButtonForeground" Color="#1B1B1B" />
+    <SolidColorBrush x:Key="MouseOverButtonForeground" Color="White" />
     <SolidColorBrush x:Key="ButtonBackground" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="ButtonBorder" Color="{StaticResource DarkBackgroundColor}" />
-    <SolidColorBrush x:Key="PressedButtonBackground" Color="{StaticResource DisabledBackgroundColor}" />
-    <SolidColorBrush x:Key="MouseOverButtonBackground" Color="#AAAAAA" />
+    <SolidColorBrush x:Key="PressedButtonBackground" Color="{StaticResource PressedBackgroundColor}" />
+    <SolidColorBrush x:Key="MouseOverButtonBackground" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="DisabledButtonBackground" Color="{StaticResource LightDisabledBackgroundColor}" />
     <SolidColorBrush x:Key="DisabledButtonForeground" Color="{StaticResource DisabledBackgroundColor}" />
 
@@ -1400,25 +1403,47 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="3">
-                        <ContentPresenter
-                            Margin="{TemplateBinding Padding}"
-                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                            RecognizesAccessKey="True"
-                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                    </Border>
+                    <Grid>
+                        <Border
+                            Background="{StaticResource SecondaryBrush}"
+                            CornerRadius="3"
+                            Opacity="0.7">
+                            <Border.Effect>
+                                <BlurEffect Radius="5" />
+                            </Border.Effect>
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Hidden" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                        </Border>
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="3">
+                            <ContentPresenter
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                RecognizesAccessKey="True"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource DarkSecondaryBrush}" />
                             <Setter Property="Foreground" Value="{StaticResource MouseOverButtonForeground}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="true">
                             <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
                             <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="false">
