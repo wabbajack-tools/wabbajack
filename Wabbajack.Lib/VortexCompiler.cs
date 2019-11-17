@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.WindowsAPICodePack.Shell;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.NexusApi;
@@ -15,6 +16,14 @@ namespace Wabbajack.Lib
 {
     public class VortexCompiler : ACompiler
     {
+        /*  vortex creates a vortex.deployment.json file that contains information
+            about all deployed files, parsing that file, we can get a list of all 'active'
+            archives so we don't force the user to install all archives found in the downloads folder.
+            Similar to how IgnoreDisabledMods for MO2 works
+        */
+        public VortexDeployment VortexDeployment;
+        public List<string> ActiveArchives;
+
         public Game Game { get; }
         public string GameName { get; }
 
@@ -44,6 +53,8 @@ namespace Wabbajack.Lib
             DownloadsFolder = downloadsFolder;
             StagingFolder = stagingFolder;
             ModListOutputFolder = "output_folder";
+
+            ActiveArchives = new List<string>();
         }
 
         public override bool Compile()
@@ -53,6 +64,8 @@ namespace Wabbajack.Lib
             ModListOutputFile = $"{ModListName}{ExtensionManager.Extension}";
 
             Info($"Starting Vortex compilation for {GameName} at {GamePath} with staging folder at {StagingFolder} and downloads folder at  {DownloadsFolder}.");
+
+            ParseDeploymentFile();
 
             Info("Starting pre-compilation steps");
             CreateMetaFiles();
@@ -186,6 +199,46 @@ namespace Wabbajack.Lib
             return true;
         }
 
+        private void ParseDeploymentFile()
+        {
+            Info("Searching for vortex.deployment.json...");
+
+            var deploymentFile = "";
+            Directory.EnumerateFiles(GamePath, "vortex.deployment.json", SearchOption.AllDirectories)
+                .Where(File.Exists)
+                .Do(f => deploymentFile = f);
+            var currentGame = GameRegistry.Games[Game];
+            if (currentGame.AdditionalFolders != null && currentGame.AdditionalFolders.Count != 0)
+                currentGame.AdditionalFolders.Do(f => Directory.EnumerateFiles(f, "vortex.deployment.json", SearchOption.AllDirectories)
+                    .Where(File.Exists)
+                    .Do(d => deploymentFile = d));
+
+            if (string.IsNullOrEmpty(deploymentFile))
+            {
+                Info("vortex.deployment.json not found!");
+                return;
+            }
+            Info("vortex.deployment.json found at "+deploymentFile);
+
+            Info("Parsing vortex.deployment.json...");
+            try
+            {
+                VortexDeployment = deploymentFile.FromJSON<VortexDeployment>();
+            }
+            catch (JsonSerializationException e)
+            {
+                Info("Failed to parse vortex.deployment.json!");
+                Utils.LogToFile(e.Message);
+                Utils.LogToFile(e.StackTrace);
+            }
+
+            VortexDeployment.files.Do(f =>
+            {
+                var archive = f.source;
+                if(!ActiveArchives.Contains(archive)) ActiveArchives.Add(archive);
+            });
+        }
+
         /// <summary>
         /// Some have mods outside their game folder located
         /// </summary>
@@ -208,7 +261,7 @@ namespace Wabbajack.Lib
             var nexusClient = new NexusApiClient();
 
             Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)
-                .Where(f => File.Exists(f) && Path.GetExtension(f) != ".meta" && !File.Exists(f+".meta"))
+                .Where(f => File.Exists(f) && Path.GetExtension(f) != ".meta" && !File.Exists(f+".meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
                 .Do(f =>
                 {
                     Utils.Log($"Trying to create meta file for {Path.GetFileName(f)}");
@@ -266,8 +319,8 @@ namespace Wabbajack.Lib
             return new List<ICompilationStep>
             {
                 new IncludePropertyFiles(this),
+                new IgnoreDisabledVortexMods(this),
                 new IncludeVortexDeployment(this),
-                new IncludeRegex(this, "^*\\.meta"),
                 new IgnoreVortex(this),
                 new IgnoreRegex(this, "^*__vortex_staging_folder$"),
 
@@ -329,5 +382,20 @@ namespace Wabbajack.Lib
         {
             return IsValidBaseStagingFolder(Path.GetDirectoryName(path));
         }
+    }
+
+    public class VortexDeployment
+    {
+        public string instance;
+        public int version;
+        public string deploymentMethod;
+        public List<VortexFile> files;
+    }
+
+    public class VortexFile
+    {
+        public string relPath;
+        public string source;
+        public string target;
     }
 }

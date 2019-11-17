@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Wabbajack.Common;
+﻿using System.IO;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -16,8 +10,9 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override Directive Run(RawSourceFile source)
         {
+
             if (!source.Path.EndsWith("vortex.deployment.msgpack") &&
-                !source.Path.EndsWith("\\vortex.deployment.json")) return null;
+                !source.Path.EndsWith("\\vortex.deployment.json") && Path.GetExtension(source.Path) != ".meta") return null;
             var inline = source.EvolveTo<InlineFile>();
             inline.SourceDataID = _compiler.IncludeFile(File.ReadAllBytes(source.AbsolutePath));
             return inline;
