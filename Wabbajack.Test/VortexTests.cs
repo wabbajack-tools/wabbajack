@@ -6,6 +6,8 @@ namespace Wabbajack.Test
     [TestClass]
     public class VortexTests : AVortexCompilerTest
     {
+        // TODO: figure out what games we want installed on the test server for this
+        /*
         [TestMethod]
         public void TestVortexStackSerialization()
         {
@@ -13,6 +15,7 @@ namespace Wabbajack.Test
             utils.Configure();
 
             var vortexCompiler = ConfigureAndRunCompiler();
+            vortexCompiler.StagingFolder = "vortex_staging";
             var stack = vortexCompiler.MakeStack();
 
             var serialized = Serialization.Serialize(stack);
@@ -20,6 +23,8 @@ namespace Wabbajack.Test
 
             Assert.AreEqual(serialized, rounded);
             Assert.IsNotNull(vortexCompiler.GetStack());
+            
         }
+        */
     }
 }

@@ -42,7 +42,8 @@ namespace Wabbajack.Lib
             this.VortexFolder = vortexFolder;
             this.DownloadsFolder = downloadsFolder;
             this.StagingFolder = stagingFolder;
-
+            Queue = new WorkQueue();
+            VFS = new Context(Queue);
             ModListOutputFolder = "output_folder";
 
             // TODO: add custom modlist name

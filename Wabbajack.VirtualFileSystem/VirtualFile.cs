@@ -121,7 +121,6 @@ namespace Wabbajack.VirtualFileSystem
             string rel_path)
         {
             var fi = new FileInfo(abs_path);
-            context._logSpam.OnNext($"Analyzing {rel_path}");
             var self = new VirtualFile
             {
                 Context = context,
@@ -135,13 +134,11 @@ namespace Wabbajack.VirtualFileSystem
 
             if (FileExtractor.CanExtract(Path.GetExtension(abs_path)))
             {
-                context._logSpam.OnNext($"Extracting {rel_path}");
 
                 using (var tempFolder = context.GetTemporaryFolder())
                 {
                     FileExtractor.ExtractAll(context.Queue, abs_path, tempFolder.FullName);
 
-                    context._logSpam.OnNext($"Analyzing Contents {rel_path}");
                     self.Children = Directory.EnumerateFiles(tempFolder.FullName, "*", SearchOption.AllDirectories)
                                         .PMap(context.Queue, abs_src => Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName)))
                                         .ToImmutableList();

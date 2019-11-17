@@ -45,7 +45,8 @@ namespace Wabbajack.Lib
         public Compiler(string mo2_folder)
         {
             UpdateTracker = new StatusUpdateTracker(10);
-            VFS.UpdateTracker = UpdateTracker;
+            Queue = new WorkQueue();
+            VFS = new Context(Queue) {UpdateTracker = UpdateTracker};
             ModManager = ModManager.MO2;
 
             MO2Folder = mo2_folder;
