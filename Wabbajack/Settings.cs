@@ -32,7 +32,8 @@ namespace Wabbajack
 
         public static MainSettings LoadSettings()
         {
-            if (!File.Exists(Filename)) return new MainSettings();
+            string[] args = Environment.GetCommandLineArgs();
+            if (!File.Exists(Filename) || args[1] == "nosettings") return new MainSettings();
             return JsonConvert.DeserializeObject<MainSettings>(File.ReadAllText(Filename));
         }
 
