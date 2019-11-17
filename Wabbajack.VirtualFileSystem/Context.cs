@@ -112,20 +112,19 @@ namespace Wabbajack.VirtualFileSystem
                 bw.Write(FileVersion);
                 bw.Write((ulong) Index.AllFiles.Count);
 
-                var sizes = Index.AllFiles
+                Index.AllFiles
                     .PMap(Queue, f =>
                     {
                         var ms = new MemoryStream();
                         f.Write(ms);
                         return ms;
                     })
-                    .Select(ms =>
+                    .Do(ms =>
                     {
                         var size = ms.Position;
                         ms.Position = 0;
                         bw.Write((ulong) size);
                         ms.CopyTo(fs);
-                        return ms.Position;
                     });
                 Utils.Log($"Wrote {fs.Position.ToFileSizeString()} file as vfs cache file {filename}");
             }

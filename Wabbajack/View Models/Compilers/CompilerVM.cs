@@ -68,8 +68,8 @@ namespace Wabbajack
                 .Select(p => p.Current)
                 .ToProperty(this, nameof(this.Compiler));
 
-            // Let sub VM determine what settings we're displaying and when
-            this._CurrentModlistSettings = this.WhenAny(x => x.Compiler.ModlistSettings)
+             // Let sub VM determine what settings we're displaying and when
+             this._CurrentModlistSettings = this.WhenAny(x => x.Compiler.ModlistSettings)
                 .ToProperty(this, nameof(this.CurrentModlistSettings));
 
             this._Image = this.WhenAny(x => x.CurrentModlistSettings.ImagePath.TargetPath)

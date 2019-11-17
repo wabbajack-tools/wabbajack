@@ -17,12 +17,12 @@ namespace Wabbajack.Common
 
         [ThreadStatic] private static int CpuId;
 
-        [ThreadStatic] internal static bool WorkerThread;
+        internal static bool WorkerThread => CurrentQueue != null;
+        [ThreadStatic] internal static WorkQueue CurrentQueue;
 
-        private readonly static Subject<CPUStatus> _Status = new Subject<CPUStatus>();
+        private static readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
-        private readonly Subject<(int Current, int Max)> _QueueSize = new Subject<(int Current, int Max)>();
-        public IObservable<(int Current, int Max)> QueueSize => _QueueSize;
+
         public static int ThreadCount { get; } = Environment.ProcessorCount;
         public static List<Thread> Threads { get; private set; }
 
@@ -48,7 +48,7 @@ namespace Wabbajack.Common
         private void ThreadBody(int idx)
         {
             CpuId = idx;
-            WorkerThread = true;
+            CurrentQueue = this;
 
             while (true)
             {

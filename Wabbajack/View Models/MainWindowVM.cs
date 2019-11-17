@@ -31,9 +31,6 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ViewModel> _ActivePane;
         public ViewModel ActivePane => _ActivePane.Value;
 
-        private readonly ObservableAsPropertyHelper<int> _QueueProgress;
-        public int QueueProgress => _QueueProgress.Value;
-
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
 
         public ObservableCollectionExtended<string> Log { get; } = new ObservableCollectionExtended<string>();
@@ -65,13 +62,6 @@ namespace Wabbajack
                 .Subscribe()
                 .DisposeWith(this.CompositeDisposable);
 
-            // TODO: fix this
-            /*
-            Utils.StatusUpdates
-                .Subscribe((i) => WorkQueue.Report(i.Message, i.Progress))
-                .DisposeWith(this.CompositeDisposable);
-                */
-
             // Wire mode to drive the active pane.
             // Note:  This is currently made into a derivative property driven by mode,
             // but it can be easily changed into a normal property that can be set from anywhere if needed
@@ -90,7 +80,7 @@ namespace Wabbajack
                 })
                 .ToProperty(this, nameof(this.ActivePane));
 
-            // TODO: fix this
+
             // Compile progress updates and populate ObservableCollection
             /*
             WorkQueue.Status
