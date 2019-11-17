@@ -40,13 +40,13 @@ namespace Wabbajack
         {
             this.ModlistLocation = new FilePickerVM()
             {
-                DoExistsCheck = true,
+                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
                 PromptTitle = "Select Modlist"
             };
             this.DownloadLocation = new FilePickerVM()
             {
-                DoExistsCheck = true,
+                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Download Location",
             };

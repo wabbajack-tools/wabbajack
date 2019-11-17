@@ -36,7 +36,7 @@ namespace Wabbajack
             this.settings = settings;
             this.ImagePath = new FilePickerVM()
             {
-                DoExistsCheck = false,
+                ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
                 PathType = FilePickerVM.PathTypeOptions.File,
                 Filters =
                 {
@@ -46,7 +46,7 @@ namespace Wabbajack
             this.ReadMeText = new FilePickerVM()
             {
                 PathType = FilePickerVM.PathTypeOptions.File,
-                DoExistsCheck = false,
+                ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
             };
         }
 
