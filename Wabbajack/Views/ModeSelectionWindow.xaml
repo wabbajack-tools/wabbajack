@@ -97,7 +97,7 @@
                             Grid.Row="1"
                             Grid.Column="4"
                             HorizontalAlignment="Right"
-                            Text="{Binding Game}"
+                            Text="{Binding GameName}"
                             TextAlignment="Right" />
                         <TextBlock
                             Grid.Row="2"

@@ -16,10 +16,6 @@ namespace Wabbajack
         {
             this.Game = game;
             this.DisplayName = game.ToDescriptionString();
-            if (string.IsNullOrWhiteSpace(this.DisplayName))
-            {
-                this.DisplayName = game.ToString();
-            }
         }
     }
 }
