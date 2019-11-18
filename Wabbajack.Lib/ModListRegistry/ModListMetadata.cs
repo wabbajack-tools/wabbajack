@@ -32,8 +32,7 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonProperty("game")]
         public Game Game { get; set; }
 
-        [JsonIgnore]
-        public string GameName { get; set; }
+        [JsonIgnore] public string GameName => this.Game.ToDescriptionString();
 
         [JsonProperty("official")]
         public bool Official { get; set; }
@@ -80,15 +79,8 @@ namespace Wabbajack.Lib.ModListRegistry
         {
             var client = new HttpClient();
             Utils.Log("Loading ModLists from Github");
-            var result = client.GetStringSync(Consts.ModlistMetadataURL);
-            var list = result.FromJSONString<List<ModlistMetadata>>();
-            list.Do(m =>
-            {
-                m.GameName = m.Game.ToDescriptionString();
-                if (string.IsNullOrWhiteSpace(m.GameName))
-                    m.GameName = m.Game.ToString();
-            });
-            return list;
+            var result = client.GetStringSync(Consts.ModlistMetadataURL); 
+            return result.FromJSONString<List<ModlistMetadata>>();
         }
 
         public bool NeedsDownload(string modlistPath)
