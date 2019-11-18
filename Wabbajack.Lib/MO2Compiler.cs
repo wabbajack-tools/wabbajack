@@ -305,7 +305,7 @@ namespace Wabbajack.Lib
         private void BuildArchivePatches(string archive_sha, IEnumerable<PatchedFromArchive> group,
             Dictionary<string, string> absolute_paths)
         {
-            using (var files = VFS.StageWith(group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath))).Result)
+            using (var files = VFS.StageWith(group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath))))
             {
                 var by_path = files.GroupBy(f => string.Join("|", f.FilesInFullPath.Skip(1).Select(i => i.Name)))
                     .ToDictionary(f => f.Key, f => f.First());

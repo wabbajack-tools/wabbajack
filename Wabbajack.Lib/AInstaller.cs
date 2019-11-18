@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Windows.Navigation;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
@@ -160,6 +161,9 @@ namespace Wabbajack.Lib
                     File.Move(from, to);
                 else
                     File.Copy(from, to);
+                // If we don't do this, the file will use the last-modified date of the file when it was compressed
+                // into an archive, which isn't really what we want in the case of files installed archives
+                File.SetLastWriteTime(to, DateTime.Now);
             }
 
             vFiles.GroupBy(f => f.FromFile)
@@ -284,6 +288,41 @@ namespace Wabbajack.Lib
             Status($"Hashing {Path.GetFileName(e)}");
             File.WriteAllText(cache, e.FileHash());
             return HashArchive(e);
+        }
+
+        /// <summary>
+        /// The user may already have some files in the OutputFolder. If so we can go through these and
+        /// figure out which need to be updated, deleted, or left alone
+        /// </summary>
+        public void OptimizeModlist()
+        {
+            Utils.Log("Optimizing Modlist directives");
+            var indexed = ModList.Directives.ToDictionary(d => d.To);
+
+            indexed.Values.PMap(Queue, d =>
+            {
+                // Bit backwards, but we want to return null for 
+                // all files we *want* installed. We return the files
+                // to remove from the install list.
+                var path = Path.Combine(OutputFolder, d.To);
+                if (!File.Exists(path)) return null;
+
+                var fi = new FileInfo(path);
+                if (fi.Length != d.Size) return null;
+                
+                return path.FileHash() == d.Hash ? d : null;
+            }).Where(d => d != null)
+              .Do(d => indexed.Remove(d.To));
+
+            Utils.Log($"Optimized {ModList.Directives.Count} directives to {indexed.Count} required");
+            var requiredArchives = indexed.Values.OfType<FromArchive>()
+                .GroupBy(d => d.ArchiveHashPath[0])
+                .Select(d => d.Key)
+                .ToHashSet();
+            
+            ModList.Archives = ModList.Archives.Where(a => requiredArchives.Contains(a.Hash)).ToList();
+            ModList.Directives = indexed.Values.ToList();
+
         }
     }
 }

@@ -139,7 +139,7 @@ namespace Wabbajack.VirtualFileSystem
                 {
                     var magic = Encoding.ASCII.GetString(br.ReadBytes(Encoding.ASCII.GetBytes(Magic).Length));
                     var fileVersion = br.ReadUInt64();
-                    if (fileVersion != FileVersion || magic != magic)
+                    if (fileVersion != FileVersion || magic != Magic)
                         throw new InvalidDataException("Bad Data Format");
 
                     var numFiles = br.ReadUInt64();
@@ -223,7 +223,7 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        public async Task<DisposableList<VirtualFile>> StageWith(IEnumerable<VirtualFile> files)
+        public DisposableList<VirtualFile> StageWith(IEnumerable<VirtualFile> files)
         {
             return new DisposableList<VirtualFile>(Stage(files), files);
         }
