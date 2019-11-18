@@ -30,7 +30,7 @@ namespace Wabbajack.Lib.Downloaders
 
         public ManualDownloader()
         {
-            _downloadfolder = new KnownFolder(KnownFolderType.DownloadsLocalized);
+            _downloadfolder = new KnownFolder(KnownFolderType.Downloads);
             _watcher = new FileSystemWatcher(_downloadfolder.Path);
             _watcher.Created += _watcher_Created;
             _watcher.Changed += _watcher_Changed;
