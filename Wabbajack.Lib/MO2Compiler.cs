@@ -16,18 +16,16 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
 {
-    public class Compiler : ACompiler
+    public class MO2Compiler : ACompiler
     {
 
         private string _mo2DownloadsFolder;
-
-        public Dictionary<string, IEnumerable<IndexedFileMatch>> DirectMatchIndex;
         
         public string MO2Folder;
 
         public string MO2Profile;
 
-        public Compiler(string mo2_folder)
+        public MO2Compiler(string mo2_folder)
         {
             ModManager = ModManager.MO2;
 

@@ -111,7 +111,7 @@
     <Compile Include="CompilationSteps\IStackStep.cs" />
     <Compile Include="CompilationSteps\PatchStockESMs.cs" />
     <Compile Include="CompilationSteps\Serialization.cs" />
-    <Compile Include="Compiler.cs" />
+    <Compile Include="MO2Compiler.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="Downloaders\AbstractDownloadState.cs" />
     <Compile Include="Downloaders\DownloadDispatcher.cs" />
@@ -127,7 +127,7 @@
     <Compile Include="Downloaders\ModDBDownloader.cs" />
     <Compile Include="Downloaders\NexusDownloader.cs" />
     <Compile Include="IBatchProcessor.cs" />
-    <Compile Include="Installer.cs" />
+    <Compile Include="MO2Installer.cs" />
     <Compile Include="ModListRegistry\ModListMetadata.cs" />
     <Compile Include="NexusApi\Dtos.cs" />
     <Compile Include="NexusApi\NexusApi.cs" />

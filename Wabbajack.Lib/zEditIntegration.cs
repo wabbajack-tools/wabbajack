@@ -14,11 +14,11 @@ namespace Wabbajack.Lib
 {
     public class zEditIntegration
     {
-        private static Compiler _mo2Compiler;
+        private static MO2Compiler _mo2Compiler;
 
         public static string FindzEditPath(ACompiler compiler)
         {
-            _mo2Compiler = (Compiler) compiler;
+            _mo2Compiler = (MO2Compiler) compiler;
             var executables = _mo2Compiler.MO2Ini.customExecutables;
             if (executables.size == null) return null;
 
@@ -141,7 +141,7 @@ namespace Wabbajack.Lib
             public string dataFolder;
         }
 
-        public static void VerifyMerges(Compiler compiler)
+        public static void VerifyMerges(MO2Compiler compiler)
         {
             var by_name = compiler.InstallDirectives.ToDictionary(f => f.To);
 
@@ -160,7 +160,7 @@ namespace Wabbajack.Lib
             }
         }
 
-        public static void GenerateMerges(Installer installer)
+        public static void GenerateMerges(MO2Installer installer)
         {
             installer.ModList
                 .Directives

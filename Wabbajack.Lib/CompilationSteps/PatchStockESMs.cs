@@ -8,11 +8,11 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class PatchStockESMs : ACompilationStep
     {
-        private readonly Compiler _mo2Compiler;
+        private readonly MO2Compiler _mo2Compiler;
 
         public PatchStockESMs(ACompiler compiler) : base(compiler)
         {
-            _mo2Compiler = (Compiler) compiler;
+            _mo2Compiler = (MO2Compiler) compiler;
         }
 
         public override Directive Run(RawSourceFile source)

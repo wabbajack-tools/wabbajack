@@ -13,11 +13,11 @@ namespace Wabbajack.Lib.CompilationSteps
         private readonly IEnumerable<string> _include_directly;
         private readonly List<ICompilationStep> _microstack;
         private readonly List<ICompilationStep> _microstackWithInclude;
-        private readonly Compiler _mo2Compiler;
+        private readonly MO2Compiler _mo2Compiler;
 
         public DeconstructBSAs(ACompiler compiler) : base(compiler)
         {
-            _mo2Compiler = (Compiler) compiler;
+            _mo2Compiler = (MO2Compiler) compiler;
             _include_directly = _mo2Compiler.ModInis.Where(kv =>
                 {
                     var general = kv.Value.General;

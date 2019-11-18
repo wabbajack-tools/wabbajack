@@ -9,11 +9,11 @@ namespace Wabbajack.Lib.CompilationSteps
     public class IgnoreDisabledMods : ACompilationStep
     {
         private readonly IEnumerable<string> _allEnabledMods;
-        private readonly Compiler _mo2Compiler;
+        private readonly MO2Compiler _mo2Compiler;
 
         public IgnoreDisabledMods(ACompiler compiler) : base(compiler)
         {
-            _mo2Compiler = (Compiler) compiler;
+            _mo2Compiler = (MO2Compiler) compiler;
             var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IsAlwaysEnabled(f.Value)).Select(f => f.Key).ToHashSet();
 
             _allEnabledMods = _mo2Compiler.SelectedProfiles

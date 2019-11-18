@@ -15,9 +15,9 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
 {
-    public class Installer : AInstaller
+    public class MO2Installer : AInstaller
     {
-        public Installer(string archive, ModList mod_list, string output_folder)
+        public MO2Installer(string archive, ModList mod_list, string output_folder)
         {
             ModManager = ModManager.MO2;
             ModListArchive = archive;

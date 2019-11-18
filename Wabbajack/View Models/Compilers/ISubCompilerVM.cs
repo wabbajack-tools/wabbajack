@@ -13,6 +13,7 @@ namespace Wabbajack
     {
         IReactiveCommand BeginCommand { get; }
         bool Compiling { get; }
+
         ModlistSettingsEditorVM ModlistSettings { get; }
         StatusUpdateTracker StatusTracker { get;}
         void Unload();

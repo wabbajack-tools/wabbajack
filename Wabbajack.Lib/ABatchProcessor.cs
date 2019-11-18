@@ -26,32 +26,27 @@ namespace Wabbajack.Lib
 
         protected StatusUpdateTracker UpdateTracker { get; private set; }
 
-        private Subject<float> _percentCompleted { get; set; } = new Subject<float>();
+        private Subject<float> _percentCompleted { get; } = new Subject<float>();
 
         /// <summary>
         /// The current progress of the entire processing system on a scale of 0.0 to 1.0
         /// </summary>
-        public IObservable<float> PercentCompleted { get; }
+        public IObservable<float> PercentCompleted => _percentCompleted;
 
-        private Subject<string> _textStatus { get; set; } = new Subject<string>();
+        private Subject<string> _textStatus { get; } = new Subject<string>();
 
         /// <summary>
         /// The current status of the processor as a text string
         /// </summary>
-        public IObservable<string> TextStatus { get; }
+        public IObservable<string> TextStatus => _textStatus;
 
-        private Subject<CPUStatus> _QueueStatus { get; set; } = new Subject<CPUStatus>();
-        public IObservable<CPUStatus> QueueStatus { get; }
+        private Subject<CPUStatus> _queueStatus { get; } = new Subject<CPUStatus>();
+        public IObservable<CPUStatus> QueueStatus => _queueStatus;
 
-        private Subject<bool> _IsRunning { get; set; } = new Subject<bool>();
-        public IObservable<bool> IsRunning { get; }
+        private Subject<bool> _isRunning { get; } = new Subject<bool>();
+        public IObservable<bool> IsRunning => _isRunning;
         
         private Thread _processorThread { get; set; }
-
-        protected ABatchProcessor()
-        {
-            QueueStatus = _QueueStatus;
-        }
 
         protected void ConfigureProcessor(int steps, int threads = 0)
         {
@@ -59,7 +54,7 @@ namespace Wabbajack.Lib
                 throw new InvalidDataException("Can't configure a processor twice");
             Queue = new WorkQueue(threads);
             UpdateTracker = new StatusUpdateTracker(steps);
-            Queue.Status.Subscribe(_QueueStatus);
+            Queue.Status.Subscribe(_queueStatus);
             UpdateTracker.Progress.Subscribe(_percentCompleted);
             UpdateTracker.StepName.Subscribe(_textStatus);
             VFS = new Context(Queue) { UpdateTracker = UpdateTracker };
@@ -69,7 +64,7 @@ namespace Wabbajack.Lib
         protected abstract bool _Begin();
         public Task<bool> Begin()
         {
-            _IsRunning.OnNext(true);
+            _isRunning.OnNext(true);
             var _tcs = new TaskCompletionSource<bool>();
             if (_processorThread != null)
             {
@@ -88,7 +83,7 @@ namespace Wabbajack.Lib
                 }
                 finally
                 {
-                    _IsRunning.OnNext(false);
+                    _isRunning.OnNext(false);
                 }
             });
             _processorThread.Priority = ThreadPriority.BelowNormal;
@@ -100,7 +95,7 @@ namespace Wabbajack.Lib
         {
             Queue?.Shutdown();
             _processorThread?.Abort();
-            _IsRunning.OnNext(false);
+            _isRunning.OnNext(false);
         }
     }
 }

@@ -32,7 +32,7 @@ namespace Wabbajack.Test
             utils.Dispose();
         }
 
-        protected Compiler ConfigureAndRunCompiler(string profile)
+        protected MO2Compiler ConfigureAndRunCompiler(string profile)
         {
             var compiler = MakeCompiler();
             compiler.MO2Profile = profile;
@@ -41,9 +41,9 @@ namespace Wabbajack.Test
             return compiler;
         }
 
-        protected Compiler MakeCompiler()
+        protected MO2Compiler MakeCompiler()
         {
-            var compiler = new Compiler(utils.MO2Folder);
+            var compiler = new MO2Compiler(utils.MO2Folder);
             return compiler;
         }
         protected ModList CompileAndInstall(string profile)
@@ -53,10 +53,10 @@ namespace Wabbajack.Test
             return compiler.ModList;
         }
 
-        protected void Install(Compiler compiler)
+        protected void Install(MO2Compiler compiler)
         {
-            var modlist = Installer.LoadFromFile(compiler.ModListOutputFile);
-            var installer = new Installer(compiler.ModListOutputFile, modlist, utils.InstallFolder);
+            var modlist = MO2Installer.LoadFromFile(compiler.ModListOutputFile);
+            var installer = new MO2Installer(compiler.ModListOutputFile, modlist, utils.InstallFolder);
             installer.DownloadFolder = utils.DownloadsFolder;
             installer.GameFolder = utils.GameFolder;
             installer.Begin().Wait();
