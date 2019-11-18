@@ -16,21 +16,17 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
 {
-    public class Compiler : ACompiler
+    public class MO2Compiler : ACompiler
     {
 
         private string _mo2DownloadsFolder;
-
-        public Dictionary<string, IEnumerable<IndexedFileMatch>> DirectMatchIndex;
         
         public string MO2Folder;
 
         public string MO2Profile;
 
-        public Compiler(string mo2_folder)
+        public MO2Compiler(string mo2_folder)
         {
-            UpdateTracker = new StatusUpdateTracker(10);
-            VFS = new Context(Queue) {UpdateTracker = UpdateTracker};
             ModManager = ModManager.MO2;
 
             MO2Folder = mo2_folder;
@@ -39,13 +35,9 @@ namespace Wabbajack.Lib
 
             ModListOutputFolder = "output_folder";
             ModListOutputFile = MO2Profile + ExtensionManager.Extension;
-            VFS.ProgressUpdates.Debounce(new TimeSpan(0, 0, 0, 0, 100))
-                .Subscribe(itm => _progressUpdates.OnNext(itm));
         }
 
         public dynamic MO2Ini { get; }
-
-        public bool ShowReportWhenFinished { get; set; } = true;
 
         public bool IgnoreMissingFiles { get; set; }
 
@@ -71,8 +63,9 @@ namespace Wabbajack.Lib
 
         public HashSet<string> SelectedProfiles { get; set; } = new HashSet<string>();
 
-        public override bool Compile()
+        protected override bool _Begin()
         {
+            ConfigureProcessor(10);
             UpdateTracker.Reset();
             UpdateTracker.NextStep("Gathering information");
             Info("Looking for other profiles");

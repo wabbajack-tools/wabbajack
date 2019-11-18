@@ -9,11 +9,11 @@ namespace Wabbajack.Lib.CompilationSteps
     {
         private readonly IEnumerable<string> _includeDirectly;
         private readonly string _tag;
-        private readonly Compiler _mo2Compiler;
+        private readonly MO2Compiler _mo2Compiler;
 
         public IncludeTaggedMods(ACompiler compiler, string tag) : base(compiler)
         {
-            _mo2Compiler = (Compiler) compiler;
+            _mo2Compiler = (MO2Compiler) compiler;
             _tag = tag;
             _includeDirectly = _mo2Compiler.ModInis.Where(kv =>
             {

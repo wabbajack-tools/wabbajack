@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
@@ -100,10 +101,10 @@ namespace Wabbajack
                     .ObserveOnGuiThread(),
                 execute: async () =>
                 {
-                    Compiler compiler;
+                    MO2Compiler compiler;
                     try
                     {
-                        compiler = new Compiler(this.Mo2Folder)
+                        compiler = new MO2Compiler(this.Mo2Folder)
                         {
                             MO2Profile = this.MOProfile,
                             ModListName = this.ModlistSettings.ModListName,
@@ -113,6 +114,10 @@ namespace Wabbajack
                             ModListWebsite = this.ModlistSettings.Website,
                             ModListReadme = this.ModlistSettings.ReadMeText.TargetPath,
                         };
+                        // TODO: USE RX HERE
+                        compiler.TextStatus.Subscribe(Utils.Log);
+                        // TODO: Where do we bind this?
+                        //compiler.QueueStatus.Subscribe(_cpuStatus);
                     }
                     catch (Exception ex)
                     {
@@ -120,23 +125,22 @@ namespace Wabbajack
                         Utils.Log($"Compiler error: {ex.ExceptionToString()}");
                         return;
                     }
-                    await Task.Run(() =>
+
+                    try
                     {
-                        try
-                        {
-                            this.StatusTracker = compiler.UpdateTracker;
-                            compiler.Compile();
-                        }
-                        catch (Exception ex)
-                        {
-                            while (ex.InnerException != null) ex = ex.InnerException;
-                            Utils.Log($"Compiler error: {ex.ExceptionToString()}");
-                        }
-                        finally
-                        {
-                            this.StatusTracker = null;
-                        }
-                    });
+                        await compiler.Begin();
+                    }
+                    catch (Exception ex)
+                    {
+                        while (ex.InnerException != null) ex = ex.InnerException;
+                        Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                    }
+                    finally
+                    {
+                        this.StatusTracker = null;
+                        compiler.Dispose();
+                    }
+                    
                 });
             this._Compiling = this.BeginCommand.IsExecuting
                 .ToProperty(this, nameof(this.Compiling));
@@ -191,7 +195,7 @@ namespace Wabbajack
                 {
                     try
                     {
-                        var tmp_compiler = new Compiler(this.Mo2Folder);
+                        var tmp_compiler = new MO2Compiler(this.Mo2Folder);
                         this.DownloadLocation.TargetPath = tmp_compiler.MO2DownloadsFolder;
                     }
                     catch (Exception ex)

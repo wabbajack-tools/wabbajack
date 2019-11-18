@@ -83,9 +83,10 @@ namespace Wabbajack
 
             // Compile progress updates and populate ObservableCollection
             /*
-            WorkQueue.Status
+            _Compiler.WhenAny(c => c.Value.Compiler.)
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .ToObservableChangeSet(x => x.ID)
+                .ToObservableChangeSet(x => x.)
+                /*
                 .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
                 .ObserveOn(RxApp.MainThreadScheduler)

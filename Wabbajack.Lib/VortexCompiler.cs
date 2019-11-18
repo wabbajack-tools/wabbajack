@@ -38,9 +38,6 @@ namespace Wabbajack.Lib
 
         public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder)
         {
-            UpdateTracker = new StatusUpdateTracker(10);
-            VFS = new Context(Queue) {UpdateTracker = UpdateTracker};
-
             ModManager = ModManager.Vortex;
             Game = game;
 
@@ -54,8 +51,9 @@ namespace Wabbajack.Lib
             ActiveArchives = new List<string>();
         }
 
-        public override bool Compile()
+        protected override bool _Begin()
         {
+            ConfigureProcessor(10);
             if (string.IsNullOrEmpty(ModListName))
                 ModListName = $"Vortex ModList for {Game.ToString()}";
             ModListOutputFile = $"{ModListName}{ExtensionManager.Extension}";

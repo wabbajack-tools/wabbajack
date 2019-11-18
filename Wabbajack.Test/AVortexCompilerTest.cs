@@ -37,7 +37,7 @@ namespace Wabbajack.Test
             vortexCompiler.DownloadsFolder = utils.DownloadsFolder;
             vortexCompiler.StagingFolder = utils.InstallFolder;
             Directory.CreateDirectory(utils.InstallFolder);
-            Assert.IsTrue(vortexCompiler.Compile());
+            Assert.IsTrue(vortexCompiler.Begin().Result);
             return vortexCompiler;
         }
 
@@ -60,13 +60,13 @@ namespace Wabbajack.Test
 
         protected void Install(VortexCompiler vortexCompiler)
         {
-            var modList = Installer.LoadFromFile(vortexCompiler.ModListOutputFile);
-            var installer = new Installer(vortexCompiler.ModListOutputFile, modList, utils.InstallFolder)
+            var modList = MO2Installer.LoadFromFile(vortexCompiler.ModListOutputFile);
+            var installer = new MO2Installer(vortexCompiler.ModListOutputFile, modList, utils.InstallFolder)
             {
                 DownloadFolder = utils.DownloadsFolder,
                 GameFolder = utils.GameFolder,
             };
-            installer.Install();
+            installer.Begin().Wait();
         }
     }
 }

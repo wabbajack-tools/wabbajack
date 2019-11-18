@@ -46,9 +46,9 @@ namespace Wabbajack.Lib
 
         public void Build(ACompiler c, ModList lst)
         {
-            Compiler compiler = null;
+            MO2Compiler compiler = null;
             if (lst.ModManager == ModManager.MO2)
-                compiler = (Compiler) c;
+                compiler = (MO2Compiler) c;
 
             Text($"### {lst.Name} by {lst.Author} - Installation Summary");
             Text($"Build with Wabbajack Version {lst.WabbajackVersion}");

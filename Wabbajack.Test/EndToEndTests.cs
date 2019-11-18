@@ -73,11 +73,11 @@ namespace Wabbajack.Test
             if (Directory.Exists(loot_folder))
                 Directory.Delete(loot_folder, true);
 
-            var compiler = new Compiler(utils.InstallFolder);
+            var compiler = new MO2Compiler(utils.InstallFolder);
             compiler.MO2DownloadsFolder = Path.Combine(utils.DownloadsFolder);
             compiler.MO2Profile = profile;
             compiler.ShowReportWhenFinished = false;
-            Assert.IsTrue(compiler.Compile());
+            Assert.IsTrue(compiler.Begin().Result);
 
         }
 
@@ -144,21 +144,21 @@ namespace Wabbajack.Test
             return compiler.ModList;
         }
 
-        private void Install(Compiler compiler)
+        private void Install(MO2Compiler compiler)
         {
-            var modlist = Installer.LoadFromFile(compiler.ModListOutputFile);
-            var installer = new Installer(compiler.ModListOutputFile, modlist, utils.InstallFolder);
+            var modlist = MO2Installer.LoadFromFile(compiler.ModListOutputFile);
+            var installer = new MO2Installer(compiler.ModListOutputFile, modlist, utils.InstallFolder);
             installer.DownloadFolder = utils.DownloadsFolder;
             installer.GameFolder = utils.GameFolder;
-            installer.Install();
+            installer.Begin().Wait();
         }
 
-        private Compiler ConfigureAndRunCompiler(string profile)
+        private MO2Compiler ConfigureAndRunCompiler(string profile)
         {
-            var compiler = new Compiler(utils.MO2Folder);
+            var compiler = new MO2Compiler(utils.MO2Folder);
             compiler.MO2Profile = profile;
             compiler.ShowReportWhenFinished = false;
-            Assert.IsTrue(compiler.Compile());
+            Assert.IsTrue(compiler.Begin().Result);
             return compiler;
         }
     }

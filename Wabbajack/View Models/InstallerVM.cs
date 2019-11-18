@@ -9,6 +9,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
@@ -131,7 +132,7 @@ namespace Wabbajack
                 .Select(modListPath =>
                 {
                     if (modListPath == null) return default(ModListVM);
-                    var modList = Installer.LoadFromFile(modListPath);
+                    var modList = MO2Installer.LoadFromFile(modListPath);
                     if (modList == null)
                     {
                         MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
@@ -291,15 +292,15 @@ namespace Wabbajack
         {
             this.Installing = true;
             this.InstallingMode = true;
-            var installer = new Installer(this.ModListPath, this.ModList.SourceModList, Location.TargetPath)
+            var installer = new MO2Installer(this.ModListPath, this.ModList.SourceModList, Location.TargetPath)
             {
                 DownloadFolder = DownloadLocation.TargetPath
             };
-            var th = new Thread(() =>
+            Task.Run(async () =>
             {
                 try
                 {
-                    installer.Install();
+                    await installer.Begin();
                 }
                 catch (Exception ex)
                 {
@@ -313,11 +314,7 @@ namespace Wabbajack
 
                     this.Installing = false;
                 }
-            })
-            {
-                Priority = ThreadPriority.BelowNormal
-            };
-            th.Start();
+            });
         }
     }
 }
