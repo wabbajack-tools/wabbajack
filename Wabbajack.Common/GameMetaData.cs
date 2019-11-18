@@ -9,7 +9,7 @@ namespace Wabbajack.Common
     public enum Game 
     {
         //MO2 GAMES
-        //Morrowind,
+        Morrowind,
         Oblivion,
         [Description("Fallout 3")]
         Fallout3,
@@ -57,6 +57,7 @@ namespace Wabbajack.Common
         public List<string> AdditionalFolders { get; internal set; }
         // file to check if the game is present, useful when steamIds and gogIds dont help
         public List<string> RequiredFiles { get; internal set; }
+        public bool Disabled { get; internal set; }
 
         public string GameLocation
         {
@@ -89,9 +90,18 @@ namespace Wabbajack.Common
 
         public static IReadOnlyDictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>
         {
-            /*{
-                Game.Morrowind, new GameMetaData()
-            },*/
+            {
+                Game.Morrowind, new GameMetaData
+                {
+                    SupportedModManager = ModManager.MO2,
+                    Game = Game.Morrowind,
+                    Disabled = true,
+                    SteamIDs = new List<int>{0},
+                    NexusName = "morrowind",
+                    MO2Name = "Morrowind",
+                    MO2ArchiveName = "morrowind"
+                }
+            },
             {
                 Game.Oblivion, new GameMetaData
                 {
