@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Windows.Forms.VisualStyles;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
@@ -17,6 +18,8 @@ namespace Wabbajack.Lib
 {
     public class MO2Installer : AInstaller
     {
+        public bool WarnOnOverwrite { get; set; } = true;
+        
         public MO2Installer(string archive, ModList mod_list, string output_folder)
         {
             ModManager = ModManager.MO2;
@@ -52,7 +55,7 @@ namespace Wabbajack.Lib
             Directory.CreateDirectory(OutputFolder);
             Directory.CreateDirectory(DownloadFolder);
 
-            if (Directory.Exists(Path.Combine(OutputFolder, "mods")))
+            if (Directory.Exists(Path.Combine(OutputFolder, "mods")) && WarnOnOverwrite)
             {
                 if (MessageBox.Show(
                         "There already appears to be a Mod Organizer 2 install in this folder, are you sure you wish to continue" +
@@ -66,6 +69,7 @@ namespace Wabbajack.Lib
                 }
             }
 
+            OptimizeModlist();
 
             HashArchives();
             DownloadArchives();
@@ -98,6 +102,7 @@ namespace Wabbajack.Lib
             //AskToEndorse();
             return true;
         }
+
 
         private void InstallIncludedDownloadMetas()
         {

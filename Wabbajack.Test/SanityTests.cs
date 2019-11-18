@@ -55,6 +55,55 @@ namespace Wabbajack.Test
             utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex.copy");
         }
 
+        [TestMethod]
+        public void TestUpdating()
+        {
+
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var unchanged = utils.AddModFile(mod, @"Data\scripts\unchanged.pex", 10);
+            var deleted = utils.AddModFile(mod, @"Data\scripts\deleted.pex", 10);
+            var modified = utils.AddModFile(mod, @"Data\scripts\modified.pex", 10);
+
+            utils.Configure();
+
+            utils.AddManualDownload(
+                new Dictionary<string, byte[]>
+                {
+                    { "/baz/unchanged.pex", File.ReadAllBytes(unchanged) },
+                    { "/baz/deleted.pex", File.ReadAllBytes(deleted) },
+                    { "/baz/modified.pex", File.ReadAllBytes(modified) },
+                });
+
+            CompileAndInstall(profile);
+
+            utils.VerifyInstalledFile(mod, @"Data\scripts\unchanged.pex");
+            utils.VerifyInstalledFile(mod, @"Data\scripts\deleted.pex");
+            utils.VerifyInstalledFile(mod, @"Data\scripts\modified.pex");
+
+            var unchanged_path = utils.PathOfInstalledFile(mod, @"Data\scripts\unchanged.pex");
+            var deleted_path = utils.PathOfInstalledFile(mod, @"Data\scripts\deleted.pex");
+            var modified_path = utils.PathOfInstalledFile(mod, @"Data\scripts\modified.pex");
+
+
+            var unchanged_modified = File.GetLastWriteTime(unchanged_path);
+            var modified_modified = File.GetLastWriteTime(modified_path);
+
+            File.WriteAllText(modified_path, "random data");
+            File.Delete(deleted_path);
+
+            CompileAndInstall(profile);
+
+            utils.VerifyInstalledFile(mod, @"Data\scripts\unchanged.pex");
+            utils.VerifyInstalledFile(mod, @"Data\scripts\deleted.pex");
+            utils.VerifyInstalledFile(mod, @"Data\scripts\modified.pex");
+
+            Assert.AreEqual(unchanged_modified, File.GetLastWriteTime(unchanged_path));
+            Assert.AreNotEqual(modified_modified, File.GetLastWriteTime(modified_path));
+
+
+        }
+
 
         [TestMethod]
         public void CleanedESMTest()

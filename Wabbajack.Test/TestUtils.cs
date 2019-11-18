@@ -182,6 +182,11 @@ namespace Wabbajack.Test
             }
         }
 
+        public string PathOfInstalledFile(string mod, string file)
+        {
+            return Path.Combine(InstallFolder, "mods", mod, file);
+        }
+
         public void VerifyAllFiles()
         {
             foreach (var dest_file in Directory.EnumerateFiles(InstallFolder, "*", DirectoryEnumerationOptions.Recursive))
