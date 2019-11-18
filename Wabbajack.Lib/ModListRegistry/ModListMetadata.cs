@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using CommonMark.Syntax;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
@@ -30,6 +31,9 @@ namespace Wabbajack.Lib.ModListRegistry
 
         [JsonProperty("game")]
         public Game Game { get; set; }
+
+        [JsonIgnore]
+        public string GameName { get; set; }
 
         [JsonProperty("official")]
         public bool Official { get; set; }
@@ -75,9 +79,16 @@ namespace Wabbajack.Lib.ModListRegistry
         public static List<ModlistMetadata> LoadFromGithub()
         {
             var client = new HttpClient();
-            Utils.Log("Loading Modlists from Github");
+            Utils.Log("Loading ModLists from Github");
             var result = client.GetStringSync(Consts.ModlistMetadataURL);
-            return result.FromJSONString<List<ModlistMetadata>>();
+            var list = result.FromJSONString<List<ModlistMetadata>>();
+            list.Do(m =>
+            {
+                m.GameName = m.Game.ToDescriptionString();
+                if (string.IsNullOrWhiteSpace(m.GameName))
+                    m.GameName = m.Game.ToString();
+            });
+            return list;
         }
 
         public bool NeedsDownload(string modlistPath)
