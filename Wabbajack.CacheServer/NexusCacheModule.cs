@@ -71,7 +71,7 @@ namespace Wabbajack.CacheServer
             var url = new Uri(Encoding.UTF8.GetString(param.FromHex()));
             var path = Path.Combine(NexusApiClient.LocalCacheDir, arg.request + ".json");
 
-            if (File.Exists(path))
+            if (!File.Exists(path))
             {
                 Utils.Log($"{DateTime.Now} - Not Cached - {url}");
                 var client = new HttpClient();
