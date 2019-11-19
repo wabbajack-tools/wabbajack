@@ -2,7 +2,7 @@
 
 [![Build Status](https://dev.azure.com/tbaldridge/tbaldridge/_apis/build/status/wabbajack-tools.wabbajack?branchName=master)](https://dev.azure.com/tbaldridge/tbaldridge/_build/latest?definitionId=3&branchName=master)
 
-Wabbajack is an automated ModList installer that can recreate contents of a folder on another machine without ever distributing copyrighted materials or syncing data between the source and destination machine. Wabbajack will create _instructions_ for a ModList when compiling, those can be as simple as _Download Mod abc from the Nexus_ or complex as _Clean the Game ESM files using zEdit_.
+Wabbajack is an automated ModList installer that allows you to generate _instructions_ from a source machine and use it to install the same mods on a destination machine - without ever distributing copyrighted materials or syncing data. 
 
 ## Social Links
 
@@ -32,7 +32,7 @@ Wabbajack is an automated ModList installer that can recreate contents of a fold
 
 ### Note about Vortex Support
 
-As you can probably guess from the table above: You will not be able to create ModLists from a Vortex installation for TES/Fallout games. The Vortex Support we're offering is designed for smaller games like Darkest Dungeon where you simply install mods, rearrange load order and be done. You do not need external tools like xEdit, DynDOLOD, CAO, FNIS and what not to mod these smaller games.
+As you can probably guessed from the table above, you will not be able to create ModLists from a Vortex installation for TES/Fallout games. The Vortex Support we're offering is designed for smaller games like Darkest Dungeon where you simply install mods, rearrange load order and be done. You do not need external tools like xEdit, DynDOLOD, CAO, FNIS and what-not to mod these smaller games.
 
 It is also important to note that Vortex Support is still in **early beta** meaning that stuff can go wrong, very fast. If you encounter such problems be sure to join our [Discord](https://discord.gg/zgbrkmA) and message `erri120#2285` about the error.
 
