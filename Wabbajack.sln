@@ -33,6 +33,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.VirtualFileSystem
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.VirtualFileSystem.Test", "Wabbajack.VirtualFileSystem.Test\Wabbajack.VirtualFileSystem.Test.csproj", "{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.CacheServer", "Wabbajack.CacheServer\Wabbajack.CacheServer.csproj", "{BDC9A094-D235-47CD-83CA-44199B60AB20}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.CacheServer.Test", "Wabbajack.CacheServer.Test\Wabbajack.CacheServer.Test.csproj", "{F101853E-6B12-4F7B-92A6-849FDB90AA3D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug (no commandargs)|Any CPU = Debug (no commandargs)|Any CPU
@@ -226,6 +230,42 @@ Global
 		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Release|x64.Build.0 = Release|Any CPU
 		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Release|x86.ActiveCfg = Release|Any CPU
 		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Release|x86.Build.0 = Release|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug (no commandargs)|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug (no commandargs)|Any CPU.Build.0 = Debug|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug (no commandargs)|x64.ActiveCfg = Debug|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug (no commandargs)|x64.Build.0 = Debug|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug (no commandargs)|x86.ActiveCfg = Debug|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug (no commandargs)|x86.Build.0 = Debug|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|x64.ActiveCfg = Debug|x64
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|x64.Build.0 = Debug|x64
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|x86.Build.0 = Debug|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x64.ActiveCfg = Release|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x64.Build.0 = Release|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x86.ActiveCfg = Release|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x86.Build.0 = Release|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Debug (no commandargs)|Any CPU.ActiveCfg = Debug|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Debug (no commandargs)|Any CPU.Build.0 = Debug|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Debug (no commandargs)|x64.ActiveCfg = Debug|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Debug (no commandargs)|x64.Build.0 = Debug|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Debug (no commandargs)|x86.ActiveCfg = Debug|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Debug (no commandargs)|x86.Build.0 = Debug|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Debug|x64.ActiveCfg = Debug|x64
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Debug|x64.Build.0 = Debug|x64
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Debug|x86.Build.0 = Debug|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Release|x64.ActiveCfg = Release|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Release|x64.Build.0 = Release|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Release|x86.ActiveCfg = Release|Any CPU
+		{F101853E-6B12-4F7B-92A6-849FDB90AA3D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
