@@ -30,10 +30,14 @@ namespace Wabbajack.Lib.NexusApi
 
         private readonly HttpClient _httpClient;
 
+        public HttpClient HttpClient => _httpClient;
+
 
         #region Authentication
 
         private readonly string _apiKey;
+
+        public string ApiKey => _apiKey;
 
         public bool IsAuthenticated => _apiKey != null;
 
@@ -182,9 +186,9 @@ namespace Wabbajack.Lib.NexusApi
         #endregion
 
 
-        public NexusApiClient()
+        public NexusApiClient(string apiKey = null)
         {
-            _apiKey = GetApiKey();
+            _apiKey = apiKey ?? GetApiKey();
             _httpClient = new HttpClient();
 
             // set default headers for all requests to the Nexus API
