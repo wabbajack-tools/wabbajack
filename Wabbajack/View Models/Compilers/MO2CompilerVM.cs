@@ -10,6 +10,8 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
+using DynamicData;
+using DynamicData.Binding;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 
@@ -116,8 +118,20 @@ namespace Wabbajack
                         };
                         // TODO: USE RX HERE
                         compiler.TextStatus.Subscribe(Utils.Log);
-                        // TODO: Where do we bind this?
-                        //compiler.QueueStatus.Subscribe(_cpuStatus);
+
+                        // Compile progress updates and populate ObservableCollection
+                        compiler.QueueStatus
+                            .ObserveOn(RxApp.TaskpoolScheduler)
+                            .ToObservableChangeSet(x => x.ID)
+                            .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
+                            .EnsureUniqueChanges()
+                            .ObserveOn(RxApp.MainThreadScheduler)
+                            .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
+                            .Bind(parent.MWVM.StatusList)
+                            .Subscribe()
+                            .DisposeWith(this.CompositeDisposable);
+
+                        compiler.PercentCompleted.Subscribe(parent.MWVM._progressPercent);
                     }
                     catch (Exception ex)
                     {
