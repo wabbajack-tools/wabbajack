@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace Wabbajack.Common
 {
-    public class WorkQueue
+    public class WorkQueue : IDisposable
     {
         internal BlockingCollection<Action>
             Queue = new BlockingCollection<Action>(new ConcurrentStack<Action>());
@@ -32,6 +32,7 @@ namespace Wabbajack.Common
 
         private void StartThreads(int threadCount)
         {
+            ThreadCount = threadCount;
             Threads = Enumerable.Range(0, threadCount)
                 .Select(idx =>
                 {
@@ -43,6 +44,8 @@ namespace Wabbajack.Common
                     return thread;
                 }).ToList();
         }
+
+        public int ThreadCount { get; private set; }
 
         private void ThreadBody(int idx)
         {
@@ -76,6 +79,12 @@ namespace Wabbajack.Common
         public void Shutdown()
         {
             Threads.Do(th => th.Abort());
+        }
+
+        public void Dispose()
+        {
+            Shutdown();
+            Queue?.Dispose();
         }
     }
 

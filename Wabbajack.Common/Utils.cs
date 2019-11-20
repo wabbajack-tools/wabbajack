@@ -697,6 +697,34 @@ namespace Wabbajack.Common
             Log(s);
         }
 
+        public static long TestDiskSpeed(WorkQueue queue, string path)
+        {
+            var start_time = DateTime.Now;
+            var seconds = 2;
+            return Enumerable.Range(0, queue.ThreadCount)
+                .PMap(queue, idx =>
+                {
+                    var random = new Random();
+
+                    var file = Path.Combine(path, $"size_test{idx}.bin");
+                    long size = 0;
+                    byte[] buffer = new byte[1024 * 8];
+                    random.NextBytes(buffer);
+                    using (var fs = File.OpenWrite(file))
+                    {
+                        while (DateTime.Now < start_time + new TimeSpan(0, 0, seconds))
+                        {
+                            fs.Write(buffer, 0, buffer.Length);
+                            // Flush to make sure large buffers don't cause the rate to be higher than it should
+                            fs.Flush();
+                            size += buffer.Length;
+                        }
+                    }
+                    File.Delete(file);
+                    return size;
+                }).Sum() / seconds;
+        }
+
         /// https://stackoverflow.com/questions/422090/in-c-sharp-check-that-filename-is-possibly-valid-not-that-it-exists
         public static IErrorResponse IsFilePathValid(string path)
         {

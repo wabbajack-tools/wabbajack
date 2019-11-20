@@ -25,7 +25,7 @@ namespace Wabbajack.Lib
 
         protected override bool _Begin()
         {
-            ConfigureProcessor(10);
+            ConfigureProcessor(10, RecommendQueueSize());
             Directory.CreateDirectory(DownloadFolder);
 
             HashArchives();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Ceras;
 using Compression.BSA;
 using Wabbajack.Common;
@@ -94,6 +95,24 @@ namespace Wabbajack.Lib
         ///     Content Report in HTML form
         /// </summary>
         public string ReportHTML;
+
+        /// <summary>
+        /// The size of all the archives once they're downloaded
+        /// </summary>
+        public long DownloadSize => Archives.Sum(a => a.Size);
+
+        /// <summary>
+        /// The size of all the files once they are installed (excluding downloaded archives)
+        /// </summary>
+        public long InstallSize => Directives.Sum(s => s.Size);
+
+        /// <summary>
+        /// Estimate of the amount of space required in the VFS staging folders during installation
+        /// </summary>
+        public long ScratchSpaceSize => Archives.OrderByDescending(a => a.Size)
+                                            .Take(Environment.ProcessorCount)
+                                            .Sum(a => a.Size) * 2;
+
     }
 
     public class Directive

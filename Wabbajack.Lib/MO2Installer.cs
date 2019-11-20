@@ -33,7 +33,8 @@ namespace Wabbajack.Lib
 
         protected override bool _Begin()
         {
-            ConfigureProcessor(10);
+            ConfigureProcessor(RecommendQueueSize());
+            ValidateFreeSpace();
             var game = GameRegistry.Games[ModList.GameType];
 
             if (GameFolder == null)
