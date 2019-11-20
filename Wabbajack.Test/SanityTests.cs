@@ -85,12 +85,17 @@ namespace Wabbajack.Test
             var deleted_path = utils.PathOfInstalledFile(mod, @"Data\scripts\deleted.pex");
             var modified_path = utils.PathOfInstalledFile(mod, @"Data\scripts\modified.pex");
 
+            var extra_path = utils.PathOfInstalledFile(mod, @"something_i_made.foo");
+            File.WriteAllText(extra_path, "bleh");
+
 
             var unchanged_modified = File.GetLastWriteTime(unchanged_path);
             var modified_modified = File.GetLastWriteTime(modified_path);
 
             File.WriteAllText(modified_path, "random data");
             File.Delete(deleted_path);
+
+            Assert.IsTrue(File.Exists(extra_path));
 
             CompileAndInstall(profile);
 
@@ -100,8 +105,7 @@ namespace Wabbajack.Test
 
             Assert.AreEqual(unchanged_modified, File.GetLastWriteTime(unchanged_path));
             Assert.AreNotEqual(modified_modified, File.GetLastWriteTime(modified_path));
-
-
+            Assert.IsFalse(File.Exists(extra_path));
         }
 
 

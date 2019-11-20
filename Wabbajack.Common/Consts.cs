@@ -81,6 +81,8 @@ namespace Wabbajack.Common
             }
         }
 
+        public static string HashFileExtension => ".xxHash";
+
         public static string WabbajackCacheLocation = "http://build.wabbajack.org/nexus_api_cache/";
     }
 }
