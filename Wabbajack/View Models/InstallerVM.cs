@@ -1,4 +1,4 @@
-using Syroot.Windows.IO;
+﻿using Syroot.Windows.IO;
 using System;
 using ReactiveUI;
 using System.Diagnostics;
@@ -16,6 +16,8 @@ using Wabbajack.Common;
 using Wabbajack.Lib;
 using ReactiveUI.Fody.Helpers;
 using System.Windows.Media;
+using DynamicData;
+using DynamicData.Binding;
 
 namespace Wabbajack
 {
@@ -296,6 +298,19 @@ namespace Wabbajack
             {
                 DownloadFolder = DownloadLocation.TargetPath
             };
+
+            // Compile progress updates and populate ObservableCollection
+            installer.QueueStatus
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .ToObservableChangeSet(x => x.ID)
+                .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
+                .EnsureUniqueChanges()
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
+                .Bind(this.MWVM.StatusList)
+                .Subscribe()
+                .DisposeWith(this.CompositeDisposable);
+
             Task.Run(async () =>
             {
                 try

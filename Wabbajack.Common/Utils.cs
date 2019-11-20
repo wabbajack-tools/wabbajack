@@ -78,7 +78,10 @@ namespace Wabbajack.Common
 
         public static void Status(string msg, int progress = 0)
         {
-            _statusSubj.OnNext((msg, progress));
+            if (WorkQueue.CurrentQueue != null)
+                WorkQueue.CurrentQueue.Report(msg, progress);
+            else
+                _statusSubj.OnNext((msg, progress));
         }
 
         /// <summary>
@@ -111,8 +114,11 @@ namespace Wabbajack.Common
                 {
                     var config = new xxHashConfig();
                     config.HashSizeInBits = 64;
-                    var value = xxHashFactory.Instance.Create(config).ComputeHash(fs);
-                    return value.AsBase64String();
+                    using (var f = new StatusFileStream(fs, $"Hashing {Path.GetFileName(file)}"))    
+                    {
+                        var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
+                        return value.AsBase64String();
+                    }
                 }
             }
             catch (IOException ex)
@@ -120,6 +126,19 @@ namespace Wabbajack.Common
                 if (nullOnIOError) return null;
                 throw ex;
             }
+        }
+
+        public static string FileHashCached(this string file)
+        {
+            var hashPath = file + Consts.HashFileExtension;
+            if (File.Exists(hashPath) && File.GetLastWriteTime(file) <= File.GetLastWriteTime(hashPath))
+            {
+                return File.ReadAllText(hashPath);
+            }
+
+            var hash = file.FileHash();
+            File.WriteAllText(hashPath, hash);
+            return hash;
         }
 
         public static async Task<string> FileHashAsync(this string file, bool nullOnIOError = false)

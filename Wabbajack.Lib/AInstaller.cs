@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Windows.Navigation;
+using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
 using Context = Wabbajack.VirtualFileSystem.Context;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
+using File = System.IO.File;
+using FileInfo = System.IO.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
@@ -256,7 +260,10 @@ namespace Wabbajack.Lib
         {
             try
             {
-                archive.State.Download(archive, Path.Combine(DownloadFolder, archive.Name));
+                var path = Path.Combine(DownloadFolder, archive.Name);
+                archive.State.Download(archive, path);
+                path.FileHashCached();
+
             }
             catch (Exception ex)
             {
@@ -271,23 +278,12 @@ namespace Wabbajack.Lib
         public void HashArchives()
         {
             HashedArchives = Directory.EnumerateFiles(DownloadFolder)
-                .Where(e => !e.EndsWith(".sha"))
-                .PMap(Queue, e => (HashArchive(e), e))
+                .Where(e => !e.EndsWith(Consts.HashFileExtension))
+                .PMap(Queue, e => (e.FileHashCached(), e))
                 .OrderByDescending(e => File.GetLastWriteTime(e.Item2))
                 .GroupBy(e => e.Item1)
                 .Select(e => e.First())
                 .ToDictionary(e => e.Item1, e => e.Item2);
-        }
-
-        public string HashArchive(string e)
-        {
-            var cache = e + ".sha";
-            if (cache.FileExists() && new FileInfo(cache).LastWriteTime >= new FileInfo(e).LastWriteTime)
-                return File.ReadAllText(cache);
-
-            Status($"Hashing {Path.GetFileName(e)}");
-            File.WriteAllText(cache, e.FileHash());
-            return HashArchive(e);
         }
 
         /// <summary>
@@ -299,11 +295,26 @@ namespace Wabbajack.Lib
             Utils.Log("Optimizing Modlist directives");
             var indexed = ModList.Directives.ToDictionary(d => d.To);
 
+            Directory.EnumerateFiles(OutputFolder, "*", DirectoryEnumerationOptions.Recursive)
+                .PMap(Queue, f =>
+                {
+                    var relative_to = f.RelativeTo(OutputFolder);
+                    Utils.Status($"Checking if modlist file {relative_to}");
+                    if (indexed.ContainsKey(relative_to) || f.StartsWith(DownloadFolder + Path.DirectorySeparator))
+                    {
+                        return;
+                    }
+
+                    Utils.Log($"Deleting {relative_to} it's not part of this modlist");
+                    File.Delete(f);
+                });
+
             indexed.Values.PMap(Queue, d =>
             {
                 // Bit backwards, but we want to return null for 
                 // all files we *want* installed. We return the files
                 // to remove from the install list.
+                Status($"Optimizing {d.To}");
                 var path = Path.Combine(OutputFolder, d.To);
                 if (!File.Exists(path)) return null;
 
