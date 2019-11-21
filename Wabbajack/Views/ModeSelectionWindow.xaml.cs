@@ -1,14 +1,11 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using Wabbajack.Common;
 using Wabbajack.Lib;
-using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.UI;
-using static Wabbajack.MainWindow;
 
 namespace Wabbajack
 {

@@ -1,12 +1,9 @@
 ﻿using ReactiveUI;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Lib;

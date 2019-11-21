@@ -1,13 +1,9 @@
 ﻿using Alphaleonis.Win32.Filesystem;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;

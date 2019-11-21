@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Threading;
 using System.Windows;
 using Wabbajack.Common;
 using Application = System.Windows.Application;

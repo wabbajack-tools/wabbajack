@@ -1,14 +1,11 @@
 ﻿using DynamicData;
 using DynamicData.Binding;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
-using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
