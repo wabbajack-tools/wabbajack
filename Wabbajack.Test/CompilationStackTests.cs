@@ -1,7 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Wabbajack.Lib;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Lib.CompilationSteps;
 
 namespace Wabbajack.Test

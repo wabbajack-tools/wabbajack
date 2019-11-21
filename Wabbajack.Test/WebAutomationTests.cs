@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Text;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.WebAutomation;
-using System.Windows.Threading;
 
 namespace Wabbajack.Test
 {
