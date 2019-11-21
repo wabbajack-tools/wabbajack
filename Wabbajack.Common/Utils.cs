@@ -12,6 +12,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Ceras;
 using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
@@ -19,6 +20,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using Directory = System.IO.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -697,7 +699,7 @@ namespace Wabbajack.Common
             Log(s);
         }
 
-        public static long TestDiskSpeed(WorkQueue queue, string path)
+        private static long TestDiskSpeedInner(WorkQueue queue, string path)
         {
             var start_time = DateTime.Now;
             var seconds = 2;
@@ -723,6 +725,17 @@ namespace Wabbajack.Common
                     File.Delete(file);
                     return size;
                 }).Sum() / seconds;
+        }
+
+        private static Dictionary<string, long> _cachedDiskSpeeds = new Dictionary<string, long>();
+        public static long TestDiskSpeed(WorkQueue queue, string path)
+        {
+            var drive_name = Volume.GetUniqueVolumeNameForPath(path);
+            if (_cachedDiskSpeeds.TryGetValue(drive_name, out long speed))
+                return speed;
+            speed = TestDiskSpeedInner(queue, path);
+            _cachedDiskSpeeds[drive_name] = speed;
+            return speed;
         }
 
         /// https://stackoverflow.com/questions/422090/in-c-sharp-check-that-filename-is-possibly-valid-not-that-it-exists
