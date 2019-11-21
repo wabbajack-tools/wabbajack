@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Wabbajack.Common;
-using Wabbajack.Lib.NexusApi;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -12,19 +11,19 @@ namespace Wabbajack.Lib
     public class ReportBuilder : IDisposable
     {
         private const int WRAP_SIZE = 80;
-        private readonly StreamWriter wtr;
-        private string _output_folder;
+        private readonly StreamWriter _wtr;
+        private string _outputFolder;
 
-        public ReportBuilder(Stream str, string output_folder)
+        public ReportBuilder(Stream str, string outputFolder)
         {
-            _output_folder = output_folder;
-            wtr = new StreamWriter(str);
+            _outputFolder = outputFolder;
+            _wtr = new StreamWriter(str);
         }
 
         public void Dispose()
         {
-            wtr.Flush();
-            wtr?.Dispose();
+            _wtr.Flush();
+            _wtr?.Dispose();
         }
 
         public void Text(string txt)
@@ -32,16 +31,16 @@ namespace Wabbajack.Lib
             var offset = 0;
             while (offset + WRAP_SIZE < txt.Length)
             {
-                wtr.WriteLine(txt.Substring(offset, WRAP_SIZE));
+                _wtr.WriteLine(txt.Substring(offset, WRAP_SIZE));
                 offset += WRAP_SIZE;
             }
 
-            if (offset < txt.Length) wtr.WriteLine(txt.Substring(offset, txt.Length - offset));
+            if (offset < txt.Length) _wtr.WriteLine(txt.Substring(offset, txt.Length - offset));
         }
 
         public void NoWrapText(string txt)
         {
-            wtr.WriteLine(txt);
+            _wtr.WriteLine(txt);
         }
 
         public void Build(ACompiler c, ModList lst)
@@ -59,9 +58,9 @@ namespace Wabbajack.Lib
 
             if (lst.ModManager == ModManager.MO2)
             {
-                var readme_file = Path.Combine(compiler?.MO2ProfileDir, "readme.md");
-                if (File.Exists(readme_file))
-                    File.ReadAllLines(readme_file)
+                var readmeFile = Path.Combine(compiler?.MO2ProfileDir, "readme.md");
+                if (File.Exists(readmeFile))
+                    File.ReadAllLines(readmeFile)
                         .Do(NoWrapText);
             }
 
@@ -127,7 +126,7 @@ namespace Wabbajack.Lib
 
         private long SizeForID(string id)
         {
-            return File.GetSize(Path.Combine(_output_folder, id));
+            return File.GetSize(Path.Combine(_outputFolder, id));
         }
 
         private IEnumerable<Archive> SortArchives(List<Archive> lstArchives)

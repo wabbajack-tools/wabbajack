@@ -60,7 +60,7 @@ namespace Wabbajack.Test
 
         protected void Install(VortexCompiler vortexCompiler)
         {
-            var modList = MO2Installer.LoadFromFile(vortexCompiler.ModListOutputFile);
+            var modList = AInstaller.LoadFromFile(vortexCompiler.ModListOutputFile);
             var installer = new MO2Installer(vortexCompiler.ModListOutputFile, modList, utils.InstallFolder)
             {
                 DownloadFolder = utils.DownloadsFolder,

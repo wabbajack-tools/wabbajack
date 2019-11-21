@@ -1,19 +1,12 @@
 ﻿using Microsoft.WindowsAPICodePack.Dialogs;
-using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 using Wabbajack.Lib;
 
 namespace Wabbajack
 {
     public class ModlistSettingsEditorVM : ViewModel
     {
-        private CompilationModlistSettings settings;
+        private CompilationModlistSettings _settings;
 
         [Reactive]
         public string ModListName { get; set; }
@@ -33,8 +26,8 @@ namespace Wabbajack
 
         public ModlistSettingsEditorVM(CompilationModlistSettings settings)
         {
-            this.settings = settings;
-            this.ImagePath = new FilePickerVM()
+            this._settings = settings;
+            ImagePath = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
                 PathType = FilePickerVM.PathTypeOptions.File,
@@ -43,7 +36,7 @@ namespace Wabbajack
                     new CommonFileDialogFilter("Banner image", "*.png")
                 }
             };
-            this.ReadMeText = new FilePickerVM()
+            ReadMeText = new FilePickerVM()
             {
                 PathType = FilePickerVM.PathTypeOptions.File,
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
@@ -52,25 +45,25 @@ namespace Wabbajack
 
         public void Init()
         {
-            this.AuthorText = settings.Author;
-            if (!string.IsNullOrWhiteSpace(settings.ModListName))
+            AuthorText = _settings.Author;
+            if (!string.IsNullOrWhiteSpace(_settings.ModListName))
             {
-                this.ModListName = settings.ModListName;
+                ModListName = _settings.ModListName;
             }
-            this.Description = settings.Description;
-            this.ReadMeText.TargetPath = settings.Readme;
-            this.ImagePath.TargetPath = settings.SplashScreen;
-            this.Website = settings.Website;
+            Description = _settings.Description;
+            ReadMeText.TargetPath = _settings.Readme;
+            ImagePath.TargetPath = _settings.SplashScreen;
+            Website = _settings.Website;
         }
 
         public void Save()
         {
-            settings.Author = this.AuthorText;
-            settings.ModListName = this.ModListName;
-            settings.Description = this.Description;
-            settings.Readme = this.ReadMeText.TargetPath;
-            settings.SplashScreen = this.ImagePath.TargetPath;
-            settings.Website = this.Website;
+            _settings.Author = AuthorText;
+            _settings.ModListName = ModListName;
+            _settings.Description = Description;
+            _settings.Readme = ReadMeText.TargetPath;
+            _settings.SplashScreen = ImagePath.TargetPath;
+            _settings.Website = Website;
         }
     }
 }

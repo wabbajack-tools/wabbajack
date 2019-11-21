@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Wabbajack.Lib;
 
@@ -50,24 +48,24 @@ namespace Wabbajack
         [Reactive]
         public IObservable<IErrorResponse> AdditionalError { get; set; }
 
-        private readonly ObservableAsPropertyHelper<bool> _Exists;
-        public bool Exists => _Exists.Value;
+        private readonly ObservableAsPropertyHelper<bool> _exists;
+        public bool Exists => _exists.Value;
 
-        private readonly ObservableAsPropertyHelper<ErrorResponse> _ErrorState;
-        public ErrorResponse ErrorState => _ErrorState.Value;
+        private readonly ObservableAsPropertyHelper<ErrorResponse> _errorState;
+        public ErrorResponse ErrorState => _errorState.Value;
 
-        private readonly ObservableAsPropertyHelper<bool> _InError;
-        public bool InError => _InError.Value;
+        private readonly ObservableAsPropertyHelper<bool> _inError;
+        public bool InError => _inError.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _ErrorTooltip;
-        public string ErrorTooltip => _ErrorTooltip.Value;
+        private readonly ObservableAsPropertyHelper<string> _errorTooltip;
+        public string ErrorTooltip => _errorTooltip.Value;
 
         public List<CommonFileDialogFilter> Filters { get; } = new List<CommonFileDialogFilter>();
 
         public FilePickerVM(object parentVM = null)
         {
-            this.Parent = parentVM;
-            this.SetTargetPathCommand = ConstructTypicalPickerCommand();
+            Parent = parentVM;
+            SetTargetPathCommand = ConstructTypicalPickerCommand();
 
             // Check that file exists
 
@@ -79,11 +77,11 @@ namespace Wabbajack
                             .Skip(1)
                             .Debounce(TimeSpan.FromMilliseconds(200))
                             .StartWith(default(string)),
-                    resultSelector: (ExistsOption, Type, Path) => (ExistsOption, Type, Path))
+                    resultSelector: (existsOption, type, path) => (ExistsOption: existsOption, Type: type, Path: path))
                 .Publish()
                 .RefCount();
 
-            this._Exists = Observable.Interval(TimeSpan.FromSeconds(3))
+            _exists = Observable.Interval(TimeSpan.FromSeconds(3))
                 // Only check exists on timer if desired
                 .FilterSwitch(existsCheckTuple
                     .Select(t =>
@@ -139,9 +137,9 @@ namespace Wabbajack
                 .StartWith(false)
                 .DistinctUntilChanged()
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .ToProperty(this, nameof(this.Exists));
+                .ToProperty(this, nameof(Exists));
 
-            this._ErrorState = Observable.CombineLatest(
+            _errorState = Observable.CombineLatest(
                     this.WhenAny(x => x.Exists)
                         .Select(exists => ErrorResponse.Create(successful: exists, exists ? default(string) : "Path does not exist")),
                     this.WhenAny(x => x.AdditionalError)
@@ -152,15 +150,15 @@ namespace Wabbajack
                         if (exist.Failed) return exist;
                         return ErrorResponse.Convert(err);
                     })
-                .ToProperty(this, nameof(this.ErrorState));
+                .ToProperty(this, nameof(ErrorState));
 
-            this._InError = this.WhenAny(x => x.ErrorState)
+            _inError = this.WhenAny(x => x.ErrorState)
                 .Select(x => !x.Succeeded)
-                .ToProperty(this, nameof(this.InError));
+                .ToProperty(this, nameof(InError));
 
             // Doesn't derive from ErrorState, as we want to bubble non-empty tooltips,
             // which is slightly different logic
-            this._ErrorTooltip = Observable.CombineLatest(
+            _errorTooltip = Observable.CombineLatest(
                     this.WhenAny(x => x.Exists)
                         .Select(exists => exists ? default(string) : "Path does not exist"),
                     this.WhenAny(x => x.AdditionalError)
@@ -171,7 +169,7 @@ namespace Wabbajack
                         if (!string.IsNullOrWhiteSpace(exists)) return exists;
                         return err?.Reason;
                     })
-                .ToProperty(this, nameof(this.ErrorTooltip));
+                .ToProperty(this, nameof(ErrorTooltip));
         }
 
         public ICommand ConstructTypicalPickerCommand()
@@ -180,22 +178,22 @@ namespace Wabbajack
                 execute: () =>
                 {
                     string dirPath;
-                    if (File.Exists(this.TargetPath))
+                    if (File.Exists(TargetPath))
                     {
-                        dirPath = System.IO.Path.GetDirectoryName(this.TargetPath);
+                        dirPath = Path.GetDirectoryName(TargetPath);
                     }
                     else
                     {
-                        dirPath = this.TargetPath;
+                        dirPath = TargetPath;
                     }
                     var dlg = new CommonOpenFileDialog
                     {
-                        Title = this.PromptTitle,
-                        IsFolderPicker = this.PathType == PathTypeOptions.Folder,
-                        InitialDirectory = this.TargetPath,
+                        Title = PromptTitle,
+                        IsFolderPicker = PathType == PathTypeOptions.Folder,
+                        InitialDirectory = TargetPath,
                         AddToMostRecentlyUsedList = false,
                         AllowNonFileSystemItems = false,
-                        DefaultDirectory = this.TargetPath,
+                        DefaultDirectory = TargetPath,
                         EnsureFileExists = true,
                         EnsurePathExists = true,
                         EnsureReadOnly = false,
@@ -203,12 +201,12 @@ namespace Wabbajack
                         Multiselect = false,
                         ShowPlacesList = true,
                     };
-                    foreach (var filter in this.Filters)
+                    foreach (var filter in Filters)
                     {
                         dlg.Filters.Add(filter);
                     }
                     if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
-                    this.TargetPath = dlg.FileName;
+                    TargetPath = dlg.FileName;
                 });
         }
     }

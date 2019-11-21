@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
-using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Lib.Downloaders
 {
     public class NexusDownloader : IDownloader
     {
-        public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
+        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
         {
-            var general = archive_ini?.General;
+            var general = archiveINI?.General;
 
             if (general.modID != null && general.fileID != null && general.gameName != null)
             {

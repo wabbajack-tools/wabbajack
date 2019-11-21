@@ -1,15 +1,9 @@
 ﻿using Newtonsoft.Json;
-using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reactive;
-using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Wabbajack.Common;
 
 namespace Wabbajack
@@ -17,7 +11,7 @@ namespace Wabbajack
     [JsonObject(MemberSerialization.OptOut)]
     public class MainSettings
     {
-        private static string Filename = "settings.json";
+        private static string _filename = "settings.json";
 
         public double PosX { get; set; }
         public double PosY { get; set; }
@@ -33,8 +27,8 @@ namespace Wabbajack
         public static MainSettings LoadSettings()
         {
             string[] args = Environment.GetCommandLineArgs();
-            if (!File.Exists(Filename) || args.Length > 1 && args[1] == "nosettings") return new MainSettings();
-            return JsonConvert.DeserializeObject<MainSettings>(File.ReadAllText(Filename));
+            if (!File.Exists(_filename) || args.Length > 1 && args[1] == "nosettings") return new MainSettings();
+            return JsonConvert.DeserializeObject<MainSettings>(File.ReadAllText(_filename));
         }
 
         public static void SaveSettings(MainSettings settings)
@@ -46,7 +40,7 @@ namespace Wabbajack
             //settings._saveSignal.OnCompleted();
             //await settings._saveSignal;
 
-            File.WriteAllText(Filename, JsonConvert.SerializeObject(settings, Formatting.Indented));
+            File.WriteAllText(_filename, JsonConvert.SerializeObject(settings, Formatting.Indented));
         }
     }
 

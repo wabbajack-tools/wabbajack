@@ -1,15 +1,10 @@
 ﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Text;
-using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 
@@ -17,13 +12,13 @@ namespace Wabbajack
 {
     public class MO2CompilerVM : ViewModel, ISubCompilerVM
     {
-        private readonly MO2CompilationSettings settings;
+        private readonly MO2CompilationSettings _settings;
 
-        private readonly ObservableAsPropertyHelper<string> _Mo2Folder;
-        public string Mo2Folder => _Mo2Folder.Value;
+        private readonly ObservableAsPropertyHelper<string> _mo2Folder;
+        public string Mo2Folder => _mo2Folder.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _MOProfile;
-        public string MOProfile => _MOProfile.Value;
+        private readonly ObservableAsPropertyHelper<string> _moProfile;
+        public string MOProfile => _moProfile.Value;
 
         public FilePickerVM DownloadLocation { get; }
 
@@ -34,58 +29,58 @@ namespace Wabbajack
         [Reactive]
         public ACompiler ActiveCompilation { get; private set; }
 
-        private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _ModlistSettings;
-        public ModlistSettingsEditorVM ModlistSettings => _ModlistSettings.Value;
+        private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _modlistSettings;
+        public ModlistSettingsEditorVM ModlistSettings => _modlistSettings.Value;
 
         [Reactive]
         public StatusUpdateTracker StatusTracker { get; private set; }
 
         public MO2CompilerVM(CompilerVM parent)
         {
-            this.ModlistLocation = new FilePickerVM()
+            ModlistLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
                 PromptTitle = "Select Modlist"
             };
-            this.DownloadLocation = new FilePickerVM()
+            DownloadLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Download Location",
             };
 
-            this._Mo2Folder = this.WhenAny(x => x.ModlistLocation.TargetPath)
+            _mo2Folder = this.WhenAny(x => x.ModlistLocation.TargetPath)
                 .Select(loc =>
                 {
                     try
                     {
-                        var profile_folder = Path.GetDirectoryName(loc);
-                        return Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
+                        var profileFolder = Path.GetDirectoryName(loc);
+                        return Path.GetDirectoryName(Path.GetDirectoryName(profileFolder));
                     }
                     catch (Exception)
                     {
                         return null;
                     }
                 })
-                .ToProperty(this, nameof(this.Mo2Folder));
-            this._MOProfile = this.WhenAny(x => x.ModlistLocation.TargetPath)
+                .ToProperty(this, nameof(Mo2Folder));
+            _moProfile = this.WhenAny(x => x.ModlistLocation.TargetPath)
                 .Select(loc =>
                 {
                     try
                     {
-                        var profile_folder = Path.GetDirectoryName(loc);
-                        return Path.GetFileName(profile_folder);
+                        var profileFolder = Path.GetDirectoryName(loc);
+                        return Path.GetFileName(profileFolder);
                     }
                     catch (Exception)
                     {
                         return null;
                     }
                 })
-                .ToProperty(this, nameof(this.MOProfile));
+                .ToProperty(this, nameof(MOProfile));
 
             // Wire missing Mo2Folder to signal error state for Modlist Location
-            this.ModlistLocation.AdditionalError = this.WhenAny(x => x.Mo2Folder)
+            ModlistLocation.AdditionalError = this.WhenAny(x => x.Mo2Folder)
                 .Select<string, IErrorResponse>(moFolder =>
                 {
                     if (Directory.Exists(moFolder)) return ErrorResponse.Success;
@@ -93,7 +88,7 @@ namespace Wabbajack
                 });
 
             // Wire start command
-            this.BeginCommand = ReactiveCommand.CreateFromTask(
+            BeginCommand = ReactiveCommand.CreateFromTask(
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.ModlistLocation.InError),
                         this.WhenAny(x => x.DownloadLocation.InError),
@@ -103,15 +98,15 @@ namespace Wabbajack
                 {
                     try
                     {
-                        this.ActiveCompilation = new MO2Compiler(this.Mo2Folder)
+                        ActiveCompilation = new MO2Compiler(Mo2Folder)
                         {
-                            MO2Profile = this.MOProfile,
-                            ModListName = this.ModlistSettings.ModListName,
-                            ModListAuthor = this.ModlistSettings.AuthorText,
-                            ModListDescription = this.ModlistSettings.Description,
-                            ModListImage = this.ModlistSettings.ImagePath.TargetPath,
-                            ModListWebsite = this.ModlistSettings.Website,
-                            ModListReadme = this.ModlistSettings.ReadMeText.TargetPath,
+                            MO2Profile = MOProfile,
+                            ModListName = ModlistSettings.ModListName,
+                            ModListAuthor = ModlistSettings.AuthorText,
+                            ModListDescription = ModlistSettings.Description,
+                            ModListImage = ModlistSettings.ImagePath.TargetPath,
+                            ModListWebsite = ModlistSettings.Website,
+                            ModListReadme = ModlistSettings.ReadMeText.TargetPath,
                         };
                     }
                     catch (Exception ex)
@@ -123,7 +118,7 @@ namespace Wabbajack
 
                     try
                     {
-                        await this.ActiveCompilation.Begin();
+                        await ActiveCompilation.Begin();
                     }
                     catch (Exception ex)
                     {
@@ -132,38 +127,38 @@ namespace Wabbajack
                     }
                     finally
                     {
-                        this.StatusTracker = null;
-                        this.ActiveCompilation.Dispose();
-                        this.ActiveCompilation = null;
+                        StatusTracker = null;
+                        ActiveCompilation.Dispose();
+                        ActiveCompilation = null;
                     }
                     
                 });
 
             // Load settings
-            this.settings = parent.MWVM.Settings.Compiler.MO2Compilation;
-            this.ModlistLocation.TargetPath = settings.LastCompiledProfileLocation;
-            if (!string.IsNullOrWhiteSpace(settings.DownloadLocation))
+            _settings = parent.MWVM.Settings.Compiler.MO2Compilation;
+            ModlistLocation.TargetPath = _settings.LastCompiledProfileLocation;
+            if (!string.IsNullOrWhiteSpace(_settings.DownloadLocation))
             {
-                this.DownloadLocation.TargetPath = settings.DownloadLocation;
+                DownloadLocation.TargetPath = _settings.DownloadLocation;
             }
             parent.MWVM.Settings.SaveSignal
                 .Subscribe(_ => Unload())
-                .DisposeWith(this.CompositeDisposable);
+                .DisposeWith(CompositeDisposable);
 
             // Load custom modlist settings per MO2 profile
-            this._ModlistSettings = Observable.CombineLatest(
+            _modlistSettings = Observable.CombineLatest(
                     this.WhenAny(x => x.ModlistLocation.ErrorState),
                     this.WhenAny(x => x.ModlistLocation.TargetPath),
-                    resultSelector: (State, Path) => (State, Path))
+                    resultSelector: (state, path) => (State: state, Path: path))
                 // A short throttle is a quick hack to make the above changes "atomic"
                 .Throttle(TimeSpan.FromMilliseconds(25))
                 .Select(u =>
                 {
                     if (u.State.Failed) return null;
-                    var modlistSettings = settings.ModlistSettings.TryCreate(u.Path);
+                    var modlistSettings = _settings.ModlistSettings.TryCreate(u.Path);
                     return new ModlistSettingsEditorVM(modlistSettings)
                     {
-                        ModListName = this.MOProfile
+                        ModListName = MOProfile
                     };
                 })
                 // Interject and save old while loading new
@@ -176,7 +171,7 @@ namespace Wabbajack
                 .Select(x => x.Current)
                 // Save to property
                 .ObserveOnGuiThread()
-                .ToProperty(this, nameof(this.ModlistSettings));
+                .ToProperty(this, nameof(ModlistSettings));
 
             // If Mo2 folder changes and download location is empty, set it for convenience
             this.WhenAny(x => x.Mo2Folder)
@@ -189,22 +184,22 @@ namespace Wabbajack
                 {
                     try
                     {
-                        var tmp_compiler = new MO2Compiler(this.Mo2Folder);
-                        this.DownloadLocation.TargetPath = tmp_compiler.MO2DownloadsFolder;
+                        var tmpCompiler = new MO2Compiler(Mo2Folder);
+                        DownloadLocation.TargetPath = tmpCompiler.MO2DownloadsFolder;
                     }
                     catch (Exception ex)
                     {
                         Utils.Log($"Error setting default download location {ex}");
                     }
                 })
-                .DisposeWith(this.CompositeDisposable);
+                .DisposeWith(CompositeDisposable);
         }
 
         public void Unload()
         {
-            settings.DownloadLocation = this.DownloadLocation.TargetPath;
-            settings.LastCompiledProfileLocation = this.ModlistLocation.TargetPath;
-            this.ModlistSettings?.Save();
+            _settings.DownloadLocation = DownloadLocation.TargetPath;
+            _settings.LastCompiledProfileLocation = ModlistLocation.TargetPath;
+            ModlistSettings?.Save();
         }
     }
 }

@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -29,8 +28,8 @@ namespace Wabbajack
 
         public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Wabba_Mouth.png");
 
-        private readonly ObservableAsPropertyHelper<ModListVM> _ModList;
-        public ModListVM ModList => _ModList.Value;
+        private readonly ObservableAsPropertyHelper<ModListVM> _modList;
+        public ModListVM ModList => _modList.Value;
 
         [Reactive]
         public string ModListPath { get; set; }
@@ -38,8 +37,8 @@ namespace Wabbajack
         [Reactive]
         public bool UIReady { get; set; }
 
-        private readonly ObservableAsPropertyHelper<string> _HTMLReport;
-        public string HTMLReport => _HTMLReport.Value;
+        private readonly ObservableAsPropertyHelper<string> _htmlReport;
+        public string HTMLReport => _htmlReport.Value;
 
         /// <summary>
         /// Tracks whether an install is currently in progress
@@ -57,26 +56,26 @@ namespace Wabbajack
 
         public FilePickerVM DownloadLocation { get; }
 
-        private readonly ObservableAsPropertyHelper<float> _ProgressPercent;
-        public float ProgressPercent => _ProgressPercent.Value;
+        private readonly ObservableAsPropertyHelper<float> _progressPercent;
+        public float ProgressPercent => _progressPercent.Value;
 
-        private readonly ObservableAsPropertyHelper<ImageSource> _Image;
-        public ImageSource Image => _Image.Value;
+        private readonly ObservableAsPropertyHelper<ImageSource> _image;
+        public ImageSource Image => _image.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _TitleText;
-        public string TitleText => _TitleText.Value;
+        private readonly ObservableAsPropertyHelper<string> _titleText;
+        public string TitleText => _titleText.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _AuthorText;
-        public string AuthorText => _AuthorText.Value;
+        private readonly ObservableAsPropertyHelper<string> _authorText;
+        public string AuthorText => _authorText.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _Description;
-        public string Description => _Description.Value;
+        private readonly ObservableAsPropertyHelper<string> _description;
+        public string Description => _description.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _ProgressTitle;
-        public string ProgressTitle => _ProgressTitle.Value;
+        private readonly ObservableAsPropertyHelper<string> _progressTitle;
+        public string ProgressTitle => _progressTitle.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _ModListName;
-        public string ModListName => _ModListName.Value;
+        private readonly ObservableAsPropertyHelper<string> _modListName;
+        public string ModListName => _modListName.Value;
 
         // Command properties
         public IReactiveCommand BeginCommand { get; }
@@ -97,57 +96,57 @@ namespace Wabbajack
                 Environment.Exit(1);
             }
 
-            this.MWVM = mainWindowVM;
-            this.ModListPath = source;
+            MWVM = mainWindowVM;
+            ModListPath = source;
 
-            this.Location = new FilePickerVM()
+            Location = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.Off,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Installation Directory",
             };
-            this.Location.AdditionalError = this.WhenAny(x => x.Location.TargetPath)
+            Location.AdditionalError = this.WhenAny(x => x.Location.TargetPath)
                 .Select(x => Utils.IsDirectoryPathValid(x));
-            this.DownloadLocation = new FilePickerVM()
+            DownloadLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.Off,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select a location for MO2 downloads",
             };
-            this.DownloadLocation.AdditionalError = this.WhenAny(x => x.DownloadLocation.TargetPath)
+            DownloadLocation.AdditionalError = this.WhenAny(x => x.DownloadLocation.TargetPath)
                 .Select(x => Utils.IsDirectoryPathValid(x));
 
             // Load settings
-            ModlistInstallationSettings settings = this.MWVM.Settings.Installer.ModlistSettings.TryCreate(source);
-            this.Location.TargetPath = settings.InstallationLocation;
-            this.DownloadLocation.TargetPath = settings.DownloadLocation;
-            this.MWVM.Settings.SaveSignal
+            ModlistInstallationSettings settings = MWVM.Settings.Installer.ModlistSettings.TryCreate(source);
+            Location.TargetPath = settings.InstallationLocation;
+            DownloadLocation.TargetPath = settings.DownloadLocation;
+            MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
                 {
-                    settings.InstallationLocation = this.Location.TargetPath;
-                    settings.DownloadLocation = this.DownloadLocation.TargetPath;
+                    settings.InstallationLocation = Location.TargetPath;
+                    settings.DownloadLocation = DownloadLocation.TargetPath;
                 })
-                .DisposeWith(this.CompositeDisposable);
+                .DisposeWith(CompositeDisposable);
 
-            this._ModList = this.WhenAny(x => x.ModListPath)
+            _modList = this.WhenAny(x => x.ModListPath)
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(modListPath =>
                 {
                     if (modListPath == null) return default(ModListVM);
-                    var modList = MO2Installer.LoadFromFile(modListPath);
+                    var modList = AInstaller.LoadFromFile(modListPath);
                     if (modList == null)
                     {
                         MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
                             MessageBoxImage.Error);
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            this.MWVM.MainWindow.ExitWhenClosing = false;
+                            MWVM.MainWindow.ExitWhenClosing = false;
                             var window = new ModeSelectionWindow
                             {
                                 ShowActivated = true
                             };
                             window.Show();
-                            this.MWVM.MainWindow.Close();
+                            MWVM.MainWindow.Close();
                         });
                         return default(ModListVM);
                     }
@@ -155,11 +154,11 @@ namespace Wabbajack
                 })
                 .ObserveOnGuiThread()
                 .StartWith(default(ModListVM))
-                .ToProperty(this, nameof(this.ModList));
-            this._HTMLReport = this.WhenAny(x => x.ModList)
+                .ToProperty(this, nameof(ModList));
+            _htmlReport = this.WhenAny(x => x.ModList)
                 .Select(modList => modList?.ReportHTML)
-                .ToProperty(this, nameof(this.HTMLReport));
-            this._ProgressPercent = Observable.CombineLatest(
+                .ToProperty(this, nameof(HTMLReport));
+            _progressPercent = Observable.CombineLatest(
                     this.WhenAny(x => x.Installing),
                     this.WhenAny(x => x.InstallingMode),
                     resultSelector: (installing, mode) => !installing && mode)
@@ -167,13 +166,13 @@ namespace Wabbajack
                 // Disable for now, until more reliable
                 //this.WhenAny(x => x.MWVM.QueueProgress)
                 //    .Select(i => i / 100f)
-                .ToProperty(this, nameof(this.ProgressPercent));
+                .ToProperty(this, nameof(ProgressPercent));
 
-            this.Slideshow = new SlideShow(this);
+            Slideshow = new SlideShow(this);
 
             // Set display items to modlist if configuring or complete,
             // or to the current slideshow data if installing
-            this._Image = Observable.CombineLatest(
+            _image = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList)
                         .SelectMany(x => x?.ImageObservable ?? Observable.Empty<BitmapImage>())
                         .NotNull()
@@ -183,41 +182,41 @@ namespace Wabbajack
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, slideshow, installing) => installing ? slideshow : modList)
                 .Select<BitmapImage, ImageSource>(x => x)
-                .ToProperty(this, nameof(this.Image));
-            this._TitleText = Observable.CombineLatest(
+                .ToProperty(this, nameof(Image));
+            _titleText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Name),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModName)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
-                .ToProperty(this, nameof(this.TitleText));
-            this._AuthorText = Observable.CombineLatest(
+                .ToProperty(this, nameof(TitleText));
+            _authorText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Author),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModAuthor)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
-                .ToProperty(this, nameof(this.AuthorText));
-            this._Description = Observable.CombineLatest(
+                .ToProperty(this, nameof(AuthorText));
+            _description = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Description),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModDescription)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
-                .ToProperty(this, nameof(this.Description));
-            this._ModListName = this.WhenAny(x => x.ModList)
+                .ToProperty(this, nameof(Description));
+            _modListName = this.WhenAny(x => x.ModList)
                 .Select(x => x?.Name)
-                .ToProperty(this, nameof(this.ModListName));
+                .ToProperty(this, nameof(ModListName));
 
             // Define commands
-            this.ShowReportCommand = ReactiveCommand.Create(ShowReport);
-            this.OpenReadmeCommand = ReactiveCommand.Create(
-                execute: this.OpenReadmeWindow,
+            ShowReportCommand = ReactiveCommand.Create(ShowReport);
+            OpenReadmeCommand = ReactiveCommand.Create(
+                execute: OpenReadmeWindow,
                 canExecute: this.WhenAny(x => x.ModList)
                     .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
                     .ObserveOnGuiThread());
-            this.BeginCommand = ReactiveCommand.Create(
-                execute: this.ExecuteBegin,
+            BeginCommand = ReactiveCommand.Create(
+                execute: ExecuteBegin,
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.Installing),
                         this.WhenAny(x => x.Location.InError),
@@ -228,8 +227,8 @@ namespace Wabbajack
                             return !loc && !download;
                         })
                     .ObserveOnGuiThread());
-            this.VisitWebsiteCommand = ReactiveCommand.Create(
-                execute: () => Process.Start(this.ModList.Website),
+            VisitWebsiteCommand = ReactiveCommand.Create(
+                execute: () => Process.Start(ModList.Website),
                 canExecute: this.WhenAny(x => x.ModList.Website)
                     .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());
@@ -239,14 +238,14 @@ namespace Wabbajack
                 .Skip(1) // Don't do it initially
                 .Subscribe(installPath =>
                 {
-                    if (string.IsNullOrWhiteSpace(this.DownloadLocation.TargetPath))
+                    if (string.IsNullOrWhiteSpace(DownloadLocation.TargetPath))
                     {
-                        this.DownloadLocation.TargetPath = Path.Combine(installPath, "downloads");
+                        DownloadLocation.TargetPath = Path.Combine(installPath, "downloads");
                     }
                 })
-                .DisposeWith(this.CompositeDisposable);
+                .DisposeWith(CompositeDisposable);
 
-            this._ProgressTitle = Observable.CombineLatest(
+            _progressTitle = Observable.CombineLatest(
                     this.WhenAny(x => x.Installing),
                     this.WhenAny(x => x.InstallingMode),
                     resultSelector: (installing, mode) =>
@@ -254,7 +253,7 @@ namespace Wabbajack
                         if (!installing) return "Configuring";
                         return mode ? "Installing" : "Installed";
                     })
-                .ToProperty(this, nameof(this.ProgressTitle));
+                .ToProperty(this, nameof(ProgressTitle));
         }
 
         private void ShowReport()
@@ -266,15 +265,15 @@ namespace Wabbajack
 
         private void OpenReadmeWindow()
         {
-            if (string.IsNullOrEmpty(this.ModList.Readme)) return;
-            using (var fs = new FileStream(this.ModListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            if (string.IsNullOrEmpty(ModList.Readme)) return;
+            using (var fs = new FileStream(ModListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
             using (var ms = new MemoryStream())
             {
-                var entry = ar.GetEntry(this.ModList.Readme);
+                var entry = ar.GetEntry(ModList.Readme);
                 if (entry == null)
                 {
-                    Utils.Log($"Tried to open a non-existant readme: {this.ModList.Readme}");
+                    Utils.Log($"Tried to open a non-existant readme: {ModList.Readme}");
                     return;
                 }
                 using (var e = entry.Open())
@@ -284,7 +283,7 @@ namespace Wabbajack
                 ms.Seek(0, SeekOrigin.Begin);
                 using (var reader = new StreamReader(ms))
                 {
-                    var viewer = new TextViewer(reader.ReadToEnd(), this.ModList.Name);
+                    var viewer = new TextViewer(reader.ReadToEnd(), ModList.Name);
                     viewer.Show();
                 }
             }
@@ -292,9 +291,9 @@ namespace Wabbajack
 
         private void ExecuteBegin()
         {
-            this.Installing = true;
-            this.InstallingMode = true;
-            var installer = new MO2Installer(this.ModListPath, this.ModList.SourceModList, Location.TargetPath)
+            Installing = true;
+            InstallingMode = true;
+            var installer = new MO2Installer(ModListPath, ModList.SourceModList, Location.TargetPath)
             {
                 DownloadFolder = DownloadLocation.TargetPath
             };
@@ -307,7 +306,7 @@ namespace Wabbajack
                 .EnsureUniqueChanges()
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
-                .Bind(this.MWVM.StatusList)
+                .Bind(MWVM.StatusList)
                 .Subscribe();
 
             Task.Run(async () =>
@@ -327,9 +326,9 @@ namespace Wabbajack
                 {
                     // Dispose of CPU tracking systems
                     subscription.Dispose();
-                    this.MWVM.StatusList.Clear();
+                    MWVM.StatusList.Clear();
 
-                    this.Installing = false;
+                    Installing = false;
                 }
             });
         }

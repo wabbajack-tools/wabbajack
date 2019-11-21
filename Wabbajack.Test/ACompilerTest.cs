@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -55,7 +51,7 @@ namespace Wabbajack.Test
 
         protected void Install(MO2Compiler compiler)
         {
-            var modlist = MO2Installer.LoadFromFile(compiler.ModListOutputFile);
+            var modlist = AInstaller.LoadFromFile(compiler.ModListOutputFile);
             var installer = new MO2Installer(compiler.ModListOutputFile, modlist, utils.InstallFolder);
             installer.WarnOnOverwrite = false;
             installer.DownloadFolder = utils.DownloadsFolder;

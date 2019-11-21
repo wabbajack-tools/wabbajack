@@ -1,14 +1,6 @@
-﻿using System;
-using System.Net.Configuration;
-using System.Net.Http;
-using System.Windows;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Wabbajack.Common;
-using Wabbajack.Lib.NexusApi;
-
-namespace Wabbajack.CacheServer.Test
+﻿namespace Wabbajack.CacheServer.Test
 {
-    [TestClass]
+    //[TestClass]
     public class CacheServerTests
     {
         // The server works, we just need to figure out proper testing.

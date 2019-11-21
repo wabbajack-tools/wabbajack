@@ -32,7 +32,7 @@ namespace Wabbajack
             ModListPath = modListPath;
             SourceModList = sourceModList;
 
-            ImageObservable = Observable.Return(this.ImageURL)
+            ImageObservable = Observable.Return(ImageURL)
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(url =>
                 {
@@ -41,7 +41,7 @@ namespace Wabbajack
                         if (!File.Exists(url)) return default(MemoryStream);
                         if (string.IsNullOrWhiteSpace(sourceModList.Image)) return default(MemoryStream);
                         if (sourceModList.Image.Length != 36) return default(MemoryStream);
-                        using (var fs = new FileStream(this.ModListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        using (var fs = new FileStream(ModListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
                         using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
                         {
                             var ms = new MemoryStream();
@@ -55,7 +55,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        Utils.LogToFile($"Exception while caching Mod List image {this.Name}\n{ex.ExceptionToString()}");
+                        Utils.LogToFile($"Exception while caching Mod List image {Name}\n{ex.ExceptionToString()}");
                         return default(MemoryStream);
                     }
                 })
@@ -74,7 +74,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        Utils.LogToFile($"Exception while caching Mod List image {this.Name}\n{ex.ExceptionToString()}");
+                        Utils.LogToFile($"Exception while caching Mod List image {Name}\n{ex.ExceptionToString()}");
                         return default(BitmapImage);
                     }
                 })

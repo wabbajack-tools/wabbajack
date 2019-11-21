@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
+﻿using System.Net.Http;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 
@@ -12,9 +7,9 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class ModDBDownloader : IDownloader, IUrlDownloader
     {
-        public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
+        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
         {
-            var url = archive_ini?.General?.directURL;
+            var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);
         }
 
@@ -46,8 +41,8 @@ namespace Wabbajack.Lib.Downloaders
 
             public override void Download(Archive a, string destination)
             {
-                var new_url = GetDownloadUrl();
-                new HTTPDownloader.State {Url = new_url}.Download(a, destination);
+                var newURL = GetDownloadUrl();
+                new HTTPDownloader.State {Url = newURL}.Download(a, destination);
             }
 
             private string GetDownloadUrl()
@@ -56,14 +51,14 @@ namespace Wabbajack.Lib.Downloaders
                 var result = client.GetStringSync(Url);
                 var regex = new Regex("https:\\/\\/www\\.moddb\\.com\\/downloads\\/mirror\\/.*(?=\\\")");
                 var match = regex.Match(result);
-                var new_url = match.Value;
-                return new_url;
+                var newURL = match.Value;
+                return newURL;
             }
 
             public override bool Verify()
             {
-                var new_url = GetDownloadUrl();
-                return new HTTPDownloader.State { Url = new_url }.Verify();
+                var newURL = GetDownloadUrl();
+                return new HTTPDownloader.State { Url = newURL }.Verify();
             }
 
             public override IDownloader GetDownloader()

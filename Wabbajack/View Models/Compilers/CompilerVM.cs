@@ -1,14 +1,11 @@
 ﻿using DynamicData;
 using DynamicData.Binding;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
-using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -19,40 +16,40 @@ namespace Wabbajack
     {
         public MainWindowVM MWVM { get; }
 
-        private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
-        public BitmapImage Image => _Image.Value;
+        private readonly ObservableAsPropertyHelper<BitmapImage> _image;
+        public BitmapImage Image => _image.Value;
 
         [Reactive]
         public ModManager SelectedCompilerType { get; set; }
 
-        private readonly ObservableAsPropertyHelper<ISubCompilerVM> _Compiler;
-        public ISubCompilerVM Compiler => _Compiler.Value;
+        private readonly ObservableAsPropertyHelper<ISubCompilerVM> _compiler;
+        public ISubCompilerVM Compiler => _compiler.Value;
 
-        private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _CurrentModlistSettings;
-        public ModlistSettingsEditorVM CurrentModlistSettings => _CurrentModlistSettings.Value;
+        private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _currentModlistSettings;
+        public ModlistSettingsEditorVM CurrentModlistSettings => _currentModlistSettings.Value;
 
-        private readonly ObservableAsPropertyHelper<StatusUpdateTracker> _CurrentStatusTracker;
-        public StatusUpdateTracker CurrentStatusTracker => _CurrentStatusTracker.Value;
+        private readonly ObservableAsPropertyHelper<StatusUpdateTracker> _currentStatusTracker;
+        public StatusUpdateTracker CurrentStatusTracker => _currentStatusTracker.Value;
 
-        private readonly ObservableAsPropertyHelper<bool> _Compiling;
-        public bool Compiling => _Compiling.Value;
+        private readonly ObservableAsPropertyHelper<bool> _compiling;
+        public bool Compiling => _compiling.Value;
 
         public CompilerVM(MainWindowVM mainWindowVM)
         {
-            this.MWVM = mainWindowVM;
+            MWVM = mainWindowVM;
 
             // Load settings
-            CompilerSettings settings = this.MWVM.Settings.Compiler;
-            this.SelectedCompilerType = settings.LastCompiledModManager;
-            this.MWVM.Settings.SaveSignal
+            CompilerSettings settings = MWVM.Settings.Compiler;
+            SelectedCompilerType = settings.LastCompiledModManager;
+            MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
                 {
-                    settings.LastCompiledModManager = this.SelectedCompilerType;
+                    settings.LastCompiledModManager = SelectedCompilerType;
                 })
-                .DisposeWith(this.CompositeDisposable);
+                .DisposeWith(CompositeDisposable);
 
             // Swap to proper sub VM based on selected type
-            this._Compiler = this.WhenAny(x => x.SelectedCompilerType)
+            _compiler = this.WhenAny(x => x.SelectedCompilerType)
                 // Delay so the initial VM swap comes in immediately, subVM comes right after
                 .DelayInitial(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
                 .Select<ModManager, ISubCompilerVM>(type =>
@@ -74,17 +71,17 @@ namespace Wabbajack
                     pair.Previous?.Unload();
                 })
                 .Select(p => p.Current)
-                .ToProperty(this, nameof(this.Compiler));
+                .ToProperty(this, nameof(Compiler));
 
             // Let sub VM determine what settings we're displaying and when
-            this._CurrentModlistSettings = this.WhenAny(x => x.Compiler.ModlistSettings)
-                .ToProperty(this, nameof(this.CurrentModlistSettings));
+            _currentModlistSettings = this.WhenAny(x => x.Compiler.ModlistSettings)
+                .ToProperty(this, nameof(CurrentModlistSettings));
 
             // Let sub VM determine what progress we're seeing
-            this._CurrentStatusTracker = this.WhenAny(x => x.Compiler.StatusTracker)
-                .ToProperty(this, nameof(this.CurrentStatusTracker));
+            _currentStatusTracker = this.WhenAny(x => x.Compiler.StatusTracker)
+                .ToProperty(this, nameof(CurrentStatusTracker));
 
-            this._Image = this.WhenAny(x => x.CurrentModlistSettings.ImagePath.TargetPath)
+            _image = this.WhenAny(x => x.CurrentModlistSettings.ImagePath.TargetPath)
                 // Throttle so that it only loads image after any sets of swaps have completed
                 .Throttle(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
                 .DistinctUntilChanged()
@@ -97,12 +94,12 @@ namespace Wabbajack
                     }
                     return null;
                 })
-                .ToProperty(this, nameof(this.Image));
+                .ToProperty(this, nameof(Image));
 
-            this._Compiling = this.WhenAny(x => x.Compiler.ActiveCompilation)
+            _compiling = this.WhenAny(x => x.Compiler.ActiveCompilation)
                 .Select(compilation => compilation != null)
                 .ObserveOnGuiThread()
-                .ToProperty(this, nameof(this.Compiling));
+                .ToProperty(this, nameof(Compiling));
 
             // Compile progress updates and populate ObservableCollection
             var subscription = this.WhenAny(x => x.Compiler.ActiveCompilation)
@@ -113,9 +110,9 @@ namespace Wabbajack
                 .EnsureUniqueChanges()
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
-                .Bind(this.MWVM.StatusList)
+                .Bind(MWVM.StatusList)
                 .Subscribe()
-                .DisposeWith(this.CompositeDisposable);
+                .DisposeWith(CompositeDisposable);
         }
     }
 }

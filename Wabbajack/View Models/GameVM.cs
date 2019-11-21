@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Wabbajack.Common;
+﻿using Wabbajack.Common;
 
 namespace Wabbajack
 {
@@ -14,8 +9,8 @@ namespace Wabbajack
 
         public GameVM(Game game)
         {
-            this.Game = game;
-            this.DisplayName = game.ToDescriptionString();
+            Game = game;
+            DisplayName = game.ToDescriptionString();
         }
     }
 }

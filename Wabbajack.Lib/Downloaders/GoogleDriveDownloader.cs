@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
+﻿using System.Net.Http;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 
@@ -13,9 +7,9 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class GoogleDriveDownloader : IDownloader, IUrlDownloader
     {
-        public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
+        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
         {
-            var url = archive_ini?.General?.directURL;
+            var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);
         }
 
@@ -53,14 +47,14 @@ namespace Wabbajack.Lib.Downloaders
 
             private HTTPDownloader.State ToHttpState()
             {
-                var initial_url = $"https://drive.google.com/uc?id={Id}&export=download";
+                var initialURL = $"https://drive.google.com/uc?id={Id}&export=download";
                 var client = new HttpClient();
-                var result = client.GetStringSync(initial_url);
+                var result = client.GetStringSync(initialURL);
                 var regex = new Regex("(?<=/uc\\?export=download&amp;confirm=).*(?=;id=)");
                 var confirm = regex.Match(result);
                 var url = $"https://drive.google.com/uc?export=download&confirm={confirm}&id={Id}";
-                var http_state = new HTTPDownloader.State {Url = url, Client = client};
-                return http_state;
+                var httpState = new HTTPDownloader.State {Url = url, Client = client};
+                return httpState;
             }
 
             public override bool Verify()

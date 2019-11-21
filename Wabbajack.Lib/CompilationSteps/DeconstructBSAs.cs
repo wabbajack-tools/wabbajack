@@ -10,7 +10,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class DeconstructBSAs : ACompilationStep
     {
-        private readonly IEnumerable<string> _include_directly;
+        private readonly IEnumerable<string> _includeDirectly;
         private readonly List<ICompilationStep> _microstack;
         private readonly List<ICompilationStep> _microstackWithInclude;
         private readonly MO2Compiler _mo2Compiler;
@@ -18,7 +18,7 @@ namespace Wabbajack.Lib.CompilationSteps
         public DeconstructBSAs(ACompiler compiler) : base(compiler)
         {
             _mo2Compiler = (MO2Compiler) compiler;
-            _include_directly = _mo2Compiler.ModInis.Where(kv =>
+            _includeDirectly = _mo2Compiler.ModInis.Where(kv =>
                 {
                     var general = kv.Value.General;
                     if (general.notes != null && general.notes.Contains(Consts.WABBAJACK_INCLUDE)) return true;
@@ -54,16 +54,16 @@ namespace Wabbajack.Lib.CompilationSteps
 
             var defaultInclude = false;
             if (source.Path.StartsWith("mods"))
-                if (_include_directly.Any(path => source.Path.StartsWith(path)))
+                if (_includeDirectly.Any(path => source.Path.StartsWith(path)))
                     defaultInclude = true;
 
-            var source_files = source.File.Children;
+            var sourceFiles = source.File.Children;
 
             var stack = defaultInclude ? _microstackWithInclude : _microstack;
 
             var id = Guid.NewGuid().ToString();
 
-            var matches = source_files.PMap(_mo2Compiler.Queue, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e)
+            var matches = sourceFiles.PMap(_mo2Compiler.Queue, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e)
             {
                 Path = Path.Combine(Consts.BSACreationDir, id, e.Name)
             }));

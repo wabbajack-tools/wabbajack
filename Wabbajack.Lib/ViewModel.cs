@@ -1,25 +1,21 @@
 ﻿using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Wabbajack.Lib
 {
     public class ViewModel : ReactiveObject, IDisposable
     {
-        private readonly Lazy<CompositeDisposable> _CompositeDisposable = new Lazy<CompositeDisposable>();
-        public CompositeDisposable CompositeDisposable => _CompositeDisposable.Value;
+        private readonly Lazy<CompositeDisposable> _compositeDisposable = new Lazy<CompositeDisposable>();
+        public CompositeDisposable CompositeDisposable => _compositeDisposable.Value;
 
         public virtual void Dispose()
         {
-            if (_CompositeDisposable.IsValueCreated)
+            if (_compositeDisposable.IsValueCreated)
             {
-                _CompositeDisposable.Value.Dispose();
+                _compositeDisposable.Value.Dispose();
             }
         }
 

@@ -1,18 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
-using CommonMark.Syntax;
 using Newtonsoft.Json;
 using Wabbajack.Common;
-using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.Validation;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 using File = System.IO.File;
 using Game = Wabbajack.Common.Game;
 
@@ -32,7 +22,7 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonProperty("game")]
         public Game Game { get; set; }
 
-        [JsonIgnore] public string GameName => this.Game.ToDescriptionString();
+        [JsonIgnore] public string GameName => Game.ToDescriptionString();
 
         [JsonProperty("official")]
         public bool Official { get; set; }

@@ -84,7 +84,7 @@ namespace Wabbajack
                 {
                     try
                     {
-                        this.ActiveCompilation = new VortexCompiler(
+                        ActiveCompilation = new VortexCompiler(
                             SelectedGame.Game,
                             GameLocation.TargetPath,
                             VortexCompiler.TypicalVortexFolder(),
@@ -109,7 +109,7 @@ namespace Wabbajack
                     {
                         try
                         {
-                            await this.ActiveCompilation.Begin();
+                            await ActiveCompilation.Begin();
                         }
                         catch (Exception ex)
                         {
@@ -118,9 +118,9 @@ namespace Wabbajack
                         }
                         finally
                         {
-                            this.StatusTracker = null;
-                            this.ActiveCompilation.Dispose();
-                            this.ActiveCompilation = null;
+                            StatusTracker = null;
+                            ActiveCompilation.Dispose();
+                            ActiveCompilation = null;
                         }
                     });
                 });
@@ -169,7 +169,7 @@ namespace Wabbajack
                 .DisposeWith(CompositeDisposable);
 
             // Load custom ModList settings when game type changes
-            this._modListSettings = this.WhenAny(x => x.SelectedGame)
+            _modListSettings = this.WhenAny(x => x.SelectedGame)
                 .Select(game =>
                 {
                     var gameSettings = _settings.ModlistSettings.TryCreate(game.Game);

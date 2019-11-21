@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Wabbajack.Common.CSP
 {

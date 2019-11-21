@@ -1,13 +1,9 @@
 ﻿using Alphaleonis.Win32.Filesystem;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
@@ -21,14 +17,14 @@ namespace Wabbajack.UI
         [Reactive]
         public ModlistMetadata SelectedModList { get; set; }
 
-        private readonly ObservableAsPropertyHelper<bool> _CanInstall;
-        public bool CanInstall => _CanInstall.Value;
+        private readonly ObservableAsPropertyHelper<bool> _canInstall;
+        public bool CanInstall => _canInstall.Value;
 
         public ModeSelectionWindowVM()
         {
-            this._CanInstall = this.WhenAny(x => x.SelectedModList)
+            _canInstall = this.WhenAny(x => x.SelectedModList)
                 .Select(x => x != null)
-                .ToProperty(this, nameof(this.CanInstall));
+                .ToProperty(this, nameof(CanInstall));
         }
 
         internal string Download()

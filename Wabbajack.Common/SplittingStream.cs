@@ -7,15 +7,15 @@ namespace Wabbajack.Common
     {
         private readonly Stream _a;
         private readonly Stream _b;
-        private readonly bool _leave_a_open;
-        private readonly bool _leave_b_open;
+        private readonly bool _leaveAOpen;
+        private readonly bool _leaveBOpen;
 
-        public SplittingStream(Stream a, bool leave_a_open, Stream b, bool leave_b_open)
+        public SplittingStream(Stream a, bool leaveAOpen, Stream b, bool leaveBOpen)
         {
             _a = a;
             _b = b;
-            _leave_a_open = leave_a_open;
-            _leave_b_open = leave_b_open;
+            _leaveAOpen = leaveAOpen;
+            _leaveBOpen = leaveBOpen;
         }
 
         public override bool CanRead => false;
@@ -63,8 +63,8 @@ namespace Wabbajack.Common
         {
             if (disposing)
             {
-                if (!_leave_a_open) _a.Dispose();
-                if (!_leave_b_open) _b.Dispose();
+                if (!_leaveAOpen) _a.Dispose();
+                if (!_leaveBOpen) _b.Dispose();
             }
         }
     }

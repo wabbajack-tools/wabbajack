@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Validation;

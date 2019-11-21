@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Windows.Navigation;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
-using Context = Wabbajack.VirtualFileSystem.Context;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
-using DriveInfo = Alphaleonis.Win32.Filesystem.DriveInfo;
 using File = System.IO.File;
 using FileInfo = System.IO.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;

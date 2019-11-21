@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows.Documents;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -64,7 +63,7 @@ namespace Wabbajack.Test.ListValidation
 
             Log($"Loading {modlist_path}");
 
-            var installer = MO2Installer.LoadFromFile(modlist_path);
+            var installer = AInstaller.LoadFromFile(modlist_path);
 
             Log($"{installer.Archives.Count} archives to validate");
 

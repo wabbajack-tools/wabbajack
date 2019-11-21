@@ -4,7 +4,6 @@ using System.Data.HashFunction.xxHash;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Configuration;
 using System.Net.Http;
 using System.Reactive.Subjects;
 using System.Reflection;
@@ -17,7 +16,6 @@ using Ceras;
 using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Directory = System.IO.Directory;
@@ -38,18 +36,18 @@ namespace Wabbajack.Common
         public static string LogFile { get; private set; }
         static Utils()
         {
-            var program_name = Assembly.GetEntryAssembly()?.Location ?? "Wabbajack";
-            LogFile = program_name + ".log";
+            var programName = Assembly.GetEntryAssembly()?.Location ?? "Wabbajack";
+            LogFile = programName + ".log";
             _startTime = DateTime.Now;
 
             if (LogFile.FileExists())
                 File.Delete(LogFile);
         }
 
-        private static readonly Subject<string> _loggerSubj = new Subject<string>();
-        public static IObservable<string> LogMessages => _loggerSubj;
-        private static readonly Subject<(string Message, int Progress)> _statusSubj = new Subject<(string Message, int Progress)>();
-        public static IObservable<(string Message, int Progress)> StatusUpdates => _statusSubj;
+        private static readonly Subject<string> LoggerSubj = new Subject<string>();
+        public static IObservable<string> LogMessages => LoggerSubj;
+        private static readonly Subject<(string Message, int Progress)> StatusSubj = new Subject<(string Message, int Progress)>();
+        public static IObservable<(string Message, int Progress)> StatusUpdates => StatusSubj;
 
         private static readonly string[] Suffix = {"B", "KB", "MB", "GB", "TB", "PB", "EB"}; // Longs run out around EB
 
@@ -65,7 +63,7 @@ namespace Wabbajack.Common
 
                 File.AppendAllText(LogFile, msg + "\r\n");
             }
-            _loggerSubj.OnNext(msg);
+            LoggerSubj.OnNext(msg);
         }
 
         public static void LogToFile(string msg)
@@ -83,7 +81,7 @@ namespace Wabbajack.Common
             if (WorkQueue.CurrentQueue != null)
                 WorkQueue.CurrentQueue.Report(msg, progress);
             else
-                _statusSubj.OnNext((msg, progress));
+                StatusSubj.OnNext((msg, progress));
         }
 
         /// <summary>
@@ -169,14 +167,14 @@ namespace Wabbajack.Common
         {
             var buffer = new byte[1024 * 64];
             if (maxSize == 0) maxSize = 1;
-            long total_read = 0;
+            long totalRead = 0;
             while (true)
             {
                 var read = istream.Read(buffer, 0, buffer.Length);
                 if (read == 0) break;
-                total_read += read;
+                totalRead += read;
                 ostream.Write(buffer, 0, read);
-                Status(status, (int) (total_read * 100 / maxSize));
+                Status(status, (int) (totalRead * 100 / maxSize));
             }
         }
 
@@ -212,7 +210,7 @@ namespace Wabbajack.Common
 
         public static DateTime AsUnixTime(this long timestamp)
         {
-            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+            DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             dtDateTime = dtDateTime.AddSeconds(timestamp).ToLocalTime();
             return dtDateTime;
         }
@@ -448,7 +446,7 @@ namespace Wabbajack.Common
         {
             var colllst = coll.ToList();
 
-            var remaining_tasks = colllst.Count;
+            var remainingTasks = colllst.Count;
 
             var tasks = coll.Select(i =>
             {
@@ -463,14 +461,14 @@ namespace Wabbajack.Common
                     {
                         tc.SetException(ex);
                     }
-                    Interlocked.Decrement(ref remaining_tasks);
+                    Interlocked.Decrement(ref remainingTasks);
                 });
                 return tc.Task;
             }).ToList();
 
             // To avoid thread starvation, we'll start to help out in the work queue
             if (WorkQueue.WorkerThread)
-                while (remaining_tasks > 0)
+                while (remainingTasks > 0)
                     if (queue.Queue.TryTake(out var a, 500))
                         a();
 
@@ -583,31 +581,31 @@ namespace Wabbajack.Common
 
         public static void CreatePatch(byte[] a, byte[] b, Stream output)
         {
-            var data_a = a.SHA256().FromBase64().ToHex();
-            var data_b = b.SHA256().FromBase64().ToHex();
-            var cache_file = Path.Combine("patch_cache", $"{data_a}_{data_b}.patch");
+            var dataA = a.SHA256().FromBase64().ToHex();
+            var dataB = b.SHA256().FromBase64().ToHex();
+            var cacheFile = Path.Combine("patch_cache", $"{dataA}_{dataB}.patch");
             if (!Directory.Exists("patch_cache"))
                 Directory.CreateDirectory("patch_cache");
 
             while (true)
             {
-                if (File.Exists(cache_file))
+                if (File.Exists(cacheFile))
                 {
-                    using (var f = File.OpenRead(cache_file))
+                    using (var f = File.OpenRead(cacheFile))
                     {
                         f.CopyTo(output);
                     }
                 }
                 else
                 {
-                    var tmp_name = Path.Combine("patch_cache", Guid.NewGuid() + ".tmp");
+                    var tmpName = Path.Combine("patch_cache", Guid.NewGuid() + ".tmp");
 
-                    using (var f = File.OpenWrite(tmp_name))
+                    using (var f = File.OpenWrite(tmpName))
                     {
                         BSDiff.Create(a, b, f);
                     }
 
-                    File.Move(tmp_name, cache_file);
+                    File.Move(tmpName, cacheFile);
                     continue;
                 }
 
@@ -617,9 +615,9 @@ namespace Wabbajack.Common
 
         public static void TryGetPatch(string foundHash, string fileHash, out byte[] ePatch)
         {
-            var patch_name = Path.Combine("patch_cache",
+            var patchName = Path.Combine("patch_cache",
                 $"{foundHash.FromBase64().ToHex()}_{fileHash.FromBase64().ToHex()}.patch");
-            ePatch = File.Exists(patch_name) ? File.ReadAllBytes(patch_name) : null;
+            ePatch = File.Exists(patchName) ? File.ReadAllBytes(patchName) : null;
         }
 
         public static void Warning(string s)
@@ -701,7 +699,7 @@ namespace Wabbajack.Common
 
         private static long TestDiskSpeedInner(WorkQueue queue, string path)
         {
-            var start_time = DateTime.Now;
+            var startTime = DateTime.Now;
             var seconds = 2;
             return Enumerable.Range(0, queue.ThreadCount)
                 .PMap(queue, idx =>
@@ -714,7 +712,7 @@ namespace Wabbajack.Common
                     random.NextBytes(buffer);
                     using (var fs = File.OpenWrite(file))
                     {
-                        while (DateTime.Now < start_time + new TimeSpan(0, 0, seconds))
+                        while (DateTime.Now < startTime + new TimeSpan(0, 0, seconds))
                         {
                             fs.Write(buffer, 0, buffer.Length);
                             // Flush to make sure large buffers don't cause the rate to be higher than it should
@@ -730,11 +728,11 @@ namespace Wabbajack.Common
         private static Dictionary<string, long> _cachedDiskSpeeds = new Dictionary<string, long>();
         public static long TestDiskSpeed(WorkQueue queue, string path)
         {
-            var drive_name = Volume.GetUniqueVolumeNameForPath(path);
-            if (_cachedDiskSpeeds.TryGetValue(drive_name, out long speed))
+            var driveName = Volume.GetUniqueVolumeNameForPath(path);
+            if (_cachedDiskSpeeds.TryGetValue(driveName, out long speed))
                 return speed;
             speed = TestDiskSpeedInner(queue, path);
-            _cachedDiskSpeeds[drive_name] = speed;
+            _cachedDiskSpeeds[driveName] = speed;
             return speed;
         }
 
@@ -753,7 +751,7 @@ namespace Wabbajack.Common
             {
                 return ErrorResponse.Fail(ex.Message);
             }
-            catch (System.IO.PathTooLongException ex)
+            catch (PathTooLongException ex)
             {
                 return ErrorResponse.Fail(ex.Message);
             }
@@ -778,7 +776,7 @@ namespace Wabbajack.Common
             {
                 return ErrorResponse.Fail(ex.Message);
             }
-            catch (System.IO.PathTooLongException ex)
+            catch (PathTooLongException ex)
             {
                 return ErrorResponse.Fail(ex.Message);
             }

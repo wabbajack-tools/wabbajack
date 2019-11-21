@@ -73,13 +73,13 @@ namespace Wabbajack.Common
                             if (f.Path.StartsWith("\\"))
                                 path = f.Path.Substring(1);
                             Utils.Status($"Extracting {path}");
-                            var out_path = Path.Combine(dest, path);
-                            var parent = Path.GetDirectoryName(out_path);
+                            var outPath = Path.Combine(dest, path);
+                            var parent = Path.GetDirectoryName(outPath);
 
                             if (!Directory.Exists(parent))
                                 Directory.CreateDirectory(parent);
 
-                            using (var fs = File.OpenWrite(out_path))
+                            using (var fs = File.OpenWrite(outPath))
                             {
                                 f.CopyDataTo(fs);
                             }

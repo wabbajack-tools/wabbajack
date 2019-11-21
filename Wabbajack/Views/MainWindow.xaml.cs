@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Threading;
 using System.Windows;
 using Wabbajack.Common;
 using Application = System.Windows.Application;
@@ -21,8 +20,8 @@ namespace Wabbajack
 
             if (args.Length != 3) return;
             var modlistPath = args[2];
-            this._settings = MainSettings.LoadSettings();
-            Initialize(RunMode.Install, modlistPath, this._settings);
+            _settings = MainSettings.LoadSettings();
+            Initialize(RunMode.Install, modlistPath, _settings);
         }
 
         public MainWindow(RunMode mode, string source, MainSettings settings)
@@ -33,10 +32,10 @@ namespace Wabbajack
         private void Initialize(RunMode mode, string source, MainSettings settings)
         {
             InitializeComponent();
-            this._settings = settings;
+            _settings = settings;
             _mwvm = new MainWindowVM(mode, source, this, settings);
             Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
-            this.DataContext = _mwvm;
+            DataContext = _mwvm;
         }
 
         internal bool ExitWhenClosing = true;
@@ -44,7 +43,7 @@ namespace Wabbajack
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             _mwvm.Dispose();
-            MainSettings.SaveSettings(this._settings);
+            MainSettings.SaveSettings(_settings);
             if (ExitWhenClosing)
             {
                 Application.Current.Shutdown();

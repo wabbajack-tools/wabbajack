@@ -7,11 +7,11 @@ namespace Wabbajack.Common
 {
     public class DynamicIniData : DynamicObject
     {
-        private readonly IniData value;
+        private readonly IniData _value;
 
         public DynamicIniData(IniData value) //
         {
-            this.value = value;
+            this._value = value;
         }
 
         public static dynamic FromIni(IniData data)
@@ -27,7 +27,7 @@ namespace Wabbajack.Common
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            result = new SectionData(value[binder.Name]);
+            result = new SectionData(_value[binder.Name]);
             return true;
         }
     }

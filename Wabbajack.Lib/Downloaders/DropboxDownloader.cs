@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 
 namespace Wabbajack.Lib.Downloaders
 {
     public class DropboxDownloader : IDownloader, IUrlDownloader
     {
-        public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
+        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
         {
-            var urlstring = archive_ini?.General?.directURL;
+            var urlstring = archiveINI?.General?.directURL;
             return GetDownloaderState(urlstring);
         }
 

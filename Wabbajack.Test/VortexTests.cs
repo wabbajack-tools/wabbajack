@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Wabbajack.Lib.CompilationSteps;
 
 namespace Wabbajack.Test
 {

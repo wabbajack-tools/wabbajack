@@ -1,12 +1,7 @@
 ﻿using ReactiveUI;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Reactive.Disposables;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -27,21 +22,21 @@ namespace Wabbajack
             PropertyChanged?.Invoke(this, args);
         }
 
-        private readonly Lazy<CompositeDisposable> _CompositeDisposable = new Lazy<CompositeDisposable>();
-        public CompositeDisposable CompositeDisposable => _CompositeDisposable.Value;
+        private readonly Lazy<CompositeDisposable> _compositeDisposable = new Lazy<CompositeDisposable>();
+        public CompositeDisposable CompositeDisposable => _compositeDisposable.Value;
 
         public virtual void Dispose()
         {
-            if (_CompositeDisposable.IsValueCreated)
+            if (_compositeDisposable.IsValueCreated)
             {
-                _CompositeDisposable.Value.Dispose();
+                _compositeDisposable.Value.Dispose();
             }
         }
 
         protected static void WireNotifyPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (!(d is UserControlRx control)) return;
-            if (object.Equals(e.OldValue, e.NewValue)) return;
+            if (Equals(e.OldValue, e.NewValue)) return;
             control.RaisePropertyChanged(e.Property.Name);
         }
     }

@@ -1,19 +1,8 @@
 ﻿using ReactiveUI;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace Wabbajack
 {
@@ -62,30 +51,30 @@ namespace Wabbajack
         public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(nameof(Description), typeof(string), typeof(DetailImageView),
              new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
-        private readonly ObservableAsPropertyHelper<bool> _ShowAuthor;
-        public bool ShowAuthor => _ShowAuthor.Value;
+        private readonly ObservableAsPropertyHelper<bool> _showAuthor;
+        public bool ShowAuthor => _showAuthor.Value;
 
-        private readonly ObservableAsPropertyHelper<bool> _ShowDescription;
-        public bool ShowDescription => _ShowDescription.Value;
+        private readonly ObservableAsPropertyHelper<bool> _showDescription;
+        public bool ShowDescription => _showDescription.Value;
 
-        private readonly ObservableAsPropertyHelper<bool> _ShowTitle;
-        public bool ShowTitle => _ShowTitle.Value;
+        private readonly ObservableAsPropertyHelper<bool> _showTitle;
+        public bool ShowTitle => _showTitle.Value;
 
         public DetailImageView()
         {
             InitializeComponent();
 
-            this._ShowAuthor = this.WhenAny(x => x.Author)
+            _showAuthor = this.WhenAny(x => x.Author)
                 .Select(x => !string.IsNullOrWhiteSpace(x))
-                .ToProperty(this, nameof(this.ShowAuthor));
+                .ToProperty(this, nameof(ShowAuthor));
 
-            this._ShowDescription = this.WhenAny(x => x.Description)
+            _showDescription = this.WhenAny(x => x.Description)
                 .Select(x => !string.IsNullOrWhiteSpace(x))
-                .ToProperty(this, nameof(this.ShowDescription));
+                .ToProperty(this, nameof(ShowDescription));
 
-            this._ShowTitle = this.WhenAny(x => x.Title)
+            _showTitle = this.WhenAny(x => x.Title)
                 .Select(x => !string.IsNullOrWhiteSpace(x))
-                .ToProperty(this, nameof(this.ShowTitle));
+                .ToProperty(this, nameof(ShowTitle));
         }
     }
 }

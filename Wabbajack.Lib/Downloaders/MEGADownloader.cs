@@ -1,24 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
 using CG.Web.MegaApiClient;
 using Wabbajack.Common;
-using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
     public class MegaDownloader : IDownloader, IUrlDownloader
     {
 
-        public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
+        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
         {
-            var url = archive_ini?.General?.directURL;
+            var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);
         }
 
@@ -40,10 +31,10 @@ namespace Wabbajack.Lib.Downloaders
                 var client = new MegaApiClient();
                 Utils.Status("Logging into MEGA (as anonymous)");
                 client.LoginAnonymous();
-                var file_link = new Uri(Url);
-                var node = client.GetNodeFromLink(file_link);
+                var fileLink = new Uri(Url);
+                var node = client.GetNodeFromLink(fileLink);
                 Utils.Status($"Downloading MEGA file: {a.Name}");
-                client.DownloadFile(file_link, destination);
+                client.DownloadFile(fileLink, destination);
             }
 
             public override bool Verify()
@@ -51,10 +42,10 @@ namespace Wabbajack.Lib.Downloaders
                 var client = new MegaApiClient();
                 Utils.Status("Logging into MEGA (as anonymous)");
                 client.LoginAnonymous();
-                var file_link = new Uri(Url);
+                var fileLink = new Uri(Url);
                 try
                 {
-                    var node = client.GetNodeFromLink(file_link);
+                    var node = client.GetNodeFromLink(fileLink);
                     return true;
                 }
                 catch (Exception)

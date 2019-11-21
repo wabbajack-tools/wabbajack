@@ -1,13 +1,11 @@
 ﻿using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using Wabbajack.Common;
 
 namespace Wabbajack.Lib

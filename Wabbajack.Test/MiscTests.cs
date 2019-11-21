@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Wabbajack.Common;
-using MahApps.Metro.Controls;
+﻿using Wabbajack.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Utils = Wabbajack.Common.Utils;
 

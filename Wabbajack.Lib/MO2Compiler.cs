@@ -9,7 +9,6 @@ using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
-using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -25,11 +24,11 @@ namespace Wabbajack.Lib
 
         public string MO2Profile;
 
-        public MO2Compiler(string mo2_folder)
+        public MO2Compiler(string mo2Folder)
         {
             ModManager = ModManager.MO2;
 
-            MO2Folder = mo2_folder;
+            MO2Folder = mo2Folder;
             MO2Ini = Path.Combine(MO2Folder, "ModOrganizer.ini").LoadIniFile();
             GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
 
@@ -69,9 +68,9 @@ namespace Wabbajack.Lib
             UpdateTracker.Reset();
             UpdateTracker.NextStep("Gathering information");
             Info("Looking for other profiles");
-            var other_profiles_path = Path.Combine(MO2ProfileDir, "otherprofiles.txt");
+            var otherProfilesPath = Path.Combine(MO2ProfileDir, "otherprofiles.txt");
             SelectedProfiles = new HashSet<string>();
-            if (File.Exists(other_profiles_path)) SelectedProfiles = File.ReadAllLines(other_profiles_path).ToHashSet();
+            if (File.Exists(otherProfilesPath)) SelectedProfiles = File.ReadAllLines(otherProfilesPath).ToHashSet();
             SelectedProfiles.Add(MO2Profile);
 
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
@@ -105,31 +104,31 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Finding Install Files");
             Directory.CreateDirectory(ModListOutputFolder);
 
-            var mo2_files = Directory.EnumerateFiles(MO2Folder, "*", SearchOption.AllDirectories)
+            var mo2Files = Directory.EnumerateFiles(MO2Folder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p]) { Path = p.RelativeTo(MO2Folder) });
 
-            var game_files = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
+            var gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                 { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
 
-            var loot_path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            var lootPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "LOOT");
 
             // TODO: make this generic so we can add more paths
-            IEnumerable<RawSourceFile> loot_files = new List<RawSourceFile>();
-            if (Directory.Exists(loot_path))
+            IEnumerable<RawSourceFile> lootFiles = new List<RawSourceFile>();
+            if (Directory.Exists(lootPath))
             {
-                Info($"Indexing {loot_path}");
-                VFS.AddRoot(loot_path);
+                Info($"Indexing {lootPath}");
+                VFS.AddRoot(lootPath);
                 VFS.WriteToFile(_vfsCacheName);
 
 
-                loot_files = Directory.EnumerateFiles(loot_path, "userlist.yaml", SearchOption.AllDirectories)
+                lootFiles = Directory.EnumerateFiles(lootPath, "userlist.yaml", SearchOption.AllDirectories)
                     .Where(p => p.FileExists())
                     .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
-                    { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(loot_path)) });
+                    { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(lootPath)) });
             }
 
             IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
@@ -148,8 +147,8 @@ namespace Wabbajack.Lib
                 .GroupBy(f => f.Hash)
                 .ToDictionary(f => f.Key, f => f.AsEnumerable());
 
-            AllFiles = mo2_files.Concat(game_files)
-                .Concat(loot_files)
+            AllFiles = mo2Files.Concat(gameFiles)
+                .Concat(lootFiles)
                 .DistinctBy(f => f.Path)
                 .ToList();
 
@@ -174,10 +173,10 @@ namespace Wabbajack.Lib
             ModInis = Directory.EnumerateDirectories(Path.Combine(MO2Folder, "mods"))
                 .Select(f =>
                 {
-                    var mod_name = Path.GetFileName(f);
-                    var meta_path = Path.Combine(f, "meta.ini");
-                    if (File.Exists(meta_path))
-                        return (mod_name, meta_path.LoadIniFile());
+                    var modName = Path.GetFileName(f);
+                    var metaPath = Path.Combine(f, "meta.ini");
+                    if (File.Exists(metaPath))
+                        return (mod_name: modName, metaPath.LoadIniFile());
                     return (null, null);
                 })
                 .Where(f => f.Item2 != null)
@@ -295,48 +294,48 @@ namespace Wabbajack.Lib
                 .ToList();
 
             Info($"Patching building patches from {groups.Count} archives");
-            var absolute_paths = AllFiles.ToDictionary(e => e.Path, e => e.AbsolutePath);
-            groups.PMap(Queue, group => BuildArchivePatches(group.Key, group, absolute_paths));
+            var absolutePaths = AllFiles.ToDictionary(e => e.Path, e => e.AbsolutePath);
+            groups.PMap(Queue, group => BuildArchivePatches(group.Key, group, absolutePaths));
 
             if (InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.PatchID == null) != null)
                 Error("Missing patches after generation, this should not happen");
         }
 
-        private void BuildArchivePatches(string archive_sha, IEnumerable<PatchedFromArchive> group,
-            Dictionary<string, string> absolute_paths)
+        private void BuildArchivePatches(string archiveSha, IEnumerable<PatchedFromArchive> group,
+            Dictionary<string, string> absolutePaths)
         {
             using (var files = VFS.StageWith(group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath))))
             {
-                var by_path = files.GroupBy(f => string.Join("|", f.FilesInFullPath.Skip(1).Select(i => i.Name)))
+                var byPath = files.GroupBy(f => string.Join("|", f.FilesInFullPath.Skip(1).Select(i => i.Name)))
                     .ToDictionary(f => f.Key, f => f.First());
                 // Now Create the patches
                 group.PMap(Queue, entry =>
                 {
                     Info($"Patching {entry.To}");
                     Status($"Patching {entry.To}");
-                    using (var origin = by_path[string.Join("|", entry.ArchiveHashPath.Skip(1))].OpenRead())
+                    using (var origin = byPath[string.Join("|", entry.ArchiveHashPath.Skip(1))].OpenRead())
                     using (var output = new MemoryStream())
                     {
                         var a = origin.ReadAll();
-                        var b = LoadDataForTo(entry.To, absolute_paths).Result;
+                        var b = LoadDataForTo(entry.To, absolutePaths).Result;
                         Utils.CreatePatch(a, b, output);
                         entry.PatchID = IncludeFile(output.ToArray());
-                        var file_size = File.GetSize(Path.Combine(ModListOutputFolder, entry.PatchID));
-                        Info($"Patch size {file_size} for {entry.To}");
+                        var fileSize = File.GetSize(Path.Combine(ModListOutputFolder, entry.PatchID));
+                        Info($"Patch size {fileSize} for {entry.To}");
                     }
                 });
             }
         }
 
-        private async Task<byte[]> LoadDataForTo(string to, Dictionary<string, string> absolute_paths)
+        private async Task<byte[]> LoadDataForTo(string to, Dictionary<string, string> absolutePaths)
         {
-            if (absolute_paths.TryGetValue(to, out var absolute))
+            if (absolutePaths.TryGetValue(to, out var absolute))
                 return File.ReadAllBytes(absolute);
 
             if (to.StartsWith(Consts.BSACreationDir))
             {
-                var bsa_id = to.Split('\\')[1];
-                var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsa_id);
+                var bsaID = to.Split('\\')[1];
+                var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsaID);
 
                 using (var a = BSADispatch.OpenRead(Path.Combine(MO2Folder, bsa.To)))
                 {
@@ -356,9 +355,9 @@ namespace Wabbajack.Lib
 
         public override IEnumerable<ICompilationStep> GetStack()
         {
-            var user_config = Path.Combine(MO2ProfileDir, "compilation_stack.yml");
-            if (File.Exists(user_config))
-                return Serialization.Deserialize(File.ReadAllText(user_config), this);
+            var userConfig = Path.Combine(MO2ProfileDir, "compilation_stack.yml");
+            if (File.Exists(userConfig))
+                return Serialization.Deserialize(File.ReadAllText(userConfig), this);
 
             var stack = MakeStack();
 

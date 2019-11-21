@@ -1,14 +1,11 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using Wabbajack.Common;
 using Wabbajack.Lib;
-using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.UI;
-using static Wabbajack.MainWindow;
 
 namespace Wabbajack
 {
@@ -17,7 +14,7 @@ namespace Wabbajack
     /// </summary>
     public partial class ModeSelectionWindow : Window
     {
-        MainSettings settings;
+        MainSettings _settings;
 
         public ModeSelectionWindow()
         {
@@ -31,16 +28,16 @@ namespace Wabbajack
             var discordIcon = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Icons.discord.png");
             Discord.Source = discordIcon;
 
-            settings = MainSettings.LoadSettings();
+            _settings = MainSettings.LoadSettings();
             DataContext = new ModeSelectionWindowVM();
         }
 
         private void CreateModlist_Click(object sender, RoutedEventArgs e)
         {
             ShutdownOnClose = false;
-            var window = new MainWindow(RunMode.Compile, null, settings);
-            window.Left = this.Left;
-            window.Top = this.Top;
+            var window = new MainWindow(RunMode.Compile, null, _settings);
+            window.Left = Left;
+            window.Top = Top;
             window.Show();
             Close();
         }
@@ -59,17 +56,17 @@ namespace Wabbajack
             OpenMainWindowInstall(
                 UIUtils.OpenFileDialog(
                     $"*{ExtensionManager.Extension}|*{ExtensionManager.Extension}",
-                    initialDirectory: settings.Installer.LastInstalledListLocation));
+                    initialDirectory: _settings.Installer.LastInstalledListLocation));
         }
 
         private void OpenMainWindowInstall(string file)
         {
             if (file == null) return;
             ShutdownOnClose = false;
-            settings.Installer.LastInstalledListLocation = Path.GetDirectoryName(file);
-            var window = new MainWindow(RunMode.Install, file, settings);
-            window.Left = this.Left;
-            window.Top = this.Top;
+            _settings.Installer.LastInstalledListLocation = Path.GetDirectoryName(file);
+            var window = new MainWindow(RunMode.Install, file, _settings);
+            window.Left = Left;
+            window.Top = Top;
             window.Show();
             Close();
         }

@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
@@ -50,7 +46,7 @@ namespace Wabbajack.Test
             File.WriteAllLines(Path.Combine(MO2Folder, "ModOrganizer.ini"), new []
             {
                 "[General]",
-                $"gameName={GameRegistry.Games[this.Game].MO2Name}",
+                $"gameName={GameRegistry.Games[Game].MO2Name}",
                 $"gamePath={GameFolder.Replace("\\", "\\\\")}",
                 $"download_directory={DownloadsFolder}"
             });

@@ -1,12 +1,9 @@
 ﻿using ReactiveUI;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -38,14 +35,14 @@ namespace Wabbajack
 
         public ModVM(NexusDownloader.State m)
         {
-            this.ModName = NexusApiUtils.FixupSummary(m.ModName);
-            this.ModID = m.ModID;
-            this.ModDescription = NexusApiUtils.FixupSummary(m.Summary);
-            this.ModAuthor = NexusApiUtils.FixupSummary(m.Author);
-            this.IsNSFW = m.Adult;
-            this.ModURL = m.NexusURL;
-            this.ImageURL = m.SlideShowPic;
-            this.ImageObservable = Observable.Return(this.ImageURL)
+            ModName = NexusApiUtils.FixupSummary(m.ModName);
+            ModID = m.ModID;
+            ModDescription = NexusApiUtils.FixupSummary(m.Summary);
+            ModAuthor = NexusApiUtils.FixupSummary(m.Author);
+            IsNSFW = m.Adult;
+            ModURL = m.NexusURL;
+            ImageURL = m.SlideShowPic;
+            ImageObservable = Observable.Return(ImageURL)
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .SelectTask(async url =>
                 {
@@ -62,7 +59,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        Utils.LogToFile($"Exception while caching slide {this.ModName} ({this.ModID})\n{ex.ExceptionToString()}");
+                        Utils.LogToFile($"Exception while caching slide {ModName} ({ModID})\n{ex.ExceptionToString()}");
                         return default(MemoryStream);
                     }
                 })
@@ -82,7 +79,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        Utils.LogToFile($"Exception while caching slide {this.ModName} ({this.ModID})\n{ex.ExceptionToString()}");
+                        Utils.LogToFile($"Exception while caching slide {ModName} ({ModID})\n{ex.ExceptionToString()}");
                         return default(BitmapImage);
                     }
                     finally
