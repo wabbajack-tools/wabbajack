@@ -46,7 +46,7 @@ namespace Wabbajack.CacheServer
             return api.GetModInfo(GameRegistry.GetByNexusName((string)arg.GameName).Game, (string)arg.ModID).ToJSON();
         }
 
-        private object HandleGetFiles(dynamic arg)
+        private object HandleFileID(dynamic arg)
         {
             Utils.Log($"{DateTime.Now} - File Info - {arg.GameName}/{arg.ModID}/{arg.FileID}");
             var api = new NexusApiClient(Request.Headers["apikey"].FirstOrDefault());
@@ -58,11 +58,11 @@ namespace Wabbajack.CacheServer
             }).ToJSON();
         }
 
-        private object HandleFileID(dynamic arg)
+        private object HandleGetFiles(dynamic arg)
         {
             Utils.Log($"{DateTime.Now} - Mod Files - {arg.GameName} {arg.ModID}");
             var api = new NexusApiClient(Request.Headers["apikey"].FirstOrDefault());
-            return api.GetModFiles(GameRegistry.GetByNexusName(arg.GameName), arg.ModID).ToJSON();
+            return api.GetModFiles(GameRegistry.GetByNexusName((string)arg.GameName).Game, (int)arg.ModID).ToJSON();
         }
 
         private string HandleCacheCall(dynamic arg)
