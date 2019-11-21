@@ -31,8 +31,8 @@ namespace Wabbajack
 
         public IReactiveCommand BeginCommand { get; }
 
-        private readonly ObservableAsPropertyHelper<bool> _Compiling;
-        public bool Compiling => _Compiling.Value;
+        [Reactive]
+        public ACompiler ActiveCompilation { get; private set; }
 
         private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _ModlistSettings;
         public ModlistSettingsEditorVM ModlistSettings => _ModlistSettings.Value;
@@ -101,10 +101,9 @@ namespace Wabbajack
                     .ObserveOnGuiThread(),
                 execute: async () =>
                 {
-                    MO2Compiler compiler;
                     try
                     {
-                        compiler = new MO2Compiler(this.Mo2Folder)
+                        this.ActiveCompilation = new MO2Compiler(this.Mo2Folder)
                         {
                             MO2Profile = this.MOProfile,
                             ModListName = this.ModlistSettings.ModListName,
@@ -114,10 +113,6 @@ namespace Wabbajack
                             ModListWebsite = this.ModlistSettings.Website,
                             ModListReadme = this.ModlistSettings.ReadMeText.TargetPath,
                         };
-                        // TODO: USE RX HERE
-                        compiler.TextStatus.Subscribe(Utils.Log);
-                        // TODO: Where do we bind this?
-                        //compiler.QueueStatus.Subscribe(_cpuStatus);
                     }
                     catch (Exception ex)
                     {
@@ -128,7 +123,7 @@ namespace Wabbajack
 
                     try
                     {
-                        await compiler.Begin();
+                        await this.ActiveCompilation.Begin();
                     }
                     catch (Exception ex)
                     {
@@ -138,12 +133,11 @@ namespace Wabbajack
                     finally
                     {
                         this.StatusTracker = null;
-                        compiler.Dispose();
+                        this.ActiveCompilation.Dispose();
+                        this.ActiveCompilation = null;
                     }
                     
                 });
-            this._Compiling = this.BeginCommand.IsExecuting
-                .ToProperty(this, nameof(this.Compiling));
 
             // Load settings
             this.settings = parent.MWVM.Settings.Compiler.MO2Compilation;

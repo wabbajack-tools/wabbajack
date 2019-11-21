@@ -64,7 +64,7 @@
             Margin="5"
             Background="Transparent"
             HorizontalScrollBarVisibility="Disabled"
-            IsEnabled="{Binding Compiler.Compiling, Converter={StaticResource InverseBooleanConverter}}"
+            IsEnabled="{Binding Compiling, Converter={StaticResource InverseBooleanConverter}}"
             VerticalScrollBarVisibility="Auto">
             <StackPanel
                 Margin="0,5,0,0"
@@ -152,7 +152,7 @@
                 Margin="35,0,35,0"
                 VerticalAlignment="Center"
                 ClipToBounds="False"
-                Visibility="{Binding Compiler.Compiling, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
+                Visibility="{Binding Compiling, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
@@ -218,7 +218,7 @@
             Grid.Column="0"
             Grid.ColumnSpan="5"
             Margin="5"
-            Visibility="{Binding Compiler.Compiling, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
+            Visibility="{Binding Compiling, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
             <local:LogCpuView DataContext="{Binding MWVM}" />
         </Grid>
     </Grid>
