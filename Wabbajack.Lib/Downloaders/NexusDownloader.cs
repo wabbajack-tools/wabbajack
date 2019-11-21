@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
-using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Lib.Downloaders
 {

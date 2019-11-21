@@ -9,7 +9,6 @@ using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
-using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;

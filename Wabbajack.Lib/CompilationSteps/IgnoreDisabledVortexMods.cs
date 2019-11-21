@@ -1,5 +1,4 @@
-﻿using Alphaleonis.Win32.Filesystem;
-using Wabbajack.Common;
+﻿using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
 {

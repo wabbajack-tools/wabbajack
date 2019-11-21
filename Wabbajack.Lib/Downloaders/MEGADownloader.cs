@@ -1,15 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
 using CG.Web.MegaApiClient;
 using Wabbajack.Common;
-using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {

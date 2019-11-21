@@ -9,7 +9,6 @@ using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.NexusApi;
-using Wabbajack.VirtualFileSystem;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib
