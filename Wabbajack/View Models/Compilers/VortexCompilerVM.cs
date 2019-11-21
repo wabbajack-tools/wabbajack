@@ -18,9 +18,6 @@ namespace Wabbajack
 
         public IReactiveCommand BeginCommand { get; }
 
-        private readonly ObservableAsPropertyHelper<bool> _compiling;
-        public bool Compiling => _compiling.Value;
-
         private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _modListSettings;
         public ModlistSettingsEditorVM ModlistSettings => _modListSettings.Value;
 
@@ -31,6 +28,9 @@ namespace Wabbajack
                 .OrderBy(g => g.DisplayName));
 
         public ObservableCollectionExtended<GameVM> GameOptions => _gameOptions;
+
+        [Reactive]
+        public ACompiler ActiveCompilation { get; private set; }
 
         [Reactive]
         public GameVM SelectedGame { get; set; }
@@ -82,10 +82,9 @@ namespace Wabbajack
                     .ObserveOnGuiThread(),
                 execute: async () =>
                 {
-                    VortexCompiler compiler;
                     try
                     {
-                        compiler = new VortexCompiler(
+                        this.ActiveCompilation = new VortexCompiler(
                             SelectedGame.Game,
                             GameLocation.TargetPath,
                             VortexCompiler.TypicalVortexFolder(),
@@ -110,7 +109,7 @@ namespace Wabbajack
                     {
                         try
                         {
-                            await compiler.Begin();
+                            await this.ActiveCompilation.Begin();
                         }
                         catch (Exception ex)
                         {
@@ -120,11 +119,11 @@ namespace Wabbajack
                         finally
                         {
                             this.StatusTracker = null;
+                            this.ActiveCompilation.Dispose();
+                            this.ActiveCompilation = null;
                         }
                     });
                 });
-            _compiling = BeginCommand.IsExecuting
-                .ToProperty(this, nameof(Compiling));
 
             // Load settings
             _settings = parent.MWVM.Settings.Compiler.VortexCompilation;

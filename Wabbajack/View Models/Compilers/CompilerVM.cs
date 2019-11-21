@@ -32,6 +32,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<StatusUpdateTracker> _CurrentStatusTracker;
         public StatusUpdateTracker CurrentStatusTracker => _CurrentStatusTracker.Value;
 
+        private readonly ObservableAsPropertyHelper<bool> _Compiling;
+        public bool Compiling => _Compiling.Value;
+
         public CompilerVM(MainWindowVM mainWindowVM)
         {
             this.MWVM = mainWindowVM;
@@ -93,6 +96,11 @@ namespace Wabbajack
                     return null;
                 })
                 .ToProperty(this, nameof(this.Image));
+
+            this._Compiling = this.WhenAny(x => x.Compiler.ActiveCompilation)
+                .Select(compilation => compilation != null)
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(this.Compiling));
         }
     }
 }
