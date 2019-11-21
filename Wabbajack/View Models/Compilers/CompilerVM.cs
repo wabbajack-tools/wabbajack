@@ -1,4 +1,6 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using DynamicData;
+using DynamicData.Binding;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
@@ -31,6 +33,9 @@ namespace Wabbajack
 
         private readonly ObservableAsPropertyHelper<StatusUpdateTracker> _CurrentStatusTracker;
         public StatusUpdateTracker CurrentStatusTracker => _CurrentStatusTracker.Value;
+
+        private readonly ObservableAsPropertyHelper<bool> _Compiling;
+        public bool Compiling => _Compiling.Value;
 
         public CompilerVM(MainWindowVM mainWindowVM)
         {
@@ -93,6 +98,24 @@ namespace Wabbajack
                     return null;
                 })
                 .ToProperty(this, nameof(this.Image));
+
+            this._Compiling = this.WhenAny(x => x.Compiler.ActiveCompilation)
+                .Select(compilation => compilation != null)
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(this.Compiling));
+
+            // Compile progress updates and populate ObservableCollection
+            var subscription = this.WhenAny(x => x.Compiler.ActiveCompilation)
+                .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>())
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .ToObservableChangeSet(x => x.ID)
+                .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
+                .EnsureUniqueChanges()
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
+                .Bind(this.MWVM.StatusList)
+                .Subscribe()
+                .DisposeWith(this.CompositeDisposable);
         }
     }
 }
