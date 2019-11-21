@@ -420,6 +420,19 @@ namespace Wabbajack.Common
             }
         }
 
+        /// <summary>
+        /// A combination of .Select(func).Where(v => v != default). So select and filter default values.
+        /// </summary>
+        /// <typeparam name="TIn"></typeparam>
+        /// <typeparam name="TOut"></typeparam>
+        /// <param name="coll"></param>
+        /// <param name="func"></param>
+        /// <returns></returns>
+        public static IEnumerable<TOut> Keep<TIn, TOut>(this IEnumerable<TIn> coll, Func<TIn, TOut> func) where TOut : IComparable<TOut>
+        {
+            return coll.Select(func).Where(v => v.CompareTo(default) != 0);
+        }
+
         public static byte[] ReadAll(this Stream ins)
         {
             using (var ms = new MemoryStream())

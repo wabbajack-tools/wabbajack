@@ -21,10 +21,21 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override Directive Run(RawSourceFile source)
         {
-            if (!_indexed.TryGetValue(Path.GetFileName(source.File.Name.ToLower()), out var value))
+            if (!_indexed.TryGetValue(Path.GetFileName(source.File.Name.ToLower()), out var choices))
                 return null;
 
-            var found = value.OrderByDescending(f => (f.FilesInFullPath.First() ?? f).LastModified).First();
+            var mod_ini = ((MO2Compiler)_compiler).ModMetas.FirstOrDefault(f => source.AbsolutePath.StartsWith(f.Key));
+            var installationFile = mod_ini.Value?.General?.installationFile;
+
+            var found = choices.FirstOrDefault(
+                f => Path.GetFileName(f.FilesInFullPath.First().Name) == installationFile);
+
+            if (found == null)
+            {
+                found = choices.OrderBy(f => f.NestingFactor)
+                               .ThenByDescending(f => (f.FilesInFullPath.First() ?? f).LastModified)
+                               .First();
+            }
 
             var e = source.EvolveTo<PatchedFromArchive>();
             e.ArchiveHashPath = found.MakeRelativePaths();

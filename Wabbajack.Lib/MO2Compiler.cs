@@ -23,6 +23,7 @@ namespace Wabbajack.Lib
         public string MO2Folder;
 
         public string MO2Profile;
+        public Dictionary<string, dynamic> ModMetas { get; set; }
 
         public MO2Compiler(string mo2Folder)
         {
@@ -142,6 +143,13 @@ namespace Wabbajack.Lib
                 })
                 .ToList();
 
+            ModMetas = Directory.EnumerateDirectories(Path.Combine(MO2Folder, "mods"))
+                .Keep(f =>
+                {
+                    var path = Path.Combine(f, "meta.ini");
+                    return File.Exists(path) ? (f, path.LoadIniFile()) : default;
+                }).ToDictionary(f => f.f + "\\", v => v.Item2);
+
             IndexedFiles = IndexedArchives.SelectMany(f => f.File.ThisAndAllChildren)
                 .OrderBy(f => f.NestingFactor)
                 .GroupBy(f => f.Hash)
@@ -253,6 +261,7 @@ namespace Wabbajack.Lib
             Info("Done Building Modlist");
             return true;
         }
+
 
         private void IncludeArchiveMetadata()
         {
