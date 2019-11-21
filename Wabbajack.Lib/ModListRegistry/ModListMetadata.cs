@@ -22,7 +22,7 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonProperty("game")]
         public Game Game { get; set; }
 
-        [JsonIgnore] public string GameName => this.Game.ToDescriptionString();
+        [JsonIgnore] public string GameName => Game.ToDescriptionString();
 
         [JsonProperty("official")]
         public bool Official { get; set; }

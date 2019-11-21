@@ -294,7 +294,7 @@ namespace Compression.BSA
                     ddsHeader.dwPitchOrLinearSize = (uint)(_width * _height); // 8bpp
                     break;
                 default:
-                    throw new Exception("Unsupported DDS header format. File: " + this.FullPath);
+                    throw new Exception("Unsupported DDS header format. File: " + FullPath);
             }
 
             bw.Write((uint)DDS.DDS_MAGIC);
