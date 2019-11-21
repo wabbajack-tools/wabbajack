@@ -300,7 +300,7 @@ namespace Wabbajack
             };
 
             // Compile progress updates and populate ObservableCollection
-            installer.QueueStatus
+            var subscription = installer.QueueStatus
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .ToObservableChangeSet(x => x.ID)
                 .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
@@ -308,8 +308,7 @@ namespace Wabbajack
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
                 .Bind(this.MWVM.StatusList)
-                .Subscribe()
-                .DisposeWith(this.CompositeDisposable);
+                .Subscribe();
 
             Task.Run(async () =>
             {
@@ -326,6 +325,9 @@ namespace Wabbajack
                 }
                 finally
                 {
+                    // Dispose of CPU tracking systems
+                    subscription.Dispose();
+                    this.MWVM.StatusList.Clear();
 
                     this.Installing = false;
                 }
