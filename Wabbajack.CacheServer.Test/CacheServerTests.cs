@@ -1,6 +1,6 @@
 ﻿namespace Wabbajack.CacheServer.Test
 {
-    [TestClass]
+    //[TestClass]
     public class CacheServerTests
     {
         // The server works, we just need to figure out proper testing.
