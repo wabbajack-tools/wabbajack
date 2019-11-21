@@ -61,6 +61,23 @@ namespace Wabbajack.Lib
             _configured = true;
         }
 
+        public static int RecommendQueueSize(string folder)
+        {
+            if (!Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+
+            using (var queue = new WorkQueue())
+            {
+                Utils.Log($"Benchmarking {folder}");
+                var raw_speed = Utils.TestDiskSpeed(queue, folder);
+                Utils.Log($"{raw_speed.ToFileSizeString()}/sec for {folder}");
+                int speed = (int)(raw_speed / 1024 / 1024);
+
+                // Less than 100MB/sec, stick with two threads.
+                return speed < 100 ? 2 : Math.Min(Environment.ProcessorCount, speed / 100 * 2);
+            }
+        }
+
         protected abstract bool _Begin();
         public Task<bool> Begin()
         {

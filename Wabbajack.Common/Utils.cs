@@ -12,6 +12,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Ceras;
 using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
@@ -19,6 +20,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Bson;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using Directory = System.IO.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -695,6 +697,45 @@ namespace Wabbajack.Common
         {
             Status(s);
             Log(s);
+        }
+
+        private static long TestDiskSpeedInner(WorkQueue queue, string path)
+        {
+            var start_time = DateTime.Now;
+            var seconds = 2;
+            return Enumerable.Range(0, queue.ThreadCount)
+                .PMap(queue, idx =>
+                {
+                    var random = new Random();
+
+                    var file = Path.Combine(path, $"size_test{idx}.bin");
+                    long size = 0;
+                    byte[] buffer = new byte[1024 * 8];
+                    random.NextBytes(buffer);
+                    using (var fs = File.OpenWrite(file))
+                    {
+                        while (DateTime.Now < start_time + new TimeSpan(0, 0, seconds))
+                        {
+                            fs.Write(buffer, 0, buffer.Length);
+                            // Flush to make sure large buffers don't cause the rate to be higher than it should
+                            fs.Flush();
+                            size += buffer.Length;
+                        }
+                    }
+                    File.Delete(file);
+                    return size;
+                }).Sum() / seconds;
+        }
+
+        private static Dictionary<string, long> _cachedDiskSpeeds = new Dictionary<string, long>();
+        public static long TestDiskSpeed(WorkQueue queue, string path)
+        {
+            var drive_name = Volume.GetUniqueVolumeNameForPath(path);
+            if (_cachedDiskSpeeds.TryGetValue(drive_name, out long speed))
+                return speed;
+            speed = TestDiskSpeedInner(queue, path);
+            _cachedDiskSpeeds[drive_name] = speed;
+            return speed;
         }
 
         /// https://stackoverflow.com/questions/422090/in-c-sharp-check-that-filename-is-possibly-valid-not-that-it-exists
