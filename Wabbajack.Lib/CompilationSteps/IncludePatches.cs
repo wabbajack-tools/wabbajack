@@ -24,7 +24,7 @@ namespace Wabbajack.Lib.CompilationSteps
             if (!_indexed.TryGetValue(Path.GetFileName(source.File.Name.ToLower()), out var choices))
                 return null;
 
-            var mod_ini = ((MO2Compiler)_compiler).ModMetas.FirstOrDefault(f => source.AbsolutePath.StartsWith(f.Key));
+            var mod_ini = ((MO2Compiler)_compiler).ModMetas.FirstOrDefault(f => source.Path.StartsWith(f.Key));
             var installationFile = mod_ini.Value?.General?.installationFile;
 
             var found = choices.FirstOrDefault(

@@ -148,7 +148,7 @@ namespace Wabbajack.Lib
                 {
                     var path = Path.Combine(f, "meta.ini");
                     return File.Exists(path) ? (f, path.LoadIniFile()) : default;
-                }).ToDictionary(f => f.f + "\\", v => v.Item2);
+                }).ToDictionary(f => f.f.RelativeTo(MO2Folder) + "\\", v => v.Item2);
 
             IndexedFiles = IndexedArchives.SelectMany(f => f.File.ThisAndAllChildren)
                 .OrderBy(f => f.NestingFactor)
