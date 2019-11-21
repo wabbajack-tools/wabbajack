@@ -51,7 +51,7 @@ namespace Wabbajack.Test
 
         protected void Install(MO2Compiler compiler)
         {
-            var modlist = MO2Installer.LoadFromFile(compiler.ModListOutputFile);
+            var modlist = AInstaller.LoadFromFile(compiler.ModListOutputFile);
             var installer = new MO2Installer(compiler.ModListOutputFile, modlist, utils.InstallFolder);
             installer.WarnOnOverwrite = false;
             installer.DownloadFolder = utils.DownloadsFolder;

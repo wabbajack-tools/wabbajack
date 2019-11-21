@@ -46,7 +46,7 @@ namespace Wabbajack.Test
             File.WriteAllLines(Path.Combine(MO2Folder, "ModOrganizer.ini"), new []
             {
                 "[General]",
-                $"gameName={GameRegistry.Games[this.Game].MO2Name}",
+                $"gameName={GameRegistry.Games[Game].MO2Name}",
                 $"gamePath={GameFolder.Replace("\\", "\\\\")}",
                 $"download_directory={DownloadsFolder}"
             });

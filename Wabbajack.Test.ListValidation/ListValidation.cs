@@ -63,7 +63,7 @@ namespace Wabbajack.Test.ListValidation
 
             Log($"Loading {modlist_path}");
 
-            var installer = MO2Installer.LoadFromFile(modlist_path);
+            var installer = AInstaller.LoadFromFile(modlist_path);
 
             Log($"{installer.Archives.Count} archives to validate");
 
