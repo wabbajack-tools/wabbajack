@@ -16,25 +16,25 @@ namespace Wabbajack
         {
             get
             {
-                if (this.Exception != null)
+                if (Exception != null)
                 {
-                    return this.Exception.ToString();
+                    return Exception.ToString();
                 }
                 return _reason;
             }
         }
 
-        bool IErrorResponse.Succeeded => this.Succeeded;
-        Exception IErrorResponse.Exception => this.Exception;
+        bool IErrorResponse.Succeeded => Succeeded;
+        Exception IErrorResponse.Exception => Exception;
 
         private ErrorResponse(
             bool succeeded,
             string reason = null,
             Exception ex = null)
         {
-            this.Succeeded = succeeded;
-            this._reason = reason;
-            this.Exception = ex;
+            Succeeded = succeeded;
+            _reason = reason;
+            Exception = ex;
         }
 
         public override string ToString()
@@ -76,7 +76,7 @@ namespace Wabbajack
 
         public static ErrorResponse Convert(IErrorResponse err, bool nullIsSuccess = true)
         {
-            if (err == null) return ErrorResponse.Create(nullIsSuccess);
+            if (err == null) return Create(nullIsSuccess);
             return new ErrorResponse(err.Succeeded, err.Reason, err.Exception);
         }
     }

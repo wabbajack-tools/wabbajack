@@ -16,16 +16,16 @@ namespace Wabbajack
         {
             get
             {
-                if (this.Exception != null)
+                if (Exception != null)
                 {
-                    return this.Exception.ToString();
+                    return Exception.ToString();
                 }
                 return _reason;
             }
         }
 
-        bool IErrorResponse.Succeeded => this.Succeeded;
-        Exception IErrorResponse.Exception => this.Exception;
+        bool IErrorResponse.Succeeded => Succeeded;
+        Exception IErrorResponse.Exception => Exception;
 
         private GetResponse(
             bool succeeded,
@@ -33,16 +33,16 @@ namespace Wabbajack
             string reason = null,
             Exception ex = null)
         {
-            this.Value = val;
-            this.Succeeded = succeeded;
-            this._reason = reason;
-            this.Exception = ex;
+            Value = val;
+            Succeeded = succeeded;
+            _reason = reason;
+            Exception = ex;
         }
 
         public bool Equals(GetResponse<T> other)
         {
-            return this.Succeeded == other.Succeeded
-                && object.Equals(this.Value, other.Value);
+            return Succeeded == other.Succeeded
+                && Equals(Value, other.Value);
         }
 
         public override bool Equals(object obj)
@@ -66,26 +66,26 @@ namespace Wabbajack
         {
             return new GetResponse<R>(
                 succeeded: false,
-                reason: this._reason,
-                ex: this.Exception);
+                reason: _reason,
+                ex: Exception);
         }
 
         public GetResponse<R> Bubble<R>(Func<T, R> conv)
         {
             return new GetResponse<R>(
-                succeeded: this.Succeeded,
-                val: conv(this.Value),
-                reason: this._reason,
-                ex: this.Exception);
+                succeeded: Succeeded,
+                val: conv(Value),
+                reason: _reason,
+                ex: Exception);
         }
 
         public T EvaluateOrThrow()
         {
-            if (this.Succeeded)
+            if (Succeeded)
             {
-                return this.Value;
+                return Value;
             }
-            throw new ArgumentException(this.Reason);
+            throw new ArgumentException(Reason);
         }
 
         #region Factories

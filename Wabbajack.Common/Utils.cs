@@ -210,7 +210,7 @@ namespace Wabbajack.Common
 
         public static DateTime AsUnixTime(this long timestamp)
         {
-            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+            DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             dtDateTime = dtDateTime.AddSeconds(timestamp).ToLocalTime();
             return dtDateTime;
         }
@@ -751,7 +751,7 @@ namespace Wabbajack.Common
             {
                 return ErrorResponse.Fail(ex.Message);
             }
-            catch (System.IO.PathTooLongException ex)
+            catch (PathTooLongException ex)
             {
                 return ErrorResponse.Fail(ex.Message);
             }
@@ -776,7 +776,7 @@ namespace Wabbajack.Common
             {
                 return ErrorResponse.Fail(ex.Message);
             }
-            catch (System.IO.PathTooLongException ex)
+            catch (PathTooLongException ex)
             {
                 return ErrorResponse.Fail(ex.Message);
             }
