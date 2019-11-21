@@ -156,11 +156,19 @@ namespace Wabbajack.Test
             var profile = utils.AddProfile();
             var mod = utils.AddMod();
             var ini = utils.AddModFile(mod, @"foo.ini", 10);
+            var meta = utils.AddModFile(mod, "meta.ini");
+
             utils.Configure();
 
 
-            utils.AddManualDownload(
+            var archive = utils.AddManualDownload(
                 new Dictionary<string, byte[]> { { "/baz/foo.ini", File.ReadAllBytes(ini) } });
+
+            File.WriteAllLines(meta, new[]
+            {
+                "[General]",
+                $"installationFile={archive}",
+            });
 
             // Modify after creating mod archive in the downloads folder
             File.WriteAllText(ini, "Wabbajack, Wabbajack, Wabbajack!");
