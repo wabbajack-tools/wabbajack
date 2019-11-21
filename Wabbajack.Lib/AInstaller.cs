@@ -11,6 +11,7 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
 using Context = Wabbajack.VirtualFileSystem.Context;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
+using DriveInfo = Alphaleonis.Win32.Filesystem.DriveInfo;
 using File = System.IO.File;
 using FileInfo = System.IO.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -286,6 +287,39 @@ namespace Wabbajack.Lib
                 .ToDictionary(e => e.Item1, e => e.Item2);
         }
 
+        public void ValidateFreeSpace()
+        {
+            DiskSpaceInfo DriveInfo(string path)
+            {
+                return Volume.GetDiskFreeSpace(Volume.GetUniqueVolumeNameForPath(path));
+            }
+
+            var paths = new[] {(OutputFolder, ModList.InstallSize),
+                               (DownloadFolder, ModList.DownloadSize),
+                               (Directory.GetCurrentDirectory(), ModList.ScratchSpaceSize)};
+            paths.GroupBy(f => DriveInfo(f.Item1).DriveName)
+                .Do(g =>
+                {
+                    var required = g.Sum(i => i.Item2);
+                    var available = DriveInfo(g.Key).FreeBytesAvailable;
+                    if (required > available)
+                        throw new NotEnoughDiskSpaceException(
+                            $"This modlist requires {required.ToFileSizeString()} on {g.Key} but only {available.ToFileSizeString()} is available.");
+                });
+
+        }
+
+        public int RecommendQueueSize()
+        {
+            var output_size = RecommendQueueSize(OutputFolder);
+            var download_size = RecommendQueueSize(DownloadFolder);
+            var scratch_size = RecommendQueueSize(Directory.GetCurrentDirectory());
+            var result =  Math.Min(output_size, Math.Min(download_size, scratch_size));
+            Utils.Log($"Recommending a queue size of {result} based on disk performance and number of cores");
+            return result;
+        }
+
+
         /// <summary>
         /// The user may already have some files in the OutputFolder. If so we can go through these and
         /// figure out which need to be updated, deleted, or left alone
@@ -334,6 +368,13 @@ namespace Wabbajack.Lib
             ModList.Archives = ModList.Archives.Where(a => requiredArchives.Contains(a.Hash)).ToList();
             ModList.Directives = indexed.Values.ToList();
 
+        }
+    }
+
+    public class NotEnoughDiskSpaceException : Exception
+    {
+        public NotEnoughDiskSpaceException(string s) : base(s)
+        {
         }
     }
 }
