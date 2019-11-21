@@ -236,7 +236,8 @@ namespace Wabbajack.Lib.NexusApi
                 }
 
                 var result = Get<T>(url);
-                result.ToJSON(cache_file);
+                if (result != null)
+                    result.ToJSON(cache_file);
                 return result;
             }
 
@@ -374,27 +375,34 @@ namespace Wabbajack.Lib.NexusApi
                 .ToList();
 
             Utils.Log($"Found {purge.Count} updated mods in the last month");
-            
-            var to_purge = Directory.EnumerateFiles(LocalCacheDir, "*.json")
-                .Select(f =>
-                {
-                    Utils.Status("Cleaning Nexus cache for");
-                    var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f).FromHex()));
-                    var parts = uri.PathAndQuery.Split('/', '.').ToHashSet();
-                    var found = purge.FirstOrDefault(p => parts.Contains(p.game.NexusName) && parts.Contains(p.mod.mod_id.ToString()));
-                    if (found != null)
+            using (var queue = new WorkQueue())
+            {
+                var to_purge = Directory.EnumerateFiles(LocalCacheDir, "*.json")
+                    .PMap(queue,f =>
                     {
-                        var should_remove = File.GetLastWriteTimeUtc(f) <= found.mod.latest_file_update.AsUnixTime();
-                        return (should_remove, f);
-                    }
+                        Utils.Status("Cleaning Nexus cache for");
+                        var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f).FromHex()));
+                        var parts = uri.PathAndQuery.Split('/', '.').ToHashSet();
+                        var found = purge.FirstOrDefault(p =>
+                            parts.Contains(p.game.NexusName) && parts.Contains(p.mod.mod_id.ToString()));
+                        if (found != null)
+                        {
+                            var should_remove =
+                                File.GetLastWriteTimeUtc(f) <= found.mod.latest_file_update.AsUnixTime();
+                            return (should_remove, f);
+                        }
 
-                    return (false, f);
-                })
-                .Where(p => p.Item1)
-                .ToList();
+                        if (File.ReadAllText(f).StartsWith("null"))
+                            return (true, f);
 
-            Utils.Log($"Purging {to_purge.Count} cache entries");
-            to_purge.Do(f => File.Delete(f.f));
+                        return (false, f);
+                    })
+                    .Where(p => p.Item1)
+                    .ToList();
+
+                Utils.Log($"Purging {to_purge.Count} cache entries");
+                to_purge.PMap(queue, f => File.Delete(f.f));
+            }
 
         }
     }
