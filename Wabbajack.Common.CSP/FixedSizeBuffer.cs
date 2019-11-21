@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Wabbajack.Common.CSP
+﻿namespace Wabbajack.Common.CSP
 {
     public class FixedSizeBuffer<T> : IBuffer<T>
     {
