@@ -22,14 +22,14 @@ namespace Wabbajack
             PropertyChanged?.Invoke(this, args);
         }
 
-        private readonly Lazy<CompositeDisposable> _CompositeDisposable = new Lazy<CompositeDisposable>();
-        public CompositeDisposable CompositeDisposable => _CompositeDisposable.Value;
+        private readonly Lazy<CompositeDisposable> _compositeDisposable = new Lazy<CompositeDisposable>();
+        public CompositeDisposable CompositeDisposable => _compositeDisposable.Value;
 
         public virtual void Dispose()
         {
-            if (_CompositeDisposable.IsValueCreated)
+            if (_compositeDisposable.IsValueCreated)
             {
-                _CompositeDisposable.Value.Dispose();
+                _compositeDisposable.Value.Dispose();
             }
         }
 

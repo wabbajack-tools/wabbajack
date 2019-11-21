@@ -48,17 +48,17 @@ namespace Wabbajack
         [Reactive]
         public IObservable<IErrorResponse> AdditionalError { get; set; }
 
-        private readonly ObservableAsPropertyHelper<bool> _Exists;
-        public bool Exists => _Exists.Value;
+        private readonly ObservableAsPropertyHelper<bool> _exists;
+        public bool Exists => _exists.Value;
 
-        private readonly ObservableAsPropertyHelper<ErrorResponse> _ErrorState;
-        public ErrorResponse ErrorState => _ErrorState.Value;
+        private readonly ObservableAsPropertyHelper<ErrorResponse> _errorState;
+        public ErrorResponse ErrorState => _errorState.Value;
 
-        private readonly ObservableAsPropertyHelper<bool> _InError;
-        public bool InError => _InError.Value;
+        private readonly ObservableAsPropertyHelper<bool> _inError;
+        public bool InError => _inError.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _ErrorTooltip;
-        public string ErrorTooltip => _ErrorTooltip.Value;
+        private readonly ObservableAsPropertyHelper<string> _errorTooltip;
+        public string ErrorTooltip => _errorTooltip.Value;
 
         public List<CommonFileDialogFilter> Filters { get; } = new List<CommonFileDialogFilter>();
 
@@ -77,11 +77,11 @@ namespace Wabbajack
                             .Skip(1)
                             .Debounce(TimeSpan.FromMilliseconds(200))
                             .StartWith(default(string)),
-                    resultSelector: (ExistsOption, Type, Path) => (ExistsOption, Type, Path))
+                    resultSelector: (existsOption, type, path) => (ExistsOption: existsOption, Type: type, Path: path))
                 .Publish()
                 .RefCount();
 
-            _Exists = Observable.Interval(TimeSpan.FromSeconds(3))
+            _exists = Observable.Interval(TimeSpan.FromSeconds(3))
                 // Only check exists on timer if desired
                 .FilterSwitch(existsCheckTuple
                     .Select(t =>
@@ -139,7 +139,7 @@ namespace Wabbajack
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .ToProperty(this, nameof(Exists));
 
-            _ErrorState = Observable.CombineLatest(
+            _errorState = Observable.CombineLatest(
                     this.WhenAny(x => x.Exists)
                         .Select(exists => ErrorResponse.Create(successful: exists, exists ? default(string) : "Path does not exist")),
                     this.WhenAny(x => x.AdditionalError)
@@ -152,13 +152,13 @@ namespace Wabbajack
                     })
                 .ToProperty(this, nameof(ErrorState));
 
-            _InError = this.WhenAny(x => x.ErrorState)
+            _inError = this.WhenAny(x => x.ErrorState)
                 .Select(x => !x.Succeeded)
                 .ToProperty(this, nameof(InError));
 
             // Doesn't derive from ErrorState, as we want to bubble non-empty tooltips,
             // which is slightly different logic
-            _ErrorTooltip = Observable.CombineLatest(
+            _errorTooltip = Observable.CombineLatest(
                     this.WhenAny(x => x.Exists)
                         .Select(exists => exists ? default(string) : "Path does not exist"),
                     this.WhenAny(x => x.AdditionalError)

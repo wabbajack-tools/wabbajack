@@ -82,28 +82,28 @@ namespace Wabbajack
 
         private class Capture : IDisposable
         {
-            private readonly INotifyCollectionChanged incc;
-            private readonly ListBox listBox;
+            private readonly INotifyCollectionChanged _incc;
+            private readonly ListBox _listBox;
 
             public Capture(ListBox listBox)
             {
-                this.listBox = listBox;
-                incc = listBox.ItemsSource as INotifyCollectionChanged;
-                if (incc != null) incc.CollectionChanged += incc_CollectionChanged;
+                this._listBox = listBox;
+                _incc = listBox.ItemsSource as INotifyCollectionChanged;
+                if (_incc != null) _incc.CollectionChanged += incc_CollectionChanged;
             }
 
             public void Dispose()
             {
-                if (incc != null)
-                    incc.CollectionChanged -= incc_CollectionChanged;
+                if (_incc != null)
+                    _incc.CollectionChanged -= incc_CollectionChanged;
             }
 
             private void incc_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
             {
                 if (e.Action == NotifyCollectionChangedAction.Add)
                 {
-                    listBox.ScrollIntoView(e.NewItems[0]);
-                    listBox.SelectedItem = e.NewItems[0];
+                    _listBox.ScrollIntoView(e.NewItems[0]);
+                    _listBox.SelectedItem = e.NewItems[0];
                 }
             }
         }

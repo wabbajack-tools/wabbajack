@@ -1,4 +1,4 @@
-﻿using DynamicData;
+using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -21,8 +21,8 @@ namespace Wabbajack
 
         public MainSettings Settings { get; }
 
-        private readonly ObservableAsPropertyHelper<ViewModel> _ActivePane;
-        public ViewModel ActivePane => _ActivePane.Value;
+        private readonly ObservableAsPropertyHelper<ViewModel> _activePane;
+        public ViewModel ActivePane => _activePane.Value;
 
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
 
@@ -31,16 +31,16 @@ namespace Wabbajack
         [Reactive]
         public RunMode Mode { get; set; }
 
-        private readonly Lazy<CompilerVM> _Compiler;
-        private readonly Lazy<InstallerVM> _Installer;
+        private readonly Lazy<CompilerVM> _compiler;
+        private readonly Lazy<InstallerVM> _installer;
 
         public MainWindowVM(RunMode mode, string source, MainWindow mainWindow, MainSettings settings)
         {
             Mode = mode;
             MainWindow = mainWindow;
             Settings = settings;
-            _Installer = new Lazy<InstallerVM>(() => new InstallerVM(this, source));
-            _Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
+            _installer = new Lazy<InstallerVM>(() => new InstallerVM(this, source));
+            _compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
 
             // Set up logging
             Utils.LogMessages
@@ -58,15 +58,15 @@ namespace Wabbajack
             // Wire mode to drive the active pane.
             // Note:  This is currently made into a derivative property driven by mode,
             // but it can be easily changed into a normal property that can be set from anywhere if needed
-            _ActivePane = this.WhenAny(x => x.Mode)
+            _activePane = this.WhenAny(x => x.Mode)
                 .Select<RunMode, ViewModel>(m =>
                 {
                     switch (m)
                     {
                         case RunMode.Compile:
-                            return _Compiler.Value;
+                            return _compiler.Value;
                         case RunMode.Install:
-                            return _Installer.Value;
+                            return _installer.Value;
                         default:
                             return default;
                     }

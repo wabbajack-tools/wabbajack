@@ -28,8 +28,8 @@ namespace Wabbajack
 
         public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Wabba_Mouth.png");
 
-        private readonly ObservableAsPropertyHelper<ModListVM> _ModList;
-        public ModListVM ModList => _ModList.Value;
+        private readonly ObservableAsPropertyHelper<ModListVM> _modList;
+        public ModListVM ModList => _modList.Value;
 
         [Reactive]
         public string ModListPath { get; set; }
@@ -37,8 +37,8 @@ namespace Wabbajack
         [Reactive]
         public bool UIReady { get; set; }
 
-        private readonly ObservableAsPropertyHelper<string> _HTMLReport;
-        public string HTMLReport => _HTMLReport.Value;
+        private readonly ObservableAsPropertyHelper<string> _htmlReport;
+        public string HTMLReport => _htmlReport.Value;
 
         /// <summary>
         /// Tracks whether an install is currently in progress
@@ -56,26 +56,26 @@ namespace Wabbajack
 
         public FilePickerVM DownloadLocation { get; }
 
-        private readonly ObservableAsPropertyHelper<float> _ProgressPercent;
-        public float ProgressPercent => _ProgressPercent.Value;
+        private readonly ObservableAsPropertyHelper<float> _progressPercent;
+        public float ProgressPercent => _progressPercent.Value;
 
-        private readonly ObservableAsPropertyHelper<ImageSource> _Image;
-        public ImageSource Image => _Image.Value;
+        private readonly ObservableAsPropertyHelper<ImageSource> _image;
+        public ImageSource Image => _image.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _TitleText;
-        public string TitleText => _TitleText.Value;
+        private readonly ObservableAsPropertyHelper<string> _titleText;
+        public string TitleText => _titleText.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _AuthorText;
-        public string AuthorText => _AuthorText.Value;
+        private readonly ObservableAsPropertyHelper<string> _authorText;
+        public string AuthorText => _authorText.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _Description;
-        public string Description => _Description.Value;
+        private readonly ObservableAsPropertyHelper<string> _description;
+        public string Description => _description.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _ProgressTitle;
-        public string ProgressTitle => _ProgressTitle.Value;
+        private readonly ObservableAsPropertyHelper<string> _progressTitle;
+        public string ProgressTitle => _progressTitle.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _ModListName;
-        public string ModListName => _ModListName.Value;
+        private readonly ObservableAsPropertyHelper<string> _modListName;
+        public string ModListName => _modListName.Value;
 
         // Command properties
         public IReactiveCommand BeginCommand { get; }
@@ -128,7 +128,7 @@ namespace Wabbajack
                 })
                 .DisposeWith(CompositeDisposable);
 
-            _ModList = this.WhenAny(x => x.ModListPath)
+            _modList = this.WhenAny(x => x.ModListPath)
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(modListPath =>
                 {
@@ -155,10 +155,10 @@ namespace Wabbajack
                 .ObserveOnGuiThread()
                 .StartWith(default(ModListVM))
                 .ToProperty(this, nameof(ModList));
-            _HTMLReport = this.WhenAny(x => x.ModList)
+            _htmlReport = this.WhenAny(x => x.ModList)
                 .Select(modList => modList?.ReportHTML)
                 .ToProperty(this, nameof(HTMLReport));
-            _ProgressPercent = Observable.CombineLatest(
+            _progressPercent = Observable.CombineLatest(
                     this.WhenAny(x => x.Installing),
                     this.WhenAny(x => x.InstallingMode),
                     resultSelector: (installing, mode) => !installing && mode)
@@ -172,7 +172,7 @@ namespace Wabbajack
 
             // Set display items to modlist if configuring or complete,
             // or to the current slideshow data if installing
-            _Image = Observable.CombineLatest(
+            _image = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList)
                         .SelectMany(x => x?.ImageObservable ?? Observable.Empty<BitmapImage>())
                         .NotNull()
@@ -183,28 +183,28 @@ namespace Wabbajack
                     resultSelector: (modList, slideshow, installing) => installing ? slideshow : modList)
                 .Select<BitmapImage, ImageSource>(x => x)
                 .ToProperty(this, nameof(Image));
-            _TitleText = Observable.CombineLatest(
+            _titleText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Name),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModName)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(TitleText));
-            _AuthorText = Observable.CombineLatest(
+            _authorText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Author),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModAuthor)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(AuthorText));
-            _Description = Observable.CombineLatest(
+            _description = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Description),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModDescription)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(Description));
-            _ModListName = this.WhenAny(x => x.ModList)
+            _modListName = this.WhenAny(x => x.ModList)
                 .Select(x => x?.Name)
                 .ToProperty(this, nameof(ModListName));
 
@@ -245,7 +245,7 @@ namespace Wabbajack
                 })
                 .DisposeWith(CompositeDisposable);
 
-            _ProgressTitle = Observable.CombineLatest(
+            _progressTitle = Observable.CombineLatest(
                     this.WhenAny(x => x.Installing),
                     this.WhenAny(x => x.InstallingMode),
                     resultSelector: (installing, mode) =>

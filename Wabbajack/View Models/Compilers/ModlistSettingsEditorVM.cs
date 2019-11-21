@@ -6,7 +6,7 @@ namespace Wabbajack
 {
     public class ModlistSettingsEditorVM : ViewModel
     {
-        private CompilationModlistSettings settings;
+        private CompilationModlistSettings _settings;
 
         [Reactive]
         public string ModListName { get; set; }
@@ -26,7 +26,7 @@ namespace Wabbajack
 
         public ModlistSettingsEditorVM(CompilationModlistSettings settings)
         {
-            this.settings = settings;
+            this._settings = settings;
             ImagePath = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
@@ -45,25 +45,25 @@ namespace Wabbajack
 
         public void Init()
         {
-            AuthorText = settings.Author;
-            if (!string.IsNullOrWhiteSpace(settings.ModListName))
+            AuthorText = _settings.Author;
+            if (!string.IsNullOrWhiteSpace(_settings.ModListName))
             {
-                ModListName = settings.ModListName;
+                ModListName = _settings.ModListName;
             }
-            Description = settings.Description;
-            ReadMeText.TargetPath = settings.Readme;
-            ImagePath.TargetPath = settings.SplashScreen;
-            Website = settings.Website;
+            Description = _settings.Description;
+            ReadMeText.TargetPath = _settings.Readme;
+            ImagePath.TargetPath = _settings.SplashScreen;
+            Website = _settings.Website;
         }
 
         public void Save()
         {
-            settings.Author = AuthorText;
-            settings.ModListName = ModListName;
-            settings.Description = Description;
-            settings.Readme = ReadMeText.TargetPath;
-            settings.SplashScreen = ImagePath.TargetPath;
-            settings.Website = Website;
+            _settings.Author = AuthorText;
+            _settings.ModListName = ModListName;
+            _settings.Description = Description;
+            _settings.Readme = ReadMeText.TargetPath;
+            _settings.SplashScreen = ImagePath.TargetPath;
+            _settings.Website = Website;
         }
     }
 }

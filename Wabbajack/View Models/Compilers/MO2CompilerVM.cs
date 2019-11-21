@@ -12,13 +12,13 @@ namespace Wabbajack
 {
     public class MO2CompilerVM : ViewModel, ISubCompilerVM
     {
-        private readonly MO2CompilationSettings settings;
+        private readonly MO2CompilationSettings _settings;
 
-        private readonly ObservableAsPropertyHelper<string> _Mo2Folder;
-        public string Mo2Folder => _Mo2Folder.Value;
+        private readonly ObservableAsPropertyHelper<string> _mo2Folder;
+        public string Mo2Folder => _mo2Folder.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _MOProfile;
-        public string MOProfile => _MOProfile.Value;
+        private readonly ObservableAsPropertyHelper<string> _moProfile;
+        public string MOProfile => _moProfile.Value;
 
         public FilePickerVM DownloadLocation { get; }
 
@@ -29,8 +29,8 @@ namespace Wabbajack
         [Reactive]
         public ACompiler ActiveCompilation { get; private set; }
 
-        private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _ModlistSettings;
-        public ModlistSettingsEditorVM ModlistSettings => _ModlistSettings.Value;
+        private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _modlistSettings;
+        public ModlistSettingsEditorVM ModlistSettings => _modlistSettings.Value;
 
         [Reactive]
         public StatusUpdateTracker StatusTracker { get; private set; }
@@ -50,13 +50,13 @@ namespace Wabbajack
                 PromptTitle = "Select Download Location",
             };
 
-            _Mo2Folder = this.WhenAny(x => x.ModlistLocation.TargetPath)
+            _mo2Folder = this.WhenAny(x => x.ModlistLocation.TargetPath)
                 .Select(loc =>
                 {
                     try
                     {
-                        var profile_folder = Path.GetDirectoryName(loc);
-                        return Path.GetDirectoryName(Path.GetDirectoryName(profile_folder));
+                        var profileFolder = Path.GetDirectoryName(loc);
+                        return Path.GetDirectoryName(Path.GetDirectoryName(profileFolder));
                     }
                     catch (Exception)
                     {
@@ -64,13 +64,13 @@ namespace Wabbajack
                     }
                 })
                 .ToProperty(this, nameof(Mo2Folder));
-            _MOProfile = this.WhenAny(x => x.ModlistLocation.TargetPath)
+            _moProfile = this.WhenAny(x => x.ModlistLocation.TargetPath)
                 .Select(loc =>
                 {
                     try
                     {
-                        var profile_folder = Path.GetDirectoryName(loc);
-                        return Path.GetFileName(profile_folder);
+                        var profileFolder = Path.GetDirectoryName(loc);
+                        return Path.GetFileName(profileFolder);
                     }
                     catch (Exception)
                     {
@@ -135,27 +135,27 @@ namespace Wabbajack
                 });
 
             // Load settings
-            settings = parent.MWVM.Settings.Compiler.MO2Compilation;
-            ModlistLocation.TargetPath = settings.LastCompiledProfileLocation;
-            if (!string.IsNullOrWhiteSpace(settings.DownloadLocation))
+            _settings = parent.MWVM.Settings.Compiler.MO2Compilation;
+            ModlistLocation.TargetPath = _settings.LastCompiledProfileLocation;
+            if (!string.IsNullOrWhiteSpace(_settings.DownloadLocation))
             {
-                DownloadLocation.TargetPath = settings.DownloadLocation;
+                DownloadLocation.TargetPath = _settings.DownloadLocation;
             }
             parent.MWVM.Settings.SaveSignal
                 .Subscribe(_ => Unload())
                 .DisposeWith(CompositeDisposable);
 
             // Load custom modlist settings per MO2 profile
-            _ModlistSettings = Observable.CombineLatest(
+            _modlistSettings = Observable.CombineLatest(
                     this.WhenAny(x => x.ModlistLocation.ErrorState),
                     this.WhenAny(x => x.ModlistLocation.TargetPath),
-                    resultSelector: (State, Path) => (State, Path))
+                    resultSelector: (state, path) => (State: state, Path: path))
                 // A short throttle is a quick hack to make the above changes "atomic"
                 .Throttle(TimeSpan.FromMilliseconds(25))
                 .Select(u =>
                 {
                     if (u.State.Failed) return null;
-                    var modlistSettings = settings.ModlistSettings.TryCreate(u.Path);
+                    var modlistSettings = _settings.ModlistSettings.TryCreate(u.Path);
                     return new ModlistSettingsEditorVM(modlistSettings)
                     {
                         ModListName = MOProfile
@@ -184,8 +184,8 @@ namespace Wabbajack
                 {
                     try
                     {
-                        var tmp_compiler = new MO2Compiler(Mo2Folder);
-                        DownloadLocation.TargetPath = tmp_compiler.MO2DownloadsFolder;
+                        var tmpCompiler = new MO2Compiler(Mo2Folder);
+                        DownloadLocation.TargetPath = tmpCompiler.MO2DownloadsFolder;
                     }
                     catch (Exception ex)
                     {
@@ -197,8 +197,8 @@ namespace Wabbajack
 
         public void Unload()
         {
-            settings.DownloadLocation = DownloadLocation.TargetPath;
-            settings.LastCompiledProfileLocation = ModlistLocation.TargetPath;
+            _settings.DownloadLocation = DownloadLocation.TargetPath;
+            _settings.LastCompiledProfileLocation = ModlistLocation.TargetPath;
             ModlistSettings?.Save();
         }
     }

@@ -1,4 +1,4 @@
-﻿using DynamicData;
+using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
@@ -24,11 +24,11 @@ namespace Wabbajack
         [Reactive]
         public bool Enable { get; set; } = true;
 
-        private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
-        public BitmapImage Image => _Image.Value;
+        private readonly ObservableAsPropertyHelper<BitmapImage> _image;
+        public BitmapImage Image => _image.Value;
 
-        private readonly ObservableAsPropertyHelper<ModVM> _TargetMod;
-        public ModVM TargetMod => _TargetMod.Value;
+        private readonly ObservableAsPropertyHelper<ModVM> _targetMod;
+        public ModVM TargetMod => _targetMod.Value;
 
         public IReactiveCommand SlideShowNextItemCommand { get; } = ReactiveCommand.Create(() => { });
         public IReactiveCommand VisitNexusSiteCommand { get; }
@@ -95,7 +95,7 @@ namespace Wabbajack
                 .RefCount();
 
             // Find target mod to display by combining dynamic list with currently desired index
-            _TargetMod = Observable.CombineLatest(
+            _targetMod = Observable.CombineLatest(
                     modVMs.QueryWhenChanged(),
                     selectedIndex,
                     resultSelector: (query, selected) => query.Items.ElementAtOrDefault(selected % query.Count))
@@ -104,7 +104,7 @@ namespace Wabbajack
                 .ToProperty(this, nameof(TargetMod));
 
             // Mark interest and materialize image of target mod
-            _Image = this.WhenAny(x => x.TargetMod)
+            _image = this.WhenAny(x => x.TargetMod)
                 // We want to Switch here, not SelectMany, as we want to hotswap to newest target without waiting on old ones
                 .Select(x => x?.ImageObservable ?? Observable.Return(default(BitmapImage)))
                 .Switch()

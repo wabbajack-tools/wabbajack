@@ -17,12 +17,12 @@ namespace Wabbajack.UI
         [Reactive]
         public ModlistMetadata SelectedModList { get; set; }
 
-        private readonly ObservableAsPropertyHelper<bool> _CanInstall;
-        public bool CanInstall => _CanInstall.Value;
+        private readonly ObservableAsPropertyHelper<bool> _canInstall;
+        public bool CanInstall => _canInstall.Value;
 
         public ModeSelectionWindowVM()
         {
-            _CanInstall = this.WhenAny(x => x.SelectedModList)
+            _canInstall = this.WhenAny(x => x.SelectedModList)
                 .Select(x => x != null)
                 .ToProperty(this, nameof(CanInstall));
         }

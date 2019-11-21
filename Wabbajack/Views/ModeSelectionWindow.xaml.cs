@@ -14,7 +14,7 @@ namespace Wabbajack
     /// </summary>
     public partial class ModeSelectionWindow : Window
     {
-        MainSettings settings;
+        MainSettings _settings;
 
         public ModeSelectionWindow()
         {
@@ -28,14 +28,14 @@ namespace Wabbajack
             var discordIcon = UIUtils.BitmapImageFromResource("Wabbajack.Resources.Icons.discord.png");
             Discord.Source = discordIcon;
 
-            settings = MainSettings.LoadSettings();
+            _settings = MainSettings.LoadSettings();
             DataContext = new ModeSelectionWindowVM();
         }
 
         private void CreateModlist_Click(object sender, RoutedEventArgs e)
         {
             ShutdownOnClose = false;
-            var window = new MainWindow(RunMode.Compile, null, settings);
+            var window = new MainWindow(RunMode.Compile, null, _settings);
             window.Left = Left;
             window.Top = Top;
             window.Show();
@@ -56,15 +56,15 @@ namespace Wabbajack
             OpenMainWindowInstall(
                 UIUtils.OpenFileDialog(
                     $"*{ExtensionManager.Extension}|*{ExtensionManager.Extension}",
-                    initialDirectory: settings.Installer.LastInstalledListLocation));
+                    initialDirectory: _settings.Installer.LastInstalledListLocation));
         }
 
         private void OpenMainWindowInstall(string file)
         {
             if (file == null) return;
             ShutdownOnClose = false;
-            settings.Installer.LastInstalledListLocation = Path.GetDirectoryName(file);
-            var window = new MainWindow(RunMode.Install, file, settings);
+            _settings.Installer.LastInstalledListLocation = Path.GetDirectoryName(file);
+            var window = new MainWindow(RunMode.Install, file, _settings);
             window.Left = Left;
             window.Top = Top;
             window.Show();
