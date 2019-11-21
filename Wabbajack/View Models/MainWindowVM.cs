@@ -1,4 +1,4 @@
-using DynamicData;
+﻿using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -36,11 +36,11 @@ namespace Wabbajack
 
         public MainWindowVM(RunMode mode, string source, MainWindow mainWindow, MainSettings settings)
         {
-            this.Mode = mode;
-            this.MainWindow = mainWindow;
-            this.Settings = settings;
-            this._Installer = new Lazy<InstallerVM>(() => new InstallerVM(this, source));
-            this._Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
+            Mode = mode;
+            MainWindow = mainWindow;
+            Settings = settings;
+            _Installer = new Lazy<InstallerVM>(() => new InstallerVM(this, source));
+            _Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
 
             // Set up logging
             Utils.LogMessages
@@ -51,27 +51,27 @@ namespace Wabbajack
                 .FlattenBufferResult()
                 .Top(5000)
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Bind(this.Log)
+                .Bind(Log)
                 .Subscribe()
-                .DisposeWith(this.CompositeDisposable);
+                .DisposeWith(CompositeDisposable);
 
             // Wire mode to drive the active pane.
             // Note:  This is currently made into a derivative property driven by mode,
             // but it can be easily changed into a normal property that can be set from anywhere if needed
-            this._ActivePane = this.WhenAny(x => x.Mode)
+            _ActivePane = this.WhenAny(x => x.Mode)
                 .Select<RunMode, ViewModel>(m =>
                 {
                     switch (m)
                     {
                         case RunMode.Compile:
-                            return this._Compiler.Value;
+                            return _Compiler.Value;
                         case RunMode.Install:
-                            return this._Installer.Value;
+                            return _Installer.Value;
                         default:
                             return default;
                     }
                 })
-                .ToProperty(this, nameof(this.ActivePane));
+                .ToProperty(this, nameof(ActivePane));
 
 
             // Compile progress updates and populate ObservableCollection

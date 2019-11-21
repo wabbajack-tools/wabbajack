@@ -9,8 +9,8 @@ namespace Wabbajack
 
         public GameVM(Game game)
         {
-            this.Game = game;
-            this.DisplayName = game.ToDescriptionString();
+            Game = game;
+            DisplayName = game.ToDescriptionString();
         }
     }
 }

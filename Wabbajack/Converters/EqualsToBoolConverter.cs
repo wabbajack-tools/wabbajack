@@ -8,7 +8,7 @@ namespace Wabbajack
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return object.Equals(value, parameter);
+            return Equals(value, parameter);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

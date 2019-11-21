@@ -36,7 +36,7 @@ namespace Wabbajack
         protected static void WireNotifyPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (!(d is UserControlRx control)) return;
-            if (object.Equals(e.OldValue, e.NewValue)) return;
+            if (Equals(e.OldValue, e.NewValue)) return;
             control.RaisePropertyChanged(e.Property.Name);
         }
     }

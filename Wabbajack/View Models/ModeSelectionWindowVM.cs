@@ -22,9 +22,9 @@ namespace Wabbajack.UI
 
         public ModeSelectionWindowVM()
         {
-            this._CanInstall = this.WhenAny(x => x.SelectedModList)
+            _CanInstall = this.WhenAny(x => x.SelectedModList)
                 .Select(x => x != null)
-                .ToProperty(this, nameof(this.CanInstall));
+                .ToProperty(this, nameof(CanInstall));
         }
 
         internal string Download()

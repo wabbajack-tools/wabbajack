@@ -36,8 +36,8 @@ namespace Wabbajack
         {
             ShutdownOnClose = false;
             var window = new MainWindow(RunMode.Compile, null, settings);
-            window.Left = this.Left;
-            window.Top = this.Top;
+            window.Left = Left;
+            window.Top = Top;
             window.Show();
             Close();
         }
@@ -65,8 +65,8 @@ namespace Wabbajack
             ShutdownOnClose = false;
             settings.Installer.LastInstalledListLocation = Path.GetDirectoryName(file);
             var window = new MainWindow(RunMode.Install, file, settings);
-            window.Left = this.Left;
-            window.Top = this.Top;
+            window.Left = Left;
+            window.Top = Top;
             window.Show();
             Close();
         }

@@ -27,7 +27,7 @@ namespace Wabbajack
         public ModlistSettingsEditorVM(CompilationModlistSettings settings)
         {
             this.settings = settings;
-            this.ImagePath = new FilePickerVM()
+            ImagePath = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
                 PathType = FilePickerVM.PathTypeOptions.File,
@@ -36,7 +36,7 @@ namespace Wabbajack
                     new CommonFileDialogFilter("Banner image", "*.png")
                 }
             };
-            this.ReadMeText = new FilePickerVM()
+            ReadMeText = new FilePickerVM()
             {
                 PathType = FilePickerVM.PathTypeOptions.File,
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
@@ -45,25 +45,25 @@ namespace Wabbajack
 
         public void Init()
         {
-            this.AuthorText = settings.Author;
+            AuthorText = settings.Author;
             if (!string.IsNullOrWhiteSpace(settings.ModListName))
             {
-                this.ModListName = settings.ModListName;
+                ModListName = settings.ModListName;
             }
-            this.Description = settings.Description;
-            this.ReadMeText.TargetPath = settings.Readme;
-            this.ImagePath.TargetPath = settings.SplashScreen;
-            this.Website = settings.Website;
+            Description = settings.Description;
+            ReadMeText.TargetPath = settings.Readme;
+            ImagePath.TargetPath = settings.SplashScreen;
+            Website = settings.Website;
         }
 
         public void Save()
         {
-            settings.Author = this.AuthorText;
-            settings.ModListName = this.ModListName;
-            settings.Description = this.Description;
-            settings.Readme = this.ReadMeText.TargetPath;
-            settings.SplashScreen = this.ImagePath.TargetPath;
-            settings.Website = this.Website;
+            settings.Author = AuthorText;
+            settings.ModListName = ModListName;
+            settings.Description = Description;
+            settings.Readme = ReadMeText.TargetPath;
+            settings.SplashScreen = ImagePath.TargetPath;
+            settings.Website = Website;
         }
     }
 }

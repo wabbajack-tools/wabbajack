@@ -64,17 +64,17 @@ namespace Wabbajack
         {
             InitializeComponent();
 
-            this._ShowAuthor = this.WhenAny(x => x.Author)
+            _ShowAuthor = this.WhenAny(x => x.Author)
                 .Select(x => !string.IsNullOrWhiteSpace(x))
-                .ToProperty(this, nameof(this.ShowAuthor));
+                .ToProperty(this, nameof(ShowAuthor));
 
-            this._ShowDescription = this.WhenAny(x => x.Description)
+            _ShowDescription = this.WhenAny(x => x.Description)
                 .Select(x => !string.IsNullOrWhiteSpace(x))
-                .ToProperty(this, nameof(this.ShowDescription));
+                .ToProperty(this, nameof(ShowDescription));
 
-            this._ShowTitle = this.WhenAny(x => x.Title)
+            _ShowTitle = this.WhenAny(x => x.Title)
                 .Select(x => !string.IsNullOrWhiteSpace(x))
-                .ToProperty(this, nameof(this.ShowTitle));
+                .ToProperty(this, nameof(ShowTitle));
         }
     }
 }

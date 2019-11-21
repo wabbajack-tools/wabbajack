@@ -41,7 +41,7 @@ namespace Wabbajack
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            this.IsChecked = true;
+            IsChecked = true;
         }
     }
 }
