@@ -2,7 +2,7 @@
 {
     public interface IDownloader
     {
-        AbstractDownloadState GetDownloaderState(dynamic archive_ini);
+        AbstractDownloadState GetDownloaderState(dynamic archiveINI);
         
         /// <summary>
         /// Called before any downloads are inacted by the installer;

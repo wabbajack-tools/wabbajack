@@ -58,9 +58,9 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
+        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
         {
-            var url = archive_ini?.General?.manualURL;
+            var url = archiveINI?.General?.manualURL;
             return url != null ? new State { Url = url} : null;
         }
 
@@ -79,7 +79,7 @@ namespace Wabbajack.Lib.Downloaders
             public override void Download(Archive a, string destination)
             {
                 var downloader = (ManualDownloader)GetDownloader();
-                var abs_path = Path.Combine(downloader._downloadfolder.Path, a.Name);
+                var absPath = Path.Combine(downloader._downloadfolder.Path, a.Name);
                 lock (downloader)
                 {
                     try
@@ -95,10 +95,10 @@ namespace Wabbajack.Lib.Downloaders
                             .FirstOrDefaultAsync();
                         Process.Start(Url);
                         
-                        abs_path = watcher.Wait()?.FullPath;
-                        if (!File.Exists(abs_path))
+                        absPath = watcher.Wait()?.FullPath;
+                        if (!File.Exists(absPath))
                             throw new InvalidDataException($"File not found after manual download operation");
-                        File.Move(abs_path, destination);
+                        File.Move(absPath, destination);
                     }
                     finally
                     {

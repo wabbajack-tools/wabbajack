@@ -9,9 +9,9 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class MediaFireDownloader : IUrlDownloader
     {
-        public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
+        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
         {
-            Uri url = DownloaderUtils.GetDirectURL(archive_ini);
+            Uri url = DownloaderUtils.GetDirectURL(archiveINI);
             if (url == null || url.Host != "www.mediafire.com") return null;
 
             return new State
@@ -46,12 +46,12 @@ namespace Wabbajack.Lib.Downloaders
                     await d.NavigateTo(new Uri("http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.tx"));
                     // MediaFire creates the link after all the JS loads
                     await Task.Delay(1000);
-                    var new_url = await d.GetAttr("a.input", "href");
-                    if (new_url == null || !new_url.StartsWith("http")) return null;
+                    var newURL = await d.GetAttr("a.input", "href");
+                    if (newURL == null || !newURL.StartsWith("http")) return null;
                     return new HTTPDownloader.State()
                     {
                         Client = new HttpClient(),
-                        Url = new_url
+                        Url = newURL
                     };
                 }
             }

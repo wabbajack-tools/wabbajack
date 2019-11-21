@@ -17,13 +17,13 @@ namespace Wabbajack.Lib
     {
         public bool WarnOnOverwrite { get; set; } = true;
         
-        public MO2Installer(string archive, ModList mod_list, string output_folder)
+        public MO2Installer(string archive, ModList modList, string outputFolder)
         {
             ModManager = ModManager.MO2;
             ModListArchive = archive;
-            OutputFolder = output_folder;
+            OutputFolder = outputFolder;
             DownloadFolder = Path.Combine(OutputFolder, "downloads");
-            ModList = mod_list;
+            ModList = modList;
         }
 
         public string GameFolder { get; set; }
@@ -109,9 +109,9 @@ namespace Wabbajack.Lib
                    .PMap(Queue, directive =>
                    {
                        Status($"Writing included .meta file {directive.To}");
-                       var out_path = Path.Combine(DownloadFolder, directive.To);
-                       if (File.Exists(out_path)) File.Delete(out_path);
-                       File.WriteAllBytes(out_path, LoadBytesFromPath(directive.SourceDataID));
+                       var outPath = Path.Combine(DownloadFolder, directive.To);
+                       if (File.Exists(outPath)) File.Delete(outPath);
+                       File.WriteAllBytes(outPath, LoadBytesFromPath(directive.SourceDataID));
                    });
         }
 
@@ -120,9 +120,9 @@ namespace Wabbajack.Lib
             foreach (var esm in ModList.Directives.OfType<CleanedESM>().ToList())
             {
                 var filename = Path.GetFileName(esm.To);
-                var game_file = Path.Combine(GameFolder, "Data", filename);
+                var gameFile = Path.Combine(GameFolder, "Data", filename);
                 Utils.Log($"Validating {filename}");
-                var hash = game_file.FileHash();
+                var hash = gameFile.FileHash();
                 if (hash != esm.SourceESMHash)
                 {
                     Utils.Error("Game ESM hash doesn't match, is the ESM already cleaned? Please verify your local game files.");
@@ -173,14 +173,14 @@ namespace Wabbajack.Lib
             bsas.Do(bsa =>
             {
                 Status($"Building {bsa.To}");
-                var source_dir = Path.Combine(OutputFolder, Consts.BSACreationDir, bsa.TempID);
+                var sourceDir = Path.Combine(OutputFolder, Consts.BSACreationDir, bsa.TempID);
 
                 using (var a = bsa.State.MakeBuilder())
                 {
                     bsa.FileStates.PMap(Queue, state =>
                     {
                         Status($"Adding {state.Path} to BSA");
-                        using (var fs = File.OpenRead(Path.Combine(source_dir, state.Path)))
+                        using (var fs = File.OpenRead(Path.Combine(sourceDir, state.Path)))
                         {
                             a.AddFile(state, fs);
                         }
@@ -192,11 +192,11 @@ namespace Wabbajack.Lib
             });
 
 
-            var bsa_dir = Path.Combine(OutputFolder, Consts.BSACreationDir);
-            if (Directory.Exists(bsa_dir))
+            var bsaDir = Path.Combine(OutputFolder, Consts.BSACreationDir);
+            if (Directory.Exists(bsaDir))
             {
                 Info($"Removing temp folder {Consts.BSACreationDir}");
-                Directory.Delete(bsa_dir, true, true);
+                Directory.Delete(bsaDir, true, true);
             }
         }
 
@@ -208,36 +208,36 @@ namespace Wabbajack.Lib
                 .PMap(Queue, directive =>
                 {
                     Status($"Writing included file {directive.To}");
-                    var out_path = Path.Combine(OutputFolder, directive.To);
-                    if (File.Exists(out_path)) File.Delete(out_path);
+                    var outPath = Path.Combine(OutputFolder, directive.To);
+                    if (File.Exists(outPath)) File.Delete(outPath);
                     if (directive is RemappedInlineFile)
                         WriteRemappedFile((RemappedInlineFile)directive);
                     else if (directive is CleanedESM)
                         GenerateCleanedESM((CleanedESM)directive);
                     else
-                        File.WriteAllBytes(out_path, LoadBytesFromPath(directive.SourceDataID));
+                        File.WriteAllBytes(outPath, LoadBytesFromPath(directive.SourceDataID));
                 });
         }
 
         private void GenerateCleanedESM(CleanedESM directive)
         {
             var filename = Path.GetFileName(directive.To);
-            var game_file = Path.Combine(GameFolder, "Data", filename);
+            var gameFile = Path.Combine(GameFolder, "Data", filename);
             Info($"Generating cleaned ESM for {filename}");
-            if (!File.Exists(game_file)) throw new InvalidDataException($"Missing {filename} at {game_file}");
+            if (!File.Exists(gameFile)) throw new InvalidDataException($"Missing {filename} at {gameFile}");
             Status($"Hashing game version of {filename}");
-            var sha = game_file.FileHash();
+            var sha = gameFile.FileHash();
             if (sha != directive.SourceESMHash)
                 throw new InvalidDataException(
                     $"Cannot patch {filename} from the game folder hashes don't match have you already cleaned the file?");
 
-            var patch_data = LoadBytesFromPath(directive.SourceDataID);
-            var to_file = Path.Combine(OutputFolder, directive.To);
+            var patchData = LoadBytesFromPath(directive.SourceDataID);
+            var toFile = Path.Combine(OutputFolder, directive.To);
             Status($"Patching {filename}");
-            using (var output = File.OpenWrite(to_file))
-            using (var input = File.OpenRead(game_file))
+            using (var output = File.OpenWrite(toFile))
+            using (var input = File.OpenRead(gameFile))
             {
-                BSDiff.Apply(input, () => new MemoryStream(patch_data), output);
+                BSDiff.Apply(input, () => new MemoryStream(patchData), output);
             }
         }
 

@@ -8,9 +8,9 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class NexusDownloader : IDownloader
     {
-        public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
+        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
         {
-            var general = archive_ini?.General;
+            var general = archiveINI?.General;
 
             if (general.modID != null && general.fileID != null && general.gameName != null)
             {

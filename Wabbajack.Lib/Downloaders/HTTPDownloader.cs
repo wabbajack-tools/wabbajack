@@ -13,10 +13,10 @@ namespace Wabbajack.Lib.Downloaders
     public class HTTPDownloader : IDownloader, IUrlDownloader
     {
 
-        public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
+        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
         {
-            var url = archive_ini?.General?.directURL;
-            return GetDownloaderState(url, archive_ini);
+            var url = archiveINI?.General?.directURL;
+            return GetDownloaderState(url, archiveINI);
 
         }
 
@@ -25,7 +25,7 @@ namespace Wabbajack.Lib.Downloaders
             return GetDownloaderState(uri, null);
         }
 
-        public AbstractDownloadState GetDownloaderState(string url, dynamic archive_ini)
+        public AbstractDownloadState GetDownloaderState(string url, dynamic archiveINI)
         {
             if (url != null)
             {
@@ -33,10 +33,10 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     Url = url
                 };
-                if (archive_ini?.General?.directURLHeaders != null)
+                if (archiveINI?.General?.directURLHeaders != null)
                 {
                     tmp.Headers = new List<string>();
-                    tmp.Headers.AddRange(archive_ini?.General.directURLHeaders.Split('|'));
+                    tmp.Headers.AddRange(archiveINI?.General.directURLHeaders.Split('|'));
                 }
                 return tmp;
             }
@@ -82,8 +82,8 @@ namespace Wabbajack.Lib.Downloaders
                         client.DefaultRequestHeaders.Add(k, v);
                     }
 
-                long total_read = 0;
-                var buffer_size = 1024 * 32;
+                long totalRead = 0;
+                var bufferSize = 1024 * 32;
 
                 var response = client.GetSync(Url);
                 var stream = response.Content.ReadAsStreamAsync();
@@ -105,25 +105,25 @@ namespace Wabbajack.Lib.Downloaders
                 if (!download)
                     return true;
 
-                var header_var = a.Size == 0 ? "1" : a.Size.ToString();
+                var headerVar = a.Size == 0 ? "1" : a.Size.ToString();
                 if (response.Content.Headers.Contains("Content-Length"))
-                    header_var = response.Content.Headers.GetValues("Content-Length").FirstOrDefault();
+                    headerVar = response.Content.Headers.GetValues("Content-Length").FirstOrDefault();
 
-                var content_size = header_var != null ? long.Parse(header_var) : 1;
+                var contentSize = headerVar != null ? long.Parse(headerVar) : 1;
 
 
                 using (var webs = stream.Result)
                 using (var fs = File.OpenWrite(destination))
                 {
-                    var buffer = new byte[buffer_size];
+                    var buffer = new byte[bufferSize];
                     while (true)
                     {
-                        var read = webs.Read(buffer, 0, buffer_size);
+                        var read = webs.Read(buffer, 0, bufferSize);
                         if (read == 0) break;
-                        Utils.Status($"Downloading {a.Name}", (int)(total_read * 100 / content_size));
+                        Utils.Status($"Downloading {a.Name}", (int)(totalRead * 100 / contentSize));
 
                         fs.Write(buffer, 0, read);
-                        total_read += read;
+                        totalRead += read;
                     }
                 }
 
