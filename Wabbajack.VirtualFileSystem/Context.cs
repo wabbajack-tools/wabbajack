@@ -55,7 +55,7 @@ namespace Wabbajack.VirtualFileSystem
 
             var byPath = filtered.ToImmutableDictionary(f => f.Name);
 
-            var filesToIndex = Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive).ToList();
+            var filesToIndex = Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive).Distinct().ToList();
             
             var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing {root}", filesToIndex.Count));
 
