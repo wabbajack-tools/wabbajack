@@ -41,6 +41,14 @@ namespace Wabbajack.Common
         Witcher3
     }
 
+    public static class GameExtentions
+    {
+        public static GameMetaData MetaData(this Game game)
+        {
+            return GameRegistry.Games[game];
+        }
+    }
+
     public class GameMetaData
     {
         public ModManager SupportedModManager { get; internal set; }

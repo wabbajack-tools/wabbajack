@@ -303,7 +303,7 @@ namespace Wabbajack.Lib.NexusApi
 
         public ModInfo GetModInfo(Game game, string modId)
         {
-            var url = $"https://api.nexusmods.com/v1/games/{GameRegistry.Games[game].NexusName}/mods/{modId}.json";
+            var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modId}.json";
             return GetCached<ModInfo>(url);
         }
 
