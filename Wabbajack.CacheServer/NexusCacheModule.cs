@@ -75,24 +75,37 @@ namespace Wabbajack.CacheServer
 
         private string HandleCacheCall(dynamic arg)
         {
-            string param = (string)arg.request;
-            var url = new Uri(Encoding.UTF8.GetString(param.FromHex()));
-            var path = Path.Combine(NexusApiClient.LocalCacheDir, arg.request + ".json");
-
-            if (!File.Exists(path))
+            try
             {
-                Utils.Log($"{DateTime.Now} - Not Cached - {url}");
-                var client = new HttpClient();
-                var builder = new UriBuilder(url) {Host = "localhost", Port = Request.Url.Port ?? 80};
-                client.DefaultRequestHeaders.Add("apikey", Request.Headers["apikey"]);
-                client.GetStringSync(builder.Uri.ToString());
+                string param = (string)arg.request;
+                var url = new Uri(Encoding.UTF8.GetString(param.FromHex()));
+                var path = Path.Combine(NexusApiClient.LocalCacheDir, arg.request + ".json");
+
                 if (!File.Exists(path))
-                    throw new InvalidDataException("Invalid Data");
+                {
+                    Utils.Log($"{DateTime.Now} - Not Cached - {url}");
+                    var client = new HttpClient();
+                    var builder = new UriBuilder(url) {Host = "localhost", Port = Request.Url.Port ?? 8080, Scheme = "http"};
+                    client.DefaultRequestHeaders.Add("apikey", Request.Headers["apikey"]);
+                    client.GetStringSync(builder.Uri.ToString());
+                    if (!File.Exists(path))
+                    {
+                        Utils.Log($"Still not cached : {path}");
+                        throw new InvalidDataException("Invalid Data");
+                    }
+
+                    Utils.Log($"Is Now Cached : {path}");
+
+                }
+
+                Utils.Log($"{DateTime.Now} - From Cached - {url}");
+                return File.ReadAllText(path);
             }
-
-            Utils.Log($"{DateTime.Now} - From Cached - {url}");
-            return File.ReadAllText(path);
-
+            catch (Exception ex)
+            {
+                Utils.Log(ex.ToString());
+                return "ERROR";
+            }
         }
     }
 }
