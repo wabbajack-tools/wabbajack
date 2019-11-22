@@ -102,13 +102,13 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     var modfiles = new NexusApiClient().GetModFiles(GameRegistry.GetByMO2ArchiveName(GameName).Game, int.Parse(ModID));
                     var fileid = ulong.Parse(FileID);
-                    var found = modfiles
+                    var found = modfiles.files
                         .FirstOrDefault(file => file.file_id == fileid && file.category_name != null);
                     return found != null;
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log($"{ModName} - {GameName} - {ModID} - {FileID} - Error Getting Nexus Download URL - {ex.Message}");
+                    Utils.Log($"{ModName} - {GameName} - {ModID} - {FileID} - Error Getting Nexus Download URL - {ex}");
                     return false;
                 }
 

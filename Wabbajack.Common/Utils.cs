@@ -177,10 +177,29 @@ namespace Wabbajack.Common
                 Status(status, (int) (totalRead * 100 / maxSize));
             }
         }
-
-        public static string SHA256(this byte[] data)
+        public static string xxHash(this byte[] data, bool nullOnIOError = false)
         {
-            return new SHA256Managed().ComputeHash(data).ToBase64();
+            try
+            {
+                var hash = new xxHashConfig();
+                hash.HashSizeInBits = 64;
+                hash.Seed = 0x42;
+                using (var fs = new MemoryStream(data))
+                {
+                    var config = new xxHashConfig();
+                    config.HashSizeInBits = 64;
+                    using (var f = new StatusFileStream(fs, $"Hashing memory stream"))
+                    {
+                        var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
+                        return value.AsBase64String();
+                    }
+                }
+            }
+            catch (IOException ex)
+            {
+                if (nullOnIOError) return null;
+                throw ex;
+            }
         }
 
         /// <summary>
@@ -594,8 +613,8 @@ namespace Wabbajack.Common
 
         public static void CreatePatch(byte[] a, byte[] b, Stream output)
         {
-            var dataA = a.SHA256().FromBase64().ToHex();
-            var dataB = b.SHA256().FromBase64().ToHex();
+            var dataA = a.xxHash().FromBase64().ToHex();
+            var dataB = b.xxHash().FromBase64().ToHex();
             var cacheFile = Path.Combine("patch_cache", $"{dataA}_{dataB}.patch");
             if (!Directory.Exists("patch_cache"))
                 Directory.CreateDirectory("patch_cache");
@@ -618,7 +637,7 @@ namespace Wabbajack.Common
                         BSDiff.Create(a, b, f);
                     }
 
-                    File.Move(tmpName, cacheFile);
+                    File.Move(tmpName, cacheFile, MoveOptions.ReplaceExisting);
                     continue;
                 }
 
@@ -626,11 +645,18 @@ namespace Wabbajack.Common
             }
         }
 
-        public static void TryGetPatch(string foundHash, string fileHash, out byte[] ePatch)
+        public static bool TryGetPatch(string foundHash, string fileHash, out byte[] ePatch)
         {
             var patchName = Path.Combine("patch_cache",
                 $"{foundHash.FromBase64().ToHex()}_{fileHash.FromBase64().ToHex()}.patch");
-            ePatch = File.Exists(patchName) ? File.ReadAllBytes(patchName) : null;
+            if (File.Exists(patchName))
+            {
+                ePatch = File.ReadAllBytes(patchName);
+                return true;
+            }
+
+            ePatch = null;
+            return false;
         }
 
         public static void Warning(string s)

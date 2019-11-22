@@ -38,6 +38,7 @@ namespace Wabbajack.Lib.CompilationSteps
             }
 
             var e = source.EvolveTo<PatchedFromArchive>();
+            e.FromHash = found.Hash;
             e.ArchiveHashPath = found.MakeRelativePaths();
             e.To = source.Path;
             e.Hash = source.File.Hash;

@@ -207,6 +207,9 @@ namespace Wabbajack.Lib
         ///     The file to apply to the source file to patch it
         /// </summary>
         public string PatchID;
+
+        [Exclude]
+        public string FromHash;
     }
 
     public class SourcePatch

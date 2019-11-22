@@ -77,6 +77,11 @@ namespace Wabbajack.Lib.Validation
         /// <returns></returns>
         public Permissions FilePermissions(NexusDownloader.State mod)
         {
+            if (mod.Author == null || mod.GameName == null || mod.ModID == null || mod.FileID == null)
+            {
+                Utils.Error($"Error: Null data for {mod.Author} {mod.GameName} {mod.ModID} {mod.FileID}");
+            }
+
             var author_permissions = AuthorPermissions.GetOrDefault(mod.Author)?.Permissions;
             var game_permissions = AuthorPermissions.GetOrDefault(mod.Author)?.Games.GetOrDefault(mod.GameName)?.Permissions;
             var mod_permissions = AuthorPermissions.GetOrDefault(mod.Author)?.Games.GetOrDefault(mod.GameName)?.Mods.GetOrDefault(mod.ModID)
