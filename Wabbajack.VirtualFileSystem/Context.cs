@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Common.CSP;
@@ -54,7 +55,7 @@ namespace Wabbajack.VirtualFileSystem
 
             var byPath = filtered.ToImmutableDictionary(f => f.Name);
 
-            var filesToIndex = Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive).ToList();
+            var filesToIndex = Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive).Distinct().ToList();
             
             var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing {root}", filesToIndex.Count));
 
@@ -70,6 +71,42 @@ namespace Wabbajack.VirtualFileSystem
 
                                 return VirtualFile.Analyze(this, null, f, f);
                             });
+
+            var newIndex = IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
+
+            lock (this)
+            {
+                Index = newIndex;
+            }
+
+            return newIndex;
+        }
+
+        public IndexRoot AddRoots(List<string> roots)
+        {
+            if (!roots.All(p => Path.IsPathRooted(p)))
+                throw new InvalidDataException($"Paths are not absolute");
+
+            var filtered = Index.AllFiles.Where(file => File.Exists(file.Name)).ToList();
+
+            var byPath = filtered.ToImmutableDictionary(f => f.Name);
+
+            var filesToIndex = roots.SelectMany(root => Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive)).ToList();
+
+            var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing roots", filesToIndex.Count));
+
+            var allFiles = filesToIndex
+                .PMap(Queue, f =>
+                {
+                    if (byPath.TryGetValue(f, out var found))
+                    {
+                        var fi = new FileInfo(f);
+                        if (found.LastModified == fi.LastWriteTimeUtc.Ticks && found.Size == fi.Length)
+                            return found;
+                    }
+
+                    return VirtualFile.Analyze(this, null, f, f);
+                });
 
             var newIndex = IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
 
@@ -338,26 +375,26 @@ namespace Wabbajack.VirtualFileSystem
 
         public IndexRoot Integrate(List<VirtualFile> files)
         {
-            Utils.Log($"Integrating");
+            Utils.Log($"Integrating {files.Count} files");
             var allFiles = AllFiles.Concat(files).GroupBy(f => f.Name).Select(g => g.Last()).ToImmutableList();
 
-            var byFullPath = allFiles.SelectMany(f => f.ThisAndAllChildren)
-                                     .ToImmutableDictionary(f => f.FullPath);
+            var byFullPath = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
+                                     .ToImmutableDictionary(f => f.FullPath));
 
-            var byHash = allFiles.SelectMany(f => f.ThisAndAllChildren)
+            var byHash = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
                                  .Where(f => f.Hash != null)
-                                 .ToGroupedImmutableDictionary(f => f.Hash);
+                                 .ToGroupedImmutableDictionary(f => f.Hash));
 
-            var byName = allFiles.SelectMany(f => f.ThisAndAllChildren)
-                                 .ToGroupedImmutableDictionary(f => f.Name);
+            var byName = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
+                                 .ToGroupedImmutableDictionary(f => f.Name));
 
-            var byRootPath = allFiles.ToImmutableDictionary(f => f.Name);
+            var byRootPath = Task.Run(() => allFiles.ToImmutableDictionary(f => f.Name));
 
             var result = new IndexRoot(allFiles,
-                byFullPath,
-                byHash,
-                byRootPath,
-                byName);
+                byFullPath.Result,
+                byHash.Result,
+                byRootPath.Result,
+                byName.Result);
             Utils.Log($"Done integrating");
             return result;
         }

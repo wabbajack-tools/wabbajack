@@ -85,7 +85,9 @@ namespace Wabbajack.CacheServer
                 var client = new HttpClient();
                 var builder = new UriBuilder(url) {Host = "localhost", Port = Request.Url.Port ?? 80};
                 client.DefaultRequestHeaders.Add("apikey", Request.Headers["apikey"]);
-                return client.GetStringSync(builder.Uri.ToString());
+                client.GetStringSync(builder.Uri.ToString());
+                if (!File.Exists(path))
+                    throw new InvalidDataException("Invalid Data");
             }
 
             Utils.Log($"{DateTime.Now} - From Cached - {url}");

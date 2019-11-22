@@ -5,9 +5,9 @@ namespace Wabbajack.Common
     public class StatusFileStream : Stream
     {
         private string _message;
-        private FileStream _inner;
+        private Stream _inner;
 
-        public StatusFileStream(FileStream fs, string message)
+        public StatusFileStream(Stream fs, string message)
         {
             _inner = fs;
             _message = message;

@@ -78,25 +78,32 @@ namespace Wabbajack.Lib
 
             VFS.IntegrateFromFile(_vfsCacheName);
 
-            UpdateTracker.NextStep($"Indexing {MO2Folder}");
-            VFS.AddRoot(MO2Folder);
+            var roots = new List<string>()
+            {
+                MO2Folder, GamePath, MO2DownloadsFolder
+            };
+            
+            // TODO: make this generic so we can add more paths
 
-            UpdateTracker.NextStep("Writing VFS Cache");
+            var lootPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "LOOT");
+            IEnumerable<RawSourceFile> lootFiles = new List<RawSourceFile>();
+            if (Directory.Exists(lootPath))
+            {
+                roots.Add(lootPath);
+            }
+            UpdateTracker.NextStep("Indexing folders");
+
+            VFS.AddRoots(roots);
             VFS.WriteToFile(_vfsCacheName);
-
-            UpdateTracker.NextStep($"Indexing {GamePath}");
-            VFS.AddRoot(GamePath);
-
-            UpdateTracker.NextStep("Writing VFS Cache");
-            VFS.WriteToFile(_vfsCacheName);
-
-
-            UpdateTracker.NextStep($"Indexing {MO2DownloadsFolder}");
-            VFS.AddRoot(MO2DownloadsFolder);
-
-            UpdateTracker.NextStep("Writing VFS Cache");
-            VFS.WriteToFile(_vfsCacheName);
-
+            
+            if (Directory.Exists(lootPath))
+            {
+                    lootFiles = Directory.EnumerateFiles(lootPath, "userlist.yaml", SearchOption.AllDirectories)
+                    .Where(p => p.FileExists())
+                    .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
+                        { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(lootPath)) });
+            }
 
             UpdateTracker.NextStep("Cleaning output folder");
             if (Directory.Exists(ModListOutputFolder))
@@ -114,23 +121,8 @@ namespace Wabbajack.Lib
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                 { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
 
-            var lootPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "LOOT");
-
-            // TODO: make this generic so we can add more paths
-            IEnumerable<RawSourceFile> lootFiles = new List<RawSourceFile>();
-            if (Directory.Exists(lootPath))
-            {
-                Info($"Indexing {lootPath}");
-                VFS.AddRoot(lootPath);
-                VFS.WriteToFile(_vfsCacheName);
 
 
-                lootFiles = Directory.EnumerateFiles(lootPath, "userlist.yaml", SearchOption.AllDirectories)
-                    .Where(p => p.FileExists())
-                    .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
-                    { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(lootPath)) });
-            }
 
             IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
                 .Where(f => File.Exists(f + ".meta"))
@@ -297,6 +289,15 @@ namespace Wabbajack.Lib
         private void BuildPatches()
         {
             Info("Gathering patch files");
+
+            InstallDirectives.OfType<PatchedFromArchive>()
+                .Where(p => p.PatchID == null)
+                .Do(p =>
+                {
+                    if (Utils.TryGetPatch(p.FromHash, p.Hash, out var bytes))
+                        p.PatchID = IncludeFile(bytes);
+                });
+
             var groups = InstallDirectives.OfType<PatchedFromArchive>()
                 .Where(p => p.PatchID == null)
                 .GroupBy(p => p.ArchiveHashPath[0])
@@ -326,7 +327,7 @@ namespace Wabbajack.Lib
                     using (var output = new MemoryStream())
                     {
                         var a = origin.ReadAll();
-                        var b = LoadDataForTo(entry.To, absolutePaths).Result;
+                        var b = LoadDataForTo(entry.To, absolutePaths);
                         Utils.CreatePatch(a, b, output);
                         entry.PatchID = IncludeFile(output.ToArray());
                         var fileSize = File.GetSize(Path.Combine(ModListOutputFolder, entry.PatchID));
@@ -336,7 +337,7 @@ namespace Wabbajack.Lib
             }
         }
 
-        private async Task<byte[]> LoadDataForTo(string to, Dictionary<string, string> absolutePaths)
+        private byte[] LoadDataForTo(string to, Dictionary<string, string> absolutePaths)
         {
             if (absolutePaths.TryGetValue(to, out var absolute))
                 return File.ReadAllBytes(absolute);

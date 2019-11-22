@@ -64,8 +64,8 @@ namespace Compression.BSA.Test
             using (var client = new NexusApiClient())
             {
                 var results = client.GetModFiles(info.Item1, info.Item2);
-                var file = results.FirstOrDefault(f => f.is_primary) ??
-                           results.OrderByDescending(f => f.uploaded_timestamp).First();
+                var file = results.files.FirstOrDefault(f => f.is_primary) ??
+                           results.files.OrderByDescending(f => f.uploaded_timestamp).First();
                 var src = Path.Combine(_stagingFolder, file.file_name);
 
                 if (File.Exists(src)) return src;

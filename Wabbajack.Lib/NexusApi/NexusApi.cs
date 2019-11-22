@@ -289,10 +289,10 @@ namespace Wabbajack.Lib.NexusApi
             public List<NexusFileInfo> files;
         }
 
-        public IList<NexusFileInfo> GetModFiles(Game game, int modid)
+        public GetModFilesResponse GetModFiles(Game game, int modid)
         {
             var url = $"https://api.nexusmods.com/v1/games/{GameRegistry.Games[game].NexusName}/mods/{modid}/files.json";
-            return GetCached<GetModFilesResponse>(url).files;
+            return GetCached<GetModFilesResponse>(url);
         }
 
         public List<MD5Response> GetModInfoFromMD5(Game game, string md5Hash)
