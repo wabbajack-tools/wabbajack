@@ -23,6 +23,14 @@ namespace Wabbajack.CacheServer
             Get("/v1/games/{GameName}/mods/{ModID}.json", HandleModInfo);
             Get("/nexus_api_cache/{request}.json", HandleCacheCall);
             Get("/nexus_api_cache", ListCache);
+            Get("/nexus_api_cache/update", UpdateCache);
+        }
+
+        private object UpdateCache(object arg)
+        {
+            var api = new NexusApiClient(Request.Headers["apikey"].FirstOrDefault());
+            api.ClearUpdatedModsInCache();
+            return "Done";
         }
 
         private string ListCache(object arg)

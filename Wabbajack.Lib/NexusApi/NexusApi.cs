@@ -398,7 +398,12 @@ namespace Wabbajack.Lib.NexusApi
                     .ToList();
 
                 Utils.Log($"Purging {to_purge.Count} cache entries");
-                to_purge.PMap(queue, f => File.Delete(f.f));
+                to_purge.PMap(queue, f =>
+                {
+                    var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f.f).FromHex()));
+                    Utils.Log($"Purging {uri}");
+                    File.Delete(f.f);
+                });
             }
 
         }

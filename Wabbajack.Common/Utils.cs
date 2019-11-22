@@ -211,7 +211,7 @@ namespace Wabbajack.Common
         public static DateTime AsUnixTime(this long timestamp)
         {
             DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            dtDateTime = dtDateTime.AddSeconds(timestamp).ToLocalTime();
+            dtDateTime = dtDateTime.AddSeconds(timestamp);
             return dtDateTime;
         }
 
