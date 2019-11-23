@@ -437,13 +437,13 @@
       <Version>2.4.4</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.Events.WPF">
-      <Version>10.5.31</Version>
+      <Version>10.5.30</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.Fody">
-      <Version>10.5.31</Version>
+      <Version>10.5.30</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.WPF">
-      <Version>10.5.31</Version>
+      <Version>10.5.30</Version>
     </PackageReference>
     <PackageReference Include="SharpCompress">
       <Version>0.24.0</Version>
