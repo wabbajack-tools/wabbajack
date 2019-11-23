@@ -70,11 +70,11 @@
     <Compile Include="VirtualFile.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj">
+    <ProjectReference Include="$(SolutionDir)\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj">
       <Project>{9e69bc98-1512-4977-b683-6e7e5292c0b8}</Project>
       <Name>Wabbajack.Common.CSP</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj">
+    <ProjectReference Include="$(SolutionDir)\Wabbajack.Common\Wabbajack.Common.csproj">
       <Project>{b3f3fb6e-b9eb-4f49-9875-d78578bc7ae5}</Project>
       <Name>Wabbajack.Common</Name>
     </ProjectReference>

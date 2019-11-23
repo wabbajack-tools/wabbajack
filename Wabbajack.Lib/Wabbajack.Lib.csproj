@@ -54,9 +54,7 @@
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="Syroot.KnownFolders">
-      <HintPath>..\..\..\Users\tbald\.nuget\packages\syroot.windows.io.knownfolders\1.2.1\lib\net452\Syroot.KnownFolders.dll</HintPath>
-    </Reference>
+    <Reference Include="Syroot.KnownFolders" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Design" />
@@ -151,15 +149,15 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj">
+    <ProjectReference Include="$(SolutionDir)\Compression.BSA\Compression.BSA.csproj">
       <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
       <Name>Compression.BSA</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj">
+    <ProjectReference Include="$(SolutionDir)\Wabbajack.Common\Wabbajack.Common.csproj">
       <Project>{b3f3fb6e-b9eb-4f49-9875-d78578bc7ae5}</Project>
       <Name>Wabbajack.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Wabbajack.VirtualFileSystem\Wabbajack.VirtualFileSystem.csproj">
+    <ProjectReference Include="$(SolutionDir)\Wabbajack.VirtualFileSystem\Wabbajack.VirtualFileSystem.csproj">
       <Project>{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}</Project>
       <Name>Wabbajack.VirtualFileSystem</Name>
     </ProjectReference>

@@ -65,11 +65,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj">
+    <ProjectReference Include="$(SolutionDir)\Wabbajack.Common\Wabbajack.Common.csproj">
       <Project>{B3F3FB6E-B9EB-4F49-9875-D78578BC7AE5}</Project>
       <Name>Wabbajack.Common</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj">
+    <ProjectReference Include="$(SolutionDir)\Wabbajack.Lib\Wabbajack.Lib.csproj">
       <Project>{0a820830-a298-497d-85e0-e9a89efef5fe}</Project>
       <Name>Wabbajack.Lib</Name>
     </ProjectReference>
