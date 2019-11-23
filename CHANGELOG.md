@@ -1,11 +1,12 @@
 ### Changelog
 
-#### Version - Next
+#### Version - 1.0 beta 2 - 11/23/2019
 * Optimized install process, if you install on a directory that already contains an install
   the minimal amount of work will be done to update the install, instead of doing a complete
   from-scratch install
 * Vortex Support for some non-Bethesda games.
 * Reworked several internal systems (VFS and workqueues) for better reliability and stability
+* Patches are cached during compilation, and source files are no longer extracted every compile 
 
 #### Version 1.0 beta 1 - 11/6/2019
 * New Installation GUI
