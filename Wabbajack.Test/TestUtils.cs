@@ -113,7 +113,7 @@ namespace Wabbajack.Test
         public void Dispose()
         {
             var exts = new [] {".md", ".exe"};
-            Directory.Delete(Path.Combine(WorkingDirectory, ID), true);
+            Utils.DeleteDirectory(Path.Combine(WorkingDirectory, ID));
             Profiles.Do(p =>
             {
                 foreach (var ext in exts) {

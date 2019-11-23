@@ -76,7 +76,7 @@ namespace Wabbajack.Lib
             AddExternalFolder();
 
             Info("Cleaning output folder");
-            if (Directory.Exists(ModListOutputFolder)) Directory.Delete(ModListOutputFolder, true);
+            if (Directory.Exists(ModListOutputFolder)) Utils.DeleteDirectory(ModListOutputFolder);
             Directory.CreateDirectory(ModListOutputFolder);
             
             IEnumerable<RawSourceFile> vortexStagingFiles = Directory.EnumerateFiles(StagingFolder, "*", SearchOption.AllDirectories)

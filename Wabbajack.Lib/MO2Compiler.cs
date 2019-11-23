@@ -107,7 +107,7 @@ namespace Wabbajack.Lib
 
             UpdateTracker.NextStep("Cleaning output folder");
             if (Directory.Exists(ModListOutputFolder))
-                Directory.Delete(ModListOutputFolder, true, true);
+                Utils.DeleteDirectory(ModListOutputFolder);
 
             UpdateTracker.NextStep("Finding Install Files");
             Directory.CreateDirectory(ModListOutputFolder);
