@@ -95,8 +95,7 @@ namespace Compression.BSA.Test
         {
             TestContext.WriteLine($"From {bsa}");
             TestContext.WriteLine("Cleaning Output Dir");
-            if (Directory.Exists(_tempDir)) Directory.Delete(_tempDir, true);
-            //if (Directory.Exists(ArchiveTempDir)) Directory.Delete(ArchiveTempDir, true);
+            if (Directory.Exists(_tempDir)) Utils.DeleteDirectory(_tempDir);
             Directory.CreateDirectory(_tempDir);
 
             TestContext.WriteLine($"Reading {bsa}");

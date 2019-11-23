@@ -825,5 +825,48 @@ namespace Wabbajack.Common
             }
             return ErrorResponse.Success;
         }
+
+        /// <summary>
+        /// Both AlphaFS and C#'s Directory.Delete sometimes fail when certain files are read-only
+        /// or have other weird attributes. This is the only 100% reliable way I've found to completely
+        /// delete a folder. If you don't like this code, it's unlikely to change without a ton of testing.
+        /// </summary>
+        /// <param name="path"></param>
+        public static void DeleteDirectory(string path)
+        {
+            var info = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/c del /f /q /s \"{path}\" && rmdir /q /s \"{path}\" ",
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            var p = new Process
+            {
+                StartInfo = info
+            };
+
+            p.Start();
+            ChildProcessTracker.AddProcess(p);
+            try
+            {
+                p.PriorityClass = ProcessPriorityClass.BelowNormal;
+            }
+            catch (Exception)
+            {
+            }
+
+            while (!p.HasExited)
+            {
+                var line = p.StandardOutput.ReadLine();
+                if (line == null) break;
+                Status(line);
+            }
+            p.WaitForExit();
+        }
     }
 }

@@ -227,7 +227,7 @@ namespace Wabbajack.VirtualFileSystem
                 paths.Do(p =>
                 {
                     if (Directory.Exists(p))
-                        Directory.Delete(p, true, true);
+                        Utils.DeleteDirectory(p);
                 });
             };
         }
@@ -417,7 +417,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public void Dispose()
         {
-            Directory.Delete(FullName, true, true);
+            Utils.DeleteDirectory(FullName);
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         {
             Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f));
             if (Directory.Exists(VFS_TEST_DIR))
-                Directory.Delete(VFS_TEST_DIR, true);
+                Utils.DeleteDirectory(VFS_TEST_DIR);
             Directory.CreateDirectory(VFS_TEST_DIR);
             Queue = new WorkQueue();
             context = new Context(Queue);
@@ -205,7 +205,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         {
             var path = Path.Combine(VFS_TEST_DIR, folder);
             ZipFile.CreateFromDirectory(path, Path.Combine(VFS_TEST_DIR, output));
-            Directory.Delete(path, true);
+            Utils.DeleteDirectory(path);
         }
     }
 }

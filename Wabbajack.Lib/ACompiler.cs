@@ -119,7 +119,7 @@ namespace Wabbajack.Lib
 
 
             Utils.Log("Removing ModList staging folder");
-            Directory.Delete(ModListOutputFolder, true);
+            Utils.DeleteDirectory(ModListOutputFolder);
         }
 
         public void ShowReport()
