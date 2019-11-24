@@ -8,8 +8,8 @@ using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
-using File = System.IO.File;
-using FileInfo = System.IO.FileInfo;
+using File = Alphaleonis.Win32.Filesystem.File;
+using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
