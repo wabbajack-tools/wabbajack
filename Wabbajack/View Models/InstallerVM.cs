@@ -80,13 +80,16 @@ namespace Wabbajack
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
         public ObservableCollectionExtended<string> Log => MWVM.Log;
 
+        private readonly ObservableAsPropertyHelper<ModlistInstallationSettings> _CurrentSettings;
+        public ModlistInstallationSettings CurrentSettings => _CurrentSettings.Value;
+
         // Command properties
         public IReactiveCommand BeginCommand { get; }
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand VisitWebsiteCommand { get; }
 
-        public InstallerVM(MainWindowVM mainWindowVM, string source)
+        public InstallerVM(MainWindowVM mainWindowVM)
         {
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly().Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
@@ -100,7 +103,6 @@ namespace Wabbajack
             }
 
             MWVM = mainWindowVM;
-            ModListPath = source;
 
             Location = new FilePickerVM()
             {
@@ -120,15 +122,21 @@ namespace Wabbajack
                 .Select(x => Utils.IsDirectoryPathValid(x));
 
             // Load settings
-            ModlistInstallationSettings settings = MWVM.Settings.Installer.ModlistSettings.TryCreate(source);
-            Location.TargetPath = settings.InstallationLocation;
-            DownloadLocation.TargetPath = settings.DownloadLocation;
-            MWVM.Settings.SaveSignal
-                .Subscribe(_ =>
+            _CurrentSettings = this.WhenAny(x => x.ModListPath)
+                .Select(path => path == null ? null : MWVM.Settings.Installer.ModlistSettings.TryCreate(path))
+                .ToProperty(this, nameof(CurrentSettings));
+            this.WhenAny(x => x.CurrentSettings)
+                .Pairwise()
+                .Subscribe(settingsPair =>
                 {
-                    settings.InstallationLocation = Location.TargetPath;
-                    settings.DownloadLocation = DownloadLocation.TargetPath;
+                    SaveSettings(settingsPair.Previous);
+                    if (settingsPair.Current == null) return;
+                    Location.TargetPath = settingsPair.Current.InstallationLocation;
+                    DownloadLocation.TargetPath = settingsPair.Current.DownloadLocation;
                 })
+                .DisposeWith(CompositeDisposable);
+            MWVM.Settings.SaveSignal
+                .Subscribe(_ => SaveSettings(CurrentSettings))
                 .DisposeWith(CompositeDisposable);
 
             _modList = this.WhenAny(x => x.ModListPath)
@@ -137,22 +145,7 @@ namespace Wabbajack
                 {
                     if (modListPath == null) return default(ModListVM);
                     var modList = AInstaller.LoadFromFile(modListPath);
-                    if (modList == null)
-                    {
-                        MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
-                            MessageBoxImage.Error);
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            MWVM.MainWindow.ExitWhenClosing = false;
-                            var window = new ModeSelectionWindow
-                            {
-                                ShowActivated = true
-                            };
-                            window.Show();
-                            MWVM.MainWindow.Close();
-                        });
-                        return default(ModListVM);
-                    }
+                    if (modList == null) return default(ModListVM);
                     return new ModListVM(modList, modListPath);
                 })
                 .ObserveOnGuiThread()
@@ -360,6 +353,13 @@ namespace Wabbajack
                     ActiveInstallation = null;
                 }
             });
+        }
+
+        private void SaveSettings(ModlistInstallationSettings settings)
+        {
+            if (settings == null) return;
+            settings.InstallationLocation = Location.TargetPath;
+            settings.DownloadLocation = DownloadLocation.TargetPath;
         }
     }
 }

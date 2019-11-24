@@ -16,26 +16,10 @@ namespace Wabbajack
 
         public MainWindow()
         {
-            string[] args = Environment.GetCommandLineArgs();
-
-            if (args.Length != 3) return;
-            var modlistPath = args[2];
             _settings = MainSettings.LoadSettings();
-            Initialize(RunMode.Install, modlistPath, _settings);
-        }
-
-        public MainWindow(RunMode mode, string source, MainSettings settings)
-        {
-            Initialize(mode, source, settings);
-        }
-
-        private void Initialize(RunMode mode, string source, MainSettings settings)
-        {
-            InitializeComponent();
-            _settings = settings;
-            _mwvm = new MainWindowVM(mode, source, this, settings);
-            Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
+            _mwvm = new MainWindowVM(this, _settings);
             DataContext = _mwvm;
+            Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
         }
 
         internal bool ExitWhenClosing = true;
