@@ -182,6 +182,8 @@ namespace Wabbajack
                 .FilterSwitch(
                     this.WhenAny(x => x.DownloadLocation.Exists)
                         .Invert())
+                // A skip is needed to ignore the initial signal when the FilterSwitch turns on
+                .Skip(1)
                 .Subscribe(_ =>
                 {
                     DownloadLocation.TargetPath = MO2Compiler.GetTypicalDownloadsFolder(Mo2Folder);
