@@ -283,9 +283,15 @@ namespace Wabbajack.Lib
                 .ToDictionary(e => e.Item1, e => e.Item2);
         }
 
+        /// <summary>
+        /// Disabled
+        /// </summary>
         public void ValidateFreeSpace()
         {
-            DiskSpaceInfo DriveInfo(string path)
+            return;
+            // Disabled, caused more problems than it was worth.
+            /* 
+                DiskSpaceInfo DriveInfo(string path)
             {
                 return Volume.GetDiskFreeSpace(Volume.GetUniqueVolumeNameForPath(path));
             }
@@ -305,7 +311,7 @@ namespace Wabbajack.Lib
                         throw new NotEnoughDiskSpaceException(
                             $"This modlist requires {required.ToFileSizeString()} on {g.Key} but only {available.ToFileSizeString()} is available.");
                 });
-
+            */
         }
 
         public int RecommendQueueSize()
