@@ -29,10 +29,13 @@ namespace Wabbajack
             InstallCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
-                    OpenInstaller(
-                        UIUtils.OpenFileDialog(
-                            $"*{ExtensionManager.Extension}|*{ExtensionManager.Extension}",
-                            initialDirectory: mainVM.Settings.Installer.LastInstalledListLocation));
+                    var path = mainVM.Settings.Installer.LastInstalledListLocation;
+                    if (string.IsNullOrWhiteSpace(path)
+                        || !File.Exists(path))
+                    {
+                        path = UIUtils.OpenFileDialog($"*{ExtensionManager.Extension}|*{ExtensionManager.Extension}");
+                    }
+                    OpenInstaller(path);
                 });
 
             CompileCommand = ReactiveCommand.Create(
@@ -57,7 +60,7 @@ namespace Wabbajack
             var installer = _mainVM.Installer.Value;
             _mainVM.Settings.Installer.LastInstalledListLocation = path;
             _mainVM.ActivePane = installer;
-            installer.ModListPath = path;
+            installer.ModListPath.TargetPath = path;
         }
 
         private string Download()

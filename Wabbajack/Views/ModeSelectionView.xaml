@@ -51,7 +51,6 @@
                             <RowDefinition Height="15" />
                             <RowDefinition Height="150" />
                             <RowDefinition Height="20" />
-
                         </Grid.RowDefinitions>
                         <Image
                             Grid.Row="0"

@@ -286,6 +286,7 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="40" />
                             <RowDefinition Height="40" />
+                            <RowDefinition Height="40" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <TextBlock
@@ -294,14 +295,14 @@
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             FontSize="14"
-                            Text="Installation Location"
+                            Text="Target Modlist"
                             TextAlignment="Center" />
                         <local:FilePicker
                             Grid.Row="1"
                             Grid.Column="2"
                             Height="30"
                             VerticalAlignment="Center"
-                            DataContext="{Binding Location}"
+                            DataContext="{Binding ModListPath}"
                             FontSize="14" />
                         <TextBlock
                             Grid.Row="2"
@@ -309,10 +310,25 @@
                             HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             FontSize="14"
-                            Text="Download Location"
+                            Text="Installation Location"
                             TextAlignment="Center" />
                         <local:FilePicker
                             Grid.Row="2"
+                            Grid.Column="2"
+                            Height="30"
+                            VerticalAlignment="Center"
+                            DataContext="{Binding Location}"
+                            FontSize="14" />
+                        <TextBlock
+                            Grid.Row="3"
+                            Grid.Column="0"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            FontSize="14"
+                            Text="Download Location"
+                            TextAlignment="Center" />
+                        <local:FilePicker
+                            Grid.Row="3"
                             Grid.Column="2"
                             Height="30"
                             VerticalAlignment="Center"
@@ -320,7 +336,7 @@
                             FontSize="14" />
                         <local:BeginButton
                             Grid.Row="1"
-                            Grid.RowSpan="2"
+                            Grid.RowSpan="3"
                             Grid.Column="4"
                             Margin="0,0,25,0"
                             HorizontalAlignment="Right"
