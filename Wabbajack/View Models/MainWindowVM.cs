@@ -51,8 +51,29 @@ namespace Wabbajack
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
 
-            // Start on mode selection
-            ActivePane = ModeSelectionVM;
+            if (IsStartingFromModlist(out var path))
+            {
+                Installer.Value.ModListPath.TargetPath = path;
+                ActivePane = Installer.Value;
+            }
+            else
+            {
+                // Start on mode selection
+                ActivePane = ModeSelectionVM;
+            }
+        }
+
+        private static bool IsStartingFromModlist(out string modlistPath)
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length != 3 || !args[1].Contains("-i"))
+            {
+                modlistPath = default;
+                return false;
+            }
+
+            modlistPath = args[2];
+            return true;
         }
     }
 }
