@@ -194,7 +194,7 @@
             Title="{Binding ModListName}"
             Grid.Row="0"
             Grid.RowSpan="2"
-            ProgressPercent="{Binding ProgressPercent}"
+            ProgressPercent="{Binding PercentCompleted}"
             StatePrefixTitle="{Binding ProgressTitle}">
             <!--  Readd when Pause/Stop implementations added  -->
             <!--<Button Grid.Column="2"
@@ -342,7 +342,7 @@
             Grid.Row="2"
             Margin="5,0,5,5"
             Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
-            <local:LogCpuView DataContext="{Binding MWVM}" />
+            <local:LogCpuView />
         </Grid>
     </Grid>
 </UserControl>

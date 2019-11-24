@@ -40,11 +40,11 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _htmlReport;
         public string HTMLReport => _htmlReport.Value;
 
-        /// <summary>
-        /// Tracks whether an install is currently in progress
-        /// </summary>
         [Reactive]
-        public bool Installing { get; set; }
+        public AInstaller ActiveInstallation { get; private set; }
+
+        private readonly ObservableAsPropertyHelper<bool> _installing;
+        public bool Installing => _installing.Value;
 
         /// <summary>
         /// Tracks whether to show the installing pane
@@ -55,9 +55,6 @@ namespace Wabbajack
         public FilePickerVM Location { get; }
 
         public FilePickerVM DownloadLocation { get; }
-
-        private readonly ObservableAsPropertyHelper<float> _progressPercent;
-        public float ProgressPercent => _progressPercent.Value;
 
         private readonly ObservableAsPropertyHelper<ImageSource> _image;
         public ImageSource Image => _image.Value;
@@ -76,6 +73,12 @@ namespace Wabbajack
 
         private readonly ObservableAsPropertyHelper<string> _modListName;
         public string ModListName => _modListName.Value;
+
+        private readonly ObservableAsPropertyHelper<float> _percentCompleted;
+        public float PercentCompleted => _percentCompleted.Value;
+
+        public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
+        public ObservableCollectionExtended<string> Log => MWVM.Log;
 
         // Command properties
         public IReactiveCommand BeginCommand { get; }
@@ -158,15 +161,25 @@ namespace Wabbajack
             _htmlReport = this.WhenAny(x => x.ModList)
                 .Select(modList => modList?.ReportHTML)
                 .ToProperty(this, nameof(HTMLReport));
-            _progressPercent = Observable.CombineLatest(
-                    this.WhenAny(x => x.Installing),
-                    this.WhenAny(x => x.InstallingMode),
-                    resultSelector: (installing, mode) => !installing && mode)
-                .Select(show => show ? 1f : 0f)
-                // Disable for now, until more reliable
-                //this.WhenAny(x => x.MWVM.QueueProgress)
-                //    .Select(i => i / 100f)
-                .ToProperty(this, nameof(ProgressPercent));
+            _installing = this.WhenAny(x => x.ActiveInstallation)
+                .Select(compilation => compilation != null)
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(Installing));
+
+            _percentCompleted = this.WhenAny(x => x.ActiveInstallation)
+                .StartWith(default(AInstaller))
+                .Pairwise()
+                .Select(c =>
+                {
+                    if (c.Current == null)
+                    {
+                        return Observable.Return<float>(c.Previous == null ? 0f : 1f);
+                    }
+                    return c.Current.PercentCompleted;
+                })
+                .Switch()
+                .Debounce(TimeSpan.FromMilliseconds(25))
+                .ToProperty(this, nameof(PercentCompleted));
 
             Slideshow = new SlideShow(this);
 
@@ -254,6 +267,19 @@ namespace Wabbajack
                         return mode ? "Installing" : "Installed";
                     })
                 .ToProperty(this, nameof(ProgressTitle));
+
+            // Compile progress updates and populate ObservableCollection
+            this.WhenAny(x => x.ActiveInstallation)
+                .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>())
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .ToObservableChangeSet(x => x.ID)
+                .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
+                .EnsureUniqueChanges()
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
+                .Bind(StatusList)
+                .Subscribe()
+                .DisposeWith(CompositeDisposable);
         }
 
         private void ShowReport()
@@ -291,29 +317,34 @@ namespace Wabbajack
 
         private void ExecuteBegin()
         {
-            Installing = true;
             InstallingMode = true;
-            var installer = new MO2Installer(ModListPath, ModList.SourceModList, Location.TargetPath)
+            AInstaller installer;
+            
+            try
             {
-                DownloadFolder = DownloadLocation.TargetPath
-            };
-
-            // Compile progress updates and populate ObservableCollection
-            var subscription = installer.QueueStatus
-                .ObserveOn(RxApp.TaskpoolScheduler)
-                .ToObservableChangeSet(x => x.ID)
-                .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
-                .EnsureUniqueChanges()
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
-                .Bind(MWVM.StatusList)
-                .Subscribe();
+                installer = new MO2Installer(ModListPath, ModList.SourceModList, Location.TargetPath)
+                {
+                    DownloadFolder = DownloadLocation.TargetPath
+                };
+            }
+            catch (Exception ex)
+            {
+                while (ex.InnerException != null) ex = ex.InnerException;
+                Utils.Log(ex.StackTrace);
+                Utils.Log(ex.ToString());
+                Utils.Log($"{ex.Message} - Can't continue");
+                ActiveInstallation = null;
+                return;
+            }
 
             Task.Run(async () =>
             {
+                IDisposable subscription = null;
                 try
                 {
-                    await installer.Begin();
+                    var workTask = installer.Begin();
+                    ActiveInstallation = installer;
+                    await workTask;
                 }
                 catch (Exception ex)
                 {
@@ -325,10 +356,8 @@ namespace Wabbajack
                 finally
                 {
                     // Dispose of CPU tracking systems
-                    subscription.Dispose();
-                    MWVM.StatusList.Clear();
-
-                    Installing = false;
+                    subscription?.Dispose();
+                    ActiveInstallation = null;
                 }
             });
         }

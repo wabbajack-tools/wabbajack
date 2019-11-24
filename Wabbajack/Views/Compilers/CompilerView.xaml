@@ -219,7 +219,7 @@
             Grid.ColumnSpan="5"
             Margin="5"
             Visibility="{Binding Compiling, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
-            <local:LogCpuView DataContext="{Binding MWVM}" />
+            <local:LogCpuView />
         </Grid>
     </Grid>
 </UserControl>

@@ -1,4 +1,4 @@
-using DynamicData;
+﻿using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -24,8 +24,6 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ViewModel> _activePane;
         public ViewModel ActivePane => _activePane.Value;
 
-        public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
-
         public ObservableCollectionExtended<string> Log { get; } = new ObservableCollectionExtended<string>();
 
         [Reactive]
@@ -48,9 +46,9 @@ namespace Wabbajack
                 .ToObservableChangeSet()
                 .Buffer(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
                 .Where(l => l.Count > 0)
+                .ObserveOn(RxApp.MainThreadScheduler)
                 .FlattenBufferResult()
                 .Top(5000)
-                .ObserveOn(RxApp.MainThreadScheduler)
                 .Bind(Log)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
@@ -72,21 +70,6 @@ namespace Wabbajack
                     }
                 })
                 .ToProperty(this, nameof(ActivePane));
-
-
-            // Compile progress updates and populate ObservableCollection
-            /*
-            _Compiler.WhenAny(c => c.Value.Compiler.)
-                .ObserveOn(RxApp.TaskpoolScheduler)
-                .ToObservableChangeSet(x => x.)
-                /*
-                .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
-                .EnsureUniqueChanges()
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
-                .Bind(this.StatusList)
-                .Subscribe()
-                .DisposeWith(this.CompositeDisposable);*/
         }
     }
 }
