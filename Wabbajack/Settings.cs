@@ -59,6 +59,7 @@ namespace Wabbajack
     public class CompilerSettings
     {
         public ModManager LastCompiledModManager { get; set; }
+        public string OutputLocation { get; set; }
         public MO2CompilationSettings MO2Compilation { get; } = new MO2CompilationSettings();
         public VortexCompilationSettings VortexCompilation { get; } = new VortexCompilationSettings();
     }

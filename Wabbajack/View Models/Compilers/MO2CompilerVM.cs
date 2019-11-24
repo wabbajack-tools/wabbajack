@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.IO;
@@ -12,6 +13,8 @@ namespace Wabbajack
 {
     public class MO2CompilerVM : ViewModel, ISubCompilerVM
     {
+        public CompilerVM Parent { get; }
+
         private readonly MO2CompilationSettings _settings;
 
         private readonly ObservableAsPropertyHelper<string> _mo2Folder;
@@ -23,6 +26,8 @@ namespace Wabbajack
         public FilePickerVM DownloadLocation { get; }
 
         public FilePickerVM ModlistLocation { get; }
+
+        public FilePickerVM OutputLocation { get; }
 
         public IReactiveCommand BeginCommand { get; }
 
@@ -37,17 +42,24 @@ namespace Wabbajack
 
         public MO2CompilerVM(CompilerVM parent)
         {
+            Parent = parent;
             ModlistLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
-                PromptTitle = "Select Modlist"
+                PromptTitle = "Select modlist"
             };
             DownloadLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
-                PromptTitle = "Select Download Location",
+                PromptTitle = "Select download location",
+            };
+            OutputLocation = new FilePickerVM()
+            {
+                ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
+                PathType = FilePickerVM.PathTypeOptions.Folder,
+                PromptTitle = "Select the folder to place the resulting modlist.wabbajack file",
             };
 
             _mo2Folder = this.WhenAny(x => x.ModlistLocation.TargetPath)
@@ -92,15 +104,27 @@ namespace Wabbajack
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.ModlistLocation.InError),
                         this.WhenAny(x => x.DownloadLocation.InError),
-                        resultSelector: (ml, down) => !ml && !down)
+                        this.WhenAny(x => x.OutputLocation.InError),
+                        resultSelector: (ml, down, output) => !ml && !down && !output)
                     .ObserveOnGuiThread(),
                 execute: async () =>
                 {
                     try
                     {
-                        ActiveCompilation = new MO2Compiler(Mo2Folder)
+                        string outputFile;
+                        if (string.IsNullOrWhiteSpace(OutputLocation.TargetPath))
                         {
-                            MO2Profile = MOProfile,
+                            outputFile = MOProfile + ExtensionManager.Extension;
+                        }
+                        else
+                        {
+                            outputFile = Path.Combine(OutputLocation.TargetPath, MOProfile + ExtensionManager.Extension);
+                        }
+                        ActiveCompilation = new MO2Compiler(
+                            mo2Folder: Mo2Folder,
+                            mo2Profile: MOProfile,
+                            outputFile: outputFile)
+                        {
                             ModListName = ModlistSettings.ModListName,
                             ModListAuthor = ModlistSettings.AuthorText,
                             ModListDescription = ModlistSettings.Description,
@@ -141,6 +165,7 @@ namespace Wabbajack
             {
                 DownloadLocation.TargetPath = _settings.DownloadLocation;
             }
+            OutputLocation.TargetPath = parent.MWVM.Settings.Compiler.OutputLocation;
             parent.MWVM.Settings.SaveSignal
                 .Subscribe(_ => Unload())
                 .DisposeWith(CompositeDisposable);
@@ -180,17 +205,11 @@ namespace Wabbajack
                 .FilterSwitch(
                     this.WhenAny(x => x.DownloadLocation.Exists)
                         .Invert())
-                .Subscribe(x =>
+                // A skip is needed to ignore the initial signal when the FilterSwitch turns on
+                .Skip(1)
+                .Subscribe(_ =>
                 {
-                    try
-                    {
-                        var tmpCompiler = new MO2Compiler(Mo2Folder);
-                        DownloadLocation.TargetPath = tmpCompiler.MO2DownloadsFolder;
-                    }
-                    catch (Exception ex)
-                    {
-                        Utils.Log($"Error setting default download location {ex}");
-                    }
+                    DownloadLocation.TargetPath = MO2Compiler.GetTypicalDownloadsFolder(Mo2Folder);
                 })
                 .DisposeWith(CompositeDisposable);
         }
@@ -199,6 +218,7 @@ namespace Wabbajack
         {
             _settings.DownloadLocation = DownloadLocation.TargetPath;
             _settings.LastCompiledProfileLocation = ModlistLocation.TargetPath;
+            Parent.MWVM.Settings.Compiler.OutputLocation = OutputLocation.TargetPath;
             ModlistSettings?.Save();
         }
     }

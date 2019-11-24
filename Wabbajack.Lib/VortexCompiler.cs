@@ -32,12 +32,16 @@ namespace Wabbajack.Lib
 
         public bool IgnoreMissingFiles { get; set; }
 
+        public override ModManager ModManager => ModManager.Vortex;
+        public override string GamePath { get; }
+        public override string ModListOutputFolder { get; }
+        public override string ModListOutputFile { get; }
+
         public const string StagingMarkerName = "__vortex_staging_folder";
         public const string DownloadMarkerName = "__vortex_downloads_folder";
 
-        public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder)
+        public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder, string outputFile)
         {
-            ModManager = ModManager.Vortex;
             Game = game;
 
             GamePath = gamePath;
@@ -46,6 +50,7 @@ namespace Wabbajack.Lib
             DownloadsFolder = downloadsFolder;
             StagingFolder = stagingFolder;
             ModListOutputFolder = "output_folder";
+            ModListOutputFile = outputFile;
 
             ActiveArchives = new List<string>();
         }
@@ -55,7 +60,6 @@ namespace Wabbajack.Lib
             ConfigureProcessor(10);
             if (string.IsNullOrEmpty(ModListName))
                 ModListName = $"Vortex ModList for {Game.ToString()}";
-            ModListOutputFile = $"{ModListName}{ExtensionManager.Extension}";
 
             Info($"Starting Vortex compilation for {GameName} at {GamePath} with staging folder at {StagingFolder} and downloads folder at  {DownloadsFolder}.");
 

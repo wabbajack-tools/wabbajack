@@ -48,7 +48,8 @@ namespace Wabbajack.Test
                 gamePath: utils.GameFolder,
                 vortexFolder: VortexCompiler.TypicalVortexFolder(),
                 downloadsFolder: VortexCompiler.RetrieveDownloadLocation(utils.Game),
-                stagingFolder: VortexCompiler.RetrieveStagingLocation(utils.Game));
+                stagingFolder: VortexCompiler.RetrieveStagingLocation(utils.Game),
+                outputFile: $"test{ExtensionManager.Extension}");
         }
 
         protected ModList CompileAndInstall()

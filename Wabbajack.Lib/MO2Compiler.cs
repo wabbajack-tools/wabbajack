@@ -22,19 +22,24 @@ namespace Wabbajack.Lib
         
         public string MO2Folder;
 
-        public string MO2Profile;
+        public string MO2Profile { get; }
         public Dictionary<string, dynamic> ModMetas { get; set; }
 
-        public MO2Compiler(string mo2Folder)
-        {
-            ModManager = ModManager.MO2;
+        public override ModManager ModManager => ModManager.MO2;
 
+        public override string GamePath { get; }
+
+        public override string ModListOutputFolder => "output_folder";
+
+        public override string ModListOutputFile { get; }
+
+        public MO2Compiler(string mo2Folder, string mo2Profile, string outputFile)
+        {
             MO2Folder = mo2Folder;
+            MO2Profile = mo2Profile;
             MO2Ini = Path.Combine(MO2Folder, "ModOrganizer.ini").LoadIniFile();
             GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
-
-            ModListOutputFolder = "output_folder";
-            ModListOutputFile = MO2Profile + ExtensionManager.Extension;
+            ModListOutputFile = outputFile;
         }
 
         public dynamic MO2Ini { get; }
@@ -50,10 +55,12 @@ namespace Wabbajack.Lib
                     if (MO2Ini.Settings != null)
                         if (MO2Ini.Settings.download_directory != null)
                             return MO2Ini.Settings.download_directory.Replace("/", "\\");
-                return Path.Combine(MO2Folder, "downloads");
+                return GetTypicalDownloadsFolder(MO2Folder);
             }
             set => _mo2DownloadsFolder = value;
         }
+
+        public static string GetTypicalDownloadsFolder(string mo2Folder) => Path.Combine(mo2Folder, "downloads");
 
         public string MO2ProfileDir => Path.Combine(MO2Folder, "profiles", MO2Profile);
 

@@ -30,18 +30,15 @@ namespace Wabbajack.Test
 
         protected MO2Compiler ConfigureAndRunCompiler(string profile)
         {
-            var compiler = MakeCompiler();
-            compiler.MO2Profile = profile;
+            var compiler = new MO2Compiler(
+                mo2Folder: utils.MO2Folder,
+                mo2Profile: profile,
+                outputFile: profile + ExtensionManager.Extension);
             compiler.ShowReportWhenFinished = false;
             Assert.IsTrue(compiler.Begin().Result);
             return compiler;
         }
 
-        protected MO2Compiler MakeCompiler()
-        {
-            var compiler = new MO2Compiler(utils.MO2Folder);
-            return compiler;
-        }
         protected ModList CompileAndInstall(string profile)
         {
             var compiler = ConfigureAndRunCompiler(profile);

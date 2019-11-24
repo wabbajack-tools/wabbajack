@@ -71,9 +71,11 @@ namespace Wabbajack.Test
             if (Directory.Exists(loot_folder))
                 Utils.DeleteDirectory(loot_folder);
 
-            var compiler = new MO2Compiler(utils.InstallFolder);
+            var compiler = new MO2Compiler(
+                mo2Folder: utils.InstallFolder,
+                mo2Profile: profile,
+                outputFile: profile + ExtensionManager.Extension);
             compiler.MO2DownloadsFolder = Path.Combine(utils.DownloadsFolder);
-            compiler.MO2Profile = profile;
             compiler.ShowReportWhenFinished = false;
             Assert.IsTrue(compiler.Begin().Result);
 
@@ -153,8 +155,10 @@ namespace Wabbajack.Test
 
         private MO2Compiler ConfigureAndRunCompiler(string profile)
         {
-            var compiler = new MO2Compiler(utils.MO2Folder);
-            compiler.MO2Profile = profile;
+            var compiler = new MO2Compiler(
+                mo2Folder: utils.MO2Folder,
+                mo2Profile: profile,
+                outputFile: profile + ExtensionManager.Extension);
             compiler.ShowReportWhenFinished = false;
             Assert.IsTrue(compiler.Begin().Result);
             return compiler;

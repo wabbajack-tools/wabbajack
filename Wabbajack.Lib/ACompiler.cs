@@ -30,12 +30,12 @@ namespace Wabbajack.Lib
         public IObservable<(string, float)> ProgressUpdates => _progressUpdates;
         protected readonly Subject<(string, float)> _progressUpdates = new Subject<(string, float)>();
 
-        public ModManager ModManager;
+        public abstract ModManager ModManager { get; }
 
-        public string GamePath;
+        public abstract string GamePath { get; }
 
-        public string ModListOutputFolder;
-        public string ModListOutputFile;
+        public abstract string ModListOutputFolder { get; }
+        public abstract string ModListOutputFile { get; }
 
         public bool ShowReportWhenFinished { get; set; } = true;
 
