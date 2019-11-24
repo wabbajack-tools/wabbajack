@@ -11,6 +11,7 @@ using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = System.IO.File;
 using FileInfo = System.IO.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+using AlphaFile = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib
 {
@@ -299,7 +300,7 @@ namespace Wabbajack.Lib
                     var required = g.Sum(i => i.Item2);
                     var contains = g.Sum(folder =>
                         Directory.EnumerateFiles(folder.Item1, "*", DirectoryEnumerationOptions.Recursive)
-                            .Sum(file => new FileInfo(file).Length));
+                            .Sum(file => AlphaFile.GetSize(file)));
                     var available = DriveInfo(g.Key).FreeBytesAvailable;
                     if (required - contains > available)
                         throw new NotEnoughDiskSpaceException(
