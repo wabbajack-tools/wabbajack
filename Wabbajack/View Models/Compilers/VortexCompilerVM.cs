@@ -85,18 +85,19 @@ namespace Wabbajack
                     try
                     {
                         ActiveCompilation = new VortexCompiler(
-                            SelectedGame.Game,
-                            GameLocation.TargetPath,
-                            VortexCompiler.TypicalVortexFolder(),
-                            DownloadsLocation.TargetPath,
-                            StagingLocation.TargetPath)
+                            game: SelectedGame.Game,
+                            gamePath: GameLocation.TargetPath,
+                            vortexFolder: VortexCompiler.TypicalVortexFolder(),
+                            downloadsFolder: DownloadsLocation.TargetPath,
+                            stagingFolder: StagingLocation.TargetPath,
+                            outputFile: $"{ModlistSettings.ModListName}{ExtensionManager.Extension}")
                         {
                             ModListName = ModlistSettings.ModListName,
                             ModListAuthor = ModlistSettings.AuthorText,
                             ModListDescription = ModlistSettings.Description,
                             ModListImage = ModlistSettings.ImagePath.TargetPath,
                             ModListWebsite = ModlistSettings.Website,
-                            ModListReadme = ModlistSettings.ReadMeText.TargetPath
+                            ModListReadme = ModlistSettings.ReadMeText.TargetPath,
                         };
                     }
                     catch (Exception ex)

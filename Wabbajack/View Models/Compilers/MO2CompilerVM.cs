@@ -98,9 +98,11 @@ namespace Wabbajack
                 {
                     try
                     {
-                        ActiveCompilation = new MO2Compiler(Mo2Folder)
+                        ActiveCompilation = new MO2Compiler(
+                            mo2Folder: Mo2Folder,
+                            mo2Profile: MOProfile,
+                            outputFile: MOProfile + ExtensionManager.Extension)
                         {
-                            MO2Profile = MOProfile,
                             ModListName = ModlistSettings.ModListName,
                             ModListAuthor = ModlistSettings.AuthorText,
                             ModListDescription = ModlistSettings.Description,
@@ -184,7 +186,10 @@ namespace Wabbajack
                 {
                     try
                     {
-                        var tmpCompiler = new MO2Compiler(Mo2Folder);
+                        var tmpCompiler = new MO2Compiler(
+                            mo2Folder: Mo2Folder,
+                            mo2Profile: null,
+                            outputFile: null);
                         DownloadLocation.TargetPath = tmpCompiler.MO2DownloadsFolder;
                     }
                     catch (Exception ex)
