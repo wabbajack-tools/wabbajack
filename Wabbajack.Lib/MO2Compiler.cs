@@ -55,10 +55,12 @@ namespace Wabbajack.Lib
                     if (MO2Ini.Settings != null)
                         if (MO2Ini.Settings.download_directory != null)
                             return MO2Ini.Settings.download_directory.Replace("/", "\\");
-                return Path.Combine(MO2Folder, "downloads");
+                return GetTypicalDownloadsFolder(MO2Folder);
             }
             set => _mo2DownloadsFolder = value;
         }
+
+        public static string GetTypicalDownloadsFolder(string mo2Folder) => Path.Combine(mo2Folder, "downloads");
 
         public string MO2ProfileDir => Path.Combine(MO2Folder, "profiles", MO2Profile);
 

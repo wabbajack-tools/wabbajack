@@ -182,20 +182,9 @@ namespace Wabbajack
                 .FilterSwitch(
                     this.WhenAny(x => x.DownloadLocation.Exists)
                         .Invert())
-                .Subscribe(x =>
+                .Subscribe(_ =>
                 {
-                    try
-                    {
-                        var tmpCompiler = new MO2Compiler(
-                            mo2Folder: Mo2Folder,
-                            mo2Profile: null,
-                            outputFile: null);
-                        DownloadLocation.TargetPath = tmpCompiler.MO2DownloadsFolder;
-                    }
-                    catch (Exception ex)
-                    {
-                        Utils.Log($"Error setting default download location {ex}");
-                    }
+                    DownloadLocation.TargetPath = MO2Compiler.GetTypicalDownloadsFolder(Mo2Folder);
                 })
                 .DisposeWith(CompositeDisposable);
         }
