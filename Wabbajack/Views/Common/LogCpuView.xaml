@@ -18,7 +18,14 @@
             Grid.Column="0"
             Margin="0,0,2,0"
             local:AutoScrollBehavior.ScrollOnNewItem="True"
-            ItemsSource="{Binding Log}" />
+            ItemsSource="{Binding Log}"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" TextWrapping="WrapWithOverflow" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
         <ListBox
             Grid.Column="2"
             HorizontalAlignment="Stretch"
