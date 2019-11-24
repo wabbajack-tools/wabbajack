@@ -102,7 +102,7 @@
     <SolidColorBrush x:Key="PressedButtonBackground" Color="{StaticResource PressedBackgroundColor}" />
     <SolidColorBrush x:Key="MouseOverButtonBackground" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="DisabledButtonBackground" Color="{StaticResource LightDisabledBackgroundColor}" />
-    <SolidColorBrush x:Key="DisabledButtonForeground" Color="{StaticResource DisabledBackgroundColor}" />
+    <SolidColorBrush x:Key="DisabledButtonForeground" Color="#FF7E7E7E" />
 
     <SolidColorBrush x:Key="Expander.Background" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="Expander.MouseOver.Arrow.Stroke" Color="{StaticResource ForegroundColor}" />
@@ -1462,6 +1462,11 @@
         BasedOn="{StaticResource MahApps.Metro.Styles.MetroCircleButtonStyle}"
         TargetType="ButtonBase">
         <Setter Property="Focusable" Value="False" />
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!--  ToggleButton  -->

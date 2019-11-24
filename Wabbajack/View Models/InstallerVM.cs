@@ -87,6 +87,7 @@ namespace Wabbajack
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand VisitWebsiteCommand { get; }
+        public IReactiveCommand BackCommand { get; }
 
         public InstallerVM(MainWindowVM mainWindowVM)
         {
@@ -163,6 +164,11 @@ namespace Wabbajack
                 .Select(compilation => compilation != null)
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(Installing));
+
+            BackCommand = ReactiveCommand.Create(
+                execute: () => mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM,
+                canExecute: this.WhenAny(x => x.Installing)
+                    .Select(x => !x));
 
             _percentCompleted = this.WhenAny(x => x.ActiveInstallation)
                 .StartWith(default(AInstaller))
