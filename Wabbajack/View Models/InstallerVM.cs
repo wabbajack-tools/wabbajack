@@ -228,7 +228,7 @@ namespace Wabbajack
                 canExecute: this.WhenAny(x => x.ModList)
                     .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
                     .ObserveOnGuiThread());
-            BeginCommand = ReactiveCommand.Create(
+            BeginCommand = ReactiveCommand.CreateFromTask(
                 execute: ExecuteBegin,
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.Installing),
@@ -315,7 +315,7 @@ namespace Wabbajack
             }
         }
 
-        private void ExecuteBegin()
+        private async Task ExecuteBegin()
         {
             InstallingMode = true;
             AInstaller installer;
@@ -337,7 +337,7 @@ namespace Wabbajack
                 return;
             }
 
-            Task.Run(async () =>
+            await Task.Run(async () =>
             {
                 IDisposable subscription = null;
                 try
