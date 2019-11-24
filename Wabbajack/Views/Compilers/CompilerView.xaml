@@ -56,7 +56,7 @@
             Grid.Column="0"
             Grid.ColumnSpan="5"
             OverhangShadow="True"
-            ProgressPercent="{Binding ProgressPercent}"
+            ProgressPercent="{Binding PercentCompleted}"
             StatePrefixTitle="Compiling" />
         <ScrollViewer
             Grid.Row="1"

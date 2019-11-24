@@ -38,9 +38,9 @@ namespace Wabbajack.Common
             _progress.OnNext(0.0f);
         }
 
-        public void MakeUpdate(double progress)
+        public void MakeUpdate(float progress)
         {
-            _progress.OnNext((float)0.0);
+            _progress.OnNext(progress);
         }
 
         public void MakeUpdate(int max, int curr)

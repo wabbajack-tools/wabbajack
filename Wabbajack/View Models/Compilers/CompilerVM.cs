@@ -34,6 +34,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<bool> _compiling;
         public bool Compiling => _compiling.Value;
 
+        private readonly ObservableAsPropertyHelper<float> _percentCompleted;
+        public float PercentCompleted => _percentCompleted.Value;
+
         public CompilerVM(MainWindowVM mainWindowVM)
         {
             MWVM = mainWindowVM;
@@ -113,6 +116,21 @@ namespace Wabbajack
                 .Bind(MWVM.StatusList)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
+
+            _percentCompleted = this.WhenAny(x => x.Compiler.ActiveCompilation)
+                .StartWith(default(ACompiler))
+                .Pairwise()
+                .Select(c =>
+                {
+                    if (c.Current == null)
+                    {
+                        return Observable.Return<float>(c.Previous == null ? 0f : 1f);
+                    }
+                    return c.Current.PercentCompleted;
+                })
+                .Switch()
+                .Debounce(TimeSpan.FromMilliseconds(25))
+                .ToProperty(this, nameof(PercentCompleted));
         }
     }
 }
