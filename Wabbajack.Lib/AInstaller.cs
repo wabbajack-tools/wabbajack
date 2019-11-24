@@ -297,8 +297,11 @@ namespace Wabbajack.Lib
                 .Do(g =>
                 {
                     var required = g.Sum(i => i.Item2);
+                    var contains = g.Sum(folder =>
+                        Directory.EnumerateFiles(folder.Item1, "*", DirectoryEnumerationOptions.Recursive)
+                            .Sum(file => new FileInfo(file).Length));
                     var available = DriveInfo(g.Key).FreeBytesAvailable;
-                    if (required > available)
+                    if (required - contains > available)
                         throw new NotEnoughDiskSpaceException(
                             $"This modlist requires {required.ToFileSizeString()} on {g.Key} but only {available.ToFileSizeString()} is available.");
                 });
