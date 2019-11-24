@@ -34,6 +34,12 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<bool> _compiling;
         public bool Compiling => _compiling.Value;
 
+        private readonly ObservableAsPropertyHelper<float> _percentCompleted;
+        public float PercentCompleted => _percentCompleted.Value;
+
+        public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
+        public ObservableCollectionExtended<string> Log => MWVM.Log;
+
         public CompilerVM(MainWindowVM mainWindowVM)
         {
             MWVM = mainWindowVM;
@@ -102,7 +108,7 @@ namespace Wabbajack
                 .ToProperty(this, nameof(Compiling));
 
             // Compile progress updates and populate ObservableCollection
-            var subscription = this.WhenAny(x => x.Compiler.ActiveCompilation)
+            this.WhenAny(x => x.Compiler.ActiveCompilation)
                 .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>())
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .ToObservableChangeSet(x => x.ID)
@@ -110,9 +116,24 @@ namespace Wabbajack
                 .EnsureUniqueChanges()
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
-                .Bind(MWVM.StatusList)
+                .Bind(StatusList)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
+
+            _percentCompleted = this.WhenAny(x => x.Compiler.ActiveCompilation)
+                .StartWith(default(ACompiler))
+                .Pairwise()
+                .Select(c =>
+                {
+                    if (c.Current == null)
+                    {
+                        return Observable.Return<float>(c.Previous == null ? 0f : 1f);
+                    }
+                    return c.Current.PercentCompleted;
+                })
+                .Switch()
+                .Debounce(TimeSpan.FromMilliseconds(25))
+                .ToProperty(this, nameof(PercentCompleted));
         }
     }
 }
