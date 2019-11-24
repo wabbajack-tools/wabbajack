@@ -299,7 +299,7 @@ namespace Wabbajack.Lib
                     var required = g.Sum(i => i.Item2);
                     var contains = g.Sum(folder =>
                         Directory.EnumerateFiles(folder.Item1, "*", DirectoryEnumerationOptions.Recursive)
-                            .Sum(file => AlphaFile.GetSize(file)));
+                            .Sum(file => File.GetSize(file)));
                     var available = DriveInfo(g.Key).FreeBytesAvailable;
                     if (required - contains > available)
                         throw new NotEnoughDiskSpaceException(
