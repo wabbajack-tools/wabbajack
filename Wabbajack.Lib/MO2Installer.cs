@@ -30,8 +30,7 @@ namespace Wabbajack.Lib
 
         protected override bool _Begin()
         {
-            ConfigureProcessor(RecommendQueueSize());
-            ValidateFreeSpace();
+            ConfigureProcessor(17, RecommendQueueSize());
             var game = GameRegistry.Games[ModList.GameType];
 
             if (GameFolder == null)
@@ -47,7 +46,10 @@ namespace Wabbajack.Lib
                 return false;
             }
 
+            UpdateTracker.NextStep("Validating Game ESMs");
             ValidateGameESMs();
+
+            UpdateTracker.NextStep("Validating Modlist");
             ValidateModlist.RunValidation(ModList);
 
             Directory.CreateDirectory(OutputFolder);
@@ -67,10 +69,16 @@ namespace Wabbajack.Lib
                 }
             }
 
+            UpdateTracker.NextStep("Optimizing Modlist");
             OptimizeModlist();
 
+            UpdateTracker.NextStep("Hashing Archives");
             HashArchives();
+
+            UpdateTracker.NextStep("Downloading Missing Archives");
             DownloadArchives();
+
+            UpdateTracker.NextStep("Hashing Remaining Archives");
             HashArchives();
 
             var missing = ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash)).ToList();
@@ -84,20 +92,28 @@ namespace Wabbajack.Lib
                     Error("Cannot continue, was unable to download one or more archives");
             }
 
+            UpdateTracker.NextStep("Priming VFS");
             PrimeVFS();
 
+            UpdateTracker.NextStep("Building Folder Structure");
             BuildFolderStructure();
+
+            UpdateTracker.NextStep("Installing Archives");
             InstallArchives();
+
+            UpdateTracker.NextStep("Installing Included files");
             InstallIncludedFiles();
+
+            UpdateTracker.NextStep("Installing Archive Metas");
             InstallIncludedDownloadMetas();
+
+            UpdateTracker.NextStep("Building BSAs");
             BuildBSAs();
 
+            UpdateTracker.NextStep("Generating Merges");
             zEditIntegration.GenerateMerges(this);
 
-            Info("Installation complete! You may exit the program.");
-            // Removed until we decide if we want this functionality
-            // Nexus devs weren't sure this was a good idea, I (halgari) agree.
-            //AskToEndorse();
+            UpdateTracker.NextStep("Installation complete! You may exit the program.");
             return true;
         }
 
