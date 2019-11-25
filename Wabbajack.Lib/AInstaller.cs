@@ -58,7 +58,6 @@ namespace Wabbajack.Lib
 
         public static ModList LoadFromFile(string path)
         {
-            if (!File.Exists(path)) return null;
             using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
             {

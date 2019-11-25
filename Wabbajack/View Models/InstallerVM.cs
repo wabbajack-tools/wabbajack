@@ -150,6 +150,7 @@ namespace Wabbajack
                 .Select(modListPath =>
                 {
                     if (modListPath == null) return default(ModListVM);
+                    if (!File.Exists(modListPath)) return default(ModListVM);
                     var modList = AInstaller.LoadFromFile(modListPath);
                     if (modList == null) return default(ModListVM);
                     return new ModListVM(modList, modListPath);
