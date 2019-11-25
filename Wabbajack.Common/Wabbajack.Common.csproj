@@ -136,9 +136,6 @@
     <PackageReference Include="Ceras">
       <Version>4.1.7</Version>
     </PackageReference>
-    <PackageReference Include="erri120.OMODFramework">
-      <Version>[1.0.0]</Version>
-    </PackageReference>
     <PackageReference Include="ini-parser">
       <Version>2.5.2</Version>
     </PackageReference>
@@ -147,6 +144,9 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json.Bson">
       <Version>1.0.2</Version>
+    </PackageReference>
+    <PackageReference Include="OMODFramework">
+      <Version>1.0.1</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI">
       <Version>10.5.30</Version>

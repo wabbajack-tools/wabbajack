@@ -49,15 +49,13 @@ namespace Wabbajack.Common
             }
         }
 
-        private static string ExtractAllWithOMOD(string source, string dest)
+        private static void ExtractAllWithOMOD(string source, string dest)
         {
             Utils.Log($"Extracting {Path.GetFileName(source)}");
-            var f = new Framework();
-            f.SetTempDirectory(dest);
-            var omod = new OMOD(source, ref f);
-            omod.ExtractDataFiles();
-            omod.ExtractPlugins();
-            return dest;
+            Framework.TempDir = dest;
+            var omod = new OMOD(source);
+            omod.GetDataFiles();
+            omod.GetPlugins();
         }
 
         private static void ExtractAllWithBSA(WorkQueue queue, string source, string dest)
