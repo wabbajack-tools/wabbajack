@@ -121,7 +121,7 @@ namespace Wabbajack.Lib
                 .ToList();
 
             Info("Installing Archives");
-            archives.PMap(Queue,a => InstallArchive(a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
+            archives.PMap(Queue, UpdateTracker,a => InstallArchive(a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
         }
 
         private void InstallArchive(Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
@@ -334,8 +334,9 @@ namespace Wabbajack.Lib
             Utils.Log("Optimizing Modlist directives");
             var indexed = ModList.Directives.ToDictionary(d => d.To);
 
+            UpdateTracker.NextStep("Looking for files to delete");
             Directory.EnumerateFiles(OutputFolder, "*", DirectoryEnumerationOptions.Recursive)
-                .PMap(Queue, f =>
+                .PMap(Queue, UpdateTracker, f =>
                 {
                     var relative_to = f.RelativeTo(OutputFolder);
                     Utils.Status($"Checking if modlist file {relative_to}");
@@ -348,7 +349,8 @@ namespace Wabbajack.Lib
                     File.Delete(f);
                 });
 
-            indexed.Values.PMap(Queue, d =>
+            UpdateTracker.NextStep("Looking for unmodified files");
+            indexed.Values.PMap(Queue, UpdateTracker, d =>
             {
                 // Bit backwards, but we want to return null for 
                 // all files we *want* installed. We return the files
@@ -364,6 +366,7 @@ namespace Wabbajack.Lib
             }).Where(d => d != null)
               .Do(d => indexed.Remove(d.To));
 
+            UpdateTracker.NextStep("Updating Modlist");
             Utils.Log($"Optimized {ModList.Directives.Count} directives to {indexed.Count} required");
             var requiredArchives = indexed.Values.OfType<FromArchive>()
                 .GroupBy(d => d.ArchiveHashPath[0])

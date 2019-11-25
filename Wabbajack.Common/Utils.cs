@@ -473,6 +473,20 @@ namespace Wabbajack.Common
             });
         }
 
+        public static void PMap<TI>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
+            Action<TI> f)
+        {
+            var cnt = 0;
+            var collist = coll.ToList();
+            collist.PMap(queue, itm =>
+            {
+                updateTracker.MakeUpdate(collist.Count, Interlocked.Increment(ref cnt));
+                f(itm);
+                return true;
+            });
+        }
+
+
         public static List<TR> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue,
             Func<TI, TR> f)
         {

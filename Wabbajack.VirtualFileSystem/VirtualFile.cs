@@ -93,8 +93,20 @@ namespace Wabbajack.VirtualFileSystem
 
         public bool IsNative => Parent == null;
 
-        public IEnumerable<VirtualFile> ThisAndAllChildren =>
-            Children.SelectMany(child => child.ThisAndAllChildren).Append(this);
+        private IEnumerable<VirtualFile> _thisAndAllChildren = null;
+
+        public IEnumerable<VirtualFile> ThisAndAllChildren
+        {
+            get
+            {
+                if (_thisAndAllChildren == null)
+                {
+                    _thisAndAllChildren = Children.SelectMany(child => child.ThisAndAllChildren).Append(this).ToList();
+                }
+
+                return _thisAndAllChildren;
+            }
+        }
 
 
         /// <summary>
