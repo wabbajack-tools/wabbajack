@@ -31,8 +31,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ModListVM> _modList;
         public ModListVM ModList => _modList.Value;
 
-        [Reactive]
-        public string ModListPath { get; set; }
+        public FilePickerVM ModListPath { get; }
 
         [Reactive]
         public bool UIReady { get; set; }
@@ -80,13 +79,17 @@ namespace Wabbajack
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
         public ObservableCollectionExtended<string> Log => MWVM.Log;
 
+        private readonly ObservableAsPropertyHelper<ModlistInstallationSettings> _CurrentSettings;
+        public ModlistInstallationSettings CurrentSettings => _CurrentSettings.Value;
+
         // Command properties
         public IReactiveCommand BeginCommand { get; }
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand VisitWebsiteCommand { get; }
+        public IReactiveCommand BackCommand { get; }
 
-        public InstallerVM(MainWindowVM mainWindowVM, string source)
+        public InstallerVM(MainWindowVM mainWindowVM)
         {
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly().Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
@@ -100,7 +103,6 @@ namespace Wabbajack
             }
 
             MWVM = mainWindowVM;
-            ModListPath = source;
 
             Location = new FilePickerVM()
             {
@@ -118,41 +120,39 @@ namespace Wabbajack
             };
             DownloadLocation.AdditionalError = this.WhenAny(x => x.DownloadLocation.TargetPath)
                 .Select(x => Utils.IsDirectoryPathValid(x));
+            ModListPath = new FilePickerVM()
+            {
+                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
+                PathType = FilePickerVM.PathTypeOptions.File,
+                PromptTitle = "Select a modlist to install"
+            };
 
             // Load settings
-            ModlistInstallationSettings settings = MWVM.Settings.Installer.ModlistSettings.TryCreate(source);
-            Location.TargetPath = settings.InstallationLocation;
-            DownloadLocation.TargetPath = settings.DownloadLocation;
-            MWVM.Settings.SaveSignal
-                .Subscribe(_ =>
+            _CurrentSettings = this.WhenAny(x => x.ModListPath.TargetPath)
+                .Select(path => path == null ? null : MWVM.Settings.Installer.ModlistSettings.TryCreate(path))
+                .ToProperty(this, nameof(CurrentSettings));
+            this.WhenAny(x => x.CurrentSettings)
+                .Pairwise()
+                .Subscribe(settingsPair =>
                 {
-                    settings.InstallationLocation = Location.TargetPath;
-                    settings.DownloadLocation = DownloadLocation.TargetPath;
+                    SaveSettings(settingsPair.Previous);
+                    if (settingsPair.Current == null) return;
+                    Location.TargetPath = settingsPair.Current.InstallationLocation;
+                    DownloadLocation.TargetPath = settingsPair.Current.DownloadLocation;
                 })
                 .DisposeWith(CompositeDisposable);
+            MWVM.Settings.SaveSignal
+                .Subscribe(_ => SaveSettings(CurrentSettings))
+                .DisposeWith(CompositeDisposable);
 
-            _modList = this.WhenAny(x => x.ModListPath)
+            _modList = this.WhenAny(x => x.ModListPath.TargetPath)
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(modListPath =>
                 {
                     if (modListPath == null) return default(ModListVM);
+                    if (!File.Exists(modListPath)) return default(ModListVM);
                     var modList = AInstaller.LoadFromFile(modListPath);
-                    if (modList == null)
-                    {
-                        MessageBox.Show("Invalid Modlist, or file not found.", "Invalid Modlist", MessageBoxButton.OK,
-                            MessageBoxImage.Error);
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            MWVM.MainWindow.ExitWhenClosing = false;
-                            var window = new ModeSelectionWindow
-                            {
-                                ShowActivated = true
-                            };
-                            window.Show();
-                            MWVM.MainWindow.Close();
-                        });
-                        return default(ModListVM);
-                    }
+                    if (modList == null) return default(ModListVM);
                     return new ModListVM(modList, modListPath);
                 })
                 .ObserveOnGuiThread()
@@ -165,6 +165,11 @@ namespace Wabbajack
                 .Select(compilation => compilation != null)
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(Installing));
+
+            BackCommand = ReactiveCommand.Create(
+                execute: () => mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM,
+                canExecute: this.WhenAny(x => x.Installing)
+                    .Select(x => !x));
 
             _percentCompleted = this.WhenAny(x => x.ActiveInstallation)
                 .StartWith(default(AInstaller))
@@ -292,7 +297,7 @@ namespace Wabbajack
         private void OpenReadmeWindow()
         {
             if (string.IsNullOrEmpty(ModList.Readme)) return;
-            using (var fs = new FileStream(ModListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var fs = new FileStream(ModListPath.TargetPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
             using (var ms = new MemoryStream())
             {
@@ -322,7 +327,7 @@ namespace Wabbajack
             
             try
             {
-                installer = new MO2Installer(ModListPath, ModList.SourceModList, Location.TargetPath)
+                installer = new MO2Installer(ModListPath.TargetPath, ModList.SourceModList, Location.TargetPath)
                 {
                     DownloadFolder = DownloadLocation.TargetPath
                 };
@@ -360,6 +365,14 @@ namespace Wabbajack
                     ActiveInstallation = null;
                 }
             });
+        }
+
+        private void SaveSettings(ModlistInstallationSettings settings)
+        {
+            MWVM.Settings.Installer.LastInstalledListLocation = ModListPath.TargetPath;
+            if (settings == null) return;
+            settings.InstallationLocation = Location.TargetPath;
+            settings.DownloadLocation = DownloadLocation.TargetPath;
         }
     }
 }

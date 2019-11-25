@@ -169,6 +169,12 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="Views\LinksView.xaml.cs">
+      <DependentUpon>LinksView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ModeSelectionView.xaml.cs">
+      <DependentUpon>ModeSelectionView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View Models\GameVM.cs" />
     <Compile Include="Views\Compilers\MO2CompilerConfigView.xaml.cs">
       <DependentUpon>MO2CompilerConfigView.xaml</DependentUpon>
@@ -208,8 +214,7 @@
     <Compile Include="Views\DownloadWindow.xaml.cs">
       <DependentUpon>DownloadWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View Models\ModeSelectionWindowVM.cs" />
-    <Compile Include="View Models\ModListDefinition.cs" />
+    <Compile Include="View Models\ModeSelectionVM.cs" />
     <Compile Include="Views\Common\FilePicker.xaml.cs">
       <DependentUpon>FilePicker.xaml</DependentUpon>
     </Compile>
@@ -220,9 +225,6 @@
     <Compile Include="View Models\MainWindowVM.cs" />
     <Compile Include="Views\Common\LogCpuView.xaml.cs">
       <DependentUpon>LogCpuView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\ModeSelectionWindow.xaml.cs">
-      <DependentUpon>ModeSelectionWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Util\TreeViewItemExtensions.cs" />
@@ -237,6 +239,14 @@
     <Compile Include="Views\Compilers\VortexCompilerConfigView.xaml.cs">
       <DependentUpon>VortexCompilerConfigView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\LinksView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ModeSelectionView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Compilers\MO2CompilerConfigView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -295,10 +305,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Views\ModeSelectionWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Themes\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -378,22 +384,16 @@
     <EmbeddedResource Include="Resources\banner_small.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Icons\discord.png" />
-    <EmbeddedResource Include="Resources\Icons\github.png" />
-    <EmbeddedResource Include="Resources\Icons\patreon.png" />
+    <Resource Include="Resources\Icons\discord.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\Icons\next.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Icons\github_light.png" />
-    <EmbeddedResource Include="Resources\Icons\patreon_light.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\Banner_Dark.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\banner_small_dark.png" />
+    <Resource Include="Resources\banner_small_dark.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AlphaFS">
@@ -483,6 +483,10 @@
   <ItemGroup>
     <Resource Include="Resources\Icons\gog.png" />
     <Resource Include="Resources\Icons\steam.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Icons\github.png" />
+    <Resource Include="Resources\Icons\patreon.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

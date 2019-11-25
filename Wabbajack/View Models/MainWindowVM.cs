@@ -21,24 +21,22 @@ namespace Wabbajack
 
         public MainSettings Settings { get; }
 
-        private readonly ObservableAsPropertyHelper<ViewModel> _activePane;
-        public ViewModel ActivePane => _activePane.Value;
+        [Reactive]
+        public ViewModel ActivePane { get; set; }
 
         public ObservableCollectionExtended<string> Log { get; } = new ObservableCollectionExtended<string>();
 
-        [Reactive]
-        public RunMode Mode { get; set; }
+        public readonly Lazy<CompilerVM> Compiler;
+        public readonly Lazy<InstallerVM> Installer;
+        public readonly ModeSelectionVM ModeSelectionVM;
 
-        private readonly Lazy<CompilerVM> _compiler;
-        private readonly Lazy<InstallerVM> _installer;
-
-        public MainWindowVM(RunMode mode, string source, MainWindow mainWindow, MainSettings settings)
+        public MainWindowVM(MainWindow mainWindow, MainSettings settings)
         {
-            Mode = mode;
             MainWindow = mainWindow;
             Settings = settings;
-            _installer = new Lazy<InstallerVM>(() => new InstallerVM(this, source));
-            _compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
+            Installer = new Lazy<InstallerVM>(() => new InstallerVM(this));
+            Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
+            ModeSelectionVM = new ModeSelectionVM(this);
 
             // Set up logging
             Utils.LogMessages
@@ -53,23 +51,29 @@ namespace Wabbajack
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
 
-            // Wire mode to drive the active pane.
-            // Note:  This is currently made into a derivative property driven by mode,
-            // but it can be easily changed into a normal property that can be set from anywhere if needed
-            _activePane = this.WhenAny(x => x.Mode)
-                .Select<RunMode, ViewModel>(m =>
-                {
-                    switch (m)
-                    {
-                        case RunMode.Compile:
-                            return _compiler.Value;
-                        case RunMode.Install:
-                            return _installer.Value;
-                        default:
-                            return default;
-                    }
-                })
-                .ToProperty(this, nameof(ActivePane));
+            if (IsStartingFromModlist(out var path))
+            {
+                Installer.Value.ModListPath.TargetPath = path;
+                ActivePane = Installer.Value;
+            }
+            else
+            {
+                // Start on mode selection
+                ActivePane = ModeSelectionVM;
+            }
+        }
+
+        private static bool IsStartingFromModlist(out string modlistPath)
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            if (args.Length != 3 || !args[1].Contains("-i"))
+            {
+                modlistPath = default;
+                return false;
+            }
+
+            modlistPath = args[2];
+            return true;
         }
     }
 }

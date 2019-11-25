@@ -1,9 +1,9 @@
-﻿<Window x:Class="Wabbajack.UI.DownloadWindow"
+﻿<Window x:Class="Wabbajack.DownloadWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Wabbajack.UI"
+        xmlns:local="clr-namespace:Wabbajack"
         Style="{StaticResource {x:Type Window}}" Icon="../Resources/Icons/wabbajack.ico" WindowStyle="ToolWindow"
         mc:Ignorable="d"
         Title="Downloading Modlist" Height="200" Width="800">

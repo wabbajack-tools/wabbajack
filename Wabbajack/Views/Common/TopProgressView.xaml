@@ -87,9 +87,9 @@
                 Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
             <TextBlock
                 Grid.Column="0"
-                Width="90"
-                Margin="10,0,0,8"
-                VerticalAlignment="Bottom"
+                Width="130"
+                Margin="0,0,0,0"
+                VerticalAlignment="Center"
                 FontFamily="Lucida Sans"
                 FontWeight="Black"
                 Text="{Binding StatePrefixTitle, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"

@@ -26,6 +26,9 @@
             <DataTemplate DataType="{x:Type local:InstallerVM}">
                 <local:InstallationView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
+                <local:ModeSelectionView />
+            </DataTemplate>
         </ContentPresenter.Resources>
     </ContentPresenter>
 </Window>

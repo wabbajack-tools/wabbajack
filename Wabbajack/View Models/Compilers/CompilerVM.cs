@@ -40,6 +40,8 @@ namespace Wabbajack
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
         public ObservableCollectionExtended<string> Log => MWVM.Log;
 
+        public IReactiveCommand BackCommand { get; }
+
         public CompilerVM(MainWindowVM mainWindowVM)
         {
             MWVM = mainWindowVM;
@@ -106,6 +108,11 @@ namespace Wabbajack
                 .Select(compilation => compilation != null)
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(Compiling));
+
+            BackCommand = ReactiveCommand.Create(
+                execute: () => mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM,
+                canExecute: this.WhenAny(x => x.Compiling)
+                    .Select(x => !x));
 
             // Compile progress updates and populate ObservableCollection
             this.WhenAny(x => x.Compiler.ActiveCompilation)

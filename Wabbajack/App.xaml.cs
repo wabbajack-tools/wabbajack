@@ -25,13 +25,6 @@ namespace Wabbajack
             {
                 ExtensionManager.Associate(appPath);
             }
-
-            string[] args = Environment.GetCommandLineArgs();
-            StartupUri = new Uri("Views/ModeSelectionWindow.xaml", UriKind.Relative);
-            if (args.Length != 3) return;
-            if (!args[1].Contains("-i")) return;
-            // modlists gets loaded using a shell command
-            StartupUri = new Uri("Views/MainWindow.xaml", UriKind.Relative);
         }
     }
 }

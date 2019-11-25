@@ -5,7 +5,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 
-namespace Wabbajack.UI
+namespace Wabbajack
 {
     /// <summary>
     /// Interaction logic for DownloadWindow.xaml
