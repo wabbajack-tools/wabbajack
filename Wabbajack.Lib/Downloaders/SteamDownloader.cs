@@ -39,19 +39,18 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     using (Process SteamConsole = new Process())
                     {
+                        // Todo: replace 72850 (Skyrim LE) with game ID that's being installed.
                         SteamConsole.StartInfo.FileName = Path.Combine(SteamDirectory, "Steam.exe");
-                        SteamConsole.StartInfo.CreateNoWindow = true; // set to true after debug?
-                                                                      // HARD CODED SKYRIM LEGENDARY EDITION
-                                                                      // To do: get Steam game ID
+                        SteamConsole.StartInfo.CreateNoWindow = true;
                         SteamConsole.StartInfo.Arguments = "console " + "+workshop_download_item " + "72850" + " " + SteamWorkshopId;
                         SteamConsole.Start();
                     }
                     string SteamModContentFolder = Path.Combine(SteamDirectory, "steamapps", "workshop", "content", "72850", SteamWorkshopId);
                     string SteamModDownloadFolder = Path.Combine(SteamDirectory, "steamapps", "workshop", "downloads", "72850", SteamWorkshopId);
-                    while(Directory.GetFiles(SteamModDownloadFolder).Length > 0)
-                    {
-                    }
-                    Directory.Move(SteamModDownloadFolder, destination);
+
+                    // Not sure on how to do this in the most optimal way. Waiting in a while loop for the downloads to be done.
+                    while (Directory.Exists(SteamModDownloadFolder)) { }
+                    Directory.Move(SteamModContentFolder, destination);
                 }
             }
         }

@@ -16,8 +16,7 @@ namespace Wabbajack.Common
         public static string ModListDownloadFolder = "downloaded_mod_lists";
 
         public static string MegaPrefix = "https://mega.nz/#!";
-
-        public static string SteamPrefix = "https://steamcommunity.com/sharedfiles/filedetails/?id=";
+        public static string SteamPrefix = "https://steamcommunity.com/sharedfiles/filedetails/";
 
         public static HashSet<string> SupportedArchives = new HashSet<string> {".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod"};
 
