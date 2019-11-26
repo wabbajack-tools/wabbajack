@@ -110,6 +110,7 @@
     <Compile Include="CompilationSteps\IStackStep.cs" />
     <Compile Include="CompilationSteps\PatchStockESMs.cs" />
     <Compile Include="CompilationSteps\Serialization.cs" />
+    <Compile Include="Downloaders\SteamDownloader.cs" />
     <Compile Include="MO2Compiler.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="Downloaders\AbstractDownloadState.cs" />
