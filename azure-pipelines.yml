@@ -16,7 +16,7 @@ variables:
 - name: solution
   value: 'Wabbajack.sln'
 - name: buildPlatform
-  value: 'anycpu'
+  value: 'x64'
 - name: buildConfiguration
   value: 'Debug'
 
