@@ -1,5 +1,4 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
-using ReactiveUI;
+﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
@@ -7,6 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using System.Windows.Threading;
+using Microsoft.Win32;
 using Wabbajack.Lib;
 
 namespace Wabbajack
@@ -60,7 +61,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _errorTooltip;
         public string ErrorTooltip => _errorTooltip.Value;
 
-        public List<CommonFileDialogFilter> Filters { get; } = new List<CommonFileDialogFilter>();
+        public List<string> Filters = new List<string>();
 
         public FilePickerVM(object parentVM = null)
         {
@@ -186,6 +187,15 @@ namespace Wabbajack
                     {
                         dirPath = TargetPath;
                     }
+
+                    Dispatcher.CurrentDispatcher.Invoke(() =>
+                    {
+                        var dlg = new OpenFileDialog();
+                        dlg.Filter = string.Join("|", Filters.Select(f => $"*{f}|*{f}"));
+                        if (!(dlg.ShowDialog() ?? false)) return;
+                        TargetPath = dlg.FileName;
+                    });
+                    /*
                     var dlg = new CommonOpenFileDialog
                     {
                         Title = PromptTitle,
@@ -206,7 +216,8 @@ namespace Wabbajack
                         dlg.Filters.Add(filter);
                     }
                     if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
-                    TargetPath = dlg.FileName;
+                    */
+                    //TargetPath = dlg.FileName;
                 });
         }
     }

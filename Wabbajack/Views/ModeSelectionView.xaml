@@ -22,7 +22,7 @@
             Grid.Row="0"
             Grid.ColumnSpan="3"
             Margin="2,0,2,0"
-            Source="../Resources/banner_small_dark.png"
+            Source="banner_small_dark.png"
             Stretch="Uniform" />
         <local:LinksView
             Grid.Row="0"

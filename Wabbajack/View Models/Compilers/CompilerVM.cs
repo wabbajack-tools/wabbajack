@@ -58,8 +58,10 @@ namespace Wabbajack
 
             // Swap to proper sub VM based on selected type
             _compiler = this.WhenAny(x => x.SelectedCompilerType)
+                .ObserveOnGuiThread()
+
                 // Delay so the initial VM swap comes in immediately, subVM comes right after
-                .DelayInitial(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
+                //.DelayInitial(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
                 .Select<ModManager, ISubCompilerVM>(type =>
                 {
                     switch (type)

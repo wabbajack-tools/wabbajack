@@ -1,5 +1,4 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
-using ReactiveUI.Fody.Helpers;
+﻿using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
 
 namespace Wabbajack
@@ -31,10 +30,10 @@ namespace Wabbajack
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
                 PathType = FilePickerVM.PathTypeOptions.File,
-                Filters =
+                /*Filters =
                 {
                     new CommonFileDialogFilter("Banner image", "*.png")
-                }
+                }*/
             };
             ReadMeText = new FilePickerVM()
             {

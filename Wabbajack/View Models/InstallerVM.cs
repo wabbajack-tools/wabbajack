@@ -1,5 +1,4 @@
-﻿using Syroot.Windows.IO;
-using System;
+﻿using System;
 using ReactiveUI;
 using System.Diagnostics;
 using System.IO;
@@ -17,6 +16,7 @@ using ReactiveUI.Fody.Helpers;
 using System.Windows.Media;
 using DynamicData;
 using DynamicData.Binding;
+using Wabbajack.Common.KnownFolders;
 
 namespace Wabbajack
 {

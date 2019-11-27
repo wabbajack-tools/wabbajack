@@ -20,15 +20,15 @@
         <Image
             Name="GitHub"
             Grid.Column="0"
-            MouseLeftButtonDown="GitHub_MouseLeftButtonDown" Source="../Resources/Icons/github.png"/>
+            MouseLeftButtonDown="GitHub_MouseLeftButtonDown" Source="github.png"/>
         <Image
             Name="Patreon"
             Grid.Column="1"
-            MouseLeftButtonDown="Patreon_MouseLeftButtonDown" Source="../Resources/Icons/patreon.png"/>
+            MouseLeftButtonDown="Patreon_MouseLeftButtonDown" Source="patreon.png"/>
         <Image
             Name="Discord"
             Grid.Column="2"
             MouseLeftButtonDown="Discord_MouseLeftButtonDown"
-            Source="../Resources/Icons/discord.png" />
+            Source="discord.png" />
     </Grid>
 </UserControl>

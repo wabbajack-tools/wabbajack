@@ -13,7 +13,7 @@ namespace Wabbajack.CacheServer
         {
             Utils.LogMessages.Subscribe(Console.WriteLine);
 
-            using (var server = new Server("http://localhost:8080"))
+            using (var server = new Server("http://*:8080"))
             {
                 server.Start();
                 Console.ReadLine();
