@@ -5,13 +5,14 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
+using System.Threading.Tasks;
+using Wabbajack.Common.CSP;
 
 namespace Wabbajack.Common
 {
     public class WorkQueue : IDisposable
     {
-        internal BlockingCollection<Action>
-            Queue = new BlockingCollection<Action>(new ConcurrentStack<Action>());
+        internal IChannel<Action, Action> Queue = Channel.Create<Action>(1024);
 
         [ThreadStatic] private static int CpuId;
 
@@ -21,7 +22,9 @@ namespace Wabbajack.Common
         private static readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
 
-        public static List<Thread> Threads { get; private set; }
+        public static List<Task> Threads { get; private set; }
+
+        private CancellationTokenSource cancel = new CancellationTokenSource();
 
         public WorkQueue(int threadCount = 0)
         {
@@ -34,26 +37,21 @@ namespace Wabbajack.Common
             Threads = Enumerable.Range(0, threadCount)
                 .Select(idx =>
                 {
-                    var thread = new Thread(() => ThreadBody(idx));
-                    thread.Priority = ThreadPriority.BelowNormal;
-                    thread.IsBackground = true;
-                    thread.Name = string.Format("Wabbajack_Worker_{0}", idx);
-                    thread.Start();
-                    return thread;
+                    return Task.Run(() => ThreadBody(idx));
                 }).ToList();
         }
 
         public int ThreadCount { get; private set; }
 
-        private void ThreadBody(int idx)
+        private async Task ThreadBody(int idx)
         {
             CpuId = idx;
             CurrentQueue = this;
 
             while (true)
             {
-                Report("Waiting", 0);
-                var f = Queue.Take();
+                var (is_open, f) = await Queue.Take();
+                if (!is_open) break;
                 f();
             }
         }
@@ -69,20 +67,19 @@ namespace Wabbajack.Common
                 });
         }
 
-        public void QueueTask(Action a)
+        public void QueueAll(IEnumerable<Action> a)
         {
-            Queue.Add(a);
+            a.OntoChannel(Queue);
         }
 
         public void Shutdown()
         {
-            Threads.Do(th => th.Abort());
+            Queue.Close();
         }
 
         public void Dispose()
         {
             Shutdown();
-            Queue?.Dispose();
         }
     }
 

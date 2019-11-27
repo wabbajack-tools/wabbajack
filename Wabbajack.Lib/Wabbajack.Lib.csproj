@@ -1,10 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <LangVersion>8.0</LangVersion>
+	 <UseWPF>true</UseWPF>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="css-min.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="css-min.css" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />
@@ -21,5 +30,12 @@
     <PackageReference Include="MegaApiClient" Version="1.7.1" />
     <PackageReference Include="Microsoft.Toolkit.Wpf.UI.Controls.WebView" Version="6.0.0" />
     <PackageReference Include="ReactiveUI" Version="10.5.31" />
+    <PackageReference Include="WebSocketSharp-netstandard" Version="1.0.1" />
   </ItemGroup>
+  
+  <Target Name="WorkaroundForXAMLIntellisenseBuildIssue" AfterTargets="_CheckCompileDesignTimePrerequisite">
+  <PropertyGroup>
+     <BuildingProject>false</BuildingProject>
+  </PropertyGroup>
+</Target>
 </Project>

@@ -497,7 +497,7 @@ namespace Wabbajack.Common
             var tasks = coll.Select(i =>
             {
                 var tc = new TaskCompletionSource<TR>();
-                queue.QueueTask(() =>
+                Action action = () =>
                 {
                     try
                     {
@@ -508,18 +508,23 @@ namespace Wabbajack.Common
                         tc.SetException(ex);
                     }
                     Interlocked.Decrement(ref remainingTasks);
-                });
-                return tc.Task;
+                };
+                return (action, tc.Task);
             }).ToList();
 
+            queue.QueueAll(tasks.Select(p => p.action));
+
             // To avoid thread starvation, we'll start to help out in the work queue
+            /*
             if (WorkQueue.WorkerThread)
                 while (remainingTasks > 0)
                     if (queue.Queue.TryTake(out var a, 500))
                         a();
+                        */
 
-            return tasks.Select(t =>
+            return tasks.Select(p =>
             {
+                var t = p.Task;
                 t.Wait();
                 if (t.IsFaulted)
                     throw t.Exception;

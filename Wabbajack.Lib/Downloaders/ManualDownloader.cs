@@ -93,7 +93,8 @@ namespace Wabbajack.Lib.Downloaders
                             .Buffer(new TimeSpan(0, 5, 0), 1)
                             .Select(x => x.FirstOrDefault())
                             .FirstOrDefaultAsync();
-                        Process.Start(Url);
+                        var info = new ProcessStartInfo("cmd", $"/c start {Url}") { CreateNoWindow = true };
+                        Process.Start(info);
                         
                         absPath = watcher.Wait()?.FullPath;
                         if (!File.Exists(absPath))

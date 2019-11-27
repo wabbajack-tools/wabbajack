@@ -39,7 +39,7 @@ namespace Wabbajack.Test
         [TestCleanup]
         public void Cleanup()
         {
-            Queue.Shutdown();
+            //Queue.Dispose();
         }
 
         [TestMethod]

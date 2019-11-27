@@ -17,7 +17,7 @@ namespace Wabbajack.Common
         static FileExtractor()
         {
             ExtractResource("Wabbajack.Common.7z.dll", "7z.dll");
-            //ExtractResource("Wabbajack.Common.7z.exe.gz", "7z.exe");
+            ExtractResource("Wabbajack.Common.7z.exe", "7z.exe");
             //ExtractResource("Wabbajack.Common.innounp.exe.gz", "innounp.exe");
             SevenZipBase.SetLibraryPath("7z.dll");
         }
@@ -94,13 +94,14 @@ namespace Wabbajack.Common
             }
         }
 
+        /*
         private static void ExtractAllWith7Zip(string source, string dest)
         {
             using var extract = new SevenZipExtractor(source);
             extract.ExtractArchive(dest);
-        }
+        }*/
 
-        /*
+        
         private static void ExtractAllWith7Zip(string source, string dest)
         {
             Utils.Log($"Extracting {Path.GetFileName(source)}");
@@ -156,7 +157,7 @@ namespace Wabbajack.Common
                 Utils.Log(p.StandardOutput.ReadToEnd());
                 Utils.Log($"Extraction error extracting {source}");
             }
-        }*/
+        }
 
         /// <summary>
         ///     Returns true if the given extension type can be extracted

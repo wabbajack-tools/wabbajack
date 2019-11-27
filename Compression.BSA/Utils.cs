@@ -8,7 +8,13 @@ namespace Compression.BSA
 {
     internal static class Utils
     {
-        private static readonly Encoding Windows1252 = Encoding.GetEncoding(1252);
+        private static readonly Encoding Windows1252;
+
+        static Utils()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            Windows1252 = Encoding.GetEncoding(1252);
+        }
 
         private static Encoding GetEncoding(VersionType version)
         {

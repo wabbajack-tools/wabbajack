@@ -106,8 +106,9 @@ namespace Wabbajack.Lib
 
         public void Terminate()
         {
+            
             Queue?.Shutdown();
-            _processorThread?.Abort();
+            //_processorThread?.Abort();
             _isRunning.OnNext(false);
         }
     }

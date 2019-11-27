@@ -8,10 +8,12 @@
 
   <ItemGroup>
     <None Remove="7z.dll" />
+    <None Remove="7z.exe" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="7z.dll" />
+    <EmbeddedResource Include="7z.exe" />
   </ItemGroup>
 
   <ItemGroup>
