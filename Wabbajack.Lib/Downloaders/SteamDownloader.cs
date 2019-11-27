@@ -34,7 +34,6 @@ namespace Wabbajack.Lib.Downloaders
 
                 string SteamDirectory = (string)Registry.CurrentUser.OpenSubKey(@"Software\\Valve\\Steam", false).GetValue("SteamPath");
                 string SteamWorkshopId = HttpUtility.ParseQueryString(new Uri(Url).Query).Get("id");
-                Console.WriteLine(SteamWorkshopId);
                 if (Directory.Exists(SteamDirectory))
                 {
                     using (Process SteamConsole = new Process())
