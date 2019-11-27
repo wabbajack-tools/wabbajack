@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.Web;
-using Microsoft.Win32;
 using Wabbajack.Common;
 
 namespace Wabbajack.Lib.Downloaders
@@ -31,8 +30,8 @@ namespace Wabbajack.Lib.Downloaders
         {
             public override void Download(Archive a, string destination)
             {
-
-                string SteamDirectory = (string)Registry.CurrentUser.OpenSubKey(@"Software\\Valve\\Steam", false).GetValue("SteamPath");
+                SteamHandler SHandler = new SteamHandler(true);
+                string SteamDirectory = SHandler.SteamPath;
                 string SteamWorkshopId = HttpUtility.ParseQueryString(new Uri(Url).Query).Get("id");
                 if (Directory.Exists(SteamDirectory))
                 {
