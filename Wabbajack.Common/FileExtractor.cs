@@ -5,7 +5,10 @@ using System.Reflection;
 using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.GZip;
-using OMODFramework;
+using SevenZip;
+
+// TODO: get Erri to port this to .NET Standard
+//using OMODFramework;
 
 namespace Wabbajack.Common
 {
@@ -13,9 +16,10 @@ namespace Wabbajack.Common
     {
         static FileExtractor()
         {
-            ExtractResource("Wabbajack.Common.7z.dll.gz", "7z.dll");
-            ExtractResource("Wabbajack.Common.7z.exe.gz", "7z.exe");
+            ExtractResource("Wabbajack.Common.7z.dll", "7z.dll");
+            //ExtractResource("Wabbajack.Common.7z.exe.gz", "7z.exe");
             //ExtractResource("Wabbajack.Common.innounp.exe.gz", "innounp.exe");
+            SevenZipBase.SetLibraryPath("7z.dll");
         }
 
         private static void ExtractResource(string from, string to)
@@ -23,11 +27,8 @@ namespace Wabbajack.Common
             if (File.Exists(to))
                 File.Delete(to);
 
-            using (var ous = File.OpenWrite(to))
-            using (var ins = new GZipInputStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(from)))
-            {
-                ins.CopyTo(ous);
-            }
+            using var ous = File.OpenWrite(to);
+            Assembly.GetExecutingAssembly().GetManifestResourceStream(@from)?.CopyTo(ous);
         }
 
 
@@ -37,8 +38,8 @@ namespace Wabbajack.Common
             {
                 if (Consts.SupportedBSAs.Any(b => source.ToLower().EndsWith(b)))
                     ExtractAllWithBSA(queue, source, dest);
-                else if (source.EndsWith(".omod"))
-                    ExtractAllWithOMOD(source, dest);
+                //else if (source.EndsWith(".omod"))
+                //    ExtractAllWithOMOD(source, dest);
                 else
                     ExtractAllWith7Zip(source, dest);
             }
@@ -48,7 +49,7 @@ namespace Wabbajack.Common
                 throw ex;
             }
         }
-
+/*
         private static string ExtractAllWithOMOD(string source, string dest)
         {
             Utils.Log($"Extracting {Path.GetFileName(source)}");
@@ -58,7 +59,7 @@ namespace Wabbajack.Common
             omod.ExtractDataFiles();
             omod.ExtractPlugins();
             return dest;
-        }
+        }*/
 
         private static void ExtractAllWithBSA(WorkQueue queue, string source, string dest)
         {
@@ -93,6 +94,13 @@ namespace Wabbajack.Common
             }
         }
 
+        private static void ExtractAllWith7Zip(string source, string dest)
+        {
+            using var extract = new SevenZipExtractor(source);
+            extract.ExtractArchive(dest);
+        }
+
+        /*
         private static void ExtractAllWith7Zip(string source, string dest)
         {
             Utils.Log($"Extracting {Path.GetFileName(source)}");
@@ -148,7 +156,7 @@ namespace Wabbajack.Common
                 Utils.Log(p.StandardOutput.ReadToEnd());
                 Utils.Log($"Extraction error extracting {source}");
             }
-        }
+        }*/
 
         /// <summary>
         ///     Returns true if the given extension type can be extracted

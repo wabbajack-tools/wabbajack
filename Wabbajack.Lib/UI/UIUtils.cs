@@ -1,11 +1,10 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Windows.Media.Imaging;
+using Microsoft.Win32;
 using Wabbajack.Common;
 
 namespace Wabbajack.Lib
@@ -13,6 +12,7 @@ namespace Wabbajack.Lib
     public static class UIUtils
     {
 
+        /*
         public static string ShowFolderSelectionDialog(string prompt)
         {
             if (System.Windows.Application.Current.Dispatcher.Thread != Thread.CurrentThread)
@@ -58,7 +58,7 @@ namespace Wabbajack.Lib
             }
 
             return null;
-        }
+        }*/
 
         public static BitmapImage BitmapImageFromResource(string name) => BitmapImageFromStream(Utils.GetResourceStream(name));
 
@@ -95,7 +95,7 @@ namespace Wabbajack.Lib
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter = filter;
             ofd.InitialDirectory = initialDirectory;
-            if (ofd.ShowDialog() == DialogResult.OK)
+            if (ofd.ShowDialog() ?? false)
                 return ofd.FileName;
             return null;
         }

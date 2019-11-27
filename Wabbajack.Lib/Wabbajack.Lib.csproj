@@ -1,220 +1,25 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0A820830-A298-497D-85E0-E9A89EFEF5FE}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Wabbajack.Lib</RootNamespace>
-    <AssemblyName>Wabbajack.Lib</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.3</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <LangVersion>7.3</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="Syroot.KnownFolders" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Design" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Net" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Windows" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase" />
+    <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />
+    <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+    <ProjectReference Include="..\Wabbajack.VirtualFileSystem\Wabbajack.VirtualFileSystem.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="ABatchProcessor.cs" />
-    <Compile Include="ACompiler.cs" />
-    <Compile Include="AInstaller.cs" />
-    <Compile Include="CerasConfig.cs" />
-    <Compile Include="CompilationSteps\ACompilationStep.cs" />
-    <Compile Include="CompilationSteps\DeconstructBSAs.cs" />
-    <Compile Include="CompilationSteps\DirectMatch.cs" />
-    <Compile Include="CompilationSteps\DropAll.cs" />
-    <Compile Include="CompilationSteps\IgnoreDisabledMods.cs" />
-    <Compile Include="CompilationSteps\IgnoreDisabledVortexMods.cs" />
-    <Compile Include="CompilationSteps\IgnoreEndsWith.cs" />
-    <Compile Include="CompilationSteps\IgnoreGameFiles.cs" />
-    <Compile Include="CompilationSteps\IgnorePathContains.cs" />
-    <Compile Include="CompilationSteps\IgnoreRegex.cs" />
-    <Compile Include="CompilationSteps\IgnoreStartsWith.cs" />
-    <Compile Include="CompilationSteps\IgnoreVortex.cs" />
-    <Compile Include="CompilationSteps\IgnoreWabbajackInstallCruft.cs" />
-    <Compile Include="CompilationSteps\IncludeAll.cs" />
-    <Compile Include="CompilationSteps\IncludeAllConfigs.cs" />
-    <Compile Include="CompilationSteps\IncludeDummyESPs.cs" />
-    <Compile Include="CompilationSteps\IncludeLootFiles.cs" />
-    <Compile Include="CompilationSteps\IncludeModIniData.cs" />
-    <Compile Include="CompilationSteps\IncludeOtherProfiles.cs" />
-    <Compile Include="CompilationSteps\IncludePatches.cs" />
-    <Compile Include="CompilationSteps\IncludePropertyFiles.cs" />
-    <Compile Include="CompilationSteps\IncludeRegex.cs" />
-    <Compile Include="CompilationSteps\IncludeStubbedConfigFiles.cs" />
-    <Compile Include="CompilationSteps\IncludeTaggedMods.cs" />
-    <Compile Include="CompilationSteps\IncludeThisProfile.cs" />
-    <Compile Include="CompilationSteps\IncludeVortexDeployment.cs" />
-    <Compile Include="CompilationSteps\IStackStep.cs" />
-    <Compile Include="CompilationSteps\PatchStockESMs.cs" />
-    <Compile Include="CompilationSteps\Serialization.cs" />
-    <Compile Include="MO2Compiler.cs" />
-    <Compile Include="Data.cs" />
-    <Compile Include="Downloaders\AbstractDownloadState.cs" />
-    <Compile Include="Downloaders\DownloadDispatcher.cs" />
-    <Compile Include="Downloaders\DownloaderUtils.cs" />
-    <Compile Include="Downloaders\DropboxDownloader.cs" />
-    <Compile Include="Downloaders\GoogleDriveDownloader.cs" />
-    <Compile Include="Downloaders\HTTPDownloader.cs" />
-    <Compile Include="Downloaders\IDownloader.cs" />
-    <Compile Include="Downloaders\IUrlDownloader.cs" />
-    <Compile Include="Downloaders\ManualDownloader.cs" />
-    <Compile Include="Downloaders\MediaFireDownloader.cs" />
-    <Compile Include="Downloaders\MEGADownloader.cs" />
-    <Compile Include="Downloaders\ModDBDownloader.cs" />
-    <Compile Include="Downloaders\NexusDownloader.cs" />
-    <Compile Include="IBatchProcessor.cs" />
-    <Compile Include="MO2Installer.cs" />
-    <Compile Include="ModListRegistry\ModListMetadata.cs" />
-    <Compile Include="NexusApi\Dtos.cs" />
-    <Compile Include="NexusApi\NexusApi.cs" />
-    <Compile Include="NexusApi\NexusApiUtils.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReportBuilder.cs" />
-    <Compile Include="UI\UIUtils.cs" />
-    <Compile Include="Validation\DTOs.cs" />
-    <Compile Include="Validation\ValidateModlist.cs" />
-    <Compile Include="ViewModel.cs" />
-    <Compile Include="VortexCompiler.cs" />
-    <Compile Include="VortexInstaller.cs" />
-    <Compile Include="WebAutomation\WebAutomation.cs" />
-    <Compile Include="WebAutomation\WebAutomationWindow.xaml.cs">
-      <DependentUpon>WebAutomationWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="WebAutomation\WebAutomationWindowViewModel.cs" />
-    <Compile Include="zEditIntegration.cs" />
+    <Folder Include="Properties\" />
   </ItemGroup>
+
   <ItemGroup>
-    <None Include="app.config" />
+    <PackageReference Include="CommonMark.NET" Version="0.15.1" />
+    <PackageReference Include="MegaApiClient" Version="1.7.1" />
+    <PackageReference Include="Microsoft.Toolkit.Wpf.UI.Controls.WebView" Version="6.0.0" />
+    <PackageReference Include="ReactiveUI" Version="10.5.31" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\Compression.BSA\Compression.BSA.csproj">
-      <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
-      <Name>Compression.BSA</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Wabbajack.Common\Wabbajack.Common.csproj">
-      <Project>{b3f3fb6e-b9eb-4f49-9875-d78578bc7ae5}</Project>
-      <Name>Wabbajack.Common</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Wabbajack.VirtualFileSystem\Wabbajack.VirtualFileSystem.csproj">
-      <Project>{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}</Project>
-      <Name>Wabbajack.VirtualFileSystem</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="css-min.css" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="css.css" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="AlphaFS">
-      <Version>2.2.6</Version>
-    </PackageReference>
-    <PackageReference Include="Ceras">
-      <Version>4.1.7</Version>
-    </PackageReference>
-    <PackageReference Include="CommonMark.NET">
-      <Version>0.15.1</Version>
-    </PackageReference>
-    <PackageReference Include="MegaApiClient">
-      <Version>1.7.1</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell">
-      <Version>1.1.3.3</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Toolkit.Wpf.UI.Controls.WebView">
-      <Version>6.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="Newtonsoft.Json">
-      <Version>12.0.3</Version>
-    </PackageReference>
-    <PackageReference Include="ReactiveUI">
-      <Version>10.5.30</Version>
-    </PackageReference>
-    <PackageReference Include="SharpCompress">
-      <Version>0.24.0</Version>
-    </PackageReference>
-    <PackageReference Include="Syroot.Windows.IO.KnownFolders">
-      <Version>1.2.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.Reactive">
-      <Version>4.2.0</Version>
-    </PackageReference>
-    <PackageReference Include="WebSocketSharpFork">
-      <Version>1.0.4</Version>
-    </PackageReference>
-    <PackageReference Include="YamlDotNet">
-      <Version>8.0.0</Version>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Include="WebAutomation\WebAutomationWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

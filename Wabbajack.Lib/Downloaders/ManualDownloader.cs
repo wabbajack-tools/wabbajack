@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Syroot.Windows.IO;
 using Wabbajack.Common;
+using Wabbajack.Common.KnownFolders;
 using Wabbajack.Lib.Validation;
 using File = System.IO.File;
 
