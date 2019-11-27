@@ -46,7 +46,6 @@ namespace Wabbajack
                 .Where(l => l.Count > 0)
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .FlattenBufferResult()
-                .Top(5000)
                 .Bind(Log)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
