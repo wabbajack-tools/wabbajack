@@ -42,7 +42,7 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     testAssemblyVer2: | 
-        **\*.Test.dll
+        **\bin\**\*.Test.dll
     testFiltercriteria: 'TestCategory!=ListValidation'
     otherConsoleOptions: /Framework:".NETCoreApp,Version=v3.0"
 
