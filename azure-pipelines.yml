@@ -42,6 +42,8 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     testFiltercriteria: 'TestCategory!=ListValidation'
+    otherConsoleOptions: /Framework:".NETCoreApp,Version=v3.0"
+
 - task: DownloadSecureFile@1
   inputs:
     secureFile: 'CertFile.p12'
