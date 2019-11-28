@@ -52,20 +52,22 @@ namespace Wabbajack.Common
 
             while (true)
             {
-                Report("Waiting", 0);
+                Report("Waiting", 0, false);
                 var f = Queue.Take();
                 f();
             }
         }
 
-        public void Report(string msg, int progress)
+        public void Report(string msg, int progress, bool isWorking = true)
         {
             _Status.OnNext(
                 new CPUStatus
                 {
                     Progress = progress,
+                    ProgressPercent = progress / 100f,
                     Msg = msg,
-                    ID = CpuId
+                    ID = CpuId,
+                    IsWorking = isWorking
                 });
         }
 
@@ -89,7 +91,9 @@ namespace Wabbajack.Common
     public class CPUStatus
     {
         public int Progress { get; internal set; }
+        public float ProgressPercent { get; internal set; }
         public string Msg { get; internal set; }
         public int ID { get; internal set; }
+        public bool IsWorking { get; internal set; }
     }
 }
