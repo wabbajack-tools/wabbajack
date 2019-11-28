@@ -239,6 +239,10 @@
     <Compile Include="Views\Compilers\VortexCompilerConfigView.xaml.cs">
       <DependentUpon>VortexCompilerConfigView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Themes\MahappStyleOverride.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\LinksView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -474,7 +478,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Wabba_Mouth.png" />
+    <Resource Include="Resources\Wabba_Mouth.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\MO2Button.png" />
@@ -487,6 +491,9 @@
   <ItemGroup>
     <Resource Include="Resources\Icons\github.png" />
     <Resource Include="Resources\Icons\patreon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Wabba_Mouth_No_Text.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

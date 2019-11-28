@@ -169,7 +169,7 @@
             Grid.Column="0"
             Grid.ColumnSpan="5"
             Margin="5"
-            Fill="{StaticResource WindowBackgroundBrush}" />
+            Fill="#121212" />
         <Grid
             Grid.Row="2"
             Grid.Column="0"
