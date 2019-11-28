@@ -38,6 +38,7 @@ namespace Wabbajack
         public float PercentCompleted => _percentCompleted.Value;
 
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
+
         public ObservableCollectionExtended<string> Log => MWVM.Log;
 
         public IReactiveCommand BackCommand { get; }
@@ -121,6 +122,7 @@ namespace Wabbajack
                 .ToObservableChangeSet(x => x.ID)
                 .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
+                .Filter(i => i.IsWorking)
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
                 .Bind(StatusList)

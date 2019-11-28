@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     d:DesignHeight="250"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -12,7 +13,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="4" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="500" />
         </Grid.ColumnDefinitions>
         <ListBox
             Grid.Column="0"
@@ -34,33 +35,24 @@
                 <DataTemplate>
                     <Grid HorizontalAlignment="Stretch">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="500" />
                         </Grid.ColumnDefinitions>
-                        <ProgressBar
+                        <mahapps:MetroProgressBar
                             Grid.Column="0"
-                            Width="100"
-                            Maximum="100"
-                            Minimum="0"
-                            Value="{Binding Progress, Mode=OneTime}">
-                            <ProgressBar.Style>
-                                <Style TargetType="ProgressBar">
-                                    <Setter Property="Visibility" Value="Visible" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Progress}" Value="0">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ProgressBar.Style>
-                        </ProgressBar>
-                        <TextBlock Grid.Column="1" Text=" CPU " />
-                        <TextBlock Grid.Column="2" Text="{Binding ID}" />
-                        <TextBlock Grid.Column="3" Text=" - " />
-                        <TextBlock Grid.Column="4" Text="{Binding Msg}" />
+                            Background="{StaticResource WindowBackgroundBrush}"
+                            BorderThickness="0"
+                            Foreground="Transparent"
+                            Maximum="1"
+                            Value="{Binding ProgressPercent, Mode=OneWay}" />
+                        <mahapps:MetroProgressBar
+                            Grid.Column="0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="{StaticResource PrimaryVariantBrush}"
+                            Maximum="1"
+                            Opacity="{Binding ProgressPercent, Mode=OneWay}"
+                            Value="{Binding ProgressPercent, Mode=OneWay}" />
+                        <TextBlock Grid.Column="0" Text="{Binding Msg}" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>

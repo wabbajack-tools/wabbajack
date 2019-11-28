@@ -280,6 +280,7 @@ namespace Wabbajack
                 .ToObservableChangeSet(x => x.ID)
                 .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
+                .Filter(i => i.IsWorking)
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
                 .Bind(StatusList)
