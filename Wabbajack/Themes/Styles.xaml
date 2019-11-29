@@ -1,4 +1,4 @@
-﻿<ResourceDictionary
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -50,13 +50,13 @@
     <!--  Mahapps overrides  -->
     <Color x:Key="AccentBaseColor">#FF3700B3</Color>
     <!--  80%  -->
-    <Color x:Key="AccentColor">#CC3700B3</Color>
+    <Color x:Key="AccentColor">#CC868CFC</Color>
     <!--  60%  -->
-    <Color x:Key="AccentColor2">#993700B3</Color>
+    <Color x:Key="AccentColor2">#99868CFC</Color>
     <!--  40%  -->
-    <Color x:Key="AccentColor3">#663700B3</Color>
+    <Color x:Key="AccentColor3">#66868CFC</Color>
     <!--  20%  -->
-    <Color x:Key="AccentColor4">#333700B3</Color>
+    <Color x:Key="AccentColor4">#33868CFC</Color>
     <SolidColorBrush
         x:Key="HighlightBrush"
         options:Freeze="True"

@@ -28,23 +28,5 @@ namespace Wabbajack
                 ExtensionManager.Associate(appPath);
             }
         }
-
-        protected override void OnStartup(StartupEventArgs e)
-        {
-            // add custom accent and theme resource dictionaries to the ThemeManager
-            // you should replace MahAppsMetroThemesSample with your application name
-            // and correct place where your custom accent lives
-            ThemeManager.AddAccent("MahappsOverride", new Uri("pack://application:,,,/Wabbajack;component/Themes/MahappStyleOverride.xaml"));
-
-            // get the current app style (theme and accent) from the application
-            Tuple<AppTheme, Accent> theme = ThemeManager.DetectAppStyle(Application.Current);
-
-            //// now change app style to the custom accent and current theme
-            //ThemeManager.ChangeAppStyle(Application.Current,
-            //                            ThemeManager.GetAccent("MahappsOverride"),
-            //                            ThemeManager.AppThemes.First(x => x.Name.Equals("BaseDark")));
-
-            base.OnStartup(e);
-        }
     }
 }
