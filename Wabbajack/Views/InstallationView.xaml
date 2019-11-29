@@ -38,6 +38,12 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
+        <Rectangle
+            x:Name="BorderHeatFill"
+            Grid.Row="0"
+            Grid.RowSpan="3"
+            Fill="#7d3700B3"
+            Opacity="{Binding PercentCompleted}" />
         <Grid
             x:Name="Slideshow"
             Grid.Row="1"

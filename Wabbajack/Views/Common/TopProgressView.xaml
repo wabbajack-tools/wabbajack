@@ -1,4 +1,4 @@
-﻿<UserControl
+﻿<local:UserControlRx
     x:Class="Wabbajack.TopProgressView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -83,7 +83,7 @@
                 BorderThickness="0"
                 Foreground="{StaticResource PrimaryVariantBrush}"
                 Maximum="1"
-                Opacity="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                Opacity="{Binding ProgressOpacityPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
                 Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
             <TextBlock
                 Grid.Column="0"
@@ -135,4 +135,4 @@
             </mahapps:MetroProgressBar.Foreground>
         </mahapps:MetroProgressBar>
     </Grid>
-</UserControl>
+</local:UserControlRx>

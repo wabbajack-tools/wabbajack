@@ -33,6 +33,14 @@
             Grid.Row="1"
             Grid.RowSpan="2"
             Grid.Column="4" />
+        <Rectangle
+            x:Name="BorderHeatFill"
+            Grid.Row="0"
+            Grid.RowSpan="3"
+            Grid.Column="0"
+            Grid.ColumnSpan="5"
+            Fill="#7d3700B3"
+            Opacity="{Binding PercentCompleted}" />
         <local:DetailImageView
             Title="{Binding CurrentModlistSettings.ModListName}"
             Grid.Row="1"
@@ -49,6 +57,11 @@
             HorizontalAlignment="Center"
             Fill="{StaticResource DarkBackgroundBrush}"
             SnapsToDevicePixels="True" />
+        <Rectangle
+            x:Name="ModlistDetailsBackground"
+            Grid.Row="1"
+            Grid.Column="1"
+            Fill="{StaticResource WindowBackgroundBrush}" />
         <!--  Comes after image area so shadow can overlay  -->
         <local:TopProgressView
             Title="{Binding CurrentModlistSettings.ModListName, Mode=OneWay}"
@@ -150,6 +163,13 @@
             VerticalAlignment="Top"
             Fill="{StaticResource DarkBackgroundBrush}"
             SnapsToDevicePixels="True" />
+        <Rectangle
+            x:Name="BottomBarBackground"
+            Grid.Row="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="5"
+            Margin="5"
+            Fill="{StaticResource WindowBackgroundBrush}" />
         <Grid
             Grid.Row="2"
             Grid.Column="0"
