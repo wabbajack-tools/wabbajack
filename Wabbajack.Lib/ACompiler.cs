@@ -106,7 +106,7 @@ namespace Wabbajack.Lib
             }
 
             Utils.Log("Exporting ModList metadata");
-            var metadata = new ModlistMetadata.DownloadMetadata
+            var metadata = new DownloadMetadata
             {
                 Size = File.GetSize(ModListOutputFile),
                 Hash = ModListOutputFile.FileHash(),
