@@ -30,6 +30,9 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonProperty("links")]
         public LinksObject Links { get; set; } = new LinksObject();
 
+        [JsonProperty("download_metadata")]
+        public DownloadMetadata DownloadMetadata { get; set; }
+
         public class LinksObject
         {
             [JsonProperty("image")]
@@ -43,26 +46,13 @@ namespace Wabbajack.Lib.ModListRegistry
 
             [JsonProperty("download")]
             public string Download { get; set; }
-
-            [JsonProperty("download_metadata")]
-            public DownloadMetadata DownloadMetadata { get; set; }
-
+            
             [JsonProperty("machineURL")]
             public string MachineURL { get; set; }
         }
 
 
-        public class DownloadMetadata
-        {
-            public string Hash { get; set; }
-            public long Size { get; set; }
 
-            public long NumberOfArchives { get; set; }
-            public long SizeOfArchives { get; set; }
-            public long NumberOfInstalledFiles { get; set; }
-            public long SizeOfInstalledFiles { get; set; }
-
-        }
 
 
         public static List<ModlistMetadata> LoadFromGithub()
@@ -76,12 +66,24 @@ namespace Wabbajack.Lib.ModListRegistry
         public bool NeedsDownload(string modlistPath)
         {
             if (!File.Exists(modlistPath)) return true;
-            if (Links.DownloadMetadata?.Hash == null)
+            if (DownloadMetadata?.Hash == null)
             {
                 return true;
             }
-            return Links.DownloadMetadata.Hash != modlistPath.FileHash();
+            return DownloadMetadata.Hash != modlistPath.FileHashCached();
         }
+    }
+
+    public class DownloadMetadata
+    {
+        public string Hash { get; set; }
+        public long Size { get; set; }
+
+        public long NumberOfArchives { get; set; }
+        public long SizeOfArchives { get; set; }
+        public long NumberOfInstalledFiles { get; set; }
+        public long SizeOfInstalledFiles { get; set; }
+
     }
 
 }
