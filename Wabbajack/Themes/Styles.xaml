@@ -1,4 +1,4 @@
-<ResourceDictionary
+﻿<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -18,12 +18,13 @@
 
     <!--  Colors  -->
     <Color x:Key="WindowBackgroundColor">#121212</Color>
-    <Color x:Key="DarkBackgroundColor">#292929</Color>
-    <Color x:Key="LightBackgroundColor">#414141</Color>
-    <Color x:Key="BackgroundColor">#3D3D3D</Color>
+    <Color x:Key="DarkBackgroundColor">#222222</Color>
+    <Color x:Key="LightBackgroundColor">#424242</Color>
+    <Color x:Key="BackgroundColor">#323232</Color>
     <Color x:Key="DisabledBackgroundColor">#424242</Color>
     <Color x:Key="PressedBackgroundColor">#394140</Color>
     <Color x:Key="LightDisabledBackgroundColor">#666666</Color>
+    <Color x:Key="HeatedBorderColor">#362675</Color>
 
     <Color x:Key="ForegroundColor">#EFEFEF</Color>
 
@@ -35,7 +36,9 @@
     <Color x:Key="Green">#52b545</Color>
 
     <Color x:Key="Primary">#BB86FC</Color>
+    <Color x:Key="PrimaryTransparent">#00BB86FC</Color>
     <Color x:Key="PrimaryVariant">#3700B3</Color>
+    <Color x:Key="DarkPrimaryVariant">#1b0059</Color>
     <Color x:Key="Secondary">#03DAC6</Color>
     <Color x:Key="DarkSecondary">#0e8f83</Color>
     <Color x:Key="DarkerSecondary">#095952</Color>
@@ -99,9 +102,12 @@
     <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
     <SolidColorBrush x:Key="MouseOverForegroundBrush" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />
+    <SolidColorBrush x:Key="BorderInterestBrush" Color="{StaticResource HeatedBorderColor}" />
+    <SolidColorBrush x:Key="HeatedBorderBrush" Color="{StaticResource HeatedBorderColor}" />
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="PrimaryVariantBrush" Color="{StaticResource PrimaryVariant}" />
+    <SolidColorBrush x:Key="DarkPrimaryVariantBrush" Color="{StaticResource DarkPrimaryVariant}" />
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}" />
     <SolidColorBrush x:Key="DarkSecondaryBrush" Color="{StaticResource DarkSecondary}" />
     <SolidColorBrush x:Key="DarkerSecondaryBrush" Color="{StaticResource DarkerSecondary}" />

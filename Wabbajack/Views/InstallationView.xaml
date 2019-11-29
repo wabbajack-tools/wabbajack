@@ -37,17 +37,15 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
-        <Rectangle
-            x:Name="BorderHeatFill"
-            Grid.Row="0"
-            Grid.RowSpan="3"
-            Fill="#7d3700B3"
-            Opacity="{Binding PercentCompleted}" />
+        <local:HeatedBackgroundView
+            Grid.Row="1"
+            Grid.RowSpan="2"
+            PercentCompleted="{Binding PercentCompleted}" />
         <Grid
             x:Name="Slideshow"
             Grid.Row="1"
             Margin="5,0,5,5">
-            <Border BorderBrush="#171717" BorderThickness="1,0,1,1">
+            <Border BorderBrush="{StaticResource BorderInterestBrush}" BorderThickness="1,0,1,1">
                 <local:DetailImageView
                     Title="{Binding TitleText, Mode=OneWay}"
                     Author="{Binding AuthorText, Mode=OneWay}"
@@ -354,21 +352,12 @@
                     </Grid>
                 </ScrollViewer>
             </Grid>
-            <Rectangle
-                x:Name="ControlTopThinSeparator"
-                Grid.Column="0"
-                Grid.ColumnSpan="3"
-                Height="1"
-                Margin="25,0"
-                VerticalAlignment="Top"
-                Fill="{StaticResource DarkBackgroundBrush}"
-                SnapsToDevicePixels="True" />
         </Grid>
         <Grid
             Grid.Row="2"
             Margin="5,0,5,5"
             Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
-            <local:LogCpuView />
+            <local:LogCpuView ProgressPercent="{Binding PercentCompleted, Mode=OneWay}" />
         </Grid>
     </Grid>
 </UserControl>

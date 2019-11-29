@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="450"
     d:DesignWidth="800"
+    BorderThickness="0"
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
@@ -46,22 +47,6 @@
                 <BlurEffect Radius="25" />
             </mahapps:MetroProgressBar.Effect>
         </mahapps:MetroProgressBar>
-        <mahapps:MetroProgressBar
-            x:Name="BottomProgressBarBrightGlow"
-            Grid.Row="1"
-            Grid.RowSpan="2"
-            Height="6"
-            Margin="-4"
-            VerticalAlignment="Top"
-            Background="Transparent"
-            BorderBrush="Transparent"
-            Foreground="{StaticResource PrimaryBrush}"
-            Maximum="1"
-            Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
-            <mahapps:MetroProgressBar.Effect>
-                <BlurEffect Radius="20" />
-            </mahapps:MetroProgressBar.Effect>
-        </mahapps:MetroProgressBar>
         <Grid x:Name="TopBarGrid" Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -69,22 +54,36 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <mahapps:MetroProgressBar
-                Grid.Column="0"
-                Grid.ColumnSpan="4"
-                Background="{StaticResource WindowBackgroundBrush}"
-                BorderThickness="0"
-                Foreground="Transparent"
-                Maximum="1"
-                Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
-            <mahapps:MetroProgressBar
+                x:Name="LargeProgressBar"
                 Grid.Column="0"
                 Grid.ColumnSpan="4"
                 Background="Transparent"
                 BorderThickness="0"
-                Foreground="{StaticResource PrimaryVariantBrush}"
                 Maximum="1"
                 Opacity="{Binding ProgressOpacityPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-                Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
+                Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
+                <mahapps:MetroProgressBar.Foreground>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Offset="0" Color="{StaticResource DarkPrimaryVariant}" />
+                        <GradientStop Offset="0.5" Color="{StaticResource PrimaryVariant}" />
+                    </LinearGradientBrush>
+                </mahapps:MetroProgressBar.Foreground>
+            </mahapps:MetroProgressBar>
+            <mahapps:MetroProgressBar
+                x:Name="LargeProgressBarTopGlow"
+                Grid.Column="0"
+                Grid.ColumnSpan="4"
+                Background="Transparent"
+                BorderThickness="0"
+                Maximum="1"
+                Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
+                <mahapps:MetroProgressBar.Foreground>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0" Color="#33000000" />
+                        <GradientStop Offset="0.3" Color="#00000000" />
+                    </LinearGradientBrush>
+                </mahapps:MetroProgressBar.Foreground>
+            </mahapps:MetroProgressBar>
             <TextBlock
                 Grid.Column="0"
                 Width="130"
@@ -105,6 +104,36 @@
             <ContentControl Grid.Column="2" />
         </Grid>
         <mahapps:MetroProgressBar
+            x:Name="BottomProgressBarBrightGlow1"
+            Grid.Row="1"
+            Grid.RowSpan="2"
+            Height="5"
+            VerticalAlignment="Top"
+            Background="Transparent"
+            BorderBrush="Transparent"
+            Foreground="{StaticResource SecondaryBrush}"
+            Maximum="1"
+            Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
+            <mahapps:MetroProgressBar.Effect>
+                <BlurEffect Radius="8" />
+            </mahapps:MetroProgressBar.Effect>
+        </mahapps:MetroProgressBar>
+        <mahapps:MetroProgressBar
+            x:Name="BottomProgressBarBrightGlow2"
+            Grid.Row="1"
+            Grid.RowSpan="2"
+            Height="5"
+            VerticalAlignment="Top"
+            Background="Transparent"
+            BorderBrush="Transparent"
+            Foreground="{StaticResource SecondaryBrush}"
+            Maximum="1"
+            Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
+            <mahapps:MetroProgressBar.Effect>
+                <BlurEffect Radius="15" />
+            </mahapps:MetroProgressBar.Effect>
+        </mahapps:MetroProgressBar>
+        <mahapps:MetroProgressBar
             x:Name="BottomProgressBar"
             Grid.Row="1"
             Grid.RowSpan="2"
@@ -112,7 +141,7 @@
             VerticalAlignment="Top"
             Background="Transparent"
             BorderBrush="Transparent"
-            Foreground="{StaticResource PrimaryBrush}"
+            Foreground="{StaticResource SecondaryBrush}"
             Maximum="1"
             Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
         <mahapps:MetroProgressBar

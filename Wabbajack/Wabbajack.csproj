@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -169,6 +169,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="Views\Common\HeatedBackgroundView.xaml.cs">
+      <DependentUpon>HeatedBackgroundView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\LinksView.xaml.cs">
       <DependentUpon>LinksView.xaml</DependentUpon>
     </Compile>
@@ -183,9 +186,6 @@
     <Compile Include="View Models\Compilers\MO2CompilerVM.cs" />
     <Compile Include="View Models\Compilers\ModlistSettingsEditorVM.cs" />
     <Compile Include="View Models\Compilers\VortexCompilerVM.cs" />
-    <Compile Include="Views\Common\BorderFadeDownView.xaml.cs">
-      <DependentUpon>BorderFadeDownView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Converters\InverseBooleanConverter.cs" />
     <Compile Include="Converters\BoolToVisibilityHiddenConverter.cs" />
     <Compile Include="Views\Common\RadioButtonView.xaml.cs">
@@ -239,6 +239,10 @@
     <Compile Include="Views\Compilers\VortexCompilerConfigView.xaml.cs">
       <DependentUpon>VortexCompilerConfigView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\Common\HeatedBackgroundView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\LinksView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -248,10 +252,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\Compilers\MO2CompilerConfigView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\Common\BorderFadeDownView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

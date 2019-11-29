@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="Wabbajack.CompilerView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -25,22 +25,12 @@
             <ColumnDefinition Width="5*" />
             <ColumnDefinition Width="5" />
         </Grid.ColumnDefinitions>
-        <local:BorderFadeDownView
-            Grid.Row="1"
-            Grid.RowSpan="2"
-            Grid.Column="0" />
-        <local:BorderFadeDownView
-            Grid.Row="1"
-            Grid.RowSpan="2"
-            Grid.Column="4" />
-        <Rectangle
-            x:Name="BorderHeatFill"
+        <local:HeatedBackgroundView
             Grid.Row="0"
             Grid.RowSpan="3"
             Grid.Column="0"
             Grid.ColumnSpan="5"
-            Fill="#7d3700B3"
-            Opacity="{Binding PercentCompleted}" />
+            PercentCompleted="{Binding PercentCompleted}" />
         <local:DetailImageView
             Title="{Binding CurrentModlistSettings.ModListName}"
             Grid.Row="1"
@@ -163,13 +153,13 @@
             VerticalAlignment="Top"
             Fill="{StaticResource DarkBackgroundBrush}"
             SnapsToDevicePixels="True" />
-        <Rectangle
+        <Border
             x:Name="BottomBarBackground"
             Grid.Row="2"
             Grid.Column="0"
             Grid.ColumnSpan="5"
             Margin="5"
-            Fill="#121212" />
+            Background="{StaticResource WindowBackgroundBrush}" />
         <Grid
             Grid.Row="2"
             Grid.Column="0"
