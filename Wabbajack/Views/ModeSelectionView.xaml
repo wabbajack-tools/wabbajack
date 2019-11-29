@@ -25,6 +25,14 @@
             Stretch="UniformToFill">
             <Image Margin="40,20,40,240" Source="../Resources/Wabba_Mouth.png" />
         </Viewbox>
+        <Rectangle Grid.Row="0" Grid.RowSpan="3">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Offset="0" Color="#16BB86FC" />
+                    <GradientStop Offset="0.4" Color="#00000000" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
         <Grid Grid.Row="1" Margin="5,15">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -132,12 +140,16 @@
                                 Kind="CloudDownloadAltSolid">
                                 <icon:PackIconFontAwesome.Style>
                                     <Style TargetType="icon:PackIconFontAwesome">
-                                        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                                        <Setter Property="Foreground" Value="{StaticResource DimForegroundBrush}" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
                                                 <DataTrigger.EnterActions>
                                                     <BeginStoryboard>
                                                         <Storyboard>
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
+                                                                To="{StaticResource ForegroundColor}"
+                                                                Duration="0:0:0.0" />
                                                             <ColorAnimation
                                                                 Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
                                                                 To="{StaticResource LightSecondary}"
@@ -150,7 +162,7 @@
                                                         <Storyboard>
                                                             <ColorAnimation
                                                                 Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
-                                                                To="{StaticResource ForegroundColor}"
+                                                                To="{StaticResource DimForegroundColor}"
                                                                 Duration="0:0:4.0" />
                                                         </Storyboard>
                                                     </BeginStoryboard>
@@ -283,12 +295,16 @@
                                 Kind="HddSolid">
                                 <icon:PackIconFontAwesome.Style>
                                     <Style TargetType="icon:PackIconFontAwesome">
-                                        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                                        <Setter Property="Foreground" Value="{StaticResource DimForegroundBrush}" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
                                                 <DataTrigger.EnterActions>
                                                     <BeginStoryboard>
                                                         <Storyboard>
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
+                                                                To="{StaticResource ForegroundColor}"
+                                                                Duration="0:0:0.0" />
                                                             <ColorAnimation
                                                                 Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
                                                                 To="{StaticResource LightSecondary}"
@@ -301,7 +317,7 @@
                                                         <Storyboard>
                                                             <ColorAnimation
                                                                 Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
-                                                                To="{StaticResource ForegroundColor}"
+                                                                To="{StaticResource DimForegroundColor}"
                                                                 Duration="0:0:4.0" />
                                                         </Storyboard>
                                                     </BeginStoryboard>
@@ -434,12 +450,16 @@
                                 Kind="PlusCircleSolid">
                                 <icon:PackIconFontAwesome.Style>
                                     <Style TargetType="icon:PackIconFontAwesome">
-                                        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
+                                        <Setter Property="Foreground" Value="{StaticResource DimForegroundBrush}" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
                                                 <DataTrigger.EnterActions>
                                                     <BeginStoryboard>
                                                         <Storyboard>
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
+                                                                To="{StaticResource ForegroundColor}"
+                                                                Duration="0:0:0.0" />
                                                             <ColorAnimation
                                                                 Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
                                                                 To="{StaticResource LightSecondary}"
@@ -452,7 +472,7 @@
                                                         <Storyboard>
                                                             <ColorAnimation
                                                                 Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
-                                                                To="{StaticResource ForegroundColor}"
+                                                                To="{StaticResource DimForegroundColor}"
                                                                 Duration="0:0:4.0" />
                                                         </Storyboard>
                                                     </BeginStoryboard>

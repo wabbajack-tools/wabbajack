@@ -27,6 +27,7 @@
     <Color x:Key="HeatedBorderColor">#362675</Color>
 
     <Color x:Key="ForegroundColor">#EFEFEF</Color>
+    <Color x:Key="DimForegroundColor">#CCCCCC</Color>
 
     <Color x:Key="HighlightColor">#BDBDBD</Color>
     <Color x:Key="HotColor">#525252</Color>
@@ -100,6 +101,7 @@
     <SolidColorBrush x:Key="LightBackgroundBrush" Color="{StaticResource LightBackgroundColor}" />
     <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
     <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}" />
+    <SolidColorBrush x:Key="DimForegroundBrush" Color="{StaticResource DimForegroundColor}" />
     <SolidColorBrush x:Key="MouseOverForegroundBrush" Color="{StaticResource DarkBackgroundColor}" />
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}" />
     <SolidColorBrush x:Key="BorderInterestBrush" Color="{StaticResource HeatedBorderColor}" />
