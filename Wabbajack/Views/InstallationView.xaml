@@ -279,16 +279,6 @@
                 x:Name="InstallationConfigurationView"
                 Grid.Column="2"
                 Background="{StaticResource WindowBackgroundBrush}">
-                <Border
-                    x:Name="ConfigurationBackgroundHaze"
-                    Height="120"
-                    Background="{StaticResource PrimaryVariantBrush}"
-                    CornerRadius="50"
-                    Opacity="0.10">
-                    <Border.Effect>
-                        <BlurEffect Radius="45" />
-                    </Border.Effect>
-                </Border>
                 <ScrollViewer
                     Margin="5"
                     Background="Transparent"
