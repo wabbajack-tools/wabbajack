@@ -64,11 +64,13 @@ namespace Wabbajack.View_Models
             IsDownloading = true;
 
             var queue = new WorkQueue(1);
-            var sub = queue.Status.Select(i => i.ProgressPercent).ToProperty(this, x => x.DownloadProgress);
+            DownloadStatusText = "Downloading";
+            var sub = queue.Status.Select(i => i.ProgressPercent).Subscribe(v => DownloadProgress = v);
             queue.QueueTask(() =>
             {
                 var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
                 downloader.Download(new Archive{ Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0}, Location);
+                DownloadStatusText = "Hashing";
                 Location.FileHashCached();
                 IsDownloading = false;
                 sub.Dispose();
@@ -105,6 +107,16 @@ namespace Wabbajack.View_Models
             private set
             {
                 RaiseAndSetIfChanged(ref _downloadProgress, value);
+            }
+        }
+
+        private string _downloadStatusText;
+        public string DownloadStatusText
+        {
+            get => _downloadStatusText;
+            private set
+            {
+                RaiseAndSetIfChanged(ref _downloadStatusText, value);
             }
         }
 

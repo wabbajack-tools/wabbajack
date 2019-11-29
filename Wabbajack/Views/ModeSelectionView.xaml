@@ -43,7 +43,7 @@
                             <ColumnDefinition Width="300" />
                             <ColumnDefinition Width="20" />
                             <ColumnDefinition Width="200" />
-                            <ColumnDefinition Width="200" />
+                            <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="200" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
@@ -74,15 +74,21 @@
                             TextAlignment="Right" />
                         <TextBlock
                             Grid.Row="2"
-                            Grid.Column="2"
+                            Grid.Column="1"
                             Grid.ColumnSpan="3"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Top"
                             Text="{Binding Metadata.Description}"
                             TextWrapping="Wrap" />
-                        <Button Grid.Row="3" Grid.ColumnSpan="5" Content="Download" Visibility="{Binding DownloadButtonVisibility}" Command="{Binding Click}" ></Button>
+                        <Button Margin="5"
+                                Grid.Row="3" 
+                                Grid.ColumnSpan="5" 
+                                Content="Download" 
+                                Visibility="{Binding DownloadButtonVisibility}" 
+                                Command="{Binding Click}" ></Button>
 
                         <mah:MetroProgressBar
+                            Margin="5"
                             Grid.Row="3"
                             Grid.ColumnSpan="5"
                             Background="{StaticResource WindowBackgroundBrush}"
@@ -92,6 +98,7 @@
                             Value="{Binding DownloadProgress, Mode=OneWay}"
                             Visibility="{Binding DownloadProgressVisibility}" />
                         <mah:MetroProgressBar
+                            Margin="5"
                             Grid.Row="3"
                             Grid.ColumnSpan="5"
                             Background="Transparent"
@@ -101,9 +108,10 @@
                             Opacity="{Binding DownloadProgress, Mode=OneWay}"
                             Value="{Binding DownloadProgress, Mode=OneWay}"
                             Visibility="{Binding DownloadProgressVisibility}" />
-                        <Label Grid.Row="3"
+                        <Label Margin="5"
+                               Grid.Row="3"
                                Grid.ColumnSpan="5"
-                               Content="Downloading..."
+                               Content="{Binding DownloadStatusText}"
                                HorizontalContentAlignment="Center"
                                Visibility="{Binding DownloadProgressVisibility}" ></Label>
 
