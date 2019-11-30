@@ -1,20 +1,37 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using DynamicData;
 using Microsoft.Win32;
 
 namespace Wabbajack.Common
 {
-    [DebuggerDisplay("{Name}")]
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     public class SteamGame
     {
         public int AppId;
         public string Name;
         public string InstallDir;
         public Game? Game;
+
+        public HashSet<SteamWorkshopItem> WorkshopItems;
+        /// <summary>
+        /// Combined size of all installed workshop items on disk in bytes
+        /// </summary>
+        public int WorkshopItemsSize;
+    }
+
+    public class SteamWorkshopItem
+    {
+        public SteamGame Game;
+        public int ItemID;
+        /// <summary>
+        /// Size is in bytes
+        /// </summary>
+        public int Size;
     }
 
     /// <summary>
@@ -94,15 +111,24 @@ namespace Wabbajack.Common
                 Directory.EnumerateFiles(p, "*.acf", SearchOption.TopDirectoryOnly).Do(f =>
                 {
                     var steamGame = new SteamGame();
+                    var valid = false;
                     File.ReadAllLines(f, Encoding.UTF8).Do(l =>
                     {
                         if(l.Contains("\"appid\""))
-                            steamGame.AppId = int.Parse(GetVdfValue(l));
-                        if (l.Contains("\"name\""))
+                            if (!int.TryParse(GetVdfValue(l), out steamGame.AppId))
+                                return;
+                        if(l.Contains("\"name\""))
                             steamGame.Name = GetVdfValue(l);
-                        if (l.Contains("\"installdir\""))
+                        if(l.Contains("\"installdir\""))
                             steamGame.InstallDir = Path.Combine(p, "common", GetVdfValue(l));
+
+                        if (steamGame.AppId != 0 && !string.IsNullOrWhiteSpace(steamGame.Name) &&
+                            !string.IsNullOrWhiteSpace(steamGame.InstallDir))
+                            valid = true;
                     });
+
+                    if (!valid)
+                        return;
 
                     steamGame.Game = GameRegistry.Games.Values
                         .FirstOrDefault(g => 
@@ -117,11 +143,114 @@ namespace Wabbajack.Common
             Games = games;
         }
 
+        public void LoadWorkshopItems(SteamGame game)
+        {
+            if(game.WorkshopItems == null)
+                game.WorkshopItems = new HashSet<SteamWorkshopItem>();
+
+            InstallFolders.Do(p =>
+            {
+                var workshop = Path.Combine(p, "workshop");
+                Directory.EnumerateFiles(workshop, "*.acf", SearchOption.TopDirectoryOnly).Do(f =>
+                {
+                    if (Path.GetFileName(f)  != $"appworkshop_{game.AppId}.acf")
+                        return;
+
+                    var foundAppID = false;
+                    var workshopItemsInstalled = 0;
+                    var workshopItemDetails = 0;
+                    var currentItem = new SteamWorkshopItem();
+                    var bracketStart = 0;
+                    var bracketEnd = 0;
+                    var lines = File.ReadAllLines(f, Encoding.UTF8);
+                    var end = false;
+                    lines.Do(l =>
+                    {
+                        if (end)
+                            return;
+                        if(currentItem == null)
+                            currentItem = new SteamWorkshopItem();
+
+                        var currentLine = lines.IndexOf(l);
+                        if (l.Contains("\"appid\"") && !foundAppID)
+                        {
+                            if (!int.TryParse(GetVdfValue(l), out var appID))
+                                return;
+
+                            foundAppID = true;
+
+                            if (appID != game.AppId)
+                                return;
+                        }
+
+                        if (!foundAppID)
+                            return;
+
+                        if (l.Contains("\"SizeOnDisk\""))
+                        {
+                            if (!int.TryParse(GetVdfValue(l), out var sizeOnDisk))
+                                return;
+
+                            game.WorkshopItemsSize = sizeOnDisk;
+                        }
+
+                        if (l.Contains("\"WorkshopItemsInstalled\""))
+                            workshopItemsInstalled = currentLine;
+
+                        if (l.Contains("\"WorkshopItemDetails\""))
+                            workshopItemDetails = currentLine;
+
+                        if (workshopItemsInstalled == 0)
+                            return;
+
+                        if (currentLine <= workshopItemsInstalled + 1 && currentLine >= workshopItemDetails - 1)
+                            return;
+
+                        if (currentItem.ItemID == 0)
+                            if (!int.TryParse(GetSingleVdfValue(l), out currentItem.ItemID))
+                                return;
+
+                        if (currentItem.ItemID == 0)
+                            return;
+
+                        if (bracketStart == 0 && l.Contains("{"))
+                            bracketStart = currentLine;
+
+                        if (bracketEnd == 0 && l.Contains("}"))
+                            bracketEnd = currentLine;
+
+                        if (bracketStart == 0)
+                            return;
+
+                        if (currentLine == bracketStart + 1)
+                            if (!int.TryParse(GetVdfValue(l), out currentItem.Size))
+                                return;
+
+                        if (bracketStart == 0 || bracketEnd == 0 || currentItem.ItemID == 0 || currentItem.Size == 0)
+                            return;
+
+                        bracketStart = 0;
+                        bracketEnd = 0;
+                        currentItem.Game = game;
+                        game.WorkshopItems.Add(currentItem);
+                        currentItem = null;
+                        end = true;
+                    });
+                });
+            });
+        }
+
         private static string GetVdfValue(string line)
         {
             var trim = line.Trim('\t').Replace("\t", "");
             string[] s = trim.Split('\"');
             return s[3].Replace("\\\\", "\\");
+        }
+
+        private static string GetSingleVdfValue(string line)
+        {
+            var trim = line.Trim('\t').Replace("\t", "");
+            return trim.Split('\"')[1];
         }
     }
 }
