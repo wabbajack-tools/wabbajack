@@ -190,10 +190,10 @@ namespace Wabbajack
                     {
                         Title = PromptTitle,
                         IsFolderPicker = PathType == PathTypeOptions.Folder,
-                        InitialDirectory = TargetPath,
+                        InitialDirectory = dirPath,
                         AddToMostRecentlyUsedList = false,
                         AllowNonFileSystemItems = false,
-                        DefaultDirectory = TargetPath,
+                        DefaultDirectory = dirPath,
                         EnsureFileExists = true,
                         EnsurePathExists = true,
                         EnsureReadOnly = false,
