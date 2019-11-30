@@ -5,7 +5,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:Wabbajack"
-    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance local:InstallerVM}"
     d:DesignHeight="500"
@@ -23,7 +22,7 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="45" />
+            <RowDefinition Height="47" />
             <RowDefinition Height="4*" />
             <RowDefinition Height="*" MinHeight="150" />
         </Grid.RowDefinitions>
@@ -38,11 +37,15 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
+        <local:HeatedBackgroundView
+            Grid.Row="1"
+            Grid.RowSpan="2"
+            PercentCompleted="{Binding PercentCompleted}" />
         <Grid
             x:Name="Slideshow"
             Grid.Row="1"
             Margin="5,0,5,5">
-            <Border BorderBrush="#171717" BorderThickness="1,0,1,1">
+            <Border BorderBrush="{StaticResource BorderInterestBrush}" BorderThickness="1,0,1,1">
                 <local:DetailImageView
                     Title="{Binding TitleText, Mode=OneWay}"
                     Author="{Binding AuthorText, Mode=OneWay}"
@@ -225,9 +228,8 @@
             Margin="7,5,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Background="{StaticResource ButtonBackground}"
             Command="{Binding BackCommand}"
-            Style="{StaticResource CircleButtonStyle}"
+            Style="{StaticResource IconCircleButtonStyle}"
             ToolTip="Back to main menu">
             <icon:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
         </Button>
@@ -274,16 +276,6 @@
                 x:Name="InstallationConfigurationView"
                 Grid.Column="2"
                 Background="{StaticResource WindowBackgroundBrush}">
-                <Border
-                    x:Name="ConfigurationBackgroundHaze"
-                    Height="120"
-                    Background="{StaticResource PrimaryVariantBrush}"
-                    CornerRadius="50"
-                    Opacity="0.10">
-                    <Border.Effect>
-                        <BlurEffect Radius="45" />
-                    </Border.Effect>
-                </Border>
                 <ScrollViewer
                     Margin="5"
                     Background="Transparent"
@@ -359,21 +351,12 @@
                     </Grid>
                 </ScrollViewer>
             </Grid>
-            <Rectangle
-                x:Name="ControlTopThinSeparator"
-                Grid.Column="0"
-                Grid.ColumnSpan="3"
-                Height="1"
-                Margin="25,0"
-                VerticalAlignment="Top"
-                Fill="{StaticResource DarkBackgroundBrush}"
-                SnapsToDevicePixels="True" />
         </Grid>
         <Grid
             Grid.Row="2"
             Margin="5,0,5,5"
             Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
-            <local:LogCpuView />
+            <local:LogCpuView ProgressPercent="{Binding PercentCompleted, Mode=OneWay}" />
         </Grid>
     </Grid>
 </UserControl>

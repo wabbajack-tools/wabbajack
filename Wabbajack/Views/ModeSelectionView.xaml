@@ -3,138 +3,507 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:Wabbajack"
-    xmlns:ms="clr-namespace:Wabbajack.View_Models"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     d:DataContext="{d:DesignInstance local:ModeSelectionVM}"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
+    d:DesignHeight="700"
+    d:DesignWidth="1000"
     mc:Ignorable="d">
-    <Grid Margin="20">
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="150" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="70" />
-            <RowDefinition Height="70" />
+            <RowDefinition Height="3*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="15" />
         </Grid.RowDefinitions>
-        <Image
+        <Viewbox
             Name="Banner"
             Grid.Row="0"
-            Grid.ColumnSpan="3"
-            Margin="2,0,2,0"
-            Source="../Resources/banner_small_dark.png"
-            Stretch="Uniform" />
-        <local:LinksView
-            Grid.Row="0"
-            Height="40"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top" />
-        <ListBox
-            Grid.Row="1"
-            Grid.ColumnSpan="3"
-            ItemsSource="{Binding ModLists}"
-            ScrollViewer.CanContentScroll="False"
-            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Grid Margin="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300" />
-                            <ColumnDefinition Width="20" />
-                            <ColumnDefinition Width="200" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="200" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="20" />
-                            <RowDefinition Height="15" />
-                            <RowDefinition Height="150" />
-                            <RowDefinition Height="30" />
-                        </Grid.RowDefinitions>
-                        <Image
-                            Grid.Row="0"
-                            Grid.RowSpan="4"
-                            Grid.Column="0"
-                            Source="{Binding Metadata.Links.ImageUri}" />
-                        <TextBlock
-                            Grid.Row="0"
-                            Grid.Column="2"
-                            FontSize="20"
-                            Text="{Binding Metadata.Title}" />
-                        <TextBlock
-                            Grid.Row="1"
-                            Grid.Column="2"
-                            Text="{Binding Metadata.Author}" />
-                        <TextBlock
-                            Grid.Row="1"
-                            Grid.Column="4"
-                            HorizontalAlignment="Right"
-                            Text="{Binding Metadata.GameName}"
-                            TextAlignment="Right" />
-                        <TextBlock
-                            Grid.Row="2"
-                            Grid.Column="1"
-                            Grid.ColumnSpan="3"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Top"
-                            Text="{Binding Metadata.Description}"
-                            TextWrapping="Wrap" />
-                        <Button Margin="5"
-                                Grid.Row="3" 
-                                Grid.ColumnSpan="5" 
-                                Content="Download" 
-                                Visibility="{Binding DownloadButtonVisibility}" 
-                                Command="{Binding Click}" ></Button>
-
-                        <mah:MetroProgressBar
-                            Margin="5"
-                            Grid.Row="3"
-                            Grid.ColumnSpan="5"
-                            Background="{StaticResource WindowBackgroundBrush}"
-                            BorderThickness="0"
-                            Foreground="Transparent"
-                            Maximum="1"
-                            Value="{Binding DownloadProgress, Mode=OneWay}"
-                            Visibility="{Binding DownloadProgressVisibility}" />
-                        <mah:MetroProgressBar
-                            Margin="5"
-                            Grid.Row="3"
-                            Grid.ColumnSpan="5"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Foreground="{StaticResource PrimaryVariantBrush}"
-                            Maximum="1"
-                            Opacity="{Binding DownloadProgress, Mode=OneWay}"
-                            Value="{Binding DownloadProgress, Mode=OneWay}"
-                            Visibility="{Binding DownloadProgressVisibility}" />
-                        <Label Margin="5"
-                               Grid.Row="3"
-                               Grid.ColumnSpan="5"
-                               Content="{Binding DownloadStatusText}"
-                               HorizontalContentAlignment="Center"
-                               Visibility="{Binding DownloadProgressVisibility}" ></Label>
-
-                        <Button Grid.Row="3" Grid.ColumnSpan ="5" Content="Install" Visibility="{Binding InstallButtonVisibility}" Command="{Binding Click}"></Button>
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-        <Button
-            Name="InstallFromList"
-            Grid.Row="2"
-            Grid.ColumnSpan="3"
-            Margin="2"
-            Command="{Binding InstallCommand}">
-            <TextBlock FontSize="40">Install from Disk</TextBlock>
-        </Button>
-        <Button
-            Name="CreateModlist"
-            Grid.Row="3"
-            Grid.ColumnSpan="3"
-            Margin="2"
-            Command="{Binding CompileCommand}">
-            <TextBlock FontSize="40">Create a ModList</TextBlock>
-        </Button>
+            Grid.RowSpan="3"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Stretch="UniformToFill">
+            <Image Margin="40,20,40,240" Source="../Resources/Wabba_Mouth.png" />
+        </Viewbox>
+        <Rectangle Grid.Row="0" Grid.RowSpan="3">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                    <GradientStop Offset="0" Color="#16BB86FC" />
+                    <GradientStop Offset="0.4" Color="#00000000" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
+        <Grid Grid.Row="1" Margin="5,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button
+                Grid.Row="1"
+                Grid.Column="0"
+                Margin="15,0"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                ClipToBounds="False"
+                Command="{Binding BrowseCommand}">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter />
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+                <Grid ClipToBounds="False">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Viewbox Grid.Row="1">
+                        <Grid>
+                            <Grid>
+                                <icon:PackIconFontAwesome
+                                    Width="140"
+                                    Height="140"
+                                    Margin="0,0,0,10"
+                                    HorizontalAlignment="Center"
+                                    ClipToBounds="False"
+                                    Foreground="{StaticResource PrimaryVariantBrush}"
+                                    Kind="CloudDownloadAltSolid"
+                                    Opacity="0.6" />
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Effect">
+                                            <Setter.Value>
+                                                <BlurEffect Radius="50" />
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <BlurEffect Radius="75" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+                            </Grid>
+                            <Grid>
+                                <icon:PackIconFontAwesome
+                                    Width="140"
+                                    Height="140"
+                                    Margin="0,0,0,10"
+                                    HorizontalAlignment="Center"
+                                    ClipToBounds="False"
+                                    Foreground="{StaticResource SecondaryBrush}"
+                                    Kind="CloudDownloadAltSolid" />
+                                <Grid.Effect>
+                                    <BlurEffect Radius="25" />
+                                </Grid.Effect>
+                                <Grid.Resources>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Opacity" Value="0" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation
+                                                                Storyboard.TargetProperty="Opacity"
+                                                                To="0.6"
+                                                                Duration="0:0:0.0" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation
+                                                                Storyboard.TargetProperty="Opacity"
+                                                                To="0"
+                                                                Duration="0:0:4.0" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Resources>
+                            </Grid>
+                            <icon:PackIconFontAwesome
+                                Width="140"
+                                Height="140"
+                                Margin="0,0,0,10"
+                                HorizontalAlignment="Center"
+                                Kind="CloudDownloadAltSolid">
+                                <icon:PackIconFontAwesome.Style>
+                                    <Style TargetType="icon:PackIconFontAwesome">
+                                        <Setter Property="Foreground" Value="{StaticResource DimForegroundBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
+                                                                To="{StaticResource ForegroundColor}"
+                                                                Duration="0:0:0.0" />
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
+                                                                To="{StaticResource LightSecondary}"
+                                                                Duration="0:0:2.0" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
+                                                                To="{StaticResource DimForegroundColor}"
+                                                                Duration="0:0:4.0" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </icon:PackIconFontAwesome.Style>
+                            </icon:PackIconFontAwesome>
+                        </Grid>
+                    </Viewbox>
+                    <TextBlock
+                        Grid.Row="2"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        FontSize="25"
+                        Text="Browse Modlists">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Opacity" Value="0.2" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Button>
+            <Button
+                Grid.Row="1"
+                Grid.Column="1"
+                Margin="15,0"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                ClipToBounds="False"
+                Command="{Binding InstallCommand}">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter />
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+                <Grid ClipToBounds="False">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Viewbox Grid.Row="1">
+                        <Grid>
+                            <Grid>
+                                <icon:PackIconFontAwesome
+                                    Width="140"
+                                    Height="140"
+                                    Margin="0,0,0,10"
+                                    HorizontalAlignment="Center"
+                                    ClipToBounds="False"
+                                    Foreground="{StaticResource PrimaryVariantBrush}"
+                                    Kind="HddSolid"
+                                    Opacity="0.6" />
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Effect">
+                                            <Setter.Value>
+                                                <BlurEffect Radius="50" />
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <BlurEffect Radius="75" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+                            </Grid>
+                            <Grid>
+                                <icon:PackIconFontAwesome
+                                    Width="140"
+                                    Height="140"
+                                    Margin="0,0,0,10"
+                                    HorizontalAlignment="Center"
+                                    ClipToBounds="False"
+                                    Foreground="{StaticResource SecondaryBrush}"
+                                    Kind="HddSolid" />
+                                <Grid.Effect>
+                                    <BlurEffect Radius="25" />
+                                </Grid.Effect>
+                                <Grid.Resources>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Opacity" Value="0" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation
+                                                                Storyboard.TargetProperty="Opacity"
+                                                                To="0.6"
+                                                                Duration="0:0:0.0" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation
+                                                                Storyboard.TargetProperty="Opacity"
+                                                                To="0"
+                                                                Duration="0:0:4.0" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Resources>
+                            </Grid>
+                            <icon:PackIconFontAwesome
+                                Width="140"
+                                Height="140"
+                                Margin="0,0,0,10"
+                                HorizontalAlignment="Center"
+                                Kind="HddSolid">
+                                <icon:PackIconFontAwesome.Style>
+                                    <Style TargetType="icon:PackIconFontAwesome">
+                                        <Setter Property="Foreground" Value="{StaticResource DimForegroundBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
+                                                                To="{StaticResource ForegroundColor}"
+                                                                Duration="0:0:0.0" />
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
+                                                                To="{StaticResource LightSecondary}"
+                                                                Duration="0:0:2.0" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
+                                                                To="{StaticResource DimForegroundColor}"
+                                                                Duration="0:0:4.0" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </icon:PackIconFontAwesome.Style>
+                            </icon:PackIconFontAwesome>
+                        </Grid>
+                    </Viewbox>
+                    <TextBlock
+                        Grid.Row="2"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        FontSize="25"
+                        Text="Install From Disk">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Opacity" Value="0.2" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Button>
+            <Button
+                Grid.Row="1"
+                Grid.Column="2"
+                Margin="15,0"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                ClipToBounds="False"
+                Command="{Binding CompileCommand}">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter />
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+                <Grid ClipToBounds="False">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Viewbox Grid.Row="1">
+                        <Grid>
+                            <Grid>
+                                <icon:PackIconFontAwesome
+                                    Width="140"
+                                    Height="140"
+                                    Margin="0,0,0,10"
+                                    HorizontalAlignment="Center"
+                                    ClipToBounds="False"
+                                    Foreground="{StaticResource PrimaryVariantBrush}"
+                                    Kind="PlusCircleSolid"
+                                    Opacity="0.6" />
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Effect">
+                                            <Setter.Value>
+                                                <BlurEffect Radius="50" />
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                                <Setter Property="Effect">
+                                                    <Setter.Value>
+                                                        <BlurEffect Radius="75" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+                            </Grid>
+                            <Grid>
+                                <icon:PackIconFontAwesome
+                                    Width="140"
+                                    Height="140"
+                                    Margin="0,0,0,10"
+                                    HorizontalAlignment="Center"
+                                    ClipToBounds="False"
+                                    Foreground="{StaticResource SecondaryBrush}"
+                                    Kind="PlusCircleSolid" />
+                                <Grid.Effect>
+                                    <BlurEffect Radius="25" />
+                                </Grid.Effect>
+                                <Grid.Resources>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Opacity" Value="0" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation
+                                                                Storyboard.TargetProperty="Opacity"
+                                                                To="0.6"
+                                                                Duration="0:0:0.0" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation
+                                                                Storyboard.TargetProperty="Opacity"
+                                                                To="0"
+                                                                Duration="0:0:4.0" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Resources>
+                            </Grid>
+                            <icon:PackIconFontAwesome
+                                Width="140"
+                                Height="140"
+                                Margin="0,0,0,10"
+                                HorizontalAlignment="Center"
+                                Kind="PlusCircleSolid">
+                                <icon:PackIconFontAwesome.Style>
+                                    <Style TargetType="icon:PackIconFontAwesome">
+                                        <Setter Property="Foreground" Value="{StaticResource DimForegroundBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
+                                                                To="{StaticResource ForegroundColor}"
+                                                                Duration="0:0:0.0" />
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
+                                                                To="{StaticResource LightSecondary}"
+                                                                Duration="0:0:2.0" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation
+                                                                Storyboard.TargetProperty="(icon:PackIconFontAwesome.Foreground).(SolidColorBrush.Color)"
+                                                                To="{StaticResource DimForegroundColor}"
+                                                                Duration="0:0:4.0" />
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </icon:PackIconFontAwesome.Style>
+                            </icon:PackIconFontAwesome>
+                        </Grid>
+                    </Viewbox>
+                    <TextBlock
+                        Grid.Row="2"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        FontSize="25"
+                        Text="Create a Modlist">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Opacity" Value="0.2" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True">
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Grid>
+            </Button>
+        </Grid>
     </Grid>
 </UserControl>

@@ -96,7 +96,7 @@ namespace Wabbajack
                 .DistinctUntilChanged()
                 .Select(path =>
                 {
-                    if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Wabbajack.Resources.Wabba_Mouth.png");
+                    if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Resources/Wabba_Mouth_No_Text.png");
                     if (UIUtils.TryGetBitmapImageFromFile(path, out var image))
                     {
                         return image;

@@ -1,9 +1,10 @@
-<Window
+<mahapps:MetroWindow
     x:Class="Wabbajack.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Wabbajack"
     Width="1280"
@@ -11,10 +12,10 @@
     MinWidth="850"
     MinHeight="650"
     Closing="Window_Closing"
-    Icon="../Resources/Icons/wabbajack.ico"
     RenderOptions.BitmapScalingMode="HighQuality"
     ResizeMode="CanResize"
     Style="{StaticResource {x:Type Window}}"
+    TitlebarHeight="25"
     UseLayoutRounding="True"
     WindowStyle="ToolWindow"
     mc:Ignorable="d">
@@ -29,6 +30,9 @@
             <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
                 <local:ModeSelectionView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
+                <local:ModListGalleryView />
+            </DataTemplate>
         </ContentPresenter.Resources>
     </ContentPresenter>
-</Window>
+</mahapps:MetroWindow>

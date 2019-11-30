@@ -719,7 +719,7 @@ namespace Wabbajack.Common
             throw new Exception(msg);
         }
 
-        public static Stream GetResourceStream(string name)
+        public static Stream GetEmbeddedResourceStream(string name)
         {
             return (from assembly in AppDomain.CurrentDomain.GetAssemblies()
                     where !assembly.IsDynamic

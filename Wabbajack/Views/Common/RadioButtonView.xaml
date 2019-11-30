@@ -26,7 +26,7 @@
             Background="{StaticResource SecondaryBrush}"
             CornerRadius="12"
             Opacity="0.3"
-            Visibility="{Binding IsMouseOver, Converter={StaticResource bool2VisibilityHiddenConverter}, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
+            Visibility="{Binding IsChecked, Converter={StaticResource bool2VisibilityHiddenConverter}, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
             <Border.Effect>
                 <BlurEffect Radius="10" />
             </Border.Effect>
@@ -35,27 +35,31 @@
             Background="Transparent"
             BorderThickness="0"
             Click="Button_Click">
-            <Image Source="{Binding Image, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
-                <Image.Style>
-                    <Style TargetType="Image">
-                        <Style.Triggers>
-                            <MultiDataTrigger>
-                                <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="False" />
-                                    <Condition Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="False" />
-                                </MultiDataTrigger.Conditions>
-                                <MultiDataTrigger.Setters>
-                                    <Setter Property="Effect">
-                                        <Setter.Value>
-                                            <BlurEffect Radius="2" />
-                                        </Setter.Value>
-                                    </Setter>
-                                </MultiDataTrigger.Setters>
-                            </MultiDataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Image.Style>
-            </Image>
+            <Button.Template>
+                <ControlTemplate>
+                    <Image Source="{Binding Image, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
+                        <Image.Style>
+                            <Style TargetType="Image">
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="False" />
+                                            <Condition Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="False" />
+                                        </MultiDataTrigger.Conditions>
+                                        <MultiDataTrigger.Setters>
+                                            <Setter Property="Effect">
+                                                <Setter.Value>
+                                                    <BlurEffect Radius="2" />
+                                                </Setter.Value>
+                                            </Setter>
+                                        </MultiDataTrigger.Setters>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Image.Style>
+                    </Image>
+                </ControlTemplate>
+            </Button.Template>
         </Button>
         <Border
             BorderBrush="{StaticResource SecondaryBrush}"

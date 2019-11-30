@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
+using MahApps.Metro;
 using Wabbajack.Common;
 
 namespace Wabbajack

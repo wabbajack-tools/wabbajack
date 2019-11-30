@@ -14,41 +14,59 @@
     mc:Ignorable="d">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="45" />
+            <RowDefinition Height="47" />
             <RowDefinition Height="4*" />
             <RowDefinition Height="*" MinHeight="150" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="5" />
             <ColumnDefinition Width="2*" />
-            <ColumnDefinition Width="1" />
+            <ColumnDefinition Width="5" />
             <ColumnDefinition Width="5*" />
             <ColumnDefinition Width="5" />
         </Grid.ColumnDefinitions>
-        <local:BorderFadeDownView
+        <local:HeatedBackgroundView
+            Grid.Row="0"
+            Grid.RowSpan="3"
+            Grid.Column="0"
+            Grid.ColumnSpan="5"
+            PercentCompleted="{Binding PercentCompleted}" />
+        <Border
+            x:Name="ModlistDetailsBackground"
             Grid.Row="1"
-            Grid.RowSpan="2"
-            Grid.Column="0" />
-        <local:BorderFadeDownView
+            Grid.Column="1"
+            Grid.ColumnSpan="2"
+            Margin="1,1,5,0"
+            Background="{StaticResource WindowBackgroundBrush}"
+            BorderThickness="0,0,1,1">
+            <Border.BorderBrush>
+                <LinearGradientBrush StartPoint="1,0" EndPoint="0,0">
+                    <GradientStop Offset="0.5" Color="{StaticResource DarkBackgroundColor}" />
+                    <GradientStop Offset="1" Color="{StaticResource WindowBackgroundColor}" />
+                </LinearGradientBrush>
+            </Border.BorderBrush>
+        </Border>
+        <Border
+            x:Name="ModlistDetailsHeatBorder"
             Grid.Row="1"
-            Grid.RowSpan="2"
-            Grid.Column="4" />
-        <local:DetailImageView
-            Title="{Binding CurrentModlistSettings.ModListName}"
+            Grid.Column="1"
+            Grid.ColumnSpan="2"
+            Margin="1,1,5,0"
+            BorderBrush="{StaticResource HeatedBorderBrush}"
+            BorderThickness="1"
+            Opacity="{Binding PercentCompleted}" />
+        <Border
             Grid.Row="1"
             Grid.Column="3"
-            Author="{Binding CurrentModlistSettings.AuthorText}"
-            BorderThickness="0"
-            Description="{Binding CurrentModlistSettings.Description}"
-            Image="{Binding Image}" />
-        <Rectangle
-            x:Name="ControlVerticalThinSeparator"
-            Grid.Row="1"
-            Grid.Column="2"
-            Width="1"
-            HorizontalAlignment="Center"
-            Fill="{StaticResource DarkBackgroundBrush}"
-            SnapsToDevicePixels="True" />
+            BorderBrush="{StaticResource BorderInterestBrush}"
+            BorderThickness="1,0,1,1">
+            <local:DetailImageView
+                Title="{Binding CurrentModlistSettings.ModListName}"
+                Author="{Binding CurrentModlistSettings.AuthorText}"
+                BorderThickness="0"
+                Description="{Binding CurrentModlistSettings.Description}"
+                Image="{Binding Image}" />
+        </Border>
         <!--  Comes after image area so shadow can overlay  -->
         <local:TopProgressView
             Title="{Binding CurrentModlistSettings.ModListName, Mode=OneWay}"
@@ -69,9 +87,8 @@
             Margin="12,5,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Background="{StaticResource ButtonBackground}"
             Command="{Binding BackCommand}"
-            Style="{StaticResource CircleButtonStyle}"
+            Style="{StaticResource IconCircleButtonStyle}"
             ToolTip="Back to main menu">
             <icon:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
         </Button>
@@ -140,31 +157,18 @@
                     ToolTip="Path to a readme file." />
             </StackPanel>
         </ScrollViewer>
-        <Rectangle
-            x:Name="ControlTopThinSeparator"
+        <Border
+            x:Name="BottomBarBackground"
             Grid.Row="2"
             Grid.Column="0"
             Grid.ColumnSpan="5"
-            Height="1"
-            Margin="25,0"
-            VerticalAlignment="Top"
-            Fill="{StaticResource DarkBackgroundBrush}"
-            SnapsToDevicePixels="True" />
+            Margin="5"
+            Background="{StaticResource WindowBackgroundBrush}" />
         <Grid
             Grid.Row="2"
             Grid.Column="0"
             Grid.ColumnSpan="5"
             MaxWidth="1000">
-            <Border
-                x:Name="ConfigurationBackgroundHaze"
-                Height="120"
-                Background="{StaticResource PrimaryVariantBrush}"
-                CornerRadius="50"
-                Opacity="0.10">
-                <Border.Effect>
-                    <BlurEffect Radius="45" />
-                </Border.Effect>
-            </Border>
             <Grid
                 Margin="35,0,35,0"
                 VerticalAlignment="Center"
@@ -236,7 +240,7 @@
             Grid.ColumnSpan="5"
             Margin="5"
             Visibility="{Binding Compiling, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
-            <local:LogCpuView />
+            <local:LogCpuView ProgressPercent="{Binding PercentCompleted}" />
         </Grid>
     </Grid>
 </UserControl>

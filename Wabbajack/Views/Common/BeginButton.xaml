@@ -56,7 +56,7 @@
                                     <Condition Binding="{Binding IsEnabled, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Value="True" />
                                 </MultiDataTrigger.Conditions>
                                 <MultiDataTrigger.Setters>
-                                    <Setter Property="Foreground" Value="#00ffe7" />
+                                    <Setter Property="Foreground" Value="{StaticResource IntenseSecondaryBrush}" />
                                 </MultiDataTrigger.Setters>
                             </MultiDataTrigger>
                         </Style.Triggers>
@@ -65,11 +65,9 @@
             </icon:PackIconMaterial>
             <Button.Style>
                 <Style BasedOn="{StaticResource CircleButtonStyle}" TargetType="Button">
-                    <Setter Property="Background" Value="#333333" />
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="True">
                             <Setter Property="BorderBrush" Value="{StaticResource SecondaryBrush}" />
-                            <Setter Property="Background" Value="#222222" />
                             <Setter Property="Effect">
                                 <Setter.Value>
                                     <DropShadowEffect

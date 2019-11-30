@@ -134,7 +134,7 @@ namespace Wabbajack.Lib
         public void GenerateReport()
         {
             string css;
-            using (var cssStream = Utils.GetResourceStream("Wabbajack.Lib.css-min.css"))
+            using (var cssStream = Utils.GetEmbeddedResourceStream("Wabbajack.Lib.css-min.css"))
             {
                 using (var reader = new StreamReader(cssStream))
                 {

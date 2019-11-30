@@ -60,7 +60,7 @@ namespace Wabbajack.Lib
             return null;
         }
 
-        public static BitmapImage BitmapImageFromResource(string name) => BitmapImageFromStream(Utils.GetResourceStream(name));
+        public static BitmapImage BitmapImageFromResource(string name) => BitmapImageFromStream(System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/" + name)).Stream);
 
         public static BitmapImage BitmapImageFromStream(Stream stream)
         {
