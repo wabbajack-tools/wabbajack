@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -8,7 +8,7 @@ using Microsoft.Win32;
 
 namespace Wabbajack.Common
 {
-    [DebuggerDisplay("{Name}")]
+    [DebuggerDisplay("{" + nameof(Name) + "}")]
     public class SteamGame
     {
         public int AppId;
@@ -94,15 +94,25 @@ namespace Wabbajack.Common
                 Directory.EnumerateFiles(p, "*.acf", SearchOption.TopDirectoryOnly).Do(f =>
                 {
                     var steamGame = new SteamGame();
+                    var valid = false;
                     File.ReadAllLines(f, Encoding.UTF8).Do(l =>
                     {
-                        if(l.Contains("\"appid\""))
-                            steamGame.AppId = int.Parse(GetVdfValue(l));
-                        if (l.Contains("\"name\""))
-                            steamGame.Name = GetVdfValue(l);
-                        if (l.Contains("\"installdir\""))
-                            steamGame.InstallDir = Path.Combine(p, "common", GetVdfValue(l));
+                        if (!l.Contains("\"appid\""))
+                            return;
+                        if (!l.Contains("\"name\""))
+                            return;
+                        if (!l.Contains("\"installdir\""))
+                            return;
+
+                        steamGame.AppId = int.Parse(GetVdfValue(l));
+                        steamGame.Name = GetVdfValue(l);
+                        steamGame.InstallDir = Path.Combine(p, "common", GetVdfValue(l));
+
+                        valid = true;
                     });
+
+                    if (!valid)
+                        return;
 
                     steamGame.Game = GameRegistry.Games.Values
                         .FirstOrDefault(g => 
