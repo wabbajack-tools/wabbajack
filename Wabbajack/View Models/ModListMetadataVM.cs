@@ -85,7 +85,6 @@ namespace Wabbajack
             {
                 var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
                 downloader.Download(new Archive{ Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0}, Location);
-                DownloadStatusText = "Hashing";
                 Location.FileHashCached();
                 sub.Dispose();
                 tcs.SetResult(true);

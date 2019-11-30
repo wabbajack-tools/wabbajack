@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 1.0 beta 3 - 11/30/2019
+* Reworked much of the UI into a single window
+* Can download modlists directly through the single-window UI
+* Removed hard error on lack of disk space. We need to think about how we calculate required space
+
+
 #### Version - 1.0 beta 2 - 11/23/2019
 * Optimized install process, if you install on a directory that already contains an install
   the minimal amount of work will be done to update the install, instead of doing a complete
