@@ -79,6 +79,7 @@ namespace Wabbajack.Common
         public void Shutdown()
         {
             Threads.Do(th => th.Abort());
+            Threads.Do(th => th.Join());
         }
 
         public void Dispose()
