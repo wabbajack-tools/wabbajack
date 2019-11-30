@@ -5,9 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:Wabbajack"
-    xmlns:ms="clr-namespace:Wabbajack.View_Models"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     d:DataContext="{d:DesignInstance local:ModeSelectionVM}"
     d:DesignHeight="700"
     d:DesignWidth="1000"
@@ -47,7 +45,8 @@
                 Margin="15,0"
                 Background="Transparent"
                 BorderBrush="Transparent"
-                ClipToBounds="False">
+                ClipToBounds="False"
+                Command="{Binding BrowseCommand}">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}">

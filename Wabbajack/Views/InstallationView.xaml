@@ -22,7 +22,7 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="45" />
+            <RowDefinition Height="47" />
             <RowDefinition Height="4*" />
             <RowDefinition Height="*" MinHeight="150" />
         </Grid.RowDefinitions>
@@ -228,9 +228,8 @@
             Margin="7,5,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Background="{StaticResource ButtonBackground}"
             Command="{Binding BackCommand}"
-            Style="{StaticResource CircleButtonStyle}"
+            Style="{StaticResource IconCircleButtonStyle}"
             ToolTip="Back to main menu">
             <icon:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
         </Button>

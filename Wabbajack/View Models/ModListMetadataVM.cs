@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,121 +11,86 @@ using System.Windows;
 using System.Windows.Input;
 using Alphaleonis.Win32.Filesystem;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
 
-namespace Wabbajack.View_Models
+namespace Wabbajack
 {
-    public enum DownloadStatus
-    {
-        NotDownloaded,
-        Downloading,
-        Downloaded
-    }
     public class ModListMetadataVM : ViewModel
     {
-
-
         public ModlistMetadata Metadata { get; }
-        private ModeSelectionVM _parent;
+        private ModListGalleryVM _parent;
 
+        public ICommand OpenWebsiteCommand { get; }
+        public ICommand ExecuteCommand { get; }
 
-        public ModListMetadataVM(ModeSelectionVM parent, ModlistMetadata metadata)
+        private readonly ObservableAsPropertyHelper<bool> _Exists;
+        public bool Exists => _Exists.Value;
+
+        public string Location => Path.Combine(Consts.ModListDownloadFolder, Metadata.Links.MachineURL + ExtensionManager.Extension);
+
+        [Reactive]
+        public double ProgressPercent { get; private set; }
+
+        public ModListMetadataVM(ModListGalleryVM parent, ModlistMetadata metadata)
         {
             _parent = parent;
             Metadata = metadata;
-            Click = ReactiveCommand.Create(() => this.DoClick());
+            OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start($"https://www.wabbajack.org/modlist/{Metadata.Links.MachineURL}"));
+            ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, bool>((unit) => 
+                Observable.Return(unit)
+                .WithLatestFrom(
+                    this.WhenAny(x => x.Exists),
+                    (_, e) => e)
+                // Do any download work on background thread
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .SelectTask(async (exists) =>
+                {
+                    if (!exists)
+                    {
+                        await Download();
+                        // Return an updated check on exists
+                        return File.Exists(Location);
+                    }
+                    return exists;
+                })
+                // Do any install page swap over on GUI thread
+                .ObserveOnGuiThread()
+                .Do(exists =>
+                {
+                    if (exists)
+                    {
+                        _parent.MWVM.OpenInstaller(Path.GetFullPath(Location));
+                    }
+                }));
+
+            _Exists = Observable.Interval(TimeSpan.FromSeconds(0.5))
+                .Unit()
+                .StartWith(Unit.Default)
+                .Select(_ => File.Exists(Location))
+                .ToProperty(this, nameof(Exists));
         }
 
-        private void DoClick()
+        private Task Download()
         {
-            switch (Status)
-            {
-                case DownloadStatus.NotDownloaded:
-                    Download();
-                    break;
-                case DownloadStatus.Downloading:
-                    break;
-                case DownloadStatus.Downloaded:
-                    Install();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        private void Install()
-        {
-            _parent.OpenInstaller(Location);
-        }
-
-        private void Download()
-        {
-            IsDownloading = true;
-
+            ProgressPercent = 0d;
             var queue = new WorkQueue(1);
-            var sub = queue.Status.Select(i => i.ProgressPercent).ToProperty(this, x => x.DownloadProgress);
+            var sub = queue.Status.Select(i => i.ProgressPercent)
+                .Subscribe(percent => ProgressPercent = percent);
+            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
             queue.QueueTask(() =>
             {
                 var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
                 downloader.Download(new Archive{ Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0}, Location);
                 Location.FileHashCached();
-                IsDownloading = false;
                 sub.Dispose();
+                tcs.SetResult(true);
             });
+
+            return tcs.Task;
         }
-
-        private void UpdateDownloadStatuses()
-        {
-            this.RaisePropertyChanged("Status");
-            this.RaisePropertyChanged("DownloadButtonVisibility");
-            this.RaisePropertyChanged("DownloadProgressVisibility");
-            this.RaisePropertyChanged("InstallButtonVisibility");
-        }
-
-        public string Location => Path.Combine(Consts.ModListDownloadFolder, Metadata.Links.MachineURL + ExtensionManager.Extension);
-
-        private bool _isDownloading = false;
-        public bool IsDownloading
-        {
-            get => _isDownloading;
-            private set
-            {
-                RaiseAndSetIfChanged(ref _isDownloading, value);
-                UpdateDownloadStatuses();
-            }
-        }
-
-
-        private float _downloadProgress;
-
-        public float DownloadProgress
-        {
-            get => _downloadProgress;
-            private set
-            {
-                RaiseAndSetIfChanged(ref _downloadProgress, value);
-            }
-        }
-
-        public DownloadStatus Status
-        {
-
-            get
-            {
-                if (IsDownloading) return DownloadStatus.Downloading;
-                if (!File.Exists(Location)) return DownloadStatus.NotDownloaded;
-                return Metadata.NeedsDownload(Location) ? DownloadStatus.NotDownloaded : DownloadStatus.Downloaded;
-            }
-        }
-
-        public Visibility DownloadButtonVisibility => Status == DownloadStatus.NotDownloaded ? Visibility.Visible : Visibility.Collapsed;
-        public Visibility DownloadProgressVisibility => Status == DownloadStatus.Downloading ? Visibility.Visible : Visibility.Collapsed;
-        public Visibility InstallButtonVisibility => Status == DownloadStatus.Downloaded ? Visibility.Visible : Visibility.Collapsed;
-
-        public ICommand Click { get; }
-
     }
 }

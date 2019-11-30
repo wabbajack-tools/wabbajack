@@ -42,6 +42,14 @@ namespace Wabbajack
         public static readonly DependencyProperty OverhangShadowProperty = DependencyProperty.Register(nameof(OverhangShadow), typeof(bool), typeof(TopProgressView),
              new FrameworkPropertyMetadata(true));
 
+        public bool ShadowMargin
+        {
+            get => (bool)GetValue(ShadowMarginProperty);
+            set => SetValue(ShadowMarginProperty, value);
+        }
+        public static readonly DependencyProperty ShadowMarginProperty = DependencyProperty.Register(nameof(ShadowMargin), typeof(bool), typeof(TopProgressView),
+             new FrameworkPropertyMetadata(true));
+
         private readonly ObservableAsPropertyHelper<double> _ProgressOpacityPercent;
         public double ProgressOpacityPercent => _ProgressOpacityPercent.Value;
 

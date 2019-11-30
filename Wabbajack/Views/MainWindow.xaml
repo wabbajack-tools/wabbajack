@@ -30,6 +30,9 @@
             <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
                 <local:ModeSelectionView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
+                <local:ModListGalleryView />
+            </DataTemplate>
         </ContentPresenter.Resources>
     </ContentPresenter>
 </mahapps:MetroWindow>

@@ -19,7 +19,6 @@
         <Rectangle
             Grid.Row="2"
             Height="25"
-            Margin="6,0"
             VerticalAlignment="Top"
             IsHitTestVisible="False"
             Visibility="{Binding OverhangShadow, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityConverter}}">
@@ -29,6 +28,15 @@
                     <GradientStop Offset="1" Color="#00000000" />
                 </LinearGradientBrush>
             </Rectangle.Fill>
+            <Rectangle.Style>
+                <Style TargetType="Rectangle">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ShadowMargin, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="True">
+                            <Setter Property="Margin" Value="6,0" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Rectangle.Style>
         </Rectangle>
         <Rectangle Grid.Row="1" Fill="{StaticResource BackgroundBrush}" />
         <mahapps:MetroProgressBar
@@ -91,8 +99,14 @@
                 VerticalAlignment="Center"
                 FontFamily="Lucida Sans"
                 FontWeight="Black"
+                Foreground="{StaticResource ComplementaryBrush}"
                 Text="{Binding StatePrefixTitle, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-                TextAlignment="Right" />
+                TextAlignment="Right"
+                Visibility="{Binding StatePrefixTitle, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource IsNotNullVisibilityConverter}}" />
+            <Rectangle
+                Grid.Column="0"
+                Width="50"
+                Visibility="{Binding StatePrefixTitle, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource IsNotNullVisibilityConverter}, ConverterParameter=False}" />
             <TextBlock
                 Grid.Column="1"
                 Margin="15,0,0,0"

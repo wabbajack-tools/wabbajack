@@ -169,6 +169,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="View Models\ModListGalleryVM.cs" />
     <Compile Include="View Models\ModListMetadataVM.cs" />
     <Compile Include="Views\Common\HeatedBackgroundView.xaml.cs">
       <DependentUpon>HeatedBackgroundView.xaml</DependentUpon>

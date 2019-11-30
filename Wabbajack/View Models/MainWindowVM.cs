@@ -28,6 +28,7 @@ namespace Wabbajack
 
         public readonly Lazy<CompilerVM> Compiler;
         public readonly Lazy<InstallerVM> Installer;
+        public readonly Lazy<ModListGalleryVM> Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
@@ -36,6 +37,7 @@ namespace Wabbajack
             Settings = settings;
             Installer = new Lazy<InstallerVM>(() => new InstallerVM(this));
             Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
+            Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(this));
             ModeSelectionVM = new ModeSelectionVM(this);
 
             // Set up logging
@@ -73,6 +75,15 @@ namespace Wabbajack
 
             modlistPath = args[2];
             return true;
+        }
+
+        public void OpenInstaller(string path)
+        {
+            if (path == null) return;
+            var installer = Installer.Value;
+            Settings.Installer.LastInstalledListLocation = path;
+            ActivePane = installer;
+            installer.ModListPath.TargetPath = path;
         }
     }
 }

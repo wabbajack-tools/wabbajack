@@ -1,4 +1,4 @@
-﻿<ResourceDictionary
+<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -45,7 +45,9 @@
     <Color x:Key="DarkerSecondary">#095952</Color>
     <Color x:Key="OffWhiteSeconday">#cef0ed</Color>
     <Color x:Key="LightSecondary">#8cede5</Color>
+    <Color x:Key="IntenseSecondary">#00ffe7</Color>
     <Color x:Key="Complementary">#C7FC86</Color>
+    <Color x:Key="IntenseComplementary">#abf74d</Color>
     <Color x:Key="Analogous1">#868CFC</Color>
     <Color x:Key="Analogous2">#F686FC</Color>
     <Color x:Key="Triadic1">#FC86C7</Color>
@@ -115,7 +117,9 @@
     <SolidColorBrush x:Key="DarkerSecondaryBrush" Color="{StaticResource DarkerSecondary}" />
     <SolidColorBrush x:Key="OffWhiteSecondayBrush" Color="{StaticResource OffWhiteSeconday}" />
     <SolidColorBrush x:Key="LightSecondaryBrush" Color="{StaticResource LightSecondary}" />
+    <SolidColorBrush x:Key="IntenseSecondaryBrush" Color="{StaticResource IntenseSecondary}" />
     <SolidColorBrush x:Key="ComplementaryBrush" Color="{StaticResource Complementary}" />
+    <SolidColorBrush x:Key="IntenseComplementaryBrush" Color="{StaticResource IntenseComplementary}" />
     <SolidColorBrush x:Key="Analogous1Brush" Color="{StaticResource Analogous1}" />
     <SolidColorBrush x:Key="Analogous2Brush" Color="{StaticResource Analogous2}" />
     <SolidColorBrush x:Key="Triadic1Brush" Color="{StaticResource Triadic1}" />
@@ -1516,9 +1520,31 @@
         BasedOn="{StaticResource MahApps.Metro.Styles.MetroCircleButtonStyle}"
         TargetType="ButtonBase">
         <Setter Property="Focusable" Value="False" />
+        <Setter Property="Background" Value="#333333" />
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+                <Setter Property="Background" Value="#222222" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style
+        x:Key="IconCircleButtonStyle"
+        BasedOn="{StaticResource MahApps.Metro.Styles.MetroCircleButtonStyle}"
+        TargetType="ButtonBase">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+                <Setter Property="Background" Value="#222222" />
+            </Trigger>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="#333333" />
+                <Setter Property="BorderBrush" Value="{StaticResource GrayBrush7}" />
+                <Setter Property="Foreground" Value="{StaticResource IntenseComplementaryBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>
