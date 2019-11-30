@@ -794,7 +794,7 @@ namespace Wabbajack.Common
         {
             if (string.IsNullOrWhiteSpace(path))
             {
-                return ErrorResponse.Fail("Path was empty.");
+                return ErrorResponse.Fail("Path is empty.");
             }
             try
             {
@@ -819,7 +819,7 @@ namespace Wabbajack.Common
         {
             if (string.IsNullOrWhiteSpace(path))
             {
-                return ErrorResponse.Fail("Path was empty");
+                return ErrorResponse.Fail("Path is empty");
             }
             try
             {
