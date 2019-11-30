@@ -18,9 +18,17 @@ namespace Wabbajack
         public MainWindow()
         {
             _settings = MainSettings.LoadSettings();
+            Left = _settings.PosX;
+            Top = _settings.PosY;
             _mwvm = new MainWindowVM(this, _settings);
             DataContext = _mwvm;
             Wabbajack.Common.Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
+
+            this.Loaded += (sender, e) =>
+            {
+                Width = _settings.Width;
+                Height = _settings.Height;
+            };
         }
 
         internal bool ExitWhenClosing = true;
@@ -28,6 +36,10 @@ namespace Wabbajack
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             _mwvm.Dispose();
+            _settings.PosX = Left;
+            _settings.PosY = Top;
+            _settings.Width = Width;
+            _settings.Height = Height;
             MainSettings.SaveSettings(_settings);
             if (ExitWhenClosing)
             {
