@@ -8,15 +8,13 @@ using System.Windows.Input;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.View_Models;
 
 namespace Wabbajack
 {
     public class ModeSelectionVM : ViewModel
     {
-        public ObservableCollection<ModlistMetadata> ModLists { get; } = new ObservableCollection<ModlistMetadata>(ModlistMetadata.LoadFromGithub());
-
-        [Reactive]
-        public ModlistMetadata SelectedModList { get; set; }
+        public ObservableCollection<ModListMetadataVM> ModLists { get; }
 
         private MainWindowVM _mainVM;
         public ICommand DownloadAndInstallCommand { get; }
@@ -26,6 +24,9 @@ namespace Wabbajack
         public ModeSelectionVM(MainWindowVM mainVM)
         {
             _mainVM = mainVM;
+
+            ModLists = new ObservableCollection<ModListMetadataVM>(ModlistMetadata.LoadFromGithub().Select(m => new ModListMetadataVM(this, m)));
+
             InstallCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
@@ -43,42 +44,15 @@ namespace Wabbajack
                 {
                     mainVM.ActivePane = mainVM.Compiler.Value;
                 });
-
-            DownloadAndInstallCommand = ReactiveCommand.Create(
-                canExecute: this.WhenAny(x => x.SelectedModList)
-                    .Select(x => x != null)
-                    .ObserveOnGuiThread(),
-                execute: () =>
-                {
-                    OpenInstaller(Download());
-                });
         }
 
-        private void OpenInstaller(string path)
+        internal void OpenInstaller(string path)
         {
             if (path == null) return;
             var installer = _mainVM.Installer.Value;
             _mainVM.Settings.Installer.LastInstalledListLocation = path;
             _mainVM.ActivePane = installer;
             installer.ModListPath.TargetPath = path;
-        }
-
-        private string Download()
-        {
-            if (!Directory.Exists(Consts.ModListDownloadFolder))
-                Directory.CreateDirectory(Consts.ModListDownloadFolder);
-
-            string dest = Path.Combine(Consts.ModListDownloadFolder, SelectedModList.Links.MachineURL + ExtensionManager.Extension);
-
-            var window = new DownloadWindow(SelectedModList.Links.Download,
-                                           SelectedModList.Title,
-                                               SelectedModList.Links.DownloadMetadata?.Size ?? 0,
-                                               dest);
-            window.ShowDialog();
-
-            if (window.Result == DownloadWindow.WindowResult.Completed)
-                return dest;
-            return null;
         }
     }
 }
