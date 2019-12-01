@@ -83,17 +83,17 @@ namespace Wabbajack.Lib
             if (Directory.Exists(ModListOutputFolder)) Utils.DeleteDirectory(ModListOutputFolder);
             Directory.CreateDirectory(ModListOutputFolder);
             
-            IEnumerable<RawSourceFile> vortexStagingFiles = Directory.EnumerateFiles(StagingFolder, "*", SearchOption.AllDirectories)
+            var vortexStagingFiles = Directory.EnumerateFiles(StagingFolder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists() && p != StagingMarkerName)
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     {Path = p.RelativeTo(StagingFolder)});
             
-            IEnumerable<RawSourceFile> vortexDownloads = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.AllDirectories)
+            var vortexDownloads = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     {Path = p.RelativeTo(DownloadsFolder)});
 
-            IEnumerable<RawSourceFile> gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
+            var gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
@@ -125,7 +125,7 @@ namespace Wabbajack.Lib
             Info($"Found {AllFiles.Count} files to build into mod list");
 
             Info("Verifying destinations");
-            List<IGrouping<string, RawSourceFile>> dups = AllFiles.GroupBy(f => f.Path)
+            var duplicates = AllFiles.GroupBy(f => f.Path)
                 .Where(fs => fs.Count() > 1)
                 .Select(fs =>
                 {
@@ -133,15 +133,15 @@ namespace Wabbajack.Lib
                     return fs;
                 }).ToList();
 
-            if (dups.Count > 0)
+            if (duplicates.Count > 0)
             {
-                Error($"Found {dups.Count} duplicates, exiting");
+                Error($"Found {duplicates.Count} duplicates, exiting");
             }
 
-            IEnumerable<ICompilationStep> stack = MakeStack();
+            var stack = MakeStack();
 
             Info("Running Compilation Stack");
-            List<Directive> results = AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f)).ToList();
+            var results = AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f)).ToList();
 
             IEnumerable<NoMatch> noMatch = results.OfType<NoMatch>().ToList();
             Info($"No match for {noMatch.Count()} files");
@@ -259,40 +259,56 @@ namespace Wabbajack.Lib
             var nexusClient = new NexusApiClient();
 
             Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)
-                .Where(f => File.Exists(f) && Path.GetExtension(f) != ".meta" && !File.Exists(f+".meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
+                .Where(File.Exists)
                 .Do(f =>
                 {
-                    Utils.Log($"Trying to create meta file for {Path.GetFileName(f)}");
-                    var metaString = $"[General]\n" +
-                                     $"repository=Nexus\n" +
-                                     $"installed=true\n" +
-                                     $"uninstalled=false\n" +
-                                     $"paused=false\n" +
-                                     $"removed=false\n" +
-                                     $"gameName={GameName}\n";
-                    string hash;
-                    using(var md5 = MD5.Create())
-                    using (var stream = File.OpenRead(f))
+                    if (Path.GetExtension(f) != ".meta" && !File.Exists($"{f}.meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
                     {
-                        Utils.Log($"Calculating hash for {Path.GetFileName(f)}");
-                        byte[] cH = md5.ComputeHash(stream);
-                        hash = BitConverter.ToString(cH).Replace("-", "").ToLowerInvariant();
-                        Utils.Log($"Hash is {hash}");
-                    }
+                        Utils.Log($"Trying to create meta file for {Path.GetFileName(f)}");
+                        var metaString = "[General]\n" +
+                                         "repository=Nexus\n" +
+                                         "installed=true\n" +
+                                         "uninstalled=false\n" +
+                                         "paused=false\n" +
+                                         "removed=false\n" +
+                                         $"gameName={GameName}\n";
+                        string hash;
+                        using(var md5 = MD5.Create())
+                        using (var stream = File.OpenRead(f))
+                        {
+                            Utils.Log($"Calculating hash for {Path.GetFileName(f)}");
+                            var cH = md5.ComputeHash(stream);
+                            hash = BitConverter.ToString(cH).Replace("-", "").ToLowerInvariant();
+                            Utils.Log($"Hash is {hash}");
+                        }
 
-                    List<MD5Response> md5Response = nexusClient.GetModInfoFromMD5(Game, hash);
-                    if (md5Response.Count >= 1)
-                    {
-                        var modInfo = md5Response[0].mod;
-                        metaString += $"modID={modInfo.mod_id}\ndescription={NexusApiUtils.FixupSummary(modInfo.summary)}\n" +
-                                      $"modName={modInfo.name}\nfileID={md5Response[0].file_details.file_id}";
-                        File.WriteAllText(f+".meta",metaString, Encoding.UTF8);
+                        var md5Response = nexusClient.GetModInfoFromMD5(Game, hash);
+                        if (md5Response.Count >= 1)
+                        {
+                            var modInfo = md5Response[0].mod;
+                            metaString += $"modID={modInfo.mod_id}\n" +
+                                          $"modName={modInfo.name}\nfileID={md5Response[0].file_details.file_id}";
+                            File.WriteAllText(f+".meta",metaString, Encoding.UTF8);
+                        }
+                        else
+                        {
+                            Error("Error while getting information from NexusMods via MD5 hash!");
+                        }
                     }
                     else
                     {
-                        Error("Error while getting information from nexusmods via MD5 hash!");
+                        if (Path.GetExtension(f) != ".meta" ||
+                            ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
+                            return;
+
+                        Utils.Log($"File {f} is not in ActiveArchives, checking if the archive is not from the Nexus");
+                        var lines = File.ReadAllLines(f);
+                        if (lines.Length == 0 || !lines.Any(line => line.Contains("directURL=")))
+                            return;
+
+                        Utils.Log($"File {f} appears to not come from the Nexus, adding to ActiveArchives");
+                        ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
                     }
-                    
                 });
         }
 
@@ -303,7 +319,7 @@ namespace Wabbajack.Lib
             if (File.Exists(userConfig))
                 return Serialization.Deserialize(File.ReadAllText(userConfig), this);
 
-            IEnumerable<ICompilationStep> stack = MakeStack();
+            var stack = MakeStack();
 
             File.WriteAllText(Path.Combine(s, "_current_compilation_stack.yml"),
                 Serialization.Serialize(stack));
