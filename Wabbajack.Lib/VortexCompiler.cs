@@ -263,12 +263,12 @@ namespace Wabbajack.Lib
                 .Do(f =>
                 {
                     Utils.Log($"Trying to create meta file for {Path.GetFileName(f)}");
-                    var metaString = $"[General]\n" +
-                                     $"repository=Nexus\n" +
-                                     $"installed=true\n" +
-                                     $"uninstalled=false\n" +
-                                     $"paused=false\n" +
-                                     $"removed=false\n" +
+                    var metaString = "[General]\n" +
+                                     "repository=Nexus\n" +
+                                     "installed=true\n" +
+                                     "uninstalled=false\n" +
+                                     "paused=false\n" +
+                                     "removed=false\n" +
                                      $"gameName={GameName}\n";
                     string hash;
                     using(var md5 = MD5.Create())
@@ -280,17 +280,17 @@ namespace Wabbajack.Lib
                         Utils.Log($"Hash is {hash}");
                     }
 
-                    List<MD5Response> md5Response = nexusClient.GetModInfoFromMD5(Game, hash);
+                    var md5Response = nexusClient.GetModInfoFromMD5(Game, hash);
                     if (md5Response.Count >= 1)
                     {
                         var modInfo = md5Response[0].mod;
-                        metaString += $"modID={modInfo.mod_id}\ndescription={NexusApiUtils.FixupSummary(modInfo.summary)}\n" +
+                        metaString += $"modID={modInfo.mod_id}\n" +
                                       $"modName={modInfo.name}\nfileID={md5Response[0].file_details.file_id}";
                         File.WriteAllText(f+".meta",metaString, Encoding.UTF8);
                     }
                     else
                     {
-                        Error("Error while getting information from nexusmods via MD5 hash!");
+                        Error("Error while getting information from NexusMods via MD5 hash!");
                     }
                     
                 });
