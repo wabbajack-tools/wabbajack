@@ -83,17 +83,17 @@ namespace Wabbajack.Lib
             if (Directory.Exists(ModListOutputFolder)) Utils.DeleteDirectory(ModListOutputFolder);
             Directory.CreateDirectory(ModListOutputFolder);
             
-            IEnumerable<RawSourceFile> vortexStagingFiles = Directory.EnumerateFiles(StagingFolder, "*", SearchOption.AllDirectories)
+            var vortexStagingFiles = Directory.EnumerateFiles(StagingFolder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists() && p != StagingMarkerName)
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     {Path = p.RelativeTo(StagingFolder)});
             
-            IEnumerable<RawSourceFile> vortexDownloads = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.AllDirectories)
+            var vortexDownloads = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     {Path = p.RelativeTo(DownloadsFolder)});
 
-            IEnumerable<RawSourceFile> gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
+            var gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
@@ -125,7 +125,7 @@ namespace Wabbajack.Lib
             Info($"Found {AllFiles.Count} files to build into mod list");
 
             Info("Verifying destinations");
-            List<IGrouping<string, RawSourceFile>> dups = AllFiles.GroupBy(f => f.Path)
+            var duplicates = AllFiles.GroupBy(f => f.Path)
                 .Where(fs => fs.Count() > 1)
                 .Select(fs =>
                 {
@@ -133,15 +133,15 @@ namespace Wabbajack.Lib
                     return fs;
                 }).ToList();
 
-            if (dups.Count > 0)
+            if (duplicates.Count > 0)
             {
-                Error($"Found {dups.Count} duplicates, exiting");
+                Error($"Found {duplicates.Count} duplicates, exiting");
             }
 
-            IEnumerable<ICompilationStep> stack = MakeStack();
+            var stack = MakeStack();
 
             Info("Running Compilation Stack");
-            List<Directive> results = AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f)).ToList();
+            var results = AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f)).ToList();
 
             IEnumerable<NoMatch> noMatch = results.OfType<NoMatch>().ToList();
             Info($"No match for {noMatch.Count()} files");
@@ -275,7 +275,7 @@ namespace Wabbajack.Lib
                     using (var stream = File.OpenRead(f))
                     {
                         Utils.Log($"Calculating hash for {Path.GetFileName(f)}");
-                        byte[] cH = md5.ComputeHash(stream);
+                        var cH = md5.ComputeHash(stream);
                         hash = BitConverter.ToString(cH).Replace("-", "").ToLowerInvariant();
                         Utils.Log($"Hash is {hash}");
                     }
@@ -303,7 +303,7 @@ namespace Wabbajack.Lib
             if (File.Exists(userConfig))
                 return Serialization.Deserialize(File.ReadAllText(userConfig), this);
 
-            IEnumerable<ICompilationStep> stack = MakeStack();
+            var stack = MakeStack();
 
             File.WriteAllText(Path.Combine(s, "_current_compilation_stack.yml"),
                 Serialization.Serialize(stack));
