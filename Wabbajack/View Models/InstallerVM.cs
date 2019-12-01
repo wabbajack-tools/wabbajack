@@ -328,10 +328,11 @@ namespace Wabbajack
             
             try
             {
-                installer = new MO2Installer(ModListPath.TargetPath, ModList.SourceModList, Location.TargetPath)
-                {
-                    DownloadFolder = DownloadLocation.TargetPath
-                };
+                installer = new MO2Installer(
+                    archive: ModListPath.TargetPath,
+                    modList: ModList.SourceModList,
+                    outputFolder: Location.TargetPath,
+                    downloadFolder: DownloadLocation.TargetPath);
             }
             catch (Exception ex)
             {
