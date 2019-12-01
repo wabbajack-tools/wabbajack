@@ -47,8 +47,8 @@ namespace Wabbajack.Lib.Downloaders
                     string SteamModContentFolder = Path.Combine(SteamDirectory, "steamapps", "workshop", "content", "72850", SteamWorkshopId);
                     string SteamModDownloadFolder = Path.Combine(SteamDirectory, "steamapps", "workshop", "downloads", "72850", SteamWorkshopId);
 
-                    // Not sure on how to do this in the most optimal way. Waiting in a while loop for the downloads to be done.
-                    while (Directory.Exists(SteamModDownloadFolder)) { }
+                    // Not sure on how to do this in the most optimal way. Checking every second if the downloads are done yet, after which they are moved.
+                        while (Directory.Exists(SteamModDownloadFolder)) { System.Threading.Thread.Sleep(1000); }
 
                     Utils.Log($"Moving Steam Workshop item {SteamWorkshopId} to {destination}");
                     Directory.Move(SteamModContentFolder, destination);
