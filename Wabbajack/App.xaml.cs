@@ -14,19 +14,7 @@ namespace Wabbajack
     {
         public App()
         {
-            // Wire any unhandled crashing exceptions to log before exiting
-            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
-            {
-                // Don't do any special logging side effects
-                Utils.Log("Uncaught error:");
-                Utils.Log(((Exception)e.ExceptionObject).ExceptionToString());
-            };
-
-            var appPath = Assembly.GetExecutingAssembly().Location;
-            if (!ExtensionManager.IsAssociated() || ExtensionManager.NeedsUpdating(appPath))
-            {
-                ExtensionManager.Associate(appPath);
-            }
+            // Initialization in MainWindow ctor
         }
     }
 }
