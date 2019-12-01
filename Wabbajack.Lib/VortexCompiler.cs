@@ -259,40 +259,56 @@ namespace Wabbajack.Lib
             var nexusClient = new NexusApiClient();
 
             Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)
-                .Where(f => File.Exists(f) && Path.GetExtension(f) != ".meta" && !File.Exists(f+".meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
+                .Where(File.Exists)
                 .Do(f =>
                 {
-                    Utils.Log($"Trying to create meta file for {Path.GetFileName(f)}");
-                    var metaString = "[General]\n" +
-                                     "repository=Nexus\n" +
-                                     "installed=true\n" +
-                                     "uninstalled=false\n" +
-                                     "paused=false\n" +
-                                     "removed=false\n" +
-                                     $"gameName={GameName}\n";
-                    string hash;
-                    using(var md5 = MD5.Create())
-                    using (var stream = File.OpenRead(f))
+                    if (Path.GetExtension(f) != ".meta" && !File.Exists($"{f}.meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
                     {
-                        Utils.Log($"Calculating hash for {Path.GetFileName(f)}");
-                        var cH = md5.ComputeHash(stream);
-                        hash = BitConverter.ToString(cH).Replace("-", "").ToLowerInvariant();
-                        Utils.Log($"Hash is {hash}");
-                    }
+                        Utils.Log($"Trying to create meta file for {Path.GetFileName(f)}");
+                        var metaString = "[General]\n" +
+                                         "repository=Nexus\n" +
+                                         "installed=true\n" +
+                                         "uninstalled=false\n" +
+                                         "paused=false\n" +
+                                         "removed=false\n" +
+                                         $"gameName={GameName}\n";
+                        string hash;
+                        using(var md5 = MD5.Create())
+                        using (var stream = File.OpenRead(f))
+                        {
+                            Utils.Log($"Calculating hash for {Path.GetFileName(f)}");
+                            var cH = md5.ComputeHash(stream);
+                            hash = BitConverter.ToString(cH).Replace("-", "").ToLowerInvariant();
+                            Utils.Log($"Hash is {hash}");
+                        }
 
-                    var md5Response = nexusClient.GetModInfoFromMD5(Game, hash);
-                    if (md5Response.Count >= 1)
-                    {
-                        var modInfo = md5Response[0].mod;
-                        metaString += $"modID={modInfo.mod_id}\n" +
-                                      $"modName={modInfo.name}\nfileID={md5Response[0].file_details.file_id}";
-                        File.WriteAllText(f+".meta",metaString, Encoding.UTF8);
+                        var md5Response = nexusClient.GetModInfoFromMD5(Game, hash);
+                        if (md5Response.Count >= 1)
+                        {
+                            var modInfo = md5Response[0].mod;
+                            metaString += $"modID={modInfo.mod_id}\n" +
+                                          $"modName={modInfo.name}\nfileID={md5Response[0].file_details.file_id}";
+                            File.WriteAllText(f+".meta",metaString, Encoding.UTF8);
+                        }
+                        else
+                        {
+                            Error("Error while getting information from NexusMods via MD5 hash!");
+                        }
                     }
                     else
                     {
-                        Error("Error while getting information from NexusMods via MD5 hash!");
+                        if (Path.GetExtension(f) != ".meta" ||
+                            ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
+                            return;
+
+                        Utils.Log($"File {f} is not in ActiveArchives, checking if the archive is not from the Nexus");
+                        var lines = File.ReadAllLines(f);
+                        if (lines.Length == 0 || !lines.Any(line => line.Contains("directURL=")))
+                            return;
+
+                        Utils.Log($"File {f} appears to not come from the Nexus, adding to ActiveArchives");
+                        ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
                     }
-                    
                 });
         }
 
