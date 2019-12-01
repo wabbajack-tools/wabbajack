@@ -24,11 +24,15 @@ namespace Wabbajack
         private Subject<Unit> _saveSignal = new Subject<Unit>();
         public IObservable<Unit> SaveSignal => _saveSignal;
 
-        public static MainSettings LoadSettings()
+        public static bool TryLoadTypicalSettings(out MainSettings settings)
         {
-            string[] args = Environment.GetCommandLineArgs();
-            if (!File.Exists(_filename) || args.Length > 1 && args[1] == "nosettings") return new MainSettings();
-            return JsonConvert.DeserializeObject<MainSettings>(File.ReadAllText(_filename));
+            if (!File.Exists(_filename))
+            {
+                settings = default;
+                return false;
+            }
+            settings = JsonConvert.DeserializeObject<MainSettings>(File.ReadAllText(_filename));
+            return true;
         }
 
         public static void SaveSettings(MainSettings settings)
