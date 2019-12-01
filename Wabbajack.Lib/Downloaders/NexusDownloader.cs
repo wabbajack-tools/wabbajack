@@ -100,10 +100,21 @@ namespace Wabbajack.Lib.Downloaders
             {
                 try
                 {
-                    var modfiles = new NexusApiClient().GetModFiles(GameRegistry.GetByMO2ArchiveName(GameName).Game, int.Parse(ModID));
-                    var fileid = ulong.Parse(FileID);
-                    var found = modfiles.files
-                        .FirstOrDefault(file => file.file_id == fileid && file.category_name != null);
+                    var gameMeta = GameRegistry.GetByMO2ArchiveName(GameName) ?? GameRegistry.GetByNexusName(GameName);
+                    if (gameMeta == null)
+                        return false;
+
+                    var game = gameMeta.Game;
+                    if (!int.TryParse(ModID, out var modID))
+                        return false;
+
+                    var modFiles = new NexusApiClient().GetModFiles(game, modID);
+
+                    if (!ulong.TryParse(FileID, out var fileID))
+                        return false;
+
+                    var found = modFiles.files
+                        .FirstOrDefault(file => file.file_id == fileID && file.category_name != null);
                     return found != null;
                 }
                 catch (Exception ex)
