@@ -309,7 +309,7 @@
                             Grid.Column="2"
                             Height="30"
                             VerticalAlignment="Center"
-                            DataContext="{Binding ModListPath}"
+                            DataContext="{Binding ModListLocation}"
                             FontSize="14" />
                         <TextBlock
                             Grid.Row="2"
@@ -324,7 +324,7 @@
                             Grid.Column="2"
                             Height="30"
                             VerticalAlignment="Center"
-                            DataContext="{Binding Location}"
+                            DataContext="{Binding InstallationLocation}"
                             FontSize="14" />
                         <TextBlock
                             Grid.Row="3"

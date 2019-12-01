@@ -1,4 +1,4 @@
-﻿using Syroot.Windows.IO;
+using Syroot.Windows.IO;
 using System;
 using ReactiveUI;
 using System.Diagnostics;
@@ -31,7 +31,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ModListVM> _modList;
         public ModListVM ModList => _modList.Value;
 
-        public FilePickerVM ModListPath { get; }
+        public FilePickerVM ModListLocation { get; }
 
         [Reactive]
         public bool UIReady { get; set; }
@@ -51,7 +51,7 @@ namespace Wabbajack
         [Reactive]
         public bool InstallingMode { get; set; }
 
-        public FilePickerVM Location { get; }
+        public FilePickerVM InstallationLocation { get; }
 
         public FilePickerVM DownloadLocation { get; }
 
@@ -104,13 +104,13 @@ namespace Wabbajack
 
             MWVM = mainWindowVM;
 
-            Location = new FilePickerVM()
+            InstallationLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.Off,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Installation Directory",
             };
-            Location.AdditionalError = this.WhenAny(x => x.Location.TargetPath)
+            InstallationLocation.AdditionalError = this.WhenAny(x => x.InstallationLocation.TargetPath)
                 .Select(x => Utils.IsDirectoryPathValid(x));
             DownloadLocation = new FilePickerVM()
             {
@@ -120,7 +120,7 @@ namespace Wabbajack
             };
             DownloadLocation.AdditionalError = this.WhenAny(x => x.DownloadLocation.TargetPath)
                 .Select(x => Utils.IsDirectoryPathValid(x));
-            ModListPath = new FilePickerVM()
+            ModListLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
@@ -128,7 +128,7 @@ namespace Wabbajack
             };
 
             // Load settings
-            _CurrentSettings = this.WhenAny(x => x.ModListPath.TargetPath)
+            _CurrentSettings = this.WhenAny(x => x.ModListLocation.TargetPath)
                 .Select(path => path == null ? null : MWVM.Settings.Installer.ModlistSettings.TryCreate(path))
                 .ToProperty(this, nameof(CurrentSettings));
             this.WhenAny(x => x.CurrentSettings)
@@ -137,7 +137,7 @@ namespace Wabbajack
                 {
                     SaveSettings(settingsPair.Previous);
                     if (settingsPair.Current == null) return;
-                    Location.TargetPath = settingsPair.Current.InstallationLocation;
+                    InstallationLocation.TargetPath = settingsPair.Current.InstallationLocation;
                     DownloadLocation.TargetPath = settingsPair.Current.DownloadLocation;
                 })
                 .DisposeWith(CompositeDisposable);
@@ -145,7 +145,7 @@ namespace Wabbajack
                 .Subscribe(_ => SaveSettings(CurrentSettings))
                 .DisposeWith(CompositeDisposable);
 
-            _modList = this.WhenAny(x => x.ModListPath.TargetPath)
+            _modList = this.WhenAny(x => x.ModListLocation.TargetPath)
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(modListPath =>
                 {
@@ -237,7 +237,7 @@ namespace Wabbajack
                 execute: ExecuteBegin,
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.Installing),
-                        this.WhenAny(x => x.Location.InError),
+                        this.WhenAny(x => x.InstallationLocation.InError),
                         this.WhenAny(x => x.DownloadLocation.InError),
                         resultSelector: (installing, loc, download) =>
                         {
@@ -252,7 +252,7 @@ namespace Wabbajack
                     .ObserveOnGuiThread());
 
             // Have Installation location updates modify the downloads location if empty
-            this.WhenAny(x => x.Location.TargetPath)
+            this.WhenAny(x => x.InstallationLocation.TargetPath)
                 .Skip(1) // Don't do it initially
                 .Subscribe(installPath =>
                 {
@@ -298,7 +298,7 @@ namespace Wabbajack
         private void OpenReadmeWindow()
         {
             if (string.IsNullOrEmpty(ModList.Readme)) return;
-            using (var fs = new FileStream(ModListPath.TargetPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var fs = new FileStream(ModListLocation.TargetPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
             using (var ms = new MemoryStream())
             {
@@ -328,7 +328,7 @@ namespace Wabbajack
             
             try
             {
-                installer = new MO2Installer(ModListPath.TargetPath, ModList.SourceModList, Location.TargetPath)
+                installer = new MO2Installer(ModListLocation.TargetPath, ModList.SourceModList, InstallationLocation.TargetPath)
                 {
                     DownloadFolder = DownloadLocation.TargetPath
                 };
@@ -370,9 +370,9 @@ namespace Wabbajack
 
         private void SaveSettings(ModlistInstallationSettings settings)
         {
-            MWVM.Settings.Installer.LastInstalledListLocation = ModListPath.TargetPath;
+            MWVM.Settings.Installer.LastInstalledListLocation = ModListLocation.TargetPath;
             if (settings == null) return;
-            settings.InstallationLocation = Location.TargetPath;
+            settings.InstallationLocation = InstallationLocation.TargetPath;
             settings.DownloadLocation = DownloadLocation.TargetPath;
         }
     }
