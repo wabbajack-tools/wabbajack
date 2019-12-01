@@ -114,6 +114,7 @@
     <EmbeddedResource Include="7z.dll.gz" />
     <EmbeddedResource Include="7z.exe.gz" />
     <None Include="app.config" />
+    <EmbeddedResource Include="innounp.exe.gz" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\Compression.BSA\Compression.BSA.csproj">
@@ -128,6 +129,7 @@
   <ItemGroup>
     <Content Include="7z.dll" />
     <Content Include="7z.exe" />
+    <Content Include="innounp.exe" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AlphaFS">

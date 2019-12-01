@@ -143,7 +143,7 @@ namespace Wabbajack.VirtualFileSystem
                 Hash = abs_path.FileHash()
             };
 
-            if (FileExtractor.CanExtract(Path.GetExtension(abs_path)))
+            if (FileExtractor.CanExtract(abs_path))
             {
 
                 using (var tempFolder = context.GetTemporaryFolder())
