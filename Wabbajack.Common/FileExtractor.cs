@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
+using System.Security.Cryptography;
 using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.GZip;
+using Newtonsoft.Json;
 using OMODFramework;
 
 namespace Wabbajack.Common
@@ -15,7 +19,7 @@ namespace Wabbajack.Common
         {
             ExtractResource("Wabbajack.Common.7z.dll.gz", "7z.dll");
             ExtractResource("Wabbajack.Common.7z.exe.gz", "7z.exe");
-            //ExtractResource("Wabbajack.Common.innounp.exe.gz", "innounp.exe");
+            ExtractResource("Wabbajack.Common.innounp.exe.gz", "innounp.exe");
         }
 
         private static void ExtractResource(string from, string to)
@@ -39,6 +43,8 @@ namespace Wabbajack.Common
                     ExtractAllWithBSA(queue, source, dest);
                 else if (source.EndsWith(".omod"))
                     ExtractAllWithOMOD(source, dest);
+                else if (source.EndsWith(".exe"))
+                    ExtractAllWithInno(source, dest);
                 else
                     ExtractAllWith7Zip(source, dest);
             }
@@ -47,6 +53,64 @@ namespace Wabbajack.Common
                 Utils.Log($"Error while extracting {source}");
                 throw ex;
             }
+        }
+
+        private static void ExtractAllWithInno(string source, string dest)
+        {
+            Utils.Log($"Extracting {Path.GetFileName(source)}");
+
+            var info = new ProcessStartInfo
+            {
+                FileName = "innounp.exe",
+                Arguments = $"-x -y -b -d\"{dest}\" \"{source}\"",
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            var p = new Process {StartInfo = info};
+
+            p.Start();
+            ChildProcessTracker.AddProcess(p);
+
+            try
+            {
+                p.PriorityClass = ProcessPriorityClass.BelowNormal;
+            }
+            catch (Exception e)
+            {
+                Utils.LogToFile($"Error while setting process priority level for innounp.exe\n{e}");
+            }
+
+            var name = Path.GetFileName(source);
+            try
+            {
+                while (!p.HasExited)
+                {
+                    var line = p.StandardOutput.ReadLine();
+                    if (line == null)
+                        break;
+
+                    if (line.Length <= 4 || line[3] != '%')
+                        continue;
+
+                    int.TryParse(line.Substring(0, 3), out var percent);
+                    Utils.Status($"Extracting {name} - {line.Trim()}", percent);
+                }
+            }
+            catch (Exception e)
+            {
+                Utils.LogToFile($"Error while reading StandardOutput for innounp.exe\n{e}");
+            }
+
+            p.WaitForExit();
+            if (p.ExitCode == 0)
+                return;
+
+            Utils.Log(p.StandardOutput.ReadToEnd());
+            Utils.Log($"Extraction error extracting {source}");
         }
 
         private static string ExtractAllWithOMOD(string source, string dest)
@@ -108,10 +172,7 @@ namespace Wabbajack.Common
                 CreateNoWindow = true
             };
 
-            var p = new Process
-            {
-                StartInfo = info
-            };
+            var p = new Process {StartInfo = info};
 
             p.Start();
             ChildProcessTracker.AddProcess(p);
@@ -131,9 +192,9 @@ namespace Wabbajack.Common
                     var line = p.StandardOutput.ReadLine();
                     if (line == null)
                         break;
-                    
+
                     if (line.Length <= 4 || line[3] != '%') continue;
-                    
+
                     int.TryParse(line.Substring(0, 3), out var percent);
                     Utils.Status($"Extracting {name} - {line.Trim()}", percent);
                 }
@@ -157,8 +218,41 @@ namespace Wabbajack.Common
         /// <returns></returns>
         public static bool CanExtract(string v)
         {
-            v = v.ToLower();
-            return Consts.SupportedArchives.Contains(v) || Consts.SupportedBSAs.Contains(v);
+            var ext = Path.GetExtension(v.ToLower());
+            if(ext != ".exe")
+                return Consts.SupportedArchives.Contains(ext) || Consts.SupportedBSAs.Contains(ext);
+
+            var info = new ProcessStartInfo
+            {
+                FileName = "innounp.exe",
+                Arguments = $"-t \"{v}\" ",
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            var p = new Process {StartInfo = info};
+
+            p.Start();
+            ChildProcessTracker.AddProcess(p);
+
+            var name = Path.GetFileName(v);
+            while (!p.HasExited)
+            {
+                var line = p.StandardOutput.ReadLine();
+                if (line == null)
+                    break;
+
+                if (line[0] != '#')
+                    continue;
+
+                Utils.Status($"Testing {name} - {line.Trim()}");
+            }
+
+            p.WaitForExit();
+            return p.ExitCode == 0;
         }
     }
 }
