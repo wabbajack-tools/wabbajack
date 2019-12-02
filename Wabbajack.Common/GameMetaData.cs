@@ -96,6 +96,12 @@ namespace Wabbajack.Common
             return Games.Values.FirstOrDefault(g => g.NexusName == gameName.ToLower());
         }
 
+        public static GameMetaData GetBySteamID(int id)
+        {
+            return Games.Values
+                .FirstOrDefault(g => g.SteamIDs != null && g.SteamIDs.Count > 0 && g.SteamIDs.Any(i => i == id));
+        }
+
         public static IReadOnlyDictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>
         {
             {
