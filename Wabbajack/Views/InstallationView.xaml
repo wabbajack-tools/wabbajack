@@ -347,7 +347,7 @@
                             Grid.Column="4"
                             Margin="0,0,25,0"
                             HorizontalAlignment="Right"
-                            Command="{Binding BeginCommand, Mode=OneWay}" />
+                            Command="{Binding Installer.BeginCommand, Mode=OneWay}" />
                     </Grid>
                 </ScrollViewer>
             </Grid>

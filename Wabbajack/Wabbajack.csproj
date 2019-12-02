@@ -169,6 +169,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="View Models\Installers\ISubInstallerVM.cs" />
+    <Compile Include="View Models\Installers\MO2InstallerVM.cs" />
     <Compile Include="View Models\ModListGalleryVM.cs" />
     <Compile Include="View Models\ModListMetadataVM.cs" />
     <Compile Include="Views\Common\HeatedBackgroundView.xaml.cs">
@@ -301,7 +303,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="View Models\InstallerVM.cs" />
+    <Compile Include="View Models\Installers\InstallerVM.cs" />
     <Compile Include="Util\AutoScrollBehavior.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
