@@ -6,8 +6,11 @@ using System;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
+using System.Windows.Threading;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Lib.UI;
 
 namespace Wabbajack
 {
@@ -52,6 +55,8 @@ namespace Wabbajack
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
 
+            AModalWindowFactory.CurrentFactory = new MainWindowModalFactory(MainWindow.Dispatcher, this);
+
             if (IsStartingFromModlist(out var path))
             {
                 Installer.Value.ModListPath.TargetPath = path;
@@ -84,6 +89,49 @@ namespace Wabbajack
             Settings.Installer.LastInstalledListLocation = path;
             ActivePane = installer;
             installer.ModListPath.TargetPath = path;
+        }
+    }
+
+    public class MainWindowModalFactory : AModalWindowFactory
+    {
+        private MainWindowVM _mainWindowVm;
+        private ViewModel _prevVM;
+        private TaskCompletionSource<object> _tcs;
+        private Dispatcher _dispatcher;
+
+        public MainWindowModalFactory(Dispatcher dispatcher, MainWindowVM mainWindowVm)
+        {
+            _mainWindowVm = mainWindowVm;
+            _dispatcher = dispatcher;
+        }
+
+        public override Task<object> Show(InlinedWindowVM vm)
+        {
+            _tcs = new TaskCompletionSource<object>();
+            _dispatcher.InvokeAsync(() =>
+            {
+                _prevVM = _mainWindowVm.ActivePane;
+                _mainWindowVm.ActivePane = vm;
+            });
+            return _tcs.Task;
+        }
+
+        public override Task SetResult(object result)
+        {
+            return _dispatcher.InvokeAsync(() =>
+            {
+                _tcs.SetResult(result);
+                _mainWindowVm.ActivePane = _prevVM;
+            }).Task;
+        }
+
+        public override Task Cancel()
+        {
+            return _dispatcher.InvokeAsync(() =>
+            {
+                _tcs.SetCanceled();
+                _mainWindowVm.ActivePane = _prevVM;
+            }).Task;
         }
     }
 }

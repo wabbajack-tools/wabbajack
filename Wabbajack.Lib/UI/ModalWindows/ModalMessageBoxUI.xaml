@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="Wabbajack.Lib.UI.ModalWindows.ModalMessageBoxUI"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Wabbajack.Lib.UI.ModalWindows"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="30"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="100"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <TextBox Grid.ColumnSpan="3" FontSize="30" Text="{Binding Title, Mode=OneWay}"></TextBox>
+        <TextBox Grid.ColumnSpan="3" Grid.Row="1" FontSize="14" Text="{Binding Message, Mode=OneWay}"></TextBox>
+        <Button Grid.Column="2" Grid.Row="2" Content="Ok" Click="OkClick"></Button>
+        <Button Grid.Column="0" Grid.Row="2" Content="Cancel" Click="OkCancel"></Button>
+    </Grid>
+</UserControl>

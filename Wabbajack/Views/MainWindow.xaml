@@ -6,6 +6,7 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:lib="clr-namespace:Wabbajack.Lib;assembly=Wabbajack.Lib"
     Title="Wabbajack"
     Width="1280"
     Height="960"
@@ -32,6 +33,9 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
                 <local:ModListGalleryView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type lib:InlinedWindowVM}">
+                <ContentControl Content="{Binding Content}"></ContentControl>
             </DataTemplate>
         </ContentPresenter.Resources>
     </ContentPresenter>

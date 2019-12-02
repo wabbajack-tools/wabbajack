@@ -6,6 +6,7 @@ using System.Windows;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
+using Wabbajack.Lib.UI.ModalWindows;
 using Wabbajack.Lib.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -57,12 +58,9 @@ namespace Wabbajack.Lib
 
             if (Directory.Exists(Path.Combine(OutputFolder, "mods")) && WarnOnOverwrite)
             {
-                if (MessageBox.Show(
+                if (ModalMessageBox.OkCancel("Existing MO2 installation in install folder",
                         "There already appears to be a Mod Organizer 2 install in this folder, are you sure you wish to continue" +
-                        " with installation? If you do, you may render both your existing install and the new modlist inoperable.",
-                        "Existing MO2 installation in install folder",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Exclamation) == MessageBoxResult.No)
+                        " with installation? If you do, you may render both your existing install and the new modlist inoperable.").Result == ModalMessageBox.Result.Cancel)
                 {
                     Utils.Log("Existing installation at the request of the user, existing mods folder found.");
                     return false;
