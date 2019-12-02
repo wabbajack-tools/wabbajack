@@ -1,4 +1,4 @@
-using Syroot.Windows.IO;
+﻿using Syroot.Windows.IO;
 using System;
 using ReactiveUI;
 using System.Diagnostics;
@@ -27,6 +27,7 @@ namespace Wabbajack
         public MainWindowVM MWVM { get; }
 
         public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/Resources/Wabba_Mouth_No_Text.png")).Stream);
+        public BitmapImage WabbajackErrLogo { get; } = UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/Resources/Wabba_Ded.png")).Stream);
 
         private readonly ObservableAsPropertyHelper<ModListVM> _modList;
         public ModListVM ModList => _modList.Value;
@@ -151,9 +152,7 @@ namespace Wabbajack
                 {
                     if (modListPath == null) return default(ModListVM);
                     if (!File.Exists(modListPath)) return default(ModListVM);
-                    var modList = AInstaller.LoadFromFile(modListPath);
-                    if (modList == null) return default(ModListVM);
-                    return new ModListVM(modList, modListPath);
+                    return new ModListVM(modListPath);
                 })
                 .ObserveOnGuiThread()
                 .StartWith(default(ModListVM))
@@ -165,6 +164,15 @@ namespace Wabbajack
                 .Select(compilation => compilation != null)
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(Installing));
+
+            // Add additional error check on modlist
+            ModListLocation.AdditionalError = this.WhenAny(x => x.ModList)
+                .Select<ModListVM, IErrorResponse>(modList =>
+                {
+                    if (modList == null) return ErrorResponse.Fail("Modlist path resulted in a null object.");
+                    if (modList.Error != null) return ErrorResponse.Fail("Modlist is corrupt", modList.Error);
+                    return ErrorResponse.Success;
+                });
 
             BackCommand = ReactiveCommand.Create(
                 execute: () => mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM,
@@ -191,6 +199,7 @@ namespace Wabbajack
             // Set display items to modlist if configuring or complete,
             // or to the current slideshow data if installing
             _image = Observable.CombineLatest(
+                    this.WhenAny(x => x.ModList.Error),
                     this.WhenAny(x => x.ModList)
                         .SelectMany(x => x?.ImageObservable ?? Observable.Empty<BitmapImage>())
                         .NotNull()
@@ -198,15 +207,23 @@ namespace Wabbajack
                     this.WhenAny(x => x.Slideshow.Image)
                         .StartWith(default(BitmapImage)),
                     this.WhenAny(x => x.Installing),
-                    resultSelector: (modList, slideshow, installing) => installing ? slideshow : modList)
+                    resultSelector: (err, modList, slideshow, installing) =>
+                    {
+                        if (err != null)
+                        {
+                            return WabbajackErrLogo;
+                        }
+                        return installing ? slideshow : modList;
+                    })
                 .Select<BitmapImage, ImageSource>(x => x)
                 .ToProperty(this, nameof(Image));
             _titleText = Observable.CombineLatest(
+                    this.WhenAny(x => x.ModList.Error),
                     this.WhenAny(x => x.ModList.Name),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModName)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
-                    resultSelector: (modList, mod, installing) => installing ? mod : modList)
+                    resultSelector: (err, modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(TitleText));
             _authorText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Author),
@@ -222,8 +239,16 @@ namespace Wabbajack
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(Description));
-            _modListName = this.WhenAny(x => x.ModList)
-                .Select(x => x?.Name)
+            _modListName = Observable.CombineLatest(
+                        this.WhenAny(x => x.ModList.Error)
+                            .Select(x => x != null),
+                        this.WhenAny(x => x.ModList)
+                            .Select(x => x?.Name),
+                    resultSelector: (err, name) =>
+                    {
+                        if (err) return "Corrupted Modlist";
+                        return name;
+                    })
                 .ToProperty(this, nameof(ModListName));
 
             // Define commands
@@ -238,11 +263,12 @@ namespace Wabbajack
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.Installing),
                         this.WhenAny(x => x.InstallationLocation.InError),
+                        this.WhenAny(x => x.ModListLocation.InError),
                         this.WhenAny(x => x.DownloadLocation.InError),
-                        resultSelector: (installing, loc, download) =>
+                        resultSelector: (installing, loc, modlist, download) =>
                         {
                             if (installing) return false;
-                            return !loc && !download;
+                            return !loc && !download && !modlist;
                         })
                     .ObserveOnGuiThread());
             VisitWebsiteCommand = ReactiveCommand.Create(

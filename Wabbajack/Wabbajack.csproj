@@ -493,5 +493,8 @@
   <ItemGroup>
     <Resource Include="Resources\Wabba_Mouth_No_Text.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Wabba_Ded.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

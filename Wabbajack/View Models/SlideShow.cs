@@ -1,4 +1,4 @@
-using DynamicData;
+﻿using DynamicData;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
@@ -74,7 +74,7 @@ namespace Wabbajack
                 // Whenever modlist changes, grab the list of its slides
                 .Select(modList =>
                 {
-                    if (modList == null)
+                    if (modList?.SourceModList?.Archives == null)
                     {
                         return Observable.Empty<ModVM>()
                             .ToObservableChangeSet(x => x.ModID);
