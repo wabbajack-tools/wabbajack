@@ -195,7 +195,7 @@ namespace Wabbajack.Lib
                 Readme = ModListReadme ?? "",
                 Image = ModListImage ?? "",
                 Website = ModListWebsite ?? "",
-                Archives = SelectedArchives,
+                Archives = SelectedArchives.ToList(),
                 ModManager = ModManager.Vortex,
                 Directives = InstallDirectives,
                 GameType = Game

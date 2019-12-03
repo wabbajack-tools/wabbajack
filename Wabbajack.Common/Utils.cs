@@ -461,7 +461,7 @@ namespace Wabbajack.Common
             }
         }
 
-        public static List<TR> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
+        public static TR[] PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
             Func<TI, TR> f)
         {
             var cnt = 0;
@@ -487,7 +487,7 @@ namespace Wabbajack.Common
         }
 
 
-        public static List<TR> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue,
+        public static TR[] PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue,
             Func<TI, TR> f)
         {
             var colllst = coll.ToList();
@@ -524,7 +524,7 @@ namespace Wabbajack.Common
                 if (t.IsFaulted)
                     throw t.Exception;
                 return t.Result;
-            }).ToList();
+            }).ToArray();
         }
 
         public static void PMap<TI>(this IEnumerable<TI> coll, WorkQueue queue, Action<TI> f)
