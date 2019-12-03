@@ -111,7 +111,11 @@ namespace Wabbajack.Lib.Downloaders
 
                 var contentSize = headerVar != null ? long.Parse(headerVar) : 1;
 
-                Directory.CreateDirectory(Path.GetDirectoryName(destination));
+                FileInfo fileInfo = new FileInfo(destination);
+                if (!fileInfo.Directory.Exists)
+                {
+                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                }
 
                 using (var webs = stream.Result)
                 using (var fs = File.OpenWrite(destination))
