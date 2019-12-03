@@ -54,7 +54,7 @@ namespace Wabbajack
 
             if (IsStartingFromModlist(out var path))
             {
-                Installer.Value.ModListPath.TargetPath = path;
+                Installer.Value.ModListLocation.TargetPath = path;
                 ActivePane = Installer.Value;
             }
             else
@@ -83,7 +83,7 @@ namespace Wabbajack
             var installer = Installer.Value;
             Settings.Installer.LastInstalledListLocation = path;
             ActivePane = installer;
-            installer.ModListPath.TargetPath = path;
+            installer.ModListLocation.TargetPath = path;
         }
     }
 }

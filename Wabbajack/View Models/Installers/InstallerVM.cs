@@ -33,7 +33,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ModListVM> _modList;
         public ModListVM ModList => _modList.Value;
 
-        public FilePickerVM ModListPath { get; }
+        public FilePickerVM ModListLocation { get; }
 
         private readonly ObservableAsPropertyHelper<ISubInstallerVM> _installer;
         public ISubInstallerVM Installer => _installer.Value;
@@ -98,7 +98,7 @@ namespace Wabbajack
 
             MWVM = mainWindowVM;
 
-            ModListPath = new FilePickerVM()
+            ModListLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
@@ -134,11 +134,11 @@ namespace Wabbajack
             MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
                 {
-                    MWVM.Settings.Installer.LastInstalledListLocation = ModListPath.TargetPath;
+                    MWVM.Settings.Installer.LastInstalledListLocation = ModListLocation.TargetPath;
                 })
                 .DisposeWith(CompositeDisposable);
 
-            _modList = this.WhenAny(x => x.ModListPath.TargetPath)
+            _modList = this.WhenAny(x => x.ModListLocation.TargetPath)
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(modListPath =>
                 {
@@ -161,7 +161,7 @@ namespace Wabbajack
                 .ToProperty(this, nameof(TargetManager));
 
             // Add additional error check on modlist
-            ModListPath.AdditionalError = this.WhenAny(x => x.ModList)
+            ModListLocation.AdditionalError = this.WhenAny(x => x.ModList)
                 .Select<ModListVM, IErrorResponse>(modList =>
                 {
                     if (modList == null) return ErrorResponse.Fail("Modlist path resulted in a null object.");
@@ -303,7 +303,7 @@ namespace Wabbajack
         private void OpenReadmeWindow()
         {
             if (string.IsNullOrEmpty(ModList.Readme)) return;
-            using (var fs = new FileStream(ModListPath.TargetPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var fs = new FileStream(ModListLocation.TargetPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
             using (var ms = new MemoryStream())
             {
