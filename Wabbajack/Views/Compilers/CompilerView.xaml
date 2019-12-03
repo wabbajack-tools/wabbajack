@@ -146,7 +146,7 @@
                     Style="{StaticResource PickerStyle}"
                     ToolTip="Path to an image to display for the modlist." />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
-                <TextBox Style="{StaticResource ValueStyle}" Text="{Binding Website}" />
+                <TextBox Style="{StaticResource ValueStyle}" Text="{Binding Website, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBlock
                     Margin="{StaticResource TitleMargin}"
                     Text="Readme Path"
