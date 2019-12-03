@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -169,6 +169,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="Views\Installers\MO2InstallerConfigView.xaml.cs">
+      <DependentUpon>MO2InstallerConfigView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View Models\Installers\ISubInstallerVM.cs" />
     <Compile Include="View Models\Installers\MO2InstallerVM.cs" />
     <Compile Include="View Models\ModListGalleryVM.cs" />
@@ -222,7 +225,7 @@
     <Compile Include="Views\Common\FilePicker.xaml.cs">
       <DependentUpon>FilePicker.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\InstallationView.xaml.cs">
+    <Compile Include="Views\Installers\InstallationView.xaml.cs">
       <DependentUpon>InstallationView.xaml</DependentUpon>
     </Compile>
     <Compile Include="View Models\Compilers\CompilerVM.cs" />
@@ -243,6 +246,10 @@
     <Compile Include="Views\Compilers\VortexCompilerConfigView.xaml.cs">
       <DependentUpon>VortexCompilerConfigView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\Installers\MO2InstallerConfigView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Common\HeatedBackgroundView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -287,7 +294,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\InstallationView.xaml">
+    <Page Include="Views\Installers\InstallationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

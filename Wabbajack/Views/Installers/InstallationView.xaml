@@ -276,24 +276,27 @@
                 x:Name="InstallationConfigurationView"
                 Grid.Column="2"
                 Background="{StaticResource WindowBackgroundBrush}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <ScrollViewer
+                    Grid.Column="0"
                     Margin="5"
                     Background="Transparent"
                     VerticalScrollBarVisibility="Auto"
                     Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
-                    <Grid Margin="8">
+                    <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" MinWidth="120" />
                             <ColumnDefinition Width="20" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="20" />
-                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*" />
                             <RowDefinition Height="40" />
-                            <RowDefinition Height="40" />
-                            <RowDefinition Height="40" />
+                            <RowDefinition Height="80" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <TextBlock
@@ -311,45 +314,26 @@
                             VerticalAlignment="Center"
                             DataContext="{Binding ModListPath}"
                             FontSize="14" />
-                        <TextBlock
+                        <ContentPresenter
                             Grid.Row="2"
                             Grid.Column="0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            FontSize="14"
-                            Text="Installation Location"
-                            TextAlignment="Center" />
-                        <local:FilePicker
-                            Grid.Row="2"
-                            Grid.Column="2"
-                            Height="30"
-                            VerticalAlignment="Center"
-                            DataContext="{Binding Location}"
-                            FontSize="14" />
-                        <TextBlock
-                            Grid.Row="3"
-                            Grid.Column="0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            FontSize="14"
-                            Text="Download Location"
-                            TextAlignment="Center" />
-                        <local:FilePicker
-                            Grid.Row="3"
-                            Grid.Column="2"
-                            Height="30"
-                            VerticalAlignment="Center"
-                            DataContext="{Binding DownloadLocation}"
-                            FontSize="14" />
-                        <local:BeginButton
-                            Grid.Row="1"
-                            Grid.RowSpan="3"
-                            Grid.Column="4"
-                            Margin="0,0,25,0"
-                            HorizontalAlignment="Right"
-                            Command="{Binding Installer.BeginCommand, Mode=OneWay}" />
+                            Grid.ColumnSpan="3"
+                            Margin="0"
+                            Content="{Binding Installer}">
+                            <ContentPresenter.Resources>
+                                <DataTemplate DataType="{x:Type local:MO2InstallerVM}">
+                                    <local:MO2InstallerConfigView />
+                                </DataTemplate>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
                     </Grid>
                 </ScrollViewer>
+                <local:BeginButton
+                    Grid.Column="2"
+                    Margin="0,0,25,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Command="{Binding Installer.BeginCommand, Mode=OneWay}" />
             </Grid>
         </Grid>
         <Grid
