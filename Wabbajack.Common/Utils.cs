@@ -46,8 +46,6 @@ namespace Wabbajack.Common
 
         private static readonly Subject<string> LoggerSubj = new Subject<string>();
         public static IObservable<string> LogMessages => LoggerSubj;
-        private static readonly Subject<(string Message, int Progress)> StatusSubj = new Subject<(string Message, int Progress)>();
-        public static IObservable<(string Message, int Progress)> StatusUpdates => StatusSubj;
 
         private static readonly string[] Suffix = {"B", "KB", "MB", "GB", "TB", "PB", "EB"}; // Longs run out around EB
 
@@ -78,10 +76,7 @@ namespace Wabbajack.Common
 
         public static void Status(string msg, int progress = 0)
         {
-            if (WorkQueue.CurrentQueue != null)
-                WorkQueue.CurrentQueue.Report(msg, progress);
-            else
-                StatusSubj.OnNext((msg, progress));
+            WorkQueue.CurrentQueue?.Report(msg, progress);
         }
 
         /// <summary>
