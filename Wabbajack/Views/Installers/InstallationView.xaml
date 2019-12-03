@@ -312,7 +312,7 @@
                             Grid.Column="2"
                             Height="30"
                             VerticalAlignment="Center"
-                            DataContext="{Binding ModListPath}"
+                            DataContext="{Binding ModListLocation}"
                             FontSize="14" />
                         <ContentPresenter
                             Grid.Row="2"

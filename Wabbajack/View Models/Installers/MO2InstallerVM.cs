@@ -54,9 +54,10 @@ namespace Wabbajack
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.Location.InError),
                         this.WhenAny(x => x.DownloadLocation.InError),
-                        resultSelector: (loc, download) =>
+                        installerVM.WhenAny(x => x.ModListPath.InError),
+                        resultSelector: (loc, modlist, download) =>
                         {
-                            return !loc && !download;
+                            return !loc && !download && !modlist;
                         })
                     .ObserveOnGuiThread(),
                 execute: async () =>
