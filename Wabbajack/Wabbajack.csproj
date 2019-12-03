@@ -219,9 +219,6 @@
     </Compile>
     <Compile Include="Converters\IsNotNullVisibilityConverter.cs" />
     <Compile Include="Extensions\ReactiveUIExt.cs" />
-    <Compile Include="Views\DownloadWindow.xaml.cs">
-      <DependentUpon>DownloadWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="View Models\ModeSelectionVM.cs" />
     <Compile Include="Views\Common\FilePicker.xaml.cs">
       <DependentUpon>FilePicker.xaml</DependentUpon>
@@ -287,10 +284,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\Common\TopProgressView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\DownloadWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
