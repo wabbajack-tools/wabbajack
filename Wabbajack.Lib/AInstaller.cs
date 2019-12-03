@@ -18,14 +18,22 @@ namespace Wabbajack.Lib
     {
         public bool IgnoreMissingFiles { get; internal set; } = false;
 
-        public string OutputFolder { get; set; }
-        public string DownloadFolder { get; set; }
+        public string OutputFolder { get; private set; }
+        public string DownloadFolder { get; private set; }
 
-        public ModManager ModManager;
+        public abstract ModManager ModManager { get; }
 
-        public string ModListArchive { get; internal set; }
-        public ModList ModList { get; internal set; }
+        public string ModListArchive { get; private set; }
+        public ModList ModList { get; private set; }
         public Dictionary<string, string> HashedArchives { get; set; }
+
+        public AInstaller(string archive, ModList modList, string outputFolder, string downloadFolder)
+        {
+            ModList = modList;
+            ModListArchive = archive;
+            OutputFolder = outputFolder;
+            DownloadFolder = downloadFolder;
+        }
 
         public void Info(string msg)
         {

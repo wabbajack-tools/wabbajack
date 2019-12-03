@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -95,7 +96,6 @@ namespace Wabbajack.Lib.Downloaders
                 {
                 }
 
-                ;
                 if (stream.IsFaulted || response.StatusCode != HttpStatusCode.OK)
                 {
                     Utils.Log($"While downloading {Url} - {stream.Exception.ExceptionToString()}");
@@ -111,6 +111,11 @@ namespace Wabbajack.Lib.Downloaders
 
                 var contentSize = headerVar != null ? long.Parse(headerVar) : 1;
 
+                FileInfo fileInfo = new FileInfo(destination);
+                if (!fileInfo.Directory.Exists)
+                {
+                    Directory.CreateDirectory(fileInfo.Directory.FullName);
+                }
 
                 using (var webs = stream.Result)
                 using (var fs = File.OpenWrite(destination))

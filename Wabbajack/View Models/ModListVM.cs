@@ -13,24 +13,32 @@ namespace Wabbajack
     public class ModListVM : ViewModel
     {
         public ModList SourceModList { get; }
+        public Exception Error { get; }
         public string ModListPath { get; }
-        public string Name => SourceModList.Name;
-        public string ReportHTML => SourceModList.ReportHTML;
-        public string Readme => SourceModList.Readme;
-        public string Author => SourceModList.Author;
-        public string Description => SourceModList.Description;
-        public string Website => SourceModList.Website;
-        public ModManager ModManager => SourceModList.ModManager;
+        public string Name => SourceModList?.Name;
+        public string ReportHTML => SourceModList?.ReportHTML;
+        public string Readme => SourceModList?.Readme;
+        public string Author => SourceModList?.Author;
+        public string Description => SourceModList?.Description;
+        public string Website => SourceModList?.Website;
+        public ModManager ModManager => SourceModList?.ModManager ?? ModManager.MO2;
 
         // Image isn't exposed as a direct property, but as an observable.
         // This acts as a caching mechanism, as interested parties will trigger it to be created,
         // and the cached image will automatically be released when the last interested party is gone.
         public IObservable<BitmapImage> ImageObservable { get; }
 
-        public ModListVM(ModList sourceModList, string modListPath)
+        public ModListVM(string modListPath)
         {
             ModListPath = modListPath;
-            SourceModList = sourceModList;
+            try
+            {
+                SourceModList = AInstaller.LoadFromFile(modListPath);
+            }
+            catch (Exception ex)
+            {
+                Error = ex;
+            }
 
             ImageObservable = Observable.Return(Unit.Default)
                 .ObserveOn(RxApp.TaskpoolScheduler)

@@ -10,7 +10,6 @@ namespace Wabbajack
         ACompiler ActiveCompilation { get; }
 
         ModlistSettingsEditorVM ModlistSettings { get; }
-        StatusUpdateTracker StatusTracker { get;}
         void Unload();
     }
 }

@@ -24,11 +24,15 @@ namespace Wabbajack
         private Subject<Unit> _saveSignal = new Subject<Unit>();
         public IObservable<Unit> SaveSignal => _saveSignal;
 
-        public static MainSettings LoadSettings()
+        public static bool TryLoadTypicalSettings(out MainSettings settings)
         {
-            string[] args = Environment.GetCommandLineArgs();
-            if (!File.Exists(_filename) || args.Length > 1 && args[1] == "nosettings") return new MainSettings();
-            return JsonConvert.DeserializeObject<MainSettings>(File.ReadAllText(_filename));
+            if (!File.Exists(_filename))
+            {
+                settings = default;
+                return false;
+            }
+            settings = JsonConvert.DeserializeObject<MainSettings>(File.ReadAllText(_filename));
+            return true;
         }
 
         public static void SaveSettings(MainSettings settings)
@@ -47,10 +51,10 @@ namespace Wabbajack
     public class InstallerSettings
     {
         public string LastInstalledListLocation { get; set; }
-        public Dictionary<string, ModlistInstallationSettings> ModlistSettings { get; } = new Dictionary<string, ModlistInstallationSettings>();
+        public Dictionary<string, Mo2ModlistInstallationSettings> Mo2ModlistSettings { get; } = new Dictionary<string, Mo2ModlistInstallationSettings>();
     }
 
-    public class ModlistInstallationSettings
+    public class Mo2ModlistInstallationSettings
     {
         public string InstallationLocation { get; set; }
         public string DownloadLocation { get; set; }

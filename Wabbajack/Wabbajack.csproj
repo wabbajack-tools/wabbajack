@@ -169,6 +169,12 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="Views\Installers\MO2InstallerConfigView.xaml.cs">
+      <DependentUpon>MO2InstallerConfigView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View Models\Installers\ISubInstallerVM.cs" />
+    <Compile Include="View Models\Installers\MO2InstallerVM.cs" />
+    <Compile Include="View Models\Installers\VortexInstallerVM.cs" />
     <Compile Include="View Models\ModListGalleryVM.cs" />
     <Compile Include="View Models\ModListMetadataVM.cs" />
     <Compile Include="Views\Common\HeatedBackgroundView.xaml.cs">
@@ -220,7 +226,7 @@
     <Compile Include="Views\Common\FilePicker.xaml.cs">
       <DependentUpon>FilePicker.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\InstallationView.xaml.cs">
+    <Compile Include="Views\Installers\InstallationView.xaml.cs">
       <DependentUpon>InstallationView.xaml</DependentUpon>
     </Compile>
     <Compile Include="View Models\Compilers\CompilerVM.cs" />
@@ -241,6 +247,13 @@
     <Compile Include="Views\Compilers\VortexCompilerConfigView.xaml.cs">
       <DependentUpon>VortexCompilerConfigView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Installers\VortexInstallerConfigView.xaml.cs">
+      <DependentUpon>VortexInstallerConfigView.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Views\Installers\MO2InstallerConfigView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Common\HeatedBackgroundView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -285,7 +298,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\InstallationView.xaml">
+    <Page Include="Views\Installers\InstallationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -301,7 +314,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="View Models\InstallerVM.cs" />
+    <Compile Include="View Models\Installers\InstallerVM.cs" />
     <Compile Include="Util\AutoScrollBehavior.cs" />
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -320,6 +333,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Compilers\VortexCompilerConfigView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Installers\VortexInstallerConfigView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -492,6 +509,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Wabba_Mouth_No_Text.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Wabba_Ded.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

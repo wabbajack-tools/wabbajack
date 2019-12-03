@@ -169,6 +169,15 @@ namespace Wabbajack.Lib
     {
     }
 
+    public class SteamMeta : ArchiveMeta
+    {
+        public int ItemID;
+        /// <summary>
+        /// Size is in bytes
+        /// </summary>
+        public int Size;
+    }
+
     [MemberConfig(TargetMember.All)]
     public class FromArchive : Directive
     {

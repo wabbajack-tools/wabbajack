@@ -103,6 +103,7 @@
     <Compile Include="CompilationSteps\IncludePatches.cs" />
     <Compile Include="CompilationSteps\IncludePropertyFiles.cs" />
     <Compile Include="CompilationSteps\IncludeRegex.cs" />
+    <Compile Include="CompilationSteps\IncludeSteamWorkshopItems.cs" />
     <Compile Include="CompilationSteps\IncludeStubbedConfigFiles.cs" />
     <Compile Include="CompilationSteps\IncludeTaggedMods.cs" />
     <Compile Include="CompilationSteps\IncludeThisProfile.cs" />
@@ -110,6 +111,7 @@
     <Compile Include="CompilationSteps\IStackStep.cs" />
     <Compile Include="CompilationSteps\PatchStockESMs.cs" />
     <Compile Include="CompilationSteps\Serialization.cs" />
+    <Compile Include="Downloaders\SteamWorkshopDownloader.cs" />
     <Compile Include="MO2Compiler.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="Downloaders\AbstractDownloadState.cs" />
