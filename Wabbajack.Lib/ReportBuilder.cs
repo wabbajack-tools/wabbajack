@@ -73,6 +73,14 @@ namespace Wabbajack.Lib
                 NoWrapText($"    * Size : {archive.Size.ToFileSizeString()}");
                 NoWrapText($"    * SHA256 : [{hash}](https://www.virustotal.com/gui/file/{hash})");
             }
+            lst.Directives.Where(d => d is SteamMeta).Do(f =>
+            {
+                if (f is SteamMeta s)
+                {
+                    var link = $"https://steamcommunity.com/sharedfiles/filedetails/?id={s.ItemID}";
+                    NoWrapText($"* Steam Workshop Item: [{s.ItemID}]({link}) | Size: {s.Size}");
+                }
+            });
 
             Text("\n\n");
             var patched = lst.Directives.OfType<PatchedFromArchive>().OrderBy(p => p.To).ToList();
