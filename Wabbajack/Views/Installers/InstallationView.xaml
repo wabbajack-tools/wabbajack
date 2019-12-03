@@ -38,8 +38,8 @@
             </Rectangle.Fill>
         </Rectangle>
         <local:HeatedBackgroundView
-            Grid.Row="1"
-            Grid.RowSpan="2"
+            Grid.Row="0"
+            Grid.RowSpan="3"
             PercentCompleted="{Binding PercentCompleted}" />
         <Grid
             x:Name="Slideshow"
@@ -312,7 +312,7 @@
                             Grid.Column="2"
                             Height="30"
                             VerticalAlignment="Center"
-                            DataContext="{Binding ModListPath}"
+                            DataContext="{Binding ModListLocation}"
                             FontSize="14" />
                         <ContentPresenter
                             Grid.Row="2"

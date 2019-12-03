@@ -18,7 +18,14 @@ namespace Wabbajack
             {
                 if (Exception != null)
                 {
-                    return Exception.ToString();
+                    if (string.IsNullOrWhiteSpace(_reason))
+                    {
+                        return Exception.ToString();
+                    }
+                    else
+                    {
+                        return $"{_reason}: {Exception.Message}";
+                    }
                 }
                 return _reason;
             }
@@ -53,9 +60,9 @@ namespace Wabbajack
             return new ErrorResponse(true, reason);
         }
 
-        public static ErrorResponse Fail(string reason)
+        public static ErrorResponse Fail(string reason, Exception ex = null)
         {
-            return new ErrorResponse(false, reason: reason);
+            return new ErrorResponse(false, reason: reason, ex: ex);
         }
 
         public static ErrorResponse Fail(Exception ex)

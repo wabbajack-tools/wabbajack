@@ -33,8 +33,11 @@ namespace Wabbajack
                 .ToProperty(this, nameof(TargetGame));
 
             BeginCommand = ReactiveCommand.CreateFromTask(
-                canExecute: this.WhenAny(x => x.TargetGame)
-                    .Select(game => VortexCompiler.IsActiveVortexGame(game)),
+                canExecute: Observable.CombineLatest(
+                    this.WhenAny(x => x.TargetGame)
+                        .Select(game => VortexCompiler.IsActiveVortexGame(game)),
+                    installerVM.WhenAny(x => x.ModListLocation.InError),
+                    resultSelector: (isVortexGame, modListErr) => isVortexGame && !modListErr),
                 execute: async () =>
                 {
                     AInstaller installer;
@@ -44,7 +47,7 @@ namespace Wabbajack
                         var download = VortexCompiler.RetrieveDownloadLocation(TargetGame);
                         var staging = VortexCompiler.RetrieveStagingLocation(TargetGame);
                         installer = new VortexInstaller(
-                            archive: installerVM.ModListPath.TargetPath,
+                            archive: installerVM.ModListLocation.TargetPath,
                             modList: installerVM.ModList.SourceModList,
                             outputFolder: staging,
                             downloadFolder: download);

@@ -54,9 +54,10 @@ namespace Wabbajack
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.Location.InError),
                         this.WhenAny(x => x.DownloadLocation.InError),
-                        resultSelector: (loc, download) =>
+                        installerVM.WhenAny(x => x.ModListLocation.InError),
+                        resultSelector: (loc, modlist, download) =>
                         {
-                            return !loc && !download;
+                            return !loc && !download && !modlist;
                         })
                     .ObserveOnGuiThread(),
                 execute: async () =>
@@ -66,7 +67,7 @@ namespace Wabbajack
                     try
                     {
                         installer = new MO2Installer(
-                            archive: installerVM.ModListPath.TargetPath,
+                            archive: installerVM.ModListLocation.TargetPath,
                             modList: installerVM.ModList.SourceModList,
                             outputFolder: Location.TargetPath,
                             downloadFolder: DownloadLocation.TargetPath);
@@ -119,7 +120,7 @@ namespace Wabbajack
                 .DisposeWith(CompositeDisposable);
 
             // Load settings
-            _CurrentSettings = installerVM.WhenAny(x => x.ModListPath.TargetPath)
+            _CurrentSettings = installerVM.WhenAny(x => x.ModListLocation.TargetPath)
                 .Select(path => path == null ? null : installerVM.MWVM.Settings.Installer.Mo2ModlistSettings.TryCreate(path))
                 .ToProperty(this, nameof(CurrentSettings));
             this.WhenAny(x => x.CurrentSettings)
@@ -144,7 +145,7 @@ namespace Wabbajack
 
         private void SaveSettings(Mo2ModlistInstallationSettings settings)
         {
-            _installerVM.MWVM.Settings.Installer.LastInstalledListLocation = _installerVM.ModListPath.TargetPath;
+            _installerVM.MWVM.Settings.Installer.LastInstalledListLocation = _installerVM.ModListLocation.TargetPath;
             if (settings == null) return;
             settings.InstallationLocation = Location.TargetPath;
             settings.DownloadLocation = DownloadLocation.TargetPath;
