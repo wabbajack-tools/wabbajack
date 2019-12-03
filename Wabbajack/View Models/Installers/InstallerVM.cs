@@ -1,4 +1,4 @@
-﻿using Syroot.Windows.IO;
+using Syroot.Windows.IO;
 using System;
 using ReactiveUI;
 using System.Diagnostics;
@@ -17,6 +17,7 @@ using ReactiveUI.Fody.Helpers;
 using System.Windows.Media;
 using DynamicData;
 using DynamicData.Binding;
+using System.Reactive;
 
 namespace Wabbajack
 {
@@ -33,14 +34,11 @@ namespace Wabbajack
 
         public FilePickerVM ModListPath { get; }
 
-        [Reactive]
-        public bool UIReady { get; set; }
+        private readonly ObservableAsPropertyHelper<ISubInstallerVM> _installer;
+        public ISubInstallerVM Installer => _installer.Value;
 
         private readonly ObservableAsPropertyHelper<string> _htmlReport;
         public string HTMLReport => _htmlReport.Value;
-
-        [Reactive]
-        public AInstaller ActiveInstallation { get; private set; }
 
         private readonly ObservableAsPropertyHelper<bool> _installing;
         public bool Installing => _installing.Value;
@@ -50,10 +48,6 @@ namespace Wabbajack
         /// </summary>
         [Reactive]
         public bool InstallingMode { get; set; }
-
-        public FilePickerVM Location { get; }
-
-        public FilePickerVM DownloadLocation { get; }
 
         private readonly ObservableAsPropertyHelper<ImageSource> _image;
         public ImageSource Image => _image.Value;
@@ -79,11 +73,10 @@ namespace Wabbajack
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
         public ObservableCollectionExtended<string> Log => MWVM.Log;
 
-        private readonly ObservableAsPropertyHelper<ModlistInstallationSettings> _CurrentSettings;
-        public ModlistInstallationSettings CurrentSettings => _CurrentSettings.Value;
+        private readonly ObservableAsPropertyHelper<ModManager?> _TargetManager;
+        public ModManager? TargetManager => _TargetManager.Value;
 
         // Command properties
-        public IReactiveCommand BeginCommand { get; }
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand VisitWebsiteCommand { get; }
@@ -104,22 +97,6 @@ namespace Wabbajack
 
             MWVM = mainWindowVM;
 
-            Location = new FilePickerVM()
-            {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.Off,
-                PathType = FilePickerVM.PathTypeOptions.Folder,
-                PromptTitle = "Select Installation Directory",
-            };
-            Location.AdditionalError = this.WhenAny(x => x.Location.TargetPath)
-                .Select(x => Utils.IsDirectoryPathValid(x));
-            DownloadLocation = new FilePickerVM()
-            {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.Off,
-                PathType = FilePickerVM.PathTypeOptions.Folder,
-                PromptTitle = "Select a location for MO2 downloads",
-            };
-            DownloadLocation.AdditionalError = this.WhenAny(x => x.DownloadLocation.TargetPath)
-                .Select(x => Utils.IsDirectoryPathValid(x));
             ModListPath = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
@@ -127,22 +104,37 @@ namespace Wabbajack
                 PromptTitle = "Select a modlist to install"
             };
 
-            // Load settings
-            _CurrentSettings = this.WhenAny(x => x.ModListPath.TargetPath)
-                .Select(path => path == null ? null : MWVM.Settings.Installer.ModlistSettings.TryCreate(path))
-                .ToProperty(this, nameof(CurrentSettings));
-            this.WhenAny(x => x.CurrentSettings)
-                .Pairwise()
-                .Subscribe(settingsPair =>
+            // Swap to proper sub VM based on selected type
+            _installer = this.WhenAny(x => x.TargetManager)
+                // Delay so the initial VM swap comes in immediately, subVM comes right after
+                .DelayInitial(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
+                .Select<ModManager?, ISubInstallerVM>(type =>
                 {
-                    SaveSettings(settingsPair.Previous);
-                    if (settingsPair.Current == null) return;
-                    Location.TargetPath = settingsPair.Current.InstallationLocation;
-                    DownloadLocation.TargetPath = settingsPair.Current.DownloadLocation;
+                    switch (type)
+                    {
+                        case ModManager.MO2:
+                            return new MO2InstallerVM(this);
+                        case ModManager.Vortex:
+                            return new VortexInstallerVM(this);
+                        default:
+                            return null;
+                    }
                 })
-                .DisposeWith(CompositeDisposable);
+                // Unload old VM
+                .Pairwise()
+                .Do(pair =>
+                {
+                    pair.Previous?.Unload();
+                })
+                .Select(p => p.Current)
+                .ToProperty(this, nameof(Installer));
+
+            // Load settings
             MWVM.Settings.SaveSignal
-                .Subscribe(_ => SaveSettings(CurrentSettings))
+                .Subscribe(_ =>
+                {
+                    MWVM.Settings.Installer.LastInstalledListLocation = ModListPath.TargetPath;
+                })
                 .DisposeWith(CompositeDisposable);
 
             _modList = this.WhenAny(x => x.ModListPath.TargetPath)
@@ -161,17 +153,20 @@ namespace Wabbajack
             _htmlReport = this.WhenAny(x => x.ModList)
                 .Select(modList => modList?.ReportHTML)
                 .ToProperty(this, nameof(HTMLReport));
-            _installing = this.WhenAny(x => x.ActiveInstallation)
+            _installing = this.WhenAny(x => x.Installer.ActiveInstallation)
                 .Select(compilation => compilation != null)
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(Installing));
+            _TargetManager = this.WhenAny(x => x.ModList)
+                .Select(modList => modList?.ModManager)
+                .ToProperty(this, nameof(TargetManager));
 
             BackCommand = ReactiveCommand.Create(
                 execute: () => mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM,
                 canExecute: this.WhenAny(x => x.Installing)
                     .Select(x => !x));
 
-            _percentCompleted = this.WhenAny(x => x.ActiveInstallation)
+            _percentCompleted = this.WhenAny(x => x.Installer.ActiveInstallation)
                 .StartWith(default(AInstaller))
                 .Pairwise()
                 .Select(c =>
@@ -233,35 +228,11 @@ namespace Wabbajack
                 canExecute: this.WhenAny(x => x.ModList)
                     .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
                     .ObserveOnGuiThread());
-            BeginCommand = ReactiveCommand.CreateFromTask(
-                execute: ExecuteBegin,
-                canExecute: Observable.CombineLatest(
-                        this.WhenAny(x => x.Installing),
-                        this.WhenAny(x => x.Location.InError),
-                        this.WhenAny(x => x.DownloadLocation.InError),
-                        resultSelector: (installing, loc, download) =>
-                        {
-                            if (installing) return false;
-                            return !loc && !download;
-                        })
-                    .ObserveOnGuiThread());
             VisitWebsiteCommand = ReactiveCommand.Create(
                 execute: () => Process.Start(ModList.Website),
                 canExecute: this.WhenAny(x => x.ModList.Website)
                     .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());
-
-            // Have Installation location updates modify the downloads location if empty
-            this.WhenAny(x => x.Location.TargetPath)
-                .Skip(1) // Don't do it initially
-                .Subscribe(installPath =>
-                {
-                    if (string.IsNullOrWhiteSpace(DownloadLocation.TargetPath))
-                    {
-                        DownloadLocation.TargetPath = Path.Combine(installPath, "downloads");
-                    }
-                })
-                .DisposeWith(CompositeDisposable);
 
             _progressTitle = Observable.CombineLatest(
                     this.WhenAny(x => x.Installing),
@@ -274,7 +245,7 @@ namespace Wabbajack
                 .ToProperty(this, nameof(ProgressTitle));
 
             // Compile progress updates and populate ObservableCollection
-            this.WhenAny(x => x.ActiveInstallation)
+            this.WhenAny(x => x.Installer.ActiveInstallation)
                 .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>())
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .ToObservableChangeSet(x => x.ID)
@@ -285,6 +256,16 @@ namespace Wabbajack
                 .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
                 .Bind(StatusList)
                 .Subscribe()
+                .DisposeWith(CompositeDisposable);
+
+            // When sub installer begins an install, mark state variable
+            this.WhenAny(x => x.Installer.BeginCommand)
+                .Select(x => x?.StartingExecution() ?? Observable.Empty<Unit>())
+                .Switch()
+                .Subscribe(_ =>
+                {
+                    InstallingMode = true;
+                })
                 .DisposeWith(CompositeDisposable);
         }
 
@@ -319,61 +300,6 @@ namespace Wabbajack
                     viewer.Show();
                 }
             }
-        }
-
-        private async Task ExecuteBegin()
-        {
-            InstallingMode = true;
-            AInstaller installer;
-            
-            try
-            {
-                installer = new MO2Installer(ModListPath.TargetPath, ModList.SourceModList, Location.TargetPath)
-                {
-                    DownloadFolder = DownloadLocation.TargetPath
-                };
-            }
-            catch (Exception ex)
-            {
-                while (ex.InnerException != null) ex = ex.InnerException;
-                Utils.Log(ex.StackTrace);
-                Utils.Log(ex.ToString());
-                Utils.Log($"{ex.Message} - Can't continue");
-                ActiveInstallation = null;
-                return;
-            }
-
-            await Task.Run(async () =>
-            {
-                IDisposable subscription = null;
-                try
-                {
-                    var workTask = installer.Begin();
-                    ActiveInstallation = installer;
-                    await workTask;
-                }
-                catch (Exception ex)
-                {
-                    while (ex.InnerException != null) ex = ex.InnerException;
-                    Utils.Log(ex.StackTrace);
-                    Utils.Log(ex.ToString());
-                    Utils.Log($"{ex.Message} - Can't continue");
-                }
-                finally
-                {
-                    // Dispose of CPU tracking systems
-                    subscription?.Dispose();
-                    ActiveInstallation = null;
-                }
-            });
-        }
-
-        private void SaveSettings(ModlistInstallationSettings settings)
-        {
-            MWVM.Settings.Installer.LastInstalledListLocation = ModListPath.TargetPath;
-            if (settings == null) return;
-            settings.InstallationLocation = Location.TargetPath;
-            settings.DownloadLocation = DownloadLocation.TargetPath;
         }
     }
 }

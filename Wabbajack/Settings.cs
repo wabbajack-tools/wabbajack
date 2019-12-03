@@ -47,10 +47,10 @@ namespace Wabbajack
     public class InstallerSettings
     {
         public string LastInstalledListLocation { get; set; }
-        public Dictionary<string, ModlistInstallationSettings> ModlistSettings { get; } = new Dictionary<string, ModlistInstallationSettings>();
+        public Dictionary<string, Mo2ModlistInstallationSettings> Mo2ModlistSettings { get; } = new Dictionary<string, Mo2ModlistInstallationSettings>();
     }
 
-    public class ModlistInstallationSettings
+    public class Mo2ModlistInstallationSettings
     {
         public string InstallationLocation { get; set; }
         public string DownloadLocation { get; set; }

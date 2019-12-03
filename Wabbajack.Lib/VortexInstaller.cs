@@ -10,14 +10,19 @@ namespace Wabbajack.Lib
     {
         public GameMetaData GameInfo { get; internal set; }
 
-        public VortexInstaller(string archive, ModList modList)
-        {
-            ModManager = ModManager.Vortex;
-            ModListArchive = archive;
-            ModList = modList;
+        public override ModManager ModManager => ModManager.Vortex;
 
+        public VortexInstaller(string archive, ModList modList, string outputFolder, string downloadFolder)
+            : base(
+                  archive: archive,
+                  modList: modList,
+                  outputFolder: outputFolder,
+                  downloadFolder: downloadFolder)
+        {
+            #if DEBUG
             // TODO: only for testing
             IgnoreMissingFiles = true;
+            #endif
 
             GameInfo = GameRegistry.Games[ModList.GameType];
         }

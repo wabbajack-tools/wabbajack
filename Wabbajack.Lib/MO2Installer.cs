@@ -16,17 +16,19 @@ namespace Wabbajack.Lib
     public class MO2Installer : AInstaller
     {
         public bool WarnOnOverwrite { get; set; } = true;
-        
-        public MO2Installer(string archive, ModList modList, string outputFolder)
-        {
-            ModManager = ModManager.MO2;
-            ModListArchive = archive;
-            OutputFolder = outputFolder;
-            DownloadFolder = Path.Combine(OutputFolder, "downloads");
-            ModList = modList;
-        }
+
+        public override ModManager ModManager => ModManager.MO2;
 
         public string GameFolder { get; set; }
+
+        public MO2Installer(string archive, ModList modList, string outputFolder, string downloadFolder)
+            : base(
+                  archive: archive,
+                  modList: modList,
+                  outputFolder: outputFolder, 
+                  downloadFolder: downloadFolder)
+        {
+        }
 
         protected override bool _Begin()
         {
