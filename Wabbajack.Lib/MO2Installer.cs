@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using Alphaleonis.Win32.Filesystem;
 using IniParser;
@@ -35,8 +36,9 @@ namespace Wabbajack.Lib
         {
         }
 
-        protected override bool _Begin()
+        protected override bool _Begin(CancellationToken cancel)
         {
+            if (cancel.IsCancellationRequested) return false;
             ConfigureProcessor(18, RecommendQueueSize());
             var game = GameRegistry.Games[ModList.GameType];
 
@@ -53,9 +55,11 @@ namespace Wabbajack.Lib
                 return false;
             }
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Validating Game ESMs");
             ValidateGameESMs();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Validating Modlist");
             ValidateModlist.RunValidation(ModList);
 
@@ -71,15 +75,19 @@ namespace Wabbajack.Lib
                 }
             }
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Optimizing Modlist");
             OptimizeModlist();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Hashing Archives");
             HashArchives();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Downloading Missing Archives");
             DownloadArchives();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Hashing Remaining Archives");
             HashArchives();
 
@@ -94,24 +102,31 @@ namespace Wabbajack.Lib
                     Error("Cannot continue, was unable to download one or more archives");
             }
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Priming VFS");
             PrimeVFS();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Building Folder Structure");
             BuildFolderStructure();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Installing Archives");
             InstallArchives();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Installing Included files");
             InstallIncludedFiles();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Installing Archive Metas");
             InstallIncludedDownloadMetas();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Building BSAs");
             BuildBSAs();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Generating Merges");
             zEditIntegration.GenerateMerges(this);
 

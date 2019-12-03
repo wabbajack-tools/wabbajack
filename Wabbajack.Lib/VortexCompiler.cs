@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using DynamicData;
 using Microsoft.WindowsAPICodePack.Shell;
 using Newtonsoft.Json;
@@ -69,19 +70,24 @@ namespace Wabbajack.Lib
             ActiveArchives = new List<string>();
         }
 
-        protected override bool _Begin()
+        protected override bool _Begin(CancellationToken cancel)
         {
+            if (cancel.IsCancellationRequested) return false;
+
             ConfigureProcessor(10);
             if (string.IsNullOrEmpty(ModListName))
                 ModListName = $"Vortex ModList for {Game.ToString()}";
 
             Info($"Starting Vortex compilation for {GameName} at {GamePath} with staging folder at {StagingFolder} and downloads folder at  {DownloadsFolder}.");
 
+            if (cancel.IsCancellationRequested) return false;
             ParseDeploymentFile();
 
+            if (cancel.IsCancellationRequested) return false;
             Info("Starting pre-compilation steps");
             CreateMetaFiles();
 
+            if (cancel.IsCancellationRequested) return false;
             Info($"Indexing {StagingFolder}");
             VFS.AddRoot(StagingFolder);
 
@@ -91,8 +97,10 @@ namespace Wabbajack.Lib
             Info($"Indexing {DownloadsFolder}");
             VFS.AddRoot(DownloadsFolder);
 
+            if (cancel.IsCancellationRequested) return false;
             AddExternalFolder();
 
+            if (cancel.IsCancellationRequested) return false;
             Info("Cleaning output folder");
             if (Directory.Exists(ModListOutputFolder)) Utils.DeleteDirectory(ModListOutputFolder);
             Directory.CreateDirectory(ModListOutputFolder);
@@ -138,6 +146,7 @@ namespace Wabbajack.Lib
 
             Info($"Found {AllFiles.Count} files to build into mod list");
 
+            if (cancel.IsCancellationRequested) return false;
             Info("Verifying destinations");
             var duplicates = AllFiles.GroupBy(f => f.Path)
                 .Where(fs => fs.Count() > 1)
@@ -220,6 +229,7 @@ namespace Wabbajack.Lib
             }
             */
 
+            if (cancel.IsCancellationRequested) return false;
             GatherArchives();
 
             ModList = new ModList

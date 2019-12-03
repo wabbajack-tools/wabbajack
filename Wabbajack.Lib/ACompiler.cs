@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reactive.Subjects;
+using System.Threading;
 using CommonMark;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;

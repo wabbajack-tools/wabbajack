@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using Wabbajack.Common;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -29,21 +30,29 @@ namespace Wabbajack.Lib
             GameInfo = GameRegistry.Games[ModList.GameType];
         }
 
-        protected override bool _Begin()
+        protected override bool _Begin(CancellationToken cancel)
         {
+            if (cancel.IsCancellationRequested) return false;
             MessageBox.Show(
                 "Vortex Support is still experimental and may produce unexpected results. " +
                 "If anything fails go to the special vortex support channels on the discord. @erri120#2285 " +
                 "for support.", "Warning",
                 MessageBoxButton.OK);
 
+            if (cancel.IsCancellationRequested) return false;
             ConfigureProcessor(10, RecommendQueueSize());
             Directory.CreateDirectory(DownloadFolder);
 
-            HashArchives();
-            DownloadArchives();
+            if (cancel.IsCancellationRequested) return false;
             HashArchives();
 
+            if (cancel.IsCancellationRequested) return false;
+            DownloadArchives();
+
+            if (cancel.IsCancellationRequested) return false;
+            HashArchives();
+
+            if (cancel.IsCancellationRequested) return false;
             var missing = ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash)).ToList();
             if (missing.Count > 0)
             {
@@ -57,9 +66,16 @@ namespace Wabbajack.Lib
 
             PrimeVFS();
 
+            if (cancel.IsCancellationRequested) return false;
             BuildFolderStructure();
+
+            if (cancel.IsCancellationRequested) return false;
             InstallArchives();
+
+            if (cancel.IsCancellationRequested) return false;
             InstallIncludedFiles();
+
+            if (cancel.IsCancellationRequested) return false;
             InstallSteamWorkshopItems();
             //InstallIncludedDownloadMetas();
 

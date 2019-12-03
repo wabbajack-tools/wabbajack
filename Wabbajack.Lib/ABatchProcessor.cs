@@ -45,6 +45,7 @@ namespace Wabbajack.Lib
 
         private int _configured;
         private int _started;
+        private readonly CancellationTokenSource _cancel = new CancellationTokenSource();
 
         protected void ConfigureProcessor(int steps, int threads = 0)
         {
@@ -77,7 +78,7 @@ namespace Wabbajack.Lib
             }
         }
 
-        protected abstract bool _Begin();
+        protected abstract bool _Begin(CancellationToken cancel);
         public Task<bool> Begin()
         {
             if (1 == Interlocked.CompareExchange(ref _started, 1, 1))
@@ -92,7 +93,7 @@ namespace Wabbajack.Lib
             {
                 try
                 {
-                    _tcs.SetResult(_Begin());
+                    _tcs.SetResult(_Begin(_cancel.Token));
                 }
                 catch (Exception ex)
                 {
@@ -110,8 +111,8 @@ namespace Wabbajack.Lib
 
         public void Terminate()
         {
+            _cancel.Cancel();
             Queue?.Shutdown();
-            _processorThread?.Abort();
             _isRunning.OnNext(false);
         }
     }
