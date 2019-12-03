@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -174,6 +174,7 @@
     </Compile>
     <Compile Include="View Models\Installers\ISubInstallerVM.cs" />
     <Compile Include="View Models\Installers\MO2InstallerVM.cs" />
+    <Compile Include="View Models\Installers\VortexInstallerVM.cs" />
     <Compile Include="View Models\ModListGalleryVM.cs" />
     <Compile Include="View Models\ModListMetadataVM.cs" />
     <Compile Include="Views\Common\HeatedBackgroundView.xaml.cs">
@@ -245,6 +246,9 @@
     <Compile Include="Views\UserControlRx.cs" />
     <Compile Include="Views\Compilers\VortexCompilerConfigView.xaml.cs">
       <DependentUpon>VortexCompilerConfigView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Installers\VortexInstallerConfigView.xaml.cs">
+      <DependentUpon>VortexInstallerConfigView.xaml</DependentUpon>
     </Compile>
     <Page Include="Views\Installers\MO2InstallerConfigView.xaml">
       <SubType>Designer</SubType>
@@ -329,6 +333,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Compilers\VortexCompilerConfigView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Installers\VortexInstallerConfigView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

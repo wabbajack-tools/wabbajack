@@ -324,6 +324,9 @@
                                 <DataTemplate DataType="{x:Type local:MO2InstallerVM}">
                                     <local:MO2InstallerConfigView />
                                 </DataTemplate>
+                                <DataTemplate DataType="{x:Type local:VortexInstallerVM}">
+                                    <local:VortexInstallerConfigView />
+                                </DataTemplate>
                             </ContentPresenter.Resources>
                         </ContentPresenter>
                     </Grid>

@@ -23,7 +23,7 @@ namespace Wabbajack
 
         private static readonly ObservableCollectionExtended<GameVM> _gameOptions = new ObservableCollectionExtended<GameVM>(
             EnumExt.GetValues<Game>()
-                .Where(g => GameRegistry.Games[g].SupportedModManager == ModManager.Vortex && !GameRegistry.Games[g].Disabled)
+                .Where(g => VortexCompiler.IsActiveVortexGame(g))
                 .Select(g => new GameVM(g))
                 .OrderBy(g => g.DisplayName));
 

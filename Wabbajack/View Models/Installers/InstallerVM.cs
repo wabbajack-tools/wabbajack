@@ -1,4 +1,4 @@
-﻿using Syroot.Windows.IO;
+using Syroot.Windows.IO;
 using System;
 using ReactiveUI;
 using System.Diagnostics;
@@ -49,10 +49,6 @@ namespace Wabbajack
         [Reactive]
         public bool InstallingMode { get; set; }
 
-        public FilePickerVM Location { get; }
-
-        public FilePickerVM DownloadLocation { get; }
-
         private readonly ObservableAsPropertyHelper<ImageSource> _image;
         public ImageSource Image => _image.Value;
 
@@ -76,9 +72,6 @@ namespace Wabbajack
 
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
         public ObservableCollectionExtended<string> Log => MWVM.Log;
-
-        private readonly ObservableAsPropertyHelper<ModlistInstallationSettings> _CurrentSettings;
-        public ModlistInstallationSettings CurrentSettings => _CurrentSettings.Value;
 
         private readonly ObservableAsPropertyHelper<ModManager?> _TargetManager;
         public ModManager? TargetManager => _TargetManager.Value;
@@ -104,22 +97,6 @@ namespace Wabbajack
 
             MWVM = mainWindowVM;
 
-            Location = new FilePickerVM()
-            {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.Off,
-                PathType = FilePickerVM.PathTypeOptions.Folder,
-                PromptTitle = "Select Installation Directory",
-            };
-            Location.AdditionalError = this.WhenAny(x => x.Location.TargetPath)
-                .Select(x => Utils.IsDirectoryPathValid(x));
-            DownloadLocation = new FilePickerVM()
-            {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.Off,
-                PathType = FilePickerVM.PathTypeOptions.Folder,
-                PromptTitle = "Select a location for MO2 downloads",
-            };
-            DownloadLocation.AdditionalError = this.WhenAny(x => x.DownloadLocation.TargetPath)
-                .Select(x => Utils.IsDirectoryPathValid(x));
             ModListPath = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
@@ -138,7 +115,7 @@ namespace Wabbajack
                         case ModManager.MO2:
                             return new MO2InstallerVM(this);
                         case ModManager.Vortex:
-                            throw new NotImplementedException();
+                            return new VortexInstallerVM(this);
                         default:
                             return null;
                     }
@@ -153,21 +130,11 @@ namespace Wabbajack
                 .ToProperty(this, nameof(Installer));
 
             // Load settings
-            _CurrentSettings = this.WhenAny(x => x.ModListPath.TargetPath)
-                .Select(path => path == null ? null : MWVM.Settings.Installer.ModlistSettings.TryCreate(path))
-                .ToProperty(this, nameof(CurrentSettings));
-            this.WhenAny(x => x.CurrentSettings)
-                .Pairwise()
-                .Subscribe(settingsPair =>
-                {
-                    SaveSettings(settingsPair.Previous);
-                    if (settingsPair.Current == null) return;
-                    Location.TargetPath = settingsPair.Current.InstallationLocation;
-                    DownloadLocation.TargetPath = settingsPair.Current.DownloadLocation;
-                })
-                .DisposeWith(CompositeDisposable);
             MWVM.Settings.SaveSignal
-                .Subscribe(_ => SaveSettings(CurrentSettings))
+                .Subscribe(_ =>
+                {
+                    MWVM.Settings.Installer.LastInstalledListLocation = ModListPath.TargetPath;
+                })
                 .DisposeWith(CompositeDisposable);
 
             _modList = this.WhenAny(x => x.ModListPath.TargetPath)
@@ -267,18 +234,6 @@ namespace Wabbajack
                     .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());
 
-            // Have Installation location updates modify the downloads location if empty
-            this.WhenAny(x => x.Location.TargetPath)
-                .Skip(1) // Don't do it initially
-                .Subscribe(installPath =>
-                {
-                    if (string.IsNullOrWhiteSpace(DownloadLocation.TargetPath))
-                    {
-                        DownloadLocation.TargetPath = Path.Combine(installPath, "downloads");
-                    }
-                })
-                .DisposeWith(CompositeDisposable);
-
             _progressTitle = Observable.CombineLatest(
                     this.WhenAny(x => x.Installing),
                     this.WhenAny(x => x.InstallingMode),
@@ -345,14 +300,6 @@ namespace Wabbajack
                     viewer.Show();
                 }
             }
-        }
-
-        private void SaveSettings(ModlistInstallationSettings settings)
-        {
-            MWVM.Settings.Installer.LastInstalledListLocation = ModListPath.TargetPath;
-            if (settings == null) return;
-            settings.InstallationLocation = Location.TargetPath;
-            settings.DownloadLocation = DownloadLocation.TargetPath;
         }
     }
 }

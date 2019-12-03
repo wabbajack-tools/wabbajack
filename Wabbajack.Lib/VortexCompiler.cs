@@ -336,7 +336,7 @@ namespace Wabbajack.Lib
                 new IgnoreDisabledVortexMods(this),
                 new IncludeVortexDeployment(this),
                 new IgnoreVortex(this),
-                new IgnoreRegex(this, "^*__vortex_staging_folder$"),
+                new IgnoreRegex(this, $"^*{StagingMarkerName}$"),
 
                 Game == Game.DarkestDungeon ? new IncludeRegex(this, "project\\.xml$") : null,
 
@@ -395,6 +395,11 @@ namespace Wabbajack.Lib
         public static IErrorResponse IsValidStagingFolder(string path)
         {
             return IsValidBaseStagingFolder(Path.GetDirectoryName(path));
+        }
+
+        public static bool IsActiveVortexGame(Game g)
+        {
+            return GameRegistry.Games[g].SupportedModManager == ModManager.Vortex && !GameRegistry.Games[g].Disabled;
         }
     }
 
