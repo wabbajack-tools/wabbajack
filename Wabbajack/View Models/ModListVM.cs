@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
@@ -17,7 +18,6 @@ namespace Wabbajack
         public string Name => SourceModList?.Name;
         public string ReportHTML => SourceModList?.ReportHTML;
         public string Readme => SourceModList?.Readme;
-        public string ImageURL => SourceModList?.Image;
         public string Author => SourceModList?.Author;
         public string Description => SourceModList?.Description;
         public string Website => SourceModList?.Website;
@@ -40,20 +40,18 @@ namespace Wabbajack
                 Error = ex;
             }
 
-            ImageObservable = Observable.Return(ImageURL)
+            ImageObservable = Observable.Return(Unit.Default)
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .Select(url =>
+                .Select(filePath =>
                 {
                     try
                     {
-                        if (!File.Exists(url)) return default(MemoryStream);
-                        if (string.IsNullOrWhiteSpace(ImageURL)) return default(MemoryStream);
-                        if (ImageURL.Length != 36) return default(MemoryStream);
                         using (var fs = new FileStream(ModListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
                         using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
                         {
                             var ms = new MemoryStream();
-                            var entry = ar.GetEntry(ImageURL);
+                            var entry = ar.GetEntry("modlist-image.png");
+                            if (entry == null) return default(MemoryStream);
                             using (var e = entry.Open())
                             {
                                 e.CopyTo(ms);

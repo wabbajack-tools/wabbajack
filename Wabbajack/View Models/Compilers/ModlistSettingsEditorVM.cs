@@ -40,6 +40,10 @@ namespace Wabbajack
             {
                 PathType = FilePickerVM.PathTypeOptions.File,
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
+                Filters =
+                {
+                    new CommonFileDialogFilter("Text", "*.txt"),
+                }
             };
         }
 

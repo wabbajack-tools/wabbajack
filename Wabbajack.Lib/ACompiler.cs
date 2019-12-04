@@ -81,6 +81,17 @@ namespace Wabbajack.Lib
         {
             Utils.Log($"Exporting ModList to : {ModListOutputFile}");
 
+            // Modify readme and modlist image to relative paths if they exist
+            if (File.Exists(ModListImage))
+            {
+                ModList.Image = "modlist-image.png";
+            }
+            if (File.Exists(ModListReadme))
+            {
+                var readme = new FileInfo(ModListReadme);
+                ModList.Readme = $"readme{readme.Extension}";
+            }
+
             //ModList.ToJSON(Path.Combine(ModListOutputFolder, "modlist.json"));
             ModList.ToCERAS(Path.Combine(ModListOutputFolder, "modlist"), ref CerasConfig.Config);
 
@@ -102,6 +113,28 @@ namespace Wabbajack.Lib
                             ins.CopyTo(os);
                         }
                     });
+
+                    // Copy in modimage
+                    if (File.Exists(ModListImage))
+                    {
+                        var ze = za.CreateEntry(ModList.Image);
+                        using (var os = ze.Open())
+                        using (var ins = File.OpenRead(ModListImage))
+                        {
+                            ins.CopyTo(os);
+                        }
+                    }
+
+                    // Copy in readme
+                    if (File.Exists(ModListReadme))
+                    {
+                        var ze = za.CreateEntry(ModList.Readme);
+                        using (var os = ze.Open())
+                        using (var ins = File.OpenRead(ModListReadme))
+                        {
+                            ins.CopyTo(os);
+                        }
+                    }
                 }
             }
 
