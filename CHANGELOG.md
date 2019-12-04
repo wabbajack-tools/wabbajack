@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 1.0 beta 4 - 12/3/2019
+* Several crash and bug fixes
+
 #### Version - 1.0 beta 3 - 11/30/2019
 * Reworked much of the UI into a single window
 * Can download modlists directly through the single-window UI
