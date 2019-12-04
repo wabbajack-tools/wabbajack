@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -44,7 +45,7 @@ namespace Wabbajack.Test.ListValidation
         [TestCategory("ListValidation")]
         [DataTestMethod]
         [DynamicData(nameof(GetModLists), DynamicDataSourceType.Method)]
-        public void ValidateModLists(string name, ModlistMetadata list)
+        public async Task ValidateModLists(string name, ModlistMetadata list)
         {
             Log($"Testing {list.Links.MachineURL} - {list.Title}");
             var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + ".wabbajack");
@@ -67,12 +68,12 @@ namespace Wabbajack.Test.ListValidation
 
             Log($"{installer.Archives.Count} archives to validate");
 
-            var invalids = installer.Archives
+            var invalids = (await installer.Archives
                 .PMap(Queue,archive =>
                 {
                     Log($"Validating: {archive.Name}");
                     return new {archive, is_valid = archive.State.Verify()};
-                })
+                }))
                 .Where(a => !a.is_valid)
                 .ToList();
 

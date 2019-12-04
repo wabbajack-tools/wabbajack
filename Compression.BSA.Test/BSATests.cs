@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -28,7 +29,7 @@ namespace Compression.BSA.Test
         private static WorkQueue Queue { get; set; }
 
         [ClassInitialize]
-        public static void Setup(TestContext testContext)
+        public static async Task Setup(TestContext testContext)
         {
             Queue = new WorkQueue();
             Utils.LogMessages.Subscribe(f => testContext.WriteLine(f.ShortDescription));
@@ -52,12 +53,9 @@ namespace Compression.BSA.Test
                 var folder = Path.Combine(_bsaFolder, info.Item1.ToString(), info.Item2.ToString());
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
-                FileExtractor.ExtractAll(Queue, filename, folder);
+                await FileExtractor.ExtractAll(Queue, filename, folder);
             }
         }
-
-
-
 
         private static string DownloadMod((Game, int) info)
         {
@@ -91,7 +89,7 @@ namespace Compression.BSA.Test
         [TestMethod]
         [DataTestMethod]
         [DynamicData(nameof(BSAs), DynamicDataSourceType.Method)]
-        public void BSACompressionRecompression(string bsa)
+        public async Task BSACompressionRecompression(string bsa)
         {
             TestContext.WriteLine($"From {bsa}");
             TestContext.WriteLine("Cleaning Output Dir");
@@ -102,7 +100,7 @@ namespace Compression.BSA.Test
             string tempFile = Path.Combine("tmp.bsa");
             using (var a = BSADispatch.OpenRead(bsa))
             {
-                a.Files.PMap(Queue, file =>
+                await a.Files.PMap(Queue, file =>
                 {
                     var absName = Path.Combine(_tempDir, file.Path);
                     ViaJson(file.State);
@@ -123,7 +121,7 @@ namespace Compression.BSA.Test
 
                 using (var w = ViaJson(a.State).MakeBuilder())
                 {
-                    a.Files.PMap(Queue, file =>
+                    await a.Files.PMap(Queue, file =>
                     {
                         var absPath = Path.Combine(_tempDir, file.Path);
                         using (var str = File.OpenRead(absPath))
@@ -145,7 +143,7 @@ namespace Compression.BSA.Test
                     Assert.AreEqual(a.Files.Count(), b.Files.Count());
                     var idx = 0;
 
-                    a.Files.Zip(b.Files, (ai, bi) => (ai, bi))
+                    await a.Files.Zip(b.Files, (ai, bi) => (ai, bi))
                                 .PMap(Queue, pair =>
                                 {
                                     idx++;

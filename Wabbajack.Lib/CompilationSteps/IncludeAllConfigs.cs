@@ -1,4 +1,5 @@
-﻿using Alphaleonis.Win32.Filesystem;
+﻿using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 
@@ -10,7 +11,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             if (!Consts.ConfigFileExtensions.Contains(Path.GetExtension(source.Path))) return null;
             var result = source.EvolveTo<InlineFile>();

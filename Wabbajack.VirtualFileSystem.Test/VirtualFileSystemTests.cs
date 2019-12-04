@@ -31,10 +31,10 @@ namespace Wabbajack.VirtualFileSystem.Test
         }
 
         [TestMethod]
-        public void FilesAreIndexed()
+        public async Task FilesAreIndexed()
         {
             AddFile("test.txt", "This is a test");
-            AddTestRoot();
+            await AddTestRoot();
 
             var file = context.Index.ByFullPath[Path.Combine(VFS_TEST_DIR_FULL, "test.txt")];
             Assert.IsNotNull(file);
@@ -43,10 +43,10 @@ namespace Wabbajack.VirtualFileSystem.Test
             Assert.AreEqual(file.Hash, "qX0GZvIaTKM=");
         }
 
-        private void AddTestRoot()
+        private async Task AddTestRoot()
         {
-            context.AddRoot(VFS_TEST_DIR_FULL);
-            context.WriteToFile(Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
+            await context.AddRoot(VFS_TEST_DIR_FULL);
+            await context.WriteToFile(Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
             context.IntegrateFromFile(Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
         }
 
@@ -56,7 +56,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         {
             AddFile("archive/test.txt", "This is a test");
             ZipUpFolder("archive", "test.zip");
-            AddTestRoot();
+            await AddTestRoot();
 
             var abs_path = Path.Combine(VFS_TEST_DIR_FULL, "test.zip");
             var file = context.Index.ByFullPath[abs_path];
@@ -79,7 +79,7 @@ namespace Wabbajack.VirtualFileSystem.Test
             ZipUpFolder("archive", "test.zip");
 
             AddFile("test.txt", "This is a test");
-            AddTestRoot();
+            await AddTestRoot();
 
 
             var files = context.Index.ByHash["qX0GZvIaTKM="];
@@ -90,7 +90,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         public async Task DeletedFilesAreRemoved()
         {
             AddFile("test.txt", "This is a test");
-            AddTestRoot();
+            await AddTestRoot();
 
             var file = context.Index.ByFullPath[Path.Combine(VFS_TEST_DIR_FULL, "test.txt")];
             Assert.IsNotNull(file);
@@ -100,21 +100,21 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             File.Delete(Path.Combine(VFS_TEST_DIR_FULL, "test.txt"));
 
-            AddTestRoot();
+            await AddTestRoot();
 
             CollectionAssert.DoesNotContain(context.Index.ByFullPath, Path.Combine(VFS_TEST_DIR_FULL, "test.txt"));
         }
 
         [TestMethod]
-        public void UnmodifiedFilesAreNotReIndexed()
+        public async Task UnmodifiedFilesAreNotReIndexed()
         {
             AddFile("test.txt", "This is a test");
-            AddTestRoot();
+            await AddTestRoot();
 
             var old_file = context.Index.ByFullPath[Path.Combine(VFS_TEST_DIR_FULL, "test.txt")];
             var old_time = old_file.LastAnalyzed;
 
-            AddTestRoot();
+            await AddTestRoot();
 
             var new_file = context.Index.ByFullPath[Path.Combine(VFS_TEST_DIR_FULL, "test.txt")];
 
@@ -122,23 +122,23 @@ namespace Wabbajack.VirtualFileSystem.Test
         }
 
         [TestMethod]
-        public void CanStageSimpleArchives()
+        public async Task CanStageSimpleArchives()
         {
             AddFile("archive/test.txt", "This is a test");
             ZipUpFolder("archive", "test.zip");
-            AddTestRoot();
+            await AddTestRoot();
 
             var abs_path = Path.Combine(VFS_TEST_DIR_FULL, "test.zip");
             var file = context.Index.ByFullPath[abs_path + "|test.txt"];
 
-            var cleanup = context.Stage(new List<VirtualFile> {file});
+            var cleanup = await context.Stage(new List<VirtualFile> {file});
             Assert.AreEqual("This is a test", File.ReadAllText(file.StagedPath));
 
             cleanup();
         }
 
         [TestMethod]
-        public void CanStageNestedArchives()
+        public async Task CanStageNestedArchives()
         {
             AddFile("archive/test.txt", "This is a test");
             ZipUpFolder("archive", "test.zip");
@@ -148,11 +148,11 @@ namespace Wabbajack.VirtualFileSystem.Test
                 Path.Combine(VFS_TEST_DIR_FULL, @"archive\other\dir\nested.zip"));
             ZipUpFolder("archive", "test.zip");
 
-            AddTestRoot();
+            await AddTestRoot();
 
             var files = context.Index.ByHash["qX0GZvIaTKM="];
 
-            var cleanup = context.Stage(files);
+            var cleanup = await context.Stage(files);
 
             foreach (var file in files)
                 Assert.AreEqual("This is a test", File.ReadAllText(file.StagedPath));
@@ -161,7 +161,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         }
 
         [TestMethod]
-        public void CanRequestPortableFileTrees()
+        public async Task CanRequestPortableFileTrees()
         {
             AddFile("archive/test.txt", "This is a test");
             ZipUpFolder("archive", "test.zip");
@@ -171,7 +171,7 @@ namespace Wabbajack.VirtualFileSystem.Test
                 Path.Combine(VFS_TEST_DIR_FULL, @"archive\other\dir\nested.zip"));
             ZipUpFolder("archive", "test.zip");
 
-            AddTestRoot();
+            await AddTestRoot();
 
             var files = context.Index.ByHash["qX0GZvIaTKM="];
             var archive = context.Index.ByRootPath[Path.Combine(VFS_TEST_DIR_FULL, "test.zip")];
@@ -180,12 +180,12 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             var new_context = new Context(Queue);
 
-            new_context.IntegrateFromPortable(state,
+            await new_context.IntegrateFromPortable(state,
                 new Dictionary<string, string> {{archive.Hash, archive.FullPath}});
 
             var new_files = new_context.Index.ByHash["qX0GZvIaTKM="];
 
-            var close = new_context.Stage(new_files);
+            var close = await new_context.Stage(new_files);
 
             foreach (var file in new_files)
                 Assert.AreEqual("This is a test", File.ReadAllText(file.StagedPath));

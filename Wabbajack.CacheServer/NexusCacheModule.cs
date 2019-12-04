@@ -23,13 +23,16 @@ namespace Wabbajack.CacheServer
             Get("/v1/games/{GameName}/mods/{ModID}.json", HandleModInfo);
             Get("/nexus_api_cache/{request}.json", HandleCacheCall);
             Get("/nexus_api_cache", ListCache);
+            // ToDo
+            // Handle what to do with the fact that this is now a task
+            throw new NotImplementedException("Unsure if following function still works when taking in a Task");
             Get("/nexus_api_cache/update", UpdateCache);
         }
 
-        private object UpdateCache(object arg)
+        private async Task<object> UpdateCache(object arg)
         {
             var api = new NexusApiClient(Request.Headers["apikey"].FirstOrDefault());
-            api.ClearUpdatedModsInCache();
+            await api.ClearUpdatedModsInCache();
             return "Done";
         }
 

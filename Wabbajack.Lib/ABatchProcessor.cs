@@ -35,8 +35,6 @@ namespace Wabbajack.Lib
 
         private Subject<bool> _isRunning { get; } = new Subject<bool>();
         public IObservable<bool> IsRunning => _isRunning;
-        
-        private Thread _processorThread { get; set; }
 
         private int _configured;
         private int _started;
@@ -56,7 +54,7 @@ namespace Wabbajack.Lib
             VFS = new Context(Queue) { UpdateTracker = UpdateTracker };
         }
 
-        public static int RecommendQueueSize(string folder)
+        public static async Task<int> RecommendQueueSize(string folder)
         {
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
@@ -64,7 +62,7 @@ namespace Wabbajack.Lib
             using (var queue = new WorkQueue())
             {
                 Utils.Log($"Benchmarking {folder}");
-                var raw_speed = Utils.TestDiskSpeed(queue, folder);
+                var raw_speed = await Utils.TestDiskSpeed(queue, folder);
                 Utils.Log($"{raw_speed.ToFileSizeString()}/sec for {folder}");
                 int speed = (int)(raw_speed / 1024 / 1024);
 
@@ -73,7 +71,7 @@ namespace Wabbajack.Lib
             }
         }
 
-        protected abstract bool _Begin(CancellationToken cancel);
+        protected abstract Task<bool> _Begin(CancellationToken cancel);
         public Task<bool> Begin()
         {
             if (1 == Interlocked.CompareExchange(ref _started, 1, 1))
@@ -81,27 +79,18 @@ namespace Wabbajack.Lib
                 throw new InvalidDataException("Can't start the processor twice");
             }
 
-            _isRunning.OnNext(true);
-            var _tcs = new TaskCompletionSource<bool>();
-
-            _processorThread = new Thread(() =>
-            {
+            return Task.Run(async () =>
+            { 
                 try
                 {
-                    _tcs.SetResult(_Begin(_cancel.Token));
-                }
-                catch (Exception ex)
-                {
-                    _tcs.SetException(ex);
+                    _isRunning.OnNext(true);
+                    return await _Begin(_cancel.Token);
                 }
                 finally
                 {
                     _isRunning.OnNext(false);
                 }
             });
-            _processorThread.Priority = ThreadPriority.BelowNormal;
-            _processorThread.Start();
-            return _tcs.Task;
         }
 
         public void Dispose()

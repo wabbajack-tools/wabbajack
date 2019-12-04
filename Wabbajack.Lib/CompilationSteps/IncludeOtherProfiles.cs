@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 
@@ -19,7 +20,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 .ToList();
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             if (!source.Path.StartsWith("profiles\\")) return null;
             if (_profiles.Any(profile => source.Path.StartsWith(profile))) return null;

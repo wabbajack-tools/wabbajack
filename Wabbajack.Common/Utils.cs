@@ -482,24 +482,36 @@ namespace Wabbajack.Common
             }
         }
 
-        public static TR[] PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
+        public static async Task<TR[]> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
             Func<TI, TR> f)
         {
             var cnt = 0;
             var collist = coll.ToList();
-            return collist.PMap(queue, itm =>
+            return await collist.PMap(queue, itm =>
             {
                 updateTracker.MakeUpdate(collist.Count, Interlocked.Increment(ref cnt));
                 return f(itm);
             });
         }
 
-        public static void PMap<TI>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
+        public static async Task<TR[]> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
+            Func<TI, Task<TR>> f)
+        {
+            var cnt = 0;
+            var collist = coll.ToList();
+            return await collist.PMap(queue, itm =>
+            {
+                updateTracker.MakeUpdate(collist.Count, Interlocked.Increment(ref cnt));
+                return f(itm);
+            });
+        }
+
+        public static async Task PMap<TI>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
             Action<TI> f)
         {
             var cnt = 0;
             var collist = coll.ToList();
-            collist.PMap(queue, itm =>
+            await collist.PMap(queue, itm =>
             {
                 updateTracker.MakeUpdate(collist.Count, Interlocked.Increment(ref cnt));
                 f(itm);
@@ -508,17 +520,17 @@ namespace Wabbajack.Common
         }
 
 
-        public static TR[] PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue,
+        public static async Task<TR[]> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue,
             Func<TI, TR> f)
         {
             var colllst = coll.ToList();
 
             var remainingTasks = colllst.Count;
 
-            var tasks = coll.Select(i =>
+            var tasks = colllst.Select(i =>
             {
                 var tc = new TaskCompletionSource<TR>();
-                queue.QueueTask(() =>
+                queue.QueueTask(async () =>
                 {
                     try
                     {
@@ -537,20 +549,49 @@ namespace Wabbajack.Common
             if (WorkQueue.WorkerThread)
                 while (remainingTasks > 0)
                     if (queue.Queue.TryTake(out var a, 500))
-                        a();
+                        await a();
 
-            return tasks.Select(t =>
-            {
-                t.Wait();
-                if (t.IsFaulted)
-                    throw t.Exception;
-                return t.Result;
-            }).ToArray();
+            return await Task.WhenAll(tasks);
         }
 
-        public static void PMap<TI>(this IEnumerable<TI> coll, WorkQueue queue, Action<TI> f)
+
+        public static async Task<TR[]> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue,
+            Func<TI, Task<TR>> f)
         {
-            coll.PMap(queue, i =>
+            var colllst = coll.ToList();
+
+            var remainingTasks = colllst.Count;
+
+            var tasks = colllst.Select(i =>
+            {
+                var tc = new TaskCompletionSource<TR>();
+                queue.QueueTask(async () =>
+                {
+                    try
+                    {
+                        tc.SetResult(await f(i));
+                    }
+                    catch (Exception ex)
+                    {
+                        tc.SetException(ex);
+                    }
+                    Interlocked.Decrement(ref remainingTasks);
+                });
+                return tc.Task;
+            }).ToList();
+
+            // To avoid thread starvation, we'll start to help out in the work queue
+            if (WorkQueue.WorkerThread)
+                while (remainingTasks > 0)
+                    if (queue.Queue.TryTake(out var a, 500))
+                        await a();
+
+            return await Task.WhenAll(tasks);
+        }
+
+        public static async Task PMap<TI>(this IEnumerable<TI> coll, WorkQueue queue, Action<TI> f)
+        {
+            await coll.PMap(queue, i =>
             {
                 f(i);
                 return false;
@@ -767,11 +808,11 @@ namespace Wabbajack.Common
             Log(s);
         }
 
-        private static long TestDiskSpeedInner(WorkQueue queue, string path)
+        private static async Task<long> TestDiskSpeedInner(WorkQueue queue, string path)
         {
             var startTime = DateTime.Now;
             var seconds = 2;
-            return Enumerable.Range(0, queue.ThreadCount)
+            var results = await Enumerable.Range(0, queue.ThreadCount)
                 .PMap(queue, idx =>
                 {
                     var random = new Random();
@@ -792,16 +833,17 @@ namespace Wabbajack.Common
                     }
                     File.Delete(file);
                     return size;
-                }).Sum() / seconds;
+                });
+            return results.Sum() / seconds;
         }
 
         private static Dictionary<string, long> _cachedDiskSpeeds = new Dictionary<string, long>();
-        public static long TestDiskSpeed(WorkQueue queue, string path)
+        public static async Task<long> TestDiskSpeed(WorkQueue queue, string path)
         {
             var driveName = Volume.GetUniqueVolumeNameForPath(path);
             if (_cachedDiskSpeeds.TryGetValue(driveName, out long speed))
                 return speed;
-            speed = TestDiskSpeedInner(queue, path);
+            speed = await TestDiskSpeedInner(queue, path);
             _cachedDiskSpeeds[driveName] = speed;
             return speed;
         }

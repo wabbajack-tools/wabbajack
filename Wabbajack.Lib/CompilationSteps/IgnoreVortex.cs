@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.CompilationSteps
@@ -12,7 +13,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _vortex = (VortexCompiler) compiler;
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             if (Path.GetDirectoryName(source.AbsolutePath) != _vortex.DownloadsFolder) return null;
             var result = source.EvolveTo<IgnoredDirectly>();

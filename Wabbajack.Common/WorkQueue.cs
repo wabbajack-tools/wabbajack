@@ -5,14 +5,15 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
+using System.Threading.Tasks;
 using Wabbajack.Common.StatusFeed;
 
 namespace Wabbajack.Common
 {
     public class WorkQueue : IDisposable
     {
-        internal BlockingCollection<Action>
-            Queue = new BlockingCollection<Action>(new ConcurrentStack<Action>());
+        internal BlockingCollection<Func<Task>>
+            Queue = new BlockingCollection<Func<Task>>(new ConcurrentStack<Func<Task>>());
 
         [ThreadStatic] private static int CpuId;
 
@@ -37,7 +38,7 @@ namespace Wabbajack.Common
             Threads = Enumerable.Range(0, threadCount)
                 .Select(idx =>
                 {
-                    var thread = new Thread(() => ThreadBody(idx));
+                    var thread = new Thread(() => ThreadBody(idx).Wait());
                     thread.Priority = ThreadPriority.BelowNormal;
                     thread.IsBackground = true;
                     thread.Name = string.Format("Wabbajack_Worker_{0}", idx);
@@ -48,7 +49,7 @@ namespace Wabbajack.Common
 
         public int ThreadCount { get; private set; }
 
-        private void ThreadBody(int idx)
+        private async Task ThreadBody(int idx)
         {
             CpuId = idx;
             CurrentQueue = this;
@@ -58,8 +59,9 @@ namespace Wabbajack.Common
                 while (true)
                 {
                     Report("Waiting", 0, false);
+                    if (_cancel.IsCancellationRequested) return;
                     var f = Queue.Take(_cancel.Token);
-                    f();
+                    await f();
                 }
             }
             catch (OperationCanceledException)
@@ -80,7 +82,7 @@ namespace Wabbajack.Common
                 });
         }
 
-        public void QueueTask(Action a)
+        public void QueueTask(Func<Task> a)
         {
             Queue.Add(a);
         }
@@ -88,7 +90,13 @@ namespace Wabbajack.Common
         public void Dispose()
         {
             _cancel.Cancel();
-            Threads.Do(th => th.Join());
+            Threads.Do(th =>
+            {
+                if (th.ManagedThreadId != Thread.CurrentThread.ManagedThreadId)
+                {
+                    th.Join();
+                }
+            });
             Queue?.Dispose();
         }
     }

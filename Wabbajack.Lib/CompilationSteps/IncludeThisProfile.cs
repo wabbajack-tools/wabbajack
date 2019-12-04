@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 
@@ -17,7 +18,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _correctProfiles = _mo2Compiler.SelectedProfiles.Select(p => Path.Combine("profiles", p) + "\\").ToList();
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             if (_correctProfiles.Any(p => source.Path.StartsWith(p)))
             {

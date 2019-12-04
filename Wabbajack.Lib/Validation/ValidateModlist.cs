@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -54,14 +55,14 @@ namespace Wabbajack.Lib.Validation
 
         }
 
-        public static void RunValidation(WorkQueue queue, ModList modlist)
+        public static async Task RunValidation(WorkQueue queue, ModList modlist)
         {
             var validator = new ValidateModlist(queue);
 
             validator.LoadListsFromGithub();
 
             Utils.Log("Running validation checks");
-            var errors = validator.Validate(modlist);
+            var errors = await validator.Validate(modlist);
             errors.Do(e => Utils.Log(e));
             if (errors.Count() > 0)
             {
@@ -102,16 +103,16 @@ namespace Wabbajack.Lib.Validation
             };
         }
 
-        public IEnumerable<string> Validate(ModList modlist)
+        public async Task<IEnumerable<string>> Validate(ModList modlist)
         {
             ConcurrentStack<string> ValidationErrors = new ConcurrentStack<string>();
             
-            var nexus_mod_permissions = modlist.Archives
+            var nexus_mod_permissions = (await modlist.Archives
                 .Where(a => a.State is NexusDownloader.State)
-                .PMap(_queue, a => (a.Hash, FilePermissions((NexusDownloader.State)a.State), a))
+                .PMap(_queue, a => (a.Hash, FilePermissions((NexusDownloader.State)a.State), a)))
                 .ToDictionary(a => a.Hash, a => new { permissions = a.Item2, archive = a.a });
 
-            modlist.Directives
+            await modlist.Directives
                 .OfType<PatchedFromArchive>()
                 .PMap(_queue, p =>
                 {
@@ -130,7 +131,7 @@ namespace Wabbajack.Lib.Validation
                     }
                 });
 
-            modlist.Directives
+            await modlist.Directives
                 .OfType<FromArchive>()
                 .PMap(_queue, p =>
                 {

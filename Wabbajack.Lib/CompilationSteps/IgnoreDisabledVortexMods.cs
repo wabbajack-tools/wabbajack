@@ -1,4 +1,5 @@
-﻿using Wabbajack.Common;
+﻿using System.Threading.Tasks;
+using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -11,7 +12,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _vortexCompiler = (VortexCompiler) compiler;
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             var b = false;
             _vortexCompiler.ActiveArchives.Do(a =>

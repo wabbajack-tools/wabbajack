@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
 using Newtonsoft.Json;
@@ -49,7 +50,7 @@ namespace Wabbajack.Lib.CompilationSteps
             return new State();
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             if (!Consts.SupportedBSAs.Contains(Path.GetExtension(source.Path).ToLower())) return null;
 
@@ -64,7 +65,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             var id = Guid.NewGuid().ToString();
 
-            var matches = sourceFiles.PMap(_mo2Compiler.Queue, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e)
+            var matches = await sourceFiles.PMap(_mo2Compiler.Queue, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e)
             {
                 Path = Path.Combine(Consts.BSACreationDir, id, e.Name)
             }));

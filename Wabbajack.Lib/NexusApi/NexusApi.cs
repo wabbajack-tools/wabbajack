@@ -1,4 +1,4 @@
-﻿using ReactiveUI;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -355,7 +355,7 @@ namespace Wabbajack.Lib.NexusApi
             set => _localCacheDir = value;
         }
 
-        public void ClearUpdatedModsInCache()
+        public async Task ClearUpdatedModsInCache()
         {
             if (!UseLocalCache) return;
 
@@ -374,7 +374,7 @@ namespace Wabbajack.Lib.NexusApi
             Utils.Log($"Found {purge.Count} updated mods in the last month");
             using (var queue = new WorkQueue())
             {
-                var to_purge = Directory.EnumerateFiles(LocalCacheDir, "*.json")
+                var to_purge = (await Directory.EnumerateFiles(LocalCacheDir, "*.json")
                     .PMap(queue,f =>
                     {
                         Utils.Status("Cleaning Nexus cache for");
@@ -389,16 +389,18 @@ namespace Wabbajack.Lib.NexusApi
                             return (should_remove, f);
                         }
 
+                        // ToDo
+                        // Can improve to not read the entire file to see if it starts with null
                         if (File.ReadAllText(f).StartsWith("null"))
                             return (true, f);
 
                         return (false, f);
-                    })
+                    }))
                     .Where(p => p.Item1)
                     .ToList();
 
                 Utils.Log($"Purging {to_purge.Count} cache entries");
-                to_purge.PMap(queue, f =>
+                await to_purge.PMap(queue, f =>
                 {
                     var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f.f).FromHex()));
                     Utils.Log($"Purging {uri}");

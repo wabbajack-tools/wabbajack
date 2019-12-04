@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -13,7 +14,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _reason = $"Ignored because path ends with {postfix}";
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             if (!source.Path.EndsWith(_postfix)) return null;
             var result = source.EvolveTo<IgnoredDirectly>();

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using System.Threading;
 using DynamicData;
 using Microsoft.WindowsAPICodePack.Shell;
@@ -69,8 +70,8 @@ namespace Wabbajack.Lib
 
             ActiveArchives = new List<string>();
         }
-
-        protected override bool _Begin(CancellationToken cancel)
+        
+        protected override async Task<bool> _Begin(CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested) return false;
 
@@ -89,16 +90,16 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             Info($"Indexing {StagingFolder}");
-            VFS.AddRoot(StagingFolder);
+            await VFS.AddRoot(StagingFolder);
 
             Info($"Indexing {GamePath}");
-            VFS.AddRoot(GamePath);
+            await VFS.AddRoot(GamePath);
 
             Info($"Indexing {DownloadsFolder}");
-            VFS.AddRoot(DownloadsFolder);
+            await VFS.AddRoot(DownloadsFolder);
 
             if (cancel.IsCancellationRequested) return false;
-            AddExternalFolder();
+            await AddExternalFolder();
 
             if (cancel.IsCancellationRequested) return false;
             Info("Cleaning output folder");
@@ -198,7 +199,7 @@ namespace Wabbajack.Lib
             var stack = MakeStack();
 
             Info("Running Compilation Stack");
-            var results = AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f)).ToList();
+            var results = await AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f));
 
             IEnumerable<NoMatch> noMatch = results.OfType<NoMatch>().ToList();
             Info($"No match for {noMatch.Count()} files");
@@ -230,7 +231,7 @@ namespace Wabbajack.Lib
             */
 
             if (cancel.IsCancellationRequested) return false;
-            GatherArchives();
+            await GatherArchives();
 
             ModList = new ModList
             {
@@ -300,17 +301,17 @@ namespace Wabbajack.Lib
         /// <summary>
         /// Some have mods outside their game folder located
         /// </summary>
-        private void AddExternalFolder()
+        private async Task AddExternalFolder()
         {
             var currentGame = GameRegistry.Games[Game];
             if (currentGame.AdditionalFolders == null || currentGame.AdditionalFolders.Count == 0) return;
-            currentGame.AdditionalFolders.Do(f =>
+            foreach (var f in currentGame.AdditionalFolders)
             {
                 var path = f.Replace("%documents%", KnownFolders.Documents.Path);
                 if (!Directory.Exists(path)) return;
                 Info($"Indexing {path}");
-                VFS.AddRoot(path);
-            });
+                await VFS.AddRoot(path);
+            }
         }
 
         private void CreateMetaFiles()

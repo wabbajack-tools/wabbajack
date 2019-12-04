@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Threading;
 using System.Windows;
 using Wabbajack.Common;
@@ -30,7 +31,7 @@ namespace Wabbajack.Lib
             GameInfo = GameRegistry.Games[ModList.GameType];
         }
 
-        protected override bool _Begin(CancellationToken cancel)
+        protected override async Task<bool> _Begin(CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested) return false;
             MessageBox.Show(
@@ -40,17 +41,17 @@ namespace Wabbajack.Lib
                 MessageBoxButton.OK);
 
             if (cancel.IsCancellationRequested) return false;
-            ConfigureProcessor(10, RecommendQueueSize());
+            ConfigureProcessor(10, await RecommendQueueSize());
             Directory.CreateDirectory(DownloadFolder);
 
             if (cancel.IsCancellationRequested) return false;
-            HashArchives();
+            await HashArchives();
 
             if (cancel.IsCancellationRequested) return false;
-            DownloadArchives();
+            await DownloadArchives();
 
             if (cancel.IsCancellationRequested) return false;
-            HashArchives();
+            await HashArchives();
 
             if (cancel.IsCancellationRequested) return false;
             var missing = ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash)).ToList();
@@ -70,20 +71,20 @@ namespace Wabbajack.Lib
             BuildFolderStructure();
 
             if (cancel.IsCancellationRequested) return false;
-            InstallArchives();
+            await InstallArchives();
 
             if (cancel.IsCancellationRequested) return false;
-            InstallIncludedFiles();
+            await InstallIncludedFiles();
 
             if (cancel.IsCancellationRequested) return false;
-            InstallSteamWorkshopItems();
+            await InstallSteamWorkshopItems();
             //InstallIncludedDownloadMetas();
 
             Info("Installation complete! You may exit the program.");
             return true;
         }
 
-        private void InstallSteamWorkshopItems()
+        private async Task InstallSteamWorkshopItems()
         {
             //var currentLib = "";
             SteamGame currentSteamGame = null;
@@ -104,7 +105,7 @@ namespace Wabbajack.Lib
             if (result != MessageBoxResult.Yes)
                 return;
 
-            ModList.Directives.OfType<SteamMeta>()
+            await ModList.Directives.OfType<SteamMeta>()
                 .PMap(Queue, item =>
                 {
                     Status("Extracting Steam meta file to temp folder");
@@ -128,10 +129,10 @@ namespace Wabbajack.Lib
                 });
         }
 
-        private void InstallIncludedFiles()
+        private async Task InstallIncludedFiles()
         {
             Info("Writing inline files");
-            ModList.Directives.OfType<InlineFile>()
+            await ModList.Directives.OfType<InlineFile>()
                 .PMap(Queue,directive =>
                 {
                     if (directive.To.EndsWith(".meta"))
