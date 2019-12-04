@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using Wabbajack.Common;
+using Wabbajack.Lib.CompilationSteps.CompilationErrors;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
+using Wabbajack.Lib.StatusMessages;
 using Wabbajack.Lib.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -59,12 +61,7 @@ namespace Wabbajack.Lib
 
             if (Directory.Exists(Path.Combine(OutputFolder, "mods")) && WarnOnOverwrite)
             {
-                if (MessageBox.Show(
-                        "There already appears to be a Mod Organizer 2 install in this folder, are you sure you wish to continue" +
-                        " with installation? If you do, you may render both your existing install and the new modlist inoperable.",
-                        "Existing MO2 installation in install folder",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Exclamation) == MessageBoxResult.No)
+                if (Utils.Log(new ConfirmUpdateOfExistingInstall { ModListName = ModList.Name, OutputFolder = OutputFolder}).Task.Result == ConfirmUpdateOfExistingInstall.Choice.Abort)
                 {
                     Utils.Log("Existing installation at the request of the user, existing mods folder found.");
                     return false;
@@ -143,7 +140,7 @@ namespace Wabbajack.Lib
                 var hash = gameFile.FileHash();
                 if (hash != esm.SourceESMHash)
                 {
-                    Utils.Error("Game ESM hash doesn't match, is the ESM already cleaned? Please verify your local game files.");
+                    Utils.Error(new InvalidGameESMError(esm, hash, gameFile));
                 }
             }
         }

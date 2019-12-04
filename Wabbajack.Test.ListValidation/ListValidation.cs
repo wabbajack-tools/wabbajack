@@ -17,7 +17,7 @@ namespace Wabbajack.Test.ListValidation
         [ClassInitialize]
         public static void SetupNexus(TestContext context)
         {
-            Utils.LogMessages.Subscribe(context.WriteLine);
+            Utils.LogMessages.Subscribe(m => context.WriteLine(m.ToString()));
             var api = new NexusApiClient();
             api.ClearUpdatedModsInCache();
         }
@@ -27,7 +27,7 @@ namespace Wabbajack.Test.ListValidation
         public void Setup()
         {
             Directory.CreateDirectory(Consts.ModListDownloadFolder);
-            Utils.LogMessages.Subscribe(s => TestContext.WriteLine(s));
+            Utils.LogMessages.Subscribe(s => TestContext.WriteLine(s.ToString()));
             Queue = new WorkQueue();
         }
 
