@@ -18,10 +18,10 @@ namespace Wabbajack.Common
         internal static bool WorkerThread => CurrentQueue != null;
         [ThreadStatic] internal static WorkQueue CurrentQueue;
 
-        private static readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
+        private readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
 
-        public static List<Thread> Threads { get; private set; }
+        public List<Thread> Threads { get; private set; }
 
         public WorkQueue(int threadCount = 0)
         {

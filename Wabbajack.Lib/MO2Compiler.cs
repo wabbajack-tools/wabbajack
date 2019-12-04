@@ -246,7 +246,7 @@ namespace Wabbajack.Lib
             {
                 GameType = GameRegistry.Games.Values.First(f => f.MO2Name == MO2Ini.General.gameName).Game,
                 WabbajackVersion = WabbajackVersion,
-                Archives = SelectedArchives,
+                Archives = SelectedArchives.ToList(),
                 ModManager = ModManager.MO2,
                 Directives = InstallDirectives,
                 Name = ModListName ?? MO2Profile,

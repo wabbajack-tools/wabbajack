@@ -39,7 +39,7 @@ namespace Wabbajack.Lib
 
         public bool ShowReportWhenFinished { get; set; } = true;
 
-        public List<Archive> SelectedArchives = new List<Archive>();
+        public ICollection<Archive> SelectedArchives = new List<Archive>();
         public List<Directive> InstallDirectives = new List<Directive>();
         public List<RawSourceFile> AllFiles = new List<RawSourceFile>();
         public ModList ModList = new ModList();

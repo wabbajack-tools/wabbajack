@@ -11,7 +11,6 @@ namespace Wabbajack.Lib
     public abstract class ABatchProcessor : IBatchProcessor
     {
         public WorkQueue Queue { get; private set; }
-        private bool _configured = false;
 
         public void Dispose()
         {
@@ -44,17 +43,21 @@ namespace Wabbajack.Lib
         
         private Thread _processorThread { get; set; }
 
+        private int _configured;
+        private int _started;
+
         protected void ConfigureProcessor(int steps, int threads = 0)
         {
-            if (_configured)
+            if (1 == Interlocked.CompareExchange(ref _configured, 1, 1))
+            {
                 throw new InvalidDataException("Can't configure a processor twice");
+            }
             Queue = new WorkQueue(threads);
             UpdateTracker = new StatusUpdateTracker(steps);
             Queue.Status.Subscribe(_queueStatus);
             UpdateTracker.Progress.Subscribe(_percentCompleted);
             UpdateTracker.StepName.Subscribe(_textStatus);
             VFS = new Context(Queue) { UpdateTracker = UpdateTracker };
-            _configured = true;
         }
 
         public static int RecommendQueueSize(string folder)
@@ -77,12 +80,13 @@ namespace Wabbajack.Lib
         protected abstract bool _Begin();
         public Task<bool> Begin()
         {
-            _isRunning.OnNext(true);
-            var _tcs = new TaskCompletionSource<bool>();
-            if (_processorThread != null)
+            if (1 == Interlocked.CompareExchange(ref _started, 1, 1))
             {
                 throw new InvalidDataException("Can't start the processor twice");
             }
+
+            _isRunning.OnNext(true);
+            var _tcs = new TaskCompletionSource<bool>();
 
             _processorThread = new Thread(() =>
             {

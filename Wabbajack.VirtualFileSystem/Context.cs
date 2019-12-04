@@ -373,7 +373,7 @@ namespace Wabbajack.VirtualFileSystem
         public ImmutableDictionary<string, ImmutableStack<VirtualFile>> ByName { get; set; }
         public ImmutableDictionary<string, VirtualFile> ByRootPath { get; }
 
-        public IndexRoot Integrate(List<VirtualFile> files)
+        public IndexRoot Integrate(ICollection<VirtualFile> files)
         {
             Utils.Log($"Integrating {files.Count} files");
             var allFiles = AllFiles.Concat(files).GroupBy(f => f.Name).Select(g => g.Last()).ToImmutableList();
