@@ -8,6 +8,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
+using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
 
 namespace Wabbajack
@@ -39,7 +40,7 @@ namespace Wabbajack
 
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
 
-        public ObservableCollectionExtended<string> Log => MWVM.Log;
+        public ObservableCollectionExtended<IStatusMessage> Log => MWVM.Log;
 
         public IReactiveCommand BackCommand { get; }
 

@@ -17,6 +17,7 @@ using ReactiveUI.Fody.Helpers;
 using System.Windows.Media;
 using DynamicData;
 using DynamicData.Binding;
+using Wabbajack.Common.StatusFeed;
 
 namespace Wabbajack
 {
@@ -77,7 +78,7 @@ namespace Wabbajack
         public float PercentCompleted => _percentCompleted.Value;
 
         public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
-        public ObservableCollectionExtended<string> Log => MWVM.Log;
+        public ObservableCollectionExtended<IStatusMessage> Log => MWVM.Log;
 
         private readonly ObservableAsPropertyHelper<ModlistInstallationSettings> _CurrentSettings;
         public ModlistInstallationSettings CurrentSettings => _CurrentSettings.Value;

@@ -31,7 +31,7 @@ namespace Compression.BSA.Test
         public static void Setup(TestContext testContext)
         {
             Queue = new WorkQueue();
-            Utils.LogMessages.Subscribe(f => testContext.WriteLine(f));
+            Utils.LogMessages.Subscribe(f => testContext.WriteLine(f.ShortDescription));
             if (!Directory.Exists(_stagingFolder))
                 Directory.CreateDirectory(_stagingFolder);
             

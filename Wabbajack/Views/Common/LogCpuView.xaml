@@ -29,7 +29,7 @@
             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding}" TextWrapping="WrapWithOverflow" />
+                    <TextBlock Text="{Binding ShortDescription}" TextWrapping="WrapWithOverflow" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

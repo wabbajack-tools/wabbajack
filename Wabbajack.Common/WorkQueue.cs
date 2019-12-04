@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
+using Wabbajack.Common.StatusFeed;
 
 namespace Wabbajack.Common
 {
@@ -21,11 +22,24 @@ namespace Wabbajack.Common
         private static readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
 
+        private static readonly Subject<IStatusMessage> _messages = new Subject<IStatusMessage>();
+        public IObservable<IStatusMessage> Messages => _messages;
+
         public static List<Thread> Threads { get; private set; }
 
         public WorkQueue(int threadCount = 0)
         {
             StartThreads(threadCount == 0 ? Environment.ProcessorCount : threadCount);
+        }
+
+        public void Log(IStatusMessage msg)
+        {
+            _messages.OnNext(msg);
+        }
+
+        public void Log(string msg)
+        {
+            _messages.OnNext(new GenericInfo(msg));
         }
 
         private void StartThreads(int threadCount)

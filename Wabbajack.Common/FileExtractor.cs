@@ -6,6 +6,8 @@ using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.GZip;
 using OMODFramework;
+using Wabbajack.Common.StatusFeed;
+using Wabbajack.Common.StatusFeed.Errors;
 
 namespace Wabbajack.Common
 {
@@ -40,11 +42,11 @@ namespace Wabbajack.Common
                 else if (source.EndsWith(".omod"))
                     ExtractAllWithOMOD(source, dest);
                 else
-                    ExtractAllWith7Zip(source, dest);
+                    ExtractAllWith7Zip(queue, source, dest);
             }
             catch (Exception ex)
             {
-                Utils.Log($"Error while extracting {source}");
+                queue.Log($"Error while extracting {source}");
                 throw ex;
             }
         }
@@ -88,14 +90,14 @@ namespace Wabbajack.Common
             }
             catch (Exception ex)
             {
-                Utils.Log($"While Extracting {source}");
+                queue.Log($"While Extracting {source}");
                 throw ex;
             }
         }
 
-        private static void ExtractAllWith7Zip(string source, string dest)
+        private static void ExtractAllWith7Zip(WorkQueue queue, string source, string dest)
         {
-            Utils.Log($"Extracting {Path.GetFileName(source)}");
+            queue.Log(new GenericInfo($"Extracting {Path.GetFileName(source)}", $"The contents of {source} are being extracted to {dest} using 7zip.exe"));
 
             var info = new ProcessStartInfo
             {
@@ -143,11 +145,11 @@ namespace Wabbajack.Common
             }
 
             p.WaitForExit();
-            if (p.ExitCode != 0)
+            if (p.ExitCode == 0)
             {
-                Utils.Log(p.StandardOutput.ReadToEnd());
-                Utils.Log($"Extraction error extracting {source}");
+                return;
             }
+            queue.Log(new _7zipReturnError(p.ExitCode, source, dest, p.StandardOutput.ReadToEnd()));
         }
 
         /// <summary>

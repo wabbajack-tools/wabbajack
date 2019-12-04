@@ -22,7 +22,7 @@ namespace Wabbajack.Test
                 Game = Game.DarkestDungeon
             };
 
-            Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f));
+            Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f.ShortDescription));
         }
 
         [TestCleanup]

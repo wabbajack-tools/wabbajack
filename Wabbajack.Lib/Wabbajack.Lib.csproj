@@ -82,6 +82,7 @@
     <Compile Include="AInstaller.cs" />
     <Compile Include="CerasConfig.cs" />
     <Compile Include="CompilationSteps\ACompilationStep.cs" />
+    <Compile Include="CompilationSteps\CompilationErrors\InvalidGameESMError.cs" />
     <Compile Include="CompilationSteps\DeconstructBSAs.cs" />
     <Compile Include="CompilationSteps\DirectMatch.cs" />
     <Compile Include="CompilationSteps\DropAll.cs" />
@@ -133,6 +134,7 @@
     <Compile Include="NexusApi\NexusApiUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReportBuilder.cs" />
+    <Compile Include="StatusMessages\ConfirmUpdateOfExistingInstall.cs" />
     <Compile Include="UI\UIUtils.cs" />
     <Compile Include="Validation\DTOs.cs" />
     <Compile Include="Validation\ValidateModlist.cs" />
@@ -216,5 +218,6 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

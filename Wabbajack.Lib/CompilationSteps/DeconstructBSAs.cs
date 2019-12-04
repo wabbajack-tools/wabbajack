@@ -5,6 +5,7 @@ using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
 using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.StatusFeed.Errors;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -72,7 +73,7 @@ namespace Wabbajack.Lib.CompilationSteps
             foreach (var match in matches)
             {
                 if (match is IgnoredDirectly)
-                    Utils.Error($"File required for BSA {source.Path} creation doesn't exist: {match.To}");
+                    Utils.Error(new UnconvertedError($"File required for BSA {source.Path} creation doesn't exist: {match.To}"));
                 _mo2Compiler.ExtraFiles.Add(match);
             }
 

@@ -104,6 +104,16 @@
     <Compile Include="GOGHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SplittingStream.cs" />
+    <Compile Include="StatusFeed\AErrorMessage.cs" />
+    <Compile Include="StatusFeed\AStatusMessage.cs" />
+    <Compile Include="StatusFeed\Errors\7zipReturnError.cs" />
+    <Compile Include="StatusFeed\Errors\FileExtractionError.cs" />
+    <Compile Include="StatusFeed\Errors\UnconvertedError.cs" />
+    <Compile Include="StatusFeed\GenericInfo.cs" />
+    <Compile Include="StatusFeed\IError.cs" />
+    <Compile Include="StatusFeed\IInfo.cs" />
+    <Compile Include="StatusFeed\IStatusMessage.cs" />
+    <Compile Include="StatusFeed\IUserIntervention.cs" />
     <Compile Include="StatusFileStream.cs" />
     <Compile Include="StatusUpdate.cs" />
     <Compile Include="SteamHandler.cs" />

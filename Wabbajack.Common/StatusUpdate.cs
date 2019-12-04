@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive.Subjects;
+using Wabbajack.Common.StatusFeed;
 
 namespace Wabbajack.Common
 {

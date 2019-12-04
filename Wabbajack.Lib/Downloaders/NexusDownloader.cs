@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Wabbajack.Common;
+using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 
@@ -45,12 +46,12 @@ namespace Wabbajack.Lib.Downloaders
             var status = client.GetUserStatus();
             if (!client.IsAuthenticated)
             {
-                Utils.Error($"Authenticating for the Nexus failed. A nexus account is required to automatically download mods.");
+                Utils.Error(new UnconvertedError($"Authenticating for the Nexus failed. A nexus account is required to automatically download mods."));
                 return;
             }
 
             if (status.is_premium) return;
-            Utils.Error($"Automated installs with Wabbajack requires a premium nexus account. {client.Username} is not a premium account.");
+            Utils.Error(new UnconvertedError($"Automated installs with Wabbajack requires a premium nexus account. {client.Username} is not a premium account."));
         }
 
         public class State : AbstractDownloadState

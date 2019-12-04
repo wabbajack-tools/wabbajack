@@ -60,7 +60,7 @@ namespace Wabbajack.Lib
                 merges.Where(m => m.Count() > 1)
                     .Do(m =>
                     {
-                        Utils.Warning(
+                        Utils.Log(
                             $"WARNING, you have two patches named {m.Key.name}\\{m.Key.filename} in your zEdit profiles. We'll pick one at random, this probably isn't what you want.");
                     });
 
