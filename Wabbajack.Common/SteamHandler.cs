@@ -151,6 +151,9 @@ namespace Wabbajack.Common
             InstallFolders.Do(p =>
             {
                 var workshop = Path.Combine(p, "workshop");
+                if(!Directory.Exists(workshop))
+                    return;
+
                 Directory.EnumerateFiles(workshop, "*.acf", SearchOption.TopDirectoryOnly).Do(f =>
                 {
                     if (Path.GetFileName(f)  != $"appworkshop_{game.AppId}.acf")
