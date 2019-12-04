@@ -17,6 +17,7 @@ using ReactiveUI.Fody.Helpers;
 using System.Windows.Media;
 using DynamicData;
 using DynamicData.Binding;
+using Wabbajack.Common.StatusFeed;
 using System.Reactive;
 using Wabbajack.Common.StatusFeed;
 
