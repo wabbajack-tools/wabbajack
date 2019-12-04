@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using DynamicData;
 using Microsoft.WindowsAPICodePack.Shell;
 using Newtonsoft.Json;
 using Wabbajack.Common;
@@ -151,6 +152,40 @@ namespace Wabbajack.Lib
                 Error($"Found {duplicates.Count} duplicates, exiting");
             }
 
+            for (var i = 0; i < AllFiles.Count; i++)
+            {
+                var f = AllFiles[i];
+                if (!f.Path.StartsWith(Consts.GameFolderFilesDir) || !IndexedFiles.ContainsKey(f.Hash))
+                    continue;
+
+                if (!IndexedFiles.TryGetValue(f.Hash, out var value))
+                    continue;
+
+                var element = value.ElementAt(0);
+
+                if (!f.Path.Contains(element.Name))
+                    continue;
+
+                IndexedArchive targetArchive = null;
+                IndexedArchives.Where(a => a.File.Children.Contains(element)).Do(a => targetArchive = a);
+
+                if (targetArchive == null)
+                    continue;
+                
+                if(targetArchive.IniData?.General?.tag == null || targetArchive.IniData?.General?.tag != Consts.WABBAJACK_VORTEX_MANUAL)
+                    continue;
+
+                #if DEBUG
+                Utils.Log($"Double hash for: {f.AbsolutePath}");
+                #endif
+
+                var replace = f;
+                replace.Path = Path.Combine("Manual Game Files", element.FullPath.Substring(DownloadsFolder.Length + 1).Replace('|', '\\'));
+                AllFiles.RemoveAt(i);
+                AllFiles.Insert(i, replace);
+                //AllFiles.Replace(f, replace);
+            }
+
             var stack = MakeStack();
 
             Info("Running Compilation Stack");
@@ -246,7 +281,11 @@ namespace Wabbajack.Lib
             VortexDeployment.files.Do(f =>
             {
                 var archive = f.source;
-                if(!ActiveArchives.Contains(archive)) ActiveArchives.Add(archive);
+                if (ActiveArchives.Contains(archive))
+                    return;
+
+                Utils.Log($"Adding Archive {archive} to ActiveArchives");
+                ActiveArchives.Add(archive);
             });
         }
 
@@ -314,13 +353,31 @@ namespace Wabbajack.Lib
                             ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
                             return;
 
-                        Utils.Log($"File {f} is not in ActiveArchives, checking if the archive is not from the Nexus");
+                        Utils.Log($"File {f} is not in ActiveArchives");
                         var lines = File.ReadAllLines(f);
                         if (lines.Length == 0 || !lines.Any(line => line.Contains("directURL=")))
-                            return;
+                        {
+                            if (lines.Length == 0)
+                                return;
 
-                        Utils.Log($"File {f} appears to not come from the Nexus, adding to ActiveArchives");
-                        ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
+                            lines.Do(line =>
+                            {
+                                var tag = "";
+                                if (line.Contains("tag="))
+                                    tag = line.Substring("tag=".Length);
+
+                                if (tag != Consts.WABBAJACK_VORTEX_MANUAL)
+                                    return;
+
+                                Utils.Log($"File {f} contains the {Consts.WABBAJACK_VORTEX_MANUAL} tag, adding to ActiveArchives");
+                                ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
+                            });
+                        }
+                        else
+                        {
+                            Utils.Log($"File {f} appears to not come from the Nexus, adding to ActiveArchives");
+                            ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
+                        }
                     }
                 });
 
@@ -330,6 +387,13 @@ namespace Wabbajack.Lib
 
             _steamGame.WorkshopItems.Do(item =>
             {
+                var filePath = Path.Combine(DownloadsFolder, $"steamWorkshopItem_{item.ItemID}.meta");
+                if (File.Exists(filePath))
+                {
+                    Utils.Log($"File {filePath} already exists, skipping...");
+                    return;
+                }
+
                 Utils.Log($"Creating meta file for {item.ItemID}");
                 var metaString = "[General]\n" +
                                  "repository=Steam\n" +
@@ -338,14 +402,6 @@ namespace Wabbajack.Lib
                                  $"steamID={_steamGame.AppId}\n" +
                                  $"itemID={item.ItemID}\n" +
                                  $"itemSize={item.Size}\n";
-
-                var filePath = Path.Combine(DownloadsFolder, $"steamWorkshopItem_{item.ItemID}.meta");
-                if (File.Exists(filePath))
-                {
-                    Utils.Log($"File {filePath} already exists, skipping...");
-                    return;
-                }
-
                 try
                 {
                     File.WriteAllText(filePath, metaString);
