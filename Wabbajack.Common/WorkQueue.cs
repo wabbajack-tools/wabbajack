@@ -24,6 +24,8 @@ namespace Wabbajack.Common
 
         public static List<Thread> Threads { get; private set; }
 
+        private CancellationTokenSource _cancel = new CancellationTokenSource();
+
         public WorkQueue(int threadCount = 0)
         {
             StartThreads(threadCount == 0 ? Environment.ProcessorCount : threadCount);
@@ -51,11 +53,17 @@ namespace Wabbajack.Common
             CpuId = idx;
             CurrentQueue = this;
 
-            while (true)
+            try
             {
-                Report("Waiting", 0, false);
-                var f = Queue.Take();
-                f();
+                while (true)
+                {
+                    Report("Waiting", 0, false);
+                    var f = Queue.Take(_cancel.Token);
+                    f();
+                }
+            }
+            catch (OperationCanceledException)
+            {
             }
         }
 
@@ -79,7 +87,7 @@ namespace Wabbajack.Common
 
         public void Shutdown()
         {
-            Threads.Do(th => th.Abort());
+            _cancel.Cancel();
             Threads.Do(th => th.Join());
         }
 
