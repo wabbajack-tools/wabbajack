@@ -63,31 +63,23 @@ namespace Wabbajack.Common
 
         public static T Log<T>(T msg) where T : IStatusMessage
         {
-            lock (_lock)
-            {
-                File.AppendAllText(LogFile, msg + "\r\n");
-            }
+            LogToFile(msg.ShortDescription);
             LoggerSubj.OnNext(msg);
             return msg;
         }
 
-        public static void Error(AErrorMessage err)
+        public static void Error(IException err)
         {
-            lock (_lock)
-            {
-                File.AppendAllText(LogFile, err.ShortDescription + "\r\n");
-            }
+            LogToFile(err.ShortDescription);
             LoggerSubj.OnNext(err);
-            throw err;
+            throw err.Exception;
         }
 
         public static void LogToFile(string msg)
         {
             lock (_lock)
             {
-                msg = $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}";
-
-                File.AppendAllText(LogFile, msg + "\r\n");
+                File.AppendAllText(LogFile, $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n");
             }
         }
 
