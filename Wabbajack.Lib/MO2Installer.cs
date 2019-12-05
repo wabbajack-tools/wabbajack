@@ -140,7 +140,7 @@ namespace Wabbajack.Lib
                 var hash = gameFile.FileHash();
                 if (hash != esm.SourceESMHash)
                 {
-                    Utils.Error(new InvalidGameESMError(esm, hash, gameFile));
+                    Utils.ErrorThrow(new InvalidGameESMError(esm, hash, gameFile));
                 }
             }
         }

@@ -72,6 +72,11 @@ namespace Wabbajack.Common
         {
             LogToFile(err.ShortDescription);
             LoggerSubj.OnNext(err);
+        }
+
+        public static void ErrorThrow(IException err)
+        {
+            Error(err);
             throw err.Exception;
         }
 
