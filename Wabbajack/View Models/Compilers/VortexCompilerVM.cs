@@ -103,7 +103,7 @@ namespace Wabbajack
                     catch (Exception ex)
                     {
                         while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                        Utils.Error(ex, $"Compiler error");
                         return;
                     }
                     await Task.Run(async () =>
@@ -115,7 +115,7 @@ namespace Wabbajack
                         catch (Exception ex)
                         {
                             while (ex.InnerException != null) ex = ex.InnerException;
-                            Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                            Utils.Error(ex, $"Compiler error");
                         }
                         finally
                         {

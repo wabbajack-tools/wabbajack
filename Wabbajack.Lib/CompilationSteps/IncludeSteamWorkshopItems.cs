@@ -42,7 +42,7 @@ namespace Wabbajack.Lib.CompilationSteps
             }
             catch (Exception e)
             {
-                Utils.LogToFile($"Exception while trying to evolve source to FromSteam\n{e}");
+                Utils.Error(e, $"Exception while trying to evolve source to FromSteam");
                 return null;
             }
         }

@@ -83,7 +83,7 @@ namespace Wabbajack.Common
             }
             catch (Exception e)
             {
-                Utils.LogToFile($"Error while setting process priority level for innounp.exe\n{e}");
+                Utils.Error(e, "Error while setting process priority level for innounp.exe");
             }
 
             var name = Path.GetFileName(source);
@@ -104,7 +104,7 @@ namespace Wabbajack.Common
             }
             catch (Exception e)
             {
-                Utils.LogToFile($"Error while reading StandardOutput for innounp.exe\n{e}");
+                Utils.Error(e, "Error while reading StandardOutput for innounp.exe");
             }
 
             p.WaitForExit();

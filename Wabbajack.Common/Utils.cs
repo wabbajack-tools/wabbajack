@@ -18,6 +18,7 @@ using IniParser;
 using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common.StatusFeed;
+using Wabbajack.Common.StatusFeed.Errors;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Directory = System.IO.Directory;
@@ -68,9 +69,20 @@ namespace Wabbajack.Common
             return msg;
         }
 
+        public static void Error(Exception ex, string extraMessage = null)
+        {
+            Log(new GenericException(ex, extraMessage));
+        }
+
+        public static void ErrorThrow(Exception ex, string extraMessage = null)
+        {
+            Error(ex, extraMessage);
+            throw ex;
+        }
+
         public static void Error(IException err)
         {
-            LogToFile(err.ShortDescription);
+            LogToFile($"{err.ShortDescription}\n{err.Exception.StackTrace}");
             LoggerSubj.OnNext(err);
         }
 
@@ -80,7 +92,7 @@ namespace Wabbajack.Common
             throw err.Exception;
         }
 
-        public static void LogToFile(string msg)
+        private static void LogToFile(string msg)
         {
             lock (_lock)
             {
@@ -588,11 +600,6 @@ namespace Wabbajack.Common
             var stream = result.Result.Content.ReadAsStreamAsync();
             stream.Wait();
             return stream.Result;
-        }
-
-        public static string ExceptionToString(this Exception ex)
-        {
-            return ex.ToString();
         }
 
         public static IEnumerable<T> DistinctBy<T, V>(this IEnumerable<T> vs, Func<T, V> select)
