@@ -48,12 +48,11 @@ namespace Wabbajack.Common
                 else if (source.EndsWith(".exe"))
                     ExtractAllWithInno(source, dest);
                 else
-                    ExtractAllWith7Zip(queue, source, dest);
+                    ExtractAllWith7Zip(source, dest);
             }
             catch (Exception ex)
             {
-                queue.Log($"Error while extracting {source}");
-                throw ex;
+                Utils.ErrorThrow(ex, $"Error while extracting {source}");
             }
         }
 
@@ -154,14 +153,13 @@ namespace Wabbajack.Common
             }
             catch (Exception ex)
             {
-                queue.Log($"While Extracting {source}");
-                throw ex;
+                Utils.ErrorThrow(ex, $"While Extracting {source}");
             }
         }
 
-        private static void ExtractAllWith7Zip(WorkQueue queue, string source, string dest)
+        private static void ExtractAllWith7Zip(string source, string dest)
         {
-            queue.Log(new GenericInfo($"Extracting {Path.GetFileName(source)}", $"The contents of {source} are being extracted to {dest} using 7zip.exe"));
+            Utils.Log(new GenericInfo($"Extracting {Path.GetFileName(source)}", $"The contents of {source} are being extracted to {dest} using 7zip.exe"));
 
             var info = new ProcessStartInfo
             {
@@ -210,7 +208,7 @@ namespace Wabbajack.Common
             {
                 return;
             }
-            queue.Log(new _7zipReturnError(p.ExitCode, source, dest, p.StandardOutput.ReadToEnd()));
+            Utils.Log(new _7zipReturnError(p.ExitCode, source, dest, p.StandardOutput.ReadToEnd()));
         }
 
         /// <summary>
