@@ -59,7 +59,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        Utils.LogToFile($"Exception while caching slide {ModName} ({ModID})\n{ex.ExceptionToString()}");
+                        Utils.Error(ex, $"Exception while caching slide {ModName} ({ModID})");
                         return default(MemoryStream);
                     }
                 })
@@ -79,7 +79,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        Utils.LogToFile($"Exception while caching slide {ModName} ({ModID})\n{ex.ExceptionToString()}");
+                        Utils.Error(ex, $"Exception while caching slide {ModName} ({ModID})");
                         return default(BitmapImage);
                     }
                     finally

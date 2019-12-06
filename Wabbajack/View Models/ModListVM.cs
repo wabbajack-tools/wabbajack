@@ -61,7 +61,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        Utils.LogToFile($"Exception while caching Mod List image {Name}\n{ex.ExceptionToString()}");
+                        Utils.Error(ex, $"Exception while caching Mod List image {Name}");
                         return default(MemoryStream);
                     }
                 })
@@ -80,7 +80,7 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        Utils.LogToFile($"Exception while caching Mod List image {Name}\n{ex.ExceptionToString()}");
+                        Utils.Error(ex, $"Exception while caching Mod List image {Name}");
                         return default(BitmapImage);
                     }
                 })

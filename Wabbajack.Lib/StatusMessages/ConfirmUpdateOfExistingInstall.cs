@@ -35,7 +35,7 @@ will be reverted. Are you sure you wish to continue?";
             _source.SetResult(Choice.Abort);
         }
 
-        public void Resume()
+        public void Confirm()
         {
             _source.SetResult(Choice.Continue);
         }

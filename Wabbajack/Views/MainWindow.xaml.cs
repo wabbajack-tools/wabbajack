@@ -23,8 +23,7 @@ namespace Wabbajack
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
                 // Don't do any special logging side effects
-                Wabbajack.Common.Utils.Log("Uncaught error:");
-                Wabbajack.Common.Utils.Log(((Exception)e.ExceptionObject).ExceptionToString());
+                Wabbajack.Common.Utils.Error(((Exception)e.ExceptionObject), "Uncaught error");
             };
 
             var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;

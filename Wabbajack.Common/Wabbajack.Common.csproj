@@ -112,9 +112,11 @@
     <Compile Include="StatusFeed\AStatusMessage.cs" />
     <Compile Include="StatusFeed\Errors\7zipReturnError.cs" />
     <Compile Include="StatusFeed\Errors\FileExtractionError.cs" />
+    <Compile Include="StatusFeed\Errors\GenericException.cs" />
     <Compile Include="StatusFeed\Errors\UnconvertedError.cs" />
     <Compile Include="StatusFeed\GenericInfo.cs" />
     <Compile Include="StatusFeed\IError.cs" />
+    <Compile Include="StatusFeed\IException.cs" />
     <Compile Include="StatusFeed\IInfo.cs" />
     <Compile Include="StatusFeed\IStatusMessage.cs" />
     <Compile Include="StatusFeed\IUserIntervention.cs" />

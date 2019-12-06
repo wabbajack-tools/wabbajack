@@ -98,7 +98,7 @@ namespace Wabbajack.Lib.Downloaders
 
                 if (stream.IsFaulted || response.StatusCode != HttpStatusCode.OK)
                 {
-                    Utils.Log($"While downloading {Url} - {stream.Exception.ExceptionToString()}");
+                    Utils.Error(stream.Exception, $"While downloading {Url}");
                     return false;
                 }
 

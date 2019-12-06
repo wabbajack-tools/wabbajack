@@ -75,7 +75,7 @@ namespace Wabbajack
         {
             var result = MessageBox.Show(msg.ExtendedDescription, msg.ShortDescription, MessageBoxButton.OKCancel);
             if (result == MessageBoxResult.OK)
-                msg.Resume();
+                msg.Confirm();
             else
                 msg.Cancel();
         }

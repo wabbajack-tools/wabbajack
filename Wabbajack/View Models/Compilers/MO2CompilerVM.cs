@@ -136,7 +136,7 @@ namespace Wabbajack
                     catch (Exception ex)
                     {
                         while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                        Utils.Error(ex, $"Compiler error");
                         return;
                     }
 
@@ -147,7 +147,7 @@ namespace Wabbajack
                     catch (Exception ex)
                     {
                         while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Log($"Compiler error: {ex.ExceptionToString()}");
+                        Utils.Error(ex, $"Compiler error");
                     }
                     finally
                     {
