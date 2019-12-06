@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Wabbajack.Common;
 using Wabbajack.Lib;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -108,7 +109,6 @@ namespace Wabbajack.Test
         [TestMethod]
         public void CleanedESMTest()
         {
-
             var profile = utils.AddProfile();
             var mod = utils.AddMod("Cleaned ESMs");
             var update_esm = utils.AddModFile(mod, @"Update.esm", 10);
@@ -128,8 +128,29 @@ namespace Wabbajack.Test
             utils.GenerateRandomFileData(game_file, 20);
             var exception = Assert.ThrowsException<AggregateException>(() => Install(compiler));
             Assert.AreEqual(exception.InnerExceptions.First().Message, "Game ESM hash doesn't match, is the ESM already cleaned? Please verify your local game files.");
+        }
 
+        [TestMethod]
+        public void SetScreenSizeTest()
+        {
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod("dummy");
 
+            utils.Configure();
+            File.WriteAllLines(Path.Combine(utils.MO2Folder, "profiles", profile, "somegameprefs.ini"),
+                new List<string>
+                {
+                    "[Display]",
+                    "iSize H=3", 
+                    "iSize W=-200"
+                });
+
+            var modlist = CompileAndInstall(profile);
+
+            var ini = Path.Combine(utils.InstallFolder, "profiles", profile, "somegameprefs.ini").LoadIniFile();
+
+            Assert.AreEqual(System.Windows.SystemParameters.PrimaryScreenHeight.ToString(), ini?.Display?["iSize H"]);
+            Assert.AreEqual(System.Windows.SystemParameters.PrimaryScreenWidth.ToString(), ini?.Display?["iSize W"]);
         }
 
         [TestMethod]
