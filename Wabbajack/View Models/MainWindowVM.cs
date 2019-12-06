@@ -6,8 +6,11 @@ using System;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Windows;
 using Wabbajack.Common;
+using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
+using Wabbajack.Lib.StatusMessages;
 
 namespace Wabbajack
 {
@@ -24,7 +27,7 @@ namespace Wabbajack
         [Reactive]
         public ViewModel ActivePane { get; set; }
 
-        public ObservableCollectionExtended<string> Log { get; } = new ObservableCollectionExtended<string>();
+        public ObservableCollectionExtended<IStatusMessage> Log { get; } = new ObservableCollectionExtended<IStatusMessage>();
 
         public readonly Lazy<CompilerVM> Compiler;
         public readonly Lazy<InstallerVM> Installer;
@@ -52,6 +55,10 @@ namespace Wabbajack
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
 
+            Utils.LogMessages
+                .OfType<ConfirmUpdateOfExistingInstall>()
+                .Subscribe(msg => ConfirmUpdate(msg));
+
             if (IsStartingFromModlist(out var path))
             {
                 Installer.Value.ModListLocation.TargetPath = path;
@@ -62,6 +69,15 @@ namespace Wabbajack
                 // Start on mode selection
                 ActivePane = ModeSelectionVM;
             }
+        }
+
+        private void ConfirmUpdate(ConfirmUpdateOfExistingInstall msg)
+        {
+            var result = MessageBox.Show(msg.ExtendedDescription, msg.ShortDescription, MessageBoxButton.OKCancel);
+            if (result == MessageBoxResult.OK)
+                msg.Resume();
+            else
+                msg.Cancel();
         }
 
         private static bool IsStartingFromModlist(out string modlistPath)
