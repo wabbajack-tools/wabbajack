@@ -118,6 +118,9 @@ namespace Wabbajack.Lib
             ModList.Directives.OfType<InlineFile>()
                 .PMap(Queue,directive =>
                 {
+                    if (directive.To.EndsWith(".meta"))
+                        return;
+
                     Status($"Writing included file {directive.To}");
                     var outPath = Path.Combine(OutputFolder, directive.To);
                     if(File.Exists(outPath)) File.Delete(outPath);
