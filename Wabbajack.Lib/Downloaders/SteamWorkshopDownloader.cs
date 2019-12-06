@@ -46,7 +46,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override void Download(Archive a, string destination)
+            public override async Task Download(Archive a, string destination)
             {
                 var currentLib = "";
                 SteamHandler.Instance.InstallFolders.Where(f => f.Contains(Item.Game.InstallDir)).Do(s => currentLib = s);
@@ -77,7 +77,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
             }
 
-            public override bool Verify()
+            public override async Task<bool> Verify()
             {
                 //TODO: find a way to verify steam workshop items
                 throw new NotImplementedException();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.Lib.NexusApi;
@@ -75,7 +76,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override void Download(Archive a, string destination)
+            public override async Task Download(Archive a, string destination)
             {
                 string url;
                 try
@@ -90,14 +91,14 @@ namespace Wabbajack.Lib.Downloaders
 
                 Utils.Log($"Downloading Nexus Archive - {a.Name} - {GameName} - {ModID} - {FileID}");
 
-                new HTTPDownloader.State
+                await new HTTPDownloader.State
                 {
                     Url = url
                 }.Download(a, destination);
 
             }
 
-            public override bool Verify()
+            public override async Task<bool> Verify()
             {
                 try
                 {

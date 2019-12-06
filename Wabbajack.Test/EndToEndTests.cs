@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
@@ -43,12 +44,12 @@ namespace Wabbajack.Test
         }
 
         [TestMethod]
-        public void CreateModlist()
+        public async Task CreateModlist()
         {
             var profile = utils.AddProfile("Default");
             var mod = utils.AddMod();
 
-            DownloadAndInstall(
+            await DownloadAndInstall(
                 "https://github.com/ModOrganizer2/modorganizer/releases/download/v2.2.1/Mod.Organizer.2.2.1.7z",
                 "Mod.Organizer.2.2.1.7z",
                 utils.MO2Folder);
@@ -59,7 +60,7 @@ namespace Wabbajack.Test
                     "directURL=https://github.com/ModOrganizer2/modorganizer/releases/download/v2.2.1/Mod.Organizer.2.2.1.7z"
                 });
 
-            DownloadAndInstall(Game.SkyrimSpecialEdition, 12604, "SkyUI");
+            await DownloadAndInstall(Game.SkyrimSpecialEdition, 12604, "SkyUI");
 
             utils.Configure();
 
@@ -81,13 +82,13 @@ namespace Wabbajack.Test
 
         }
 
-        private void DownloadAndInstall(string url, string filename, string mod_name = null)
+        private async Task DownloadAndInstall(string url, string filename, string mod_name = null)
         {
             var src = Path.Combine(DOWNLOAD_FOLDER, filename);
             if (!File.Exists(src))
             {
                 var state = DownloadDispatcher.ResolveArchive(url);
-                state.Download(new Archive() { Name = "Unknown"}, src);
+                await state.Download(new Archive() { Name = "Unknown"}, src);
             }
 
             if (!Directory.Exists(utils.DownloadsFolder))
@@ -97,11 +98,11 @@ namespace Wabbajack.Test
 
             File.Copy(src, Path.Combine(utils.DownloadsFolder, filename));
 
-            FileExtractor.ExtractAll(Queue, src,
+            await FileExtractor.ExtractAll(Queue, src,
                 mod_name == null ? utils.MO2Folder : Path.Combine(utils.ModsFolder, mod_name));
         }
 
-        private void DownloadAndInstall(Game game, int modid, string mod_name)
+        private async Task DownloadAndInstall(Game game, int modid, string mod_name)
         {
             utils.AddMod(mod_name);
             var client = new NexusApiClient();
@@ -132,7 +133,7 @@ namespace Wabbajack.Test
             var dest = Path.Combine(utils.DownloadsFolder, file.file_name);
             File.Copy(src, dest);
 
-            FileExtractor.ExtractAll(Queue, src, Path.Combine(utils.ModsFolder, mod_name));
+            await FileExtractor.ExtractAll(Queue, src, Path.Combine(utils.ModsFolder, mod_name));
 
             File.WriteAllText(dest + ".meta", ini);
         }

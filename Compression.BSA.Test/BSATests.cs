@@ -49,7 +49,7 @@ namespace Compression.BSA.Test
 
             foreach (var info in modIDs)
             {
-                var filename = DownloadMod(info);
+                var filename = await DownloadMod(info);
                 var folder = Path.Combine(_bsaFolder, info.Item1.ToString(), info.Item2.ToString());
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
@@ -57,7 +57,7 @@ namespace Compression.BSA.Test
             }
         }
 
-        private static string DownloadMod((Game, int) info)
+        private static async Task<string> DownloadMod((Game, int) info)
         {
             using (var client = new NexusApiClient())
             {
@@ -74,7 +74,7 @@ namespace Compression.BSA.Test
                     GameName = GameRegistry.Games[info.Item1].NexusName,
                     FileID = file.file_id.ToString()
                 };
-                state.Download(src);
+                await state.Download(src);
                 return src;
             }
         }

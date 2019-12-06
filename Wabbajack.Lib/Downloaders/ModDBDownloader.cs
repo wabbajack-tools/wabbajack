@@ -1,5 +1,6 @@
 ﻿using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 
@@ -39,10 +40,10 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override void Download(Archive a, string destination)
+            public override async Task Download(Archive a, string destination)
             {
                 var newURL = GetDownloadUrl();
-                new HTTPDownloader.State {Url = newURL}.Download(a, destination);
+                await new HTTPDownloader.State {Url = newURL}.Download(a, destination);
             }
 
             private string GetDownloadUrl()
@@ -55,10 +56,10 @@ namespace Wabbajack.Lib.Downloaders
                 return newURL;
             }
 
-            public override bool Verify()
+            public override async Task<bool> Verify()
             {
                 var newURL = GetDownloadUrl();
-                return new HTTPDownloader.State { Url = newURL }.Verify();
+                return await new HTTPDownloader.State { Url = newURL }.Verify();
             }
 
             public override IDownloader GetDownloader()

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using Syroot.Windows.IO;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
@@ -76,7 +77,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override void Download(Archive a, string destination)
+            public override async Task Download(Archive a, string destination)
             {
                 var downloader = (ManualDownloader)GetDownloader();
                 var absPath = Path.Combine(downloader._downloadfolder.Path, a.Name);
@@ -107,7 +108,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
             }
 
-            public override bool Verify()
+            public override async Task<bool> Verify()
             {
                 return true;
             }

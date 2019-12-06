@@ -1,5 +1,6 @@
 ﻿using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 
@@ -40,9 +41,9 @@ namespace Wabbajack.Lib.Downloaders
                 return whitelist.GoogleIDs.Contains(Id);
             }
 
-            public override void Download(Archive a, string destination)
+            public override async Task Download(Archive a, string destination)
             {
-                ToHttpState().Download(a, destination);
+                await ToHttpState().Download(a, destination);
             }
 
             private HTTPDownloader.State ToHttpState()
@@ -57,9 +58,9 @@ namespace Wabbajack.Lib.Downloaders
                 return httpState;
             }
 
-            public override bool Verify()
+            public override async Task<bool> Verify()
             {
-                return ToHttpState().Verify();
+                return await ToHttpState().Verify();
             }
 
             public override IDownloader GetDownloader()

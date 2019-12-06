@@ -244,12 +244,12 @@ namespace Wabbajack.Lib
                 foreach (var a in missing.Where(a => a.State.GetType() == typeof(ManualDownloader.State)))
                 {
                     var outputPath = Path.Combine(DownloadFolder, a.Name);
-                    a.State.Download(a, outputPath);
+                    await a.State.Download(a, outputPath);
                 }
             }
 
             await missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
-                .PMap(Queue, archive =>
+                .PMap(Queue, async archive =>
                 {
                     Info($"Downloading {archive.Name}");
                     var outputPath = Path.Combine(DownloadFolder, archive.Name);
@@ -258,16 +258,16 @@ namespace Wabbajack.Lib
                         if (outputPath.FileExists())
                             File.Delete(outputPath);
 
-                    return DownloadArchive(archive, download);
+                    return await DownloadArchive(archive, download);
                 });
         }
 
-        public bool DownloadArchive(Archive archive, bool download)
+        public async Task<bool> DownloadArchive(Archive archive, bool download)
         {
             try
             {
                 var path = Path.Combine(DownloadFolder, archive.Name);
-                archive.State.Download(archive, path);
+                await archive.State.Download(archive, path);
                 path.FileHashCached();
 
             }

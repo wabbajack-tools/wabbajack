@@ -84,7 +84,7 @@ namespace Wabbajack
             queue.QueueTask(async () =>
             {
                 var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
-                downloader.Download(new Archive{ Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0}, Location);
+                await downloader.Download(new Archive{ Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0}, Location);
                 Location.FileHashCached();
                 sub.Dispose();
                 tcs.SetResult(true);

@@ -54,7 +54,7 @@ namespace Wabbajack.Test.ListValidation
             {
                 var state = DownloadDispatcher.ResolveArchive(list.Links.Download);
                 Log($"Downloading {list.Links.MachineURL} - {list.Title}");
-                state.Download(modlist_path);
+                await state.Download(modlist_path);
             }
             else
             {
@@ -69,10 +69,10 @@ namespace Wabbajack.Test.ListValidation
             Log($"{installer.Archives.Count} archives to validate");
 
             var invalids = (await installer.Archives
-                .PMap(Queue,archive =>
+                .PMap(Queue, async archive =>
                 {
                     Log($"Validating: {archive.Name}");
-                    return new {archive, is_valid = archive.State.Verify()};
+                    return new {archive, is_valid = await archive.State.Verify()};
                 }))
                 .Where(a => !a.is_valid)
                 .ToList();

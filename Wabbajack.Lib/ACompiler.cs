@@ -205,7 +205,7 @@ namespace Wabbajack.Lib
             SelectedArchives = await shas.PMap(Queue, sha => ResolveArchive(sha, archives));
         }
 
-        public Archive ResolveArchive(string sha, IDictionary<string, IndexedArchive> archives)
+        public async Task<Archive> ResolveArchive(string sha, IDictionary<string, IndexedArchive> archives)
         {
             if (archives.TryGetValue(sha, out var found))
             {
@@ -227,7 +227,7 @@ namespace Wabbajack.Lib
 
                 Info($"Checking link for {found.Name}");
 
-                if (result.State != null && !result.State.Verify())
+                if (result.State != null && !await result.State.Verify())
                     Error(
                         $"Unable to resolve link for {found.Name}. If this is hosted on the Nexus the file may have been removed.");
 

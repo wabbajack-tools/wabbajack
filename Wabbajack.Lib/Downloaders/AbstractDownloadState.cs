@@ -1,4 +1,5 @@
-﻿using Alphaleonis.Win32.Filesystem;
+﻿using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
@@ -19,18 +20,18 @@ namespace Wabbajack.Lib.Downloaders
         /// Downloads this file to the given destination location
         /// </summary>
         /// <param name="destination"></param>
-        public abstract void Download(Archive a, string destination);
+        public abstract Task Download(Archive a, string destination);
 
-        public void Download(string destination)
+        public async Task Download(string destination)
         {
-            Download(new Archive {Name = Path.GetFileName(destination)}, destination);
+            await Download(new Archive {Name = Path.GetFileName(destination)}, destination);
         }
 
         /// <summary>
         /// Returns true if this link is still valid
         /// </summary>
         /// <returns></returns>
-        public abstract bool Verify();
+        public abstract Task<bool> Verify();
 
         public abstract IDownloader GetDownloader();
 
