@@ -76,7 +76,7 @@ namespace Wabbajack.CacheServer
             return api.GetModFiles(GameRegistry.GetByNexusName((string)arg.GameName).Game, (int)arg.ModID).ToJSON();
         }
 
-        private string HandleCacheCall(dynamic arg)
+        private async Task<string> HandleCacheCall(dynamic arg)
         {
             try
             {
@@ -90,7 +90,7 @@ namespace Wabbajack.CacheServer
                     var client = new HttpClient();
                     var builder = new UriBuilder(url) {Host = "localhost", Port = Request.Url.Port ?? 8080, Scheme = "http"};
                     client.DefaultRequestHeaders.Add("apikey", Request.Headers["apikey"]);
-                    client.GetStringSync(builder.Uri.ToString());
+                    await client.GetStringAsync(builder.Uri.ToString());
                     if (!File.Exists(path))
                     {
                         Utils.Log($"Still not cached : {path}");

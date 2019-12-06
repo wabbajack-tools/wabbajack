@@ -307,14 +307,14 @@ namespace Wabbajack.Lib.NexusApi
             return GetCached<ModInfo>(url);
         }
 
-        public EndorsementResponse EndorseMod(NexusDownloader.State mod)
+        public async Task<EndorsementResponse> EndorseMod(NexusDownloader.State mod)
         {
             Utils.Status($"Endorsing ${mod.GameName} - ${mod.ModID}");
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/endorse.json";
 
             var content = new FormUrlEncodedContent(new Dictionary<string, string> { { "version", mod.Version } });
 
-            using (var stream = _httpClient.PostStreamSync(url, content))
+            using (var stream = await _httpClient.PostStream(url, content))
             {
                 return stream.FromJSON<EndorsementResponse>();
             }

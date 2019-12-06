@@ -36,9 +36,9 @@ namespace Wabbajack
             RefreshCommand.StartingExecution()
                 .StartWith(Unit.Default)
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .Select(_ =>
+                .SelectTask(async _ =>
                 {
-                    return ModlistMetadata.LoadFromGithub()
+                    return (await ModlistMetadata.LoadFromGithub())
                         .AsObservableChangeSet(x => x.DownloadMetadata?.Hash ?? $"Fallback{missingHashFallbackCounter++}");
                 })
                 .Switch()

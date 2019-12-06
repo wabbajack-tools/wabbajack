@@ -43,14 +43,15 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task Download(Archive a, string destination)
             {
-                await ToHttpState().Download(a, destination);
+                var state = await ToHttpState();
+                await state.Download(a, destination);
             }
 
-            private HTTPDownloader.State ToHttpState()
+            private async Task<HTTPDownloader.State> ToHttpState()
             {
                 var initialURL = $"https://drive.google.com/uc?id={Id}&export=download";
                 var client = new HttpClient();
-                var result = client.GetStringSync(initialURL);
+                var result = await client.GetStringAsync(initialURL);
                 var regex = new Regex("(?<=/uc\\?export=download&amp;confirm=).*(?=;id=)");
                 var confirm = regex.Match(result);
                 var url = $"https://drive.google.com/uc?export=download&confirm={confirm}&id={Id}";
@@ -60,7 +61,8 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify()
             {
-                return await ToHttpState().Verify();
+                var state = await ToHttpState();
+                return await state.Verify();
             }
 
             public override IDownloader GetDownloader()

@@ -613,34 +613,10 @@ namespace Wabbajack.Common
             new List<bool>().Do(_ => f());
         }
 
-        public static HttpResponseMessage GetSync(this HttpClient client, string url)
+        public static async Task<Stream> PostStream(this HttpClient client, string url, HttpContent content)
         {
-            var result = client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-            result.Wait();
-            return result.Result;
-        }
-
-        public static string GetStringSync(this HttpClient client, string url)
-        {
-            var result = client.GetStringAsync(url);
-            result.Wait();
-            return result.Result;
-        }
-
-        public static Stream GetStreamSync(this HttpClient client, string url)
-        {
-            var result = client.GetStreamAsync(url);
-            result.Wait();
-            return result.Result;
-        }
-
-        public static Stream PostStreamSync(this HttpClient client, string url, HttpContent content)
-        {
-            var result = client.PostAsync(url, content);
-            result.Wait();
-            var stream = result.Result.Content.ReadAsStreamAsync();
-            stream.Wait();
-            return stream.Result;
+            var result = await client.PostAsync(url, content);
+            return await result.Content.ReadAsStreamAsync();
         }
 
         public static IEnumerable<T> DistinctBy<T, V>(this IEnumerable<T> vs, Func<T, V> select)

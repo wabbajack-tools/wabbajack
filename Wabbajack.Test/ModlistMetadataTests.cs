@@ -10,16 +10,16 @@ namespace Wabbajack.Test
     public class ModlistMetadataTests
     {
         [TestMethod]
-        public void TestLoadingModlists()
+        public async Task TestLoadingModlists()
         {
-            var modlists = ModlistMetadata.LoadFromGithub();
+            var modlists = await ModlistMetadata.LoadFromGithub();
             Assert.IsTrue(modlists.Count > 0);
         }
 
         [TestMethod]
         public async Task VerifyLogoURLs()
         {
-            var modlists = ModlistMetadata.LoadFromGithub();
+            var modlists = await ModlistMetadata.LoadFromGithub();
 
             foreach (var modlist in modlists.Select(m => m.Links))
             {

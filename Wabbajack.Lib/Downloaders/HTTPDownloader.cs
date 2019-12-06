@@ -87,7 +87,7 @@ namespace Wabbajack.Lib.Downloaders
                 long totalRead = 0;
                 var bufferSize = 1024 * 32;
 
-                var response = client.GetSync(Url);
+                var response = await client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
 
                 Stream stream;
                 try

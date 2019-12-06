@@ -36,18 +36,18 @@ namespace Wabbajack.Lib.Validation
             ServerWhitelist = s.FromYaml<ServerWhitelist>();
         }
 
-        public void LoadListsFromGithub()
+        public async Task LoadListsFromGithub()
         {
             var client = new HttpClient();
             Utils.Log("Loading Nexus Mod Permissions");
-            using (var result = client.GetStreamSync(Consts.ModPermissionsURL))
+            using (var result = await client.GetStreamAsync(Consts.ModPermissionsURL))
             {
                 AuthorPermissions = result.FromYaml<Dictionary<string, Author>>();
                 Utils.Log($"Loaded permissions for {AuthorPermissions.Count} authors");
             }
 
             Utils.Log("Loading Server Whitelist");
-            using (var result = client.GetStreamSync(Consts.ServerWhitelistURL))
+            using (var result = await client.GetStreamAsync(Consts.ServerWhitelistURL))
             {
                 ServerWhitelist = result.FromYaml<ServerWhitelist>();
                 Utils.Log($"Loaded permissions for {ServerWhitelist.AllowedPrefixes.Count} servers and {ServerWhitelist.GoogleIDs.Count} GDrive files");
@@ -59,7 +59,7 @@ namespace Wabbajack.Lib.Validation
         {
             var validator = new ValidateModlist(queue);
 
-            validator.LoadListsFromGithub();
+            await validator.LoadListsFromGithub();
 
             Utils.Log("Running validation checks");
             var errors = await validator.Validate(modlist);

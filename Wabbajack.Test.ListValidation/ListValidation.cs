@@ -16,11 +16,11 @@ namespace Wabbajack.Test.ListValidation
     public class ListValidation
     {
         [ClassInitialize]
-        public static void SetupNexus(TestContext context)
+        public static async Task SetupNexus(TestContext context)
         {
             Utils.LogMessages.Subscribe(m => context.WriteLine(m.ToString()));
             var api = new NexusApiClient();
-            api.ClearUpdatedModsInCache();
+            await api.ClearUpdatedModsInCache();
         }
 
         private WorkQueue Queue { get; set; }
@@ -93,9 +93,9 @@ namespace Wabbajack.Test.ListValidation
             TestContext.WriteLine(msg);
         }
 
-        public static IEnumerable<object[]> GetModLists()
+        public static async Task<IEnumerable<object[]>> GetModLists()
         {
-            return ModlistMetadata.LoadFromGithub().Select(l => new object[] {l.Title, l});
+            return (await ModlistMetadata.LoadFromGithub()).Select(l => new object[] {l.Title, l});
         }
     }
 }

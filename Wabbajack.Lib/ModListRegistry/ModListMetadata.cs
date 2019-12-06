@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Newtonsoft.Json;
 using Wabbajack.Common;
@@ -55,11 +56,11 @@ namespace Wabbajack.Lib.ModListRegistry
 
 
 
-        public static List<ModlistMetadata> LoadFromGithub()
+        public static async Task<List<ModlistMetadata>> LoadFromGithub()
         {
             var client = new HttpClient();
             Utils.Log("Loading ModLists from Github");
-            var result = client.GetStringSync(Consts.ModlistMetadataURL); 
+            var result = await client.GetStringAsync(Consts.ModlistMetadataURL); 
             return result.FromJSONString<List<ModlistMetadata>>();
         }
 

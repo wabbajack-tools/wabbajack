@@ -42,14 +42,14 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task Download(Archive a, string destination)
             {
-                var newURL = GetDownloadUrl();
+                var newURL = await GetDownloadUrl();
                 await new HTTPDownloader.State {Url = newURL}.Download(a, destination);
             }
 
-            private string GetDownloadUrl()
+            private async Task<string> GetDownloadUrl()
             {
                 var client = new HttpClient();
-                var result = client.GetStringSync(Url);
+                var result = await client.GetStringAsync(Url);
                 var regex = new Regex("https:\\/\\/www\\.moddb\\.com\\/downloads\\/mirror\\/.*(?=\\\")");
                 var match = regex.Match(result);
                 var newURL = match.Value;
@@ -58,7 +58,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify()
             {
-                var newURL = GetDownloadUrl();
+                var newURL = await GetDownloadUrl();
                 return await new HTTPDownloader.State { Url = newURL }.Verify();
             }
 
