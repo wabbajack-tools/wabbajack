@@ -273,9 +273,7 @@ namespace Wabbajack.Lib
             }
             catch (JsonSerializationException e)
             {
-                Info("Failed to parse vortex.deployment.json!");
-                Utils.LogToFile(e.Message);
-                Utils.LogToFile(e.StackTrace);
+                Utils.Error(e, "Failed to parse vortex.deployment.json!");
             }
 
             VortexDeployment.files.Do(f =>
@@ -408,7 +406,7 @@ namespace Wabbajack.Lib
                 }
                 catch (Exception e)
                 {
-                    Utils.LogToFile($"Exception while writing to disk at {filePath}\n{e}");
+                    Utils.Error(e, $"Exception while writing to disk at {filePath}");
                 }
             });
         }

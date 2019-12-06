@@ -15,7 +15,7 @@ namespace Wabbajack.Common.StatusFeed.Errors
             _msg = msg;
         }
 
-        public override string ShortDescription { get => _msg; }
-        public override string ExtendedDescription { get; } = "";
+        public override string ShortDescription => _msg;
+        public override string ExtendedDescription => _msg;
     }
 }
