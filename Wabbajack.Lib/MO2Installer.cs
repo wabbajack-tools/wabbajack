@@ -3,6 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using Alphaleonis.Win32.Filesystem;
+using IniParser;
+using IniParser.Parser;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps.CompilationErrors;
 using Wabbajack.Lib.Downloaders;
@@ -34,7 +37,7 @@ namespace Wabbajack.Lib
 
         protected override bool _Begin()
         {
-            ConfigureProcessor(17, RecommendQueueSize());
+            ConfigureProcessor(18, RecommendQueueSize());
             var game = GameRegistry.Games[ModList.GameType];
 
             if (GameFolder == null)
@@ -111,6 +114,9 @@ namespace Wabbajack.Lib
 
             UpdateTracker.NextStep("Generating Merges");
             zEditIntegration.GenerateMerges(this);
+
+            UpdateTracker.NextStep("Updating System-specific ini settings");
+            SetScreenSizeInPrefs();
 
             UpdateTracker.NextStep("Installation complete! You may exit the program.");
             return true;
@@ -253,6 +259,23 @@ namespace Wabbajack.Lib
             using (var input = File.OpenRead(gameFile))
             {
                 BSDiff.Apply(input, () => new MemoryStream(patchData), output);
+            }
+        }
+
+        private void SetScreenSizeInPrefs()
+        {
+            foreach (var file in Directory.EnumerateFiles(Path.Combine(OutputFolder, "profiles"), "*refs.ini",
+                DirectoryEnumerationOptions.Recursive))
+            {
+                var parser = new FileIniDataParser();
+                var data = parser.ReadFile(file);
+                if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
+                {
+                    data.Sections["Display"]["iSize W"] = SystemParameters.PrimaryScreenWidth.ToString();
+                    data.Sections["Display"]["iSize H"] = SystemParameters.PrimaryScreenHeight.ToString();
+                }
+
+                parser.WriteFile(file, data);
             }
         }
 
