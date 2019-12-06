@@ -22,7 +22,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         [TestInitialize]
         public void Setup()
         {
-            Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f));
+            Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f.ShortDescription));
             if (Directory.Exists(VFS_TEST_DIR))
                 Utils.DeleteDirectory(VFS_TEST_DIR);
             Directory.CreateDirectory(VFS_TEST_DIR);

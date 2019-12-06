@@ -18,7 +18,7 @@ namespace Wabbajack.Test
             utils = new TestUtils();
             utils.Game = Game.SkyrimSpecialEdition;
 
-            Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f));
+            Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f.ShortDescription));
 
         }
 

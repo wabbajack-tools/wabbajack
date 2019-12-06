@@ -16,6 +16,8 @@ using Ceras;
 using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
 using Newtonsoft.Json;
+using ReactiveUI;
+using Wabbajack.Common.StatusFeed;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Directory = System.IO.Directory;
@@ -44,8 +46,8 @@ namespace Wabbajack.Common
                 File.Delete(LogFile);
         }
 
-        private static readonly Subject<string> LoggerSubj = new Subject<string>();
-        public static IObservable<string> LogMessages => LoggerSubj;
+        private static readonly Subject<IStatusMessage> LoggerSubj = new Subject<IStatusMessage>();
+        public static IObservable<IStatusMessage> LogMessages => LoggerSubj;
 
         private static readonly string[] Suffix = {"B", "KB", "MB", "GB", "TB", "PB", "EB"}; // Longs run out around EB
 
@@ -53,15 +55,30 @@ namespace Wabbajack.Common
 
         private static DateTime _startTime;
 
+        
         public static void Log(string msg)
+        {
+            Log(new GenericInfo(msg));
+        }
+
+        public static T Log<T>(T msg) where T : IStatusMessage
         {
             lock (_lock)
             {
-                msg = $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}";
-
                 File.AppendAllText(LogFile, msg + "\r\n");
             }
             LoggerSubj.OnNext(msg);
+            return msg;
+        }
+
+        public static void Error(AErrorMessage err)
+        {
+            lock (_lock)
+            {
+                File.AppendAllText(LogFile, err.ShortDescription + "\r\n");
+            }
+            LoggerSubj.OnNext(err);
+            throw err;
         }
 
         public static void LogToFile(string msg)
@@ -668,10 +685,11 @@ namespace Wabbajack.Common
             return false;
         }
 
+        /*
         public static void Warning(string s)
         {
             Log($"WARNING: {s}");
-        }
+        }*/
 
         public static TV GetOrDefault<TK, TV>(this Dictionary<TK, TV> dict, TK key)
         {
@@ -708,11 +726,12 @@ namespace Wabbajack.Common
             return tv.ToJSON().FromJSONString<T>();
         }
 
+        /*
         public static void Error(string msg)
         {
             Log(msg);
             throw new Exception(msg);
-        }
+        }*/
 
         public static Stream GetEmbeddedResourceStream(string name)
         {
@@ -738,7 +757,6 @@ namespace Wabbajack.Common
                 .Build();
             return d.Deserialize<T>(new StringReader(s));
         }
-
         public static void LogStatus(string s)
         {
             Status(s);

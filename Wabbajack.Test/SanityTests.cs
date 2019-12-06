@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Lib.CompilationSteps.CompilationErrors;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -127,7 +128,7 @@ namespace Wabbajack.Test
             // Update the file and verify that it throws an error.
             utils.GenerateRandomFileData(game_file, 20);
             var exception = Assert.ThrowsException<AggregateException>(() => Install(compiler));
-            Assert.AreEqual(exception.InnerExceptions.First().Message, "Game ESM hash doesn't match, is the ESM already cleaned? Please verify your local game files.");
+            Assert.IsInstanceOfType(exception.InnerExceptions.First(), typeof(InvalidGameESMError));
         }
 
         [TestMethod]
