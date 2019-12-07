@@ -86,7 +86,7 @@ namespace Wabbajack.Lib
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
 
             if (cancel.IsCancellationRequested) return false;
-            VFS.IntegrateFromFile(_vfsCacheName);
+            await VFS.IntegrateFromFile(_vfsCacheName);
 
             var roots = new List<string>()
             {

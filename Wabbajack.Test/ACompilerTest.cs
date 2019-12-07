@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -28,20 +29,20 @@ namespace Wabbajack.Test
             utils.Dispose();
         }
 
-        protected MO2Compiler ConfigureAndRunCompiler(string profile)
+        protected async Task<MO2Compiler> ConfigureAndRunCompiler(string profile)
         {
             var compiler = new MO2Compiler(
                 mo2Folder: utils.MO2Folder,
                 mo2Profile: profile,
                 outputFile: profile + ExtensionManager.Extension);
             compiler.ShowReportWhenFinished = false;
-            Assert.IsTrue(compiler.Begin().Result);
+            Assert.IsTrue(await compiler.Begin());
             return compiler;
         }
 
-        protected ModList CompileAndInstall(string profile)
+        protected async Task<ModList> CompileAndInstall(string profile)
         {
-            var compiler = ConfigureAndRunCompiler(profile);
+            var compiler = await ConfigureAndRunCompiler(profile);
             Install(compiler);
             return compiler.ModList;
         }

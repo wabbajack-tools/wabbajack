@@ -86,7 +86,7 @@ namespace Wabbajack.Lib
         ///     We don't want to make the installer index all the archives, that's just a waste of time, so instead
         ///     we'll pass just enough information to VFS to let it know about the files we have.
         /// </summary>
-        public void PrimeVFS()
+        public async Task PrimeVFS()
         {
             VFS.AddKnown(HashedArchives.Select(a => new KnownFile
             {
@@ -100,7 +100,7 @@ namespace Wabbajack.Lib
                     .OfType<FromArchive>()
                     .Select(f => new KnownFile { Paths = f.ArchiveHashPath}));
 
-            VFS.BackfillMissing();
+            await VFS.BackfillMissing();
         }
 
         public void BuildFolderStructure()

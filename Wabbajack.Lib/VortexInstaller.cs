@@ -65,7 +65,7 @@ namespace Wabbajack.Lib
                     Error("Cannot continue, was unable to download one or more archives");
             }
 
-            PrimeVFS();
+            await PrimeVFS();
 
             if (cancel.IsCancellationRequested) return false;
             BuildFolderStructure();

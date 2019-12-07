@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
@@ -11,7 +12,7 @@ namespace Wabbajack.Test
     public class zEditIntegrationTests : ACompilerTest
     {
         [TestMethod]
-        public void CanCreatezEditPatches()
+        public async Task CanCreatezEditPatches()
         {
             var profile = utils.AddProfile();
             var moda = utils.AddMod();
@@ -72,7 +73,7 @@ namespace Wabbajack.Test
 
                 });
 
-            var modlist = CompileAndInstall(profile);
+            var modlist = await CompileAndInstall(profile);
             var directive = modlist.Directives.Where(m => m.To == $"mods\\{moddest}\\merged.esp").FirstOrDefault();
 
             Assert.IsNotNull(directive);

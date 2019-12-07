@@ -47,7 +47,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         {
             await context.AddRoot(VFS_TEST_DIR_FULL);
             await context.WriteToFile(Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
-            context.IntegrateFromFile(Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
+            await context.IntegrateFromFile(Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
         }
 
 

@@ -69,7 +69,7 @@ namespace Wabbajack.Lib
 
             if (Directory.Exists(Path.Combine(OutputFolder, "mods")) && WarnOnOverwrite)
             {
-                if (Utils.Log(new ConfirmUpdateOfExistingInstall { ModListName = ModList.Name, OutputFolder = OutputFolder}).Task.Result == ConfirmUpdateOfExistingInstall.Choice.Abort)
+                if ((await Utils.Log(new ConfirmUpdateOfExistingInstall { ModListName = ModList.Name, OutputFolder = OutputFolder }).Task) == ConfirmUpdateOfExistingInstall.Choice.Abort)
                 {
                     Utils.Log("Existing installation at the request of the user, existing mods folder found.");
                     return false;
@@ -105,7 +105,7 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Priming VFS");
-            PrimeVFS();
+            await PrimeVFS();
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Building Folder Structure");

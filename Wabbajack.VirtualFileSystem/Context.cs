@@ -72,7 +72,7 @@ namespace Wabbajack.VirtualFileSystem
                                 return await VirtualFile.Analyze(this, null, f, f);
                             });
 
-            var newIndex = IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
+            var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
 
             lock (this)
             {
@@ -108,7 +108,7 @@ namespace Wabbajack.VirtualFileSystem
                     return await VirtualFile.Analyze(this, null, f, f);
                 });
 
-            var newIndex = IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
+            var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
 
             lock (this)
             {
@@ -166,7 +166,7 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        public void IntegrateFromFile(string filename)
+        public async Task IntegrateFromFile(string filename)
         {
             try
             {
@@ -188,7 +188,7 @@ namespace Wabbajack.VirtualFileSystem
                             br.BaseStream.Read(bytes, 0, (int) size);
                             return VirtualFile.Read(this, bytes);
                         }).ToList();
-                    var newIndex = Index.Integrate(files);
+                    var newIndex = await Index.Integrate(files);
                     lock (this)
                     {
                         Index = newIndex;
@@ -252,7 +252,7 @@ namespace Wabbajack.VirtualFileSystem
             var parents = await indexedState[""]
                 .PMap(Queue,f => VirtualFile.CreateFromPortable(this, indexedState, links, f));
 
-            var newIndex = Index.Integrate(parents);
+            var newIndex = await Index.Integrate(parents);
             lock (this)
             {
                 Index = newIndex;
@@ -273,7 +273,7 @@ namespace Wabbajack.VirtualFileSystem
             _knownFiles.AddRange(known);
         }
 
-        public void BackfillMissing()
+        public async Task BackfillMissing()
         {
             var newFiles = _knownFiles.Where(f => f.Paths.Length == 1)
                                        .GroupBy(f => f.Hash)
@@ -307,7 +307,7 @@ namespace Wabbajack.VirtualFileSystem
             }
             _knownFiles.Where(f => f.Paths.Length > 1).Do(BackFillOne);
 
-            var newIndex = Index.Integrate(newFiles.Values.ToList());
+            var newIndex = await Index.Integrate(newFiles.Values.ToList());
 
             lock (this)
                 Index = newIndex;
@@ -373,7 +373,7 @@ namespace Wabbajack.VirtualFileSystem
         public ImmutableDictionary<string, ImmutableStack<VirtualFile>> ByName { get; set; }
         public ImmutableDictionary<string, VirtualFile> ByRootPath { get; }
 
-        public IndexRoot Integrate(ICollection<VirtualFile> files)
+        public async Task<IndexRoot> Integrate(ICollection<VirtualFile> files)
         {
             Utils.Log($"Integrating {files.Count} files");
             var allFiles = AllFiles.Concat(files).GroupBy(f => f.Name).Select(g => g.Last()).ToImmutableList();
@@ -391,10 +391,10 @@ namespace Wabbajack.VirtualFileSystem
             var byRootPath = Task.Run(() => allFiles.ToImmutableDictionary(f => f.Name));
 
             var result = new IndexRoot(allFiles,
-                byFullPath.Result,
-                byHash.Result,
-                byRootPath.Result,
-                byName.Result);
+                await byFullPath,
+                await byHash,
+                await byRootPath,
+                await byName);
             Utils.Log($"Done integrating");
             return result;
         }
