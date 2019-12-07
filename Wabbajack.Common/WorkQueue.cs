@@ -85,15 +85,10 @@ namespace Wabbajack.Common
             Queue.Add(a);
         }
 
-        public void Shutdown()
+        public void Dispose()
         {
             _cancel.Cancel();
             Threads.Do(th => th.Join());
-        }
-
-        public void Dispose()
-        {
-            Shutdown();
             Queue?.Dispose();
         }
     }

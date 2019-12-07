@@ -34,7 +34,7 @@ namespace Wabbajack.Test.ListValidation
         [TestCleanup]
         public void Cleanup()
         {
-            Queue.Shutdown();
+            Queue.Dispose();
             Queue = null;
         }
 

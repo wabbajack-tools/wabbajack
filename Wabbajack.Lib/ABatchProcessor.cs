@@ -12,11 +12,6 @@ namespace Wabbajack.Lib
     {
         public WorkQueue Queue { get; private set; }
 
-        public void Dispose()
-        {
-            Queue?.Shutdown();
-        }
-
         public Context VFS { get; private set; }
 
         protected StatusUpdateTracker UpdateTracker { get; private set; }
@@ -109,10 +104,10 @@ namespace Wabbajack.Lib
             return _tcs.Task;
         }
 
-        public void Terminate()
+        public void Dispose()
         {
             _cancel.Cancel();
-            Queue?.Shutdown();
+            Queue?.Dispose();
             _isRunning.OnNext(false);
         }
     }
