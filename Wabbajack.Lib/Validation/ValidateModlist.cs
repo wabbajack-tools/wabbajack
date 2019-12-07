@@ -17,8 +17,13 @@ namespace Wabbajack.Lib.Validation
     {
         public Dictionary<string, Author> AuthorPermissions { get; set; } = new Dictionary<string, Author>();
 
-        private WorkQueue Queue = new WorkQueue();
+        private readonly WorkQueue _queue;
         public ServerWhitelist ServerWhitelist { get; set; } = new ServerWhitelist();
+
+        public ValidateModlist(WorkQueue workQueue)
+        {
+            _queue = workQueue;
+        }
 
         public void LoadAuthorPermissionsFromString(string s)
         {
@@ -49,9 +54,9 @@ namespace Wabbajack.Lib.Validation
 
         }
 
-        public static void RunValidation(ModList modlist)
+        public static void RunValidation(WorkQueue queue, ModList modlist)
         {
-            var validator = new ValidateModlist();
+            var validator = new ValidateModlist(queue);
 
             validator.LoadListsFromGithub();
 
@@ -103,12 +108,12 @@ namespace Wabbajack.Lib.Validation
             
             var nexus_mod_permissions = modlist.Archives
                 .Where(a => a.State is NexusDownloader.State)
-                .PMap(Queue, a => (a.Hash, FilePermissions((NexusDownloader.State)a.State), a))
+                .PMap(_queue, a => (a.Hash, FilePermissions((NexusDownloader.State)a.State), a))
                 .ToDictionary(a => a.Hash, a => new { permissions = a.Item2, archive = a.a });
 
             modlist.Directives
                 .OfType<PatchedFromArchive>()
-                .PMap(Queue, p =>
+                .PMap(_queue, p =>
                 {
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {
@@ -127,7 +132,7 @@ namespace Wabbajack.Lib.Validation
 
             modlist.Directives
                 .OfType<FromArchive>()
-                .PMap(Queue,p =>
+                .PMap(_queue, p =>
                 {
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {

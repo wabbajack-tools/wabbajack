@@ -267,7 +267,7 @@ namespace Wabbajack.Lib
 
             UpdateTracker.NextStep("Running Validation");
 
-            ValidateModlist.RunValidation(ModList);
+            ValidateModlist.RunValidation(Queue, ModList);
             UpdateTracker.NextStep("Generating Report");
 
             GenerateReport();

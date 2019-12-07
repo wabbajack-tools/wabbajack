@@ -6,6 +6,7 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Validation;
 using Game = Wabbajack.Common.Game;
+using Wabbajack.Common;
 
 namespace Wabbajack.Test
 {
@@ -47,9 +48,12 @@ namespace Wabbajack.Test
         [TestInitialize]
         public void TestSetup()
         {
-            validate = new ValidateModlist();
-            validate.LoadAuthorPermissionsFromString(permissions);
-            validate.LoadServerWhitelist(server_whitelist);
+            using (var workQueue = new WorkQueue())
+            {
+                validate = new ValidateModlist(workQueue);
+                validate.LoadAuthorPermissionsFromString(permissions);
+                validate.LoadServerWhitelist(server_whitelist);
+            }
         }
 
         [TestMethod]
@@ -243,7 +247,10 @@ namespace Wabbajack.Test
         [TestMethod]
         public void CanLoadFromGithub()
         {
-            new ValidateModlist().LoadListsFromGithub();
+            using (var workQueue = new WorkQueue())
+            {
+                new ValidateModlist(workQueue).LoadListsFromGithub();
+            }
         }
     }
 
