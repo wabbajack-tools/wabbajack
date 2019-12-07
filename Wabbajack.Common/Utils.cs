@@ -102,7 +102,7 @@ namespace Wabbajack.Common
 
         public static void Status(string msg, int progress = 0)
         {
-            WorkQueue.CurrentQueue?.Report(msg, progress);
+            WorkQueue.AsyncLocalCurrentQueue.Value?.Report(msg, progress);
         }
 
         /// <summary>
@@ -549,7 +549,10 @@ namespace Wabbajack.Common
             if (WorkQueue.WorkerThread)
                 while (remainingTasks > 0)
                     if (queue.Queue.TryTake(out var a, 500))
+                    {
+                        WorkQueue.AsyncLocalCurrentQueue.Value = WorkQueue.ThreadLocalCurrentQueue.Value;
                         await a();
+                    }
 
             return await Task.WhenAll(tasks);
         }
@@ -584,7 +587,10 @@ namespace Wabbajack.Common
             if (WorkQueue.WorkerThread)
                 while (remainingTasks > 0)
                     if (queue.Queue.TryTake(out var a, 500))
+                    {
+                        WorkQueue.AsyncLocalCurrentQueue.Value = WorkQueue.ThreadLocalCurrentQueue.Value;
                         await a();
+                    }
 
             return await Task.WhenAll(tasks);
         }

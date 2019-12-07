@@ -15,10 +15,11 @@ namespace Wabbajack.Common
         internal BlockingCollection<Func<Task>>
             Queue = new BlockingCollection<Func<Task>>(new ConcurrentStack<Func<Task>>());
 
-        [ThreadStatic] private static int CpuId;
+        private static readonly AsyncLocal<int> CpuId = new AsyncLocal<int>();
 
-        internal static bool WorkerThread => CurrentQueue != null;
-        [ThreadStatic] internal static WorkQueue CurrentQueue;
+        internal static bool WorkerThread => ThreadLocalCurrentQueue.Value != null;
+        internal static readonly ThreadLocal<WorkQueue> ThreadLocalCurrentQueue = new ThreadLocal<WorkQueue>();
+        internal static readonly AsyncLocal<WorkQueue> AsyncLocalCurrentQueue = new AsyncLocal<WorkQueue>();
 
         private readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
@@ -51,8 +52,9 @@ namespace Wabbajack.Common
 
         private async Task ThreadBody(int idx)
         {
-            CpuId = idx;
-            CurrentQueue = this;
+            CpuId.Value = idx;
+            ThreadLocalCurrentQueue.Value = this;
+            AsyncLocalCurrentQueue.Value = this;
 
             try
             {
@@ -77,7 +79,7 @@ namespace Wabbajack.Common
                     Progress = progress,
                     ProgressPercent = progress / 100f,
                     Msg = msg,
-                    ID = CpuId,
+                    ID = CpuId.Value,
                     IsWorking = isWorking
                 });
         }
