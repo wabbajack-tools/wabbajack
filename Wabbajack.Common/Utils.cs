@@ -17,6 +17,7 @@ using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
 using Newtonsoft.Json;
 using ReactiveUI;
+using Syroot.Windows.IO;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Common.StatusFeed.Errors;
 using YamlDotNet.Serialization;
@@ -898,6 +899,29 @@ namespace Wabbajack.Common
                 Status(line);
             }
             p.WaitForExit();
+        }
+
+        /// <summary>
+        /// Writes a file to JSON but in an encrypted format in the user's app local directory.
+        /// The data will be encrypted so that it can only be read by this machine and this user.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <param name="data"></param>
+        public static void ToEcryptedJson<T>(this T data, string key)
+        {
+            var bytes = Encoding.UTF8.GetBytes(data.ToJSON());
+            var encoded = ProtectedData.Protect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
+            var path = Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack", key);
+            File.WriteAllBytes(path, encoded);
+        }
+
+        public static T FromEncryptedJson<T>(string key)
+        {
+            var path = Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack", key);
+            var bytes = File.ReadAllBytes(path);
+            var decoded = ProtectedData.Unprotect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
+            return Encoding.UTF8.GetString(decoded).FromJSONString<T>();
         }
     }
 }

@@ -33,6 +33,7 @@ namespace Wabbajack
         public readonly Lazy<InstallerVM> Installer;
         public readonly Lazy<ModListGalleryVM> Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
+        public readonly WebBrowserVM WebBrowserVM;
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
         {
@@ -42,6 +43,7 @@ namespace Wabbajack
             Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
             Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(this));
             ModeSelectionVM = new ModeSelectionVM(this);
+            WebBrowserVM = new WebBrowserVM();
 
             // Set up logging
             Utils.LogMessages
@@ -67,7 +69,8 @@ namespace Wabbajack
             else
             {
                 // Start on mode selection
-                ActivePane = ModeSelectionVM;
+                //ActivePane = ModeSelectionVM;
+                ActivePane = WebBrowserVM;
             }
         }
 

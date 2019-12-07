@@ -72,19 +72,12 @@ namespace Wabbajack.Lib.NexusApi
                     Directory.CreateDirectory(cacheFolder);
                 }
 
-                var cacheFile = Path.Combine(cacheFolder, _additionalEntropy);
-                if (File.Exists(cacheFile))
+                try
                 {
-                    try
-                    {
-                        return Encoding.UTF8.GetString(
-                            ProtectedData.Unprotect(File.ReadAllBytes(cacheFile),
-                            Encoding.UTF8.GetBytes(_additionalEntropy), DataProtectionScope.CurrentUser));
-                    }
-                    catch (CryptographicException)
-                    {
-                        File.Delete(cacheFile);
-                    }
+                    return Utils.FromEncryptedJson<string>("nexusapikey");
+                }
+                catch (CryptographicException)
+                {
                 }
 
                 var env_key = Environment.GetEnvironmentVariable("NEXUSAPIKEY");
@@ -93,33 +86,34 @@ namespace Wabbajack.Lib.NexusApi
                     return env_key;
                 }
 
-                // open a web socket to receive the api key
-                var guid = Guid.NewGuid();
-                var _websocket = new WebSocket("wss://sso.nexusmods.com")
-                {
-                    SslConfiguration =
-                    {
-                        EnabledSslProtocols = SslProtocols.Tls12
-                    }
-                };
-
-                var api_key = new TaskCompletionSource<string>();
-                _websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
-
-                _websocket.Connect();
-                _websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"" + Consts.AppName + "\"}");
-
-                // open a web browser to get user permission
-                Process.Start($"https://www.nexusmods.com/sso?id={guid}&application=" + Consts.AppName);
-
-                // get the api key from the socket and cache it
-                api_key.Task.Wait();
-                var result = api_key.Task.Result;
-                File.WriteAllBytes(cacheFile, ProtectedData.Protect(Encoding.UTF8.GetBytes(result), 
-                    Encoding.UTF8.GetBytes(_additionalEntropy), DataProtectionScope.CurrentUser));
-
+                var result = Utils.Log(new RequestNexusAuthorization()).Task.Result;
+                result.ToEcryptedJson("nexusapikey");
                 return result;
             }
+        }
+
+        public async Task<string> SetupNexusLogin(Action<Uri> browserNavigate)
+        {
+            // open a web socket to receive the api key
+            var guid = Guid.NewGuid();
+            var _websocket = new WebSocket("wss://sso.nexusmods.com")
+            {
+                SslConfiguration =
+                {
+                    EnabledSslProtocols = SslProtocols.Tls12
+                }
+            };
+
+            var api_key = new TaskCompletionSource<string>();
+            _websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
+
+            _websocket.Connect();
+            _websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"" + Consts.AppName + "\"}");
+
+            // open a web browser to get user permission
+            browserNavigate(new Uri($"https://www.nexusmods.com/sso?id={guid}&application=" + Consts.AppName));
+
+            return await api_key.Task;
         }
 
         public UserStatus GetUserStatus()

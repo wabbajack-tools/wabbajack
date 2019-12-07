@@ -75,12 +75,16 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Syroot.KnownFolders">
+      <HintPath>..\..\..\Users\tbald\.nuget\packages\syroot.windows.io.knownfolders\1.2.1\lib\net452\Syroot.KnownFolders.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
@@ -168,6 +172,9 @@
     </PackageReference>
     <PackageReference Include="ReactiveUI">
       <Version>10.5.30</Version>
+    </PackageReference>
+    <PackageReference Include="Syroot.Windows.IO.KnownFolders">
+      <Version>1.2.1</Version>
     </PackageReference>
     <PackageReference Include="System.Data.HashFunction.xxHash">
       <Version>2.0.0</Version>

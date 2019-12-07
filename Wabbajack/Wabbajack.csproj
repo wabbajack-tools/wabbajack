@@ -162,6 +162,10 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="Xilium.CefGlue.WPF, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Users\tbald\.nuget\packages\cefglue.wpf\75.1.28\lib\net472\x64\Xilium.CefGlue.WPF.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -169,6 +173,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="View Models\WebBrowserVM.cs" />
     <Compile Include="Views\Installers\MO2InstallerConfigView.xaml.cs">
       <DependentUpon>MO2InstallerConfigView.xaml</DependentUpon>
     </Compile>
@@ -246,6 +251,9 @@
     </Compile>
     <Compile Include="Views\Installers\VortexInstallerConfigView.xaml.cs">
       <DependentUpon>VortexInstallerConfigView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\WebBrowserView.xaml.cs">
+      <DependentUpon>WebBrowserView.xaml</DependentUpon>
     </Compile>
     <Page Include="Views\Installers\MO2InstallerConfigView.xaml">
       <SubType>Designer</SubType>
@@ -330,6 +338,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\Installers\VortexInstallerConfigView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\WebBrowserView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
