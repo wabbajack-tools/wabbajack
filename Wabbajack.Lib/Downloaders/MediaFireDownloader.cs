@@ -70,7 +70,7 @@ namespace Wabbajack.Lib.Downloaders
 
         }
 
-        public void Prepare()
+        public async Task Prepare()
         {
         }
 

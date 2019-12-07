@@ -29,7 +29,7 @@ namespace Wabbajack.Lib.Downloaders
             return new State {Item = _item};
         }
 
-        public void Prepare()
+        public async Task Prepare()
         {
         }
 

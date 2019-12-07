@@ -86,7 +86,7 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             Info("Starting pre-compilation steps");
-            CreateMetaFiles();
+            await CreateMetaFiles();
 
             if (cancel.IsCancellationRequested) return false;
             Info($"Indexing {StagingFolder}");
@@ -314,14 +314,15 @@ namespace Wabbajack.Lib
             }
         }
 
-        private void CreateMetaFiles()
+        private async Task CreateMetaFiles()
         {
             Utils.Log("Getting Nexus api_key, please click authorize if a browser window appears");
             var nexusClient = new NexusApiClient();
 
-            Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)
+            await Task.WhenAll(
+                Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)
                 .Where(File.Exists)
-                .Do(f =>
+                .Select(async f =>
                 {
                     if (Path.GetExtension(f) != ".meta" && !File.Exists($"{f}.meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
                     {
@@ -343,7 +344,7 @@ namespace Wabbajack.Lib
                             Utils.Log($"Hash is {hash}");
                         }
 
-                        var md5Response = nexusClient.GetModInfoFromMD5(Game, hash);
+                        var md5Response = await nexusClient.GetModInfoFromMD5(Game, hash);
                         if (md5Response.Count >= 1)
                         {
                             var modInfo = md5Response[0].mod;
@@ -388,7 +389,7 @@ namespace Wabbajack.Lib
                             ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
                         }
                     }
-                });
+                }));
 
             Utils.Log($"Checking for Steam Workshop Items...");
             if (!_isSteamGame || _steamGame == null || _steamGame.WorkshopItems.Count <= 0)

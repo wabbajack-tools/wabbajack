@@ -231,8 +231,7 @@ namespace Wabbajack.Lib
 
             var dispatchers = missing.Select(m => m.State.GetDownloader()).Distinct();
 
-            foreach (var dispatcher in dispatchers)
-                dispatcher.Prepare();
+            await Task.WhenAll(dispatchers.Select(d => d.Prepare()));
             
             await DownloadMissingArchives(missing);
         }

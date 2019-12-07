@@ -47,21 +47,21 @@ namespace Compression.BSA.Test
                 (Game.Fallout4, 22223) // 10mm SMG
             };
 
-            foreach (var info in modIDs)
+            await Task.WhenAll(modIDs.Select(async (info) =>
             {
                 var filename = await DownloadMod(info);
                 var folder = Path.Combine(_bsaFolder, info.Item1.ToString(), info.Item2.ToString());
                 if (!Directory.Exists(folder))
                     Directory.CreateDirectory(folder);
                 await FileExtractor.ExtractAll(Queue, filename, folder);
-            }
+            }));
         }
 
         private static async Task<string> DownloadMod((Game, int) info)
         {
             using (var client = new NexusApiClient())
             {
-                var results = client.GetModFiles(info.Item1, info.Item2);
+                var results = await client.GetModFiles(info.Item1, info.Item2);
                 var file = results.files.FirstOrDefault(f => f.is_primary) ??
                            results.files.OrderByDescending(f => f.uploaded_timestamp).First();
                 var src = Path.Combine(_stagingFolder, file.file_name);

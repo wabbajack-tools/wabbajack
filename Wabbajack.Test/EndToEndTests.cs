@@ -106,7 +106,8 @@ namespace Wabbajack.Test
         {
             utils.AddMod(mod_name);
             var client = new NexusApiClient();
-            var file = client.GetModFiles(game, modid).files.First(f => f.is_primary);
+            var resp = await client.GetModFiles(game, modid);
+            var file = resp.files.First(f => f.is_primary);
             var src = Path.Combine(DOWNLOAD_FOLDER, file.file_name);
 
             var ini = string.Join("\n",

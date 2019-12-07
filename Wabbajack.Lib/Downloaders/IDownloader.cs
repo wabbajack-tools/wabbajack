@@ -1,4 +1,6 @@
-﻿namespace Wabbajack.Lib.Downloaders
+﻿using System.Threading.Tasks;
+
+namespace Wabbajack.Lib.Downloaders
 {
     public interface IDownloader
     {
@@ -7,7 +9,7 @@
         /// <summary>
         /// Called before any downloads are inacted by the installer;
         /// </summary>
-        void Prepare();
+        Task Prepare();
     }
 
 }

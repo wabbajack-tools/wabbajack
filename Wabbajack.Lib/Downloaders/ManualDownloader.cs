@@ -65,7 +65,7 @@ namespace Wabbajack.Lib.Downloaders
             return url != null ? new State { Url = url} : null;
         }
 
-        public void Prepare()
+        public async Task Prepare()
         {
         }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace Wabbajack.Lib.Downloaders
@@ -31,7 +32,7 @@ namespace Wabbajack.Lib.Downloaders
             };
         }
 
-        public void Prepare()
+        public async Task Prepare()
         {
         }
     }

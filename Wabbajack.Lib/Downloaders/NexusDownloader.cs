@@ -41,10 +41,10 @@ namespace Wabbajack.Lib.Downloaders
             return null;
         }
 
-        public void Prepare()
+        public async Task Prepare()
         {
             var client = new NexusApiClient();
-            var status = client.GetUserStatus();
+            var status = await client.GetUserStatus();
             if (!client.IsAuthenticated)
             {
                 Utils.ErrorThrow(new UnconvertedError($"Authenticating for the Nexus failed. A nexus account is required to automatically download mods."));
@@ -81,7 +81,7 @@ namespace Wabbajack.Lib.Downloaders
                 string url;
                 try
                 {
-                    url = new NexusApiClient().GetNexusDownloadLink(this, false);
+                    url = await new NexusApiClient().GetNexusDownloadLink(this, false);
                 }
                 catch (Exception ex)
                 {
@@ -110,7 +110,7 @@ namespace Wabbajack.Lib.Downloaders
                     if (!int.TryParse(ModID, out var modID))
                         return false;
 
-                    var modFiles = new NexusApiClient().GetModFiles(game, modID);
+                    var modFiles = await new NexusApiClient().GetModFiles(game, modID);
 
                     if (!ulong.TryParse(FileID, out var fileID))
                         return false;
