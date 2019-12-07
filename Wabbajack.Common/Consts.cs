@@ -10,6 +10,7 @@ namespace Wabbajack.Common
         public static bool TestMode { get; set; } = false;
 
         public static string GameFolderFilesDir = "Game Folder Files";
+        public static string ManualGameFilesDir = "Manual Game Files";
         public static string LOOTFolderFilesDir = "LOOT Config Files";
         public static string BSACreationDir = "TEMP_BSA_FILES";
 
