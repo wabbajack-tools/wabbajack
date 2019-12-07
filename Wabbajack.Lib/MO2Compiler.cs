@@ -246,7 +246,7 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Gathering Archives");
             await GatherArchives();
             UpdateTracker.NextStep("Including Archive Metadata");
-            IncludeArchiveMetadata();
+            await IncludeArchiveMetadata();
             UpdateTracker.NextStep("Building Patches");
             await BuildPatches();
 
@@ -285,10 +285,10 @@ namespace Wabbajack.Lib
         }
 
 
-        private void IncludeArchiveMetadata()
+        private async Task IncludeArchiveMetadata()
         {
             Utils.Log($"Including {SelectedArchives.Count} .meta files for downloads");
-            SelectedArchives.Do(a =>
+            await SelectedArchives.PMap(Queue, a =>
             {
                 var source = Path.Combine(MO2DownloadsFolder, a.Name + ".meta");
                 InstallDirectives.Add(new ArchiveMeta()
