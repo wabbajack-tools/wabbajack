@@ -64,7 +64,7 @@ namespace Wabbajack.Common
 
         public static T Log<T>(T msg) where T : IStatusMessage
         {
-            LogToFile(msg.ShortDescription);
+            LogToFile(msg.ExtendedDescription);
             LoggerSubj.OnNext(msg);
             return msg;
         }
