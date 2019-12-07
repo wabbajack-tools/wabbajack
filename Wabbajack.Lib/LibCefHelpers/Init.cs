@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
+using Xilium.CefGlue;
 
 namespace Wabbajack.Lib.LibCefHelpers
 {
@@ -28,6 +30,52 @@ namespace Wabbajack.Lib.LibCefHelpers
             using (var wq = new WorkQueue(1))
                 FileExtractor.ExtractAll(wq, "cefglue.7z", ".");
 
+        }
+        public static async Task<Cookie[]> GetCookies(string domainEnding)
+        {
+            var manager = CefCookieManager.GetGlobal(null);
+            var visitor = new CookieVisitor();
+            if (!manager.VisitAllCookies(visitor))
+                return new Cookie[0];
+            var cc = await visitor.Task;
+
+            return (await visitor.Task).Where(c => c.Domain.EndsWith(domainEnding)).ToArray();
+        }
+
+        private class CookieVisitor : CefCookieVisitor
+        {
+            TaskCompletionSource<List<Cookie>> _source = new TaskCompletionSource<List<Cookie>>();
+            public Task<List<Cookie>> Task => _source.Task;
+
+            public List<Cookie> Cookies { get; } = new List<Cookie>();
+            protected override bool Visit(CefCookie cookie, int count, int total, out bool delete)
+            {
+                Cookies.Add(new Cookie
+                {
+                    Name = cookie.Name,
+                    Value = cookie.Value,
+                    Domain = cookie.Domain,
+                    Path = cookie.Path
+                });
+                if (count == total)
+                    _source.SetResult(Cookies);
+                delete = false;
+                return true;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                    _source.SetResult(Cookies);
+            }
+        }
+
+        public class Cookie
+        {
+            public string Name { get; set; }
+            public string Value { get; set; }
+            public string Domain { get; set; }
+            public string Path { get; set; }
         }
     }
 }

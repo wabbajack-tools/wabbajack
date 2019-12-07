@@ -102,8 +102,12 @@ namespace Wabbajack
             {
                 if (e.Action == NotifyCollectionChangedAction.Add)
                 {
-                    _listBox.ScrollIntoView(e.NewItems[0]);
-                    _listBox.SelectedItem = e.NewItems[0];
+                    try
+                    {
+                        _listBox.ScrollIntoView(e.NewItems[0]);
+                        _listBox.SelectedItem = e.NewItems[0];
+                    }
+                    catch (ArgumentOutOfRangeException) { }
                 }
             }
         }

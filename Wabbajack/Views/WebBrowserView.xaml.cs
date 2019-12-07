@@ -23,7 +23,6 @@ namespace Wabbajack
         public WebBrowserView()
         {
             InitializeComponent();
-            ((WebBrowserVM)DataContext).Browser = Browser;
         }
     }
 }

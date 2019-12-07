@@ -6,10 +6,13 @@ using System;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
+using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.StatusMessages;
 
 namespace Wabbajack
@@ -34,10 +37,12 @@ namespace Wabbajack
         public readonly Lazy<ModListGalleryVM> Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
         public readonly WebBrowserVM WebBrowserVM;
+        public Dispatcher ViewDispatcher { get; set; }
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
         {
             MainWindow = mainWindow;
+            ViewDispatcher = MainWindow.Dispatcher;
             Settings = settings;
             Installer = new Lazy<InstallerVM>(() => new InstallerVM(this));
             Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
@@ -61,6 +66,10 @@ namespace Wabbajack
                 .OfType<ConfirmUpdateOfExistingInstall>()
                 .Subscribe(msg => ConfirmUpdate(msg));
 
+            Utils.LogMessages
+                .OfType<RequestNexusAuthorization>()
+                .Subscribe(HandleRequestNexusAuthorization);
+
             if (IsStartingFromModlist(out var path))
             {
                 Installer.Value.ModListLocation.TargetPath = path;
@@ -69,9 +78,40 @@ namespace Wabbajack
             else
             {
                 // Start on mode selection
-                //ActivePane = ModeSelectionVM;
-                ActivePane = WebBrowserVM;
+                ActivePane = ModeSelectionVM;
             }
+        }
+
+        private void HandleRequestNexusAuthorization(RequestNexusAuthorization msg)
+        {
+            ViewDispatcher.InvokeAsync(async () =>
+            {
+                var oldPane = ActivePane;
+                var vm = new WebBrowserVM();
+                ActivePane = vm;
+                try
+                {
+                    vm.BackCommand = ReactiveCommand.Create(() =>
+                    {
+                        ActivePane = oldPane;
+                        msg.Cancel();
+                    });
+                }
+                catch (Exception e)
+                { }
+
+                try
+                {
+                    var key = await NexusApiClient.SetupNexusLogin(vm.Browser, m => vm.Instructions = m);
+                    msg.Resume(key);
+                }
+                catch (Exception ex)
+                {
+                    msg.Cancel();
+                }
+                ActivePane = oldPane;
+
+            });
         }
 
         private void ConfirmUpdate(ConfirmUpdateOfExistingInstall msg)

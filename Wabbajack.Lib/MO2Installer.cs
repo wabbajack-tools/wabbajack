@@ -40,6 +40,10 @@ namespace Wabbajack.Lib
             ConfigureProcessor(18, RecommendQueueSize());
             var game = GameRegistry.Games[ModList.GameType];
 
+            // TODO: TESTING
+            var api = new NexusApiClient();
+            api.GetUserStatus();
+
             if (GameFolder == null)
                 GameFolder = game.GameLocation;
 

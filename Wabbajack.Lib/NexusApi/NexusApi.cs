@@ -12,10 +12,16 @@ using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using Syroot.Windows.IO;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.LibCefHelpers;
 using WebSocketSharp;
+using Xilium.CefGlue;
+using Xilium.CefGlue.Common;
+using Xilium.CefGlue.Common.Handlers;
+using Xilium.CefGlue.WPF;
 using static Wabbajack.Lib.NexusApi.NexusApiUtils;
 
 namespace Wabbajack.Lib.NexusApi
@@ -66,17 +72,11 @@ namespace Wabbajack.Lib.NexusApi
                     File.Delete(API_KEY_CACHE_FILE);
                 }
 
-                var cacheFolder = Path.Combine(new KnownFolder(KnownFolderType.LocalAppData).Path, "Wabbajack");
-                if (!Directory.Exists(cacheFolder))
-                {
-                    Directory.CreateDirectory(cacheFolder);
-                }
-
                 try
                 {
                     return Utils.FromEncryptedJson<string>("nexusapikey");
                 }
-                catch (CryptographicException)
+                catch (Exception)
                 {
                 }
 
@@ -92,8 +92,36 @@ namespace Wabbajack.Lib.NexusApi
             }
         }
 
-        public async Task<string> SetupNexusLogin(Action<Uri> browserNavigate)
+        class RefererHandler : RequestHandler
         {
+            private string _referer;
+
+            public RefererHandler(string referer)
+            {
+                _referer = referer;
+            }
+            protected override bool OnBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, bool userGesture, bool isRedirect)
+            {
+                base.OnBeforeBrowse(browser, frame, request, userGesture, isRedirect);
+                if (request.ReferrerURL == null)
+                    request.SetReferrer(_referer, CefReferrerPolicy.Default);
+                return false;
+            }
+        }
+
+        public static async Task<string> SetupNexusLogin(BaseCefBrowser browser, Action<string> updateStatus)
+        {
+            updateStatus("Please Log Into the Nexus");
+            browser.Address = "https://users.nexusmods.com/auth/continue?client_id=nexus&redirect_uri=https://www.nexusmods.com/oauth/callback&response_type=code&referrer=//www.nexusmods.com";
+            while (true)
+            {
+                var cookies = (await Helpers.GetCookies("nexusmods.com"));
+                if (cookies.FirstOrDefault(c => c.Name == "member_id") != null)
+                    break;
+                await Task.Delay(500);
+            }
+
+
             // open a web socket to receive the api key
             var guid = Guid.NewGuid();
             var _websocket = new WebSocket("wss://sso.nexusmods.com")
@@ -104,14 +132,16 @@ namespace Wabbajack.Lib.NexusApi
                 }
             };
 
+            updateStatus("Please Authorize Wabbajack to Download Mods");
             var api_key = new TaskCompletionSource<string>();
             _websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
 
             _websocket.Connect();
             _websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"" + Consts.AppName + "\"}");
+            await Task.Delay(1000);
 
             // open a web browser to get user permission
-            browserNavigate(new Uri($"https://www.nexusmods.com/sso?id={guid}&application=" + Consts.AppName));
+            browser.Address = $"https://www.nexusmods.com/sso?id={guid}&application={Consts.AppName}";
 
             return await api_key.Task;
         }

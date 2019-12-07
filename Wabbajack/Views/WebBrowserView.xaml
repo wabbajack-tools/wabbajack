@@ -65,6 +65,7 @@
             ToolTip="Back to main menu">
             <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
         </Button>
-        <wpf:WpfCefBrowser Grid.Row="1" Address="http://www.wabbajack.org" Name="Browser"></wpf:WpfCefBrowser>
+        <!-- Do it this way so we can access the browser directly from the VM -->
+        <ContentControl Grid.Row="1" Content="{Binding Browser}"></ContentControl>
     </Grid>
 </UserControl>

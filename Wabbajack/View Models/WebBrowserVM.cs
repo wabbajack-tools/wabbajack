@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
 using Xilium.CefGlue.Common;
@@ -13,15 +14,16 @@ namespace Wabbajack
     public class WebBrowserVM : ViewModel
     {
         [Reactive]
-        public string Address { get; set; }
-
-        [Reactive]
         public string Instructions { get; set; }
 
-        public BaseCefBrowser Browser { get; internal set; }
+        public WpfCefBrowser Browser { get; }
 
-        public WebBrowserVM()
+        [Reactive]
+        public IReactiveCommand BackCommand { get; set; }
+        public WebBrowserVM(string url = "http://www.wabbajack.org")
         {
+            Browser = new WpfCefBrowser();
+            Browser.Address = url;
             Instructions = "Wabbajack Web Browser";
         }
     }
