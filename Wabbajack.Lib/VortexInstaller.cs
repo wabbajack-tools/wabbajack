@@ -1,8 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using Wabbajack.Common;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
+using DirectoryInfo = Alphaleonis.Win32.Filesystem.DirectoryInfo;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -60,11 +63,63 @@ namespace Wabbajack.Lib
             BuildFolderStructure();
             InstallArchives();
             InstallIncludedFiles();
+            InstallManualGameFiles();
             InstallSteamWorkshopItems();
             //InstallIncludedDownloadMetas();
 
             Info("Installation complete! You may exit the program.");
             return true;
+        }
+
+        private void InstallManualGameFiles()
+        {
+            if (!ModList.Directives.Any(d => d.To.StartsWith(Consts.ManualGameFilesDir)))
+                return;
+
+            var result = MessageBox.Show("Some mods from this ModList must be installed directly into " +
+                                             "the game folder. Do you want to do this manually or do you want Wabbajack " +
+                                             "to do this for you?", "Question", MessageBoxButton.YesNo);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            var manualFilesDir = Path.Combine(OutputFolder, Consts.ManualGameFilesDir);
+
+            var gameFolder = GameInfo.GameLocation(SteamHandler.Instance.Games.Any(g => g.Game == GameInfo.Game));
+
+            Info($"Copying files from {manualFilesDir} " +
+                 $"to the game folder at {gameFolder}");
+
+            if (!Directory.Exists(manualFilesDir))
+            {
+                Info($"{manualFilesDir} does not exist!");
+                return;
+            }
+
+            Directory.EnumerateDirectories(manualFilesDir).PMap(Queue, dir =>
+            {
+                var dirInfo = new DirectoryInfo(dir);
+                dirInfo.GetDirectories("*", SearchOption.AllDirectories).Do(d =>
+                {
+                    var destPath = d.FullName.Replace(dir, gameFolder);
+                    Status($"Creating directory {destPath}");
+                    Directory.CreateDirectory(destPath);
+                });
+
+                dirInfo.GetFiles("*", SearchOption.AllDirectories).Do(f =>
+                {
+                    var destPath = f.FullName.Replace(dir, gameFolder);
+                    Status($"Copying file {f.FullName} to {destPath}");
+                    try
+                    {
+                        File.Copy(f.FullName, destPath);
+                    }
+                    catch (Exception)
+                    {
+                        Info($"Could not copy file {f.FullName} to {destPath}. The file may already exist, skipping...");
+                    }
+                });
+            });
         }
 
         private void InstallSteamWorkshopItems()
