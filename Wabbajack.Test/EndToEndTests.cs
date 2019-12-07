@@ -105,7 +105,7 @@ namespace Wabbajack.Test
         private async Task DownloadAndInstall(Game game, int modid, string mod_name)
         {
             utils.AddMod(mod_name);
-            var client = new NexusApiClient();
+            var client = await NexusApiClient.Get();
             var resp = await client.GetModFiles(game, modid);
             var file = resp.files.First(f => f.is_primary);
             var src = Path.Combine(DOWNLOAD_FOLDER, file.file_name);

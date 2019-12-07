@@ -6,7 +6,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class DropboxDownloader : IDownloader, IUrlDownloader
     {
-        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             var urlstring = archiveINI?.General?.directURL;
             return GetDownloaderState(urlstring);

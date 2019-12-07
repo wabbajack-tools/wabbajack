@@ -196,7 +196,8 @@ namespace Wabbajack.Lib
 
             await mods.PMap(Queue, async mod =>
             {
-                var er = await new NexusApiClient().EndorseMod(mod);
+                var client = await NexusApiClient.Get();
+                var er = await client.EndorseMod(mod);
                 Utils.Log($"Endorsed {mod.GameName} - {mod.ModID} - Result: {er.message}");
             });
             Info("Done! You may now exit the application!");

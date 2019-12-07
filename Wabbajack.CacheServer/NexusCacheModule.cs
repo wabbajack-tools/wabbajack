@@ -18,20 +18,20 @@ namespace Wabbajack.CacheServer
 
         public NexusCacheModule() : base("/")
         {
+            // ToDo
+            // Handle what to do with the fact that lots of these are now a tasks
+            throw new NotImplementedException("Unsure if following functions still work when taking in a Task");
             Get("/v1/games/{GameName}/mods/{ModID}/files/{FileID}.json", HandleFileID);
             Get("/v1/games/{GameName}/mods/{ModID}/files.json", HandleGetFiles);
             Get("/v1/games/{GameName}/mods/{ModID}.json", HandleModInfo);
             Get("/nexus_api_cache/{request}.json", HandleCacheCall);
             Get("/nexus_api_cache", ListCache);
-            // ToDo
-            // Handle what to do with the fact that this is now a task
-            throw new NotImplementedException("Unsure if following function still works when taking in a Task");
             Get("/nexus_api_cache/update", UpdateCache);
         }
 
         private async Task<object> UpdateCache(object arg)
         {
-            var api = new NexusApiClient(Request.Headers["apikey"].FirstOrDefault());
+            var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
             await api.ClearUpdatedModsInCache();
             return "Done";
         }
@@ -50,17 +50,17 @@ namespace Wabbajack.CacheServer
                 }));
         }
 
-        private object HandleModInfo(dynamic arg)
+        private async Task<object> HandleModInfo(dynamic arg)
         {
             Utils.Log($"{DateTime.Now} - Mod Info - {arg.GameName}/{arg.ModID}/");
-            var api = new NexusApiClient(Request.Headers["apikey"].FirstOrDefault());
+            var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
             return api.GetModInfo(GameRegistry.GetByNexusName((string)arg.GameName).Game, (string)arg.ModID).ToJSON();
         }
 
-        private object HandleFileID(dynamic arg)
+        private async Task<object> HandleFileID(dynamic arg)
         {
             Utils.Log($"{DateTime.Now} - File Info - {arg.GameName}/{arg.ModID}/{arg.FileID}");
-            var api = new NexusApiClient(Request.Headers["apikey"].FirstOrDefault());
+            var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
             return api.GetFileInfo(new NexusDownloader.State
             {
                 GameName = arg.GameName,
@@ -69,10 +69,10 @@ namespace Wabbajack.CacheServer
             }).ToJSON();
         }
 
-        private object HandleGetFiles(dynamic arg)
+        private async Task<object> HandleGetFiles(dynamic arg)
         {
             Utils.Log($"{DateTime.Now} - Mod Files - {arg.GameName} {arg.ModID}");
-            var api = new NexusApiClient(Request.Headers["apikey"].FirstOrDefault());
+            var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
             return api.GetModFiles(GameRegistry.GetByNexusName((string)arg.GameName).Game, (int)arg.ModID).ToJSON();
         }
 

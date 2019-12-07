@@ -17,6 +17,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using WebSocketSharp;
 using static Wabbajack.Lib.NexusApi.NexusApiUtils;
+using System.Threading;
 
 namespace Wabbajack.Lib.NexusApi
 {
@@ -38,27 +39,31 @@ namespace Wabbajack.Lib.NexusApi
 
         public bool IsAuthenticated => _apiKey != null;
 
-        private UserStatus _userStatus;
+        private Task<UserStatus> _userStatus;
 
-        public UserStatus UserStatus
+        public Task<UserStatus> UserStatus
         {
             get
             {
                 if (_userStatus == null)
-                    _userStatus = GetUserStatus().Result;
+                    _userStatus = GetUserStatus();
                 return _userStatus;
             }
         }
 
-        public bool IsPremium => IsAuthenticated && UserStatus.is_premium;
-
-        public string Username => UserStatus?.name;
-
-
-        private static object _getAPIKeyLock = new object();
-        private static string GetApiKey()
+        public async Task<bool> IsPremium()
         {
-            lock (_getAPIKeyLock)
+            return IsAuthenticated && (await UserStatus).is_premium;
+        }
+
+        public async Task<string> Username() => (await UserStatus).name;
+
+        private static SemaphoreSlim _getAPIKeyLock = new SemaphoreSlim(1, 1);
+        private static async Task<string> GetApiKey()
+        {
+            await _getAPIKeyLock.WaitAsync();
+
+            try
             {
                 // Clean up old location
                 if (File.Exists(API_KEY_CACHE_FILE))
@@ -113,12 +118,14 @@ namespace Wabbajack.Lib.NexusApi
                 Process.Start($"https://www.nexusmods.com/sso?id={guid}&application=" + Consts.AppName);
 
                 // get the api key from the socket and cache it
-                api_key.Task.Wait();
-                var result = api_key.Task.Result;
-                File.WriteAllBytes(cacheFile, ProtectedData.Protect(Encoding.UTF8.GetBytes(result), 
+                var result = await api_key.Task;
+                File.WriteAllBytes(cacheFile, ProtectedData.Protect(Encoding.UTF8.GetBytes(result),
                     Encoding.UTF8.GetBytes(_additionalEntropy), DataProtectionScope.CurrentUser));
-
                 return result;
+            }
+            finally
+            {
+                _getAPIKeyLock.Release();
             }
         }
 
@@ -183,9 +190,9 @@ namespace Wabbajack.Lib.NexusApi
         #endregion
 
 
-        public NexusApiClient(string apiKey = null)
+        private NexusApiClient(string apiKey)
         {
-            _apiKey = apiKey ?? GetApiKey();
+            _apiKey = apiKey;
             _httpClient = new HttpClient();
 
             // set default headers for all requests to the Nexus API
@@ -198,6 +205,12 @@ namespace Wabbajack.Lib.NexusApi
 
             if (!Directory.Exists(Consts.NexusCacheDirectory))
                 Directory.CreateDirectory(Consts.NexusCacheDirectory);
+        }
+
+        public static async Task<NexusApiClient> Get(string apiKey = null)
+        {
+            apiKey = apiKey ?? await GetApiKey();
+            return new NexusApiClient(apiKey);
         }
 
         private async Task<T> Get<T>(string url)

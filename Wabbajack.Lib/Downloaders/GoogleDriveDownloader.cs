@@ -8,7 +8,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class GoogleDriveDownloader : IDownloader, IUrlDownloader
     {
-        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);

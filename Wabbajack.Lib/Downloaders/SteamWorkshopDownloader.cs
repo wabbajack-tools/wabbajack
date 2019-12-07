@@ -15,7 +15,7 @@ namespace Wabbajack.Lib.Downloaders
     {
         private SteamWorkshopItem _item;
 
-        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             var id = archiveINI?.General?.itemID;
             var steamID = archiveINI?.General?.steamID;

@@ -10,7 +10,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class NexusDownloader : IDownloader
     {
-        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             var general = archiveINI?.General;
 
@@ -19,7 +19,8 @@ namespace Wabbajack.Lib.Downloaders
                 var name = (string)general.gameName;
                 var gameMeta = GameRegistry.GetByMO2ArchiveName(name);
                 var game = gameMeta != null ? GameRegistry.GetByMO2ArchiveName(name).Game : GameRegistry.GetByNexusName(name).Game;
-                var info = new NexusApiClient().GetModInfo(game, general.modID);
+                var client = await NexusApiClient.Get();
+                var info = await client.GetModInfo(game, general.modID);
                 return new State
                 {
                     GameName = general.gameName,
@@ -43,7 +44,7 @@ namespace Wabbajack.Lib.Downloaders
 
         public async Task Prepare()
         {
-            var client = new NexusApiClient();
+            var client = await NexusApiClient.Get();
             var status = await client.GetUserStatus();
             if (!client.IsAuthenticated)
             {
@@ -52,7 +53,7 @@ namespace Wabbajack.Lib.Downloaders
             }
 
             if (status.is_premium) return;
-            Utils.ErrorThrow(new UnconvertedError($"Automated installs with Wabbajack requires a premium nexus account. {client.Username} is not a premium account."));
+            Utils.ErrorThrow(new UnconvertedError($"Automated installs with Wabbajack requires a premium nexus account. {await client.Username()} is not a premium account."));
         }
 
         public class State : AbstractDownloadState
@@ -81,7 +82,8 @@ namespace Wabbajack.Lib.Downloaders
                 string url;
                 try
                 {
-                    url = await new NexusApiClient().GetNexusDownloadLink(this, false);
+                    var client = await NexusApiClient.Get();
+                    url = await client.GetNexusDownloadLink(this, false);
                 }
                 catch (Exception ex)
                 {
@@ -110,7 +112,8 @@ namespace Wabbajack.Lib.Downloaders
                     if (!int.TryParse(ModID, out var modID))
                         return false;
 
-                    var modFiles = await new NexusApiClient().GetModFiles(game, modID);
+                    var client = await NexusApiClient.Get();
+                    var modFiles = await client.GetModFiles(game, modID);
 
                     if (!ulong.TryParse(FileID, out var fileID))
                         return false;

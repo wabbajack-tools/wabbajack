@@ -59,7 +59,7 @@ namespace Compression.BSA.Test
 
         private static async Task<string> DownloadMod((Game, int) info)
         {
-            using (var client = new NexusApiClient())
+            using (var client = await NexusApiClient.Get())
             {
                 var results = await client.GetModFiles(info.Item1, info.Item2);
                 var file = results.files.FirstOrDefault(f => f.is_primary) ??

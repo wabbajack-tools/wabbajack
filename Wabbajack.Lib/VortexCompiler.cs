@@ -317,7 +317,7 @@ namespace Wabbajack.Lib
         private async Task CreateMetaFiles()
         {
             Utils.Log("Getting Nexus api_key, please click authorize if a browser window appears");
-            var nexusClient = new NexusApiClient();
+            var nexusClient = await NexusApiClient.Get();
 
             await Task.WhenAll(
                 Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)

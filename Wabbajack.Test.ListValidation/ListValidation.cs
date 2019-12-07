@@ -19,7 +19,7 @@ namespace Wabbajack.Test.ListValidation
         public static async Task SetupNexus(TestContext context)
         {
             Utils.LogMessages.Subscribe(m => context.WriteLine(m.ToString()));
-            var api = new NexusApiClient();
+            var api = await NexusApiClient.Get();
             await api.ClearUpdatedModsInCache();
         }
 
