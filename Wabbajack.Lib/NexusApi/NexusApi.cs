@@ -12,10 +12,16 @@ using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using Syroot.Windows.IO;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.LibCefHelpers;
 using WebSocketSharp;
+using Xilium.CefGlue;
+using Xilium.CefGlue.Common;
+using Xilium.CefGlue.Common.Handlers;
+using Xilium.CefGlue.WPF;
 using static Wabbajack.Lib.NexusApi.NexusApiUtils;
 
 namespace Wabbajack.Lib.NexusApi
@@ -66,25 +72,12 @@ namespace Wabbajack.Lib.NexusApi
                     File.Delete(API_KEY_CACHE_FILE);
                 }
 
-                var cacheFolder = Path.Combine(new KnownFolder(KnownFolderType.LocalAppData).Path, "Wabbajack");
-                if (!Directory.Exists(cacheFolder))
+                try
                 {
-                    Directory.CreateDirectory(cacheFolder);
+                    return Utils.FromEncryptedJson<string>("nexusapikey");
                 }
-
-                var cacheFile = Path.Combine(cacheFolder, _additionalEntropy);
-                if (File.Exists(cacheFile))
+                catch (Exception)
                 {
-                    try
-                    {
-                        return Encoding.UTF8.GetString(
-                            ProtectedData.Unprotect(File.ReadAllBytes(cacheFile),
-                            Encoding.UTF8.GetBytes(_additionalEntropy), DataProtectionScope.CurrentUser));
-                    }
-                    catch (CryptographicException)
-                    {
-                        File.Delete(cacheFile);
-                    }
                 }
 
                 var env_key = Environment.GetEnvironmentVariable("NEXUSAPIKEY");
@@ -93,33 +86,64 @@ namespace Wabbajack.Lib.NexusApi
                     return env_key;
                 }
 
-                // open a web socket to receive the api key
-                var guid = Guid.NewGuid();
-                var _websocket = new WebSocket("wss://sso.nexusmods.com")
-                {
-                    SslConfiguration =
-                    {
-                        EnabledSslProtocols = SslProtocols.Tls12
-                    }
-                };
-
-                var api_key = new TaskCompletionSource<string>();
-                _websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
-
-                _websocket.Connect();
-                _websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"" + Consts.AppName + "\"}");
-
-                // open a web browser to get user permission
-                Process.Start($"https://www.nexusmods.com/sso?id={guid}&application=" + Consts.AppName);
-
-                // get the api key from the socket and cache it
-                api_key.Task.Wait();
-                var result = api_key.Task.Result;
-                File.WriteAllBytes(cacheFile, ProtectedData.Protect(Encoding.UTF8.GetBytes(result), 
-                    Encoding.UTF8.GetBytes(_additionalEntropy), DataProtectionScope.CurrentUser));
-
+                var result = Utils.Log(new RequestNexusAuthorization()).Task.Result;
+                result.ToEcryptedJson("nexusapikey");
                 return result;
             }
+        }
+
+        class RefererHandler : RequestHandler
+        {
+            private string _referer;
+
+            public RefererHandler(string referer)
+            {
+                _referer = referer;
+            }
+            protected override bool OnBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, bool userGesture, bool isRedirect)
+            {
+                base.OnBeforeBrowse(browser, frame, request, userGesture, isRedirect);
+                if (request.ReferrerURL == null)
+                    request.SetReferrer(_referer, CefReferrerPolicy.Default);
+                return false;
+            }
+        }
+
+        public static async Task<string> SetupNexusLogin(BaseCefBrowser browser, Action<string> updateStatus)
+        {
+            updateStatus("Please Log Into the Nexus");
+            browser.Address = "https://users.nexusmods.com/auth/continue?client_id=nexus&redirect_uri=https://www.nexusmods.com/oauth/callback&response_type=code&referrer=//www.nexusmods.com";
+            while (true)
+            {
+                var cookies = (await Helpers.GetCookies("nexusmods.com"));
+                if (cookies.FirstOrDefault(c => c.Name == "member_id") != null)
+                    break;
+                await Task.Delay(500);
+            }
+
+
+            // open a web socket to receive the api key
+            var guid = Guid.NewGuid();
+            var _websocket = new WebSocket("wss://sso.nexusmods.com")
+            {
+                SslConfiguration =
+                {
+                    EnabledSslProtocols = SslProtocols.Tls12
+                }
+            };
+
+            updateStatus("Please Authorize Wabbajack to Download Mods");
+            var api_key = new TaskCompletionSource<string>();
+            _websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
+
+            _websocket.Connect();
+            _websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"" + Consts.AppName + "\"}");
+            await Task.Delay(1000);
+
+            // open a web browser to get user permission
+            browser.Address = $"https://www.nexusmods.com/sso?id={guid}&application={Consts.AppName}";
+
+            return await api_key.Task;
         }
 
         public UserStatus GetUserStatus()

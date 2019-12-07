@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -16,6 +17,7 @@ namespace Wabbajack.Test
         [TestInitialize]
         public void Setup()
         {
+            Helpers.ExtractLibs();
         }
 
         [TestMethod]
