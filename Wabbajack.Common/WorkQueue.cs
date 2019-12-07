@@ -22,7 +22,7 @@ namespace Wabbajack.Common
         private readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
 
-        public static List<Thread> Threads { get; private set; }
+        public List<Thread> Threads { get; private set; }
 
         private CancellationTokenSource _cancel = new CancellationTokenSource();
 
