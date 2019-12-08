@@ -40,10 +40,6 @@ namespace Wabbajack.Lib
             ConfigureProcessor(18, RecommendQueueSize());
             var game = GameRegistry.Games[ModList.GameType];
 
-
-            // TODO: Remove
-            DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
-
             if (GameFolder == null)
                 GameFolder = game.GameLocation(SteamHandler.Instance.Games.Any(g => g.Game == game.Game));
 
