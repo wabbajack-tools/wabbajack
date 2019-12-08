@@ -173,6 +173,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="View Models\UserInterventionHandlers.cs" />
     <Compile Include="View Models\WebBrowserVM.cs" />
     <Compile Include="Views\Installers\MO2InstallerConfigView.xaml.cs">
       <DependentUpon>MO2InstallerConfigView.xaml</DependentUpon>

@@ -12,7 +12,7 @@ namespace Wabbajack.Common.StatusFeed.Errors
 
         public DateTime Timestamp { get; } = DateTime.Now;
 
-        public string ShortDescription => ExtraMessage ?? Exception?.Message;
+        public string ShortDescription => ExtraMessage + " - " + Exception?.Message;
 
         public string ExtendedDescription => $"{ExtraMessage}: {Exception?.ToString()}";
 

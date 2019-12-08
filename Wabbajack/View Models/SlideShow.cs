@@ -98,7 +98,7 @@ namespace Wabbajack
             _targetMod = Observable.CombineLatest(
                     modVMs.QueryWhenChanged(),
                     selectedIndex,
-                    resultSelector: (query, selected) => query.Items.ElementAtOrDefault(selected % query.Count))
+                    resultSelector: (query, selected) => query.Items.ElementAtOrDefault(selected % (query.Count == 0 ? 1 : query.Count)))
                 .StartWith(default(ModVM))
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .ToProperty(this, nameof(TargetMod));
