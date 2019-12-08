@@ -12,6 +12,7 @@ using System.Windows.Threading;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
+using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.StatusMessages;
 
@@ -37,6 +38,7 @@ namespace Wabbajack
         public readonly Lazy<ModListGalleryVM> Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
         public readonly WebBrowserVM WebBrowserVM;
+        public readonly UserInterventionHandlers UserInterventionHandlers;
         public Dispatcher ViewDispatcher { get; set; }
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
@@ -49,6 +51,7 @@ namespace Wabbajack
             Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(this));
             ModeSelectionVM = new ModeSelectionVM(this);
             WebBrowserVM = new WebBrowserVM();
+            UserInterventionHandlers = new UserInterventionHandlers {MainWindow = this, ViewDispatcher = mainWindow.Dispatcher};
 
             // Set up logging
             Utils.LogMessages
@@ -63,12 +66,8 @@ namespace Wabbajack
                 .DisposeWith(CompositeDisposable);
 
             Utils.LogMessages
-                .OfType<ConfirmUpdateOfExistingInstall>()
-                .Subscribe(msg => ConfirmUpdate(msg));
-
-            Utils.LogMessages
-                .OfType<RequestNexusAuthorization>()
-                .Subscribe(HandleRequestNexusAuthorization);
+                .OfType<IUserIntervention>()
+                .Subscribe(msg => UserInterventionHandlers.Handle(msg));
 
             if (IsStartingFromModlist(out var path))
             {
@@ -80,47 +79,6 @@ namespace Wabbajack
                 // Start on mode selection
                 ActivePane = ModeSelectionVM;
             }
-        }
-
-        private void HandleRequestNexusAuthorization(RequestNexusAuthorization msg)
-        {
-            ViewDispatcher.InvokeAsync(async () =>
-            {
-                var oldPane = ActivePane;
-                var vm = new WebBrowserVM();
-                ActivePane = vm;
-                try
-                {
-                    vm.BackCommand = ReactiveCommand.Create(() =>
-                    {
-                        ActivePane = oldPane;
-                        msg.Cancel();
-                    });
-                }
-                catch (Exception e)
-                { }
-
-                try
-                {
-                    var key = await NexusApiClient.SetupNexusLogin(vm.Browser, m => vm.Instructions = m);
-                    msg.Resume(key);
-                }
-                catch (Exception ex)
-                {
-                    msg.Cancel();
-                }
-                ActivePane = oldPane;
-
-            });
-        }
-
-        private void ConfirmUpdate(ConfirmUpdateOfExistingInstall msg)
-        {
-            var result = MessageBox.Show(msg.ExtendedDescription, msg.ShortDescription, MessageBoxButton.OKCancel);
-            if (result == MessageBoxResult.OK)
-                msg.Confirm();
-            else
-                msg.Cancel();
         }
 
         private static bool IsStartingFromModlist(out string modlistPath)

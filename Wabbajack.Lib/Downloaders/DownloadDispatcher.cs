@@ -15,6 +15,7 @@ namespace Wabbajack.Lib.Downloaders
             new ModDBDownloader(),
             new NexusDownloader(),
             new MediaFireDownloader(),
+            new LoversLabDownloader(),
             new HTTPDownloader(),
             new ManualDownloader(),
         };
@@ -26,9 +27,11 @@ namespace Wabbajack.Lib.Downloaders
             IndexedDownloaders = Downloaders.ToDictionary(d => d.GetType());
         }
 
-        public static T GetInstance<T>()
+        public static T GetInstance<T>() where T : IDownloader
         {
-            return (T)IndexedDownloaders[typeof(T)];
+            var inst = (T)IndexedDownloaders[typeof(T)];
+            inst.Prepare();
+            return inst;
         }
 
         public static AbstractDownloadState ResolveArchive(dynamic ini)

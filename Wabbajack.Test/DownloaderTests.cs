@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
+using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.LibCefHelpers;
@@ -14,10 +17,17 @@ namespace Wabbajack.Test
     [TestClass]
     public class DownloaderTests
     {
+
+        public TestContext TestContext { get; set; }
+
         [TestInitialize]
         public void Setup()
         {
             Helpers.ExtractLibs();
+            Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => TestContext.WriteLine(msg.ShortDescription));
+            Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
+                TestContext.WriteLine("ERROR: User intervetion required: " + msg.ShortDescription));
+
         }
 
         [TestMethod]
@@ -260,6 +270,35 @@ namespace Wabbajack.Test
             converted.Download(new Archive { Name = "moddbtest.7z" }, filename);
 
             Assert.AreEqual("2lZt+1h6wxM=", filename.FileHash());
+        }
+
+        [TestMethod]
+        public void LoversLabDownload()
+        {
+            DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
+            var ini = @"[General]
+                        directURL=https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1";
+
+            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.IsNotNull(state);
+
+            /*var url_state = DownloadDispatcher.ResolveArchive("https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1");
+            Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
+                ((HTTPDownloader.State)url_state).Url);
+                */
+            var converted = state.ViaJSON();
+            Assert.IsTrue(converted.Verify());
+            var filename = Guid.NewGuid().ToString();
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
+
+            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+
+            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+
         }
     }
 
