@@ -26,7 +26,7 @@ namespace Wabbajack.Lib.Downloaders
         {
 
             Uri url = DownloaderUtils.GetDirectURL(archive_ini);
-            if (url == null || url.Host != "www.loverslab.com" && url.AbsolutePath.StartsWith("/files/file/")) return null;
+            if (url == null || url.Host != "www.loverslab.com" || !url.AbsolutePath.StartsWith("/files/file/")) return null;
             var id = HttpUtility.ParseQueryString(url.Query)["r"];
             var file = url.AbsolutePath.Split('/').Last(s => s != "");
 
