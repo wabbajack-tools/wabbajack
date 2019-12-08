@@ -190,7 +190,15 @@ namespace Wabbajack.Lib
                 #endif
 
                 var replace = f;
-                replace.Path = Path.Combine("Manual Game Files", element.FullPath.Substring(DownloadsFolder.Length + 1).Replace('|', '\\'));
+                var name = replace.File.Name;
+                var archiveName = targetArchive.Name;
+                var elementPath = element.FullPath.Substring(element.FullPath.IndexOf('|')+1);
+                var gameToFile = name.Substring(GamePath.Length + 1).Replace(elementPath, "");
+                if (gameToFile.EndsWith("\\"))
+                    gameToFile = gameToFile.Substring(0, gameToFile.Length - 1);
+                //replace.Path = replace.Path.Replace(Consts.GameFolderFilesDir, Consts.ManualGameFilesDir);
+                replace.Path = Path.Combine(Consts.ManualGameFilesDir, archiveName, gameToFile, elementPath);
+                //replace.Path = Path.Combine(Consts.ManualGameFilesDir, element.FullPath.Substring(DownloadsFolder.Length + 1).Replace('|', '\\'));
                 AllFiles.RemoveAt(i);
                 AllFiles.Insert(i, replace);
                 //AllFiles.Replace(f, replace);
@@ -324,7 +332,7 @@ namespace Wabbajack.Lib
                 .Where(File.Exists)
                 .Select(async f =>
                 {
-                    if (Path.GetExtension(f) != ".meta" && !File.Exists($"{f}.meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
+                    if (Path.GetExtension(f) != ".meta" && Path.GetExtension(f) != ".xxHash" && !File.Exists($"{f}.meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
                     {
                         Utils.Log($"Trying to create meta file for {Path.GetFileName(f)}");
                         var metaString = "[General]\n" +

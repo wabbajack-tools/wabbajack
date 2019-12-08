@@ -67,19 +67,12 @@ namespace Wabbajack.Common
         public List<string> RequiredFiles { get; internal set; }
         public bool Disabled { get; internal set; }
 
-        public string GameLocation
+        public string GameLocation(bool steam)
         {
-            get
-            {
-                if (Consts.TestMode)
-                    return Directory.GetCurrentDirectory();
+            if (Consts.TestMode)
+                return Directory.GetCurrentDirectory();
 
-                return (string) Registry.GetValue(GameLocationRegistryKey, "installed path", null)
-                       ??
-                       (string) Registry.GetValue(
-                           GameLocationRegistryKey.Replace(@"HKEY_LOCAL_MACHINE\SOFTWARE\",
-                               @"HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\"), "installed path", null);
-            }
+            return steam ? SteamHandler.Instance.Games.FirstOrDefault(g => g.Game == Game)?.InstallDir : GOGHandler.Instance.Games.FirstOrDefault(g => g.Game == Game)?.Path;
         }
     }
 

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Lib.LibCefHelpers;
 
 namespace Wabbajack.Test
 {
@@ -14,6 +15,7 @@ namespace Wabbajack.Test
         [TestInitialize]
         public void TestInitialize()
         {
+            Helpers.ExtractLibs();
             Consts.TestMode = true;
 
             utils = new TestUtils();

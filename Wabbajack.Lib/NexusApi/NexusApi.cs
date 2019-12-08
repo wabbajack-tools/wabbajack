@@ -1,4 +1,4 @@
-using ReactiveUI;
+﻿using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,10 +12,16 @@ using System.Security.Authentication;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using Syroot.Windows.IO;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.LibCefHelpers;
 using WebSocketSharp;
+using Xilium.CefGlue;
+using Xilium.CefGlue.Common;
+using Xilium.CefGlue.Common.Handlers;
+using Xilium.CefGlue.WPF;
 using static Wabbajack.Lib.NexusApi.NexusApiUtils;
 using System.Threading;
 
@@ -26,18 +32,13 @@ namespace Wabbajack.Lib.NexusApi
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
         private static string _additionalEntropy = "vtP2HF6ezg";
 
-        private readonly HttpClient _httpClient;
-
-        public HttpClient HttpClient => _httpClient;
-
+        public HttpClient HttpClient { get; } = new HttpClient();
 
         #region Authentication
 
-        private readonly string _apiKey;
+        public string ApiKey { get; }
 
-        public string ApiKey => _apiKey;
-
-        public bool IsAuthenticated => _apiKey != null;
+        public bool IsAuthenticated => ApiKey != null;
 
         private Task<UserStatus> _userStatus;
 
@@ -71,25 +72,12 @@ namespace Wabbajack.Lib.NexusApi
                     File.Delete(API_KEY_CACHE_FILE);
                 }
 
-                var cacheFolder = Path.Combine(new KnownFolder(KnownFolderType.LocalAppData).Path, "Wabbajack");
-                if (!Directory.Exists(cacheFolder))
+                try
                 {
-                    Directory.CreateDirectory(cacheFolder);
+                    return Utils.FromEncryptedJson<string>("nexusapikey");
                 }
-
-                var cacheFile = Path.Combine(cacheFolder, _additionalEntropy);
-                if (File.Exists(cacheFile))
+                catch (Exception)
                 {
-                    try
-                    {
-                        return Encoding.UTF8.GetString(
-                            ProtectedData.Unprotect(File.ReadAllBytes(cacheFile),
-                            Encoding.UTF8.GetBytes(_additionalEntropy), DataProtectionScope.CurrentUser));
-                    }
-                    catch (CryptographicException)
-                    {
-                        File.Delete(cacheFile);
-                    }
                 }
 
                 var env_key = Environment.GetEnvironmentVariable("NEXUSAPIKEY");
@@ -98,35 +86,68 @@ namespace Wabbajack.Lib.NexusApi
                     return env_key;
                 }
 
-                // open a web socket to receive the api key
-                var guid = Guid.NewGuid();
-                var _websocket = new WebSocket("wss://sso.nexusmods.com")
-                {
-                    SslConfiguration =
-                    {
-                        EnabledSslProtocols = SslProtocols.Tls12
-                    }
-                };
-
-                var api_key = new TaskCompletionSource<string>();
-                _websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
-
-                _websocket.Connect();
-                _websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"" + Consts.AppName + "\"}");
-
-                // open a web browser to get user permission
-                Process.Start($"https://www.nexusmods.com/sso?id={guid}&application=" + Consts.AppName);
-
-                // get the api key from the socket and cache it
-                var result = await api_key.Task;
-                File.WriteAllBytes(cacheFile, ProtectedData.Protect(Encoding.UTF8.GetBytes(result),
-                    Encoding.UTF8.GetBytes(_additionalEntropy), DataProtectionScope.CurrentUser));
+                var result = await Utils.Log(new RequestNexusAuthorization()).Task;
+                result.ToEcryptedJson("nexusapikey");
                 return result;
             }
             finally
             {
                 _getAPIKeyLock.Release();
             }
+        }
+
+        class RefererHandler : RequestHandler
+        {
+            private string _referer;
+
+            public RefererHandler(string referer)
+            {
+                _referer = referer;
+            }
+            protected override bool OnBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, bool userGesture, bool isRedirect)
+            {
+                base.OnBeforeBrowse(browser, frame, request, userGesture, isRedirect);
+                if (request.ReferrerURL == null)
+                    request.SetReferrer(_referer, CefReferrerPolicy.Default);
+                return false;
+            }
+        }
+
+        public static async Task<string> SetupNexusLogin(BaseCefBrowser browser, Action<string> updateStatus)
+        {
+            updateStatus("Please Log Into the Nexus");
+            browser.Address = "https://users.nexusmods.com/auth/continue?client_id=nexus&redirect_uri=https://www.nexusmods.com/oauth/callback&response_type=code&referrer=//www.nexusmods.com";
+            while (true)
+            {
+                var cookies = (await Helpers.GetCookies("nexusmods.com"));
+                if (cookies.FirstOrDefault(c => c.Name == "member_id") != null)
+                    break;
+                await Task.Delay(500);
+            }
+
+
+            // open a web socket to receive the api key
+            var guid = Guid.NewGuid();
+            var _websocket = new WebSocket("wss://sso.nexusmods.com")
+            {
+                SslConfiguration =
+                {
+                    EnabledSslProtocols = SslProtocols.Tls12
+                }
+            };
+
+            updateStatus("Please Authorize Wabbajack to Download Mods");
+            var api_key = new TaskCompletionSource<string>();
+            _websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
+
+            _websocket.Connect();
+            _websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"" + Consts.AppName + "\"}");
+            await Task.Delay(1000);
+
+            // open a web browser to get user permission
+            browser.Address = $"https://www.nexusmods.com/sso?id={guid}&application={Consts.AppName}";
+
+            return await api_key.Task;
         }
 
         public async Task<UserStatus> GetUserStatus()
@@ -189,16 +210,14 @@ namespace Wabbajack.Lib.NexusApi
 
         #endregion
 
-
-        private NexusApiClient(string apiKey)
+        private NexusApiClient(string apiKey = null)
         {
-            _apiKey = apiKey;
-            _httpClient = new HttpClient();
+            ApiKey = apiKey;
 
             // set default headers for all requests to the Nexus API
-            var headers = _httpClient.DefaultRequestHeaders;
+            var headers = HttpClient.DefaultRequestHeaders;
             headers.Add("User-Agent", Consts.UserAgent);
-            headers.Add("apikey", _apiKey);
+            headers.Add("apikey", ApiKey);
             headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             headers.Add("Application-Name", Consts.AppName);
             headers.Add("Application-Version", $"{Assembly.GetEntryAssembly()?.GetName()?.Version ?? new Version(0, 1)}");
@@ -215,8 +234,7 @@ namespace Wabbajack.Lib.NexusApi
 
         private async Task<T> Get<T>(string url)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-
+            var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             UpdateRemaining(response);
 
             using (var stream = await response.Content.ReadAsStreamAsync())
@@ -327,7 +345,7 @@ namespace Wabbajack.Lib.NexusApi
 
             var content = new FormUrlEncodedContent(new Dictionary<string, string> { { "version", mod.Version } });
 
-            using (var stream = await _httpClient.PostStream(url, content))
+            using (var stream = await HttpClient.PostStream(url, content))
             {
                 return stream.FromJSON<EndorsementResponse>();
             }
@@ -368,6 +386,7 @@ namespace Wabbajack.Lib.NexusApi
             set => _localCacheDir = value;
         }
 
+
         public async Task ClearUpdatedModsInCache()
         {
             if (!UseLocalCache) return;
@@ -393,7 +412,7 @@ namespace Wabbajack.Lib.NexusApi
             using (var queue = new WorkQueue())
             {
                 var to_purge = (await Directory.EnumerateFiles(LocalCacheDir, "*.json")
-                    .PMap(queue,f =>
+                    .PMap(queue, f =>
                     {
                         Utils.Status("Cleaning Nexus cache for");
                         var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f).FromHex()));
@@ -425,8 +444,6 @@ namespace Wabbajack.Lib.NexusApi
                     File.Delete(f.f);
                 });
             }
-
         }
     }
-
 }

@@ -117,6 +117,7 @@
     <Compile Include="CompilationSteps\PatchStockESMs.cs" />
     <Compile Include="CompilationSteps\Serialization.cs" />
     <Compile Include="Downloaders\SteamWorkshopDownloader.cs" />
+    <Compile Include="LibCefHelpers\Init.cs" />
     <Compile Include="MO2Compiler.cs" />
     <Compile Include="Data.cs" />
     <Compile Include="Downloaders\AbstractDownloadState.cs" />
@@ -138,6 +139,7 @@
     <Compile Include="NexusApi\Dtos.cs" />
     <Compile Include="NexusApi\NexusApi.cs" />
     <Compile Include="NexusApi\NexusApiUtils.cs" />
+    <Compile Include="NexusApi\RequestNexusAuthorization.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReportBuilder.cs" />
     <Compile Include="StatusMessages\ConfirmUpdateOfExistingInstall.cs" />
@@ -156,6 +158,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <EmbeddedResource Include="LibCefHelpers\cefglue.7z" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\Compression.BSA\Compression.BSA.csproj">
@@ -180,6 +183,9 @@
   <ItemGroup>
     <PackageReference Include="AlphaFS">
       <Version>2.2.6</Version>
+    </PackageReference>
+    <PackageReference Include="CefGlue.Wpf">
+      <Version>75.1.28</Version>
     </PackageReference>
     <PackageReference Include="Ceras">
       <Version>4.1.7</Version>

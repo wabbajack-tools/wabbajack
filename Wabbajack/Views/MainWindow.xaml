@@ -33,6 +33,9 @@
             <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
                 <local:ModListGalleryView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type local:WebBrowserVM}">
+                <local:WebBrowserView />
+            </DataTemplate>
         </ContentPresenter.Resources>
     </ContentPresenter>
 </mahapps:MetroWindow>

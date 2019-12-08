@@ -44,7 +44,7 @@ namespace Wabbajack.Lib
             var game = GameRegistry.Games[ModList.GameType];
 
             if (GameFolder == null)
-                GameFolder = game.GameLocation;
+                GameFolder = game.GameLocation(SteamHandler.Instance.Games.Any(g => g.Game == game.Game));
 
             if (GameFolder == null)
             {
