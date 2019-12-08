@@ -173,6 +173,12 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
+    <Compile Include="Views\Common\CpuView.xaml.cs">
+      <DependentUpon>CpuView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Common\LogView.xaml.cs">
+      <DependentUpon>LogView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View Models\UserInterventionHandlers.cs" />
     <Compile Include="View Models\WebBrowserVM.cs" />
     <Compile Include="Views\Installers\MO2InstallerConfigView.xaml.cs">
@@ -234,9 +240,6 @@
     </Compile>
     <Compile Include="View Models\Compilers\CompilerVM.cs" />
     <Compile Include="View Models\MainWindowVM.cs" />
-    <Compile Include="Views\Common\LogCpuView.xaml.cs">
-      <DependentUpon>LogCpuView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Converters\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Util\TreeViewItemExtensions.cs" />
     <Compile Include="View Models\SlideShow.cs" />
@@ -256,6 +259,14 @@
     <Compile Include="Views\WebBrowserView.xaml.cs">
       <DependentUpon>WebBrowserView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\Common\CpuView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Common\LogView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Installers\MO2InstallerConfigView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -303,10 +314,6 @@
     <Page Include="Views\Installers\InstallationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\Common\LogCpuView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

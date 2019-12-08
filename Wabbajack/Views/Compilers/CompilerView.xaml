@@ -240,7 +240,13 @@
             Grid.ColumnSpan="5"
             Margin="5"
             Visibility="{Binding Compiling, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
-            <local:LogCpuView ProgressPercent="{Binding PercentCompleted}" />
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="500" />
+            </Grid.ColumnDefinitions>
+            <local:LogView Grid.Column="0" ProgressPercent="{Binding PercentCompleted, Mode=OneWay}" />
+            <local:CpuView Grid.Column="2" ProgressPercent="{Binding PercentCompleted, Mode=OneWay}" />
         </Grid>
     </Grid>
 </UserControl>
