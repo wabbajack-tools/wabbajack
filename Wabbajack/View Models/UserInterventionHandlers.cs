@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using ReactiveUI;
+using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
@@ -15,73 +17,44 @@ namespace Wabbajack
 {
     public class UserInterventionHandlers
     {
-        public Dispatcher ViewDispatcher { get; set; }
-        public MainWindowVM MainWindow { get; set; }
-        internal void Handle(RequestLoversLabLogin msg)
+        public MainWindowVM MainWindow { get; }
+
+        public UserInterventionHandlers(MainWindowVM mvm)
         {
-            ViewDispatcher.InvokeAsync(async () =>
-            {
-                var oldPane = MainWindow.ActivePane;
-                var vm = new WebBrowserVM();
-                MainWindow.ActivePane = vm;
-                try
-                {
-                    vm.BackCommand = ReactiveCommand.Create(() =>
-                    {
-                        MainWindow.ActivePane = oldPane;
-                        msg.Cancel();
-                    });
-                }
-                catch (Exception e)
-                { }
-
-                try
-                {
-                    var data = await LoversLabDownloader.GetAndCacheLoversLabCookies(vm.Browser, m => vm.Instructions = m);
-                    msg.Resume(data);
-                }
-                catch (Exception ex)
-                {
-                    msg.Cancel();
-                }
-                MainWindow.ActivePane = oldPane;
-
-            });
+            MainWindow = mvm;
         }
 
-        internal void Handle(RequestNexusAuthorization msg)
+        private async Task WrapBrowserJob(IUserIntervention intervention, Func<WebBrowserVM, CancellationTokenSource, Task> toDo)
         {
-            ViewDispatcher.InvokeAsync(async () =>
+            CancellationTokenSource cancel = new CancellationTokenSource();
+            var oldPane = MainWindow.ActivePane;
+            var vm = new WebBrowserVM();
+            MainWindow.ActivePane = vm;
+            vm.BackCommand = ReactiveCommand.Create(() =>
             {
-                var oldPane = MainWindow.ActivePane;
-                var vm = new WebBrowserVM();
-                MainWindow.ActivePane = vm;
-                try
-                {
-                    vm.BackCommand = ReactiveCommand.Create(() =>
-                    {
-                        MainWindow.ActivePane = oldPane;
-                        msg.Cancel();
-                    });
-                }
-                catch (Exception e)
-                { }
-
-                try
-                {
-                    var key = await NexusApiClient.SetupNexusLogin(vm.Browser, m => vm.Instructions = m);
-                    msg.Resume(key);
-                }
-                catch (Exception ex)
-                {
-                    msg.Cancel();
-                }
+                cancel.Cancel();
                 MainWindow.ActivePane = oldPane;
-
+                intervention.Cancel();
             });
+
+            try
+            {
+                await toDo(vm, cancel);
+            }
+            catch (TaskCanceledException)
+            {
+                intervention.Cancel();
+            }
+            catch (Exception ex)
+            {
+                Utils.Error(ex);
+                intervention.Cancel();
+            }
+
+            MainWindow.ActivePane = oldPane;
         }
 
-        internal void Handle(ConfirmUpdateOfExistingInstall msg)
+        public void Handle(ConfirmUpdateOfExistingInstall msg)
         {
             var result = MessageBox.Show(msg.ExtendedDescription, msg.ShortDescription, MessageBoxButton.OKCancel);
             if (result == MessageBoxResult.OK)
@@ -90,7 +63,7 @@ namespace Wabbajack
                 msg.Cancel();
         }
 
-        public void Handle(IUserIntervention msg)
+        public async Task Handle(IUserIntervention msg)
         {
             switch (msg)
             {
@@ -98,10 +71,18 @@ namespace Wabbajack
                     Handle(c);
                     break;
                 case RequestNexusAuthorization c:
-                    Handle(c);
+                    await WrapBrowserJob(msg, async (vm, cancel) =>
+                    {
+                        var key = await NexusApiClient.SetupNexusLogin(vm.Browser, m => vm.Instructions = m, cancel.Token);
+                        c.Resume(key);
+                    });
                     break;
                 case RequestLoversLabLogin c:
-                    Handle(c);
+                    await WrapBrowserJob(msg, async (vm, cancel) =>
+                    {
+                        var data = await LoversLabDownloader.GetAndCacheLoversLabCookies(vm.Browser, m => vm.Instructions = m, cancel.Token);
+                        c.Resume(data);
+                    });
                     break;
                 default:
                     throw new NotImplementedException($"No handler for {msg}");

@@ -51,7 +51,7 @@ namespace Wabbajack
             Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(this));
             ModeSelectionVM = new ModeSelectionVM(this);
             WebBrowserVM = new WebBrowserVM();
-            UserInterventionHandlers = new UserInterventionHandlers {MainWindow = this, ViewDispatcher = mainWindow.Dispatcher};
+            UserInterventionHandlers = new UserInterventionHandlers(this);
 
             // Set up logging
             Utils.LogMessages
@@ -67,7 +67,10 @@ namespace Wabbajack
 
             Utils.LogMessages
                 .OfType<IUserIntervention>()
-                .Subscribe(msg => UserInterventionHandlers.Handle(msg));
+                .ObserveOnGuiThread()
+                .SelectTask(msg => UserInterventionHandlers.Handle(msg))
+                .Subscribe()
+                .DisposeWith(CompositeDisposable);
 
             if (IsStartingFromModlist(out var path))
             {
