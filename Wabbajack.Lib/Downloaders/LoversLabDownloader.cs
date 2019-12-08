@@ -51,10 +51,8 @@ namespace Wabbajack.Lib.Downloaders
             {
                 try
                 {
-                   // await browser.EvaluateJavaScript<string>(
-                    //    "document.querySelectorAll(\"iframe\").forEach(function(itm) { itm.src = \"about:blank\"})");
                     await browser.EvaluateJavaScript<string>(
-                        "document.querySelectorAll(\".ad\").forEach(function (itm) { itm.innerHTML = \"\";});");
+                        "document.querySelectorAll(\".ll_adblock\").forEach(function (itm) { itm.innerHTML = \"\";});");
                 }
                 catch (Exception ex)
                 {
