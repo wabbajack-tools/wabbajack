@@ -29,7 +29,7 @@ namespace Wabbajack.Lib
             IgnoreMissingFiles = true;
             #endif
 
-            GameInfo = GameRegistry.Games[ModList.GameType];
+            GameInfo = ModList.GameType.MetaData();
         }
 
         protected override bool _Begin()

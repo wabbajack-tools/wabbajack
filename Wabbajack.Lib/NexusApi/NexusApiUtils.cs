@@ -14,7 +14,7 @@ namespace Wabbajack.Lib.NexusApi
 
         public static string GetModURL(Game game, string argModId)
         {
-            return $"https://nexusmods.com/{GameRegistry.Games[game].NexusName}/mods/{argModId}";
+            return $"https://nexusmods.com/{game.MetaData().NexusName}/mods/{argModId}";
         }
 
         public static string FixupSummary(string argSummary)
