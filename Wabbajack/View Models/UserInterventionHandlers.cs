@@ -8,10 +8,8 @@ using System.Windows;
 using System.Windows.Threading;
 using ReactiveUI;
 using Wabbajack.Common;
-using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
-using Wabbajack.Lib.StatusMessages;
 
 namespace Wabbajack
 {
@@ -54,22 +52,10 @@ namespace Wabbajack
             MainWindow.ActivePane = oldPane;
         }
 
-        public void Handle(ConfirmUpdateOfExistingInstall msg)
-        {
-            var result = MessageBox.Show(msg.ExtendedDescription, msg.ShortDescription, MessageBoxButton.OKCancel);
-            if (result == MessageBoxResult.OK)
-                msg.Confirm();
-            else
-                msg.Cancel();
-        }
-
         public async Task Handle(IUserIntervention msg)
         {
             switch (msg)
             {
-                case ConfirmUpdateOfExistingInstall c: 
-                    Handle(c);
-                    break;
                 case RequestNexusAuthorization c:
                     await WrapBrowserJob(msg, async (vm, cancel) =>
                     {
@@ -83,6 +69,8 @@ namespace Wabbajack
                         var data = await LoversLabDownloader.GetAndCacheLoversLabCookies(vm.Browser, m => vm.Instructions = m, cancel.Token);
                         c.Resume(data);
                     });
+                    break;
+                case ConfirmationIntervention c:
                     break;
                 default:
                     throw new NotImplementedException($"No handler for {msg}");

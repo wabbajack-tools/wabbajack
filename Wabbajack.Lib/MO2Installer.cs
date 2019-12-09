@@ -10,7 +10,6 @@ using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps.CompilationErrors;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
-using Wabbajack.Lib.StatusMessages;
 using Wabbajack.Lib.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;

@@ -172,6 +172,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Views\Interventions\ConfirmationInterventionView.xaml.cs">
+      <DependentUpon>ConfirmationInterventionView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Converters\EqualsToBoolConverter.cs" />
     <Compile Include="Views\Common\CpuView.xaml.cs">
       <DependentUpon>CpuView.xaml</DependentUpon>
@@ -259,6 +262,10 @@
     <Compile Include="Views\WebBrowserView.xaml.cs">
       <DependentUpon>WebBrowserView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\Interventions\ConfirmationInterventionView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Common\CpuView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -528,6 +535,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Wabba_Ded.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="View Models\Installers\User Interventions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

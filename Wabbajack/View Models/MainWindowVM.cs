@@ -12,9 +12,6 @@ using System.Windows.Threading;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
-using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.NexusApi;
-using Wabbajack.Lib.StatusMessages;
 
 namespace Wabbajack
 {

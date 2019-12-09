@@ -14,7 +14,10 @@ namespace Wabbajack.Common
         internal BlockingCollection<Action>
             Queue = new BlockingCollection<Action>(new ConcurrentStack<Action>());
 
-        [ThreadStatic] private static int CpuId;
+        public const int UnassignedCpuId = -1;
+
+        [ThreadStatic] private static int _cpuId = UnassignedCpuId;
+        public static int CpuId => _cpuId;
 
         internal static bool WorkerThread => CurrentQueue != null;
         [ThreadStatic] internal static WorkQueue CurrentQueue;
@@ -23,6 +26,11 @@ namespace Wabbajack.Common
         public IObservable<CPUStatus> Status => _Status;
 
         public static List<Thread> Threads { get; private set; }
+
+        // This is currently a lie, as it wires to the Utils singleton stream This is still good to have, 
+        // so that logic related to a single WorkQueue can subscribe to this dummy member so that If/when we 
+        // implement log messages in a non-singleton fashion, they will already be wired up properly.
+        public IObservable<IStatusMessage> LogMessages => Utils.LogMessages;
 
         public WorkQueue(int threadCount = 0)
         {
@@ -48,7 +56,7 @@ namespace Wabbajack.Common
 
         private void ThreadBody(int idx)
         {
-            CpuId = idx;
+            _cpuId = idx;
             CurrentQueue = this;
 
             while (true)
@@ -67,7 +75,7 @@ namespace Wabbajack.Common
                     Progress = progress,
                     ProgressPercent = progress / 100f,
                     Msg = msg,
-                    ID = CpuId,
+                    ID = _cpuId,
                     IsWorking = isWorking
                 });
         }

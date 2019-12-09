@@ -43,6 +43,7 @@
     <Color x:Key="Secondary">#03DAC6</Color>
     <Color x:Key="DarkSecondary">#0e8f83</Color>
     <Color x:Key="DarkerSecondary">#095952</Color>
+    <Color x:Key="SecondaryBackground">#042421</Color>
     <Color x:Key="OffWhiteSeconday">#cef0ed</Color>
     <Color x:Key="LightSecondary">#8cede5</Color>
     <Color x:Key="IntenseSecondary">#00ffe7</Color>
@@ -115,6 +116,7 @@
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}" />
     <SolidColorBrush x:Key="DarkSecondaryBrush" Color="{StaticResource DarkSecondary}" />
     <SolidColorBrush x:Key="DarkerSecondaryBrush" Color="{StaticResource DarkerSecondary}" />
+    <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="{StaticResource SecondaryBackground}" />
     <SolidColorBrush x:Key="OffWhiteSecondayBrush" Color="{StaticResource OffWhiteSeconday}" />
     <SolidColorBrush x:Key="LightSecondaryBrush" Color="{StaticResource LightSecondary}" />
     <SolidColorBrush x:Key="IntenseSecondaryBrush" Color="{StaticResource IntenseSecondary}" />
