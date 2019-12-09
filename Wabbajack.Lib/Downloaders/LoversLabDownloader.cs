@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Wabbajack.Common;
@@ -42,7 +43,7 @@ namespace Wabbajack.Lib.Downloaders
             _authedClient = GetAuthedClient().Result ?? throw new Exception("not logged into LL, TODO");
         }
 
-        public static async Task<Helpers.Cookie[]> GetAndCacheLoversLabCookies(BaseCefBrowser browser, Action<string> updateStatus)
+        public static async Task<Helpers.Cookie[]> GetAndCacheLoversLabCookies(BaseCefBrowser browser, Action<string> updateStatus, CancellationToken cancel)
         {
             updateStatus("Please Log Into Lovers Lab");
             browser.Address = "https://www.loverslab.com/login";
@@ -56,17 +57,19 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (Exception ex)
                 {
+                    Utils.Error(ex);
                 }
                 return false;
             }
             var cookies = new Helpers.Cookie[0];
             while (true)
             {
+                cancel.ThrowIfCancellationRequested();
                 await CleanAds();
                 cookies = (await Helpers.GetCookies("loverslab.com"));
                 if (cookies.FirstOrDefault(c => c.Name == "ips4_member_id") != null)
                     break;
-                await Task.Delay(500);
+                await Task.Delay(500, cancel);
             }
 
             cookies.ToEcryptedJson("loverslabcookies");

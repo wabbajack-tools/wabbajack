@@ -23,6 +23,7 @@ using Xilium.CefGlue.Common;
 using Xilium.CefGlue.Common.Handlers;
 using Xilium.CefGlue.WPF;
 using static Wabbajack.Lib.NexusApi.NexusApiUtils;
+using System.Threading;
 
 namespace Wabbajack.Lib.NexusApi
 {
@@ -109,41 +110,47 @@ namespace Wabbajack.Lib.NexusApi
             }
         }
 
-        public static async Task<string> SetupNexusLogin(BaseCefBrowser browser, Action<string> updateStatus)
+        public static async Task<string> SetupNexusLogin(BaseCefBrowser browser, Action<string> updateStatus, CancellationToken cancel)
         {
             updateStatus("Please Log Into the Nexus");
             browser.Address = "https://users.nexusmods.com/auth/continue?client_id=nexus&redirect_uri=https://www.nexusmods.com/oauth/callback&response_type=code&referrer=//www.nexusmods.com";
             while (true)
             {
-                var cookies = (await Helpers.GetCookies("nexusmods.com"));
-                if (cookies.FirstOrDefault(c => c.Name == "member_id") != null)
+                var cookies = await Helpers.GetCookies("nexusmods.com");
+                if (cookies.Any(c => c.Name == "member_id"))
                     break;
-                await Task.Delay(500);
+                cancel.ThrowIfCancellationRequested();
+                await Task.Delay(500, cancel);
             }
-
 
             // open a web socket to receive the api key
             var guid = Guid.NewGuid();
-            var _websocket = new WebSocket("wss://sso.nexusmods.com")
+            using (var websocket = new WebSocket("wss://sso.nexusmods.com")
             {
                 SslConfiguration =
                 {
                     EnabledSslProtocols = SslProtocols.Tls12
                 }
-            };
+            })
+            {
+                updateStatus("Please Authorize Wabbajack to Download Mods");
+                var api_key = new TaskCompletionSource<string>();
+                websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
 
-            updateStatus("Please Authorize Wabbajack to Download Mods");
-            var api_key = new TaskCompletionSource<string>();
-            _websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
+                websocket.Connect();
+                websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"" + Consts.AppName + "\"}");
+                await Task.Delay(1000, cancel);
 
-            _websocket.Connect();
-            _websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"" + Consts.AppName + "\"}");
-            await Task.Delay(1000);
-
-            // open a web browser to get user permission
-            browser.Address = $"https://www.nexusmods.com/sso?id={guid}&application={Consts.AppName}";
-
-            return await api_key.Task;
+                // open a web browser to get user permission
+                browser.Address = $"https://www.nexusmods.com/sso?id={guid}&application={Consts.AppName}";
+                using (cancel.Register(() =>
+                {
+                    api_key.SetCanceled();
+                }))
+                {
+                    return await api_key.Task;
+                }
+            }
         }
 
         public UserStatus GetUserStatus()
