@@ -9,6 +9,7 @@ namespace Wabbajack.Lib.Downloaders
     {
         public static readonly List<IDownloader> Downloaders = new List<IDownloader>()
         {
+            new GameFileSourceDownloader(),
             new MegaDownloader(),
             new DropboxDownloader(),
             new GoogleDriveDownloader(),
