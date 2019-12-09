@@ -38,10 +38,10 @@ namespace Wabbajack.Lib
         protected override bool _Begin()
         {
             ConfigureProcessor(18, RecommendQueueSize());
-            var game = GameRegistry.Games[ModList.GameType];
+            var game = ModList.GameType.MetaData();
 
             if (GameFolder == null)
-                GameFolder = game.GameLocation(SteamHandler.Instance.Games.Any(g => g.Game == game.Game));
+                GameFolder = game.GameLocation();
 
             if (GameFolder == null)
             {

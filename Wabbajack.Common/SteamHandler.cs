@@ -95,6 +95,9 @@ namespace Wabbajack.Common
                 paths.Add(s);
             });
 
+            // Default path in the Steam folder isn't in the configs
+            paths.Add(Path.Combine(SteamPath, "steamapps"));
+
             InstallFolders = paths;
         }
 
