@@ -157,7 +157,7 @@
       <Version>10.5.30</Version>
     </PackageReference>
     <PackageReference Include="System.Reactive">
-      <Version>4.2.0</Version>
+      <Version>4.3.1</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup />
