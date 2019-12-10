@@ -17,9 +17,12 @@ namespace Wabbajack.Lib.Downloaders
         {
             var gameName = (string)archiveINI?.General?.gameName;
             var gameFile = (string)archiveINI?.General?.gameFile;
-            var game = GameRegistry.GetByMO2ArchiveName(gameName);
-            if (gameFile == null || gameFile == null || game == null)
+
+            if (gameFile == null || gameFile == null)
                 return null;
+
+            var game = GameRegistry.GetByMO2ArchiveName(gameName);
+            if (game == null) return null;
 
             var path = game.GameLocation();
             var filePath = Path.Combine(path, gameFile);
@@ -66,7 +69,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override bool Verify()
             {
-                return File.Exists(SourcePath) && SourcePath.FileHash() == Hash;
+                return File.Exists(SourcePath) && SourcePath.FileHashCached() == Hash;
             }
 
             public override IDownloader GetDownloader()
