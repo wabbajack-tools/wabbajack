@@ -24,7 +24,7 @@ namespace Wabbajack.Lib
                 typeof(BSAStateObject), typeof(BSAFileStateObject), typeof(BA2StateObject), typeof(BA2DX10EntryState),
                 typeof(BA2FileEntryState), typeof(MediaFireDownloader.State), typeof(ArchiveMeta),
                 typeof(PropertyFile), typeof(SteamMeta), typeof(SteamWorkshopDownloader), typeof(SteamWorkshopDownloader.State),
-                typeof(LoversLabDownloader.State)
+                typeof(LoversLabDownloader.State), typeof(GameFileSourceDownloader.State)
 
             }
         };

@@ -665,6 +665,7 @@ namespace Wabbajack.Common
 
                     using (var f = File.OpenWrite(tmpName))
                     {
+                        Status("Creating Patch");
                         BSDiff.Create(a, b, f);
                     }
 
