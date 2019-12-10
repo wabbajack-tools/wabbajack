@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -172,6 +172,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Converters\IsTypeVisibilityConverter.cs" />
     <Compile Include="Views\Interventions\ConfirmationInterventionView.xaml.cs">
       <DependentUpon>ConfirmationInterventionView.xaml</DependentUpon>
     </Compile>
@@ -194,6 +195,9 @@
     <Compile Include="View Models\ModListMetadataVM.cs" />
     <Compile Include="Views\Common\HeatedBackgroundView.xaml.cs">
       <DependentUpon>HeatedBackgroundView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Interventions\ConfirmUpdateOfExistingInstallView.xaml.cs">
+      <DependentUpon>ConfirmUpdateOfExistingInstallView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\LinksView.xaml.cs">
       <DependentUpon>LinksView.xaml</DependentUpon>
@@ -279,6 +283,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\Common\HeatedBackgroundView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Interventions\ConfirmUpdateOfExistingInstallView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -536,8 +544,6 @@
   <ItemGroup>
     <Resource Include="Resources\Wabba_Ded.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="View Models\Installers\User Interventions\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

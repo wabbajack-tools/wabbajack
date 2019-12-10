@@ -29,6 +29,9 @@ namespace Wabbajack
 
         public FilePickerVM DownloadLocation { get; }
 
+        [Reactive]
+        public bool AutomaticallyOverwrite { get; set; }
+
         public MO2InstallerVM(InstallerVM installerVM)
         {
             _installerVM = installerVM;
@@ -131,10 +134,30 @@ namespace Wabbajack
                     if (settingsPair.Current == null) return;
                     Location.TargetPath = settingsPair.Current.InstallationLocation;
                     DownloadLocation.TargetPath = settingsPair.Current.DownloadLocation;
+                    AutomaticallyOverwrite = settingsPair.Current.AutomaticallyOverrideExistingInstall;
                 })
                 .DisposeWith(CompositeDisposable);
             installerVM.MWVM.Settings.SaveSignal
                 .Subscribe(_ => SaveSettings(CurrentSettings))
+                .DisposeWith(CompositeDisposable);
+
+            // Hook onto user interventions, and intercept MO2 specific ones for customization
+            this.WhenAny(x => x.ActiveInstallation.LogMessages)
+                .Switch()
+                .Subscribe(x =>
+                {
+                    switch (x)
+                    {
+                        case ConfirmUpdateOfExistingInstall c:
+                            if (AutomaticallyOverwrite)
+                            {
+                                c.Confirm();
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                })
                 .DisposeWith(CompositeDisposable);
         }
 
@@ -149,6 +172,7 @@ namespace Wabbajack
             if (settings == null) return;
             settings.InstallationLocation = Location.TargetPath;
             settings.DownloadLocation = DownloadLocation.TargetPath;
+            settings.AutomaticallyOverrideExistingInstall = AutomaticallyOverwrite;
         }
     }
 }

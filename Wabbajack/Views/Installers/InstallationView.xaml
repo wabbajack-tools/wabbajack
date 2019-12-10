@@ -391,13 +391,10 @@
                         </Style.Triggers>
                     </Style>
                 </Border.Style>
-                <ContentPresenter Content="{Binding ActiveGlobalUserIntervention}">
-                    <ContentPresenter.Resources>
-                        <DataTemplate DataType="{x:Type common:ConfirmationIntervention}">
-                            <local:ConfirmationInterventionView />
-                        </DataTemplate>
-                    </ContentPresenter.Resources>
-                </ContentPresenter>
+                <Grid>
+                    <!--<local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />-->
+                    <local:ConfirmUpdateOfExistingInstallView Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type lib:ConfirmUpdateOfExistingInstall}}" />
+                </Grid>
             </Border>
         </Grid>
     </Grid>

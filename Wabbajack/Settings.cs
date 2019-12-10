@@ -58,6 +58,7 @@ namespace Wabbajack
     {
         public string InstallationLocation { get; set; }
         public string DownloadLocation { get; set; }
+        public bool AutomaticallyOverrideExistingInstall { get; set; }
     }
 
     public class CompilerSettings

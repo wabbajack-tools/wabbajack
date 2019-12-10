@@ -15,6 +15,7 @@
     <local:InverseBooleanConverter x:Key="InverseBooleanConverter" />
     <local:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter" />
     <local:EqualsToBoolConverter x:Key="EqualsToBoolConverter" />
+    <local:IsTypeVisibilityConverter x:Key="IsTypeVisibilityConverter" />
 
     <!--  Colors  -->
     <Color x:Key="WindowBackgroundColor">#121212</Color>
