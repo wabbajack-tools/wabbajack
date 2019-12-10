@@ -171,7 +171,7 @@
       <Version>1.0.2</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI">
-      <Version>10.5.30</Version>
+      <Version>10.5.43</Version>
     </PackageReference>
     <PackageReference Include="Syroot.Windows.IO.KnownFolders">
       <Version>1.2.1</Version>
