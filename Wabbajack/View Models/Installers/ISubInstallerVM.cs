@@ -11,6 +11,7 @@ namespace Wabbajack
 {
     public interface ISubInstallerVM
     {
+        InstallerVM Parent { get; }
         IReactiveCommand BeginCommand { get; }
         AInstaller ActiveInstallation { get; }
         void Unload();

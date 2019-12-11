@@ -26,7 +26,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="47" />
             <RowDefinition Height="4*" />
-            <RowDefinition Height="*" MinHeight="150" />
+            <RowDefinition Height="*" MinHeight="175" />
         </Grid.RowDefinitions>
         <Rectangle
             x:Name="BorderEdgeFadeDown"
@@ -289,49 +289,19 @@
                     Background="Transparent"
                     VerticalScrollBarVisibility="Auto"
                     Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" MinWidth="120" />
-                            <ColumnDefinition Width="20" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*" />
-                            <RowDefinition Height="40" />
-                            <RowDefinition Height="80" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <TextBlock
-                            Grid.Row="1"
-                            Grid.Column="0"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            FontSize="14"
-                            Text="Target Modlist"
-                            TextAlignment="Center" />
-                        <local:FilePicker
-                            Grid.Row="1"
-                            Grid.Column="2"
-                            Height="30"
-                            VerticalAlignment="Center"
-                            DataContext="{Binding ModListLocation}"
-                            FontSize="14" />
-                        <ContentPresenter
-                            Grid.Row="2"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="3"
-                            Margin="0"
-                            Content="{Binding Installer}">
-                            <ContentPresenter.Resources>
-                                <DataTemplate DataType="{x:Type local:MO2InstallerVM}">
-                                    <local:MO2InstallerConfigView />
-                                </DataTemplate>
-                                <DataTemplate DataType="{x:Type local:VortexInstallerVM}">
-                                    <local:VortexInstallerConfigView />
-                                </DataTemplate>
-                            </ContentPresenter.Resources>
-                        </ContentPresenter>
-                    </Grid>
+                    <ContentPresenter
+                        Margin="0"
+                        VerticalAlignment="Center"
+                        Content="{Binding Installer}">
+                        <ContentPresenter.Resources>
+                            <DataTemplate DataType="{x:Type local:MO2InstallerVM}">
+                                <local:MO2InstallerConfigView />
+                            </DataTemplate>
+                            <DataTemplate DataType="{x:Type local:VortexInstallerVM}">
+                                <local:VortexInstallerConfigView />
+                            </DataTemplate>
+                        </ContentPresenter.Resources>
+                    </ContentPresenter>
                 </ScrollViewer>
                 <local:BeginButton
                     Grid.Column="2"

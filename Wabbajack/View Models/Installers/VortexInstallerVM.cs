@@ -13,6 +13,8 @@ namespace Wabbajack
 {
     public class VortexInstallerVM : ViewModel, ISubInstallerVM
     {
+        public InstallerVM Parent { get; }
+
         public IReactiveCommand BeginCommand { get; }
 
         [Reactive]
@@ -29,6 +31,8 @@ namespace Wabbajack
 
         public VortexInstallerVM(InstallerVM installerVM)
         {
+            Parent = installerVM;
+
             _TargetGame = installerVM.WhenAny(x => x.ModList.SourceModList.GameType)
                 .ToProperty(this, nameof(TargetGame));
 

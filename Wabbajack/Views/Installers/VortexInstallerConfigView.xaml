@@ -9,6 +9,28 @@
     d:DesignWidth="800"
     mc:Ignorable="d">
     <Grid>
-        <!--  Nothing so far  -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" MinWidth="120" />
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+        </Grid.RowDefinitions>
+        <TextBlock
+            Grid.Row="0"
+            Grid.Column="0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Center"
+            FontSize="14"
+            Text="Target Modlist"
+            TextAlignment="Center" />
+        <local:FilePicker
+            Grid.Row="0"
+            Grid.Column="2"
+            Height="30"
+            VerticalAlignment="Center"
+            DataContext="{Binding Parent.ModListLocation}"
+            FontSize="14" />
     </Grid>
 </UserControl>
