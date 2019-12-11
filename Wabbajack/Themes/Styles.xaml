@@ -15,6 +15,7 @@
     <local:InverseBooleanConverter x:Key="InverseBooleanConverter" />
     <local:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter" />
     <local:EqualsToBoolConverter x:Key="EqualsToBoolConverter" />
+    <local:IsTypeVisibilityConverter x:Key="IsTypeVisibilityConverter" />
 
     <!--  Colors  -->
     <Color x:Key="WindowBackgroundColor">#121212</Color>
@@ -43,6 +44,7 @@
     <Color x:Key="Secondary">#03DAC6</Color>
     <Color x:Key="DarkSecondary">#0e8f83</Color>
     <Color x:Key="DarkerSecondary">#095952</Color>
+    <Color x:Key="SecondaryBackground">#042421</Color>
     <Color x:Key="OffWhiteSeconday">#cef0ed</Color>
     <Color x:Key="LightSecondary">#8cede5</Color>
     <Color x:Key="IntenseSecondary">#00ffe7</Color>
@@ -115,6 +117,7 @@
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}" />
     <SolidColorBrush x:Key="DarkSecondaryBrush" Color="{StaticResource DarkSecondary}" />
     <SolidColorBrush x:Key="DarkerSecondaryBrush" Color="{StaticResource DarkerSecondary}" />
+    <SolidColorBrush x:Key="SecondaryBackgroundBrush" Color="{StaticResource SecondaryBackground}" />
     <SolidColorBrush x:Key="OffWhiteSecondayBrush" Color="{StaticResource OffWhiteSeconday}" />
     <SolidColorBrush x:Key="LightSecondaryBrush" Color="{StaticResource LightSecondary}" />
     <SolidColorBrush x:Key="IntenseSecondaryBrush" Color="{StaticResource IntenseSecondary}" />
@@ -3708,4 +3711,58 @@
     </Style>
     <Style BasedOn="{StaticResource MainFilePickerStyle}" TargetType="{x:Type local:FilePicker}" />
 
+    <!--  User Intervention Background  -->
+    <Style x:Key="AttentionBorderStyle" TargetType="Border">
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DarkerSecondaryBrush}" />
+        <Style.Triggers>
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding IsVisible, RelativeSource={RelativeSource Self}}" Value="True" />
+                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="False" />
+                </MultiDataTrigger.Conditions>
+                <MultiDataTrigger.EnterActions>
+                    <BeginStoryboard x:Name="BorderGlow">
+                        <Storyboard>
+                            <ColorAnimation
+                                AutoReverse="True"
+                                RepeatBehavior="Forever"
+                                Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                To="{StaticResource Secondary}"
+                                Duration="0:0:1.5" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                    <BeginStoryboard x:Name="BackgroundGlow">
+                        <Storyboard>
+                            <ColorAnimation
+                                AutoReverse="True"
+                                RepeatBehavior="Forever"
+                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                To="{StaticResource SecondaryBackground}"
+                                Duration="0:0:1.5" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </MultiDataTrigger.EnterActions>
+                <MultiDataTrigger.ExitActions>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <ColorAnimation
+                                Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                To="{StaticResource DarkerSecondary}"
+                                Duration="0:0:0.1" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <ColorAnimation
+                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                To="{StaticResource WindowBackgroundColor}"
+                                Duration="0:0:0.1" />
+                        </Storyboard>
+                    </BeginStoryboard>
+                </MultiDataTrigger.ExitActions>
+            </MultiDataTrigger>
+        </Style.Triggers>
+    </Style>
 </ResourceDictionary>

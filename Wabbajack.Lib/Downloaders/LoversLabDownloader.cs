@@ -9,11 +9,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Wabbajack.Common;
-using Wabbajack.Common.StatusFeed;
-using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.Validation;
-using Wabbajack.Lib.WebAutomation;
 using Xilium.CefGlue.Common;
 using File = Alphaleonis.Win32.Filesystem.File;
 
@@ -183,7 +180,7 @@ namespace Wabbajack.Lib.Downloaders
         }
     }
 
-    public class RequestLoversLabLogin : AStatusMessage, IUserIntervention
+    public class RequestLoversLabLogin : AUserIntervention
     {
         public override string ShortDescription => "Getting LoversLab information";
         public override string ExtendedDescription { get; }
@@ -193,10 +190,13 @@ namespace Wabbajack.Lib.Downloaders
 
         public void Resume(Helpers.Cookie[] cookies)
         {
+            Handled = true;
             _source.SetResult(cookies);
         }
-        public void Cancel()
+
+        public override void Cancel()
         {
+            Handled = true;
             _source.SetCanceled();
         }
     }

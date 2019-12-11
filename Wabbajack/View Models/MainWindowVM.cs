@@ -12,9 +12,6 @@ using System.Windows.Threading;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
-using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.NexusApi;
-using Wabbajack.Lib.StatusMessages;
 
 namespace Wabbajack
 {
@@ -104,6 +101,17 @@ namespace Wabbajack
             Settings.Installer.LastInstalledListLocation = path;
             ActivePane = installer;
             installer.ModListLocation.TargetPath = path;
+        }
+
+        public void ShutdownApplication()
+        {
+            Dispose();
+            Settings.PosX = MainWindow.Left;
+            Settings.PosY = MainWindow.Top;
+            Settings.Width = MainWindow.Width;
+            Settings.Height = MainWindow.Height;
+            MainSettings.SaveSettings(Settings);
+            Application.Current.Shutdown();
         }
     }
 }

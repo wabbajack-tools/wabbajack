@@ -13,6 +13,8 @@ namespace Wabbajack
 {
     public class VortexInstallerVM : ViewModel, ISubInstallerVM
     {
+        public InstallerVM Parent { get; }
+
         public IReactiveCommand BeginCommand { get; }
 
         [Reactive]
@@ -27,8 +29,12 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<Game> _TargetGame;
         public Game TargetGame => _TargetGame.Value;
 
+        public bool SupportsAfterInstallNavigation => false;
+
         public VortexInstallerVM(InstallerVM installerVM)
         {
+            Parent = installerVM;
+
             _TargetGame = installerVM.WhenAny(x => x.ModList.SourceModList.GameType)
                 .ToProperty(this, nameof(TargetGame));
 
@@ -90,6 +96,11 @@ namespace Wabbajack
 
         public void Unload()
         {
+        }
+
+        public void AfterInstallNavigation()
+        {
+            throw new NotImplementedException();
         }
     }
 }
