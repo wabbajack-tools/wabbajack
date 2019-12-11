@@ -5,12 +5,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
+using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
+using Game = Wabbajack.Common.Game;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
@@ -29,6 +32,8 @@ namespace Wabbajack.Lib
 
         public override string GamePath { get; }
 
+        public GameMetaData CompilingGame { get; set; }
+
         public override string ModListOutputFolder => "output_folder";
 
         public override string ModListOutputFile { get; }
@@ -38,6 +43,8 @@ namespace Wabbajack.Lib
             MO2Folder = mo2Folder;
             MO2Profile = mo2Profile;
             MO2Ini = Path.Combine(MO2Folder, "ModOrganizer.ini").LoadIniFile();
+            var mo2game = (string)MO2Ini.General.gameName;
+            CompilingGame = GameRegistry.Games.First(g => g.Value.MO2Name == mo2game).Value;
             GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
             ModListOutputFile = outputFile;
         }
@@ -72,7 +79,7 @@ namespace Wabbajack.Lib
 
         protected override bool _Begin()
         {
-            ConfigureProcessor(16);
+            ConfigureProcessor(18);
             UpdateTracker.Reset();
             UpdateTracker.NextStep("Gathering information");
             Info("Looking for other profiles");
@@ -115,6 +122,13 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Cleaning output folder");
             if (Directory.Exists(ModListOutputFolder))
                 Utils.DeleteDirectory(ModListOutputFolder);
+
+            UpdateTracker.NextStep("Inferring metas for game file downloads");
+            InferMetas();
+
+            UpdateTracker.NextStep("Reindexing downloads after meta inferring");
+            VFS.AddRoot(MO2DownloadsFolder);
+            VFS.WriteToFile(_vfsCacheName);
 
             UpdateTracker.NextStep("Finding Install Files");
             Directory.CreateDirectory(ModListOutputFolder);
@@ -244,7 +258,7 @@ namespace Wabbajack.Lib
 
             ModList = new ModList
             {
-                GameType = GameRegistry.Games.Values.First(f => f.MO2Name == MO2Ini.General.gameName).Game,
+                GameType = CompilingGame.Game,
                 WabbajackVersion = WabbajackVersion,
                 Archives = SelectedArchives.ToList(),
                 ModManager = ModManager.MO2,
@@ -274,6 +288,41 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Done Building Modlist");
 
             return true;
+        }
+        private void InferMetas()
+        {
+            var to_find = Directory.EnumerateFiles(MO2DownloadsFolder)
+                .Where(f => !f.EndsWith(".meta") && !f.EndsWith(Consts.HashFileExtension))
+                .Where(f => !File.Exists(f + ".meta"))
+                .ToList();
+
+            if (to_find.Count == 0) return;
+
+            var games = new[]{CompilingGame}.Concat(GameRegistry.Games.Values.Where(g => g != CompilingGame));
+            var game_files = games
+                .Where(g => g.GameLocation() != null)
+                .SelectMany(game => Directory.EnumerateFiles(game.GameLocation(), "*", DirectoryEnumerationOptions.Recursive).Select(name => (game, name)))
+                .GroupBy(f => (Path.GetFileName(f.name), new FileInfo(f.name).Length))
+                .ToDictionary(f => f.Key);
+
+            to_find.PMap(Queue, f =>
+            {
+                var vf = VFS.Index.ByFullPath[f];
+                if (!game_files.TryGetValue((Path.GetFileName(f), vf.Size), out var found))
+                    return;
+
+                var (game, name) = found.FirstOrDefault(ff => ff.name.FileHash() == vf.Hash);
+                if (name == null)
+                    return;
+
+                File.WriteAllLines(f+".meta", new[]
+                {
+                    "[General]",
+                    $"gameName={game.MO2ArchiveName}",
+                    $"gameFile={name.RelativeTo(game.GameLocation()).Replace("\\", "/")}"
+                });
+            });
+
         }
 
 

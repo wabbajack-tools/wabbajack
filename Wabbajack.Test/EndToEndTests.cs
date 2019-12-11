@@ -112,7 +112,7 @@ namespace Wabbajack.Test
                 new List<string>
                 {
                     "[General]",
-                    $"gameName={GameRegistry.Games[game].MO2ArchiveName}",
+                    $"gameName={game.MetaData().MO2ArchiveName}",
                     $"modID={modid}",
                     $"fileID={file.file_id}"
                 });

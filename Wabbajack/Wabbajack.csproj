@@ -544,6 +544,8 @@
   <ItemGroup>
     <Resource Include="Resources\Wabba_Ded.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <SplashScreen Include="Resources\Wabba_Mouth_Small.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
