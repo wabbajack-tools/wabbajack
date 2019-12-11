@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -28,6 +29,8 @@ namespace Wabbajack
         public FilePickerVM Location { get; }
 
         public FilePickerVM DownloadLocation { get; }
+
+        public bool SupportsAfterInstallNavigation => true;
 
         [Reactive]
         public bool AutomaticallyOverwrite { get; set; }
@@ -173,6 +176,11 @@ namespace Wabbajack
             settings.InstallationLocation = Location.TargetPath;
             settings.DownloadLocation = DownloadLocation.TargetPath;
             settings.AutomaticallyOverrideExistingInstall = AutomaticallyOverwrite;
+        }
+
+        public void AfterInstallNavigation()
+        {
+            Process.Start("explorer.exe", Location.TargetPath);
         }
     }
 }

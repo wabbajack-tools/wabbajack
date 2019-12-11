@@ -3712,7 +3712,7 @@
     <Style BasedOn="{StaticResource MainFilePickerStyle}" TargetType="{x:Type local:FilePicker}" />
 
     <!--  User Intervention Background  -->
-    <Style x:Key="UserInterventionBorderStyle" TargetType="Border">
+    <Style x:Key="AttentionBorderStyle" TargetType="Border">
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource DarkerSecondaryBrush}" />

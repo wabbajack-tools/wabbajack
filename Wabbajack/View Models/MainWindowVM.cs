@@ -102,5 +102,16 @@ namespace Wabbajack
             ActivePane = installer;
             installer.ModListLocation.TargetPath = path;
         }
+
+        public void ShutdownApplication()
+        {
+            Dispose();
+            Settings.PosX = MainWindow.Left;
+            Settings.PosY = MainWindow.Top;
+            Settings.Width = MainWindow.Width;
+            Settings.Height = MainWindow.Height;
+            MainSettings.SaveSettings(Settings);
+            Application.Current.Shutdown();
+        }
     }
 }

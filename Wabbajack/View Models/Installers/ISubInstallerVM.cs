@@ -15,5 +15,7 @@ namespace Wabbajack
         IReactiveCommand BeginCommand { get; }
         AInstaller ActiveInstallation { get; }
         void Unload();
+        bool SupportsAfterInstallNavigation { get; }
+        void AfterInstallNavigation();
     }
 }

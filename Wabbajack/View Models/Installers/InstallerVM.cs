@@ -81,11 +81,16 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<IUserIntervention> _ActiveGlobalUserIntervention;
         public IUserIntervention ActiveGlobalUserIntervention => _ActiveGlobalUserIntervention.Value;
 
+        private readonly ObservableAsPropertyHelper<bool> _Completed;
+        public bool Completed => _Completed.Value;
+
         // Command properties
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand VisitWebsiteCommand { get; }
         public IReactiveCommand BackCommand { get; }
+        public IReactiveCommand CloseWhenCompleteCommand { get; }
+        public IReactiveCommand GoToInstallCommand { get; }
 
         public InstallerVM(MainWindowVM mainWindowVM)
         {
@@ -311,6 +316,32 @@ namespace Wabbajack
                 .QueryWhenChanged(query => query.FirstOrDefault())
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(ActiveGlobalUserIntervention));
+
+            _Completed = Observable.CombineLatest(
+                    this.WhenAny(x => x.Installing),
+                    this.WhenAny(x => x.InstallingMode),
+                resultSelector: (installing, installingMode) =>
+                {
+                    return installingMode && !installing;
+                })
+                .ToProperty(this, nameof(Completed));
+
+            CloseWhenCompleteCommand = ReactiveCommand.Create(
+                canExecute: this.WhenAny(x => x.Completed),
+                execute: () =>
+                {
+                    MWVM.ShutdownApplication();
+                });
+
+            GoToInstallCommand = ReactiveCommand.Create(
+                canExecute: Observable.CombineLatest(
+                    this.WhenAny(x => x.Completed),
+                    this.WhenAny(x => x.Installer.SupportsAfterInstallNavigation),
+                    resultSelector: (complete, supports) => complete && supports),
+                execute: () =>
+                {
+                    Installer.AfterInstallNavigation();
+                });
         }
 
         private void ShowReport()
