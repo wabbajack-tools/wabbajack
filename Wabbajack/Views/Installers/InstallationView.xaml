@@ -357,42 +357,10 @@
                 Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}, ConverterParameter=False}" />
             <Border
                 Grid.Column="2"
-                Background="{StaticResource SecondaryBackgroundBrush}"
-                BorderBrush="{StaticResource SecondaryBrush}"
-                BorderThickness="1"
+                Style="{StaticResource UserInterventionBorderStyle}"
                 Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}}">
-                <Border.Style>
-                    <Style TargetType="Border">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding IsVisible, RelativeSource={RelativeSource AncestorType={x:Type Border}}}" Value="True">
-                                <DataTrigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation
-                                                AutoReverse="True"
-                                                RepeatBehavior="Forever"
-                                                Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
-                                                To="{StaticResource DarkerSecondary}"
-                                                Duration="0:0:1.5" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation
-                                                AutoReverse="True"
-                                                RepeatBehavior="Forever"
-                                                Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
-                                                To="{StaticResource WindowBackgroundColor}"
-                                                Duration="0:0:1.5" />
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </DataTrigger.EnterActions>
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
                 <Grid>
-                    <!--<local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />-->
+                    <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />
                     <local:ConfirmUpdateOfExistingInstallView Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type lib:ConfirmUpdateOfExistingInstall}}" />
                 </Grid>
             </Border>

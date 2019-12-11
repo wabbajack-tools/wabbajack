@@ -253,17 +253,11 @@
                 Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}, ConverterParameter=False}" />
             <Border
                 Grid.Column="2"
-                Background="{StaticResource SecondaryBackgroundBrush}"
-                BorderBrush="{StaticResource SecondaryBrush}"
-                BorderThickness="1"
+                Style="{StaticResource UserInterventionBorderStyle}"
                 Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}}">
-                <ContentPresenter Content="{Binding ActiveGlobalUserIntervention}">
-                    <ContentPresenter.Resources>
-                        <DataTemplate DataType="{x:Type common:ConfirmationIntervention}">
-                            <local:ConfirmationInterventionView />
-                        </DataTemplate>
-                    </ContentPresenter.Resources>
-                </ContentPresenter>
+                <Grid>
+                    <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />
+                </Grid>
             </Border>
         </Grid>
     </Grid>
