@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -348,7 +348,7 @@ namespace Wabbajack.Lib
                 {
                     var relative_to = f.RelativeTo(OutputFolder);
                     Utils.Status($"Checking if modlist file {relative_to}");
-                    if (indexed.ContainsKey(relative_to) || f.StartsWith(DownloadFolder + Path.DirectorySeparator))
+                    if (indexed.ContainsKey(relative_to) || f.StartsWith(DownloadFolder + Path.DirectorySeparator, StringComparison.OrdinalIgnoreCase))
                     {
                         return;
                     }
