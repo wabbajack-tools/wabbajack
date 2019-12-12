@@ -928,5 +928,12 @@ namespace Wabbajack.Common
             var decoded = ProtectedData.Unprotect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
             return Encoding.UTF8.GetString(decoded).FromJSONString<T>();
         }
+
+        public static bool IsInPath(this string path, string parent)
+        {
+            return path.ToLower().TrimEnd('\\').StartsWith(parent.ToLower().TrimEnd('\\') + "\\");
+        }
+
+
     }
 }
