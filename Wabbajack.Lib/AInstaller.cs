@@ -348,10 +348,8 @@ namespace Wabbajack.Lib
                 {
                     var relative_to = f.RelativeTo(OutputFolder);
                     Utils.Status($"Checking if modlist file {relative_to}");
-                    if (indexed.ContainsKey(relative_to) || f.StartsWith(DownloadFolder + Path.DirectorySeparator))
-                    {
+                    if (indexed.ContainsKey(relative_to) || f.IsInPath(DownloadFolder))
                         return;
-                    }
 
                     Utils.Log($"Deleting {relative_to} it's not part of this modlist");
                     File.Delete(f);
