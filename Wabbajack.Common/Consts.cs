@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Alphaleonis.Win32.Filesystem;
+using Syroot.Windows.IO;
 
 namespace Wabbajack.Common
 {
@@ -84,6 +86,7 @@ namespace Wabbajack.Common
         }
 
         public static string HashFileExtension => ".xxHash";
+        public static string LocalAppDataPath => Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack");
 
         public static string WabbajackCacheLocation = "http://build.wabbajack.org/nexus_api_cache/";
     }

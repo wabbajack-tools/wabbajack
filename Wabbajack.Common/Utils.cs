@@ -913,7 +913,11 @@ namespace Wabbajack.Common
         {
             var bytes = Encoding.UTF8.GetBytes(data.ToJSON());
             var encoded = ProtectedData.Protect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
-            var path = Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack", key);
+            
+            if (!Directory.Exists(Consts.LocalAppDataPath))
+                Directory.CreateDirectory(Consts.LocalAppDataPath);
+            
+            var path = Path.Combine(Consts.LocalAppDataPath, key);
             File.WriteAllBytes(path, encoded);
         }
 
