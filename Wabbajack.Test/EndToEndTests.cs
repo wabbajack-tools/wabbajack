@@ -64,7 +64,7 @@ namespace Wabbajack.Test
 
             utils.Configure();
 
-            var modlist = CompileAndInstall(profile);
+            var modlist = await CompileAndInstall(profile);
 
             utils.VerifyAllFiles();
 
@@ -88,7 +88,7 @@ namespace Wabbajack.Test
             if (!File.Exists(src))
             {
                 var state = DownloadDispatcher.ResolveArchive(url);
-                await state.Download(new Archive() { Name = "Unknown"}, src);
+                await state.Download(new Archive { Name = "Unknown"}, src);
             }
 
             if (!Directory.Exists(utils.DownloadsFolder))
@@ -142,11 +142,11 @@ namespace Wabbajack.Test
         private async Task<ModList> CompileAndInstall(string profile)
         {
             var compiler = await ConfigureAndRunCompiler(profile);
-            Install(compiler);
+            await Install(compiler);
             return compiler.ModList;
         }
 
-        private void Install(MO2Compiler compiler)
+        private async Task Install(MO2Compiler compiler)
         {
             var modlist = AInstaller.LoadFromFile(compiler.ModListOutputFile);
             var installer = new MO2Installer(
@@ -155,7 +155,7 @@ namespace Wabbajack.Test
                 outputFolder: utils.InstallFolder,
                 downloadFolder: utils.DownloadsFolder);
             installer.GameFolder = utils.GameFolder;
-            installer.Begin().Wait();
+            await installer.Begin();
         }
 
         private async Task<MO2Compiler> ConfigureAndRunCompiler(string profile)

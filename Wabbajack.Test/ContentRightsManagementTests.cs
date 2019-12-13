@@ -15,6 +15,8 @@ namespace Wabbajack.Test
     public class ContentRightsManagementTests
     {
         private ValidateModlist validate;
+        private WorkQueue queue;
+
 
         private static string permissions = @"
 
@@ -49,12 +51,16 @@ namespace Wabbajack.Test
         [TestInitialize]
         public void TestSetup()
         {
-            using (var workQueue = new WorkQueue())
-            {
-                validate = new ValidateModlist(workQueue);
-                validate.LoadAuthorPermissionsFromString(permissions);
-                validate.LoadServerWhitelist(server_whitelist);
-            }
+            queue = new WorkQueue();
+            validate = new ValidateModlist(queue);
+            validate.LoadAuthorPermissionsFromString(permissions);
+            validate.LoadServerWhitelist(server_whitelist);
+        }
+
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            queue?.Dispose();
         }
 
         [TestMethod]

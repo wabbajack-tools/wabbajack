@@ -120,7 +120,7 @@ namespace Wabbajack.Test
             var game_file = Path.Combine(utils.GameFolder, "Data", "Update.esm");
             utils.GenerateRandomFileData(game_file, 20);
 
-            var modlist = CompileAndInstall(profile);
+            var modlist = await CompileAndInstall(profile);
 
             utils.VerifyInstalledFile(mod, @"Update.esm");
 
@@ -133,7 +133,7 @@ namespace Wabbajack.Test
         }
 
         [TestMethod]
-        public void SetScreenSizeTest()
+        public async Task SetScreenSizeTest()
         {
             var profile = utils.AddProfile();
             var mod = utils.AddMod("dummy");
@@ -147,7 +147,7 @@ namespace Wabbajack.Test
                     "iSize W=-200"
                 });
 
-            var modlist = CompileAndInstall(profile);
+            var modlist = await CompileAndInstall(profile);
 
             var ini = Path.Combine(utils.InstallFolder, "profiles", profile, "somegameprefs.ini").LoadIniFile();
 

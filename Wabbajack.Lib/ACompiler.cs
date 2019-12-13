@@ -224,7 +224,7 @@ namespace Wabbajack.Lib
 
             var result = new Archive
             {
-                State = (AbstractDownloadState) DownloadDispatcher.ResolveArchive(archive.IniData)
+                State = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(archive.IniData)
             };
 
             if (result.State == null)

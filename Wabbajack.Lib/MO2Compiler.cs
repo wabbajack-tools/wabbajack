@@ -151,7 +151,7 @@ namespace Wabbajack.Lib
                 })
                 .ToList();
 
-           await CleanInvalidArchives();
+            await CleanInvalidArchives();
 
             UpdateTracker.NextStep("Finding Install Files");
             Directory.CreateDirectory(ModListOutputFolder);
@@ -233,7 +233,7 @@ namespace Wabbajack.Lib
             Info($"No match for {nomatch.Count()} files");
             foreach (var file in nomatch)
                 Info($"     {file.To}");
-            if (nomatch.Count() > 0)
+            if (nomatch.Any())
             {
                 if (IgnoreMissingFiles)
                 {

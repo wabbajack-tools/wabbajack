@@ -45,7 +45,7 @@ namespace Wabbajack.Test
             var ini = @"[General]
                         directURL=https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k";
 
-            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
 
@@ -76,7 +76,7 @@ namespace Wabbajack.Test
             var ini = @"[General]
                         directURL=https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?dl=0";
 
-            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
 
@@ -106,7 +106,7 @@ namespace Wabbajack.Test
             var ini = @"[General]
                         directURL=https://drive.google.com/file/d/1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_/view?usp=sharing";
 
-            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
 
@@ -136,7 +136,7 @@ namespace Wabbajack.Test
             var ini = @"[General]
                         directURL=http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt";
 
-            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
 
@@ -165,7 +165,7 @@ namespace Wabbajack.Test
             var ini = @"[General]
                         manualURL=http://build.wabbajack.org/WABBAJACK_TEST_FILE.zip";
 
-            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
 
@@ -188,7 +188,7 @@ namespace Wabbajack.Test
             var ini = @"[General]
                     directURL=http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt";
 
-            var state = (AbstractDownloadState) DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
 
@@ -224,7 +224,7 @@ namespace Wabbajack.Test
                         modID = 12604
                         fileID=35407";
 
-                var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+                var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
                 Assert.IsNotNull(state);
 
@@ -254,7 +254,7 @@ namespace Wabbajack.Test
             var ini = @"[General]
                         directURL=https://www.moddb.com/downloads/start/124908?referer=https%3A%2F%2Fwww.moddb.com%2Fmods%2Fautopause";
 
-            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
 
@@ -282,7 +282,7 @@ namespace Wabbajack.Test
             var ini = @"[General]
                         directURL=https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1";
 
-            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
 
@@ -311,7 +311,7 @@ namespace Wabbajack.Test
                         gameName={Game.SkyrimSpecialEdition.MetaData().MO2ArchiveName}
                         gameFile=Data/Update.esm";
 
-            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
             Assert.IsNotNull(state);
 
