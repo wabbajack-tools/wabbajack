@@ -13,7 +13,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class GameFileSourceDownloader : IDownloader
     {
-        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             var gameName = (string)archiveINI?.General?.gameName;
             var gameFile = (string)archiveINI?.General?.gameFile;
@@ -40,7 +40,7 @@ namespace Wabbajack.Lib.Downloaders
             };
         }
 
-        public void Prepare()
+        public async Task Prepare()
         {
         }
 
@@ -57,7 +57,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override void Download(Archive a, string destination)
+            public override async Task Download(Archive a, string destination)
             {
                 using(var src = File.OpenRead(SourcePath))
                 using (var dest = File.OpenWrite(destination))
@@ -67,7 +67,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
             }
 
-            public override bool Verify()
+            public override async Task<bool> Verify()
             {
                 return File.Exists(SourcePath) && SourcePath.FileHashCached() == Hash;
             }

@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.CompilationSteps
@@ -16,7 +17,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _regex = new Regex(pattern);
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             if (!_regex.IsMatch(source.Path)) return null;
             var result = source.EvolveTo<IgnoredDirectly>();

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -13,7 +14,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _reason = string.Format("Ignored because path starts with {0}", _prefix);
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             if (source.Path.StartsWith(_prefix))
             {

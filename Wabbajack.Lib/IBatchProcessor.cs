@@ -36,12 +36,5 @@ namespace Wabbajack.Lib
         /// Begin processing
         /// </summary>
         Task<bool> Begin();
-
-        /// <summary>
-        /// Terminate any processing currently in progress by the processor. The processor should be disposed of
-        /// after calling this function as processing cannot be resumed and the tasks may be half completed.
-        /// Should only be called while IsRunning = true;
-        /// </summary>
-        void Terminate();
     }
 }

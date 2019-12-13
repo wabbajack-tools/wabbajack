@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -14,7 +15,7 @@ namespace Wabbajack.Test
     public class SanityTests : ACompilerTest
     {
         [TestMethod]
-        public void TestDirectMatch()
+        public async Task TestDirectMatch()
         {
 
             var profile = utils.AddProfile();
@@ -26,13 +27,13 @@ namespace Wabbajack.Test
             utils.AddManualDownload(
                 new Dictionary<string, byte[]> {{"/baz/biz.pex", File.ReadAllBytes(test_pex)}});
 
-            CompileAndInstall(profile);
+            await CompileAndInstall(profile);
 
             utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
         }
 
         [TestMethod]
-        public void TestDuplicateFilesAreCopied()
+        public async Task TestDuplicateFilesAreCopied()
         {
 
             var profile = utils.AddProfile();
@@ -47,14 +48,14 @@ namespace Wabbajack.Test
             utils.AddManualDownload(
                 new Dictionary<string, byte[]> { { "/baz/biz.pex", File.ReadAllBytes(test_pex) } });
 
-            CompileAndInstall(profile);
+            await CompileAndInstall(profile);
 
             utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
             utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex.copy");
         }
 
         [TestMethod]
-        public void TestUpdating()
+        public async Task TestUpdating()
         {
 
             var profile = utils.AddProfile();
@@ -73,7 +74,7 @@ namespace Wabbajack.Test
                     { "/baz/modified.pex", File.ReadAllBytes(modified) },
                 });
 
-            CompileAndInstall(profile);
+            await CompileAndInstall(profile);
 
             utils.VerifyInstalledFile(mod, @"Data\scripts\unchanged.pex");
             utils.VerifyInstalledFile(mod, @"Data\scripts\deleted.pex");
@@ -95,7 +96,7 @@ namespace Wabbajack.Test
 
             Assert.IsTrue(File.Exists(extra_path));
 
-            CompileAndInstall(profile);
+            await CompileAndInstall(profile);
 
             utils.VerifyInstalledFile(mod, @"Data\scripts\unchanged.pex");
             utils.VerifyInstalledFile(mod, @"Data\scripts\deleted.pex");
@@ -108,7 +109,7 @@ namespace Wabbajack.Test
 
 
         [TestMethod]
-        public void CleanedESMTest()
+        public async Task CleanedESMTest()
         {
             var profile = utils.AddProfile();
             var mod = utils.AddMod("Cleaned ESMs");
@@ -123,7 +124,7 @@ namespace Wabbajack.Test
 
             utils.VerifyInstalledFile(mod, @"Update.esm");
 
-            var compiler = ConfigureAndRunCompiler(profile);
+            var compiler = await ConfigureAndRunCompiler(profile);
 
             // Update the file and verify that it throws an error.
             utils.GenerateRandomFileData(game_file, 20);
@@ -155,7 +156,7 @@ namespace Wabbajack.Test
         }
 
         [TestMethod]
-        public void UnmodifiedInlinedFilesArePulledFromArchives()
+        public async Task UnmodifiedInlinedFilesArePulledFromArchives()
         {
             var profile = utils.AddProfile();
             var mod = utils.AddMod();
@@ -165,7 +166,7 @@ namespace Wabbajack.Test
             utils.AddManualDownload(
                 new Dictionary<string, byte[]> { { "/baz/biz.pex", File.ReadAllBytes(ini) } });
 
-            var modlist = CompileAndInstall(profile);
+            var modlist = await CompileAndInstall(profile);
             var directive = modlist.Directives.Where(m => m.To == $"mods\\{mod}\\foo.ini").FirstOrDefault();
 
             Assert.IsNotNull(directive);
@@ -173,7 +174,7 @@ namespace Wabbajack.Test
         }
 
         [TestMethod]
-        public void ModifiedIniFilesArePatchedAgainstFileWithSameName()
+        public async Task ModifiedIniFilesArePatchedAgainstFileWithSameName()
         {
             var profile = utils.AddProfile();
             var mod = utils.AddMod();
@@ -195,7 +196,7 @@ namespace Wabbajack.Test
             // Modify after creating mod archive in the downloads folder
             File.WriteAllText(ini, "Wabbajack, Wabbajack, Wabbajack!");
 
-            var modlist = CompileAndInstall(profile);
+            var modlist = await CompileAndInstall(profile);
             var directive = modlist.Directives.Where(m => m.To == $"mods\\{mod}\\foo.ini").FirstOrDefault();
 
             Assert.IsNotNull(directive);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
@@ -85,7 +86,7 @@ namespace Wabbajack.Lib
         ///     We don't want to make the installer index all the archives, that's just a waste of time, so instead
         ///     we'll pass just enough information to VFS to let it know about the files we have.
         /// </summary>
-        public void PrimeVFS()
+        public async Task PrimeVFS()
         {
             VFS.AddKnown(HashedArchives.Select(a => new KnownFile
             {
@@ -99,7 +100,7 @@ namespace Wabbajack.Lib
                     .OfType<FromArchive>()
                     .Select(f => new KnownFile { Paths = f.ArchiveHashPath}));
 
-            VFS.BackfillMissing();
+            await VFS.BackfillMissing();
         }
 
         public void BuildFolderStructure()
@@ -115,7 +116,7 @@ namespace Wabbajack.Lib
                 });
         }
 
-        public void InstallArchives()
+        public async Task InstallArchives()
         {
             Info("Installing Archives");
             Info("Grouping Install Files");
@@ -129,10 +130,10 @@ namespace Wabbajack.Lib
                 .ToList();
 
             Info("Installing Archives");
-            archives.PMap(Queue, UpdateTracker,a => InstallArchive(a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
+            await archives.PMap(Queue, UpdateTracker,a => InstallArchive(a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
         }
 
-        private void InstallArchive(Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
+        private async Task InstallArchive(Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
         {
             Status($"Extracting {archive.Name}");
 
@@ -143,7 +144,7 @@ namespace Wabbajack.Lib
                 return g;
             }).ToList();
 
-            var onFinish = VFS.Stage(vFiles.Select(f => f.FromFile).Distinct());
+            var onFinish = await VFS.Stage(vFiles.Select(f => f.FromFile).Distinct());
 
 
             Status($"Copying files for {archive.Name}");
@@ -221,7 +222,7 @@ namespace Wabbajack.Lib
                 }
         }
 
-        public void DownloadArchives()
+        public async Task DownloadArchives()
         {
             var missing = ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash)).ToList();
             Info($"Missing {missing.Count} archives");
@@ -230,25 +231,24 @@ namespace Wabbajack.Lib
 
             var dispatchers = missing.Select(m => m.State.GetDownloader()).Distinct();
 
-            foreach (var dispatcher in dispatchers)
-                dispatcher.Prepare();
+            await Task.WhenAll(dispatchers.Select(d => d.Prepare()));
             
-            DownloadMissingArchives(missing);
+            await DownloadMissingArchives(missing);
         }
 
-        private void DownloadMissingArchives(List<Archive> missing, bool download = true)
+        private async Task DownloadMissingArchives(List<Archive> missing, bool download = true)
         {
             if (download)
             {
                 foreach (var a in missing.Where(a => a.State.GetType() == typeof(ManualDownloader.State)))
                 {
                     var outputPath = Path.Combine(DownloadFolder, a.Name);
-                    a.State.Download(a, outputPath);
+                    await a.State.Download(a, outputPath);
                 }
             }
 
-            missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
-                .PMap(Queue, archive =>
+            await missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
+                .PMap(Queue, async archive =>
                 {
                     Info($"Downloading {archive.Name}");
                     var outputPath = Path.Combine(DownloadFolder, archive.Name);
@@ -257,16 +257,16 @@ namespace Wabbajack.Lib
                         if (outputPath.FileExists())
                             File.Delete(outputPath);
 
-                    return DownloadArchive(archive, download);
+                    return await DownloadArchive(archive, download);
                 });
         }
 
-        public bool DownloadArchive(Archive archive, bool download)
+        public async Task<bool> DownloadArchive(Archive archive, bool download)
         {
             try
             {
                 var path = Path.Combine(DownloadFolder, archive.Name);
-                archive.State.Download(archive, path);
+                await archive.State.Download(archive, path);
                 path.FileHashCached();
 
             }
@@ -280,11 +280,12 @@ namespace Wabbajack.Lib
             return false;
         }
 
-        public void HashArchives()
+        public async Task HashArchives()
         {
-            HashedArchives = Directory.EnumerateFiles(DownloadFolder)
+            var hashResults = await Directory.EnumerateFiles(DownloadFolder)
                 .Where(e => !e.EndsWith(Consts.HashFileExtension))
-                .PMap(Queue, e => (e.FileHashCached(), e))
+                .PMap(Queue, e => (e.FileHashCached(), e));
+            HashedArchives = hashResults
                 .OrderByDescending(e => File.GetLastWriteTime(e.Item2))
                 .GroupBy(e => e.Item1)
                 .Select(e => e.First())
@@ -322,11 +323,11 @@ namespace Wabbajack.Lib
             */
         }
 
-        public int RecommendQueueSize()
+        public async Task<int> RecommendQueueSize()
         {
-            var output_size = RecommendQueueSize(OutputFolder);
-            var download_size = RecommendQueueSize(DownloadFolder);
-            var scratch_size = RecommendQueueSize(Directory.GetCurrentDirectory());
+            var output_size = await RecommendQueueSize(OutputFolder);
+            var download_size = await RecommendQueueSize(DownloadFolder);
+            var scratch_size = await RecommendQueueSize(Directory.GetCurrentDirectory());
             var result =  Math.Min(output_size, Math.Min(download_size, scratch_size));
             Utils.Log($"Recommending a queue size of {result} based on disk performance and number of cores");
             return result;
@@ -337,13 +338,13 @@ namespace Wabbajack.Lib
         /// The user may already have some files in the OutputFolder. If so we can go through these and
         /// figure out which need to be updated, deleted, or left alone
         /// </summary>
-        public void OptimizeModlist()
+        public async Task OptimizeModlist()
         {
             Utils.Log("Optimizing Modlist directives");
             var indexed = ModList.Directives.ToDictionary(d => d.To);
 
             UpdateTracker.NextStep("Looking for files to delete");
-            Directory.EnumerateFiles(OutputFolder, "*", DirectoryEnumerationOptions.Recursive)
+            await Directory.EnumerateFiles(OutputFolder, "*", DirectoryEnumerationOptions.Recursive)
                 .PMap(Queue, UpdateTracker, f =>
                 {
                     var relative_to = f.RelativeTo(OutputFolder);
@@ -356,7 +357,7 @@ namespace Wabbajack.Lib
                 });
 
             UpdateTracker.NextStep("Looking for unmodified files");
-            indexed.Values.PMap(Queue, UpdateTracker, d =>
+            (await indexed.Values.PMap(Queue, UpdateTracker, d =>
             {
                 // Bit backwards, but we want to return null for 
                 // all files we *want* installed. We return the files
@@ -369,7 +370,8 @@ namespace Wabbajack.Lib
                 if (fi.Length != d.Size) return null;
                 
                 return path.FileHash() == d.Hash ? d : null;
-            }).Where(d => d != null)
+            }))
+              .Where(d => d != null)
               .Do(d => indexed.Remove(d.To));
 
             UpdateTracker.NextStep("Updating Modlist");

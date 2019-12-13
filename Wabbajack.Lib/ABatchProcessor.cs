@@ -14,12 +14,6 @@ namespace Wabbajack.Lib
     {
         public WorkQueue Queue { get; private set; }
 
-        public void Dispose()
-        {
-            Queue?.Shutdown();
-            _subs.Dispose();
-        }
-
         public Context VFS { get; private set; }
 
         protected StatusUpdateTracker UpdateTracker { get; private set; }
@@ -46,11 +40,10 @@ namespace Wabbajack.Lib
 
         private Subject<bool> _isRunning { get; } = new Subject<bool>();
         public IObservable<bool> IsRunning => _isRunning;
-        
-        private Thread _processorThread { get; set; }
 
         private int _configured;
         private int _started;
+        private readonly CancellationTokenSource _cancel = new CancellationTokenSource();
 
         private readonly CompositeDisposable _subs = new CompositeDisposable();
 
@@ -71,7 +64,7 @@ namespace Wabbajack.Lib
             VFS = new Context(Queue) { UpdateTracker = UpdateTracker };
         }
 
-        public static int RecommendQueueSize(string folder)
+        public static async Task<int> RecommendQueueSize(string folder)
         {
             if (!Directory.Exists(folder))
                 Directory.CreateDirectory(folder);
@@ -79,7 +72,7 @@ namespace Wabbajack.Lib
             using (var queue = new WorkQueue())
             {
                 Utils.Log($"Benchmarking {folder}");
-                var raw_speed = Utils.TestDiskSpeed(queue, folder);
+                var raw_speed = await Utils.TestDiskSpeed(queue, folder);
                 Utils.Log($"{raw_speed.ToFileSizeString()}/sec for {folder}");
                 int speed = (int)(raw_speed / 1024 / 1024);
 
@@ -88,7 +81,7 @@ namespace Wabbajack.Lib
             }
         }
 
-        protected abstract bool _Begin();
+        protected abstract Task<bool> _Begin(CancellationToken cancel);
         public Task<bool> Begin()
         {
             if (1 == Interlocked.CompareExchange(ref _started, 1, 1))
@@ -96,33 +89,24 @@ namespace Wabbajack.Lib
                 throw new InvalidDataException("Can't start the processor twice");
             }
 
-            _isRunning.OnNext(true);
-            var _tcs = new TaskCompletionSource<bool>();
-
-            _processorThread = new Thread(() =>
-            {
+            return Task.Run(async () =>
+            { 
                 try
                 {
-                    _tcs.SetResult(_Begin());
-                }
-                catch (Exception ex)
-                {
-                    _tcs.SetException(ex);
+                    _isRunning.OnNext(true);
+                    return await _Begin(_cancel.Token);
                 }
                 finally
                 {
                     _isRunning.OnNext(false);
                 }
             });
-            _processorThread.Priority = ThreadPriority.BelowNormal;
-            _processorThread.Start();
-            return _tcs.Task;
         }
 
-        public void Terminate()
+        public void Dispose()
         {
-            Queue?.Shutdown();
-            _processorThread?.Abort();
+            _cancel.Cancel();
+            Queue?.Dispose();
             _isRunning.OnNext(false);
         }
     }

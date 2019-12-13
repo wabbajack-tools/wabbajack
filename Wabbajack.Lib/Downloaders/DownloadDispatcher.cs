@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 
 namespace Wabbajack.Lib.Downloaders
@@ -35,9 +36,10 @@ namespace Wabbajack.Lib.Downloaders
             return inst;
         }
 
-        public static AbstractDownloadState ResolveArchive(dynamic ini)
+        public static async Task<AbstractDownloadState> ResolveArchive(dynamic ini)
         {
-            return Downloaders.Select(d => d.GetDownloaderState(ini)).FirstOrDefault(result => result != null);
+            var states = await Task.WhenAll(Downloaders.Select(d => (Task<AbstractDownloadState>)d.GetDownloaderState(ini)));
+            return states.FirstOrDefault(result => result != null);
         }
 
         /// <summary>

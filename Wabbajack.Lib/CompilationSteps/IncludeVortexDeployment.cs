@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -8,9 +9,8 @@ namespace Wabbajack.Lib.CompilationSteps
         {
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-
             if (!source.Path.EndsWith("vortex.deployment.msgpack") &&
                 !source.Path.EndsWith("\\vortex.deployment.json") && Path.GetExtension(source.Path) != ".meta") return null;
             var inline = source.EvolveTo<InlineFile>();

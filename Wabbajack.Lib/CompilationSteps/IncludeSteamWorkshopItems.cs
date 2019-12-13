@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 
@@ -16,7 +17,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _game = steamGame;
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             if (!_regex.IsMatch(source.Path)) 
                 return null;

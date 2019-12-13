@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.GZip;
@@ -37,12 +38,12 @@ namespace Wabbajack.Common
         }
 
 
-        public static void ExtractAll(WorkQueue queue, string source, string dest)
+        public static async Task ExtractAll(WorkQueue queue, string source, string dest)
         {
             try
             {
                 if (Consts.SupportedBSAs.Any(b => source.ToLower().EndsWith(b)))
-                    ExtractAllWithBSA(queue, source, dest);
+                    await ExtractAllWithBSA(queue, source, dest);
                 else if (source.EndsWith(".omod"))
                     ExtractAllWithOMOD(source, dest);
                 else if (source.EndsWith(".exe"))
@@ -125,13 +126,13 @@ namespace Wabbajack.Common
             return dest;
         }
 
-        private static void ExtractAllWithBSA(WorkQueue queue, string source, string dest)
+        private static async Task ExtractAllWithBSA(WorkQueue queue, string source, string dest)
         {
             try
             {
                 using (var arch = BSADispatch.OpenRead(source))
                 {
-                    arch.Files
+                    await arch.Files
                         .PMap(queue, f =>
                         {
                             var path = f.Path;

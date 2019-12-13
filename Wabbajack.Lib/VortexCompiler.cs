@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
+using System.Threading;
 using DynamicData;
 using Microsoft.WindowsAPICodePack.Shell;
 using Newtonsoft.Json;
@@ -68,31 +70,38 @@ namespace Wabbajack.Lib
 
             ActiveArchives = new List<string>();
         }
-
-        protected override bool _Begin()
+        
+        protected override async Task<bool> _Begin(CancellationToken cancel)
         {
+            if (cancel.IsCancellationRequested) return false;
+
             ConfigureProcessor(10);
             if (string.IsNullOrEmpty(ModListName))
                 ModListName = $"Vortex ModList for {Game.ToString()}";
 
             Info($"Starting Vortex compilation for {GameName} at {GamePath} with staging folder at {StagingFolder} and downloads folder at  {DownloadsFolder}.");
 
+            if (cancel.IsCancellationRequested) return false;
             ParseDeploymentFile();
 
+            if (cancel.IsCancellationRequested) return false;
             Info("Starting pre-compilation steps");
-            CreateMetaFiles();
+            await CreateMetaFiles();
 
+            if (cancel.IsCancellationRequested) return false;
             Info($"Indexing {StagingFolder}");
-            VFS.AddRoot(StagingFolder);
+            await VFS.AddRoot(StagingFolder);
 
             Info($"Indexing {GamePath}");
-            VFS.AddRoot(GamePath);
+            await VFS.AddRoot(GamePath);
 
             Info($"Indexing {DownloadsFolder}");
-            VFS.AddRoot(DownloadsFolder);
+            await VFS.AddRoot(DownloadsFolder);
 
-            AddExternalFolder();
+            if (cancel.IsCancellationRequested) return false;
+            await AddExternalFolder();
 
+            if (cancel.IsCancellationRequested) return false;
             Info("Cleaning output folder");
             if (Directory.Exists(ModListOutputFolder)) Utils.DeleteDirectory(ModListOutputFolder);
             Directory.CreateDirectory(ModListOutputFolder);
@@ -138,6 +147,7 @@ namespace Wabbajack.Lib
 
             Info($"Found {AllFiles.Count} files to build into mod list");
 
+            if (cancel.IsCancellationRequested) return false;
             Info("Verifying destinations");
             var duplicates = AllFiles.GroupBy(f => f.Path)
                 .Where(fs => fs.Count() > 1)
@@ -197,7 +207,7 @@ namespace Wabbajack.Lib
             var stack = MakeStack();
 
             Info("Running Compilation Stack");
-            var results = AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f)).ToList();
+            var results = await AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f));
 
             IEnumerable<NoMatch> noMatch = results.OfType<NoMatch>().ToList();
             Info($"No match for {noMatch.Count()} files");
@@ -228,7 +238,8 @@ namespace Wabbajack.Lib
             }
             */
 
-            GatherArchives();
+            if (cancel.IsCancellationRequested) return false;
+            await GatherArchives();
 
             ModList = new ModList
             {
@@ -298,27 +309,28 @@ namespace Wabbajack.Lib
         /// <summary>
         /// Some have mods outside their game folder located
         /// </summary>
-        private void AddExternalFolder()
+        private async Task AddExternalFolder()
         {
             var currentGame = Game.MetaData();
             if (currentGame.AdditionalFolders == null || currentGame.AdditionalFolders.Count == 0) return;
-            currentGame.AdditionalFolders.Do(f =>
+            foreach (var f in currentGame.AdditionalFolders)
             {
                 var path = f.Replace("%documents%", KnownFolders.Documents.Path);
                 if (!Directory.Exists(path)) return;
                 Info($"Indexing {path}");
-                VFS.AddRoot(path);
-            });
+                await VFS.AddRoot(path);
+            }
         }
 
-        private void CreateMetaFiles()
+        private async Task CreateMetaFiles()
         {
             Utils.Log("Getting Nexus api_key, please click authorize if a browser window appears");
-            var nexusClient = new NexusApiClient();
+            var nexusClient = await NexusApiClient.Get();
 
-            Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)
+            await Task.WhenAll(
+                Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)
                 .Where(File.Exists)
-                .Do(f =>
+                .Select(async f =>
                 {
                     if (Path.GetExtension(f) != ".meta" && Path.GetExtension(f) != ".xxHash" && !File.Exists($"{f}.meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
                     {
@@ -340,7 +352,7 @@ namespace Wabbajack.Lib
                             Utils.Log($"Hash is {hash}");
                         }
 
-                        var md5Response = nexusClient.GetModInfoFromMD5(Game, hash);
+                        var md5Response = await nexusClient.GetModInfoFromMD5(Game, hash);
                         if (md5Response.Count >= 1)
                         {
                             var modInfo = md5Response[0].mod;
@@ -385,7 +397,7 @@ namespace Wabbajack.Lib
                             ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
                         }
                     }
-                });
+                }));
 
             Utils.Log($"Checking for Steam Workshop Items...");
             if (!_isSteamGame || _steamGame == null || _steamGame.WorkshopItems.Count <= 0)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -15,11 +16,11 @@ namespace Wabbajack.Test.ListValidation
     public class ListValidation
     {
         [ClassInitialize]
-        public static void SetupNexus(TestContext context)
+        public static async Task SetupNexus(TestContext context)
         {
             Utils.LogMessages.Subscribe(m => context.WriteLine(m.ToString()));
-            var api = new NexusApiClient();
-            api.ClearUpdatedModsInCache();
+            var api = await NexusApiClient.Get();
+            await api.ClearUpdatedModsInCache();
         }
 
         private WorkQueue Queue { get; set; }
@@ -34,7 +35,7 @@ namespace Wabbajack.Test.ListValidation
         [TestCleanup]
         public void Cleanup()
         {
-            Queue.Shutdown();
+            Queue.Dispose();
             Queue = null;
         }
 
@@ -44,7 +45,7 @@ namespace Wabbajack.Test.ListValidation
         [TestCategory("ListValidation")]
         [DataTestMethod]
         [DynamicData(nameof(GetModLists), DynamicDataSourceType.Method)]
-        public void ValidateModLists(string name, ModlistMetadata list)
+        public async Task ValidateModLists(string name, ModlistMetadata list)
         {
             Log($"Testing {list.Links.MachineURL} - {list.Title}");
             var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + ".wabbajack");
@@ -53,7 +54,7 @@ namespace Wabbajack.Test.ListValidation
             {
                 var state = DownloadDispatcher.ResolveArchive(list.Links.Download);
                 Log($"Downloading {list.Links.MachineURL} - {list.Title}");
-                state.Download(modlist_path);
+                await state.Download(modlist_path);
             }
             else
             {
@@ -67,12 +68,12 @@ namespace Wabbajack.Test.ListValidation
 
             Log($"{installer.Archives.Count} archives to validate");
 
-            var invalids = installer.Archives
-                .PMap(Queue,archive =>
+            var invalids = (await installer.Archives
+                .PMap(Queue, async archive =>
                 {
                     Log($"Validating: {archive.Name}");
-                    return new {archive, is_valid = archive.State.Verify()};
-                })
+                    return new {archive, is_valid = await archive.State.Verify()};
+                }))
                 .Where(a => !a.is_valid)
                 .ToList();
 
@@ -92,9 +93,9 @@ namespace Wabbajack.Test.ListValidation
             TestContext.WriteLine(msg);
         }
 
-        public static IEnumerable<object[]> GetModLists()
+        public static async Task<IEnumerable<object[]>> GetModLists()
         {
-            return ModlistMetadata.LoadFromGithub().Select(l => new object[] {l.Title, l});
+            return (await ModlistMetadata.LoadFromGithub()).Select(l => new object[] {l.Title, l});
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 
@@ -18,7 +19,7 @@ namespace Wabbajack.Lib.CompilationSteps
             };
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             if (!_cruftFiles.Any(f => source.Path.StartsWith(f))) return null;
             var result = source.EvolveTo<IgnoredDirectly>();

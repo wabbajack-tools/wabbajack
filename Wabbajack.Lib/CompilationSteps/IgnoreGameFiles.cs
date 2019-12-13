@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
@@ -12,7 +13,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _startDir = Consts.GameFolderFilesDir + "\\";
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             if (!source.Path.StartsWith(_startDir)) return null;
             var i = source.EvolveTo<IgnoredDirectly>();

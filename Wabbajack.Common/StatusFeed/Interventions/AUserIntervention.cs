@@ -17,7 +17,7 @@ namespace Wabbajack.Common
         private bool _handled;
         public bool Handled { get => _handled; set => this.RaiseAndSetIfChanged(ref _handled, value); }
 
-        public int CpuID { get; } = WorkQueue.CpuId;
+        public int CpuID { get; } = WorkQueue.AsyncLocalCurrentQueue.Value?.CpuId ?? WorkQueue.UnassignedCpuId;
 
         public abstract void Cancel();
         public ICommand CancelCommand { get; }

@@ -20,9 +20,8 @@ namespace Wabbajack.Lib.Downloaders
     {
         internal HttpClient _authedClient;
 
-        public AbstractDownloadState GetDownloaderState(dynamic archive_ini)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archive_ini)
         {
-
             Uri url = DownloaderUtils.GetDirectURL(archive_ini);
             if (url == null || url.Host != "www.loverslab.com" || !url.AbsolutePath.StartsWith("/files/file/")) return null;
             var id = HttpUtility.ParseQueryString(url.Query)["r"];
@@ -35,9 +34,9 @@ namespace Wabbajack.Lib.Downloaders
             };
         }
 
-        public void Prepare()
+        public async Task Prepare()
         {
-            _authedClient = GetAuthedClient().Result ?? throw new Exception("not logged into LL, TODO");
+            _authedClient = (await GetAuthedClient()) ?? throw new Exception("not logged into LL, TODO");
         }
 
         public static async Task<Helpers.Cookie[]> GetAndCacheLoversLabCookies(BaseCefBrowser browser, Action<string> updateStatus, CancellationToken cancel)
@@ -99,9 +98,9 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override void Download(Archive a, string destination)
+            public override async Task Download(Archive a, string destination)
             {
-                var stream = ResolveDownloadStream().Result;
+                var stream = await ResolveDownloadStream();
                 using (var file = File.OpenWrite(destination))
                 {
                     stream.CopyTo(file);
@@ -155,9 +154,9 @@ namespace Wabbajack.Lib.Downloaders
                 public int currentTime { get; set; }
             }
 
-            public override bool Verify()
+            public override async Task<bool> Verify()
             {
-                var stream = ResolveDownloadStream().Result;
+                var stream = await ResolveDownloadStream();
                 if (stream == null)
                 {
                     return false;
@@ -165,7 +164,6 @@ namespace Wabbajack.Lib.Downloaders
 
                 stream.Close();
                 return true;
-
             }
 
             public override IDownloader GetDownloader()

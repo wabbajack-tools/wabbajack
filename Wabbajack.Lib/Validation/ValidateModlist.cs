@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -17,8 +18,13 @@ namespace Wabbajack.Lib.Validation
     {
         public Dictionary<string, Author> AuthorPermissions { get; set; } = new Dictionary<string, Author>();
 
-        private WorkQueue Queue = new WorkQueue();
+        private readonly WorkQueue _queue;
         public ServerWhitelist ServerWhitelist { get; set; } = new ServerWhitelist();
+
+        public ValidateModlist(WorkQueue workQueue)
+        {
+            _queue = workQueue;
+        }
 
         public void LoadAuthorPermissionsFromString(string s)
         {
@@ -30,18 +36,18 @@ namespace Wabbajack.Lib.Validation
             ServerWhitelist = s.FromYaml<ServerWhitelist>();
         }
 
-        public void LoadListsFromGithub()
+        public async Task LoadListsFromGithub()
         {
             var client = new HttpClient();
             Utils.Log("Loading Nexus Mod Permissions");
-            using (var result = client.GetStreamSync(Consts.ModPermissionsURL))
+            using (var result = await client.GetStreamAsync(Consts.ModPermissionsURL))
             {
                 AuthorPermissions = result.FromYaml<Dictionary<string, Author>>();
                 Utils.Log($"Loaded permissions for {AuthorPermissions.Count} authors");
             }
 
             Utils.Log("Loading Server Whitelist");
-            using (var result = client.GetStreamSync(Consts.ServerWhitelistURL))
+            using (var result = await client.GetStreamAsync(Consts.ServerWhitelistURL))
             {
                 ServerWhitelist = result.FromYaml<ServerWhitelist>();
                 Utils.Log($"Loaded permissions for {ServerWhitelist.AllowedPrefixes.Count} servers and {ServerWhitelist.GoogleIDs.Count} GDrive files");
@@ -49,14 +55,14 @@ namespace Wabbajack.Lib.Validation
 
         }
 
-        public static void RunValidation(ModList modlist)
+        public static async Task RunValidation(WorkQueue queue, ModList modlist)
         {
-            var validator = new ValidateModlist();
+            var validator = new ValidateModlist(queue);
 
-            validator.LoadListsFromGithub();
+            await validator.LoadListsFromGithub();
 
             Utils.Log("Running validation checks");
-            var errors = validator.Validate(modlist);
+            var errors = await validator.Validate(modlist);
             errors.Do(e => Utils.Log(e));
             if (errors.Count() > 0)
             {
@@ -97,18 +103,18 @@ namespace Wabbajack.Lib.Validation
             };
         }
 
-        public IEnumerable<string> Validate(ModList modlist)
+        public async Task<IEnumerable<string>> Validate(ModList modlist)
         {
             ConcurrentStack<string> ValidationErrors = new ConcurrentStack<string>();
             
-            var nexus_mod_permissions = modlist.Archives
+            var nexus_mod_permissions = (await modlist.Archives
                 .Where(a => a.State is NexusDownloader.State)
-                .PMap(Queue, a => (a.Hash, FilePermissions((NexusDownloader.State)a.State), a))
+                .PMap(_queue, a => (a.Hash, FilePermissions((NexusDownloader.State)a.State), a)))
                 .ToDictionary(a => a.Hash, a => new { permissions = a.Item2, archive = a.a });
 
-            modlist.Directives
+            await modlist.Directives
                 .OfType<PatchedFromArchive>()
-                .PMap(Queue, p =>
+                .PMap(_queue, p =>
                 {
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {
@@ -125,9 +131,9 @@ namespace Wabbajack.Lib.Validation
                     }
                 });
 
-            modlist.Directives
+            await modlist.Directives
                 .OfType<FromArchive>()
-                .PMap(Queue,p =>
+                .PMap(_queue, p =>
                 {
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -31,13 +32,13 @@ namespace Wabbajack.Test
             utils.Dispose();
         }
 
-        protected VortexCompiler ConfigureAndRunCompiler()
+        protected async Task<VortexCompiler> ConfigureAndRunCompiler()
         {
             var vortexCompiler = MakeCompiler();
             vortexCompiler.DownloadsFolder = utils.DownloadsFolder;
             vortexCompiler.StagingFolder = utils.InstallFolder;
             Directory.CreateDirectory(utils.InstallFolder);
-            Assert.IsTrue(vortexCompiler.Begin().Result);
+            Assert.IsTrue(await vortexCompiler.Begin());
             return vortexCompiler;
         }
 
@@ -52,9 +53,9 @@ namespace Wabbajack.Test
                 outputFile: $"test{ExtensionManager.Extension}");
         }
 
-        protected ModList CompileAndInstall()
+        protected async Task<ModList> CompileAndInstall()
         {
-            var vortexCompiler = ConfigureAndRunCompiler();
+            var vortexCompiler = await ConfigureAndRunCompiler();
             Install(vortexCompiler);
             return vortexCompiler.ModList;
         }

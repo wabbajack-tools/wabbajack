@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
 using Alphaleonis.Win32.Filesystem;
 using IniParser;
@@ -34,9 +36,10 @@ namespace Wabbajack.Lib
         {
         }
 
-        protected override bool _Begin()
+        protected override async Task<bool> _Begin(CancellationToken cancel)
         {
-            ConfigureProcessor(18, RecommendQueueSize());
+            if (cancel.IsCancellationRequested) return false;
+            ConfigureProcessor(18, await RecommendQueueSize());
             var game = ModList.GameType.MetaData();
 
             if (GameFolder == null)
@@ -52,35 +55,41 @@ namespace Wabbajack.Lib
                 return false;
             }
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Validating Game ESMs");
             ValidateGameESMs();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Validating Modlist");
-            ValidateModlist.RunValidation(ModList);
+            await ValidateModlist.RunValidation(Queue, ModList);
 
             Directory.CreateDirectory(OutputFolder);
             Directory.CreateDirectory(DownloadFolder);
 
             if (Directory.Exists(Path.Combine(OutputFolder, "mods")) && WarnOnOverwrite)
             {
-                if (Utils.Log(new ConfirmUpdateOfExistingInstall { ModListName = ModList.Name, OutputFolder = OutputFolder}).Task.Result == ConfirmUpdateOfExistingInstall.Choice.Abort)
+                if ((await Utils.Log(new ConfirmUpdateOfExistingInstall { ModListName = ModList.Name, OutputFolder = OutputFolder }).Task) == ConfirmUpdateOfExistingInstall.Choice.Abort)
                 {
                     Utils.Log("Existing installation at the request of the user, existing mods folder found.");
                     return false;
                 }
             }
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Optimizing Modlist");
-            OptimizeModlist();
+            await OptimizeModlist();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Hashing Archives");
-            HashArchives();
+            await HashArchives();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Downloading Missing Archives");
-            DownloadArchives();
+            await DownloadArchives();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Hashing Remaining Archives");
-            HashArchives();
+            await HashArchives();
 
             var missing = ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash)).ToList();
             if (missing.Count > 0)
@@ -93,26 +102,33 @@ namespace Wabbajack.Lib
                     Error("Cannot continue, was unable to download one or more archives");
             }
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Priming VFS");
-            PrimeVFS();
+            await PrimeVFS();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Building Folder Structure");
             BuildFolderStructure();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Installing Archives");
-            InstallArchives();
+            await InstallArchives();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Installing Included files");
-            InstallIncludedFiles();
+            await InstallIncludedFiles();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Installing Archive Metas");
-            InstallIncludedDownloadMetas();
+            await InstallIncludedDownloadMetas();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Building BSAs");
-            BuildBSAs();
+            await BuildBSAs();
 
+            if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Generating Merges");
-            zEditIntegration.GenerateMerges(this);
+            await zEditIntegration.GenerateMerges(this);
 
             UpdateTracker.NextStep("Updating System-specific ini settings");
             SetScreenSizeInPrefs();
@@ -122,9 +138,9 @@ namespace Wabbajack.Lib
         }
 
 
-        private void InstallIncludedDownloadMetas()
+        private async Task InstallIncludedDownloadMetas()
         {
-            ModList.Directives
+            await ModList.Directives
                    .OfType<ArchiveMeta>()
                    .PMap(Queue, directive =>
                    {
@@ -150,7 +166,7 @@ namespace Wabbajack.Lib
             }
         }
 
-        private void AskToEndorse()
+        private async Task AskToEndorse()
         {
             var mods = ModList.Archives
                 .Select(m => m.State)
@@ -177,27 +193,28 @@ namespace Wabbajack.Lib
                 mods[b] = tmp;
             }
 
-            mods.PMap(Queue, mod =>
+            await mods.PMap(Queue, async mod =>
             {
-                var er = new NexusApiClient().EndorseMod(mod);
+                var client = await NexusApiClient.Get();
+                var er = await client.EndorseMod(mod);
                 Utils.Log($"Endorsed {mod.GameName} - {mod.ModID} - Result: {er.message}");
             });
             Info("Done! You may now exit the application!");
         }
 
-        private void BuildBSAs()
+        private async Task BuildBSAs()
         {
             var bsas = ModList.Directives.OfType<CreateBSA>().ToList();
             Info($"Building {bsas.Count} bsa files");
 
-            bsas.Do(bsa =>
+            foreach (var bsa in bsas)
             {
                 Status($"Building {bsa.To}");
                 var sourceDir = Path.Combine(OutputFolder, Consts.BSACreationDir, bsa.TempID);
 
                 using (var a = bsa.State.MakeBuilder())
                 {
-                    bsa.FileStates.PMap(Queue, state =>
+                    await bsa.FileStates.PMap(Queue, state =>
                     {
                         Status($"Adding {state.Path} to BSA");
                         using (var fs = File.OpenRead(Path.Combine(sourceDir, state.Path)))
@@ -209,8 +226,7 @@ namespace Wabbajack.Lib
                     Info($"Writing {bsa.To}");
                     a.Build(Path.Combine(OutputFolder, bsa.To));
                 }
-            });
-
+            }
 
             var bsaDir = Path.Combine(OutputFolder, Consts.BSACreationDir);
             if (Directory.Exists(bsaDir))
@@ -220,10 +236,10 @@ namespace Wabbajack.Lib
             }
         }
 
-        private void InstallIncludedFiles()
+        private async Task InstallIncludedFiles()
         {
             Info("Writing inline files");
-            ModList.Directives
+            await ModList.Directives
                 .OfType<InlineFile>()
                 .PMap(Queue, directive =>
                 {

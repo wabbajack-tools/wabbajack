@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 using Wabbajack.Common;
@@ -19,7 +20,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 .ToDictionary(f => f.Key);
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             if (!_indexed.TryGetValue(Path.GetFileName(source.File.Name.ToLower()), out var choices))
                 return null;

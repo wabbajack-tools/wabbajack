@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Ceras;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
@@ -14,11 +15,10 @@ namespace Wabbajack.Lib.Downloaders
     public class HTTPDownloader : IDownloader, IUrlDownloader
     {
 
-        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url, archiveINI);
-
         }
 
         public AbstractDownloadState GetDownloaderState(string uri)
@@ -45,7 +45,7 @@ namespace Wabbajack.Lib.Downloaders
             return null;
         }
 
-        public void Prepare()
+        public async Task Prepare()
         {
         }
 
@@ -64,12 +64,12 @@ namespace Wabbajack.Lib.Downloaders
                 return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
             }
 
-            public override void Download(Archive a, string destination)
+            public override Task Download(Archive a, string destination)
             {
-                DoDownload(a, destination, true);
+                return DoDownload(a, destination, true);
             }
 
-            public bool DoDownload(Archive a, string destination, bool download)
+            public async Task<bool> DoDownload(Archive a, string destination, bool download)
             {
                 var client = Client ?? new HttpClient();
                 client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
@@ -86,19 +86,17 @@ namespace Wabbajack.Lib.Downloaders
                 long totalRead = 0;
                 var bufferSize = 1024 * 32;
 
-                var response = client.GetSync(Url);
-                var stream = response.Content.ReadAsStreamAsync();
+                Utils.Status($"Starting Download {a?.Name ?? Url}", 0);
+                var response = await client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
+
+                Stream stream;
                 try
                 {
-                    stream.Wait();
+                    stream = await response.Content.ReadAsStreamAsync();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                }
-
-                if (stream.IsFaulted || response.StatusCode != HttpStatusCode.OK)
-                {
-                    Utils.Error(stream.Exception, $"While downloading {Url}");
+                    Utils.Error(ex, $"While downloading {Url}");
                     return false;
                 }
 
@@ -117,7 +115,7 @@ namespace Wabbajack.Lib.Downloaders
                     Directory.CreateDirectory(fileInfo.Directory.FullName);
                 }
 
-                using (var webs = stream.Result)
+                using (var webs = stream)
                 using (var fs = File.OpenWrite(destination))
                 {
                     var buffer = new byte[bufferSize];
@@ -135,9 +133,9 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override bool Verify()
+            public override async Task<bool> Verify()
             {
-                return DoDownload(new Archive {Name = ""}, "", false);
+                return await DoDownload(new Archive {Name = ""}, "", false);
             }
 
             public override IDownloader GetDownloader()

@@ -1,4 +1,6 @@
-﻿namespace Wabbajack.Lib.CompilationSteps
+﻿using System.Threading.Tasks;
+
+namespace Wabbajack.Lib.CompilationSteps
 {
     public abstract class ACompilationStep : ICompilationStep
     {
@@ -9,7 +11,7 @@
             _compiler = compiler;
         }
 
-        public abstract Directive Run(RawSourceFile source);
+        public abstract ValueTask<Directive> Run(RawSourceFile source);
         public abstract IState GetState();
     }
 }

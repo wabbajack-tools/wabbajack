@@ -32,22 +32,17 @@ namespace Wabbajack.Lib.NexusApi
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
         private static string _additionalEntropy = "vtP2HF6ezg";
 
-        private readonly HttpClient _httpClient;
-
-        public HttpClient HttpClient => _httpClient;
-
+        public HttpClient HttpClient { get; } = new HttpClient();
 
         #region Authentication
 
-        private readonly string _apiKey;
+        public string ApiKey { get; }
 
-        public string ApiKey => _apiKey;
+        public bool IsAuthenticated => ApiKey != null;
 
-        public bool IsAuthenticated => _apiKey != null;
+        private Task<UserStatus> _userStatus;
 
-        private UserStatus _userStatus;
-
-        public UserStatus UserStatus
+        public Task<UserStatus> UserStatus
         {
             get
             {
@@ -57,15 +52,19 @@ namespace Wabbajack.Lib.NexusApi
             }
         }
 
-        public bool IsPremium => IsAuthenticated && UserStatus.is_premium;
-
-        public string Username => UserStatus?.name;
-
-
-        private static object _getAPIKeyLock = new object();
-        private static string GetApiKey()
+        public async Task<bool> IsPremium()
         {
-            lock (_getAPIKeyLock)
+            return IsAuthenticated && (await UserStatus).is_premium;
+        }
+
+        public async Task<string> Username() => (await UserStatus).name;
+
+        private static SemaphoreSlim _getAPIKeyLock = new SemaphoreSlim(1, 1);
+        private static async Task<string> GetApiKey()
+        {
+            await _getAPIKeyLock.WaitAsync();
+
+            try
             {
                 // Clean up old location
                 if (File.Exists(API_KEY_CACHE_FILE))
@@ -87,9 +86,13 @@ namespace Wabbajack.Lib.NexusApi
                     return env_key;
                 }
 
-                var result = Utils.Log(new RequestNexusAuthorization()).Task.Result;
+                var result = await Utils.Log(new RequestNexusAuthorization()).Task;
                 result.ToEcryptedJson("nexusapikey");
                 return result;
+            }
+            finally
+            {
+                _getAPIKeyLock.Release();
             }
         }
 
@@ -153,10 +156,10 @@ namespace Wabbajack.Lib.NexusApi
             }
         }
 
-        public UserStatus GetUserStatus()
+        public async Task<UserStatus> GetUserStatus()
         {
             var url = "https://api.nexusmods.com/v1/users/validate.json";
-            return Get<UserStatus>(url);
+            return await Get<UserStatus>(url);
         }
 
         #endregion
@@ -213,16 +216,14 @@ namespace Wabbajack.Lib.NexusApi
 
         #endregion
 
-
-        public NexusApiClient(string apiKey = null)
+        private NexusApiClient(string apiKey = null)
         {
-            _apiKey = apiKey ?? GetApiKey();
-            _httpClient = new HttpClient();
+            ApiKey = apiKey;
 
             // set default headers for all requests to the Nexus API
-            var headers = _httpClient.DefaultRequestHeaders;
+            var headers = HttpClient.DefaultRequestHeaders;
             headers.Add("User-Agent", Consts.UserAgent);
-            headers.Add("apikey", _apiKey);
+            headers.Add("apikey", ApiKey);
             headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             headers.Add("Application-Name", Consts.AppName);
             headers.Add("Application-Version", $"{Assembly.GetEntryAssembly()?.GetName()?.Version ?? new Version(0, 1)}");
@@ -231,24 +232,24 @@ namespace Wabbajack.Lib.NexusApi
                 Directory.CreateDirectory(Consts.NexusCacheDirectory);
         }
 
-        private T Get<T>(string url)
+        public static async Task<NexusApiClient> Get(string apiKey = null)
         {
-            Task<HttpResponseMessage> responseTask = _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-            responseTask.Wait();
+            apiKey = apiKey ?? await GetApiKey();
+            return new NexusApiClient(apiKey);
+        }
 
-            var response = responseTask.Result;
+        private async Task<T> Get<T>(string url)
+        {
+            var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             UpdateRemaining(response);
 
-            var contentTask = response.Content.ReadAsStreamAsync();
-            contentTask.Wait();
-
-            using (var stream = contentTask.Result)
+            using (var stream = await response.Content.ReadAsStreamAsync())
             {
                 return stream.FromJSON<T>();
             }
         }
 
-        private T GetCached<T>(string url)
+        private async Task<T> GetCached<T>(string url)
         {
             var code = Encoding.UTF8.GetBytes(url).ToHex() + ".json";
 
@@ -263,7 +264,7 @@ namespace Wabbajack.Lib.NexusApi
                     return cache_file.FromJSON<T>();
                 }
 
-                var result = Get<T>(url);
+                var result = await Get<T>(url);
                 if (result != null)
                     result.ToJSON(cache_file);
                 return result;
@@ -271,27 +272,33 @@ namespace Wabbajack.Lib.NexusApi
 
             try
             {
-                return Get<T>(Consts.WabbajackCacheLocation + code);
+                return await Get<T>(Consts.WabbajackCacheLocation + code);
             }
             catch (Exception)
             {
-                return Get<T>(url);
+                return await Get<T>(url);
             }
 
         }
 
-        public string GetNexusDownloadLink(NexusDownloader.State archive, bool cache = false)
+        public async Task<string> GetNexusDownloadLink(NexusDownloader.State archive, bool cache = false)
         {
-            if (cache && TryGetCachedLink(archive, out var result))
-                return result;
+            if (cache)
+            {
+                var result = await TryGetCachedLink(archive);
+                if (result.Succeeded)
+                {
+                    return result.Value;
+                }
+            }
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(archive.GameName)}/mods/{archive.ModID}/files/{archive.FileID}/download_link.json";
-            return Get<List<DownloadLink>>(url).First().URI;
+            return (await Get<List<DownloadLink>>(url)).First().URI;
         }
 
-        private bool TryGetCachedLink(NexusDownloader.State archive, out string result)
+        private async Task<GetResponse<string>> TryGetCachedLink(NexusDownloader.State archive)
         {
             if (!Directory.Exists(Consts.NexusCacheDirectory))
                 Directory.CreateDirectory(Consts.NexusCacheDirectory);
@@ -300,19 +307,18 @@ namespace Wabbajack.Lib.NexusApi
             if (!File.Exists(path) || (DateTime.Now - new FileInfo(path).LastWriteTime).TotalHours > 24)
             {
                 File.Delete(path);
-                result = GetNexusDownloadLink(archive);
+                var result = await GetNexusDownloadLink(archive);
                 File.WriteAllText(path, result);
-                return true;
+                return GetResponse<string>.Succeed(result);
             }
 
-            result = File.ReadAllText(path);
-            return true;
+            return GetResponse<string>.Succeed(File.ReadAllText(path));
         }
 
-        public NexusFileInfo GetFileInfo(NexusDownloader.State mod)
+        public async Task<NexusFileInfo> GetFileInfo(NexusDownloader.State mod)
         {
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/files/{mod.FileID}.json";
-            return GetCached<NexusFileInfo>(url);
+            return await GetCached<NexusFileInfo>(url);
         }
 
         public class GetModFilesResponse
@@ -320,32 +326,32 @@ namespace Wabbajack.Lib.NexusApi
             public List<NexusFileInfo> files;
         }
 
-        public GetModFilesResponse GetModFiles(Game game, int modid)
+        public async Task<GetModFilesResponse> GetModFiles(Game game, int modid)
         {
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modid}/files.json";
-            return GetCached<GetModFilesResponse>(url);
+            return await GetCached<GetModFilesResponse>(url);
         }
 
-        public List<MD5Response> GetModInfoFromMD5(Game game, string md5Hash)
+        public async Task<List<MD5Response>> GetModInfoFromMD5(Game game, string md5Hash)
         {
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/md5_search/{md5Hash}.json";
-            return Get<List<MD5Response>>(url);
+            return await Get<List<MD5Response>>(url);
         }
 
-        public ModInfo GetModInfo(Game game, string modId)
+        public async Task<ModInfo> GetModInfo(Game game, string modId)
         {
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modId}.json";
-            return GetCached<ModInfo>(url);
+            return await GetCached<ModInfo>(url);
         }
 
-        public EndorsementResponse EndorseMod(NexusDownloader.State mod)
+        public async Task<EndorsementResponse> EndorseMod(NexusDownloader.State mod)
         {
             Utils.Status($"Endorsing ${mod.GameName} - ${mod.ModID}");
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/endorse.json";
 
             var content = new FormUrlEncodedContent(new Dictionary<string, string> { { "version", mod.Version } });
 
-            using (var stream = _httpClient.PostStreamSync(url, content))
+            using (var stream = await HttpClient.PostStream(url, content))
             {
                 return stream.FromJSON<EndorsementResponse>();
             }
@@ -386,27 +392,33 @@ namespace Wabbajack.Lib.NexusApi
             set => _localCacheDir = value;
         }
 
-        public void ClearUpdatedModsInCache()
+
+        public async Task ClearUpdatedModsInCache()
         {
             if (!UseLocalCache) return;
 
-            var purge = GameRegistry.Games.Values
+            var gameTasks = GameRegistry.Games.Values
                 .Where(game => game.NexusName != null)
-                .Select(game => new
+                .Select(async game =>
                 {
-                    game = game,
-                    mods = Get<List<UpdatedMod>>(
-                        $"https://api.nexusmods.com/v1/games/{game.NexusName}/mods/updated.json?period=1m")
+                    return (game,
+                        mods: await Get<List<UpdatedMod>>(
+                            $"https://api.nexusmods.com/v1/games/{game.NexusName}/mods/updated.json?period=1m"));
                 })
-                .SelectMany(r => r.mods.Select(mod => new {game = r.game, 
-                                                           mod = mod}))
+                .Select(async rTask =>
+                {
+                    var (game, mods) = await rTask;
+                    return mods.Select(mod => new { game = game, mod = mod });
+                });
+            var purge = (await Task.WhenAll(gameTasks))
+                .SelectMany(i => i)
                 .ToList();
 
             Utils.Log($"Found {purge.Count} updated mods in the last month");
             using (var queue = new WorkQueue())
             {
-                var to_purge = Directory.EnumerateFiles(LocalCacheDir, "*.json")
-                    .PMap(queue,f =>
+                var to_purge = (await Directory.EnumerateFiles(LocalCacheDir, "*.json")
+                    .PMap(queue, f =>
                     {
                         Utils.Status("Cleaning Nexus cache for");
                         var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f).FromHex()));
@@ -420,24 +432,24 @@ namespace Wabbajack.Lib.NexusApi
                             return (should_remove, f);
                         }
 
+                        // ToDo
+                        // Can improve to not read the entire file to see if it starts with null
                         if (File.ReadAllText(f).StartsWith("null"))
                             return (true, f);
 
                         return (false, f);
-                    })
+                    }))
                     .Where(p => p.Item1)
                     .ToList();
 
                 Utils.Log($"Purging {to_purge.Count} cache entries");
-                to_purge.PMap(queue, f =>
+                await to_purge.PMap(queue, f =>
                 {
                     var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f.f).FromHex()));
                     Utils.Log($"Purging {uri}");
                     File.Delete(f.f);
                 });
             }
-
         }
     }
-
 }

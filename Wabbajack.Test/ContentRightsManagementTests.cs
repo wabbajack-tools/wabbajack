@@ -6,6 +6,8 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Validation;
 using Game = Wabbajack.Common.Game;
+using Wabbajack.Common;
+using System.Threading.Tasks;
 
 namespace Wabbajack.Test
 {
@@ -47,9 +49,12 @@ namespace Wabbajack.Test
         [TestInitialize]
         public void TestSetup()
         {
-            validate = new ValidateModlist();
-            validate.LoadAuthorPermissionsFromString(permissions);
-            validate.LoadServerWhitelist(server_whitelist);
+            using (var workQueue = new WorkQueue())
+            {
+                validate = new ValidateModlist(workQueue);
+                validate.LoadAuthorPermissionsFromString(permissions);
+                validate.LoadServerWhitelist(server_whitelist);
+            }
         }
 
         [TestMethod]
@@ -123,7 +128,7 @@ namespace Wabbajack.Test
 
 
         [TestMethod]
-        public void TestModValidation()
+        public async Task TestModValidation()
         {
             var modlist = new ModList
             {
@@ -156,7 +161,7 @@ namespace Wabbajack.Test
             IEnumerable<string> errors;
 
             // No errors, simple archive extraction
-            errors = validate.Validate(modlist);
+            errors = await validate.Validate(modlist);
             Assert.AreEqual(errors.Count(), 0);
 
 
@@ -167,7 +172,7 @@ namespace Wabbajack.Test
                 ArchiveHashPath = new[] {"DEADBEEF", "foo\\bar\\baz.pex"},
             };
 
-            errors = validate.Validate(modlist);
+            errors = await validate.Validate(modlist);
             Assert.AreEqual(errors.Count(), 1);
 
             // Error due to extracted BSA file
@@ -176,7 +181,7 @@ namespace Wabbajack.Test
                 ArchiveHashPath = new[] { "DEADBEEF", "foo.bsa", "foo\\bar\\baz.dds" },
             };
 
-            errors = validate.Validate(modlist);
+            errors = await validate.Validate(modlist);
             Assert.AreEqual(errors.Count(), 1);
 
             // No error since we're just installing the .bsa, not extracting it
@@ -185,7 +190,7 @@ namespace Wabbajack.Test
                 ArchiveHashPath = new[] { "DEADBEEF", "foo.bsa"},
             };
 
-            errors = validate.Validate(modlist);
+            errors = await validate.Validate(modlist);
             Assert.AreEqual(0, errors.Count());
             
             // Error due to game conversion
@@ -194,7 +199,7 @@ namespace Wabbajack.Test
             {
                 ArchiveHashPath = new[] { "DEADBEEF", "foo\\bar\\baz.dds" },
             };
-            errors = validate.Validate(modlist);
+            errors = await validate.Validate(modlist);
             Assert.AreEqual(errors.Count(), 1);
 
             // Error due to file downloaded from 3rd party
@@ -204,7 +209,7 @@ namespace Wabbajack.Test
                 State = new HTTPDownloader.State() { Url = "https://somebadplace.com" },
                 Hash = "DEADBEEF"
             };
-            errors = validate.Validate(modlist);
+            errors = await validate.Validate(modlist);
             Assert.AreEqual(1, errors.Count());
 
             // Ok due to file downloaded from whitelisted 3rd party
@@ -214,7 +219,7 @@ namespace Wabbajack.Test
                 State = new HTTPDownloader.State { Url = "https://somegoodplace.com/baz.7z" },
                 Hash = "DEADBEEF"
             };
-            errors = validate.Validate(modlist);
+            errors = await validate.Validate(modlist);
             Assert.AreEqual(0, errors.Count());
 
 
@@ -225,7 +230,7 @@ namespace Wabbajack.Test
                 State = new GoogleDriveDownloader.State { Id = "bleg"},
                 Hash = "DEADBEEF"
             };
-            errors = validate.Validate(modlist);
+            errors = await validate.Validate(modlist);
             Assert.AreEqual(errors.Count(), 1);
 
             // Ok due to file downloaded from good google site
@@ -235,17 +240,18 @@ namespace Wabbajack.Test
                 State = new GoogleDriveDownloader.State { Id = "googleDEADBEEF" },
                 Hash = "DEADBEEF"
             };
-            errors = validate.Validate(modlist);
+            errors = await validate.Validate(modlist);
             Assert.AreEqual(0, errors.Count());
 
         }
 
         [TestMethod]
-        public void CanLoadFromGithub()
+        public async Task CanLoadFromGithub()
         {
-            new ValidateModlist().LoadListsFromGithub();
+            using (var workQueue = new WorkQueue())
+            {
+                await new ValidateModlist(workQueue).LoadListsFromGithub();
+            }
         }
     }
-
-
 }

@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 using Wabbajack.Common;
@@ -14,7 +15,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _mo2Compiler = (MO2Compiler) compiler;
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             return Consts.ConfigFileExtensions.Contains(Path.GetExtension(source.Path)) ? RemapFile(source) : null;
         }

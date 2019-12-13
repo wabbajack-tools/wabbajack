@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
@@ -9,22 +10,22 @@ namespace Wabbajack.Test
     public class ModlistMetadataTests
     {
         [TestMethod]
-        public void TestLoadingModlists()
+        public async Task TestLoadingModlists()
         {
-            var modlists = ModlistMetadata.LoadFromGithub();
+            var modlists = await ModlistMetadata.LoadFromGithub();
             Assert.IsTrue(modlists.Count > 0);
         }
 
         [TestMethod]
-        public void VerifyLogoURLs()
+        public async Task VerifyLogoURLs()
         {
-            var modlists = ModlistMetadata.LoadFromGithub();
+            var modlists = await ModlistMetadata.LoadFromGithub();
 
             foreach (var modlist in modlists.Select(m => m.Links))
             {
                 var logo_state = DownloadDispatcher.ResolveArchive(modlist.ImageUri);
                 Assert.IsNotNull(logo_state);
-                Assert.IsTrue(logo_state.Verify(), $"{modlist.ImageUri} is not valid");
+                Assert.IsTrue(await logo_state.Verify(), $"{modlist.ImageUri} is not valid");
             }
         }
     }

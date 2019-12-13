@@ -46,7 +46,7 @@ namespace Wabbajack.VirtualFileSystem
             return new TemporaryDirectory(Path.Combine(_stagingFolder, Guid.NewGuid().ToString()));
         }
 
-        public IndexRoot AddRoot(string root)
+        public async Task<IndexRoot> AddRoot(string root)
         {
             if (!Path.IsPathRooted(root))
                 throw new InvalidDataException($"Path is not absolute: {root}");
@@ -59,8 +59,8 @@ namespace Wabbajack.VirtualFileSystem
             
             var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing {root}", filesToIndex.Count));
 
-            var allFiles= filesToIndex
-                            .PMap(Queue, f =>
+            var allFiles = await filesToIndex
+                            .PMap(Queue, async f =>
                             {
                                 if (byPath.TryGetValue(f, out var found))
                                 {
@@ -69,10 +69,10 @@ namespace Wabbajack.VirtualFileSystem
                                         return found;
                                 }
 
-                                return VirtualFile.Analyze(this, null, f, f);
+                                return await VirtualFile.Analyze(this, null, f, f);
                             });
 
-            var newIndex = IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
+            var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
 
             lock (this)
             {
@@ -82,7 +82,7 @@ namespace Wabbajack.VirtualFileSystem
             return newIndex;
         }
 
-        public IndexRoot AddRoots(List<string> roots)
+        public async Task<IndexRoot> AddRoots(List<string> roots)
         {
             if (!roots.All(p => Path.IsPathRooted(p)))
                 throw new InvalidDataException($"Paths are not absolute");
@@ -95,8 +95,8 @@ namespace Wabbajack.VirtualFileSystem
 
             var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing roots", filesToIndex.Count));
 
-            var allFiles = filesToIndex
-                .PMap(Queue, f =>
+            var allFiles = await filesToIndex
+                .PMap(Queue, async f =>
                 {
                     if (byPath.TryGetValue(f, out var found))
                     {
@@ -105,10 +105,10 @@ namespace Wabbajack.VirtualFileSystem
                             return found;
                     }
 
-                    return VirtualFile.Analyze(this, null, f, f);
+                    return await VirtualFile.Analyze(this, null, f, f);
                 });
 
-            var newIndex = IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
+            var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
 
             lock (this)
             {
@@ -137,7 +137,7 @@ namespace Wabbajack.VirtualFileSystem
             });
         }
 
-        public void WriteToFile(string filename)
+        public async Task WriteToFile(string filename)
         {
             using (var fs = File.OpenWrite(filename))
             using (var bw = new BinaryWriter(fs, Encoding.UTF8, true))
@@ -148,13 +148,13 @@ namespace Wabbajack.VirtualFileSystem
                 bw.Write(FileVersion);
                 bw.Write((ulong) Index.AllFiles.Count);
 
-                Index.AllFiles
+                (await Index.AllFiles
                     .PMap(Queue, f =>
                     {
                         var ms = new MemoryStream();
                         f.Write(ms);
                         return ms;
-                    })
+                    }))
                     .Do(ms =>
                     {
                         var size = ms.Position;
@@ -166,7 +166,7 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        public void IntegrateFromFile(string filename)
+        public async Task IntegrateFromFile(string filename)
         {
             try
             {
@@ -188,7 +188,7 @@ namespace Wabbajack.VirtualFileSystem
                             br.BaseStream.Read(bytes, 0, (int) size);
                             return VirtualFile.Read(this, bytes);
                         }).ToList();
-                    var newIndex = Index.Integrate(files);
+                    var newIndex = await Index.Integrate(files);
                     lock (this)
                     {
                         Index = newIndex;
@@ -202,7 +202,7 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        public Action Stage(IEnumerable<VirtualFile> files)
+        public async Task<Action> Stage(IEnumerable<VirtualFile> files)
         {
             var grouped = files.SelectMany(f => f.FilesInFullPath)
                 .Distinct()
@@ -216,7 +216,7 @@ namespace Wabbajack.VirtualFileSystem
             foreach (var group in grouped)
             {
                 var tmpPath = Path.Combine(_stagingFolder, Guid.NewGuid().ToString());
-                FileExtractor.ExtractAll(Queue, group.Key.StagedPath, tmpPath);
+                await FileExtractor.ExtractAll(Queue, group.Key.StagedPath, tmpPath);
                 paths.Add(tmpPath);
                 foreach (var file in group)
                     file.StagedPath = Path.Combine(tmpPath, file.Name);
@@ -245,23 +245,23 @@ namespace Wabbajack.VirtualFileSystem
                 }).ToList();
         }
 
-        public void IntegrateFromPortable(List<PortableFile> state, Dictionary<string, string> links)
+        public async Task IntegrateFromPortable(List<PortableFile> state, Dictionary<string, string> links)
         {
             var indexedState = state.GroupBy(f => f.ParentHash)
                 .ToDictionary(f => f.Key ?? "", f => (IEnumerable<PortableFile>) f);
-            var parents = indexedState[""]
+            var parents = await indexedState[""]
                 .PMap(Queue,f => VirtualFile.CreateFromPortable(this, indexedState, links, f));
 
-            var newIndex = Index.Integrate(parents);
+            var newIndex = await Index.Integrate(parents);
             lock (this)
             {
                 Index = newIndex;
             }
         }
 
-        public DisposableList<VirtualFile> StageWith(IEnumerable<VirtualFile> files)
+        public async Task<DisposableList<VirtualFile>> StageWith(IEnumerable<VirtualFile> files)
         {
-            return new DisposableList<VirtualFile>(Stage(files), files);
+            return new DisposableList<VirtualFile>(await Stage(files), files);
         }
 
 
@@ -273,7 +273,7 @@ namespace Wabbajack.VirtualFileSystem
             _knownFiles.AddRange(known);
         }
 
-        public void BackfillMissing()
+        public async Task BackfillMissing()
         {
             var newFiles = _knownFiles.Where(f => f.Paths.Length == 1)
                                        .GroupBy(f => f.Hash)
@@ -307,7 +307,7 @@ namespace Wabbajack.VirtualFileSystem
             }
             _knownFiles.Where(f => f.Paths.Length > 1).Do(BackFillOne);
 
-            var newIndex = Index.Integrate(newFiles.Values.ToList());
+            var newIndex = await Index.Integrate(newFiles.Values.ToList());
 
             lock (this)
                 Index = newIndex;
@@ -373,7 +373,7 @@ namespace Wabbajack.VirtualFileSystem
         public ImmutableDictionary<string, ImmutableStack<VirtualFile>> ByName { get; set; }
         public ImmutableDictionary<string, VirtualFile> ByRootPath { get; }
 
-        public IndexRoot Integrate(ICollection<VirtualFile> files)
+        public async Task<IndexRoot> Integrate(ICollection<VirtualFile> files)
         {
             Utils.Log($"Integrating {files.Count} files");
             var allFiles = AllFiles.Concat(files).GroupBy(f => f.Name).Select(g => g.Last()).ToImmutableList();
@@ -391,10 +391,10 @@ namespace Wabbajack.VirtualFileSystem
             var byRootPath = Task.Run(() => allFiles.ToImmutableDictionary(f => f.Name));
 
             var result = new IndexRoot(allFiles,
-                byFullPath.Result,
-                byHash.Result,
-                byRootPath.Result,
-                byName.Result);
+                await byFullPath,
+                await byHash,
+                await byRootPath,
+                await byName);
             Utils.Log($"Done integrating");
             return result;
         }

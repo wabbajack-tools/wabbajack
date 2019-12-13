@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
@@ -39,16 +40,16 @@ namespace Wabbajack.Test
         [TestCleanup]
         public void Cleanup()
         {
-            Queue.Shutdown();
+            Queue.Dispose();
         }
 
         [TestMethod]
-        public void CreateModlist()
+        public async Task CreateModlist()
         {
             var profile = utils.AddProfile("Default");
             var mod = utils.AddMod();
 
-            DownloadAndInstall(
+            await DownloadAndInstall(
                 "https://github.com/ModOrganizer2/modorganizer/releases/download/v2.2.1/Mod.Organizer.2.2.1.7z",
                 "Mod.Organizer.2.2.1.7z",
                 utils.MO2Folder);
@@ -59,7 +60,7 @@ namespace Wabbajack.Test
                     "directURL=https://github.com/ModOrganizer2/modorganizer/releases/download/v2.2.1/Mod.Organizer.2.2.1.7z"
                 });
 
-            DownloadAndInstall(Game.SkyrimSpecialEdition, 12604, "SkyUI");
+            await DownloadAndInstall(Game.SkyrimSpecialEdition, 12604, "SkyUI");
 
             utils.Configure();
 
@@ -77,17 +78,17 @@ namespace Wabbajack.Test
                 outputFile: profile + ExtensionManager.Extension);
             compiler.MO2DownloadsFolder = Path.Combine(utils.DownloadsFolder);
             compiler.ShowReportWhenFinished = false;
-            Assert.IsTrue(compiler.Begin().Result);
+            Assert.IsTrue(await compiler.Begin());
 
         }
 
-        private void DownloadAndInstall(string url, string filename, string mod_name = null)
+        private async Task DownloadAndInstall(string url, string filename, string mod_name = null)
         {
             var src = Path.Combine(DOWNLOAD_FOLDER, filename);
             if (!File.Exists(src))
             {
                 var state = DownloadDispatcher.ResolveArchive(url);
-                state.Download(new Archive() { Name = "Unknown"}, src);
+                await state.Download(new Archive() { Name = "Unknown"}, src);
             }
 
             if (!Directory.Exists(utils.DownloadsFolder))
@@ -97,15 +98,16 @@ namespace Wabbajack.Test
 
             File.Copy(src, Path.Combine(utils.DownloadsFolder, filename));
 
-            FileExtractor.ExtractAll(Queue, src,
+            await FileExtractor.ExtractAll(Queue, src,
                 mod_name == null ? utils.MO2Folder : Path.Combine(utils.ModsFolder, mod_name));
         }
 
-        private void DownloadAndInstall(Game game, int modid, string mod_name)
+        private async Task DownloadAndInstall(Game game, int modid, string mod_name)
         {
             utils.AddMod(mod_name);
-            var client = new NexusApiClient();
-            var file = client.GetModFiles(game, modid).files.First(f => f.is_primary);
+            var client = await NexusApiClient.Get();
+            var resp = await client.GetModFiles(game, modid);
+            var file = resp.files.First(f => f.is_primary);
             var src = Path.Combine(DOWNLOAD_FOLDER, file.file_name);
 
             var ini = string.Join("\n",
@@ -132,14 +134,14 @@ namespace Wabbajack.Test
             var dest = Path.Combine(utils.DownloadsFolder, file.file_name);
             File.Copy(src, dest);
 
-            FileExtractor.ExtractAll(Queue, src, Path.Combine(utils.ModsFolder, mod_name));
+            await FileExtractor.ExtractAll(Queue, src, Path.Combine(utils.ModsFolder, mod_name));
 
             File.WriteAllText(dest + ".meta", ini);
         }
 
-        private ModList CompileAndInstall(string profile)
+        private async Task<ModList> CompileAndInstall(string profile)
         {
-            var compiler = ConfigureAndRunCompiler(profile);
+            var compiler = await ConfigureAndRunCompiler(profile);
             Install(compiler);
             return compiler.ModList;
         }
@@ -156,14 +158,14 @@ namespace Wabbajack.Test
             installer.Begin().Wait();
         }
 
-        private MO2Compiler ConfigureAndRunCompiler(string profile)
+        private async Task<MO2Compiler> ConfigureAndRunCompiler(string profile)
         {
             var compiler = new MO2Compiler(
                 mo2Folder: utils.MO2Folder,
                 mo2Profile: profile,
                 outputFile: profile + ExtensionManager.Extension);
             compiler.ShowReportWhenFinished = false;
-            Assert.IsTrue(compiler.Begin().Result);
+            Assert.IsTrue(await compiler.Begin());
             return compiler;
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using CG.Web.MegaApiClient;
 using Wabbajack.Common;
 
@@ -6,8 +7,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class MegaDownloader : IDownloader, IUrlDownloader
     {
-
-        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);
@@ -20,13 +20,13 @@ namespace Wabbajack.Lib.Downloaders
             return null;
         }
 
-        public void Prepare()
+        public async Task Prepare()
         {
         }
 
         public class State : HTTPDownloader.State
         {
-            public override void Download(Archive a, string destination)
+            public override async Task Download(Archive a, string destination)
             {
                 var client = new MegaApiClient();
                 Utils.Status("Logging into MEGA (as anonymous)");
@@ -37,7 +37,7 @@ namespace Wabbajack.Lib.Downloaders
                 client.DownloadFile(fileLink, destination);
             }
 
-            public override bool Verify()
+            public override async Task<bool> Verify()
             {
                 var client = new MegaApiClient();
                 Utils.Status("Logging into MEGA (as anonymous)");

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -15,7 +16,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _mo2Compiler = (MO2Compiler) compiler;
         }
 
-        public override Directive Run(RawSourceFile source)
+        public override async ValueTask<Directive> Run(RawSourceFile source)
         {
             var filename = Path.GetFileName(source.Path);
             var gameFile = Path.Combine(_mo2Compiler.GamePath, "Data", filename);

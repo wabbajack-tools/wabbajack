@@ -5,6 +5,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
+using System.Threading;
 using CommonMark;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
@@ -188,7 +190,7 @@ namespace Wabbajack.Lib
                 + CommonMarkConverter.Convert(File.ReadAllText($"{ModList.Name}.md"));
         }
 
-        public void GatherArchives()
+        public async Task GatherArchives()
         {
             Info("Building a list of archives based on the files required");
 
@@ -200,21 +202,21 @@ namespace Wabbajack.Lib
                 .GroupBy(f => f.File.Hash)
                 .ToDictionary(f => f.Key, f => f.First());
 
-            SelectedArchives = shas.PMap(Queue, sha => ResolveArchive(sha, archives));
+            SelectedArchives = await shas.PMap(Queue, sha => ResolveArchive(sha, archives));
         }
 
-        public Archive ResolveArchive(string sha, IDictionary<string, IndexedArchive> archives)
+        public async Task<Archive> ResolveArchive(string sha, IDictionary<string, IndexedArchive> archives)
         {
             if (archives.TryGetValue(sha, out var found))
             {
-                return ResolveArchive(found);
+                return await ResolveArchive(found);
             }
 
             Error($"No match found for Archive sha: {sha} this shouldn't happen");
             return null;
         }
 
-        public Archive ResolveArchive(IndexedArchive archive)
+        public async Task<Archive> ResolveArchive(IndexedArchive archive)
         {
             if (archive.IniData == null)
                 Error(
@@ -235,19 +237,19 @@ namespace Wabbajack.Lib
 
             Info($"Checking link for {archive.Name}");
 
-            if (result.State != null && !result.State.Verify())
+            if (result.State != null && !await result.State.Verify())
                 Error(
                     $"Unable to resolve link for {archive.Name}. If this is hosted on the Nexus the file may have been removed.");
 
             return result;
         }
 
-        public Directive RunStack(IEnumerable<ICompilationStep> stack, RawSourceFile source)
+        public async Task<Directive> RunStack(IEnumerable<ICompilationStep> stack, RawSourceFile source)
         {
             Utils.Status($"Compiling {source.Path}");
             foreach (var step in stack)
             {
-                var result = step.Run(source);
+                var result = await step.Run(source);
                 if (result != null) return result;
             }
 

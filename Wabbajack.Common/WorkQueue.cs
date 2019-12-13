@@ -5,27 +5,31 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
+using System.Threading.Tasks;
 using Wabbajack.Common.StatusFeed;
 
 namespace Wabbajack.Common
 {
     public class WorkQueue : IDisposable
     {
-        internal BlockingCollection<Action>
-            Queue = new BlockingCollection<Action>(new ConcurrentStack<Action>());
+        internal BlockingCollection<Func<Task>>
+            Queue = new BlockingCollection<Func<Task>>(new ConcurrentStack<Func<Task>>());
 
-        public const int UnassignedCpuId = -1;
+        public const int UnassignedCpuId = 0;
 
-        [ThreadStatic] private static int _cpuId = UnassignedCpuId;
-        public static int CpuId => _cpuId;
+        private static readonly AsyncLocal<int> _cpuId = new AsyncLocal<int>();
+        public int CpuId => _cpuId.Value;
 
-        internal static bool WorkerThread => CurrentQueue != null;
-        [ThreadStatic] internal static WorkQueue CurrentQueue;
+        internal static bool WorkerThread => ThreadLocalCurrentQueue.Value != null;
+        internal static readonly ThreadLocal<WorkQueue> ThreadLocalCurrentQueue = new ThreadLocal<WorkQueue>();
+        internal static readonly AsyncLocal<WorkQueue> AsyncLocalCurrentQueue = new AsyncLocal<WorkQueue>();
 
         private readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
 
-        public static List<Thread> Threads { get; private set; }
+        public List<Thread> Threads { get; private set; }
+
+        private CancellationTokenSource _cancel = new CancellationTokenSource();
 
         // This is currently a lie, as it wires to the Utils singleton stream This is still good to have, 
         // so that logic related to a single WorkQueue can subscribe to this dummy member so that If/when we 
@@ -40,10 +44,10 @@ namespace Wabbajack.Common
         private void StartThreads(int threadCount)
         {
             ThreadCount = threadCount;
-            Threads = Enumerable.Range(0, threadCount)
+            Threads = Enumerable.Range(1, threadCount)
                 .Select(idx =>
                 {
-                    var thread = new Thread(() => ThreadBody(idx));
+                    var thread = new Thread(() => ThreadBody(idx).Wait());
                     thread.Priority = ThreadPriority.BelowNormal;
                     thread.IsBackground = true;
                     thread.Name = string.Format("Wabbajack_Worker_{0}", idx);
@@ -54,16 +58,24 @@ namespace Wabbajack.Common
 
         public int ThreadCount { get; private set; }
 
-        private void ThreadBody(int idx)
+        private async Task ThreadBody(int idx)
         {
-            _cpuId = idx;
-            CurrentQueue = this;
+            _cpuId.Value = idx;
+            ThreadLocalCurrentQueue.Value = this;
+            AsyncLocalCurrentQueue.Value = this;
 
-            while (true)
+            try
             {
-                Report("Waiting", 0, false);
-                var f = Queue.Take();
-                f();
+                while (true)
+                {
+                    Report("Waiting", 0, false);
+                    if (_cancel.IsCancellationRequested) return;
+                    var f = Queue.Take(_cancel.Token);
+                    await f();
+                }
+            }
+            catch (OperationCanceledException)
+            {
             }
         }
 
@@ -75,25 +87,26 @@ namespace Wabbajack.Common
                     Progress = progress,
                     ProgressPercent = progress / 100f,
                     Msg = msg,
-                    ID = _cpuId,
+                    ID = _cpuId.Value,
                     IsWorking = isWorking
                 });
         }
 
-        public void QueueTask(Action a)
+        public void QueueTask(Func<Task> a)
         {
             Queue.Add(a);
         }
 
-        public void Shutdown()
-        {
-            Threads.Do(th => th.Abort());
-            Threads.Do(th => th.Join());
-        }
-
         public void Dispose()
         {
-            Shutdown();
+            _cancel.Cancel();
+            Threads.Do(th =>
+            {
+                if (th.ManagedThreadId != Thread.CurrentThread.ManagedThreadId)
+                {
+                    th.Join();
+                }
+            });
             Queue?.Dispose();
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 
@@ -7,7 +8,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class GoogleDriveDownloader : IDownloader, IUrlDownloader
     {
-        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);
@@ -28,7 +29,7 @@ namespace Wabbajack.Lib.Downloaders
             return null;
         }
 
-        public void Prepare()
+        public async Task Prepare()
         {
         }
 
@@ -40,16 +41,17 @@ namespace Wabbajack.Lib.Downloaders
                 return whitelist.GoogleIDs.Contains(Id);
             }
 
-            public override void Download(Archive a, string destination)
+            public override async Task Download(Archive a, string destination)
             {
-                ToHttpState().Download(a, destination);
+                var state = await ToHttpState();
+                await state.Download(a, destination);
             }
 
-            private HTTPDownloader.State ToHttpState()
+            private async Task<HTTPDownloader.State> ToHttpState()
             {
                 var initialURL = $"https://drive.google.com/uc?id={Id}&export=download";
                 var client = new HttpClient();
-                var result = client.GetStringSync(initialURL);
+                var result = await client.GetStringAsync(initialURL);
                 var regex = new Regex("(?<=/uc\\?export=download&amp;confirm=).*(?=;id=)");
                 var confirm = regex.Match(result);
                 var url = $"https://drive.google.com/uc?export=download&confirm={confirm}&id={Id}";
@@ -57,9 +59,10 @@ namespace Wabbajack.Lib.Downloaders
                 return httpState;
             }
 
-            public override bool Verify()
+            public override async Task<bool> Verify()
             {
-                return ToHttpState().Verify();
+                var state = await ToHttpState();
+                return await state.Verify();
             }
 
             public override IDownloader GetDownloader()

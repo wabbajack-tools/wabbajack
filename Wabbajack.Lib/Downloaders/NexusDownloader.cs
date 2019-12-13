@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.Lib.NexusApi;
@@ -9,7 +10,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class NexusDownloader : IDownloader
     {
-        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             var general = archiveINI?.General;
 
@@ -18,7 +19,8 @@ namespace Wabbajack.Lib.Downloaders
                 var name = (string)general.gameName;
                 var gameMeta = GameRegistry.GetByMO2ArchiveName(name);
                 var game = gameMeta != null ? GameRegistry.GetByMO2ArchiveName(name).Game : GameRegistry.GetByNexusName(name).Game;
-                var info = new NexusApiClient().GetModInfo(game, general.modID);
+                var client = await NexusApiClient.Get();
+                var info = await client.GetModInfo(game, general.modID);
                 return new State
                 {
                     GameName = general.gameName,
@@ -40,10 +42,10 @@ namespace Wabbajack.Lib.Downloaders
             return null;
         }
 
-        public void Prepare()
+        public async Task Prepare()
         {
-            var client = new NexusApiClient();
-            var status = client.GetUserStatus();
+            var client = await NexusApiClient.Get();
+            var status = await client.GetUserStatus();
             if (!client.IsAuthenticated)
             {
                 Utils.ErrorThrow(new UnconvertedError($"Authenticating for the Nexus failed. A nexus account is required to automatically download mods."));
@@ -51,7 +53,7 @@ namespace Wabbajack.Lib.Downloaders
             }
 
             if (status.is_premium) return;
-            Utils.ErrorThrow(new UnconvertedError($"Automated installs with Wabbajack requires a premium nexus account. {client.Username} is not a premium account."));
+            Utils.ErrorThrow(new UnconvertedError($"Automated installs with Wabbajack requires a premium nexus account. {await client.Username()} is not a premium account."));
         }
 
         public class State : AbstractDownloadState
@@ -75,12 +77,13 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override void Download(Archive a, string destination)
+            public override async Task Download(Archive a, string destination)
             {
                 string url;
                 try
                 {
-                    url = new NexusApiClient().GetNexusDownloadLink(this, false);
+                    var client = await NexusApiClient.Get();
+                    url = await client.GetNexusDownloadLink(this, false);
                 }
                 catch (Exception ex)
                 {
@@ -90,14 +93,14 @@ namespace Wabbajack.Lib.Downloaders
 
                 Utils.Log($"Downloading Nexus Archive - {a.Name} - {GameName} - {ModID} - {FileID}");
 
-                new HTTPDownloader.State
+                await new HTTPDownloader.State
                 {
                     Url = url
                 }.Download(a, destination);
 
             }
 
-            public override bool Verify()
+            public override async Task<bool> Verify()
             {
                 try
                 {
@@ -109,7 +112,8 @@ namespace Wabbajack.Lib.Downloaders
                     if (!int.TryParse(ModID, out var modID))
                         return false;
 
-                    var modFiles = new NexusApiClient().GetModFiles(game, modID);
+                    var client = await NexusApiClient.Get();
+                    var modFiles = await client.GetModFiles(game, modID);
 
                     if (!ulong.TryParse(FileID, out var fileID))
                         return false;

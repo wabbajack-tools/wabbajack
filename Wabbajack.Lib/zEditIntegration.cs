@@ -9,6 +9,7 @@ using Wabbajack.Lib.CompilationSteps;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+using System.Threading.Tasks;
 
 namespace Wabbajack.Lib
 {
@@ -70,7 +71,7 @@ namespace Wabbajack.Lib
                         m => m.First());
             }
 
-            public override Directive Run(RawSourceFile source)
+            public override async ValueTask<Directive> Run(RawSourceFile source)
             {
                 if (!_mergesIndexed.TryGetValue(source.AbsolutePath, out var merge)) return null;
                 var result = source.EvolveTo<MergedPatch>();
@@ -160,9 +161,9 @@ namespace Wabbajack.Lib
             }
         }
 
-        public static void GenerateMerges(MO2Installer installer)
+        public static async Task GenerateMerges(MO2Installer installer)
         {
-            installer.ModList
+            await installer.ModList
                 .Directives
                 .OfType<MergedPatch>()
                 .PMap(installer.Queue, m =>

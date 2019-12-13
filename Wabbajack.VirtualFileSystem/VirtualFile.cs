@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.CSP;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -128,7 +129,7 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        public static VirtualFile Analyze(Context context, VirtualFile parent, string abs_path,
+        public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, string abs_path,
             string rel_path)
         {
             var fi = new FileInfo(abs_path);
@@ -148,11 +149,12 @@ namespace Wabbajack.VirtualFileSystem
 
                 using (var tempFolder = context.GetTemporaryFolder())
                 {
-                    FileExtractor.ExtractAll(context.Queue, abs_path, tempFolder.FullName);
+                    await FileExtractor.ExtractAll(context.Queue, abs_path, tempFolder.FullName);
 
-                    self.Children = Directory.EnumerateFiles(tempFolder.FullName, "*", SearchOption.AllDirectories)
-                                        .PMap(context.Queue, abs_src => Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName)))
-                                        .ToImmutableList();
+                    var list = await Directory.EnumerateFiles(tempFolder.FullName, "*", SearchOption.AllDirectories)
+                                        .PMap(context.Queue, abs_src => Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName)));
+
+                    self.Children = list.ToImmutableList();
                 }
 
             }

@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
 using Wabbajack.Common;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -32,21 +34,29 @@ namespace Wabbajack.Lib
             GameInfo = ModList.GameType.MetaData();
         }
 
-        protected override bool _Begin()
+        protected override async Task<bool> _Begin(CancellationToken cancel)
         {
+            if (cancel.IsCancellationRequested) return false;
             MessageBox.Show(
                 "Vortex Support is still experimental and may produce unexpected results. " +
                 "If anything fails go to the special vortex support channels on the discord. @erri120#2285 " +
                 "for support.", "Warning",
                 MessageBoxButton.OK);
 
-            ConfigureProcessor(10, RecommendQueueSize());
+            if (cancel.IsCancellationRequested) return false;
+            ConfigureProcessor(10, await RecommendQueueSize());
             Directory.CreateDirectory(DownloadFolder);
 
-            HashArchives();
-            DownloadArchives();
-            HashArchives();
+            if (cancel.IsCancellationRequested) return false;
+            await HashArchives();
 
+            if (cancel.IsCancellationRequested) return false;
+            await DownloadArchives();
+
+            if (cancel.IsCancellationRequested) return false;
+            await HashArchives();
+
+            if (cancel.IsCancellationRequested) return false;
             var missing = ModList.Archives.Where(a => !HashedArchives.ContainsKey(a.Hash)).ToList();
             if (missing.Count > 0)
             {
@@ -58,20 +68,29 @@ namespace Wabbajack.Lib
                     Error("Cannot continue, was unable to download one or more archives");
             }
 
-            PrimeVFS();
+            await PrimeVFS();
 
+            if (cancel.IsCancellationRequested) return false;
             BuildFolderStructure();
-            InstallArchives();
-            InstallIncludedFiles();
-            InstallManualGameFiles();
-            InstallSteamWorkshopItems();
+
+            if (cancel.IsCancellationRequested) return false;
+            await InstallArchives();
+
+            if (cancel.IsCancellationRequested) return false;
+            await InstallIncludedFiles();
+
+            if (cancel.IsCancellationRequested) return false;
+            await InstallManualGameFiles();
+
+            if (cancel.IsCancellationRequested) return false;
+            await InstallSteamWorkshopItems();
             //InstallIncludedDownloadMetas();
 
             Info("Installation complete! You may exit the program.");
             return true;
         }
 
-        private void InstallManualGameFiles()
+        private async Task InstallManualGameFiles()
         {
             if (!ModList.Directives.Any(d => d.To.StartsWith(Consts.ManualGameFilesDir)))
                 return;
@@ -96,7 +115,7 @@ namespace Wabbajack.Lib
                 return;
             }
 
-            Directory.EnumerateDirectories(manualFilesDir).PMap(Queue, dir =>
+            await Directory.EnumerateDirectories(manualFilesDir).PMap(Queue, dir =>
             {
                 var dirInfo = new DirectoryInfo(dir);
                 dirInfo.GetDirectories("*", SearchOption.AllDirectories).Do(d =>
@@ -122,7 +141,7 @@ namespace Wabbajack.Lib
             });
         }
 
-        private void InstallSteamWorkshopItems()
+        private async Task InstallSteamWorkshopItems()
         {
             //var currentLib = "";
             SteamGame currentSteamGame = null;
@@ -143,7 +162,7 @@ namespace Wabbajack.Lib
             if (result != MessageBoxResult.Yes)
                 return;
 
-            ModList.Directives.OfType<SteamMeta>()
+            await ModList.Directives.OfType<SteamMeta>()
                 .PMap(Queue, item =>
                 {
                     Status("Extracting Steam meta file to temp folder");
@@ -167,10 +186,10 @@ namespace Wabbajack.Lib
                 });
         }
 
-        private void InstallIncludedFiles()
+        private async Task InstallIncludedFiles()
         {
             Info("Writing inline files");
-            ModList.Directives.OfType<InlineFile>()
+            await ModList.Directives.OfType<InlineFile>()
                 .PMap(Queue,directive =>
                 {
                     if (directive.To.EndsWith(".meta"))
