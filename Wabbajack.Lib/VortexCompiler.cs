@@ -46,6 +46,10 @@ namespace Wabbajack.Lib
         public const string StagingMarkerName = "__vortex_staging_folder";
         public const string DownloadMarkerName = "__vortex_downloads_folder";
 
+        private bool _isSteamGame;
+        private SteamGame _steamGame;
+        private bool _hasSteamWorkshopItems;
+
         public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder,
             string stagingFolder, string outputFile)
         {
@@ -65,6 +69,14 @@ namespace Wabbajack.Lib
             GameName = Game.MetaData().NexusName;
 
             ActiveArchives = new List<string>();
+
+            SteamHandler.Instance.Games.Where(g => g.Game != null && g.Game == game).Do(g =>
+            {
+                _isSteamGame = true;
+                _steamGame = g;
+                SteamHandler.Instance.LoadWorkshopItems(_steamGame);
+                _hasSteamWorkshopItems = _steamGame.WorkshopItems.Count > 0;
+            });
         }
 
         protected override async Task<bool> _Begin(CancellationToken cancel)
@@ -162,7 +174,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             var stack = MakeStack();
             UpdateTracker.NextStep("Running Compilation Stack");
-            var results = await AllFiles.PMap(Queue, UpdateTracker, f => RunStack(stack, f));
+            var results = await AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f));
 
             IEnumerable<NoMatch> noMatch = results.OfType<NoMatch>().ToList();
             Info($"No match for {noMatch.Count()} files");
@@ -331,6 +343,36 @@ namespace Wabbajack.Lib
                     Error("Error while getting information from NexusMods via MD5 hash!");
                 }
             });
+
+            Info($"Checking for Steam Workshop Items...");
+            if (!_isSteamGame || _steamGame == null || !_hasSteamWorkshopItems)
+                return;
+
+            _steamGame.WorkshopItems.Do(item =>
+            {
+                var filePath = Path.Combine(DownloadsFolder, $"steamWorkshopItem_{item.ItemID}.meta");
+                if (File.Exists(filePath))
+                {
+                    Utils.Log($"File {filePath} already exists, skipping...");
+                    return;
+                }
+
+                Utils.Log($"Creating meta file for {item.ItemID}");
+                var metaString = "[General]\n" +
+                                 "repository=Steam\n" +
+                                 $"gameName={GameName}\n" +
+                                 $"steamID={_steamGame.AppId}\n" +
+                                 $"itemID={item.ItemID}\n" +
+                                 $"itemSize={item.Size}\n";
+                try
+                {
+                    File.WriteAllText(filePath, metaString);
+                }
+                catch (Exception e)
+                {
+                    Utils.Error(e, $"Exception while writing to disk at {filePath}");
+                }
+            });
         }
 
         public override IEnumerable<ICompilationStep> GetStack()
@@ -354,6 +396,10 @@ namespace Wabbajack.Lib
             return new List<ICompilationStep>
             {
                 new IncludePropertyFiles(this),
+
+                new IncludeSteamWorkshopItems(this, _steamGame),
+                _hasSteamWorkshopItems ? new IncludeRegex(this, "^steamWorkshopItem_\\d*\\.meta$") : null,
+
                 new IgnoreDisabledVortexMods(this),
                 new IncludeVortexDeployment(this),
                 new IgnoreVortex(this),
