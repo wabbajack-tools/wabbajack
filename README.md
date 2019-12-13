@@ -7,7 +7,7 @@ Wabbajack is an automated ModList installer that can recreate contents of a fold
 ## Social Links
 
 - [wabbajack.org](https://www.wabbajack.org) The official Wabbajack website where you can find instructions and a [Gallery](https://www.wabbajack.org/gallery) for some ModLists.
-- [Discord](https://discord.gg/zgbrkmA) The official Wabbajack discord for instructions, ModLists, support or friendly chatting with fellow modders.
+- [Discord](https://discord.gg/wabbajack) The official Wabbajack discord for instructions, ModLists, support or friendly chatting with fellow modders.
 - [Patreon](https://www.patreon.com/user?u=11907933) contains update posts and keeps the [Code Signing Certificate](https://www.digicert.com/code-signing/) alive.
 
 ## Supported Games and Mod Manager
