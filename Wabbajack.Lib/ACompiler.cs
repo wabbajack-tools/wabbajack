@@ -207,33 +207,39 @@ namespace Wabbajack.Lib
         {
             if (archives.TryGetValue(sha, out var found))
             {
-                if (found.IniData == null)
-                    Error($"No download metadata found for {found.Name}, please use MO2 to query info or add a .meta file and try again.");
-
-                var result = new Archive
-                {
-                    State = (AbstractDownloadState) DownloadDispatcher.ResolveArchive(found.IniData)
-                };
-
-                if (result.State == null)
-                    Error($"{found.Name} could not be handled by any of the downloaders");
-
-                result.Name = found.Name;
-                result.Hash = found.File.Hash;
-                result.Meta = found.Meta;
-                result.Size = found.File.Size;
-
-                Info($"Checking link for {found.Name}");
-
-                if (result.State != null && !result.State.Verify())
-                    Error(
-                        $"Unable to resolve link for {found.Name}. If this is hosted on the Nexus the file may have been removed.");
-
-                return result;
+                return ResolveArchive(found);
             }
 
             Error($"No match found for Archive sha: {sha} this shouldn't happen");
             return null;
+        }
+
+        public Archive ResolveArchive(IndexedArchive archive)
+        {
+            if (archive.IniData == null)
+                Error(
+                    $"No download metadata found for {archive.Name}, please use MO2 to query info or add a .meta file and try again.");
+
+            var result = new Archive
+            {
+                State = (AbstractDownloadState) DownloadDispatcher.ResolveArchive(archive.IniData)
+            };
+
+            if (result.State == null)
+                Error($"{archive.Name} could not be handled by any of the downloaders");
+
+            result.Name = archive.Name;
+            result.Hash = archive.File.Hash;
+            result.Meta = archive.Meta;
+            result.Size = archive.File.Size;
+
+            Info($"Checking link for {archive.Name}");
+
+            if (result.State != null && !result.State.Verify())
+                Error(
+                    $"Unable to resolve link for {archive.Name}. If this is hosted on the Nexus the file may have been removed.");
+
+            return result;
         }
 
         public Directive RunStack(IEnumerable<ICompilationStep> stack, RawSourceFile source)
