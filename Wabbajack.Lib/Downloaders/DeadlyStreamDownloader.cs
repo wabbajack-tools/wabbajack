@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +19,7 @@ namespace Wabbajack.Lib.Downloaders
     {
         internal HttpClient AuthedClient;
 
-        public AbstractDownloadState GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             Uri url = DownloaderUtils.GetDirectURL(archiveINI);
             if (url == null || url.Host != "www.deadlystream.com" ||
@@ -36,7 +34,7 @@ namespace Wabbajack.Lib.Downloaders
             };
         }
 
-        public void Prepare()
+        public async Task Prepare()
         {
             AuthedClient = GetAuthedClient().Result ?? throw new Exception("Not logged into DeadlyStream!");
         }
@@ -102,7 +100,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override void Download(Archive a, string destination)
+            public override async Task Download(Archive a, string destination)
             {
                 var stream = ResolveDownloadStream().Result;
                 using (var file = File.OpenWrite(destination))
@@ -142,7 +140,7 @@ namespace Wabbajack.Lib.Downloaders
                 return null;
             }
 
-            public override bool Verify()
+            public override async Task<bool> Verify()
             {
                 var stream = ResolveDownloadStream().Result;
                 if (stream == null)
