@@ -116,7 +116,6 @@
     <Compile Include="CompilationSteps\IStackStep.cs" />
     <Compile Include="CompilationSteps\PatchStockESMs.cs" />
     <Compile Include="CompilationSteps\Serialization.cs" />
-    <Compile Include="Downloaders\GameFileSourceDownloader.cs" />
     <Compile Include="Downloaders\LoversLabDownloader.cs" />
     <Compile Include="Downloaders\SteamWorkshopDownloader.cs" />
     <Compile Include="LibCefHelpers\Init.cs" />

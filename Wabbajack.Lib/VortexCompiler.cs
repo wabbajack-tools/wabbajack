@@ -162,7 +162,7 @@ namespace Wabbajack.Lib
                 Error($"Found {duplicates.Count} duplicates, exiting");
             }
 
-            for (var i = 0; i < AllFiles.Count; i++)
+            /*for (var i = 0; i < AllFiles.Count; i++)
             {
                 var f = AllFiles[i];
                 if (!f.Path.StartsWith(Consts.GameFolderFilesDir) || !IndexedFiles.ContainsKey(f.Hash))
@@ -202,7 +202,7 @@ namespace Wabbajack.Lib
                 AllFiles.RemoveAt(i);
                 AllFiles.Insert(i, replace);
                 //AllFiles.Replace(f, replace);
-            }
+            }*/
 
             var stack = MakeStack();
 
@@ -384,11 +384,11 @@ namespace Wabbajack.Lib
                                 if (line.Contains("tag="))
                                     tag = line.Substring("tag=".Length);
 
-                                if (tag != Consts.WABBAJACK_VORTEX_MANUAL)
+                                //if (tag != Consts.WABBAJACK_VORTEX_MANUAL)
                                     return;
 
-                                Utils.Log($"File {f} contains the {Consts.WABBAJACK_VORTEX_MANUAL} tag, adding to ActiveArchives");
-                                ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
+                                //Utils.Log($"File {f} contains the {Consts.WABBAJACK_VORTEX_MANUAL} tag, adding to ActiveArchives");
+                                //ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
                             });
                         }
                         else
