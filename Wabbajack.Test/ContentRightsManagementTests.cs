@@ -246,14 +246,12 @@ namespace Wabbajack.Test
         }
 
         [TestMethod]
-        public void CanLoadFromGithub()
+        public async Task CanLoadFromGithub()
         {
             using (var workQueue = new WorkQueue())
             {
-                new ValidateModlist(workQueue).LoadListsFromGithub();
+                await new ValidateModlist(workQueue).LoadListsFromGithub();
             }
         }
     }
-
-
 }

@@ -31,7 +31,7 @@ namespace Wabbajack.Lib
             IgnoreMissingFiles = true;
             #endif
 
-            GameInfo = GameRegistry.Games[ModList.GameType];
+            GameInfo = ModList.GameType.MetaData();
         }
 
         protected override async Task<bool> _Begin(CancellationToken cancel)
@@ -104,7 +104,7 @@ namespace Wabbajack.Lib
 
             var manualFilesDir = Path.Combine(OutputFolder, Consts.ManualGameFilesDir);
 
-            var gameFolder = GameInfo.GameLocation(SteamHandler.Instance.Games.Any(g => g.Game == GameInfo.Game));
+            var gameFolder = GameInfo.GameLocation();
 
             Info($"Copying files from {manualFilesDir} " +
                  $"to the game folder at {gameFolder}");

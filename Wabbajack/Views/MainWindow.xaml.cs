@@ -15,8 +15,6 @@ namespace Wabbajack
         private MainWindowVM _mwvm;
         private MainSettings _settings;
 
-        internal bool ExitWhenClosing = true;
-
         public MainWindow()
         {
             // Wire any unhandled crashing exceptions to log before exiting
@@ -93,16 +91,7 @@ namespace Wabbajack
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            _mwvm.Dispose();
-            _settings.PosX = Left;
-            _settings.PosY = Top;
-            _settings.Width = Width;
-            _settings.Height = Height;
-            MainSettings.SaveSettings(_settings);
-            if (ExitWhenClosing)
-            {
-                Application.Current.Shutdown();
-            }
+            _mwvm.ShutdownApplication();
         }
     }
 }

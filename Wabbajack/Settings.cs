@@ -20,8 +20,8 @@ namespace Wabbajack
         public InstallerSettings Installer { get; set; } = new InstallerSettings();
         public CompilerSettings Compiler { get; set; } = new CompilerSettings();
 
-        [JsonIgnoreAttribute]
         private Subject<Unit> _saveSignal = new Subject<Unit>();
+        [JsonIgnoreAttribute]
         public IObservable<Unit> SaveSignal => _saveSignal;
 
         public static bool TryLoadTypicalSettings(out MainSettings settings)
@@ -58,6 +58,7 @@ namespace Wabbajack
     {
         public string InstallationLocation { get; set; }
         public string DownloadLocation { get; set; }
+        public bool AutomaticallyOverrideExistingInstall { get; set; }
     }
 
     public class CompilerSettings

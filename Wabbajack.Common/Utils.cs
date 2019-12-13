@@ -688,6 +688,7 @@ namespace Wabbajack.Common
 
                     using (var f = File.OpenWrite(tmpName))
                     {
+                        Status("Creating Patch");
                         BSDiff.Create(a, b, f);
                     }
 
@@ -936,7 +937,11 @@ namespace Wabbajack.Common
         {
             var bytes = Encoding.UTF8.GetBytes(data.ToJSON());
             var encoded = ProtectedData.Protect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
-            var path = Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack", key);
+            
+            if (!Directory.Exists(Consts.LocalAppDataPath))
+                Directory.CreateDirectory(Consts.LocalAppDataPath);
+            
+            var path = Path.Combine(Consts.LocalAppDataPath, key);
             File.WriteAllBytes(path, encoded);
         }
 
@@ -947,5 +952,12 @@ namespace Wabbajack.Common
             var decoded = ProtectedData.Unprotect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
             return Encoding.UTF8.GetString(decoded).FromJSONString<T>();
         }
+
+        public static bool IsInPath(this string path, string parent)
+        {
+            return path.ToLower().TrimEnd('\\').StartsWith(parent.ToLower().TrimEnd('\\') + "\\");
+        }
+
+
     }
 }

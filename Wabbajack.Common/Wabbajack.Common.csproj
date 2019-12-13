@@ -114,6 +114,7 @@
     <Compile Include="SplittingStream.cs" />
     <Compile Include="StatusFeed\AErrorMessage.cs" />
     <Compile Include="StatusFeed\AStatusMessage.cs" />
+    <Compile Include="StatusFeed\Interventions\AUserIntervention.cs" />
     <Compile Include="StatusFeed\Errors\7zipReturnError.cs" />
     <Compile Include="StatusFeed\Errors\FileExtractionError.cs" />
     <Compile Include="StatusFeed\Errors\GenericException.cs" />
@@ -122,8 +123,9 @@
     <Compile Include="StatusFeed\IError.cs" />
     <Compile Include="StatusFeed\IException.cs" />
     <Compile Include="StatusFeed\IInfo.cs" />
+    <Compile Include="StatusFeed\Interventions\ConfirmationIntervention.cs" />
     <Compile Include="StatusFeed\IStatusMessage.cs" />
-    <Compile Include="StatusFeed\IUserIntervention.cs" />
+    <Compile Include="StatusFeed\Interventions\IUserIntervention.cs" />
     <Compile Include="StatusFileStream.cs" />
     <Compile Include="StatusUpdate.cs" />
     <Compile Include="SteamHandler.cs" />
@@ -171,7 +173,7 @@
       <Version>1.0.2</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI">
-      <Version>10.5.30</Version>
+      <Version>11.0.1</Version>
     </PackageReference>
     <PackageReference Include="Syroot.Windows.IO.KnownFolders">
       <Version>1.2.1</Version>
@@ -180,7 +182,7 @@
       <Version>2.0.0</Version>
     </PackageReference>
     <PackageReference Include="System.Reactive">
-      <Version>4.2.0</Version>
+      <Version>4.3.1</Version>
     </PackageReference>
     <PackageReference Include="YamlDotNet">
       <Version>8.0.0</Version>

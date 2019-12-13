@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Reactive.Disposables;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Common.StatusFeed;
 using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.Lib
@@ -33,12 +35,17 @@ namespace Wabbajack.Lib
         private Subject<CPUStatus> _queueStatus { get; } = new Subject<CPUStatus>();
         public IObservable<CPUStatus> QueueStatus => _queueStatus;
 
+        private Subject<IStatusMessage> _logMessages { get; } = new Subject<IStatusMessage>();
+        public IObservable<IStatusMessage> LogMessages => _logMessages;
+
         private Subject<bool> _isRunning { get; } = new Subject<bool>();
         public IObservable<bool> IsRunning => _isRunning;
 
         private int _configured;
         private int _started;
         private readonly CancellationTokenSource _cancel = new CancellationTokenSource();
+
+        private readonly CompositeDisposable _subs = new CompositeDisposable();
 
         protected void ConfigureProcessor(int steps, int threads = 0)
         {
@@ -48,7 +55,10 @@ namespace Wabbajack.Lib
             }
             Queue = new WorkQueue(threads);
             UpdateTracker = new StatusUpdateTracker(steps);
-            Queue.Status.Subscribe(_queueStatus);
+            Queue.Status.Subscribe(_queueStatus)
+                .DisposeWith(_subs);
+            Queue.LogMessages.Subscribe(_logMessages)
+                .DisposeWith(_subs);
             UpdateTracker.Progress.Subscribe(_percentCompleted);
             UpdateTracker.StepName.Subscribe(_textStatus);
             VFS = new Context(Queue) { UpdateTracker = UpdateTracker };

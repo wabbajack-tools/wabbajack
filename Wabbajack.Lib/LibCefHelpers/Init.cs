@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -31,6 +33,27 @@ namespace Wabbajack.Lib.LibCefHelpers
                 FileExtractor.ExtractAll(wq, "cefglue.7z", ".");
 
         }
+        public static HttpClient GetClient(IEnumerable<Cookie> cookies, string referer)
+        {
+            var container = ToCookieContainer(cookies);
+            var handler = new HttpClientHandler { CookieContainer = container };
+            var client = new HttpClient(handler);
+            client.DefaultRequestHeaders.Referrer = new Uri(referer);
+            return client;
+        }
+
+        private static CookieContainer ToCookieContainer(IEnumerable<Cookie> cookies)
+        {
+            var container = new CookieContainer();
+            cookies
+                .Do(cookie =>
+                {
+                    container.Add(new System.Net.Cookie(cookie.Name, cookie.Value, cookie.Path, cookie.Domain));
+                });
+
+            return container;
+        }
+
         public static async Task<Cookie[]> GetCookies(string domainEnding)
         {
             var manager = CefCookieManager.GetGlobal(null);
@@ -41,6 +64,7 @@ namespace Wabbajack.Lib.LibCefHelpers
 
             return (await visitor.Task).Where(c => c.Domain.EndsWith(domainEnding)).ToArray();
         }
+
 
         private class CookieVisitor : CefCookieVisitor
         {
@@ -68,6 +92,8 @@ namespace Wabbajack.Lib.LibCefHelpers
                 if (disposing)
                     _source.SetResult(Cookies);
             }
+
+
         }
 
         public class Cookie

@@ -12,7 +12,6 @@ using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps.CompilationErrors;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
-using Wabbajack.Lib.StatusMessages;
 using Wabbajack.Lib.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -41,10 +40,10 @@ namespace Wabbajack.Lib
         {
             if (cancel.IsCancellationRequested) return false;
             ConfigureProcessor(18, await RecommendQueueSize());
-            var game = GameRegistry.Games[ModList.GameType];
+            var game = ModList.GameType.MetaData();
 
             if (GameFolder == null)
-                GameFolder = game.GameLocation(SteamHandler.Instance.Games.Any(g => g.Game == game.Game));
+                GameFolder = game.GameLocation();
 
             if (GameFolder == null)
             {

@@ -67,12 +67,13 @@ namespace Wabbajack.Common
         public List<string> RequiredFiles { get; internal set; }
         public bool Disabled { get; internal set; }
 
-        public string GameLocation(bool steam)
+        public string GameLocation()
         {
             if (Consts.TestMode)
                 return Directory.GetCurrentDirectory();
 
-            return steam ? SteamHandler.Instance.Games.FirstOrDefault(g => g.Game == Game)?.InstallDir : GOGHandler.Instance.Games.FirstOrDefault(g => g.Game == Game)?.Path;
+            return SteamHandler.Instance.Games.FirstOrDefault(g => g.Game == Game)?.InstallDir ??
+                   GOGHandler.Instance.Games.FirstOrDefault(g => g.Game == Game)?.Path;
         }
     }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -15,7 +16,7 @@ namespace Wabbajack
 {
     public class MO2InstallerVM : ViewModel, ISubInstallerVM
     {
-        private InstallerVM _installerVM;
+        public InstallerVM Parent { get; }
 
         public IReactiveCommand BeginCommand { get; }
 
@@ -29,9 +30,14 @@ namespace Wabbajack
 
         public FilePickerVM DownloadLocation { get; }
 
+        public bool SupportsAfterInstallNavigation => true;
+
+        [Reactive]
+        public bool AutomaticallyOverwrite { get; set; }
+
         public MO2InstallerVM(InstallerVM installerVM)
         {
-            _installerVM = installerVM;
+            Parent = installerVM;
 
             Location = new FilePickerVM()
             {
@@ -131,10 +137,30 @@ namespace Wabbajack
                     if (settingsPair.Current == null) return;
                     Location.TargetPath = settingsPair.Current.InstallationLocation;
                     DownloadLocation.TargetPath = settingsPair.Current.DownloadLocation;
+                    AutomaticallyOverwrite = settingsPair.Current.AutomaticallyOverrideExistingInstall;
                 })
                 .DisposeWith(CompositeDisposable);
             installerVM.MWVM.Settings.SaveSignal
                 .Subscribe(_ => SaveSettings(CurrentSettings))
+                .DisposeWith(CompositeDisposable);
+
+            // Hook onto user interventions, and intercept MO2 specific ones for customization
+            this.WhenAny(x => x.ActiveInstallation.LogMessages)
+                .Switch()
+                .Subscribe(x =>
+                {
+                    switch (x)
+                    {
+                        case ConfirmUpdateOfExistingInstall c:
+                            if (AutomaticallyOverwrite)
+                            {
+                                c.Confirm();
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                })
                 .DisposeWith(CompositeDisposable);
         }
 
@@ -145,10 +171,16 @@ namespace Wabbajack
 
         private void SaveSettings(Mo2ModlistInstallationSettings settings)
         {
-            _installerVM.MWVM.Settings.Installer.LastInstalledListLocation = _installerVM.ModListLocation.TargetPath;
+            Parent.MWVM.Settings.Installer.LastInstalledListLocation = Parent.ModListLocation.TargetPath;
             if (settings == null) return;
             settings.InstallationLocation = Location.TargetPath;
             settings.DownloadLocation = DownloadLocation.TargetPath;
+            settings.AutomaticallyOverrideExistingInstall = AutomaticallyOverwrite;
+        }
+
+        public void AfterInstallNavigation()
+        {
+            Process.Start("explorer.exe", Location.TargetPath);
         }
     }
 }

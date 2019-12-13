@@ -116,6 +116,8 @@
     <Compile Include="CompilationSteps\IStackStep.cs" />
     <Compile Include="CompilationSteps\PatchStockESMs.cs" />
     <Compile Include="CompilationSteps\Serialization.cs" />
+    <Compile Include="Downloaders\GameFileSourceDownloader.cs" />
+    <Compile Include="Downloaders\LoversLabDownloader.cs" />
     <Compile Include="Downloaders\SteamWorkshopDownloader.cs" />
     <Compile Include="LibCefHelpers\Init.cs" />
     <Compile Include="MO2Compiler.cs" />
@@ -206,7 +208,7 @@
       <Version>12.0.3</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI">
-      <Version>10.5.30</Version>
+      <Version>11.0.1</Version>
     </PackageReference>
     <PackageReference Include="SharpCompress">
       <Version>0.24.0</Version>
@@ -215,7 +217,7 @@
       <Version>1.2.1</Version>
     </PackageReference>
     <PackageReference Include="System.Reactive">
-      <Version>4.2.0</Version>
+      <Version>4.3.1</Version>
     </PackageReference>
     <PackageReference Include="WebSocketSharpFork">
       <Version>1.0.4</Version>

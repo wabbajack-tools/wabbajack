@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
-using Xilium.CefGlue.Common;
 using Xilium.CefGlue.WPF;
 
 namespace Wabbajack
@@ -16,13 +15,13 @@ namespace Wabbajack
         [Reactive]
         public string Instructions { get; set; }
 
-        public WpfCefBrowser Browser { get; }
+        public WpfCefBrowser Browser { get; } = new WpfCefBrowser();
 
         [Reactive]
         public IReactiveCommand BackCommand { get; set; }
+
         public WebBrowserVM(string url = "http://www.wabbajack.org")
         {
-            Browser = new WpfCefBrowser();
             Browser.Address = url;
             Instructions = "Wabbajack Web Browser";
         }

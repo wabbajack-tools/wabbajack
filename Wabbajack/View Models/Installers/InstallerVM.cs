@@ -19,7 +19,6 @@ using DynamicData;
 using DynamicData.Binding;
 using Wabbajack.Common.StatusFeed;
 using System.Reactive;
-using Wabbajack.Common.StatusFeed;
 
 namespace Wabbajack
 {
@@ -79,11 +78,19 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ModManager?> _TargetManager;
         public ModManager? TargetManager => _TargetManager.Value;
 
+        private readonly ObservableAsPropertyHelper<IUserIntervention> _ActiveGlobalUserIntervention;
+        public IUserIntervention ActiveGlobalUserIntervention => _ActiveGlobalUserIntervention.Value;
+
+        private readonly ObservableAsPropertyHelper<bool> _Completed;
+        public bool Completed => _Completed.Value;
+
         // Command properties
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand VisitWebsiteCommand { get; }
         public IReactiveCommand BackCommand { get; }
+        public IReactiveCommand CloseWhenCompleteCommand { get; }
+        public IReactiveCommand GoToInstallCommand { get; }
 
         public InstallerVM(MainWindowVM mainWindowVM)
         {
@@ -293,6 +300,48 @@ namespace Wabbajack
                     InstallingMode = true;
                 })
                 .DisposeWith(CompositeDisposable);
+
+            // Listen for user interventions, and compile a dynamic list of all unhandled ones
+            var activeInterventions = this.WhenAny(x => x.Installer.ActiveInstallation)
+                .SelectMany(c => c?.LogMessages ?? Observable.Empty<IStatusMessage>())
+                .WhereCastable<IStatusMessage, IUserIntervention>()
+                .ToObservableChangeSet()
+                .AutoRefresh(i => i.Handled)
+                .Filter(i => !i.Handled)
+                .AsObservableList();
+
+            // Find the top intervention /w no CPU ID to be marked as "global"
+            _ActiveGlobalUserIntervention = activeInterventions.Connect()
+                .Filter(x => x.CpuID == WorkQueue.UnassignedCpuId)
+                .QueryWhenChanged(query => query.FirstOrDefault())
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(ActiveGlobalUserIntervention));
+
+            _Completed = Observable.CombineLatest(
+                    this.WhenAny(x => x.Installing),
+                    this.WhenAny(x => x.InstallingMode),
+                resultSelector: (installing, installingMode) =>
+                {
+                    return installingMode && !installing;
+                })
+                .ToProperty(this, nameof(Completed));
+
+            CloseWhenCompleteCommand = ReactiveCommand.Create(
+                canExecute: this.WhenAny(x => x.Completed),
+                execute: () =>
+                {
+                    MWVM.ShutdownApplication();
+                });
+
+            GoToInstallCommand = ReactiveCommand.Create(
+                canExecute: Observable.CombineLatest(
+                    this.WhenAny(x => x.Completed),
+                    this.WhenAny(x => x.Installer.SupportsAfterInstallNavigation),
+                    resultSelector: (complete, supports) => complete && supports),
+                execute: () =>
+                {
+                    Installer.AfterInstallNavigation();
+                });
         }
 
         private void ShowReport()

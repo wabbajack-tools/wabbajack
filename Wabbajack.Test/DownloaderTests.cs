@@ -1,24 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Reactive.Disposables;
+using System.Reactive.Linq;
+using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
+using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
+using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Test
 {
     [TestClass]
     public class DownloaderTests
     {
+
+        public TestContext TestContext { get; set; }
+
         [TestInitialize]
         public void Setup()
         {
             Helpers.ExtractLibs();
+            Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => TestContext.WriteLine(msg.ShortDescription));
+            Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
+                TestContext.WriteLine("ERROR: User intervetion required: " + msg.ShortDescription));
+
         }
 
         [TestMethod]
@@ -262,6 +274,59 @@ namespace Wabbajack.Test
 
             Assert.AreEqual("2lZt+1h6wxM=", filename.FileHash());
         }
+
+        [TestMethod]
+        public async Task LoversLabDownload()
+        {
+            await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
+            var ini = @"[General]
+                        directURL=https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1";
+
+            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.IsNotNull(state);
+
+            /*var url_state = DownloadDispatcher.ResolveArchive("https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1");
+            Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
+                ((HTTPDownloader.State)url_state).Url);
+                */
+            var converted = state.ViaJSON();
+            Assert.IsTrue(await converted.Verify());
+            var filename = Guid.NewGuid().ToString();
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            await converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
+
+            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+
+            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+        }
+
+        [TestMethod]
+        public async Task GameFileSourceDownload()
+        {
+            await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
+            var ini = $@"[General]
+                        gameName={Game.SkyrimSpecialEdition.MetaData().MO2ArchiveName}
+                        gameFile=Data/Update.esm";
+
+            var state = (AbstractDownloadState)DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.IsNotNull(state);
+
+            var converted = state.ViaJSON();
+            Assert.IsTrue(await converted.Verify());
+            var filename = Guid.NewGuid().ToString();
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            await converted.Download(new Archive { Name = "Update.esm" }, filename);
+
+            Assert.AreEqual("/DLG/LjdGXI=", Utils.FileHash(filename));
+            CollectionAssert.AreEqual(File.ReadAllBytes(Path.Combine(Game.SkyrimSpecialEdition.MetaData().GameLocation(), "Data/Update.esm")), File.ReadAllBytes(filename));
+        }
+
     }
 
 

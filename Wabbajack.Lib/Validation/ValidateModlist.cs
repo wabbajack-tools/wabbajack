@@ -146,7 +146,7 @@ namespace Wabbajack.Lib.Validation
                     }
                 });
 
-            var nexus = NexusApi.NexusApiUtils.ConvertGameName(GameRegistry.Games[modlist.GameType].NexusName);
+            var nexus = NexusApi.NexusApiUtils.ConvertGameName(modlist.GameType.MetaData().NexusName);
 
             modlist.Archives
                    .Where(a => a.State is NexusDownloader.State)

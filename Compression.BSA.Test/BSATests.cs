@@ -71,7 +71,7 @@ namespace Compression.BSA.Test
                 var state = new NexusDownloader.State
                 {
                     ModID = info.Item2.ToString(),
-                    GameName = GameRegistry.Games[info.Item1].NexusName,
+                    GameName = info.Item1.MetaData().NexusName,
                     FileID = file.file_id.ToString()
                 };
                 await state.Download(src);

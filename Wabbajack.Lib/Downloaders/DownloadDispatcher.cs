@@ -10,12 +10,14 @@ namespace Wabbajack.Lib.Downloaders
     {
         public static readonly List<IDownloader> Downloaders = new List<IDownloader>()
         {
+            new GameFileSourceDownloader(),
             new MegaDownloader(),
             new DropboxDownloader(),
             new GoogleDriveDownloader(),
             new ModDBDownloader(),
             new NexusDownloader(),
             new MediaFireDownloader(),
+            new LoversLabDownloader(),
             new HTTPDownloader(),
             new ManualDownloader(),
         };
@@ -27,9 +29,11 @@ namespace Wabbajack.Lib.Downloaders
             IndexedDownloaders = Downloaders.ToDictionary(d => d.GetType());
         }
 
-        public static T GetInstance<T>()
+        public static T GetInstance<T>() where T : IDownloader
         {
-            return (T)IndexedDownloaders[typeof(T)];
+            var inst = (T)IndexedDownloaders[typeof(T)];
+            inst.Prepare();
+            return inst;
         }
 
         public static async Task<AbstractDownloadState> ResolveArchive(dynamic ini)

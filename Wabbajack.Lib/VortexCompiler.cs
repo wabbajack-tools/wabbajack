@@ -52,7 +52,7 @@ namespace Wabbajack.Lib
             Game = game;
 
             GamePath = gamePath;
-            GameName = GameRegistry.Games[game].NexusName;
+            GameName = game.MetaData().NexusName;
             VortexFolder = vortexFolder;
             DownloadsFolder = downloadsFolder;
             StagingFolder = stagingFolder;
@@ -272,7 +272,7 @@ namespace Wabbajack.Lib
             Directory.EnumerateFiles(GamePath, "vortex.deployment.json", SearchOption.AllDirectories)
                 .Where(File.Exists)
                 .Do(f => deploymentFile = f);
-            var currentGame = GameRegistry.Games[Game];
+            var currentGame = Game.MetaData();
             if (currentGame.AdditionalFolders != null && currentGame.AdditionalFolders.Count != 0)
                 currentGame.AdditionalFolders.Do(f => Directory.EnumerateFiles(f, "vortex.deployment.json", SearchOption.AllDirectories)
                     .Where(File.Exists)
@@ -311,7 +311,7 @@ namespace Wabbajack.Lib
         /// </summary>
         private async Task AddExternalFolder()
         {
-            var currentGame = GameRegistry.Games[Game];
+            var currentGame = Game.MetaData();
             if (currentGame.AdditionalFolders == null || currentGame.AdditionalFolders.Count == 0) return;
             foreach (var f in currentGame.AdditionalFolders)
             {
@@ -484,13 +484,13 @@ namespace Wabbajack.Lib
         public static string RetrieveDownloadLocation(Game game, string vortexFolderPath = null)
         {
             vortexFolderPath = vortexFolderPath ?? TypicalVortexFolder();
-            return Path.Combine(vortexFolderPath, "downloads", GameRegistry.Games[game].NexusName);
+            return Path.Combine(vortexFolderPath, "downloads", game.MetaData().NexusName);
         }
 
         public static string RetrieveStagingLocation(Game game, string vortexFolderPath = null)
         {
             vortexFolderPath = vortexFolderPath ?? TypicalVortexFolder();
-            var gameName = GameRegistry.Games[game].NexusName;
+            var gameName = game.MetaData().NexusName;
             return Path.Combine(vortexFolderPath, gameName, "mods");
         }
 
@@ -520,7 +520,7 @@ namespace Wabbajack.Lib
 
         public static bool IsActiveVortexGame(Game g)
         {
-            return GameRegistry.Games[g].SupportedModManager == ModManager.Vortex && !GameRegistry.Games[g].Disabled;
+            return g.MetaData().SupportedModManager == ModManager.Vortex && !GameRegistry.Games[g].Disabled;
         }
     }
 
