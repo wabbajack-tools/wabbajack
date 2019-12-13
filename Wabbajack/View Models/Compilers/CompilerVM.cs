@@ -41,6 +41,9 @@ namespace Wabbajack
 
         public IReactiveCommand BackCommand { get; }
 
+        private readonly ObservableAsPropertyHelper<IUserIntervention> _ActiveGlobalUserIntervention;
+        public IUserIntervention ActiveGlobalUserIntervention => _ActiveGlobalUserIntervention.Value;
+
         public CompilerVM(MainWindowVM mainWindowVM)
         {
             MWVM = mainWindowVM;
@@ -137,6 +140,22 @@ namespace Wabbajack
                 .Switch()
                 .Debounce(TimeSpan.FromMilliseconds(25))
                 .ToProperty(this, nameof(PercentCompleted));
+
+            // Listen for user interventions, and compile a dynamic list of all unhandled ones
+            var activeInterventions = this.WhenAny(x => x.Compiler.ActiveCompilation)
+                .SelectMany(c => c?.LogMessages ?? Observable.Empty<IStatusMessage>())
+                .WhereCastable<IStatusMessage, IUserIntervention>()
+                .ToObservableChangeSet()
+                .AutoRefresh(i => i.Handled)
+                .Filter(i => !i.Handled)
+                .AsObservableList();
+
+            // Find the top intervention /w no CPU ID to be marked as "global"
+            _ActiveGlobalUserIntervention = activeInterventions.Connect()
+                .Filter(x => x.CpuID == WorkQueue.UnassignedCpuId)
+                .QueryWhenChanged(query => query.FirstOrDefault())
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(ActiveGlobalUserIntervention));
         }
     }
 }
