@@ -57,24 +57,24 @@ steps:
 - task: CmdLine@2
   inputs:
     script: 'pip install requests'
-- task: PythonScript@0
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
-  inputs:
-    scriptSource: 'inline'
-    script: |
-      import requests, sys
-      
-      url = 'https://www.virustotal.com/vtapi/v2/file/scan'
-      
-      params = {'apikey': sys.argv[1]}
-      
-      files = {'file': ('Wabbajack.exe', open(sys.argv[2], 'rb'))}
-      
-      response = requests.post(url, files=files, params=params)
-      
-      print(response.json())
-    arguments: '$(VirusTotalAPIKey) $(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
-
+#- task: PythonScript@0
+#  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+#  inputs:
+#    scriptSource: 'inline'
+#    script: |
+#      import requests, sys
+#      
+#      url = 'https://www.virustotal.com/vtapi/v2/file/scan'
+#      
+#      params = {'apikey': sys.argv[1]}
+#      
+#      files = {'file': ('Wabbajack.exe', open(sys.argv[2], 'rb'))}
+#      
+#      response = requests.post(url, files=files, params=params)
+#      
+#      print(response.json())
+#    arguments: '$(VirusTotalAPIKey) $(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
+#
 - task: PublishBuildArtifacts@1
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
   inputs:
