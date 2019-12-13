@@ -321,7 +321,9 @@ namespace Wabbajack.Lib
                 {
                     var modInfo = md5Response[0].mod;
                     metaString += $"modID={modInfo.mod_id}\n" +
-                                  $"modName={modInfo.name}\nfileID={md5Response[0].file_details.file_id}";
+                                  $"modName={modInfo.name}\n" +
+                                  $"fileID={md5Response[0].file_details.file_id}\n" +
+                                  $"version={md5Response[0].file_details.version}\n";
                     File.WriteAllText(f+".meta",metaString, Encoding.UTF8);
                 }
                 else
