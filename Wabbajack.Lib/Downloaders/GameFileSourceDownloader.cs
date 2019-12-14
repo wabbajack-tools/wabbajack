@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
@@ -26,7 +22,7 @@ namespace Wabbajack.Lib.Downloaders
 
             var path = game.GameLocation();
             var filePath = Path.Combine(path, gameFile);
-            
+
             if (!File.Exists(filePath))
                 return null;
 

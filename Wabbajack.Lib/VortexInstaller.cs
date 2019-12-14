@@ -19,12 +19,14 @@ namespace Wabbajack.Lib
 
         public override ModManager ModManager => ModManager.Vortex;
 
+        public string GameFolder { get; set; }
+
         public VortexInstaller(string archive, ModList modList, string outputFolder, string downloadFolder)
             : base(
-                  archive: archive,
-                  modList: modList,
-                  outputFolder: outputFolder,
-                  downloadFolder: downloadFolder)
+                archive,
+                modList,
+                outputFolder,
+                downloadFolder)
         {
             #if DEBUG
             // TODO: only for testing
@@ -43,17 +45,33 @@ namespace Wabbajack.Lib
                 "for support.", "Warning",
                 MessageBoxButton.OK);
 
+            if (GameFolder == null)
+                GameFolder = GameInfo.GameLocation();
+
+            if (GameFolder == null)
+            {
+                MessageBox.Show(
+                    $"In order to do a proper install Wabbajack needs to know where your {GameInfo.NexusName} folder resides. We tried looking the" +
+                    "game location up but were unable to find it, please make sure you launch the game once before running this installer. ",
+                    "Could not find game location", MessageBoxButton.OK);
+                Error("Exiting because we couldn't find the game folder.");
+                return false;
+            }
+
             if (cancel.IsCancellationRequested) return false;
             ConfigureProcessor(10, await RecommendQueueSize());
             Directory.CreateDirectory(DownloadFolder);
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Hashing Archives");
             await HashArchives();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Downloading Missing Archives");
             await DownloadArchives();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Hashing Remaining Archives");
             await HashArchives();
 
             if (cancel.IsCancellationRequested) return false;
@@ -68,25 +86,34 @@ namespace Wabbajack.Lib
                     Error("Cannot continue, was unable to download one or more archives");
             }
 
+            if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Priming VFS");
             await PrimeVFS();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Building Folder Structure");
             BuildFolderStructure();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Installing Archives");
             await InstallArchives();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Installing Included files");
             await InstallIncludedFiles();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Installing Manual files");
             await InstallManualGameFiles();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Installing SteamWorkshopItems");
             await InstallSteamWorkshopItems();
+            
+            
             //InstallIncludedDownloadMetas();
 
-            Info("Installation complete! You may exit the program.");
+            UpdateTracker.NextStep("Installation complete! You may exit the program.");
             return true;
         }
 
