@@ -219,8 +219,8 @@ namespace Wabbajack
             _image = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Error),
                     this.WhenAny(x => x.ModList)
-                        .SelectMany(x => x?.ImageObservable ?? Observable.Empty<BitmapImage>())
-                        .NotNull()
+                        .Select(x => x?.ImageObservable ?? Observable.Empty<BitmapImage>())
+                        .Switch()
                         .StartWith(WabbajackLogo),
                     this.WhenAny(x => x.Slideshow.Image)
                         .StartWith(default(BitmapImage)),
@@ -231,7 +231,8 @@ namespace Wabbajack
                         {
                             return WabbajackErrLogo;
                         }
-                        return installing ? slideshow : modList;
+                        var ret = installing ? slideshow : modList;
+                        return ret ?? WabbajackLogo;
                     })
                 .Select<BitmapImage, ImageSource>(x => x)
                 .ToProperty(this, nameof(Image));
