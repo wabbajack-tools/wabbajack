@@ -18,6 +18,7 @@ namespace Wabbajack.CacheServer
         {
             Address = address;
             _config = new HostConfiguration();
+            _config.MaximumConnectionCount = 24;
             //_config.UrlReservations.CreateAutomatically = true;
             _config.RewriteLocalhost = true;
             _server = new NancyHost(_config, new Uri(address));
