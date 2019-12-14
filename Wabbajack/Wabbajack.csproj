@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -445,12 +445,6 @@
     <EmbeddedResource Include="Resources\banner_small.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Icons\discord.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\Icons\next.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\Banner_Dark.png" />
   </ItemGroup>
   <ItemGroup>
@@ -547,10 +541,6 @@
   <ItemGroup>
     <Resource Include="Resources\Icons\gog.png" />
     <Resource Include="Resources\Icons\steam.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\github.png" />
-    <Resource Include="Resources\Icons\patreon.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Wabba_Mouth_No_Text.png" />

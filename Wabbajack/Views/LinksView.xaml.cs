@@ -26,19 +26,19 @@ namespace Wabbajack
             InitializeComponent();
         }
 
-        private void GitHub_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void GitHub_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("https://github.com/wabbajack-tools/wabbajack");
         }
 
-        private void Patreon_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void Discord_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start("https://www.patreon.com/user?u=11907933");
+            Process.Start("https://discord.gg/wabbajack");
         }
 
-        private void Discord_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void Patreon_Click(object sender, RoutedEventArgs e)
         {
-            Process.Start("https://discord.gg/zgbrkmA");
+            Process.Start("https://www.patreon.com/user?u=11907933");
         }
     }
 }
