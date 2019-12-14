@@ -109,7 +109,7 @@ namespace Wabbajack
 
             ModListLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
                 PromptTitle = "Select a modlist to install"
             };

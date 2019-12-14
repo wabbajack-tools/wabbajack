@@ -43,13 +43,13 @@ namespace Wabbajack
             Parent = parent;
             ModlistLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
                 PromptTitle = "Select modlist"
             };
             DownloadLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select download location",
             };
@@ -91,13 +91,44 @@ namespace Wabbajack
                     return ErrorResponse.Fail($"MO2 Folder could not be located from the given modlist location.{Environment.NewLine}Make sure your modlist is inside a valid MO2 distribution.");
                 });
 
+            // Load custom modlist settings per MO2 profile
+            _modlistSettings = Observable.CombineLatest(
+                    this.WhenAny(x => x.ModlistLocation.ErrorState),
+                    this.WhenAny(x => x.ModlistLocation.TargetPath),
+                    resultSelector: (state, path) => (State: state, Path: path))
+                // A short throttle is a quick hack to make the above changes "atomic"
+                .Throttle(TimeSpan.FromMilliseconds(25))
+                .Select(u =>
+                {
+                    if (u.State.Failed) return null;
+                    var modlistSettings = _settings.ModlistSettings.TryCreate(u.Path);
+                    return new ModlistSettingsEditorVM(modlistSettings)
+                    {
+                        ModListName = MOProfile
+                    };
+                })
+                // Interject and save old while loading new
+                .Pairwise()
+                .Do(pair =>
+                {
+                    pair.Previous?.Save();
+                    pair.Current?.Init();
+                })
+                .Select(x => x.Current)
+                // Save to property
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(ModlistSettings));
+
             // Wire start command
             BeginCommand = ReactiveCommand.CreateFromTask(
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.ModlistLocation.InError),
                         this.WhenAny(x => x.DownloadLocation.InError),
                         parent.WhenAny(x => x.OutputLocation.InError),
-                        resultSelector: (ml, down, output) => !ml && !down && !output)
+                        this.WhenAny(x => x.ModlistSettings)
+                            .Select(x => x?.InError ?? Observable.Return(false))
+                            .Switch(),
+                        resultSelector: (ml, down, output, modlistSettings) => !ml && !down && !output && !modlistSettings)
                     .ObserveOnGuiThread(),
                 execute: async () =>
                 {
@@ -160,34 +191,6 @@ namespace Wabbajack
             parent.MWVM.Settings.SaveSignal
                 .Subscribe(_ => Unload())
                 .DisposeWith(CompositeDisposable);
-
-            // Load custom modlist settings per MO2 profile
-            _modlistSettings = Observable.CombineLatest(
-                    this.WhenAny(x => x.ModlistLocation.ErrorState),
-                    this.WhenAny(x => x.ModlistLocation.TargetPath),
-                    resultSelector: (state, path) => (State: state, Path: path))
-                // A short throttle is a quick hack to make the above changes "atomic"
-                .Throttle(TimeSpan.FromMilliseconds(25))
-                .Select(u =>
-                {
-                    if (u.State.Failed) return null;
-                    var modlistSettings = _settings.ModlistSettings.TryCreate(u.Path);
-                    return new ModlistSettingsEditorVM(modlistSettings)
-                    {
-                        ModListName = MOProfile
-                    };
-                })
-                // Interject and save old while loading new
-                .Pairwise()
-                .Do(pair =>
-                {
-                    pair.Previous?.Save();
-                    pair.Current?.Init();
-                })
-                .Select(x => x.Current)
-                // Save to property
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(ModlistSettings));
 
             // If Mo2 folder changes and download location is empty, set it for convenience
             this.WhenAny(x => x.Mo2Folder)

@@ -59,22 +59,42 @@ namespace Wabbajack
             Parent = parent;
             GameLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Game Folder Location"
             };
             DownloadsLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Downloads Folder"
             };
             StagingLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Staging Folder"
             };
+
+            // Load custom ModList settings when game type changes
+            _modListSettings = this.WhenAny(x => x.SelectedGame)
+                .Select(game =>
+                {
+                    var gameSettings = _settings.ModlistSettings.TryCreate(game.Game);
+                    return new ModlistSettingsEditorVM(gameSettings.ModlistSettings);
+                })
+                // Interject and save old while loading new
+                .Pairwise()
+                .Do(pair =>
+                {
+                    var (previous, current) = pair;
+                    previous?.Save();
+                    current?.Init();
+                })
+                .Select(x => x.Current)
+                // Save to property
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(ModlistSettings));
 
             // Wire start command
             BeginCommand = ReactiveCommand.CreateFromTask(
@@ -82,7 +102,10 @@ namespace Wabbajack
                         this.WhenAny(x => x.GameLocation.InError),
                         this.WhenAny(x => x.DownloadsLocation.InError),
                         this.WhenAny(x => x.StagingLocation.InError),
-                        (g, d, s) => !g && !d && !s)
+                        this.WhenAny(x => x.ModlistSettings)
+                            .Select(x => x?.InError ?? Observable.Return(false))
+                            .Switch(),
+                        (g, d, s, ml) => !g && !d && !s && !ml)
                     .ObserveOnGuiThread(),
                 execute: async () =>
                 {
@@ -177,26 +200,6 @@ namespace Wabbajack
                     }
                 })
                 .DisposeWith(CompositeDisposable);
-
-            // Load custom ModList settings when game type changes
-            _modListSettings = this.WhenAny(x => x.SelectedGame)
-                .Select(game =>
-                {
-                    var gameSettings = _settings.ModlistSettings.TryCreate(game.Game);
-                    return new ModlistSettingsEditorVM(gameSettings.ModlistSettings);
-                })
-                // Interject and save old while loading new
-                .Pairwise()
-                .Do(pair =>
-                {
-                    var (previous, current) = pair;
-                    previous?.Save();
-                    current?.Init();
-                })
-                .Select(x => x.Current)
-                // Save to property
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(ModlistSettings));
 
             // Find game commands
             FindGameInSteamCommand = ReactiveCommand.Create(SetGameToSteamLocation);

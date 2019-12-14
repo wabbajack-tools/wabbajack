@@ -41,7 +41,7 @@ namespace Wabbajack
 
             Location = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.Off,
+                ExistCheckOption = FilePickerVM.CheckOptions.Off,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Installation Directory",
             };
@@ -49,7 +49,7 @@ namespace Wabbajack
                 .Select(x => Utils.IsDirectoryPathValid(x));
             DownloadLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.Off,
+                ExistCheckOption = FilePickerVM.CheckOptions.Off,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select a location for MO2 downloads",
             };

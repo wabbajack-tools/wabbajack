@@ -105,6 +105,7 @@
     <Compile Include="DownloaderTests.cs" />
     <Compile Include="EndToEndTests.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="FilePickerTests.cs" />
     <Compile Include="MiscTests.cs" />
     <Compile Include="ModlistMetadataTests.cs" />
     <Compile Include="TestUtils.cs" />

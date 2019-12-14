@@ -66,7 +66,7 @@ namespace Wabbajack
 
             OutputLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
+                ExistCheckOption = FilePickerVM.CheckOptions.IfPathNotEmpty,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select the folder to place the resulting modlist.wabbajack file",
             };
