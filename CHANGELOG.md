@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 1.0 beta 5 - 12/14/2019
+* Added LoversLab download support
+* Nexus and LL logins now happen via a in-ap browser
+* Several UI enhancements
+
 #### Version - 1.0 beta 4 - 12/3/2019
 * Several crash and bug fixes
 

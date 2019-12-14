@@ -122,8 +122,8 @@ namespace Wabbajack.Test
             if (!File.Exists(src))
             {
 
-                var state = DownloadDispatcher.ResolveArchive(ini.LoadIniString());
-                state.Download(src);
+                var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+                await state.Download(src);
             }
 
             if (!Directory.Exists(utils.DownloadsFolder))
