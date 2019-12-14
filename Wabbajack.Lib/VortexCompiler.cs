@@ -4,18 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Threading;
+using DynamicData;
 using Microsoft.WindowsAPICodePack.Shell;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.NexusApi;
-using Wabbajack.Lib.Validation;
-using Directory = Alphaleonis.Win32.Filesystem.Directory;
-using File = System.IO.File;
-using Game = Wabbajack.Common.Game;
-using Path = Alphaleonis.Win32.Filesystem.Path;
+using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib
 {
@@ -32,15 +29,15 @@ namespace Wabbajack.Lib
         public Game Game { get; }
         public string GameName { get; }
 
-        public bool IgnoreMissingFiles { get; set; }
-
         public string VortexFolder { get; set; }
         public string StagingFolder { get; set; }
         public string DownloadsFolder { get; set; }
 
+        public bool IgnoreMissingFiles { get; set; }
+
         public override ModManager ModManager => ModManager.Vortex;
         public override string GamePath { get; }
-        public override string ModListOutputFolder => "output_folder";
+        public override string ModListOutputFolder { get; }
         public override string ModListOutputFile { get; }
 
         public const string StagingMarkerName = "__vortex_staging_folder";
@@ -50,26 +47,19 @@ namespace Wabbajack.Lib
         private SteamGame _steamGame;
         private bool _hasSteamWorkshopItems;
 
-        public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder,
-            string stagingFolder, string outputFile)
+        public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder, string outputFile)
         {
             Game = game;
+
             GamePath = gamePath;
+            GameName = game.MetaData().NexusName;
             VortexFolder = vortexFolder;
             DownloadsFolder = downloadsFolder;
             StagingFolder = stagingFolder;
+            ModListOutputFolder = "output_folder";
             ModListOutputFile = outputFile;
 
-            if (string.IsNullOrEmpty(ModListName))
-            {
-                ModListName = $"Vortex ModList for {Game.ToString()}";
-                ModListOutputFile = $"{ModListName}{ExtensionManager.Extension}";
-            }
-
-            GameName = Game.MetaData().NexusName;
-
-            ActiveArchives = new List<string>();
-
+            // there can be max one game after filtering
             SteamHandler.Instance.Games.Where(g => g.Game != null && g.Game == game).Do(g =>
             {
                 _isSteamGame = true;
@@ -77,51 +67,52 @@ namespace Wabbajack.Lib
                 SteamHandler.Instance.LoadWorkshopItems(_steamGame);
                 _hasSteamWorkshopItems = _steamGame.WorkshopItems.Count > 0;
             });
-        }
 
+            ActiveArchives = new List<string>();
+        }
+        
         protected override async Task<bool> _Begin(CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested) return false;
 
-            Info($"Starting Vortex compilation for {GameName} at {GamePath} with staging folder at {StagingFolder} and downloads folder at {DownloadsFolder}.");
+            ConfigureProcessor(10);
+            if (string.IsNullOrEmpty(ModListName))
+                ModListName = $"Vortex ModList for {Game.ToString()}";
 
-            ConfigureProcessor(12);
-            UpdateTracker.Reset();
+            Info($"Starting Vortex compilation for {GameName} at {GamePath} with staging folder at {StagingFolder} and downloads folder at  {DownloadsFolder}.");
 
             if (cancel.IsCancellationRequested) return false;
-            UpdateTracker.NextStep("Parsing deployment file");
             ParseDeploymentFile();
 
             if (cancel.IsCancellationRequested) return false;
-            UpdateTracker.NextStep("Creating metas for archives");
+            Info("Starting pre-compilation steps");
             await CreateMetaFiles();
 
             if (cancel.IsCancellationRequested) return false;
-            await VFS.IntegrateFromFile(_vfsCacheName);
+            Info($"Indexing {StagingFolder}");
+            await VFS.AddRoot(StagingFolder);
 
-            var roots = new List<string> {StagingFolder, GamePath, DownloadsFolder};
-            AddExternalFolder(ref roots);
+            Info($"Indexing {GamePath}");
+            await VFS.AddRoot(GamePath);
+
+            Info($"Indexing {DownloadsFolder}");
+            await VFS.AddRoot(DownloadsFolder);
 
             if (cancel.IsCancellationRequested) return false;
-            UpdateTracker.NextStep("Indexing folders");
-            await VFS.AddRoots(roots);
-            await VFS.WriteToFile(_vfsCacheName);
+            await AddExternalFolder();
 
             if (cancel.IsCancellationRequested) return false;
-            UpdateTracker.NextStep("Cleaning output folder");
-            if (Directory.Exists(ModListOutputFolder))
-                Utils.DeleteDirectory(ModListOutputFolder);
-
+            Info("Cleaning output folder");
+            if (Directory.Exists(ModListOutputFolder)) Utils.DeleteDirectory(ModListOutputFolder);
             Directory.CreateDirectory(ModListOutputFolder);
-
-            UpdateTracker.NextStep("Finding Install Files");
+            
             var vortexStagingFiles = Directory.EnumerateFiles(StagingFolder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists() && p != StagingMarkerName)
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     {Path = p.RelativeTo(StagingFolder)});
             
             var vortexDownloads = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.AllDirectories)
-                .Where(p => p.FileExists() && p != DownloadMarkerName)
+                .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     {Path = p.RelativeTo(DownloadsFolder)});
 
@@ -148,6 +139,7 @@ namespace Wabbajack.Lib
                 .GroupBy(f => f.Hash)
                 .ToDictionary(f => f.Key, f => f.AsEnumerable());
 
+            Info("Searching for mod files");
             AllFiles = vortexStagingFiles.Concat(vortexDownloads)
                 .Concat(gameFiles)
                 .DistinctBy(f => f.Path)
@@ -156,8 +148,7 @@ namespace Wabbajack.Lib
             Info($"Found {AllFiles.Count} files to build into mod list");
 
             if (cancel.IsCancellationRequested) return false;
-            UpdateTracker.NextStep("Verifying destinations");
-
+            Info("Verifying destinations");
             var duplicates = AllFiles.GroupBy(f => f.Path)
                 .Where(fs => fs.Count() > 1)
                 .Select(fs =>
@@ -194,9 +185,9 @@ namespace Wabbajack.Lib
                 if(targetArchive.IniData?.General?.tag == null || targetArchive.IniData?.General?.tag != Consts.WABBAJACK_VORTEX_MANUAL)
                     continue;
 
-#if DEBUG
+                #if DEBUG
                 Utils.Log($"Double hash for: {f.AbsolutePath}");
-#endif
+                #endif
 
                 var replace = f;
                 var name = replace.File.Name;
@@ -213,9 +204,9 @@ namespace Wabbajack.Lib
                 //AllFiles.Replace(f, replace);
             }
 
-            if (cancel.IsCancellationRequested) return false;
             var stack = MakeStack();
-            UpdateTracker.NextStep("Running Compilation Stack");
+
+            Info("Running Compilation Stack");
             var results = await AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f));
 
             IEnumerable<NoMatch> noMatch = results.OfType<NoMatch>().ToList();
@@ -237,17 +228,17 @@ namespace Wabbajack.Lib
 
             InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
 
-            Info("Getting Nexus api_key, please click authorize if a browser window appears");
-
+            // TODO: nexus stuff
+            /*Info("Getting Nexus api_key, please click authorize if a browser window appears");
             if (IndexedArchives.Any(a => a.IniData?.General?.gameName != null))
             {
-                var nexusClient = await NexusApiClient.Get();
-                if (!await nexusClient.IsPremium()) Error($"User {await nexusClient.Username()} is not a premium Nexus user, so we cannot access the necessary API calls, cannot continue");
+                var nexusClient = new NexusApiClient();
+                if (!nexusClient.IsPremium) Error($"User {nexusClient.Username} is not a premium Nexus user, so we cannot access the necessary API calls, cannot continue");
 
             }
+            */
 
             if (cancel.IsCancellationRequested) return false;
-            UpdateTracker.NextStep("Gathering Archives");
             await GatherArchives();
 
             ModList = new ModList
@@ -263,44 +254,14 @@ namespace Wabbajack.Lib
                 Directives = InstallDirectives,
                 GameType = Game
             };
-
-            UpdateTracker.NextStep("Running Validation");
-            await ValidateModlist.RunValidation(Queue, ModList);
-
-            UpdateTracker.NextStep("Generating Report");
+            
             GenerateReport();
-
-            UpdateTracker.NextStep("Exporting ModList");
             ExportModList();
 
-            ResetMembers();
+            Info("Done Building ModList");
 
             ShowReport();
-
-            UpdateTracker.NextStep("Done Building ModList");
-
             return true;
-        }
-
-        /// <summary>
-        ///     Clear references to lists that hold a lot of data.
-        /// </summary>
-        private void ResetMembers()
-        {
-            AllFiles = null;
-            InstallDirectives = null;
-            SelectedArchives = null;
-        }
-
-        private void AddExternalFolder(ref List<string> roots)
-        {
-            var currentGame = Game.MetaData();
-            if (currentGame.AdditionalFolders == null || currentGame.AdditionalFolders.Count == 0) return;
-            foreach (var path in currentGame.AdditionalFolders.Select(f => f.Replace("%documents%", KnownFolders.Documents.Path)))
-            {
-                if (!Directory.Exists(path)) return;
-                roots.Add(path);
-            }
         }
 
         private void ParseDeploymentFile()
@@ -319,10 +280,10 @@ namespace Wabbajack.Lib
 
             if (string.IsNullOrEmpty(deploymentFile))
             {
-                Error("vortex.deployment.json not found!");
+                Info("vortex.deployment.json not found!");
                 return;
             }
-            Info($"vortex.deployment.json found at {deploymentFile}");
+            Info("vortex.deployment.json found at "+deploymentFile);
 
             Info("Parsing vortex.deployment.json...");
             try
@@ -345,81 +306,101 @@ namespace Wabbajack.Lib
             });
         }
 
+        /// <summary>
+        /// Some have mods outside their game folder located
+        /// </summary>
+        private async Task AddExternalFolder()
+        {
+            var currentGame = Game.MetaData();
+            if (currentGame.AdditionalFolders == null || currentGame.AdditionalFolders.Count == 0) return;
+            foreach (var f in currentGame.AdditionalFolders)
+            {
+                var path = f.Replace("%documents%", KnownFolders.Documents.Path);
+                if (!Directory.Exists(path)) return;
+                Info($"Indexing {path}");
+                await VFS.AddRoot(path);
+            }
+        }
+
         private async Task CreateMetaFiles()
         {
             Utils.Log("Getting Nexus api_key, please click authorize if a browser window appears");
             var nexusClient = await NexusApiClient.Get();
 
-            var archives = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly).Where(f =>
-                File.Exists(f) && Path.GetExtension(f) != ".meta" && Path.GetExtension(f) != ".xxHash" &&
-                !File.Exists($"{f}.meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)));
-
-            await archives.PMap(Queue, async f =>
-            {
-                Info($"Creating meta file for {Path.GetFileName(f)}");
-                var metaString = "[General]\n" +
-                                 "repository=Nexus\n" +
-                                 $"gameName={GameName}\n";
-                string hash;
-                using(var md5 = MD5.Create())
-                using (var stream = File.OpenRead(f))
+            await Task.WhenAll(
+                Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)
+                .Where(File.Exists)
+                .Select(async f =>
                 {
-                    Info($"Calculating hash for {Path.GetFileName(f)}");
-                    var cH = md5.ComputeHash(stream);
-                    hash = BitConverter.ToString(cH).Replace("-", "").ToLowerInvariant();
-                    Info($"Hash is {hash}");
-                }
-
-                var md5Response = await nexusClient.GetModInfoFromMD5(Game, hash);
-                if (md5Response.Count >= 1)
-                {
-                    var modInfo = md5Response[0].mod;
-                    metaString += $"modID={modInfo.mod_id}\n" +
-                                  $"modName={modInfo.name}\n" +
-                                  $"fileID={md5Response[0].file_details.file_id}\n" +
-                                  $"version={md5Response[0].file_details.version}\n";
-                    File.WriteAllText(f+".meta",metaString, Encoding.UTF8);
-                }
-                else
-                {
-                    Error("Error while getting information from NexusMods via MD5 hash!");
-                }
-            });
-
-            var otherFiles = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly).Where(f =>
-                Path.GetExtension(f) == ".meta" && !ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)));
-
-            await otherFiles.PMap(Queue, async f =>
-            {
-                Info($"File {f} is not in ActiveArchives");
-                var lines = File.ReadAllLines(f);
-                if (lines.Length == 0 || !lines.Any(line => lines.Contains("directURL=")))
-                {
-                    if (lines.Length == 0)
-                        return;
-
-                    lines.Do(line =>
+                    if (Path.GetExtension(f) != ".meta" && Path.GetExtension(f) != ".xxHash" && !File.Exists($"{f}.meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
                     {
-                        var tag = "";
-                        if (line.Contains("tag="))
-                            tag = line.Substring("tag=".Length);
+                        Utils.Log($"Trying to create meta file for {Path.GetFileName(f)}");
+                        var metaString = "[General]\n" +
+                                         "repository=Nexus\n" +
+                                         "installed=true\n" +
+                                         "uninstalled=false\n" +
+                                         "paused=false\n" +
+                                         "removed=false\n" +
+                                         $"gameName={GameName}\n";
+                        string hash;
+                        using(var md5 = MD5.Create())
+                        using (var stream = File.OpenRead(f))
+                        {
+                            Utils.Log($"Calculating hash for {Path.GetFileName(f)}");
+                            var cH = md5.ComputeHash(stream);
+                            hash = BitConverter.ToString(cH).Replace("-", "").ToLowerInvariant();
+                            Utils.Log($"Hash is {hash}");
+                        }
 
-                        if (tag != Consts.WABBAJACK_VORTEX_MANUAL)
+                        var md5Response = await nexusClient.GetModInfoFromMD5(Game, hash);
+                        if (md5Response.Count >= 1)
+                        {
+                            var modInfo = md5Response[0].mod;
+                            metaString += $"modID={modInfo.mod_id}\n" +
+                                          $"modName={modInfo.name}\nfileID={md5Response[0].file_details.file_id}";
+                            File.WriteAllText(f+".meta",metaString, Encoding.UTF8);
+                        }
+                        else
+                        {
+                            Error("Error while getting information from NexusMods via MD5 hash!");
+                        }
+                    }
+                    else
+                    {
+                        if (Path.GetExtension(f) != ".meta" ||
+                            ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
                             return;
 
-                        Info($"File {f} contains the {Consts.WABBAJACK_VORTEX_MANUAL} tag, adding to ActiveArchives");
-                        ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
-                    });
-                }
-                else
-                {
-                    Info($"File {f} appears to not be from the Nexus, adding to ActiveArchives");
-                    ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
-                }
-            });
+                        Utils.Log($"File {f} is not in ActiveArchives");
+                        var lines = File.ReadAllLines(f);
+                        if (lines.Length == 0 || !lines.Any(line => line.Contains("directURL=")))
+                        {
+                            if (lines.Length == 0)
+                                return;
 
-            Info($"Checking for Steam Workshop Items...");
-            if (!_isSteamGame || _steamGame == null || !_hasSteamWorkshopItems)
+                            lines.Do(line =>
+                            {
+                                var tag = "";
+                                if (line.Contains("tag="))
+                                    tag = line.Substring("tag=".Length);
+
+                                if (tag != Consts.WABBAJACK_VORTEX_MANUAL)
+                                    return;
+
+                                Utils.Log($"File {f} contains the {Consts.WABBAJACK_VORTEX_MANUAL} tag, adding to ActiveArchives");
+                                ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
+                            });
+                        }
+                        else
+                        {
+                            Utils.Log($"File {f} appears to not come from the Nexus, adding to ActiveArchives");
+                            ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
+                        }
+                    }
+                }));
+
+            Utils.Log($"Checking for Steam Workshop Items...");
+            if (!_isSteamGame || _steamGame == null || _steamGame.WorkshopItems.Count <= 0)
                 return;
 
             _steamGame.WorkshopItems.Do(item =>
@@ -434,6 +415,7 @@ namespace Wabbajack.Lib
                 Utils.Log($"Creating meta file for {item.ItemID}");
                 var metaString = "[General]\n" +
                                  "repository=Steam\n" +
+                                 "installed=true\n" +
                                  $"gameName={GameName}\n" +
                                  $"steamID={_steamGame.AppId}\n" +
                                  $"itemID={item.ItemID}\n" +
@@ -458,22 +440,20 @@ namespace Wabbajack.Lib
 
             var stack = MakeStack();
 
-            var compilationSteps = stack.ToList();
-            File.WriteAllText(Path.Combine(s, "_current_compilation_stack.yml"), Serialization.Serialize(compilationSteps));
+            File.WriteAllText(Path.Combine(s, "_current_compilation_stack.yml"),
+                Serialization.Serialize(stack));
 
-            return compilationSteps;
+            return stack;
         }
 
         public override IEnumerable<ICompilationStep> MakeStack()
         {
-            Info("Generating compilation stack");
+            Utils.Log("Generating compilation stack");
             return new List<ICompilationStep>
             {
                 new IncludePropertyFiles(this),
-
                 new IncludeSteamWorkshopItems(this, _steamGame),
                 _hasSteamWorkshopItems ? new IncludeRegex(this, "^steamWorkshopItem_\\d*\\.meta$") : null,
-
                 new IgnoreDisabledVortexMods(this),
                 new IncludeVortexDeployment(this),
                 new IgnoreVortex(this),
