@@ -35,6 +35,8 @@ namespace Wabbajack
         [Reactive]
         public bool AutomaticallyOverwrite { get; set; }
 
+        public int ConfigVisualVerticalOffset => 25;
+
         public MO2InstallerVM(InstallerVM installerVM)
         {
             Parent = installerVM;

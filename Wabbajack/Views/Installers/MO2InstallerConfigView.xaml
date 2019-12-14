@@ -16,29 +16,12 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="20" />
-            <RowDefinition Height="40" />
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
             <RowDefinition Height="20" />
         </Grid.RowDefinitions>
         <TextBlock
-            Grid.Row="1"
-            Grid.Column="0"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Center"
-            FontSize="14"
-            Text="Target Modlist"
-            TextAlignment="Center" />
-        <local:FilePicker
-            Grid.Row="1"
-            Grid.Column="2"
-            Height="30"
-            VerticalAlignment="Center"
-            DataContext="{Binding Parent.ModListLocation}"
-            FontSize="14" />
-        <TextBlock
-            Grid.Row="2"
+            Grid.Row="0"
             Grid.Column="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
@@ -46,14 +29,14 @@
             Text="Installation Location"
             TextAlignment="Center" />
         <local:FilePicker
-            Grid.Row="2"
+            Grid.Row="0"
             Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
             DataContext="{Binding Location}"
             FontSize="14" />
         <TextBlock
-            Grid.Row="3"
+            Grid.Row="1"
             Grid.Column="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
@@ -61,14 +44,14 @@
             Text="Download Location"
             TextAlignment="Center" />
         <local:FilePicker
-            Grid.Row="3"
+            Grid.Row="1"
             Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
             DataContext="{Binding DownloadLocation}"
             FontSize="14" />
         <CheckBox
-            Grid.Row="4"
+            Grid.Row="2"
             Grid.Column="2"
             HorizontalAlignment="Right"
             Content="Overwrite Installation"

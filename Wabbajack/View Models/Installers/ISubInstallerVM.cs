@@ -17,5 +17,6 @@ namespace Wabbajack
         void Unload();
         bool SupportsAfterInstallNavigation { get; }
         void AfterInstallNavigation();
+        int ConfigVisualVerticalOffset { get; }
     }
 }

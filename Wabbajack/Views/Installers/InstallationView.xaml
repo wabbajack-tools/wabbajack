@@ -283,15 +283,44 @@
                     <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <ScrollViewer
+                <Grid
                     Grid.Column="0"
                     Margin="5"
+                    VerticalAlignment="Center"
                     Background="Transparent"
-                    VerticalScrollBarVisibility="Auto"
                     Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
-                    <ContentPresenter
-                        Margin="0"
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MinWidth="120" />
+                        <ColumnDefinition Width="20" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Rectangle Grid.Row="0" Height="{Binding Installer.ConfigVisualVerticalOffset, Mode=OneWay}" />
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        HorizontalAlignment="Right"
                         VerticalAlignment="Center"
+                        FontSize="14"
+                        Text="Target Modlist"
+                        TextAlignment="Center" />
+                    <local:FilePicker
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        Height="30"
+                        VerticalAlignment="Center"
+                        DataContext="{Binding ModListLocation}"
+                        FontSize="14" />
+                    <ContentPresenter
+                        Grid.Row="3"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="3"
+                        VerticalAlignment="Top"
                         Content="{Binding Installer}">
                         <ContentPresenter.Resources>
                             <DataTemplate DataType="{x:Type local:MO2InstallerVM}">
@@ -302,7 +331,7 @@
                             </DataTemplate>
                         </ContentPresenter.Resources>
                     </ContentPresenter>
-                </ScrollViewer>
+                </Grid>
                 <local:BeginButton
                     Grid.Column="2"
                     Margin="0,0,25,0"
