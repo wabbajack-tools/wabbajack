@@ -97,7 +97,8 @@ namespace Wabbajack.Common
             });
 
             // Default path in the Steam folder isn't in the configs
-            paths.Add(Path.Combine(SteamPath, "steamapps"));
+            if(Directory.Exists(Path.Combine(SteamPath, "steamapps")))
+                paths.Add(Path.Combine(SteamPath, "steamapps"));
 
             InstallFolders = paths;
         }
@@ -123,8 +124,11 @@ namespace Wabbajack.Common
                                 return;
                         if(l.Contains("\"name\""))
                             steamGame.Name = GetVdfValue(l);
-                        if(l.Contains("\"installdir\""))
-                            steamGame.InstallDir = Path.Combine(p, "common", GetVdfValue(l));
+                        if (l.Contains("\"installdir\""))
+                        {
+                            var path = Path.Combine(p, "common", GetVdfValue(l));
+                            steamGame.InstallDir = Directory.Exists(path) ? path : null;
+                        }
 
                         if (steamGame.AppId != 0 && !string.IsNullOrWhiteSpace(steamGame.Name) &&
                             !string.IsNullOrWhiteSpace(steamGame.InstallDir))
