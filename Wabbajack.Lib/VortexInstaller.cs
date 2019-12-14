@@ -59,7 +59,7 @@ namespace Wabbajack.Lib
             }
 
             if (cancel.IsCancellationRequested) return false;
-            ConfigureProcessor(9, await RecommendQueueSize());
+            ConfigureProcessor(10, await RecommendQueueSize());
             Directory.CreateDirectory(DownloadFolder);
 
             if (cancel.IsCancellationRequested) return false;
@@ -102,8 +102,9 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Installing Included files");
             await InstallIncludedFiles();
 
-            /*if (cancel.IsCancellationRequested) return false;
-            await InstallManualGameFiles();*/
+            if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Installing Manual files");
+            await InstallManualGameFiles();
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Installing SteamWorkshopItems");
