@@ -171,6 +171,48 @@ namespace Wabbajack.Lib
                 Error($"Found {duplicates.Count} duplicates, exiting");
             }
 
+            for (var i = 0; i < AllFiles.Count; i++)
+            {
+                var f = AllFiles[i];
+                if (!f.Path.StartsWith(Consts.GameFolderFilesDir) || !IndexedFiles.ContainsKey(f.Hash))
+                    continue;
+
+                if (!IndexedFiles.TryGetValue(f.Hash, out var value))
+                    continue;
+
+                var element = value.ElementAt(0);
+
+                if (!f.Path.Contains(element.Name))
+                    continue;
+
+                IndexedArchive targetArchive = null;
+                IndexedArchives.Where(a => a.File.Children.Contains(element)).Do(a => targetArchive = a);
+
+                if (targetArchive == null)
+                    continue;
+                
+                if(targetArchive.IniData?.General?.tag == null || targetArchive.IniData?.General?.tag != Consts.WABBAJACK_VORTEX_MANUAL)
+                    continue;
+
+#if DEBUG
+                Utils.Log($"Double hash for: {f.AbsolutePath}");
+#endif
+
+                var replace = f;
+                var name = replace.File.Name;
+                var archiveName = targetArchive.Name;
+                var elementPath = element.FullPath.Substring(element.FullPath.IndexOf('|')+1);
+                var gameToFile = name.Substring(GamePath.Length + 1).Replace(elementPath, "");
+                if (gameToFile.EndsWith("\\"))
+                    gameToFile = gameToFile.Substring(0, gameToFile.Length - 1);
+                //replace.Path = replace.Path.Replace(Consts.GameFolderFilesDir, Consts.ManualGameFilesDir);
+                replace.Path = Path.Combine(Consts.ManualGameFilesDir, archiveName, gameToFile, elementPath);
+                //replace.Path = Path.Combine(Consts.ManualGameFilesDir, element.FullPath.Substring(DownloadsFolder.Length + 1).Replace('|', '\\'));
+                AllFiles.RemoveAt(i);
+                AllFiles.Insert(i, replace);
+                //AllFiles.Replace(f, replace);
+            }
+
             if (cancel.IsCancellationRequested) return false;
             var stack = MakeStack();
             UpdateTracker.NextStep("Running Compilation Stack");
@@ -341,6 +383,38 @@ namespace Wabbajack.Lib
                 else
                 {
                     Error("Error while getting information from NexusMods via MD5 hash!");
+                }
+            });
+
+            var otherFiles = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly).Where(f =>
+                Path.GetExtension(f) == ".meta" && !ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)));
+
+            await otherFiles.PMap(Queue, async f =>
+            {
+                Info($"File {f} is not in ActiveArchives");
+                var lines = File.ReadAllLines(f);
+                if (lines.Length == 0 || !lines.Any(line => lines.Contains("directURL=")))
+                {
+                    if (lines.Length == 0)
+                        return;
+
+                    lines.Do(line =>
+                    {
+                        var tag = "";
+                        if (line.Contains("tag="))
+                            tag = line.Substring("tag=".Length);
+
+                        if (tag != Consts.WABBAJACK_VORTEX_MANUAL)
+                            return;
+
+                        Info($"File {f} contains the {Consts.WABBAJACK_VORTEX_MANUAL} tag, adding to ActiveArchives");
+                        ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
+                    });
+                }
+                else
+                {
+                    Info($"File {f} appears to not be from the Nexus, adding to ActiveArchives");
+                    ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
                 }
             });
 
