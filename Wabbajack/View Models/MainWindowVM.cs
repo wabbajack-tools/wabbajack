@@ -3,11 +3,13 @@ using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Threading;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
@@ -37,6 +39,9 @@ namespace Wabbajack
         public readonly WebBrowserVM WebBrowserVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
         public Dispatcher ViewDispatcher { get; set; }
+
+        public ICommand CopyVersionCommand { get; }
+        public string VersionDisplay { get; }
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
         {
@@ -79,6 +84,22 @@ namespace Wabbajack
                 // Start on mode selection
                 ActivePane = ModeSelectionVM;
             }
+
+            try
+            {
+                System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+                FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+                VersionDisplay = $"v{fvi.FileVersion}";
+            }
+            catch (Exception ex)
+            {
+                Utils.Error(ex);
+                VersionDisplay = "ERROR";
+            }
+            CopyVersionCommand = ReactiveCommand.Create(() =>
+            {
+                Clipboard.SetText($"Wabbajack {VersionDisplay}\n{ThisAssembly.Git.Sha}");
+            });
         }
 
         private static bool IsStartingFromModlist(out string modlistPath)
