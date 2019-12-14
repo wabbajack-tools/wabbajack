@@ -222,24 +222,6 @@
                                             <RowDefinition Height="*" />
                                             <RowDefinition Height="*" />
                                         </Grid.RowDefinitions>
-                                        <Grid.Resources>
-                                            <Style
-                                                x:Key="ModlistButtonStyle"
-                                                BasedOn="{StaticResource IconCircleButtonStyle}"
-                                                TargetType="Button">
-                                                <Style.Triggers>
-                                                    <MultiDataTrigger>
-                                                        <MultiDataTrigger.Conditions>
-                                                            <Condition Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True" />
-                                                            <Condition Binding="{Binding IsEnabled, RelativeSource={RelativeSource Self}}" Value="True" />
-                                                        </MultiDataTrigger.Conditions>
-                                                        <MultiDataTrigger.Setters>
-                                                            <Setter Property="Foreground" Value="{StaticResource IntenseComplementaryBrush}" />
-                                                        </MultiDataTrigger.Setters>
-                                                    </MultiDataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Grid.Resources>
                                         <Button
                                             Grid.Row="0"
                                             Width="40"
@@ -247,7 +229,7 @@
                                             Margin="5,0"
                                             VerticalAlignment="Bottom"
                                             Command="{Binding OpenWebsiteCommand}"
-                                            Style="{StaticResource ModlistButtonStyle}">
+                                            Style="{StaticResource IconBareButtonStyle}">
                                             <iconPacks:Material
                                                 Width="20"
                                                 Height="20"
@@ -262,7 +244,7 @@
                                             VerticalAlignment="Top"
                                             Command="{Binding ExecuteCommand}">
                                             <Button.Style>
-                                                <Style BasedOn="{StaticResource ModlistButtonStyle}" TargetType="Button">
+                                                <Style BasedOn="{StaticResource IconBareButtonStyle}" TargetType="Button">
                                                     <Setter Property="Content">
                                                         <Setter.Value>
                                                             <iconPacks:Material
