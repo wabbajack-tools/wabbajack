@@ -34,7 +34,7 @@
             Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
-            DataContext="{Binding ModlistLocation}"
+            DataContext="{Binding ModListLocation}"
             FontSize="14"
             ToolTip="The MO2 modlist.txt file you want to use as your source" />
         <TextBlock
