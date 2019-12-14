@@ -80,6 +80,7 @@ namespace Wabbajack
             _modListSettings = this.WhenAny(x => x.SelectedGame)
                 .Select(game =>
                 {
+                    if (game == null) return null;
                     var gameSettings = _settings.ModlistSettings.TryCreate(game.Game);
                     return new ModlistSettingsEditorVM(gameSettings.ModlistSettings);
                 })
