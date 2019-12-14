@@ -33,25 +33,26 @@ namespace Wabbajack.Common
             var progIDKey = Registry.CurrentUser.OpenSubKey(ProgIDPath);
             var tempKey = progIDKey?.OpenSubKey("shell\\open\\command");
             if (progIDKey == null || tempKey == null) return true;
-            return tempKey.GetValue("").ToString().Equals($"\"{appPath}\" -i \"%1\"");
+            var value = tempKey.GetValue("");
+            return value == null || value.ToString().Equals($"\"{appPath}\" -i \"%1\"");
         }
 
         public static bool IsAssociated()
         {
             var progIDKey = Registry.CurrentUser.OpenSubKey(ProgIDPath);
             var extKey = Registry.CurrentUser.OpenSubKey(ExtPath);
-            return (progIDKey != null && extKey != null);
+            return progIDKey != null && extKey != null;
         }
 
         public static void Associate(string appPath)
         {
             var progIDKey = Registry.CurrentUser.CreateSubKey(ProgIDPath, RegistryKeyPermissionCheck.ReadWriteSubTree);
-            foreach (KeyValuePair<string, string> entry in ProgIDList)
+            foreach (var entry in ProgIDList)
             {
                 if (entry.Key.Contains("\\"))
                 {
-                    var tempKey = progIDKey.CreateSubKey(entry.Key);
-                    tempKey.SetValue("", entry.Value.Replace("{appPath}", appPath));
+                    var tempKey = progIDKey?.CreateSubKey(entry.Key);
+                    tempKey?.SetValue("", entry.Value.Replace("{appPath}", appPath));
                 }
                 else
                 {
@@ -60,7 +61,7 @@ namespace Wabbajack.Common
             }
 
             var extKey = Registry.CurrentUser.CreateSubKey(ExtPath, RegistryKeyPermissionCheck.ReadWriteSubTree);
-            foreach (KeyValuePair<string, string> entry in ExtList)
+            foreach (var entry in ExtList)
             {
                 extKey?.SetValue(entry.Key, entry.Value);
             }
