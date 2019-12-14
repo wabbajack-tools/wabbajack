@@ -92,7 +92,8 @@ namespace Wabbajack.Common
                 if (!l.Contains("BaseInstallFolder_")) return;
                 var s = GetVdfValue(l);
                 s = Path.Combine(s, "steamapps");
-                paths.Add(s);
+                if(Directory.Exists(s))
+                    paths.Add(s);
             });
 
             // Default path in the Steam folder isn't in the configs
@@ -111,7 +112,7 @@ namespace Wabbajack.Common
 
             InstallFolders.Do(p =>
             {
-                Directory.EnumerateFiles(p, "*.acf", SearchOption.TopDirectoryOnly).Do(f =>
+                Directory.EnumerateFiles(p, "*.acf", SearchOption.TopDirectoryOnly).Where(File.Exists).Do(f =>
                 {
                     var steamGame = new SteamGame();
                     var valid = false;
@@ -157,7 +158,7 @@ namespace Wabbajack.Common
                 if(!Directory.Exists(workshop))
                     return;
 
-                Directory.EnumerateFiles(workshop, "*.acf", SearchOption.TopDirectoryOnly).Do(f =>
+                Directory.EnumerateFiles(workshop, "*.acf", SearchOption.TopDirectoryOnly).Where(File.Exists).Do(f =>
                 {
                     if (Path.GetFileName(f)  != $"appworkshop_{game.AppId}.acf")
                         return;
