@@ -27,8 +27,6 @@ namespace Wabbajack
 
         public FilePickerVM ModlistLocation { get; }
 
-        public FilePickerVM OutputLocation { get; }
-
         public IReactiveCommand BeginCommand { get; }
 
         [Reactive]
@@ -54,12 +52,6 @@ namespace Wabbajack
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select download location",
-            };
-            OutputLocation = new FilePickerVM()
-            {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
-                PathType = FilePickerVM.PathTypeOptions.Folder,
-                PromptTitle = "Select the folder to place the resulting modlist.wabbajack file",
             };
 
             _mo2Folder = this.WhenAny(x => x.ModlistLocation.TargetPath)
@@ -104,7 +96,7 @@ namespace Wabbajack
                 canExecute: Observable.CombineLatest(
                         this.WhenAny(x => x.ModlistLocation.InError),
                         this.WhenAny(x => x.DownloadLocation.InError),
-                        this.WhenAny(x => x.OutputLocation.InError),
+                        parent.WhenAny(x => x.OutputLocation.InError),
                         resultSelector: (ml, down, output) => !ml && !down && !output)
                     .ObserveOnGuiThread(),
                 execute: async () =>
@@ -112,13 +104,13 @@ namespace Wabbajack
                     try
                     {
                         string outputFile;
-                        if (string.IsNullOrWhiteSpace(OutputLocation.TargetPath))
+                        if (string.IsNullOrWhiteSpace(parent.OutputLocation.TargetPath))
                         {
                             outputFile = MOProfile + ExtensionManager.Extension;
                         }
                         else
                         {
-                            outputFile = Path.Combine(OutputLocation.TargetPath, MOProfile + ExtensionManager.Extension);
+                            outputFile = Path.Combine(parent.OutputLocation.TargetPath, MOProfile + ExtensionManager.Extension);
                         }
                         ActiveCompilation = new MO2Compiler(
                             mo2Folder: Mo2Folder,
@@ -165,7 +157,6 @@ namespace Wabbajack
             {
                 DownloadLocation.TargetPath = _settings.DownloadLocation;
             }
-            OutputLocation.TargetPath = parent.MWVM.Settings.Compiler.OutputLocation;
             parent.MWVM.Settings.SaveSignal
                 .Subscribe(_ => Unload())
                 .DisposeWith(CompositeDisposable);
@@ -218,7 +209,6 @@ namespace Wabbajack
         {
             _settings.DownloadLocation = DownloadLocation.TargetPath;
             _settings.LastCompiledProfileLocation = ModlistLocation.TargetPath;
-            Parent.MWVM.Settings.Compiler.OutputLocation = OutputLocation.TargetPath;
             ModlistSettings?.Save();
         }
     }

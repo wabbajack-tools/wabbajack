@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -14,6 +15,8 @@ namespace Wabbajack
 {
     public class VortexCompilerVM : ViewModel, ISubCompilerVM
     {
+        public CompilerVM Parent { get; }
+
         private readonly VortexCompilationSettings _settings;
 
         public IReactiveCommand BeginCommand { get; }
@@ -53,6 +56,7 @@ namespace Wabbajack
 
         public VortexCompilerVM(CompilerVM parent)
         {
+            Parent = parent;
             GameLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
@@ -84,13 +88,18 @@ namespace Wabbajack
                 {
                     try
                     {
+                        string outputFile = $"{ModlistSettings.ModListName}{ExtensionManager.Extension}";
+                        if (!string.IsNullOrWhiteSpace(parent.OutputLocation.TargetPath))
+                        {
+                            outputFile = Path.Combine(parent.OutputLocation.TargetPath, outputFile);
+                        }
                         ActiveCompilation = new VortexCompiler(
                             game: SelectedGame.Game,
                             gamePath: GameLocation.TargetPath,
                             vortexFolder: VortexCompiler.TypicalVortexFolder(),
                             downloadsFolder: DownloadsLocation.TargetPath,
                             stagingFolder: StagingLocation.TargetPath,
-                            outputFile: $"{ModlistSettings.ModListName}{ExtensionManager.Extension}")
+                            outputFile: outputFile)
                         {
                             ModListName = ModlistSettings.ModListName,
                             ModListAuthor = ModlistSettings.AuthorText,

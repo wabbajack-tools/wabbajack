@@ -41,6 +41,8 @@ namespace Wabbajack
 
         public IReactiveCommand BackCommand { get; }
 
+        public FilePickerVM OutputLocation { get; }
+
         private readonly ObservableAsPropertyHelper<IUserIntervention> _ActiveGlobalUserIntervention;
         public IUserIntervention ActiveGlobalUserIntervention => _ActiveGlobalUserIntervention.Value;
 
@@ -48,13 +50,22 @@ namespace Wabbajack
         {
             MWVM = mainWindowVM;
 
+            OutputLocation = new FilePickerVM()
+            {
+                ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
+                PathType = FilePickerVM.PathTypeOptions.Folder,
+                PromptTitle = "Select the folder to place the resulting modlist.wabbajack file",
+            };
+
             // Load settings
             CompilerSettings settings = MWVM.Settings.Compiler;
             SelectedCompilerType = settings.LastCompiledModManager;
+            OutputLocation.TargetPath = settings.OutputLocation;
             MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
                 {
                     settings.LastCompiledModManager = SelectedCompilerType;
+                    settings.OutputLocation = OutputLocation.TargetPath;
                 })
                 .DisposeWith(CompositeDisposable);
 

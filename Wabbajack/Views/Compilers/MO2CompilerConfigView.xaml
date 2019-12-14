@@ -68,7 +68,7 @@
             Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
-            DataContext="{Binding OutputLocation}"
+            DataContext="{Binding Parent.OutputLocation}"
             FontSize="14"
             ToolTip="The folder to place the resulting modlist.wabbajack file" />
     </Grid>
