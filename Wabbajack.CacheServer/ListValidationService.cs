@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Nancy;
@@ -119,10 +121,30 @@ namespace Wabbajack.CacheServer
 
         public static void Start()
         {
-            var tsk = ValidateLists();
+            new Thread(() =>
+            {
+                while (true)
+                {
+                    try
+                    {
+                        ValidateLists().Wait();
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.Log(ex.ToString());
+                    }
+
+                    // Sleep for two hours
+                    Thread.Sleep(1000 * 60 * 60 * 2);
+                }
+            }).Start();
         }
         public static async Task ValidateLists()
         {
+            Utils.Log("Cleaning Nexus Cache");
+            var client = new HttpClient();
+            await client.GetAsync("http://build.wabbajack.org/nexus_api_cache/update");
+
             Utils.Log("Starting Modlist Validation");
             var modlists = await ModlistMetadata.LoadFromGithub();
 
