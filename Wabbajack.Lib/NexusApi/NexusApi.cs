@@ -329,7 +329,10 @@ namespace Wabbajack.Lib.NexusApi
         public async Task<GetModFilesResponse> GetModFiles(Game game, int modid)
         {
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modid}/files.json";
-            return await GetCached<GetModFilesResponse>(url);
+            var result = await GetCached<GetModFilesResponse>(url);
+            if (result.files == null)
+                throw new InvalidOperationException("Got Null data from the Nexus while finding mod files");
+            return result;
         }
 
         public async Task<List<MD5Response>> GetModInfoFromMD5(Game game, string md5Hash)

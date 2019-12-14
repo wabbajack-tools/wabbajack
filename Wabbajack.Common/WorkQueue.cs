@@ -70,7 +70,16 @@ namespace Wabbajack.Common
                 {
                     Report("Waiting", 0, false);
                     if (_cancel.IsCancellationRequested) return;
-                    var f = Queue.Take(_cancel.Token);
+                    Func<Task> f;
+                    try
+                    {
+                        f = Queue.Take(_cancel.Token);
+                    }
+                    catch (Exception)
+                    {
+                        throw new OperationCanceledException();
+                    }
+
                     await f();
                 }
             }
@@ -100,13 +109,6 @@ namespace Wabbajack.Common
         public void Dispose()
         {
             _cancel.Cancel();
-            Threads.Do(th =>
-            {
-                if (th.ManagedThreadId != Thread.CurrentThread.ManagedThreadId)
-                {
-                    th.Join();
-                }
-            });
             Queue?.Dispose();
         }
     }
