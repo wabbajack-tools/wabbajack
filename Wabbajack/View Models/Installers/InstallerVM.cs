@@ -46,7 +46,7 @@ namespace Wabbajack
         public bool Installing => _installing.Value;
 
         /// <summary>
-        /// Tracks whether to show the installing pane
+        /// Tracks whether installation has begun
         /// </summary>
         [Reactive]
         public bool InstallingMode { get; set; }
@@ -179,21 +179,35 @@ namespace Wabbajack
                 });
 
             BackCommand = ReactiveCommand.Create(
-                execute: () => mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM,
+                execute: () =>
+                {
+                    InstallingMode = false;
+                    mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM;
+                },
                 canExecute: this.WhenAny(x => x.Installing)
                     .Select(x => !x));
 
+            _Completed = Observable.CombineLatest(
+                    this.WhenAny(x => x.Installing),
+                    this.WhenAny(x => x.InstallingMode),
+                resultSelector: (installing, installingMode) =>
+                {
+                    return installingMode && !installing;
+                })
+                .ToProperty(this, nameof(Completed));
+
             _percentCompleted = this.WhenAny(x => x.Installer.ActiveInstallation)
                 .StartWith(default(AInstaller))
-                .Pairwise()
-                .Select(c =>
-                {
-                    if (c.Current == null)
+                .CombineLatest(
+                    this.WhenAny(x => x.Completed),
+                    (installer, completed) =>
                     {
-                        return Observable.Return<float>(c.Previous == null ? 0f : 1f);
-                    }
-                    return c.Current.PercentCompleted;
-                })
+                        if (installer == null)
+                        {
+                            return Observable.Return<float>(completed ? 1f : 0f);
+                        }
+                        return installer.PercentCompleted;
+                    })
                 .Switch()
                 .Debounce(TimeSpan.FromMilliseconds(25))
                 .ToProperty(this, nameof(PercentCompleted));
@@ -316,15 +330,6 @@ namespace Wabbajack
                 .QueryWhenChanged(query => query.FirstOrDefault())
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(ActiveGlobalUserIntervention));
-
-            _Completed = Observable.CombineLatest(
-                    this.WhenAny(x => x.Installing),
-                    this.WhenAny(x => x.InstallingMode),
-                resultSelector: (installing, installingMode) =>
-                {
-                    return installingMode && !installing;
-                })
-                .ToProperty(this, nameof(Completed));
 
             CloseWhenCompleteCommand = ReactiveCommand.Create(
                 canExecute: this.WhenAny(x => x.Completed),
