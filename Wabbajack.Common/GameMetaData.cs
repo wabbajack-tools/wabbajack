@@ -38,7 +38,9 @@ namespace Wabbajack.Common
         [Description("Witcher 2")]
         Witcher2,
         [Description("Witcher 3")]
-        Witcher3
+        Witcher3,
+        [Description("Stardew Valley")]
+        StardewValley
     }
 
     public static class GameExtentions
@@ -367,6 +369,20 @@ namespace Wabbajack.Common
                     RequiredFiles = new List<string>
                     {
                         "bin\\x64\\witcher2.exe"
+                    }
+                }
+            },
+            {
+                Game.StardewValley, new GameMetaData
+                {
+                    SupportedModManager = ModManager.Vortex,
+                    Game = Game.StardewValley,
+                    NexusName = "stardewvalley",
+                    SteamIDs = new List<int>{413150},
+                    GOGIDs = new List<int>{1453375253},
+                    RequiredFiles = new List<string>
+                    {
+                        "StardewValley.exe"
                     }
                 }
             }

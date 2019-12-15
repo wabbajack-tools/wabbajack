@@ -24,6 +24,7 @@ Wabbajack is an automated ModList installer that can recreate contents of a fold
 | Darkest Dungeon           | Steam, GOG| Vortex        |       |
 | Divinity Original Sin 2   | Steam, GOG| Vortex        | Normal and Definitive Edition      |
 | Starbound                 | Steam, GOG| Vortex        |       |
+| Stardew Valley            | Steam, GOG| Vortex        |       |
 | SW: KotOR                 | Steam, GOG| Vortex        |       |
 | SW: KotOR 2               | Steam, GOG| Vortex        |       |
 | The Witcher               | Steam, GOG| Vortex        | Enhanced Edition      |
