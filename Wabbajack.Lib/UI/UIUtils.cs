@@ -18,8 +18,10 @@ namespace Wabbajack.Lib
         {
             var img = new BitmapImage();
             img.BeginInit();
+            img.CacheOption = BitmapCacheOption.OnLoad;
             img.StreamSource = stream;
             img.EndInit();
+            img.Freeze();
             return img;
         }
 
