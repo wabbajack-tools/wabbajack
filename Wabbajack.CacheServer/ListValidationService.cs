@@ -28,16 +28,6 @@ namespace Wabbajack.CacheServer
             public bool HasFailures { get; set; }
         }
 
-        public class ModlistSummary
-        {
-            public string Name;
-            public DateTime Checked;
-            public int Failed;
-            public int Passed;
-            public string Link => $"/lists/status/{Name}.json";
-            public string Report => $"/lists/status/{Name}.html";
-        }
-
         public static Dictionary<string, ModListStatus> ModLists { get; set; }
 
         public ListValidationService() : base("/lists")
