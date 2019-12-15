@@ -39,7 +39,7 @@ namespace Wabbajack.Lib
         protected override async Task<bool> _Begin(CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested) return false;
-            var metric = Metrics.Send("begin_install", ModList.Name, ModList.WabbajackVersion);
+            var metric = Metrics.Send("begin_install", ModList.Name);
 
             ConfigureProcessor(18, await RecommendQueueSize());
             var game = ModList.GameType.MetaData();
@@ -136,7 +136,7 @@ namespace Wabbajack.Lib
             SetScreenSizeInPrefs();
 
             UpdateTracker.NextStep("Installation complete! You may exit the program.");
-            var metric2 = Metrics.Send("finish_install", ModList.Name, ModList.WabbajackVersion);
+            var metric2 = Metrics.Send("finish_install", ModList.Name);
 
             return true;
         }

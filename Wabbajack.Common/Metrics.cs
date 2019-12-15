@@ -15,12 +15,12 @@ namespace Wabbajack.Common
         /// </summary>
         /// <param name="action"></param>
         /// <param name="value"></param>
-        public static async Task Send(string action, params string[] values)
+        public static async Task Send(string action, string value)
         {
             var client = new HttpClient();
             try
             {
-                await client.GetAsync($"http://build.wabbajack.org/metrics/{action}/{string.Join("\t", values)}");
+                await client.GetAsync($"http://build.wabbajack.org/metrics/{action}/{value}");
             }
             catch (Exception) { }
         }
