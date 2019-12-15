@@ -81,6 +81,7 @@ namespace Wabbajack
             var sub = queue.Status.Select(i => i.ProgressPercent)
                 .Subscribe(percent => ProgressPercent = percent);
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+            var metric = Metrics.Send("downloading", Metadata.Title);
             queue.QueueTask(async () =>
             {
                 var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);

@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 1.0 beta 6 - 12/14/2019
+* Fixes for some strange steam library setups
+* Implemented download/install counts
+
 #### Version - 1.0 beta 5 - 12/14/2019
 * Added LoversLab download support
 * Nexus and LL logins now happen via a in-ap browser

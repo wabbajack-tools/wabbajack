@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ListValidationService.cs" />
+    <Compile Include="Metrics.cs" />
     <Compile Include="NexusCacheModule.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
