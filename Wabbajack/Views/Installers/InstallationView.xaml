@@ -314,7 +314,7 @@
                         Grid.Column="2"
                         Height="30"
                         VerticalAlignment="Center"
-                        DataContext="{Binding ModListLocation}"
+                        PickerVM="{Binding ModListLocation}"
                         FontSize="14" />
                     <ContentPresenter
                         Grid.Row="3"

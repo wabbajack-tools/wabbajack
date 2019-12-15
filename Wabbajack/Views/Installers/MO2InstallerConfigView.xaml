@@ -33,8 +33,8 @@
             Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
-            DataContext="{Binding Location}"
-            FontSize="14" />
+            FontSize="14"
+            PickerVM="{Binding Location}" />
         <TextBlock
             Grid.Row="1"
             Grid.Column="0"
@@ -48,8 +48,8 @@
             Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
-            DataContext="{Binding DownloadLocation}"
-            FontSize="14" />
+            FontSize="14"
+            PickerVM="{Binding DownloadLocation}" />
         <CheckBox
             Grid.Row="2"
             Grid.Column="2"

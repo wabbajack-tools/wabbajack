@@ -63,7 +63,7 @@
             Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
-            DataContext="{Binding GameLocation}"
+            PickerVM="{Binding GameLocation}"
             FontSize="14"
             ToolTip="The install folder for the game" />
         <Grid
@@ -109,7 +109,7 @@
             Grid.Column="6"
             Height="30"
             VerticalAlignment="Center"
-            DataContext="{Binding DownloadsLocation}"
+            PickerVM="{Binding DownloadsLocation}"
             FontSize="14"
             ToolTip="The folder to download your mods" />
         <TextBlock
@@ -125,7 +125,7 @@
             Grid.Column="6"
             Height="30"
             VerticalAlignment="Center"
-            DataContext="{Binding StagingLocation}"
+            PickerVM="{Binding StagingLocation}"
             FontSize="14" />
         <TextBlock
             Grid.Row="2"
@@ -141,7 +141,7 @@
             Grid.Column="6"
             Height="30"
             VerticalAlignment="Center"
-            DataContext="{Binding Parent.OutputLocation}"
+            PickerVM="{Binding Parent.OutputLocation}"
             FontSize="14"
             ToolTip="The folder to place the resulting modlist.wabbajack file" />
     </Grid>
