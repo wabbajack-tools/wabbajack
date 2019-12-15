@@ -39,6 +39,7 @@ namespace Wabbajack
                 .SelectTask(async _ =>
                 {
                     return (await ModlistMetadata.LoadFromGithub())
+                        .Where(m => !m.ValidationSummary.HasFailures)
                         .AsObservableChangeSet(x => x.DownloadMetadata?.Hash ?? $"Fallback{missingHashFallbackCounter++}");
                 })
                 .Switch()

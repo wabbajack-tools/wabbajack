@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
@@ -34,6 +36,9 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonProperty("download_metadata")]
         public DownloadMetadata DownloadMetadata { get; set; }
 
+        [JsonIgnore] 
+        public ModlistSummary ValidationSummary { get; set; } = new ModlistSummary();
+
         public class LinksObject
         {
             [JsonProperty("image")]
@@ -60,8 +65,23 @@ namespace Wabbajack.Lib.ModListRegistry
         {
             var client = new HttpClient();
             Utils.Log("Loading ModLists from Github");
-            var result = await client.GetStringAsync(Consts.ModlistMetadataURL); 
-            return result.FromJSONString<List<ModlistMetadata>>();
+            var metadataResult = client.GetStringAsync(Consts.ModlistMetadataURL);
+            var summaryResult = client.GetStringAsync(Consts.ModlistSummaryURL);
+
+            var metadata = (await metadataResult).FromJSONString<List<ModlistMetadata>>();
+            try
+            {
+                var summaries = (await summaryResult).FromJSONString<List<ModlistSummary>>().ToDictionary(d => d.Name);
+
+                foreach (var data in metadata)
+                    if (summaries.TryGetValue(data.Title, out var summary))
+                        data.ValidationSummary = summary;
+            }
+            catch (Exception ex)
+            {
+            }
+
+            return metadata;
         }
 
         public bool NeedsDownload(string modlistPath)
@@ -85,6 +105,17 @@ namespace Wabbajack.Lib.ModListRegistry
         public long NumberOfInstalledFiles { get; set; }
         public long SizeOfInstalledFiles { get; set; }
 
+    }
+
+    public class ModlistSummary
+    {
+        public string Name;
+        public DateTime Checked;
+        public int Failed;
+        public int Passed;
+        public string Link => $"/lists/status/{Name}.json";
+        public string Report => $"/lists/status/{Name}.html";
+        public bool HasFailures => Failed > 0;
     }
 
 }
