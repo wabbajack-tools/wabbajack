@@ -256,23 +256,74 @@
                     Grid.Row="0"
                     Margin="30,5"
                     Command="{Binding OpenReadmeCommand}"
-                    Content="Readme"
                     FontSize="20"
-                    ToolTip="Open the readme for the modlist" />
+                    ToolTip="Open the readme for the modlist">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="82" />
+                        </Grid.ColumnDefinitions>
+                        <icon:PackIconFontAwesome
+                            Grid.Column="0"
+                            Width="30"
+                            Height="30"
+                            VerticalAlignment="Center"
+                            Kind="ReadmeBrands" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="Readme" />
+                    </Grid>
+                </Button>
                 <Button
                     Grid.Row="1"
                     Margin="30,5"
                     Command="{Binding VisitWebsiteCommand}"
-                    Content="Website"
                     FontSize="20"
-                    ToolTip="Open the webpage for the modlist" />
+                    ToolTip="Open the webpage for the modlist">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="82" />
+                        </Grid.ColumnDefinitions>
+                        <icon:PackIconMaterial
+                            Grid.Column="0"
+                            Width="30"
+                            Height="30"
+                            VerticalAlignment="Center"
+                            Kind="Web" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="Website" />
+                    </Grid>
+                </Button>
                 <Button
                     Grid.Row="2"
                     Margin="30,5"
                     Command="{Binding ShowReportCommand}"
-                    Content="Manifest"
                     FontSize="20"
-                    ToolTip="Open an explicit listing of all actions this modlist will take" />
+                    ToolTip="Open an explicit listing of all actions this modlist will take">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="82" />
+                        </Grid.ColumnDefinitions>
+                        <icon:PackIconOcticons
+                            Grid.Column="0"
+                            Width="30"
+                            Height="30"
+                            VerticalAlignment="Center"
+                            Kind="Checklist" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="Manifest" />
+                    </Grid>
+                </Button>
             </Grid>
             <Grid
                 x:Name="InstallationConfigurationView"
@@ -314,8 +365,8 @@
                         Grid.Column="2"
                         Height="30"
                         VerticalAlignment="Center"
-                        PickerVM="{Binding ModListLocation}"
-                        FontSize="14" />
+                        FontSize="14"
+                        PickerVM="{Binding ModListLocation}" />
                     <ContentPresenter
                         Grid.Row="3"
                         Grid.Column="0"
