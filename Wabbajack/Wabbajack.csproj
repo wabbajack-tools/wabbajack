@@ -173,6 +173,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\IsTypeVisibilityConverter.cs" />
+    <Compile Include="View Models\CPUDisplayVM.cs" />
     <Compile Include="Views\Compilers\CompilationCompleteView.xaml.cs">
       <DependentUpon>CompilationCompleteView.xaml</DependentUpon>
     </Compile>

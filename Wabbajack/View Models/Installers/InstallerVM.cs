@@ -19,6 +19,7 @@ using DynamicData;
 using DynamicData.Binding;
 using Wabbajack.Common.StatusFeed;
 using System.Reactive;
+using System.Collections.Generic;
 
 namespace Wabbajack
 {
@@ -72,7 +73,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<float> _percentCompleted;
         public float PercentCompleted => _percentCompleted.Value;
 
-        public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
+        public ObservableCollectionExtended<CPUDisplayVM> StatusList { get; } = new ObservableCollectionExtended<CPUDisplayVM>();
         public ObservableCollectionExtended<IStatusMessage> Log => MWVM.Log;
 
         private readonly ObservableAsPropertyHelper<ModManager?> _TargetManager;
@@ -292,16 +293,26 @@ namespace Wabbajack
                     })
                 .ToProperty(this, nameof(ProgressTitle));
 
+            Dictionary<int, CPUDisplayVM> cpuDisplays = new Dictionary<int, CPUDisplayVM>();
             // Compile progress updates and populate ObservableCollection
             this.WhenAny(x => x.Installer.ActiveInstallation)
                 .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>())
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .ToObservableChangeSet(x => x.ID)
+                // Attach start times to incoming CPU items
+                .Scan(
+                    new CPUDisplayVM(),
+                    (_, cpu) =>
+                    {
+                        var ret = cpuDisplays.TryCreate(cpu.ID);
+                        ret.AbsorbStatus(cpu);
+                        return ret;
+                    })
+                .ToObservableChangeSet(x => x.Status.ID)
                 .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
-                .Filter(i => i.IsWorking)
+                .Filter(i => i.Status.IsWorking && i.Status.ID != WorkQueue.UnassignedCpuId)
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
+                .Sort(SortExpressionComparer<CPUDisplayVM>.Ascending(s => s.StartTime))
                 .Bind(StatusList)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
