@@ -177,7 +177,7 @@ namespace Wabbajack.Lib
                     continue;
 
                 IndexedArchive targetArchive = null;
-                IndexedArchives.Where(a => a.File.Children.Contains(element)).Do(a => targetArchive = a);
+                IndexedArchives.Where(a => a.File.ThisAndAllChildren.Contains(element)).Do(a => targetArchive = a);
 
                 if (targetArchive == null)
                     continue;
@@ -192,7 +192,7 @@ namespace Wabbajack.Lib
                 var replace = f;
                 var name = replace.File.Name;
                 var archiveName = targetArchive.Name;
-                var elementPath = element.FullPath.Substring(element.FullPath.IndexOf('|')+1);
+                var elementPath = element.FullPath.Substring(element.FullPath.LastIndexOf('|')+1);
                 var gameToFile = name.Substring(GamePath.Length + 1).Replace(elementPath, "");
                 if (gameToFile.EndsWith("\\"))
                     gameToFile = gameToFile.Substring(0, gameToFile.Length - 1);
@@ -373,25 +373,24 @@ namespace Wabbajack.Lib
 
                         Utils.Log($"File {f} is not in ActiveArchives");
                         var lines = File.ReadAllLines(f);
-                        if (lines.Length == 0 || !lines.Any(line => line.Contains("directURL=")))
+
+                        if (lines.Length == 0)
+                            return;
+
+                        lines.Do(line =>
                         {
-                            if (lines.Length == 0)
+                            var tag = "";
+                            if (line.Contains("tag="))
+                                tag = line.Substring("tag=".Length);
+
+                            if (tag != Consts.WABBAJACK_VORTEX_MANUAL)
                                 return;
 
-                            lines.Do(line =>
-                            {
-                                var tag = "";
-                                if (line.Contains("tag="))
-                                    tag = line.Substring("tag=".Length);
+                            Utils.Log($"File {f} contains the {Consts.WABBAJACK_VORTEX_MANUAL} tag, adding to ActiveArchives");
+                            ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
+                        });
 
-                                if (tag != Consts.WABBAJACK_VORTEX_MANUAL)
-                                    return;
-
-                                Utils.Log($"File {f} contains the {Consts.WABBAJACK_VORTEX_MANUAL} tag, adding to ActiveArchives");
-                                ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
-                            });
-                        }
-                        else
+                        if (lines.Any(line => line.Contains("directURL=")) && !ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)))
                         {
                             Utils.Log($"File {f} appears to not come from the Nexus, adding to ActiveArchives");
                             ActiveArchives.Add(Path.GetFileNameWithoutExtension(f));
