@@ -103,7 +103,7 @@
             FontSize="14"
             Text="Download Location"
             TextAlignment="Center"
-            ToolTip="The folder to downloads your mods" />
+            ToolTip="The folder to download your mods" />
         <local:FilePicker
             Grid.Row="0"
             Grid.Column="6"
@@ -111,7 +111,7 @@
             VerticalAlignment="Center"
             DataContext="{Binding DownloadsLocation}"
             FontSize="14"
-            ToolTip="The folder to downloads your mods" />
+            ToolTip="The folder to download your mods" />
         <TextBlock
             Grid.Row="1"
             Grid.Column="4"

@@ -41,6 +41,7 @@ namespace Wabbajack.Test
             Assert.IsFalse(vm.Exists);
             Assert.IsTrue(vm.ErrorState.Succeeded);
             Assert.IsFalse(vm.InError);
+            Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
         }
 
         [TestMethod]
@@ -53,6 +54,7 @@ namespace Wabbajack.Test
             Assert.IsFalse(vm.Exists);
             Assert.IsTrue(vm.ErrorState.Succeeded);
             Assert.IsFalse(vm.InError);
+            Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
         }
 
         [TestMethod]
@@ -67,6 +69,7 @@ namespace Wabbajack.Test
                 Assert.IsFalse(vm.Exists);
                 Assert.IsTrue(vm.ErrorState.Succeeded);
                 Assert.IsFalse(vm.InError);
+                Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
             }
         }
 
@@ -80,6 +83,7 @@ namespace Wabbajack.Test
             Assert.IsFalse(vm.Exists);
             Assert.IsTrue(vm.ErrorState.Succeeded);
             Assert.IsFalse(vm.InError);
+            Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
         }
 
         [TestMethod]
@@ -94,6 +98,7 @@ namespace Wabbajack.Test
                 Assert.IsFalse(vm.Exists);
                 Assert.IsTrue(vm.ErrorState.Succeeded);
                 Assert.IsFalse(vm.InError);
+                Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
             }
         }
 
@@ -107,6 +112,7 @@ namespace Wabbajack.Test
             Assert.IsFalse(vm.Exists);
             Assert.IsTrue(vm.ErrorState.Succeeded);
             Assert.IsFalse(vm.InError);
+            Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
         }
 
         [TestMethod]
@@ -120,6 +126,7 @@ namespace Wabbajack.Test
             Assert.IsFalse(vm.Exists);
             Assert.IsFalse(vm.ErrorState.Succeeded);
             Assert.IsTrue(vm.InError);
+            Assert.AreEqual(FilePickerVM.PathDoesNotExistText, vm.ErrorTooltip);
         }
 
         [TestMethod]
@@ -134,6 +141,7 @@ namespace Wabbajack.Test
                 Assert.IsTrue(vm.Exists);
                 Assert.IsTrue(vm.ErrorState.Succeeded);
                 Assert.IsFalse(vm.InError);
+                Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
             }
         }
 
@@ -147,6 +155,7 @@ namespace Wabbajack.Test
             Assert.IsFalse(vm.Exists);
             Assert.IsFalse(vm.ErrorState.Succeeded);
             Assert.IsTrue(vm.InError);
+            Assert.AreEqual(FilePickerVM.PathDoesNotExistText, vm.ErrorTooltip);
         }
 
         [TestMethod]
@@ -161,6 +170,7 @@ namespace Wabbajack.Test
                 Assert.IsTrue(vm.Exists);
                 Assert.IsTrue(vm.ErrorState.Succeeded);
                 Assert.IsFalse(vm.InError);
+                Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
             }
         }
 
@@ -174,6 +184,7 @@ namespace Wabbajack.Test
             Assert.IsFalse(vm.Exists);
             Assert.IsTrue(vm.ErrorState.Succeeded);
             Assert.IsFalse(vm.InError);
+            Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
         }
 
         [TestMethod]
@@ -187,6 +198,7 @@ namespace Wabbajack.Test
             Assert.IsFalse(vm.Exists);
             Assert.IsFalse(vm.ErrorState.Succeeded);
             Assert.IsTrue(vm.InError);
+            Assert.AreEqual(FilePickerVM.PathDoesNotExistText, vm.ErrorTooltip);
         }
 
         [TestMethod]
@@ -201,6 +213,7 @@ namespace Wabbajack.Test
                 Assert.IsTrue(vm.Exists);
                 Assert.IsTrue(vm.ErrorState.Succeeded);
                 Assert.IsFalse(vm.InError);
+                Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
             }
         }
 
@@ -214,6 +227,7 @@ namespace Wabbajack.Test
             Assert.IsFalse(vm.Exists);
             Assert.IsFalse(vm.ErrorState.Succeeded);
             Assert.IsTrue(vm.InError);
+            Assert.AreEqual(FilePickerVM.PathDoesNotExistText, vm.ErrorTooltip);
         }
 
         [TestMethod]
@@ -228,6 +242,7 @@ namespace Wabbajack.Test
                 Assert.IsTrue(vm.Exists);
                 Assert.IsTrue(vm.ErrorState.Succeeded);
                 Assert.IsFalse(vm.InError);
+                Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
             }
         }
 
@@ -239,16 +254,19 @@ namespace Wabbajack.Test
             await Task.Delay(250);
             Assert.IsTrue(vm.ErrorState.Succeeded);
             Assert.IsFalse(vm.InError);
+            Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
         }
 
         [TestMethod]
         public async Task AdditionalError_Fail()
         {
             var vm = new FilePickerVM();
-            vm.AdditionalError = Observable.Return<IErrorResponse>(ErrorResponse.Fail());
+            string errText = "An error";
+            vm.AdditionalError = Observable.Return<IErrorResponse>(ErrorResponse.Fail(errText));
             await Task.Delay(250);
             Assert.IsFalse(vm.ErrorState.Succeeded);
             Assert.IsTrue(vm.InError);
+            Assert.AreEqual(errText, vm.ErrorTooltip);
         }
 
         [TestMethod]
@@ -263,6 +281,7 @@ namespace Wabbajack.Test
                 Assert.IsFalse(vm.Exists);
                 Assert.IsFalse(vm.ErrorState.Succeeded);
                 Assert.IsTrue(vm.InError);
+                Assert.AreEqual(FilePickerVM.PathDoesNotExistText, vm.ErrorTooltip);
             }
         }
 
@@ -278,6 +297,7 @@ namespace Wabbajack.Test
                 Assert.IsFalse(vm.Exists);
                 Assert.IsFalse(vm.ErrorState.Succeeded);
                 Assert.IsTrue(vm.InError);
+                Assert.AreEqual(FilePickerVM.PathDoesNotExistText, vm.ErrorTooltip);
             }
         }
 
@@ -294,6 +314,7 @@ namespace Wabbajack.Test
                 Assert.IsFalse(vm.Exists);
                 Assert.IsTrue(vm.ErrorState.Succeeded);
                 Assert.IsFalse(vm.InError);
+                Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
             }
         }
 
@@ -310,6 +331,7 @@ namespace Wabbajack.Test
                 Assert.IsFalse(vm.Exists);
                 Assert.IsFalse(vm.ErrorState.Succeeded);
                 Assert.IsTrue(vm.InError);
+                Assert.AreEqual(FilePickerVM.DoesNotPassFiltersText, vm.ErrorTooltip);
             }
         }
 
@@ -325,6 +347,7 @@ namespace Wabbajack.Test
             Assert.IsFalse(vm.Exists);
             Assert.IsTrue(vm.ErrorState.Succeeded);
             Assert.IsFalse(vm.InError);
+            Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
         }
 
         [TestMethod]
@@ -339,6 +362,7 @@ namespace Wabbajack.Test
             Assert.IsFalse(vm.Exists);
             Assert.IsTrue(vm.ErrorState.Succeeded);
             Assert.IsFalse(vm.InError);
+            Assert.IsTrue(string.IsNullOrEmpty(vm.ErrorTooltip));
         }
     }
 }

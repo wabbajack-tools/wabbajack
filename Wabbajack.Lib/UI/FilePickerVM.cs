@@ -66,6 +66,9 @@ namespace Wabbajack.Lib
 
         public SourceList<CommonFileDialogFilter> Filters { get; } = new SourceList<CommonFileDialogFilter>();
 
+        public const string PathDoesNotExistText = "Path does not exist";
+        public const string DoesNotPassFiltersText = "Path does not pass designated filters";
+
         public FilePickerVM(object parentVM = null)
         {
             Parent = parentVM;
@@ -193,23 +196,22 @@ namespace Wabbajack.Lib
                 .Select(passed =>
                 {
                     if (passed) return ErrorResponse.Success;
-                    return ErrorResponse.Fail($"Path does not pass designated filters");
+                    return ErrorResponse.Fail(DoesNotPassFiltersText);
                 })
-                .Publish()
+                .Replay(1)
                 .RefCount();
 
             _errorState = Observable.CombineLatest(
-                    this.WhenAny(x => x.Exists),
                     Observable.CombineLatest(
                             this.WhenAny(x => x.Exists),
                             doExistsCheck,
                             resultSelector: (exists, doExists) => !doExists || exists)
-                        .Select(exists => ErrorResponse.Create(successful: exists, exists ? default(string) : "Path does not exist")),
+                        .Select(exists => ErrorResponse.Create(successful: exists, exists ? default(string) : PathDoesNotExistText)),
                     passesFilters,
                     this.WhenAny(x => x.AdditionalError)
                         .Select(x => x ?? Observable.Return<IErrorResponse>(ErrorResponse.Success))
                         .Switch(),
-                    resultSelector: (exists, existCheck, filter, err) =>
+                    resultSelector: (existCheck, filter, err) =>
                     {
                         if (existCheck.Failed) return existCheck;
                         if (filter.Failed) return filter;
@@ -224,8 +226,11 @@ namespace Wabbajack.Lib
             // Doesn't derive from ErrorState, as we want to bubble non-empty tooltips,
             // which is slightly different logic
             _errorTooltip = Observable.CombineLatest(
-                    this.WhenAny(x => x.Exists)
-                        .Select(exists => exists ? default(string) : "Path does not exist"),
+                    Observable.CombineLatest(
+                            this.WhenAny(x => x.Exists),
+                            doExistsCheck,
+                            resultSelector: (exists, doExists) => !doExists || exists)
+                        .Select(exists => exists ? default(string) : PathDoesNotExistText),
                     passesFilters
                         .Select(x => x.Reason),
                     this.WhenAny(x => x.AdditionalError)
