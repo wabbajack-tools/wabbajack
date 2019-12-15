@@ -110,6 +110,7 @@
     <Compile Include="FileExtractor.cs" />
     <Compile Include="GameMetaData.cs" />
     <Compile Include="GOGHandler.cs" />
+    <Compile Include="Metrics.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SplittingStream.cs" />
     <Compile Include="StatusFeed\AErrorMessage.cs" />
