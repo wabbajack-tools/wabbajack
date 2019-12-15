@@ -160,47 +160,6 @@ namespace Wabbajack.Common
 
         private static void ExtractAllWith7Zip(string source, string dest)
         {
-            if (Consts.TestArchivesBeforeExtraction.Contains(Path.GetExtension(source)))
-            {
-                Utils.Log(new GenericInfo($"Testing archive {Path.GetFileName(source)}", $"The archive {source} is being tested using 7zip.exe"));
-                var testInfo = new ProcessStartInfo
-                {
-                    FileName = "7z.exe",
-                    Arguments = $"t \"{source}\"",
-                    RedirectStandardError = true,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                var testP = new Process {StartInfo = testInfo};
-
-                testP.Start();
-                ChildProcessTracker.AddProcess(testP);
-                try
-                {
-                    testP.PriorityClass = ProcessPriorityClass.BelowNormal;
-                }
-                catch (Exception)
-                {
-                }
-
-                try
-                {
-                    while (!testP.HasExited)
-                    {
-                        var line = testP.StandardOutput.ReadLine();
-                        if (line == null)
-                            break;
-                    }
-                } catch (Exception){}
-
-                testP.WaitForExit();
-                if (testP.ExitCode != 0)
-                    return;
-            }
-
             Utils.Log(new GenericInfo($"Extracting {Path.GetFileName(source)}", $"The contents of {source} are being extracted to {dest} using 7zip.exe"));
 
             var info = new ProcessStartInfo
@@ -261,13 +220,48 @@ namespace Wabbajack.Common
         public static bool CanExtract(string v)
         {
             var ext = Path.GetExtension(v.ToLower());
-            if(ext != ".exe")
+            if(ext != ".exe" && !Consts.TestArchivesBeforeExtraction.Contains(ext))
                 return Consts.SupportedArchives.Contains(ext) || Consts.SupportedBSAs.Contains(ext);
 
-            var info = new ProcessStartInfo
+            if (ext == ".exe")
             {
-                FileName = "innounp.exe",
-                Arguments = $"-t \"{v}\" ",
+                var info = new ProcessStartInfo
+                {
+                    FileName = "innounp.exe",
+                    Arguments = $"-t \"{v}\" ",
+                    RedirectStandardError = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                var p = new Process {StartInfo = info};
+
+                p.Start();
+                ChildProcessTracker.AddProcess(p);
+
+                var name = Path.GetFileName(v);
+                while (!p.HasExited)
+                {
+                    var line = p.StandardOutput.ReadLine();
+                    if (line == null)
+                        break;
+
+                    if (line[0] != '#')
+                        continue;
+
+                    Utils.Status($"Testing {name} - {line.Trim()}");
+                }
+
+                p.WaitForExit();
+                return p.ExitCode == 0;
+            }
+
+            var testInfo = new ProcessStartInfo
+            {
+                FileName = "7z.exe",
+                Arguments = $"t \"{v}\"",
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -275,26 +269,30 @@ namespace Wabbajack.Common
                 CreateNoWindow = true
             };
 
-            var p = new Process {StartInfo = info};
+            var testP = new Process {StartInfo = testInfo};
 
-            p.Start();
-            ChildProcessTracker.AddProcess(p);
-
-            var name = Path.GetFileName(v);
-            while (!p.HasExited)
+            testP.Start();
+            ChildProcessTracker.AddProcess(testP);
+            try
             {
-                var line = p.StandardOutput.ReadLine();
-                if (line == null)
-                    break;
-
-                if (line[0] != '#')
-                    continue;
-
-                Utils.Status($"Testing {name} - {line.Trim()}");
+                testP.PriorityClass = ProcessPriorityClass.BelowNormal;
+            }
+            catch (Exception)
+            {
             }
 
-            p.WaitForExit();
-            return p.ExitCode == 0;
+            try
+            {
+                while (!testP.HasExited)
+                {
+                    var line = testP.StandardOutput.ReadLine();
+                    if (line == null)
+                        break;
+                }
+            } catch (Exception){}
+
+            testP.WaitForExit();
+            return testP.ExitCode == 0;
         }
     }
 }
