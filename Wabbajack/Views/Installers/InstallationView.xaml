@@ -396,9 +396,9 @@
             Margin="5,0,5,5"
             Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="4*" />
                 <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
             <local:LogView Grid.Column="0" ProgressPercent="{Binding PercentCompleted, Mode=OneWay}" />
             <local:CpuView
