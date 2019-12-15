@@ -160,6 +160,47 @@ namespace Wabbajack.Common
 
         private static void ExtractAllWith7Zip(string source, string dest)
         {
+            if (Consts.TestArchivesBeforeExtraction.Contains(Path.GetExtension(source)))
+            {
+                Utils.Log(new GenericInfo($"Testing archive {Path.GetFileName(source)}", $"The archive {source} is being tested using 7zip.exe"));
+                var testInfo = new ProcessStartInfo
+                {
+                    FileName = "7z.exe",
+                    Arguments = $"t \"{source}\"",
+                    RedirectStandardError = true,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                var testP = new Process {StartInfo = testInfo};
+
+                testP.Start();
+                ChildProcessTracker.AddProcess(testP);
+                try
+                {
+                    testP.PriorityClass = ProcessPriorityClass.BelowNormal;
+                }
+                catch (Exception)
+                {
+                }
+
+                try
+                {
+                    while (!testP.HasExited)
+                    {
+                        var line = testP.StandardOutput.ReadLine();
+                        if (line == null)
+                            break;
+                    }
+                } catch (Exception){}
+
+                testP.WaitForExit();
+                if (testP.ExitCode != 0)
+                    return;
+            }
+
             Utils.Log(new GenericInfo($"Extracting {Path.GetFileName(source)}", $"The contents of {source} are being extracted to {dest} using 7zip.exe"));
 
             var info = new ProcessStartInfo
