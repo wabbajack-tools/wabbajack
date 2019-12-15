@@ -28,16 +28,16 @@
                             BorderThickness="0"
                             Foreground="Transparent"
                             Maximum="1"
-                            Value="{Binding ProgressPercent, Mode=OneWay}" />
+                            Value="{Binding Status.ProgressPercent, Mode=OneWay}" />
                         <mahapps:MetroProgressBar
                             Grid.Column="0"
                             Background="Transparent"
                             BorderThickness="0"
                             Foreground="{StaticResource PrimaryVariantBrush}"
                             Maximum="1"
-                            Opacity="{Binding ProgressPercent, Mode=OneWay}"
-                            Value="{Binding ProgressPercent, Mode=OneWay}" />
-                        <TextBlock Grid.Column="0" Text="{Binding Msg}" />
+                            Opacity="{Binding Status.ProgressPercent, Mode=OneWay}"
+                            Value="{Binding Status.ProgressPercent, Mode=OneWay}" />
+                        <TextBlock Grid.Column="0" Text="{Binding Status.Msg}" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>

@@ -256,23 +256,74 @@
                     Grid.Row="0"
                     Margin="30,5"
                     Command="{Binding OpenReadmeCommand}"
-                    Content="Readme"
                     FontSize="20"
-                    ToolTip="Open the readme for the modlist" />
+                    ToolTip="Open the readme for the modlist">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="82" />
+                        </Grid.ColumnDefinitions>
+                        <icon:PackIconFontAwesome
+                            Grid.Column="0"
+                            Width="30"
+                            Height="30"
+                            VerticalAlignment="Center"
+                            Kind="ReadmeBrands" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="Readme" />
+                    </Grid>
+                </Button>
                 <Button
                     Grid.Row="1"
                     Margin="30,5"
                     Command="{Binding VisitWebsiteCommand}"
-                    Content="Website"
                     FontSize="20"
-                    ToolTip="Open the webpage for the modlist" />
+                    ToolTip="Open the webpage for the modlist">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="82" />
+                        </Grid.ColumnDefinitions>
+                        <icon:PackIconMaterial
+                            Grid.Column="0"
+                            Width="30"
+                            Height="30"
+                            VerticalAlignment="Center"
+                            Kind="Web" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="Website" />
+                    </Grid>
+                </Button>
                 <Button
                     Grid.Row="2"
                     Margin="30,5"
                     Command="{Binding ShowReportCommand}"
-                    Content="Manifest"
                     FontSize="20"
-                    ToolTip="Open an explicit listing of all actions this modlist will take" />
+                    ToolTip="Open an explicit listing of all actions this modlist will take">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="30" />
+                            <ColumnDefinition Width="82" />
+                        </Grid.ColumnDefinitions>
+                        <icon:PackIconOcticons
+                            Grid.Column="0"
+                            Width="30"
+                            Height="30"
+                            VerticalAlignment="Center"
+                            Kind="Checklist" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="Manifest" />
+                    </Grid>
+                </Button>
             </Grid>
             <Grid
                 x:Name="InstallationConfigurationView"
@@ -283,15 +334,44 @@
                     <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <ScrollViewer
+                <Grid
                     Grid.Column="0"
                     Margin="5"
+                    VerticalAlignment="Center"
                     Background="Transparent"
-                    VerticalScrollBarVisibility="Auto"
                     Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
-                    <ContentPresenter
-                        Margin="0"
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" MinWidth="120" />
+                        <ColumnDefinition Width="20" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Rectangle Grid.Row="0" Height="{Binding Installer.ConfigVisualVerticalOffset, Mode=OneWay}" />
+                    <TextBlock
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        HorizontalAlignment="Right"
                         VerticalAlignment="Center"
+                        FontSize="14"
+                        Text="Target Modlist"
+                        TextAlignment="Center" />
+                    <local:FilePicker
+                        Grid.Row="1"
+                        Grid.Column="2"
+                        Height="30"
+                        VerticalAlignment="Center"
+                        FontSize="14"
+                        PickerVM="{Binding ModListLocation}" />
+                    <ContentPresenter
+                        Grid.Row="3"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="3"
+                        VerticalAlignment="Top"
                         Content="{Binding Installer}">
                         <ContentPresenter.Resources>
                             <DataTemplate DataType="{x:Type local:MO2InstallerVM}">
@@ -302,7 +382,7 @@
                             </DataTemplate>
                         </ContentPresenter.Resources>
                     </ContentPresenter>
-                </ScrollViewer>
+                </Grid>
                 <local:BeginButton
                     Grid.Column="2"
                     Margin="0,0,25,0"
@@ -316,9 +396,9 @@
             Margin="5,0,5,5"
             Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="4*" />
                 <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
             <local:LogView Grid.Column="0" ProgressPercent="{Binding PercentCompleted, Mode=OneWay}" />
             <local:CpuView

@@ -143,7 +143,7 @@
                     TextWrapping="Wrap" />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Image" />
                 <local:FilePicker
-                    DataContext="{Binding ImagePath}"
+                    PickerVM="{Binding ImagePath}"
                     Style="{StaticResource PickerStyle}"
                     ToolTip="Path to an image to display for the modlist." />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Website" />
@@ -153,7 +153,7 @@
                     Text="Readme Path"
                     ToolTip="Path to a readme file." />
                 <local:FilePicker
-                    DataContext="{Binding ReadMeText}"
+                    PickerVM="{Binding ReadMeText}"
                     Style="{StaticResource PickerStyle}"
                     ToolTip="Path to a readme file." />
             </StackPanel>
@@ -174,7 +174,7 @@
                 Margin="35,0,35,0"
                 VerticalAlignment="Center"
                 ClipToBounds="False"
-                Visibility="{Binding Compiling, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
+                Visibility="{Binding CompilationMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
@@ -240,11 +240,11 @@
             Grid.Column="0"
             Grid.ColumnSpan="5"
             Margin="5"
-            Visibility="{Binding Compiling, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
+            Visibility="{Binding CompilationMode, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="4*" />
                 <ColumnDefinition Width="5" />
-                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
             <local:LogView Grid.Column="0" ProgressPercent="{Binding PercentCompleted, Mode=OneWay}" />
             <local:CpuView
@@ -259,6 +259,7 @@
                     <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />
                 </Grid>
             </Border>
+            <local:CompilationCompleteView Grid.Column="2" Visibility="{Binding Completed, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Collapsed}" />
         </Grid>
     </Grid>
 </UserControl>

@@ -173,6 +173,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converters\IsTypeVisibilityConverter.cs" />
+    <Compile Include="View Models\CPUDisplayVM.cs" />
+    <Compile Include="Views\Compilers\CompilationCompleteView.xaml.cs">
+      <DependentUpon>CompilationCompleteView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Installers\InstallationCompleteView.xaml.cs">
       <DependentUpon>InstallationCompleteView.xaml</DependentUpon>
     </Compile>
@@ -228,19 +232,16 @@
     <Compile Include="Views\Common\DetailImageView.xaml.cs">
       <DependentUpon>DetailImageView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Extensions\EnumerableExt.cs" />
     <Compile Include="Views\Common\TopProgressView.xaml.cs">
       <DependentUpon>TopProgressView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Settings.cs" />
-    <Compile Include="View Models\FilePickerVM.cs" />
     <Compile Include="View Models\ModListVM.cs" />
     <Compile Include="View Models\ModVM.cs" />
     <Compile Include="Views\Compilers\CompilerView.xaml.cs">
       <DependentUpon>CompilerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\IsNotNullVisibilityConverter.cs" />
-    <Compile Include="Extensions\ReactiveUIExt.cs" />
     <Compile Include="View Models\ModeSelectionVM.cs" />
     <Compile Include="Views\Common\FilePicker.xaml.cs">
       <DependentUpon>FilePicker.xaml</DependentUpon>
@@ -269,6 +270,10 @@
     <Compile Include="Views\WebBrowserView.xaml.cs">
       <DependentUpon>WebBrowserView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\Compilers\CompilationCompleteView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Installers\InstallationCompleteView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -438,12 +443,6 @@
     <EmbeddedResource Include="Resources\banner_small.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\Icons\discord.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\Icons\next.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\Banner_Dark.png" />
   </ItemGroup>
   <ItemGroup>
@@ -540,10 +539,6 @@
   <ItemGroup>
     <Resource Include="Resources\Icons\gog.png" />
     <Resource Include="Resources\Icons\steam.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\github.png" />
-    <Resource Include="Resources\Icons\patreon.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Wabba_Mouth_No_Text.png" />

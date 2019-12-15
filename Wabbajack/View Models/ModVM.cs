@@ -69,13 +69,7 @@ namespace Wabbajack
                     if (memStream == null) return default(BitmapImage);
                     try
                     {
-                        var image = new BitmapImage();
-                        image.BeginInit();
-                        image.CacheOption = BitmapCacheOption.OnLoad;
-                        image.StreamSource = memStream;
-                        image.EndInit();
-                        image.Freeze();
-                        return image;
+                        return UIUtils.BitmapImageFromStream(memStream);
                     }
                     catch (Exception ex)
                     {

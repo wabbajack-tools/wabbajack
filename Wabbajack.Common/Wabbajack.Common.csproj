@@ -75,9 +75,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Syroot.KnownFolders">
-      <HintPath>..\..\..\Users\tbald\.nuget\packages\syroot.windows.io.knownfolders\1.2.1\lib\net452\Syroot.KnownFolders.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -103,6 +100,7 @@
     <Compile Include="Enums\ModManager.cs" />
     <Compile Include="ExtensionManager.cs" />
     <Compile Include="Extensions\DictionaryExt.cs" />
+    <Compile Include="Extensions\EnumerableExt.cs" />
     <Compile Include="Extensions\EnumExt.cs" />
     <Compile Include="Extensions\HashHelper.cs" />
     <Compile Include="Extensions\RxExt.cs" />
@@ -131,6 +129,8 @@
     <Compile Include="StatusUpdate.cs" />
     <Compile Include="SteamHandler.cs" />
     <Compile Include="Utils.cs" />
+    <Compile Include="Util\TempFile.cs" />
+    <Compile Include="Util\TempFolder.cs" />
     <Compile Include="WorkQueue.cs" />
   </ItemGroup>
   <ItemGroup>

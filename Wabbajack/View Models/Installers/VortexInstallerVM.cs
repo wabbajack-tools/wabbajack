@@ -31,6 +31,8 @@ namespace Wabbajack
 
         public bool SupportsAfterInstallNavigation => false;
 
+        public int ConfigVisualVerticalOffset => 0;
+
         public VortexInstallerVM(InstallerVM installerVM)
         {
             Parent = installerVM;

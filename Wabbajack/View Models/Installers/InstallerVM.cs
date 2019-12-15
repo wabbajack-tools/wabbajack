@@ -19,6 +19,7 @@ using DynamicData;
 using DynamicData.Binding;
 using Wabbajack.Common.StatusFeed;
 using System.Reactive;
+using System.Collections.Generic;
 
 namespace Wabbajack
 {
@@ -46,7 +47,7 @@ namespace Wabbajack
         public bool Installing => _installing.Value;
 
         /// <summary>
-        /// Tracks whether to show the installing pane
+        /// Tracks whether installation has begun
         /// </summary>
         [Reactive]
         public bool InstallingMode { get; set; }
@@ -72,7 +73,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<float> _percentCompleted;
         public float PercentCompleted => _percentCompleted.Value;
 
-        public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
+        public ObservableCollectionExtended<CPUDisplayVM> StatusList { get; } = new ObservableCollectionExtended<CPUDisplayVM>();
         public ObservableCollectionExtended<IStatusMessage> Log => MWVM.Log;
 
         private readonly ObservableAsPropertyHelper<ModManager?> _TargetManager;
@@ -109,7 +110,7 @@ namespace Wabbajack
 
             ModListLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
                 PromptTitle = "Select a modlist to install"
             };
@@ -179,21 +180,35 @@ namespace Wabbajack
                 });
 
             BackCommand = ReactiveCommand.Create(
-                execute: () => mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM,
+                execute: () =>
+                {
+                    InstallingMode = false;
+                    mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM;
+                },
                 canExecute: this.WhenAny(x => x.Installing)
                     .Select(x => !x));
 
+            _Completed = Observable.CombineLatest(
+                    this.WhenAny(x => x.Installing),
+                    this.WhenAny(x => x.InstallingMode),
+                resultSelector: (installing, installingMode) =>
+                {
+                    return installingMode && !installing;
+                })
+                .ToProperty(this, nameof(Completed));
+
             _percentCompleted = this.WhenAny(x => x.Installer.ActiveInstallation)
                 .StartWith(default(AInstaller))
-                .Pairwise()
-                .Select(c =>
-                {
-                    if (c.Current == null)
+                .CombineLatest(
+                    this.WhenAny(x => x.Completed),
+                    (installer, completed) =>
                     {
-                        return Observable.Return<float>(c.Previous == null ? 0f : 1f);
-                    }
-                    return c.Current.PercentCompleted;
-                })
+                        if (installer == null)
+                        {
+                            return Observable.Return<float>(completed ? 1f : 0f);
+                        }
+                        return installer.PercentCompleted;
+                    })
                 .Switch()
                 .Debounce(TimeSpan.FromMilliseconds(25))
                 .ToProperty(this, nameof(PercentCompleted));
@@ -205,8 +220,8 @@ namespace Wabbajack
             _image = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Error),
                     this.WhenAny(x => x.ModList)
-                        .SelectMany(x => x?.ImageObservable ?? Observable.Empty<BitmapImage>())
-                        .NotNull()
+                        .Select(x => x?.ImageObservable ?? Observable.Empty<BitmapImage>())
+                        .Switch()
                         .StartWith(WabbajackLogo),
                     this.WhenAny(x => x.Slideshow.Image)
                         .StartWith(default(BitmapImage)),
@@ -217,7 +232,8 @@ namespace Wabbajack
                         {
                             return WabbajackErrLogo;
                         }
-                        return installing ? slideshow : modList;
+                        var ret = installing ? slideshow : modList;
+                        return ret ?? WabbajackLogo;
                     })
                 .Select<BitmapImage, ImageSource>(x => x)
                 .ToProperty(this, nameof(Image));
@@ -277,16 +293,26 @@ namespace Wabbajack
                     })
                 .ToProperty(this, nameof(ProgressTitle));
 
+            Dictionary<int, CPUDisplayVM> cpuDisplays = new Dictionary<int, CPUDisplayVM>();
             // Compile progress updates and populate ObservableCollection
             this.WhenAny(x => x.Installer.ActiveInstallation)
                 .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>())
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .ToObservableChangeSet(x => x.ID)
+                // Attach start times to incoming CPU items
+                .Scan(
+                    new CPUDisplayVM(),
+                    (_, cpu) =>
+                    {
+                        var ret = cpuDisplays.TryCreate(cpu.ID);
+                        ret.AbsorbStatus(cpu);
+                        return ret;
+                    })
+                .ToObservableChangeSet(x => x.Status.ID)
                 .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
-                .Filter(i => i.IsWorking)
+                .Filter(i => i.Status.IsWorking && i.Status.ID != WorkQueue.UnassignedCpuId)
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
+                .Sort(SortExpressionComparer<CPUDisplayVM>.Ascending(s => s.StartTime))
                 .Bind(StatusList)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
@@ -316,15 +342,6 @@ namespace Wabbajack
                 .QueryWhenChanged(query => query.FirstOrDefault())
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(ActiveGlobalUserIntervention));
-
-            _Completed = Observable.CombineLatest(
-                    this.WhenAny(x => x.Installing),
-                    this.WhenAny(x => x.InstallingMode),
-                resultSelector: (installing, installingMode) =>
-                {
-                    return installingMode && !installing;
-                })
-                .ToProperty(this, nameof(Completed));
 
             CloseWhenCompleteCommand = ReactiveCommand.Create(
                 canExecute: this.WhenAny(x => x.Completed),

@@ -34,7 +34,7 @@
             Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
-            DataContext="{Binding ModlistLocation}"
+            PickerVM="{Binding ModListLocation}"
             FontSize="14"
             ToolTip="The MO2 modlist.txt file you want to use as your source" />
         <TextBlock
@@ -51,7 +51,7 @@
             Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
-            DataContext="{Binding DownloadLocation}"
+            PickerVM="{Binding DownloadLocation}"
             FontSize="14"
             ToolTip="The folder where MO2 downloads your mods." />
         <TextBlock
@@ -68,7 +68,7 @@
             Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
-            DataContext="{Binding OutputLocation}"
+            PickerVM="{Binding Parent.OutputLocation}"
             FontSize="14"
             ToolTip="The folder to place the resulting modlist.wabbajack file" />
     </Grid>

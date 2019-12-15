@@ -35,13 +35,15 @@ namespace Wabbajack
         [Reactive]
         public bool AutomaticallyOverwrite { get; set; }
 
+        public int ConfigVisualVerticalOffset => 25;
+
         public MO2InstallerVM(InstallerVM installerVM)
         {
             Parent = installerVM;
 
             Location = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.Off,
+                ExistCheckOption = FilePickerVM.CheckOptions.Off,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Installation Directory",
             };
@@ -49,7 +51,7 @@ namespace Wabbajack
                 .Select(x => Utils.IsDirectoryPathValid(x));
             DownloadLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.Off,
+                ExistCheckOption = FilePickerVM.CheckOptions.Off,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select a location for MO2 downloads",
             };

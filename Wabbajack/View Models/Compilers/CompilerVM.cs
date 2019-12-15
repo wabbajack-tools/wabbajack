@@ -3,7 +3,11 @@ using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
@@ -35,26 +39,48 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<float> _percentCompleted;
         public float PercentCompleted => _percentCompleted.Value;
 
-        public ObservableCollectionExtended<CPUStatus> StatusList { get; } = new ObservableCollectionExtended<CPUStatus>();
+        public ObservableCollectionExtended<CPUDisplayVM> StatusList { get; } = new ObservableCollectionExtended<CPUDisplayVM>();
 
         public ObservableCollectionExtended<IStatusMessage> Log => MWVM.Log;
 
         public IReactiveCommand BackCommand { get; }
+        public IReactiveCommand GoToModlistCommand { get; }
+        public IReactiveCommand CloseWhenCompleteCommand { get; }
+
+        public FilePickerVM OutputLocation { get; }
 
         private readonly ObservableAsPropertyHelper<IUserIntervention> _ActiveGlobalUserIntervention;
         public IUserIntervention ActiveGlobalUserIntervention => _ActiveGlobalUserIntervention.Value;
+
+        private readonly ObservableAsPropertyHelper<bool> _Completed;
+        public bool Completed => _Completed.Value;
+
+        /// <summary>
+        /// Tracks whether compilation has begun
+        /// </summary>
+        [Reactive]
+        public bool CompilationMode { get; set; }
 
         public CompilerVM(MainWindowVM mainWindowVM)
         {
             MWVM = mainWindowVM;
 
+            OutputLocation = new FilePickerVM()
+            {
+                ExistCheckOption = FilePickerVM.CheckOptions.IfPathNotEmpty,
+                PathType = FilePickerVM.PathTypeOptions.Folder,
+                PromptTitle = "Select the folder to place the resulting modlist.wabbajack file",
+            };
+
             // Load settings
             CompilerSettings settings = MWVM.Settings.Compiler;
             SelectedCompilerType = settings.LastCompiledModManager;
+            OutputLocation.TargetPath = settings.OutputLocation;
             MWVM.Settings.SaveSignal
                 .Subscribe(_ =>
                 {
                     settings.LastCompiledModManager = SelectedCompilerType;
+                    settings.OutputLocation = OutputLocation.TargetPath;
                 })
                 .DisposeWith(CompositeDisposable);
 
@@ -108,38 +134,72 @@ namespace Wabbajack
                 .ToProperty(this, nameof(Compiling));
 
             BackCommand = ReactiveCommand.Create(
-                execute: () => mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM,
+                execute: () =>
+                {
+                    mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM;
+                    CompilationMode = false;
+                },
                 canExecute: this.WhenAny(x => x.Compiling)
                     .Select(x => !x));
 
             // Compile progress updates and populate ObservableCollection
+            Dictionary<int, CPUDisplayVM> cpuDisplays = new Dictionary<int, CPUDisplayVM>();
             this.WhenAny(x => x.Compiler.ActiveCompilation)
                 .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>())
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .ToObservableChangeSet(x => x.ID)
+                // Attach start times to incoming CPU items
+                .Scan(
+                    new CPUDisplayVM(),
+                    (_, cpu) =>
+                    {
+                        var ret = cpuDisplays.TryCreate(cpu.ID);
+                        ret.AbsorbStatus(cpu);
+                        return ret;
+                    })
+                .ToObservableChangeSet(x => x.Status.ID)
                 .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
-                .Filter(i => i.IsWorking)
+                .Filter(i => i.Status.IsWorking && i.Status.ID != WorkQueue.UnassignedCpuId)
                 .ObserveOn(RxApp.MainThreadScheduler)
-                .Sort(SortExpressionComparer<CPUStatus>.Ascending(s => s.ID), SortOptimisations.ComparesImmutableValuesOnly)
+                .Sort(SortExpressionComparer<CPUDisplayVM>.Ascending(s => s.StartTime))
                 .Bind(StatusList)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
 
+            _Completed = Observable.CombineLatest(
+                    this.WhenAny(x => x.Compiling),
+                    this.WhenAny(x => x.CompilationMode),
+                resultSelector: (installing, installingMode) =>
+                {
+                    return installingMode && !installing;
+                })
+                .ToProperty(this, nameof(Completed));
+
             _percentCompleted = this.WhenAny(x => x.Compiler.ActiveCompilation)
                 .StartWith(default(ACompiler))
-                .Pairwise()
-                .Select(c =>
-                {
-                    if (c.Current == null)
+                .CombineLatest(
+                    this.WhenAny(x => x.Completed),
+                    (compiler, completed) =>
                     {
-                        return Observable.Return<float>(c.Previous == null ? 0f : 1f);
-                    }
-                    return c.Current.PercentCompleted;
-                })
+                        if (compiler == null)
+                        {
+                            return Observable.Return<float>(completed ? 1f : 0f);
+                        }
+                        return compiler.PercentCompleted;
+                    })
                 .Switch()
                 .Debounce(TimeSpan.FromMilliseconds(25))
                 .ToProperty(this, nameof(PercentCompleted));
+
+            // When sub compiler begins an install, mark state variable
+            this.WhenAny(x => x.Compiler.BeginCommand)
+                .Select(x => x?.StartingExecution() ?? Observable.Empty<Unit>())
+                .Switch()
+                .Subscribe(_ =>
+                {
+                    CompilationMode = true;
+                })
+                .DisposeWith(CompositeDisposable);
 
             // Listen for user interventions, and compile a dynamic list of all unhandled ones
             var activeInterventions = this.WhenAny(x => x.Compiler.ActiveCompilation)
@@ -156,6 +216,27 @@ namespace Wabbajack
                 .QueryWhenChanged(query => query.FirstOrDefault())
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(ActiveGlobalUserIntervention));
+
+            CloseWhenCompleteCommand = ReactiveCommand.Create(
+                canExecute: this.WhenAny(x => x.Completed),
+                execute: () =>
+                {
+                    MWVM.ShutdownApplication();
+                });
+
+            GoToModlistCommand = ReactiveCommand.Create(
+                canExecute: this.WhenAny(x => x.Completed),
+                execute: () =>
+                {
+                    if (string.IsNullOrWhiteSpace(OutputLocation.TargetPath))
+                    {
+                        Process.Start("explorer.exe", Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location));
+                    }
+                    else
+                    {
+                        Process.Start("explorer.exe", OutputLocation.TargetPath);
+                    }
+                });
         }
     }
 }

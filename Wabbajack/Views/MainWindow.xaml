@@ -38,4 +38,16 @@
             </DataTemplate>
         </ContentPresenter.Resources>
     </ContentPresenter>
+
+    <mahapps:MetroWindow.RightWindowCommands>
+        <mahapps:WindowCommands>
+            <Button Command="{Binding CopyVersionCommand}" Content="{Binding VersionDisplay}">
+                <Button.ToolTip>
+                    <TextBlock>
+                        Wabbajack Version<LineBreak />
+                        Click to copy to clipboard</TextBlock>
+                </Button.ToolTip>
+            </Button>
+        </mahapps:WindowCommands>
+    </mahapps:MetroWindow.RightWindowCommands>
 </mahapps:MetroWindow>

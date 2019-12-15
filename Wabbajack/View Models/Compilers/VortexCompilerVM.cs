@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -14,6 +15,8 @@ namespace Wabbajack
 {
     public class VortexCompilerVM : ViewModel, ISubCompilerVM
     {
+        public CompilerVM Parent { get; }
+
         private readonly VortexCompilationSettings _settings;
 
         public IReactiveCommand BeginCommand { get; }
@@ -53,24 +56,46 @@ namespace Wabbajack
 
         public VortexCompilerVM(CompilerVM parent)
         {
+            Parent = parent;
             GameLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Game Folder Location"
             };
             DownloadsLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Downloads Folder"
             };
             StagingLocation = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.On,
+                ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Staging Folder"
             };
+
+            // Load custom ModList settings when game type changes
+            _modListSettings = this.WhenAny(x => x.SelectedGame)
+                .Select(game =>
+                {
+                    if (game == null) return null;
+                    var gameSettings = _settings.ModlistSettings.TryCreate(game.Game);
+                    return new ModlistSettingsEditorVM(gameSettings.ModlistSettings);
+                })
+                // Interject and save old while loading new
+                .Pairwise()
+                .Do(pair =>
+                {
+                    var (previous, current) = pair;
+                    previous?.Save();
+                    current?.Init();
+                })
+                .Select(x => x.Current)
+                // Save to property
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(ModlistSettings));
 
             // Wire start command
             BeginCommand = ReactiveCommand.CreateFromTask(
@@ -78,19 +103,27 @@ namespace Wabbajack
                         this.WhenAny(x => x.GameLocation.InError),
                         this.WhenAny(x => x.DownloadsLocation.InError),
                         this.WhenAny(x => x.StagingLocation.InError),
-                        (g, d, s) => !g && !d && !s)
+                        this.WhenAny(x => x.ModlistSettings)
+                            .Select(x => x?.InError ?? Observable.Return(false))
+                            .Switch(),
+                        (g, d, s, ml) => !g && !d && !s && !ml)
                     .ObserveOnGuiThread(),
                 execute: async () =>
                 {
                     try
                     {
+                        string outputFile = $"{ModlistSettings.ModListName}{ExtensionManager.Extension}";
+                        if (!string.IsNullOrWhiteSpace(parent.OutputLocation.TargetPath))
+                        {
+                            outputFile = Path.Combine(parent.OutputLocation.TargetPath, outputFile);
+                        }
                         ActiveCompilation = new VortexCompiler(
                             game: SelectedGame.Game,
                             gamePath: GameLocation.TargetPath,
                             vortexFolder: VortexCompiler.TypicalVortexFolder(),
                             downloadsFolder: DownloadsLocation.TargetPath,
                             stagingFolder: StagingLocation.TargetPath,
-                            outputFile: $"{ModlistSettings.ModListName}{ExtensionManager.Extension}")
+                            outputFile: outputFile)
                         {
                             ModListName = ModlistSettings.ModListName,
                             ModListAuthor = ModlistSettings.AuthorText,
@@ -168,26 +201,6 @@ namespace Wabbajack
                     }
                 })
                 .DisposeWith(CompositeDisposable);
-
-            // Load custom ModList settings when game type changes
-            _modListSettings = this.WhenAny(x => x.SelectedGame)
-                .Select(game =>
-                {
-                    var gameSettings = _settings.ModlistSettings.TryCreate(game.Game);
-                    return new ModlistSettingsEditorVM(gameSettings.ModlistSettings);
-                })
-                // Interject and save old while loading new
-                .Pairwise()
-                .Do(pair =>
-                {
-                    var (previous, current) = pair;
-                    previous?.Save();
-                    current?.Init();
-                })
-                .Select(x => x.Current)
-                // Save to property
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(ModlistSettings));
 
             // Find game commands
             FindGameInSteamCommand = ReactiveCommand.Create(SetGameToSteamLocation);

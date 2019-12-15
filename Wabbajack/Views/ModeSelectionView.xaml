@@ -505,5 +505,12 @@
                 </Grid>
             </Button>
         </Grid>
+        <local:LinksView
+            Grid.Row="0"
+            Grid.RowSpan="3"
+            Grid.Column="0"
+            Margin="10"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top" />
     </Grid>
 </UserControl>

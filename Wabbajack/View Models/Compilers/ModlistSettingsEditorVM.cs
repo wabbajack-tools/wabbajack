@@ -1,4 +1,7 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using System;
+using System.Reactive.Linq;
+using DynamicData;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
 
@@ -24,27 +27,30 @@ namespace Wabbajack
         [Reactive]
         public string Website { get; set; }
 
+        public IObservable<bool> InError { get; }
+
         public ModlistSettingsEditorVM(CompilationModlistSettings settings)
         {
             this._settings = settings;
             ImagePath = new FilePickerVM()
             {
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
+                ExistCheckOption = FilePickerVM.CheckOptions.IfPathNotEmpty,
                 PathType = FilePickerVM.PathTypeOptions.File,
-                Filters =
-                {
-                    new CommonFileDialogFilter("Banner image", "*.png")
-                }
             };
+            ImagePath.Filters.Add(new CommonFileDialogFilter("Banner image", "*.png"));
             ReadMeText = new FilePickerVM()
             {
                 PathType = FilePickerVM.PathTypeOptions.File,
-                ExistCheckOption = FilePickerVM.ExistCheckOptions.IfNotEmpty,
-                Filters =
-                {
-                    new CommonFileDialogFilter("Text", "*.txt"),
-                }
+                ExistCheckOption = FilePickerVM.CheckOptions.IfPathNotEmpty,
             };
+            ReadMeText.Filters.Add(new CommonFileDialogFilter("Text", "*.txt"));
+
+            InError = Observable.CombineLatest(
+                    this.WhenAny(x => x.ImagePath.ErrorState).Select(err => err.Failed),
+                    this.WhenAny(x => x.ReadMeText.ErrorState).Select(err => err.Failed),
+                resultSelector: (img, readme) => img || readme)
+                .Publish()
+                .RefCount();
         }
 
         public void Init()

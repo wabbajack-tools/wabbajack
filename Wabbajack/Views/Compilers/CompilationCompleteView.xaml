@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="Wabbajack.InstallationCompleteView"
+    x:Class="Wabbajack.CompilationCompleteView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -19,18 +19,17 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <TextBlock
                 Grid.Row="0"
                 Grid.Column="0"
-                Grid.ColumnSpan="4"
+                Grid.ColumnSpan="3"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
                 FontFamily="Lucida Sans"
                 FontSize="22"
                 FontWeight="Black"
-                Text="Installation Complete">
+                Text="Compilation Complete">
                 <TextBlock.Effect>
                     <DropShadowEffect BlurRadius="25" Opacity="0.5" />
                 </TextBlock.Effect>
@@ -45,13 +44,13 @@
                 </Grid.RowDefinitions>
                 <Button
                     Grid.Row="0"
-                    Width="50"
-                    Height="50"
+                    Width="55"
+                    Height="55"
                     Command="{Binding BackCommand}"
                     Style="{StaticResource CircleButtonStyle}">
                     <icon:PackIconMaterial
-                        Width="25"
-                        Height="25"
+                        Width="28"
+                        Height="28"
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         Kind="ArrowLeft" />
                 </Button>
@@ -65,19 +64,19 @@
                 Grid.Row="1"
                 Grid.Column="1"
                 VerticalAlignment="Center"
-                Visibility="{Binding InstallerSupportsAfterInstallNavigation, Converter={StaticResource bool2VisibilityConverter}}">
+                Visibility="{Binding CompilerSupportsAfterCompileNavigation, Converter={StaticResource bool2VisibilityConverter}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Button
-                    Width="50"
-                    Height="50"
-                    Command="{Binding GoToInstallCommand}"
+                    Width="55"
+                    Height="55"
+                    Command="{Binding GoToModlistCommand}"
                     Style="{StaticResource CircleButtonStyle}">
                     <icon:PackIconMaterial
-                        Width="23"
-                        Height="23"
+                        Width="25"
+                        Height="25"
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         Kind="FolderMove" />
                 </Button>
@@ -85,7 +84,7 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    Text="Install Folder" />
+                    Text="Go To Modlist" />
             </Grid>
             <Grid
                 Grid.Row="1"
@@ -96,40 +95,36 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
+                <!--<Button
+                                Width="55"
+                                Height="55"
+                                Background="{StaticResource PrimaryVariantBrush}"
+                                BorderBrush="{StaticResource PrimaryVariantBrush}"
+                                IsHitTestVisible="False"
+                                Style="{StaticResource CircleButtonStyle}">
+                                <Button.Effect>
+                                    <BlurEffect Radius="35" />
+                                </Button.Effect>
+                            </Button>
+                            <Button
+                                Width="55"
+                                Height="55"
+                                Background="{StaticResource SecondaryBrush}"
+                                BorderBrush="{StaticResource SecondaryBrush}"
+                                IsHitTestVisible="False"
+                                Style="{StaticResource CircleButtonStyle}">
+                                <Button.Effect>
+                                    <BlurEffect Radius="15" />
+                                </Button.Effect>
+                            </Button>-->
                 <Button
-                    Width="50"
-                    Height="50"
-                    Command="{Binding OpenReadmeCommand}"
-                    Style="{StaticResource CircleButtonStyle}">
-                    <icon:PackIconFontAwesome
-                        Width="25"
-                        Height="25"
-                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                        Kind="ReadmeBrands" />
-                </Button>
-                <TextBlock
-                    Grid.Row="1"
-                    Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    Text="Readme" />
-            </Grid>
-            <Grid
-                Grid.Row="1"
-                Grid.Column="3"
-                VerticalAlignment="Center"
-                Background="Transparent">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Button
-                    Width="50"
-                    Height="50"
+                    Width="55"
+                    Height="55"
                     Command="{Binding CloseWhenCompleteCommand}"
                     Style="{StaticResource CircleButtonStyle}">
                     <icon:PackIconMaterial
-                        Width="25"
-                        Height="25"
+                        Width="30"
+                        Height="30"
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         Kind="Check" />
                 </Button>

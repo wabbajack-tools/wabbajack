@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -12,23 +13,39 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Grid.Resources>
-            <Style TargetType="Image">
-                <Setter Property="Margin" Value="5" />
-            </Style>
-        </Grid.Resources>
-        <Image
-            Name="GitHub"
+        <Button
             Grid.Column="0"
-            MouseLeftButtonDown="GitHub_MouseLeftButtonDown" Source="../Resources/Icons/github.png"/>
-        <Image
-            Name="Patreon"
+            Width="35"
+            Height="35"
+            Click="GitHub_Click"
+            Style="{StaticResource IconBareButtonStyle}">
+            <icon:PackIconMaterial
+                Width="25"
+                Height="25"
+                Kind="GithubCircle" />
+        </Button>
+        <Button
             Grid.Column="1"
-            MouseLeftButtonDown="Patreon_MouseLeftButtonDown" Source="../Resources/Icons/patreon.png"/>
-        <Image
-            Name="Discord"
+            Width="35"
+            Height="35"
+            Margin="4,0,0,0"
+            Click="Patreon_Click"
+            Style="{StaticResource IconBareButtonStyle}">
+            <icon:PackIconMaterial
+                Width="25"
+                Height="25"
+                Kind="Patreon" />
+        </Button>
+        <Button
             Grid.Column="2"
-            MouseLeftButtonDown="Discord_MouseLeftButtonDown"
-            Source="../Resources/Icons/discord.png" />
+            Width="35"
+            Height="35"
+            Click="Discord_Click"
+            Style="{StaticResource IconBareButtonStyle}">
+            <icon:PackIconMaterial
+                Width="25"
+                Height="25"
+                Kind="Discord" />
+        </Button>
     </Grid>
 </UserControl>

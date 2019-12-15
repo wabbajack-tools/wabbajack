@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using DynamicData;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
@@ -9,7 +10,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Wabbajack.Lib;
 
-namespace Wabbajack
+namespace Wabbajack.Lib
 {
     public class FilePickerVM : ViewModel
     {
@@ -21,10 +22,10 @@ namespace Wabbajack
             Folder
         }
 
-        public enum ExistCheckOptions
+        public enum CheckOptions
         {
             Off,
-            IfNotEmpty,
+            IfPathNotEmpty,
             On
         }
 
@@ -43,7 +44,10 @@ namespace Wabbajack
         public PathTypeOptions PathType { get; set; }
 
         [Reactive]
-        public ExistCheckOptions ExistCheckOption { get; set; }
+        public CheckOptions ExistCheckOption { get; set; }
+
+        [Reactive]
+        public CheckOptions FilterCheckOption { get; set; } = CheckOptions.IfPathNotEmpty;
 
         [Reactive]
         public IObservable<IErrorResponse> AdditionalError { get; set; }
@@ -60,46 +64,52 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _errorTooltip;
         public string ErrorTooltip => _errorTooltip.Value;
 
-        public List<CommonFileDialogFilter> Filters { get; } = new List<CommonFileDialogFilter>();
+        public SourceList<CommonFileDialogFilter> Filters { get; } = new SourceList<CommonFileDialogFilter>();
+
+        public const string PathDoesNotExistText = "Path does not exist";
+        public const string DoesNotPassFiltersText = "Path does not pass designated filters";
 
         public FilePickerVM(object parentVM = null)
         {
             Parent = parentVM;
             SetTargetPathCommand = ConstructTypicalPickerCommand();
 
-            // Check that file exists
-
             var existsCheckTuple = Observable.CombineLatest(
                     this.WhenAny(x => x.ExistCheckOption),
                     this.WhenAny(x => x.PathType),
                     this.WhenAny(x => x.TargetPath)
-                            // Dont want to debounce the initial value, because we know it's null
-                            .Skip(1)
-                            .Debounce(TimeSpan.FromMilliseconds(200))
-                            .StartWith(default(string)),
+                        // Dont want to debounce the initial value, because we know it's null
+                        .Skip(1)
+                        .Debounce(TimeSpan.FromMilliseconds(200))
+                        .StartWith(default(string)),
                     resultSelector: (existsOption, type, path) => (ExistsOption: existsOption, Type: type, Path: path))
-                .Publish()
+                .StartWith((ExistsOption: ExistCheckOption, Type: PathType, Path: TargetPath))
+                .Replay(1)
+                .RefCount();
+
+            var doExistsCheck = existsCheckTuple
+                .Select(t =>
+                {
+                    // Don't do exists type if we don't know what path type we're tracking
+                    if (t.Type == PathTypeOptions.Off) return false;
+                    switch (t.ExistsOption)
+                    {
+                        case CheckOptions.Off:
+                            return false;
+                        case CheckOptions.IfPathNotEmpty:
+                            return !string.IsNullOrWhiteSpace(t.Path);
+                        case CheckOptions.On:
+                            return true;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                })
+                .Replay(1)
                 .RefCount();
 
             _exists = Observable.Interval(TimeSpan.FromSeconds(3))
                 // Only check exists on timer if desired
-                .FilterSwitch(existsCheckTuple
-                    .Select(t =>
-                    {
-                        // Don't do exists type if we don't know what path type we're tracking
-                        if (t.Type == PathTypeOptions.Off) return false;
-                        switch (t.ExistsOption)
-                        {
-                            case ExistCheckOptions.Off:
-                                return false;
-                            case ExistCheckOptions.IfNotEmpty:
-                                return !string.IsNullOrWhiteSpace(t.Path);
-                            case ExistCheckOptions.On:
-                                return true;
-                            default:
-                                throw new NotImplementedException();
-                        }
-                    }))
+                .FilterSwitch(doExistsCheck)
                 .Unit()
                 // Also check though, when fields change
                 .Merge(this.WhenAny(x => x.PathType).Unit())
@@ -113,14 +123,14 @@ namespace Wabbajack
                 {
                     switch (t.ExistsOption)
                     {
-                        case ExistCheckOptions.IfNotEmpty:
-                            if (string.IsNullOrWhiteSpace(t.Path)) return true;
+                        case CheckOptions.IfPathNotEmpty:
+                            if (string.IsNullOrWhiteSpace(t.Path)) return false;
                             break;
-                        case ExistCheckOptions.On:
+                        case CheckOptions.On:
                             break;
-                        case ExistCheckOptions.Off:
+                        case CheckOptions.Off:
                         default:
-                            return true;
+                            return false;
                     }
                     switch (t.Type)
                     {
@@ -130,24 +140,81 @@ namespace Wabbajack
                             return File.Exists(t.Path);
                         case PathTypeOptions.Folder:
                             return Directory.Exists(t.Path);
+                        case PathTypeOptions.Off:
+                        default:
+                            return false;
+                    }
+                })
+                .DistinctUntilChanged()
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .StartWith(false)
+                .ToProperty(this, nameof(Exists));
+
+            var passesFilters = Observable.CombineLatest(
+                    this.WhenAny(x => x.TargetPath),
+                    this.WhenAny(x => x.PathType),
+                    this.WhenAny(x => x.FilterCheckOption),
+                    Filters.Connect().QueryWhenChanged(),
+                resultSelector: (target, type, checkOption, query) =>
+                {
+                    switch (type)
+                    {
+                        case PathTypeOptions.Either:
+                        case PathTypeOptions.File:
+                            break;
                         default:
                             return true;
                     }
+                    if (query.Count == 0) return true;
+                    switch (checkOption)
+                    {
+                        case CheckOptions.Off:
+                            return true;
+                        case CheckOptions.IfPathNotEmpty:
+                            if (string.IsNullOrWhiteSpace(target)) return true;
+                            break;
+                        case CheckOptions.On:
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+
+                    try
+                    {
+                        var extension = Path.GetExtension(target);
+                        if (extension == null || !extension.StartsWith(".")) return false;
+                        extension = extension.Substring(1);
+                        if (!query.Any(filter => filter.Extensions.Any(ext => string.Equals(ext, extension)))) return false;
+                    }
+                    catch (ArgumentException)
+                    {
+                        return false;
+                    }
+                    return true;
                 })
-                .StartWith(false)
-                .DistinctUntilChanged()
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .ToProperty(this, nameof(Exists));
+                .StartWith(true)
+                .Select(passed =>
+                {
+                    if (passed) return ErrorResponse.Success;
+                    return ErrorResponse.Fail(DoesNotPassFiltersText);
+                })
+                .Replay(1)
+                .RefCount();
 
             _errorState = Observable.CombineLatest(
-                    this.WhenAny(x => x.Exists)
-                        .Select(exists => ErrorResponse.Create(successful: exists, exists ? default(string) : "Path does not exist")),
+                    Observable.CombineLatest(
+                            this.WhenAny(x => x.Exists),
+                            doExistsCheck,
+                            resultSelector: (exists, doExists) => !doExists || exists)
+                        .Select(exists => ErrorResponse.Create(successful: exists, exists ? default(string) : PathDoesNotExistText)),
+                    passesFilters,
                     this.WhenAny(x => x.AdditionalError)
                         .Select(x => x ?? Observable.Return<IErrorResponse>(ErrorResponse.Success))
                         .Switch(),
-                    resultSelector: (exist, err) =>
+                    resultSelector: (existCheck, filter, err) =>
                     {
-                        if (exist.Failed) return exist;
+                        if (existCheck.Failed) return existCheck;
+                        if (filter.Failed) return filter;
                         return ErrorResponse.Convert(err);
                     })
                 .ToProperty(this, nameof(ErrorState));
@@ -159,14 +226,20 @@ namespace Wabbajack
             // Doesn't derive from ErrorState, as we want to bubble non-empty tooltips,
             // which is slightly different logic
             _errorTooltip = Observable.CombineLatest(
-                    this.WhenAny(x => x.Exists)
-                        .Select(exists => exists ? default(string) : "Path does not exist"),
+                    Observable.CombineLatest(
+                            this.WhenAny(x => x.Exists),
+                            doExistsCheck,
+                            resultSelector: (exists, doExists) => !doExists || exists)
+                        .Select(exists => exists ? default(string) : PathDoesNotExistText),
+                    passesFilters
+                        .Select(x => x.Reason),
                     this.WhenAny(x => x.AdditionalError)
                         .Select(x => x ?? Observable.Return<IErrorResponse>(ErrorResponse.Success))
                         .Switch(),
-                    resultSelector: (exists, err) =>
+                    resultSelector: (exists, filters, err) =>
                     {
                         if (!string.IsNullOrWhiteSpace(exists)) return exists;
+                        if (!string.IsNullOrWhiteSpace(filters)) return filters;
                         return err?.Reason;
                     })
                 .ToProperty(this, nameof(ErrorTooltip));
@@ -201,7 +274,7 @@ namespace Wabbajack
                         Multiselect = false,
                         ShowPlacesList = true,
                     };
-                    foreach (var filter in Filters)
+                    foreach (var filter in Filters.Items)
                     {
                         dlg.Filters.Add(filter);
                     }

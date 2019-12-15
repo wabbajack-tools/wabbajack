@@ -27,20 +27,20 @@
             Margin="5,1,-2,1"
             VerticalContentAlignment="Center"
             Background="{StaticResource DarkBackgroundBrush}"
-            Text="{Binding TargetPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            Visibility="{Binding ShowTextBoxInput}" />
+            Text="{Binding PickerVM.TargetPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+            Visibility="{Binding PickerVM.ShowTextBoxInput, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
         <Grid Grid.Column="1" HorizontalAlignment="Right">
             <Border
                 Margin="3,1,0,1"
                 HorizontalAlignment="Right"
                 Background="{StaticResource WarningBrush}"
                 CornerRadius="3"
-                ToolTip="{Binding ErrorTooltip}">
+                ToolTip="{Binding PickerVM.ErrorTooltip, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
                 <Border.Style>
                     <Style TargetType="Border">
                         <Setter Property="Width" Value="25" />
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding InError}" Value="True">
+                            <DataTrigger Binding="{Binding PickerVM.InError, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="True">
                                 <DataTrigger.EnterActions>
                                     <BeginStoryboard>
                                         <Storyboard>
@@ -79,7 +79,7 @@
                 HorizontalAlignment="Left"
                 Background="{StaticResource TextBoxBackground}"
                 CornerRadius="3">
-                <Button Command="{Binding SetTargetPathCommand}" ToolTip="Set target path">
+                <Button Command="{Binding PickerVM.SetTargetPathCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" ToolTip="Set target path">
                     <icon:PackIconMaterial
                         Width="16"
                         Height="12"
