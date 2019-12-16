@@ -1,5 +1,12 @@
 ### Changelog
 
+#### Version - 1.0 beta 7 - 12/15/2019
+* Fixed a regression with HTTP downloading introduced in beta 5
+* No longer show broken modlists in the gallery
+* Add Stardew Valley support
+* Add support for .dat extraction 
+* Several UI fixes
+
 #### Version - 1.0 beta 6 - 12/14/2019
 * Fixes for some strange steam library setups
 * Implemented download/install counts
