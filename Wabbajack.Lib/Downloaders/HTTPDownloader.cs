@@ -87,7 +87,9 @@ namespace Wabbajack.Lib.Downloaders
                 var bufferSize = 1024 * 32;
 
                 Utils.Status($"Starting Download {a?.Name ?? Url}", 0);
-                var response = await client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
+                var responseTask = client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
+                responseTask.Wait();
+                var response = await responseTask;
 
                 Stream stream;
                 try
