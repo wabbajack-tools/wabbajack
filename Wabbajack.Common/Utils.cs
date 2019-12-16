@@ -531,7 +531,7 @@ namespace Wabbajack.Common
             var tasks = colllst.Select(i =>
             {
                 var tc = new TaskCompletionSource<TR>();
-                queue.QueueTask(async () =>
+                var tsk = queue.QueueTask(async () =>
                 {
                     try
                     {
@@ -545,15 +545,6 @@ namespace Wabbajack.Common
                 });
                 return tc.Task;
             }).ToList();
-
-            // To avoid thread starvation, we'll start to help out in the work queue
-            if (WorkQueue.WorkerThread)
-                while (remainingTasks > 0)
-                    if (queue.Queue.TryTake(out var a, 500))
-                    {
-                        WorkQueue.AsyncLocalCurrentQueue.Value = WorkQueue.ThreadLocalCurrentQueue.Value;
-                        await a();
-                    }
 
             return await Task.WhenAll(tasks);
         }
@@ -569,7 +560,7 @@ namespace Wabbajack.Common
             var tasks = colllst.Select(i =>
             {
                 var tc = new TaskCompletionSource<TR>();
-                queue.QueueTask(async () =>
+                var tsk = queue.QueueTask(async () =>
                 {
                     try
                     {
@@ -583,15 +574,6 @@ namespace Wabbajack.Common
                 });
                 return tc.Task;
             }).ToList();
-
-            // To avoid thread starvation, we'll start to help out in the work queue
-            if (WorkQueue.WorkerThread)
-                while (remainingTasks > 0)
-                    if (queue.Queue.TryTake(out var a, 500))
-                    {
-                        WorkQueue.AsyncLocalCurrentQueue.Value = WorkQueue.ThreadLocalCurrentQueue.Value;
-                        await a();
-                    }
 
             return await Task.WhenAll(tasks);
         }

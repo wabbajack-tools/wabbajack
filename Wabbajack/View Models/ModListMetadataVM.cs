@@ -74,15 +74,15 @@ namespace Wabbajack
                 .ToProperty(this, nameof(Exists));
         }
 
-        private Task Download()
+        private async Task Download()
         {
             ProgressPercent = 0d;
             var queue = new WorkQueue(1);
             var sub = queue.Status.Select(i => i.ProgressPercent)
                 .Subscribe(percent => ProgressPercent = percent);
-            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>();
             var metric = Metrics.Send("downloading", Metadata.Title);
-            queue.QueueTask(async () =>
+            await queue.QueueTask(async () =>
             {
                 var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
                 await downloader.Download(new Archive{ Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0}, Location);
@@ -90,8 +90,7 @@ namespace Wabbajack
                 sub.Dispose();
                 tcs.SetResult(true);
             });
-
-            return tcs.Task;
+            await tcs.Task;
         }
     }
 }
