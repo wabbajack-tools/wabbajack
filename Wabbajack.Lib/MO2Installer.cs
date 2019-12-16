@@ -7,6 +7,7 @@ using System.Threading;
 using System.Windows;
 using Alphaleonis.Win32.Filesystem;
 using IniParser;
+using IniParser.Model.Configuration;
 using IniParser.Parser;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps.CompilationErrors;
@@ -283,10 +284,11 @@ namespace Wabbajack.Lib
 
         private void SetScreenSizeInPrefs()
         {
+            var config = new IniParserConfiguration {AllowDuplicateKeys = true};
             foreach (var file in Directory.EnumerateFiles(Path.Combine(OutputFolder, "profiles"), "*refs.ini",
                 DirectoryEnumerationOptions.Recursive))
             {
-                var parser = new FileIniDataParser();
+                var parser = new FileIniDataParser(new IniDataParser(config));
                 var data = parser.ReadFile(file);
                 if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
                 {
