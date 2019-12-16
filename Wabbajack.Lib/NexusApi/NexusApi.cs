@@ -430,8 +430,10 @@ namespace Wabbajack.Lib.NexusApi
                             parts.Contains(p.game.NexusName) && parts.Contains(p.mod.mod_id.ToString()));
                         if (found != null)
                         {
-                            var should_remove =
-                                File.GetLastWriteTimeUtc(f) <= found.mod.latest_file_update.AsUnixTime();
+                            var a = found.mod.latest_file_update.AsUnixTime();
+                            // Mod activity could hide files
+                            var b = found.mod.latest_mod_activity.AsUnixTime();
+                            var should_remove = File.GetLastWriteTimeUtc(f) <= (a > b ? a : b);
                             return (should_remove, f);
                         }
 
