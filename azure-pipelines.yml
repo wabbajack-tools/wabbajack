@@ -42,6 +42,7 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     testFiltercriteria: 'TestCategory!=ListValidation'
+    runInParallel: true
 - task: DownloadSecureFile@1
   inputs:
     secureFile: 'CertFile.p12'
