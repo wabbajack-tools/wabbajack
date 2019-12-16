@@ -394,11 +394,23 @@ namespace Wabbajack.Common
             return JsonConvert.DeserializeObject<T>(data,
                 new JsonSerializerSettings {TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format});
         }
+
         public static T FromJSON<T>(this Stream data)
         {
             var s = Encoding.UTF8.GetString(data.ReadAll());
-            return JsonConvert.DeserializeObject<T>(s, 
-                new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto });
+            try
+            {
+                return JsonConvert.DeserializeObject<T>(s,
+                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
+            }
+            catch (JsonSerializationException)
+            {
+                var error = JsonConvert.DeserializeObject<NexusErrorResponse>(s,
+                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
+                if (error != null)
+                    Log($"Exception while deserializing\nError code: {error.code}\nError message: {error.message}");
+                throw;
+            }
         }
 
         public static bool FileExists(this string filename)
@@ -958,6 +970,10 @@ namespace Wabbajack.Common
             return path.ToLower().TrimEnd('\\').StartsWith(parent.ToLower().TrimEnd('\\') + "\\");
         }
 
-
+        public class NexusErrorResponse
+        {
+            public int code;
+            public string message;
+        }
     }
 }
