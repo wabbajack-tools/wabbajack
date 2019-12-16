@@ -143,6 +143,8 @@ namespace Wabbajack.Test
                 new List<string>
                 {
                     "[Display]",
+                    "STestFile=f",
+                    "STestFile=",
                     "iSize H=3", 
                     "iSize W=-200"
                 });
