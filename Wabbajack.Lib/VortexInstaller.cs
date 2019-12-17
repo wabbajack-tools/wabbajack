@@ -49,12 +49,15 @@ namespace Wabbajack.Lib
             Directory.CreateDirectory(DownloadFolder);
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Hashing Archives");
             await HashArchives();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Downloading Missing Archives");
             await DownloadArchives();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Hashing Remaining Archives");
             await HashArchives();
 
             if (cancel.IsCancellationRequested) return false;
@@ -69,26 +72,33 @@ namespace Wabbajack.Lib
                     Error("Cannot continue, was unable to download one or more archives");
             }
 
+            if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Priming VFS");
             await PrimeVFS();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Building Folder Structure");
             BuildFolderStructure();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Installing Archives");
             await InstallArchives();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Installing Included files");
             await InstallIncludedFiles();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Installing Manual files");
             await InstallManualGameFiles();
 
             if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Installing SteamWorkshopItems");
             await InstallSteamWorkshopItems();
 
             //InstallIncludedDownloadMetas();
             var metric2 = Metrics.Send("finish_install", ModList.Name);
-            Info("Installation complete! You may exit the program.");
+            UpdateTracker.NextStep("Installation complete! You may exit the program.");
             return true;
         }
 
