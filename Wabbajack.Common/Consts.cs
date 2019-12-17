@@ -20,7 +20,7 @@ namespace Wabbajack.Common
 
         public static string MegaPrefix = "https://mega.nz/#!";
 
-        public static HashSet<string> SupportedArchives = new HashSet<string> {".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod", ".exe", ".dat"};
+        public static HashSet<string> SupportedArchives = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod", ".exe", ".dat"};
 
         // HashSet with archive extensions that need to be tested before extraction
         public static HashSet<string> TestArchivesBeforeExtraction = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".dat"};
