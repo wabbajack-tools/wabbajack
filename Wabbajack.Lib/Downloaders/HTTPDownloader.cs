@@ -153,9 +153,10 @@ namespace Wabbajack.Lib.Downloaders
                                             HttpCompletionOption.ResponseHeadersRead);
                                         goto TOP;
                                     }
+                                    throw ex;
                                 }
 
-                                throw ex;
+                                break;
                             }
 
                             read_this_cycle += read;
