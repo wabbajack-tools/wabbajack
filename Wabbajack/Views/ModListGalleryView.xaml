@@ -122,7 +122,21 @@
                                                 HorizontalAlignment="Center"
                                                 VerticalAlignment="Center"
                                                 Stretch="UniformToFill">
-                                                <Image Source="{Binding Metadata.Links.ImageUri}" />
+                                                <Image Source="{Binding Metadata.Links.ImageUri}">
+                                                    <Image.Style>
+                                                        <Style TargetType="Image">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsBroken}" Value="True">
+                                                                    <Setter Property="Effect">
+                                                                        <Setter.Value>
+                                                                            <BlurEffect Radius="35" />
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Image.Style>
+                                                </Image>
                                             </Viewbox>
                                             <Ellipse
                                                 Height="120"
@@ -164,6 +178,11 @@
                                             </Ellipse>
                                         </Grid>
                                     </Border>
+                                    <local:UnderMaintenanceOverlay
+                                        Grid.Row="0"
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="2"
+                                        Visibility="{Binding IsBroken, Converter={StaticResource bool2VisibilityConverter}}" />
                                     <TextBlock
                                         x:Name="DescriptionTextShadow"
                                         Grid.Row="0"

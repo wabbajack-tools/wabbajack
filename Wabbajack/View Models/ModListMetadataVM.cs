@@ -35,12 +35,18 @@ namespace Wabbajack
         [Reactive]
         public double ProgressPercent { get; private set; }
 
+        [Reactive]
+        public bool IsBroken { get; private set; }
+
         public ModListMetadataVM(ModListGalleryVM parent, ModlistMetadata metadata)
         {
             _parent = parent;
             Metadata = metadata;
+            IsBroken = metadata.ValidationSummary.HasFailures;
             OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start($"https://www.wabbajack.org/modlist/{Metadata.Links.MachineURL}"));
-            ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, bool>((unit) => 
+            ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, bool>(
+                canExecute: this.WhenAny(x => x.IsBroken).Select(x => !x),
+                execute: (unit) => 
                 Observable.Return(unit)
                 .WithLatestFrom(
                     this.WhenAny(x => x.Exists),
