@@ -142,11 +142,16 @@ namespace Wabbajack.Test
             File.WriteAllLines(Path.Combine(utils.MO2Folder, "profiles", profile, "somegameprefs.ini"),
                 new List<string>
                 {
+                    // Beth inis are messy, let's make ours just as messy to catch some parse failures
+                    "[Display]",
+                    "foo=4",
                     "[Display]",
                     "STestFile=f",
                     "STestFile=",
                     "iSize H=3", 
-                    "iSize W=-200"
+                    "iSize W=-200",
+                    "[Display]",
+                    "foo=4"
                 });
 
             var modlist = await CompileAndInstall(profile);

@@ -4,8 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Reflection.Emit;
 using System.Threading.Tasks;
+using Windows.Networking.BackgroundTransfer;
 using Ceras;
+using SharpCompress.Common;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -71,68 +75,102 @@ namespace Wabbajack.Lib.Downloaders
 
             public async Task<bool> DoDownload(Archive a, string destination, bool download)
             {
-                var client = Client ?? new HttpClient();
-                client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
+                using (var fs = download ? File.OpenWrite(destination) : null)
+                {
+                    var client = Client ?? new HttpClient();
+                    client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
 
-                if (Headers != null)
-                    foreach (var header in Headers)
+                    if (Headers != null)
+                        foreach (var header in Headers)
+                        {
+                            var idx = header.IndexOf(':');
+                            var k = header.Substring(0, idx);
+                            var v = header.Substring(idx + 1);
+                            client.DefaultRequestHeaders.Add(k, v);
+                        }
+
+                    long totalRead = 0;
+                    var bufferSize = 1024 * 32;
+
+                    Utils.Status($"Starting Download {a?.Name ?? Url}", 0);
+                    var response = await client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
+                    TOP:
+
+                    Stream stream;
+                    try
                     {
-                        var idx = header.IndexOf(':');
-                        var k = header.Substring(0, idx);
-                        var v = header.Substring(idx + 1);
-                        client.DefaultRequestHeaders.Add(k, v);
+                        stream = await response.Content.ReadAsStreamAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.Error(ex, $"While downloading {Url}");
+                        return false;
                     }
 
-                long totalRead = 0;
-                var bufferSize = 1024 * 32;
+                    if (!download)
+                        return true;
 
-                Utils.Status($"Starting Download {a?.Name ?? Url}", 0);
-                var responseTask = client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
-                responseTask.Wait();
-                var response = await responseTask;
+                    var headerVar = a.Size == 0 ? "1" : a.Size.ToString();
+                    if (response.Content.Headers.Contains("Content-Length"))
+                        headerVar = response.Content.Headers.GetValues("Content-Length").FirstOrDefault();
+                    var supportsResume = response.Headers.AcceptRanges.FirstOrDefault(f => f == "bytes") != null;
 
-                Stream stream;
-                try
-                {
-                    stream = await response.Content.ReadAsStreamAsync();
-                }
-                catch (Exception ex)
-                {
-                    Utils.Error(ex, $"While downloading {Url}");
-                    return false;
-                }
+                    var contentSize = headerVar != null ? long.Parse(headerVar) : 1;
 
-                if (!download)
+                    FileInfo fileInfo = new FileInfo(destination);
+                    if (!fileInfo.Directory.Exists)
+                    {
+                        Directory.CreateDirectory(fileInfo.Directory.FullName);
+                    }
+
+                    using (var webs = stream)
+                    {
+                        var buffer = new byte[bufferSize];
+                        int read_this_cycle = 0;
+
+                        while (true)
+                        {
+                            int read = 0;
+                            try
+                            {
+                                read = await webs.ReadAsync(buffer, 0, bufferSize);
+                            }
+                            catch (Exception ex)
+                            {
+                                if (read_this_cycle == 0)
+                                    throw ex;
+
+                                if (totalRead < contentSize)
+                                {
+                                    if (supportsResume)
+                                    {
+                                        Utils.Log(
+                                            $"Abort during download, trying to resume {Url} from {totalRead.ToFileSizeString()}");
+
+                                        var msg = new HttpRequestMessage(HttpMethod.Get, Url);
+                                        msg.Headers.Range = new RangeHeaderValue(totalRead, null);
+                                        response = await client.SendAsync(msg,
+                                            HttpCompletionOption.ResponseHeadersRead);
+                                        goto TOP;
+                                    }
+                                    throw ex;
+                                }
+
+                                break;
+                            }
+
+                            read_this_cycle += read;
+
+                            if (read == 0) break;
+                            Utils.Status($"Downloading {a.Name}", (int)(totalRead * 100 / contentSize));
+
+                            fs.Write(buffer, 0, read);
+                            totalRead += read;
+                        }
+                    }
+
                     return true;
-
-                var headerVar = a.Size == 0 ? "1" : a.Size.ToString();
-                if (response.Content.Headers.Contains("Content-Length"))
-                    headerVar = response.Content.Headers.GetValues("Content-Length").FirstOrDefault();
-
-                var contentSize = headerVar != null ? long.Parse(headerVar) : 1;
-
-                FileInfo fileInfo = new FileInfo(destination);
-                if (!fileInfo.Directory.Exists)
-                {
-                    Directory.CreateDirectory(fileInfo.Directory.FullName);
                 }
-
-                using (var webs = stream)
-                using (var fs = File.OpenWrite(destination))
-                {
-                    var buffer = new byte[bufferSize];
-                    while (true)
-                    {
-                        var read = webs.Read(buffer, 0, bufferSize);
-                        if (read == 0) break;
-                        Utils.Status($"Downloading {a.Name}", (int)(totalRead * 100 / contentSize));
-
-                        fs.Write(buffer, 0, read);
-                        totalRead += read;
-                    }
-                }
-
-                return true;
             }
 
             public override async Task<bool> Verify()

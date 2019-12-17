@@ -284,7 +284,7 @@ namespace Wabbajack.Lib
 
         private void SetScreenSizeInPrefs()
         {
-            var config = new IniParserConfiguration {AllowDuplicateKeys = true};
+            var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
             foreach (var file in Directory.EnumerateFiles(Path.Combine(OutputFolder, "profiles"), "*refs.ini",
                 DirectoryEnumerationOptions.Recursive))
             {

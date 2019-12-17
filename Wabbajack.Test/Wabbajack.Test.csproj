@@ -108,6 +108,8 @@
     <Compile Include="FilePickerTests.cs" />
     <Compile Include="MiscTests.cs" />
     <Compile Include="ModlistMetadataTests.cs" />
+    <Compile Include="RestartingDownloadsTests.cs" />
+    <Compile Include="SimpleHTTPServer.cs" />
     <Compile Include="TestUtils.cs" />
     <Compile Include="SanityTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
