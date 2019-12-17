@@ -148,6 +148,9 @@ namespace Wabbajack.CacheServer
 
                     if (list.NeedsDownload(modlist_path))
                     {
+                        if (File.Exists(modlist_path))
+                            File.Delete(modlist_path);
+
                         var state = DownloadDispatcher.ResolveArchive(list.Links.Download);
                         Utils.Log($"Downloading {list.Links.MachineURL} - {list.Title}");
                         await state.Download(modlist_path);

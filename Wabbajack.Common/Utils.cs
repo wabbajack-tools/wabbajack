@@ -338,6 +338,8 @@ namespace Wabbajack.Common
 
         public static void ToJSON<T>(this T obj, string filename)
         {
+            if (File.Exists(filename))
+                File.Delete(filename);
             File.WriteAllText(filename,
                 JsonConvert.SerializeObject(obj, Formatting.Indented,
                     new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto}));

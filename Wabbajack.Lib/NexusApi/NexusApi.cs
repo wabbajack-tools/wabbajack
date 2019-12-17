@@ -24,6 +24,7 @@ using Xilium.CefGlue.Common.Handlers;
 using Xilium.CefGlue.WPF;
 using static Wabbajack.Lib.NexusApi.NexusApiUtils;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace Wabbajack.Lib.NexusApi
 {
@@ -31,6 +32,8 @@ namespace Wabbajack.Lib.NexusApi
     {
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
         private static string _additionalEntropy = "vtP2HF6ezg";
+
+        private static object _diskLock = new object();
 
         public HttpClient HttpClient { get; } = new HttpClient();
 
@@ -255,18 +258,31 @@ namespace Wabbajack.Lib.NexusApi
 
             if (UseLocalCache)
             {
-                if (!Directory.Exists(LocalCacheDir))
-                    Directory.CreateDirectory(LocalCacheDir);
-
                 var cache_file = Path.Combine(LocalCacheDir, code);
-                if (File.Exists(cache_file))
+
+                lock (_diskLock)
                 {
-                    return cache_file.FromJSON<T>();
+                    if (!Directory.Exists(LocalCacheDir))
+                        Directory.CreateDirectory(LocalCacheDir);
+
+
+                    if (File.Exists(cache_file))
+                    {
+                        return cache_file.FromJSON<T>();
+                    }
                 }
 
                 var result = await Get<T>(url);
-                if (result != null)
+
+                if (result == null)
+                    return result;
+
+                lock (_diskLock)
+                {
                     result.ToJSON(cache_file);
+                }
+
+
                 return result;
             }
 
@@ -399,6 +415,27 @@ namespace Wabbajack.Lib.NexusApi
         public async Task ClearUpdatedModsInCache()
         {
             if (!UseLocalCache) return;
+            using (var queue = new WorkQueue())
+            {
+                var invalid_json = (await Directory.EnumerateFiles(LocalCacheDir, "*.json")
+                    .PMap(queue, f =>
+                    {
+                        var s = JsonSerializer.Create();
+                        try
+                        {
+                            using (var tr = File.OpenText(f))
+                                s.Deserialize(new JsonTextReader(tr));
+                            return null;
+                        }
+                        catch (JsonReaderException)
+                        {
+                            return f;
+                        }
+                    })).Where(f => f != null).ToList();
+                Utils.Log($"Found {invalid_json.Count} bad json files");
+                foreach (var file in invalid_json)
+                    File.Delete(file);
+            }
 
             var gameTasks = GameRegistry.Games.Values
                 .Where(game => game.NexusName != null)
