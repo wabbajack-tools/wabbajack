@@ -64,8 +64,12 @@ namespace Wabbajack.Lib
                         .Do(NoWrapText);
             }
 
+            var archiveCount = lst.Archives.Count + lst.Directives.Count(d => d is SteamMeta);
+            var totalSize = lst.Archives.Sum(a => a.Size);
+            totalSize += lst.Directives.Where(d => d is SteamMeta).Cast<SteamMeta>().Sum(s => s.Size);
+
             Text(
-                $"#### Download Summary ({lst.Archives.Count} archives - {lst.Archives.Sum(a => a.Size).ToFileSizeString()})");
+                $"#### Download Summary ({archiveCount} archives - {totalSize.ToFileSizeString()})");
             foreach (var archive in SortArchives(lst.Archives))
             {
                 var hash = archive.Hash.FromBase64().ToHex();
@@ -75,11 +79,14 @@ namespace Wabbajack.Lib
             }
             lst.Directives.Where(d => d is SteamMeta).Do(f =>
             {
-                if (f is SteamMeta s)
+                if (!(f is SteamMeta s))
                 {
-                    var link = $"https://steamcommunity.com/sharedfiles/filedetails/?id={s.ItemID}";
-                    NoWrapText($"* Steam Workshop Item: [{s.ItemID}]({link}) | Size: {s.Size}");
+                    return;
                 }
+
+                var link = $"https://steamcommunity.com/sharedfiles/filedetails/?id={s.ItemID}";
+                var size = ((long)s.Size).ToFileSizeString();
+                NoWrapText($"* Steam Workshop Item: [{s.ItemID}]({link}) | Size: {size}");
             });
 
             Text("\n\n");
