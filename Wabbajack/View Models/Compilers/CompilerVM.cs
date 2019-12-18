@@ -52,14 +52,11 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<IUserIntervention> _ActiveGlobalUserIntervention;
         public IUserIntervention ActiveGlobalUserIntervention => _ActiveGlobalUserIntervention.Value;
 
-        private readonly ObservableAsPropertyHelper<bool> _Completed;
-        public bool Completed => _Completed.Value;
-
-        /// <summary>
-        /// Tracks whether compilation has begun
-        /// </summary>
         [Reactive]
-        public bool CompilationMode { get; set; }
+        public bool StartedCompilation { get; set; }
+
+        [Reactive]
+        public bool Completed { get; set; }
 
         public CompilerVM(MainWindowVM mainWindowVM)
         {
@@ -137,7 +134,8 @@ namespace Wabbajack
                 execute: () =>
                 {
                     mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM;
-                    CompilationMode = false;
+                    StartedCompilation = false;
+                    Completed = false;
                 },
                 canExecute: this.WhenAny(x => x.Compiling)
                     .Select(x => !x));
@@ -166,15 +164,6 @@ namespace Wabbajack
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
 
-            _Completed = Observable.CombineLatest(
-                    this.WhenAny(x => x.Compiling),
-                    this.WhenAny(x => x.CompilationMode),
-                resultSelector: (installing, installingMode) =>
-                {
-                    return installingMode && !installing;
-                })
-                .ToProperty(this, nameof(Completed));
-
             _percentCompleted = this.WhenAny(x => x.Compiler.ActiveCompilation)
                 .StartWith(default(ACompiler))
                 .CombineLatest(
@@ -185,19 +174,29 @@ namespace Wabbajack
                         {
                             return Observable.Return<float>(completed ? 1f : 0f);
                         }
-                        return compiler.PercentCompleted;
+                        return compiler.PercentCompleted.StartWith(0);
                     })
                 .Switch()
                 .Debounce(TimeSpan.FromMilliseconds(25))
                 .ToProperty(this, nameof(PercentCompleted));
 
-            // When sub compiler begins an install, mark state variable
+            // When sub compiler begins a compile, mark state variable
             this.WhenAny(x => x.Compiler.BeginCommand)
                 .Select(x => x?.StartingExecution() ?? Observable.Empty<Unit>())
                 .Switch()
                 .Subscribe(_ =>
                 {
-                    CompilationMode = true;
+                    StartedCompilation = true;
+                })
+                .DisposeWith(CompositeDisposable);
+
+            // When sub compiler finishes a compile, mark state variable
+            this.WhenAny(x => x.Compiler.BeginCommand)
+                .Select(x => x?.EndingExecution() ?? Observable.Empty<Unit>())
+                .Switch()
+                .Subscribe(_ =>
+                {
+                    Completed = true;
                 })
                 .DisposeWith(CompositeDisposable);
 
