@@ -206,7 +206,7 @@
                     ToolTip="Pause Installation"
                     Margin="0,0,0,5"
                     Width="50"
-                    Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}">
+                    Visibility="{Binding StartedInstallation, Converter={StaticResource bool2VisibilityConverter}}">
                 <icon:PackIconMaterial
                     Kind="Pause" />
             </Button>
@@ -214,7 +214,7 @@
                     ToolTip="Stop Installation"
                     Margin="0,0,0,5"
                     Width="50"
-                    Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}}" >
+                    Visibility="{Binding StartedInstallation, Converter={StaticResource bool2VisibilityConverter}}" >
                 <icon:PackIconFontAwesome
                     Width="25"
                     Height="25"
@@ -240,7 +240,7 @@
             Grid.Row="2"
             Margin="5,0,5,5"
             ClipToBounds="True"
-            Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
+            Visibility="{Binding StartedInstallation, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="4" />
@@ -339,7 +339,7 @@
                     Margin="5"
                     VerticalAlignment="Center"
                     Background="Transparent"
-                    Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
+                    Visibility="{Binding StartedInstallation, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -394,7 +394,7 @@
         <Grid
             Grid.Row="2"
             Margin="5,0,5,5"
-            Visibility="{Binding InstallingMode, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
+            Visibility="{Binding StartedInstallation, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="4*" />
                 <ColumnDefinition Width="5" />

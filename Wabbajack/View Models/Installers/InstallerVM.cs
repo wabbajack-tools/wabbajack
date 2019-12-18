@@ -46,11 +46,11 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<bool> _installing;
         public bool Installing => _installing.Value;
 
-        /// <summary>
-        /// Tracks whether installation has begun
-        /// </summary>
         [Reactive]
-        public bool InstallingMode { get; set; }
+        public bool StartedInstallation { get; set; }
+
+        [Reactive]
+        public bool Completed { get; set; }
 
         private readonly ObservableAsPropertyHelper<ImageSource> _image;
         public ImageSource Image => _image.Value;
@@ -81,9 +81,6 @@ namespace Wabbajack
 
         private readonly ObservableAsPropertyHelper<IUserIntervention> _ActiveGlobalUserIntervention;
         public IUserIntervention ActiveGlobalUserIntervention => _ActiveGlobalUserIntervention.Value;
-
-        private readonly ObservableAsPropertyHelper<bool> _Completed;
-        public bool Completed => _Completed.Value;
 
         // Command properties
         public IReactiveCommand ShowReportCommand { get; }
@@ -163,7 +160,7 @@ namespace Wabbajack
                 .Select(modList => modList?.ReportHTML)
                 .ToProperty(this, nameof(HTMLReport));
             _installing = this.WhenAny(x => x.Installer.ActiveInstallation)
-                .Select(compilation => compilation != null)
+                .Select(i => i != null)
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(Installing));
             _TargetManager = this.WhenAny(x => x.ModList)
@@ -182,20 +179,12 @@ namespace Wabbajack
             BackCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
-                    InstallingMode = false;
+                    StartedInstallation = false;
+                    Completed = false;
                     mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM;
                 },
                 canExecute: this.WhenAny(x => x.Installing)
                     .Select(x => !x));
-
-            _Completed = Observable.CombineLatest(
-                    this.WhenAny(x => x.Installing),
-                    this.WhenAny(x => x.InstallingMode),
-                resultSelector: (installing, installingMode) =>
-                {
-                    return installingMode && !installing;
-                })
-                .ToProperty(this, nameof(Completed));
 
             _percentCompleted = this.WhenAny(x => x.Installer.ActiveInstallation)
                 .StartWith(default(AInstaller))
@@ -207,7 +196,7 @@ namespace Wabbajack
                         {
                             return Observable.Return<float>(completed ? 1f : 0f);
                         }
-                        return installer.PercentCompleted;
+                        return installer.PercentCompleted.StartWith(0f);
                     })
                 .Switch()
                 .Debounce(TimeSpan.FromMilliseconds(25))
@@ -285,11 +274,11 @@ namespace Wabbajack
 
             _progressTitle = Observable.CombineLatest(
                     this.WhenAny(x => x.Installing),
-                    this.WhenAny(x => x.InstallingMode),
-                    resultSelector: (installing, mode) =>
+                    this.WhenAny(x => x.StartedInstallation),
+                    resultSelector: (installing, started) =>
                     {
                         if (!installing) return "Configuring";
-                        return mode ? "Installing" : "Installed";
+                        return started ? "Installing" : "Installed";
                     })
                 .ToProperty(this, nameof(ProgressTitle));
 
@@ -323,7 +312,17 @@ namespace Wabbajack
                 .Switch()
                 .Subscribe(_ =>
                 {
-                    InstallingMode = true;
+                    StartedInstallation = true;
+                })
+                .DisposeWith(CompositeDisposable);
+
+            // When sub installer ends an install, mark state variable
+            this.WhenAny(x => x.Installer.BeginCommand)
+                .Select(x => x?.EndingExecution() ?? Observable.Empty<Unit>())
+                .Switch()
+                .Subscribe(_ =>
+                {
+                    Completed = true;
                 })
                 .DisposeWith(CompositeDisposable);
 
