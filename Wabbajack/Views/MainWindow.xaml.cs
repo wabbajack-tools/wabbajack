@@ -64,6 +64,18 @@ namespace Wabbajack
             // Set datacontext
             _mwvm = new MainWindowVM(this, _settings);
             DataContext = _mwvm;
+
+            // Bring window to the front if it isn't already
+            this.Initialized += (s, e) =>
+            {
+                this.Activate();
+                this.Topmost = true;
+                this.Focus();
+            };
+            this.ContentRendered += (s, e) =>
+            {
+                this.Topmost = false;
+            };
         }
 
         public void Init(MainWindowVM vm, MainSettings settings)
