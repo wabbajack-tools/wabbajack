@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 1.0 beta 9 - 12/18/2019
+* Create output folders before trying to download a file
+
 #### Version - 1.0 beta 8 - 12/17/2019
 * Fixed parsing of buggy ini files (Bethesda supports them so we must as well)
 * Disable invalid modlists instead of hiding them
