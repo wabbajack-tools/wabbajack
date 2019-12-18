@@ -19,7 +19,7 @@ namespace Wabbajack.Lib.LibCefHelpers
         /// <summary>
         /// We bundle the cef libs inside the .exe, we need to extract them before loading any wpf code that requires them
         /// </summary>
-        public static void ExtractLibs()
+        public static async Task ExtractLibs()
         {
             if (File.Exists("cefglue.7z") && File.Exists("libcef.dll")) return;
 
@@ -30,8 +30,9 @@ namespace Wabbajack.Lib.LibCefHelpers
                 Utils.Log("Extracting libCef files");
             }
             using (var wq = new WorkQueue(1))
-                FileExtractor.ExtractAll(wq, "cefglue.7z", ".");
-
+            {
+                await FileExtractor.ExtractAll(wq, "cefglue.7z", ".");
+            }
         }
         public static HttpClient GetClient(IEnumerable<Cookie> cookies, string referer)
         {
