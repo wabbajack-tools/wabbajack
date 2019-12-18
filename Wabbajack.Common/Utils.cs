@@ -150,7 +150,7 @@ namespace Wabbajack.Common
             }
         }
 
-        public static string FileHashCached(this string file)
+        public static string FileHashCached(this string file, bool nullOnIOError = false)
         {
             var hashPath = file + Consts.HashFileExtension;
             if (File.Exists(hashPath) && File.GetLastWriteTime(file) <= File.GetLastWriteTime(hashPath))
@@ -158,7 +158,7 @@ namespace Wabbajack.Common
                 return File.ReadAllText(hashPath);
             }
 
-            var hash = file.FileHash();
+            var hash = file.FileHash(nullOnIOError);
             File.WriteAllText(hashPath, hash);
             return hash;
         }
