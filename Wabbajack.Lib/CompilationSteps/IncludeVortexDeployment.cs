@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -11,10 +14,21 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!source.Path.EndsWith("vortex.deployment.msgpack") &&
-                !source.Path.EndsWith("\\vortex.deployment.json") && Path.GetExtension(source.Path) != ".meta") return null;
+            var l = new List<string> {"vortex.deployment.msgpack", "vortex.deployment.json"};
+            if (!l.Any(a => source.Path.Contains(a))) return null;
             var inline = source.EvolveTo<InlineFile>();
             inline.SourceDataID = _compiler.IncludeFile(File.ReadAllBytes(source.AbsolutePath));
+            if (!source.Path.Contains("vortex.deployment.json"))
+                return inline;
+
+            var path = source.Path;
+            if (!path.StartsWith(Consts.GameFolderFilesDir))
+                return inline;
+
+            path = path.Substring(Consts.GameFolderFilesDir.Length + 1);
+            path = $"{Consts.ManualGameFilesDir}\\{path}";
+            inline.To = path;
+
             return inline;
         }
 

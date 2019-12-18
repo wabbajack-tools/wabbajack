@@ -116,7 +116,7 @@ namespace Wabbajack.Lib
 
             UpdateTracker.NextStep("Finding Install Files");
             var vortexStagingFiles = Directory.EnumerateFiles(StagingFolder, "*", SearchOption.AllDirectories)
-                .Where(p => p.FileExists() && p != StagingMarkerName)
+                .Where(p => p.FileExists() && p != StagingMarkerName && !p.Contains(Consts.ManualGameFilesDir))
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                     {Path = p.RelativeTo(StagingFolder)});
             
@@ -470,12 +470,12 @@ namespace Wabbajack.Lib
             return new List<ICompilationStep>
             {
                 new IncludePropertyFiles(this),
+                new IncludeVortexDeployment(this),
 
                 new IncludeSteamWorkshopItems(this, _steamGame),
                 _hasSteamWorkshopItems ? new IncludeRegex(this, "^steamWorkshopItem_\\d*\\.meta$") : null,
                 
                 new IgnoreDisabledVortexMods(this),
-                new IncludeVortexDeployment(this),
                 new IgnoreVortex(this),
                 new IgnoreRegex(this, $"^*{StagingMarkerName}$"),
 
