@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Windows;
 using MahApps.Metro;
 using Wabbajack.Common;
-using Wabbajack.Lib.LibCefHelpers;
 
 namespace Wabbajack
 {
@@ -15,7 +14,7 @@ namespace Wabbajack
     {
         public App()
         {
-            Helpers.ExtractLibs();
+            // Do initialization in MainWindow ctor
         }
     }
 }
