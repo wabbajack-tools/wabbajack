@@ -18,7 +18,7 @@ namespace Wabbajack
     {
         public InstallerVM Parent { get; }
 
-        public IReactiveCommand BeginCommand { get; }
+        public IObservable<bool> CanInstall { get; }
 
         [Reactive]
         public AInstaller ActiveInstallation { get; private set; }
@@ -58,61 +58,13 @@ namespace Wabbajack
             DownloadLocation.AdditionalError = this.WhenAny(x => x.DownloadLocation.TargetPath)
                 .Select(x => Utils.IsDirectoryPathValid(x));
 
-            BeginCommand = ReactiveCommand.CreateFromTask(
-                canExecute: Observable.CombineLatest(
-                        this.WhenAny(x => x.Location.InError),
-                        this.WhenAny(x => x.DownloadLocation.InError),
-                        installerVM.WhenAny(x => x.ModListLocation.InError),
-                        resultSelector: (loc, modlist, download) =>
-                        {
-                            return !loc && !download && !modlist;
-                        })
-                    .ObserveOnGuiThread(),
-                execute: async () =>
+            CanInstall = Observable.CombineLatest(
+                this.WhenAny(x => x.Location.InError),
+                this.WhenAny(x => x.DownloadLocation.InError),
+                installerVM.WhenAny(x => x.ModListLocation.InError),
+                resultSelector: (loc, modlist, download) =>
                 {
-                    AInstaller installer;
-
-                    try
-                    {
-                        installer = new MO2Installer(
-                            archive: installerVM.ModListLocation.TargetPath,
-                            modList: installerVM.ModList.SourceModList,
-                            outputFolder: Location.TargetPath,
-                            downloadFolder: DownloadLocation.TargetPath);
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Log(ex.StackTrace);
-                        Utils.Log(ex.ToString());
-                        Utils.Log($"{ex.Message} - Can't continue");
-                        ActiveInstallation = null;
-                        return;
-                    }
-
-                    await Task.Run(async () =>
-                    {
-                        IDisposable subscription = null;
-                        try
-                        {
-                            var workTask = installer.Begin();
-                            ActiveInstallation = installer;
-                            await workTask;
-                        }
-                        catch (Exception ex)
-                        {
-                            while (ex.InnerException != null) ex = ex.InnerException;
-                            Utils.Log(ex.StackTrace);
-                            Utils.Log(ex.ToString());
-                            Utils.Log($"{ex.Message} - Can't continue");
-                        }
-                        finally
-                        {
-                            // Dispose of CPU tracking systems
-                            subscription?.Dispose();
-                            ActiveInstallation = null;
-                        }
-                    });
+                    return !loc && !download && !modlist;
                 });
 
             // Have Installation location updates modify the downloads location if empty
@@ -131,7 +83,7 @@ namespace Wabbajack
             _CurrentSettings = installerVM.WhenAny(x => x.ModListLocation.TargetPath)
                 .Select(path => path == null ? null : installerVM.MWVM.Settings.Installer.Mo2ModlistSettings.TryCreate(path))
                 .ToProperty(this, nameof(CurrentSettings));
-            this.WhenAny(x => x.CurrentSettings)
+            (this).WhenAny(x => x.CurrentSettings)
                 .Pairwise()
                 .Subscribe(settingsPair =>
                 {
@@ -183,6 +135,30 @@ namespace Wabbajack
         public void AfterInstallNavigation()
         {
             Process.Start("explorer.exe", Location.TargetPath);
+        }
+
+        public async Task Install()
+        {
+            var installer = new MO2Installer(
+                archive: Parent.ModListLocation.TargetPath,
+                modList: Parent.ModList.SourceModList,
+                outputFolder: Location.TargetPath,
+                downloadFolder: DownloadLocation.TargetPath);
+
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    var workTask = installer.Begin();
+                    ActiveInstallation = installer;
+                    await workTask;
+                    return ErrorResponse.Success;
+                }
+                finally
+                {
+                    ActiveInstallation = null;
+                }
+            });
         }
     }
 }

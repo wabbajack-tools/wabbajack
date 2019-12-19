@@ -89,6 +89,7 @@ namespace Wabbajack
         public IReactiveCommand BackCommand { get; }
         public IReactiveCommand CloseWhenCompleteCommand { get; }
         public IReactiveCommand GoToInstallCommand { get; }
+        public IReactiveCommand BeginCommand { get; }
 
         public InstallerVM(MainWindowVM mainWindowVM)
         {
@@ -306,10 +307,26 @@ namespace Wabbajack
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
 
+            BeginCommand = ReactiveCommand.CreateFromTask(
+                canExecute: this.WhenAny(x => x.Installer.CanInstall)
+                    .Switch(),
+                execute: async () =>
+                {
+                    try
+                    {
+                        await this.Installer.Install();
+                    }
+                    catch (Exception ex)
+                    {
+                        while (ex.InnerException != null) ex = ex.InnerException;
+                        Utils.Log(ex.StackTrace);
+                        Utils.Log(ex.ToString());
+                        Utils.Log($"{ex.Message} - Can't continue");
+                    }
+                });
+
             // When sub installer begins an install, mark state variable
-            this.WhenAny(x => x.Installer.BeginCommand)
-                .Select(x => x?.StartingExecution() ?? Observable.Empty<Unit>())
-                .Switch()
+            BeginCommand.StartingExecution()
                 .Subscribe(_ =>
                 {
                     StartedInstallation = true;
@@ -317,9 +334,7 @@ namespace Wabbajack
                 .DisposeWith(CompositeDisposable);
 
             // When sub installer ends an install, mark state variable
-            this.WhenAny(x => x.Installer.BeginCommand)
-                .Select(x => x?.EndingExecution() ?? Observable.Empty<Unit>())
-                .Switch()
+            BeginCommand.EndingExecution()
                 .Subscribe(_ =>
                 {
                     Completed = true;

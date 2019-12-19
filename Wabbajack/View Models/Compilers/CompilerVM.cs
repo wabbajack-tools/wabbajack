@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
@@ -46,6 +47,7 @@ namespace Wabbajack
         public IReactiveCommand BackCommand { get; }
         public IReactiveCommand GoToModlistCommand { get; }
         public IReactiveCommand CloseWhenCompleteCommand { get; }
+        public IReactiveCommand BeginCommand { get; }
 
         public FilePickerVM OutputLocation { get; }
 
@@ -180,10 +182,24 @@ namespace Wabbajack
                 .Debounce(TimeSpan.FromMilliseconds(25))
                 .ToProperty(this, nameof(PercentCompleted));
 
+            BeginCommand = ReactiveCommand.CreateFromTask(
+                canExecute: this.WhenAny(x => x.Compiler.CanCompile)
+                    .Switch(),
+                execute: async () =>
+                {
+                    try
+                    {
+                        await this.Compiler.Compile();
+                    }
+                    catch (Exception ex)
+                    {
+                        while (ex.InnerException != null) ex = ex.InnerException;
+                        Utils.Error(ex, $"Compiler error");
+                    }
+                });
+
             // When sub compiler begins a compile, mark state variable
-            this.WhenAny(x => x.Compiler.BeginCommand)
-                .Select(x => x?.StartingExecution() ?? Observable.Empty<Unit>())
-                .Switch()
+            BeginCommand.StartingExecution()
                 .Subscribe(_ =>
                 {
                     StartedCompilation = true;
@@ -191,9 +207,7 @@ namespace Wabbajack
                 .DisposeWith(CompositeDisposable);
 
             // When sub compiler finishes a compile, mark state variable
-            this.WhenAny(x => x.Compiler.BeginCommand)
-                .Select(x => x?.EndingExecution() ?? Observable.Empty<Unit>())
-                .Switch()
+            BeginCommand.EndingExecution()
                 .Subscribe(_ =>
                 {
                     Completed = true;
