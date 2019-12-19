@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Reactive.Subjects;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -838,11 +839,10 @@ namespace Wabbajack.Common
         private static Dictionary<string, long> _cachedDiskSpeeds = new Dictionary<string, long>();
         public static async Task<long> TestDiskSpeed(WorkQueue queue, string path)
         {
-            var driveName = Volume.GetUniqueVolumeNameForPath(path);
-            if (_cachedDiskSpeeds.TryGetValue(driveName, out long speed))
+            if (_cachedDiskSpeeds.TryGetValue(path, out long speed))
                 return speed;
             speed = await TestDiskSpeedInner(queue, path);
-            _cachedDiskSpeeds[driveName] = speed;
+            _cachedDiskSpeeds[path] = speed;
             return speed;
         }
 
@@ -976,6 +976,36 @@ namespace Wabbajack.Common
         {
             public int code;
             public string message;
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public class MEMORYSTATUSEX
+        {
+            public uint dwLength;
+            public uint dwMemoryLoad;
+            public ulong ullTotalPhys;
+            public ulong ullAvailPhys;
+            public ulong ullTotalPageFile;
+            public ulong ullAvailPageFile;
+            public ulong ullTotalVirtual;
+            public ulong ullAvailVirtual;
+            public ulong ullAvailExtendedVirtual;
+            public MEMORYSTATUSEX()
+            {
+                dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
+            }
+        }
+
+
+        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX lpBuffer);
+
+        public static MEMORYSTATUSEX GetMemoryStatus()
+        {
+            var mstat = new MEMORYSTATUSEX();
+            GlobalMemoryStatusEx(mstat);
+            return mstat;
         }
     }
 }
