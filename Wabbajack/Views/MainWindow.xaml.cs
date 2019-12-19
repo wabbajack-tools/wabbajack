@@ -32,7 +32,7 @@ namespace Wabbajack
             // Run some init tasks in background
             Task.Run(async () =>
             {
-                await Helpers.ExtractLibs();
+                await Helpers.Initialize();
                 var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 try
                 {
