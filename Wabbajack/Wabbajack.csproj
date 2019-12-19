@@ -172,6 +172,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Views\Common\AttentionBorder.xaml.cs">
+      <DependentUpon>AttentionBorder.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Converters\IsTypeVisibilityConverter.cs" />
     <Compile Include="UnderMaintenanceOverlay.xaml.cs">
       <DependentUpon>UnderMaintenanceOverlay.xaml</DependentUpon>
@@ -274,6 +277,10 @@
     <Compile Include="Views\WebBrowserView.xaml.cs">
       <DependentUpon>WebBrowserView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\Common\AttentionBorder.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UnderMaintenanceOverlay.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
