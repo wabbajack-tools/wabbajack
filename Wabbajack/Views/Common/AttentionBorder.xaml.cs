@@ -28,6 +28,14 @@ namespace Wabbajack
         public static readonly DependencyProperty DisplayContentProperty = DependencyProperty.Register(nameof(DisplayContent), typeof(object), typeof(AttentionBorder),
              new FrameworkPropertyMetadata(default(object)));
 
+        public bool Failure
+        {
+            get => (bool)GetValue(FailureProperty);
+            set => SetValue(FailureProperty, value);
+        }
+        public static readonly DependencyProperty FailureProperty = DependencyProperty.Register(nameof(Failure), typeof(bool), typeof(AttentionBorder),
+             new FrameworkPropertyMetadata(default(bool)));
+
         public AttentionBorder()
         {
             InitializeComponent();

@@ -50,7 +50,7 @@ namespace Wabbajack
         public bool StartedInstallation { get; set; }
 
         [Reactive]
-        public bool Completed { get; set; }
+        public ErrorResponse? Completed { get; set; }
 
         private readonly ObservableAsPropertyHelper<ImageSource> _image;
         public ImageSource Image => _image.Value;
@@ -181,7 +181,7 @@ namespace Wabbajack
                 execute: () =>
                 {
                     StartedInstallation = false;
-                    Completed = false;
+                    Completed = null;
                     mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM;
                 },
                 canExecute: this.WhenAny(x => x.Installing)
@@ -195,7 +195,7 @@ namespace Wabbajack
                     {
                         if (installer == null)
                         {
-                            return Observable.Return<float>(completed ? 1f : 0f);
+                            return Observable.Return<float>(completed != null ? 1f : 0f);
                         }
                         return installer.PercentCompleted.StartWith(0f);
                     })
@@ -315,6 +315,7 @@ namespace Wabbajack
                     try
                     {
                         await this.Installer.Install();
+                        Completed = ErrorResponse.Success;
                     }
                     catch (Exception ex)
                     {
@@ -322,6 +323,7 @@ namespace Wabbajack
                         Utils.Log(ex.StackTrace);
                         Utils.Log(ex.ToString());
                         Utils.Log($"{ex.Message} - Can't continue");
+                        Completed = ErrorResponse.Fail(ex);
                     }
                 });
 
@@ -330,14 +332,6 @@ namespace Wabbajack
                 .Subscribe(_ =>
                 {
                     StartedInstallation = true;
-                })
-                .DisposeWith(CompositeDisposable);
-
-            // When sub installer ends an install, mark state variable
-            BeginCommand.EndingExecution()
-                .Subscribe(_ =>
-                {
-                    Completed = true;
                 })
                 .DisposeWith(CompositeDisposable);
 
@@ -358,7 +352,8 @@ namespace Wabbajack
                 .ToProperty(this, nameof(ActiveGlobalUserIntervention));
 
             CloseWhenCompleteCommand = ReactiveCommand.Create(
-                canExecute: this.WhenAny(x => x.Completed),
+                canExecute: this.WhenAny(x => x.Completed)
+                    .Select(x => x != null),
                 execute: () =>
                 {
                     MWVM.ShutdownApplication();
@@ -366,7 +361,8 @@ namespace Wabbajack
 
             GoToInstallCommand = ReactiveCommand.Create(
                 canExecute: Observable.CombineLatest(
-                    this.WhenAny(x => x.Completed),
+                    this.WhenAny(x => x.Completed)
+                        .Select(x => x != null),
                     this.WhenAny(x => x.Installer.SupportsAfterInstallNavigation),
                     resultSelector: (complete, supports) => complete && supports),
                 execute: () =>

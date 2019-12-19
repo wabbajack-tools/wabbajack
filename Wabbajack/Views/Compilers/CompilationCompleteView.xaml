@@ -9,7 +9,7 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <local:AttentionBorder ClipToBounds="True">
+    <local:AttentionBorder ClipToBounds="True" Failure="{Binding Completed.Failed}">
         <local:AttentionBorder.DisplayContent>
             <Grid Margin="5">
                 <Grid.RowDefinitions>
@@ -29,11 +29,20 @@
                     VerticalAlignment="Bottom"
                     FontFamily="Lucida Sans"
                     FontSize="22"
-                    FontWeight="Black"
-                    Text="Compilation Complete">
+                    FontWeight="Black">
                     <TextBlock.Effect>
                         <DropShadowEffect BlurRadius="25" Opacity="0.5" />
                     </TextBlock.Effect>
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="Compilation Complete" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Completed.Failed}" Value="True">
+                                    <Setter Property="Text" Value="Compilation Failed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
                 </TextBlock>
                 <Grid
                     Grid.Row="1"

@@ -18,6 +18,7 @@
                         <MultiDataTrigger.Conditions>
                             <Condition Binding="{Binding IsVisible, RelativeSource={RelativeSource Self}}" Value="True" />
                             <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="False" />
+                            <Condition Binding="{Binding Failure, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="False" />
                         </MultiDataTrigger.Conditions>
                         <MultiDataTrigger.EnterActions>
                             <BeginStoryboard>
@@ -55,6 +56,53 @@
                                     <ColorAnimation
                                         Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
                                         To="{StaticResource WindowBackgroundColor}"
+                                        Duration="0:0:0.1" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </MultiDataTrigger.ExitActions>
+                    </MultiDataTrigger>
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding IsVisible, RelativeSource={RelativeSource Self}}" Value="True" />
+                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="False" />
+                            <Condition Binding="{Binding Failure, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" Value="True" />
+                        </MultiDataTrigger.Conditions>
+                        <MultiDataTrigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ColorAnimation
+                                        AutoReverse="True"
+                                        RepeatBehavior="Forever"
+                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                        To="#ff0026"
+                                        Duration="0:0:1.5" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ColorAnimation
+                                        AutoReverse="True"
+                                        RepeatBehavior="Forever"
+                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                        To="#540914"
+                                        Duration="0:0:1.5" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </MultiDataTrigger.EnterActions>
+                        <MultiDataTrigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ColorAnimation
+                                        Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                        To="#700d1c"
+                                        Duration="0:0:0.1" />
+                                </Storyboard>
+                            </BeginStoryboard>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ColorAnimation
+                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                        To="#1c0307"
                                         Duration="0:0:0.1" />
                                 </Storyboard>
                             </BeginStoryboard>
