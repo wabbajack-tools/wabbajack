@@ -15,11 +15,12 @@ namespace Wabbajack.Lib.LibCefHelpers
 {
     public static class Helpers
     {
+        private static readonly Task _initTask;
 
         /// <summary>
         /// We bundle the cef libs inside the .exe, we need to extract them before loading any wpf code that requires them
         /// </summary>
-        public static async Task ExtractLibs()
+        private static async Task ExtractLibs()
         {
             if (File.Exists("cefglue.7z") && File.Exists("libcef.dll")) return;
 
@@ -34,6 +35,17 @@ namespace Wabbajack.Lib.LibCefHelpers
                 await FileExtractor.ExtractAll(wq, "cefglue.7z", ".");
             }
         }
+
+        static Helpers()
+        {
+            _initTask = Task.Run(ExtractLibs);
+        }
+
+        public static Task Initialize()
+        {
+            return _initTask;
+        }
+
         public static HttpClient GetClient(IEnumerable<Cookie> cookies, string referer)
         {
             var container = ToCookieContainer(cookies);
@@ -66,7 +78,6 @@ namespace Wabbajack.Lib.LibCefHelpers
             return (await visitor.Task).Where(c => c.Domain.EndsWith(domainEnding)).ToArray();
         }
 
-
         private class CookieVisitor : CefCookieVisitor
         {
             TaskCompletionSource<List<Cookie>> _source = new TaskCompletionSource<List<Cookie>>();
@@ -93,8 +104,6 @@ namespace Wabbajack.Lib.LibCefHelpers
                 if (disposing)
                     _source.SetResult(Cookies);
             }
-
-
         }
 
         public class Cookie

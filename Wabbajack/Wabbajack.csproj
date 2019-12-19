@@ -176,6 +176,7 @@
     <Compile Include="UnderMaintenanceOverlay.xaml.cs">
       <DependentUpon>UnderMaintenanceOverlay.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Util\AsyncLazy.cs" />
     <Compile Include="UserInterventions\ShowLoginManager.cs" />
     <Compile Include="View Models\CPUDisplayVM.cs" />
     <Compile Include="View Models\LoginManagerVM.cs" />

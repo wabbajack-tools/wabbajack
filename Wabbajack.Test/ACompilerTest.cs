@@ -15,7 +15,7 @@ namespace Wabbajack.Test
         [TestInitialize]
         public async Task TestInitialize()
         {
-            await Helpers.ExtractLibs();
+            await Helpers.Initialize();
             Consts.TestMode = true;
 
             utils = new TestUtils();
