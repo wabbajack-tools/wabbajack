@@ -405,15 +405,14 @@
                 Grid.Column="2"
                 ProgressPercent="{Binding PercentCompleted, Mode=OneWay}"
                 Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}, ConverterParameter=False}" />
-            <Border
-                Grid.Column="2"
-                Style="{StaticResource AttentionBorderStyle}"
-                Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}}">
-                <Grid>
-                    <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />
-                    <local:ConfirmUpdateOfExistingInstallView Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type lib:ConfirmUpdateOfExistingInstall}}" />
-                </Grid>
-            </Border>
+            <local:AttentionBorder Grid.Column="2" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}}">
+                <local:AttentionBorder.DisplayContent>
+                    <Grid>
+                        <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />
+                        <local:ConfirmUpdateOfExistingInstallView Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type lib:ConfirmUpdateOfExistingInstall}}" />
+                    </Grid>
+                </local:AttentionBorder.DisplayContent>
+            </local:AttentionBorder>
             <local:InstallationCompleteView Grid.Column="2" Visibility="{Binding Completed, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Collapsed}" />
         </Grid>
     </Grid>
