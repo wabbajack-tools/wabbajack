@@ -232,7 +232,7 @@
                     Grid.Row="0"
                     Grid.RowSpan="3"
                     Grid.Column="5"
-                    Command="{Binding Compiler.BeginCommand}" />
+                    Command="{Binding BeginCommand}" />
             </Grid>
         </Grid>
         <Grid

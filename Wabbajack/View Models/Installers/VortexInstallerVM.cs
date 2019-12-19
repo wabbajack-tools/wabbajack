@@ -15,8 +15,6 @@ namespace Wabbajack
     {
         public InstallerVM Parent { get; }
 
-        public IReactiveCommand BeginCommand { get; }
-
         [Reactive]
         public AInstaller ActiveInstallation { get; private set; }
 
@@ -33,6 +31,8 @@ namespace Wabbajack
 
         public int ConfigVisualVerticalOffset => 0;
 
+        public IObservable<bool> CanInstall { get; }
+
         public VortexInstallerVM(InstallerVM installerVM)
         {
             Parent = installerVM;
@@ -40,60 +40,11 @@ namespace Wabbajack
             _TargetGame = installerVM.WhenAny(x => x.ModList.SourceModList.GameType)
                 .ToProperty(this, nameof(TargetGame));
 
-            BeginCommand = ReactiveCommand.CreateFromTask(
-                canExecute: Observable.CombineLatest(
-                    this.WhenAny(x => x.TargetGame)
-                        .Select(game => VortexCompiler.IsActiveVortexGame(game)),
-                    installerVM.WhenAny(x => x.ModListLocation.InError),
-                    resultSelector: (isVortexGame, modListErr) => isVortexGame && !modListErr),
-                execute: async () =>
-                {
-                    AInstaller installer;
-
-                    try
-                    {
-                        var download = VortexCompiler.RetrieveDownloadLocation(TargetGame);
-                        var staging = VortexCompiler.RetrieveStagingLocation(TargetGame);
-                        installer = new VortexInstaller(
-                            archive: installerVM.ModListLocation.TargetPath,
-                            modList: installerVM.ModList.SourceModList,
-                            outputFolder: staging,
-                            downloadFolder: download);
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Log(ex.StackTrace);
-                        Utils.Log(ex.ToString());
-                        Utils.Log($"{ex.Message} - Can't continue");
-                        ActiveInstallation = null;
-                        return;
-                    }
-
-                    await Task.Run(async () =>
-                    {
-                        IDisposable subscription = null;
-                        try
-                        {
-                            var workTask = installer.Begin();
-                            ActiveInstallation = installer;
-                            await workTask;
-                        }
-                        catch (Exception ex)
-                        {
-                            while (ex.InnerException != null) ex = ex.InnerException;
-                            Utils.Log(ex.StackTrace);
-                            Utils.Log(ex.ToString());
-                            Utils.Log($"{ex.Message} - Can't continue");
-                        }
-                        finally
-                        {
-                            // Dispose of CPU tracking systems
-                            subscription?.Dispose();
-                            ActiveInstallation = null;
-                        }
-                    });
-                });
+            CanInstall = Observable.CombineLatest(
+                this.WhenAny(x => x.TargetGame)
+                    .Select(game => VortexCompiler.IsActiveVortexGame(game)),
+                installerVM.WhenAny(x => x.ModListLocation.InError),
+                resultSelector: (isVortexGame, modListErr) => isVortexGame && !modListErr);
         }
 
         public void Unload()
@@ -103,6 +54,33 @@ namespace Wabbajack
         public void AfterInstallNavigation()
         {
             throw new NotImplementedException();
+        }
+
+        public async Task Install()
+        {
+            AInstaller installer;
+
+            var download = VortexCompiler.RetrieveDownloadLocation(TargetGame);
+            var staging = VortexCompiler.RetrieveStagingLocation(TargetGame);
+            installer = new VortexInstaller(
+                archive: Parent.ModListLocation.TargetPath,
+                modList: Parent.ModList.SourceModList,
+                outputFolder: staging,
+                downloadFolder: download);
+
+            await Task.Run(async () =>
+            {
+                try
+                {
+                    var workTask = installer.Begin();
+                    ActiveInstallation = installer;
+                    await workTask;
+                }
+                finally
+                {
+                    ActiveInstallation = null;
+                }
+            });
         }
     }
 }

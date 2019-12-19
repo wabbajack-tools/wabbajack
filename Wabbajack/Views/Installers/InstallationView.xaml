@@ -388,7 +388,7 @@
                     Margin="0,0,25,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center"
-                    Command="{Binding Installer.BeginCommand, Mode=OneWay}" />
+                    Command="{Binding BeginCommand, Mode=OneWay}" />
             </Grid>
         </Grid>
         <Grid

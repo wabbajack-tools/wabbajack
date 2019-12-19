@@ -54,6 +54,8 @@ namespace Wabbajack
         [Reactive]
         public StatusUpdateTracker StatusTracker { get; private set; }
 
+        public IObservable<bool> CanCompile { get; }
+
         public VortexCompilerVM(CompilerVM parent)
         {
             Parent = parent;
@@ -77,7 +79,7 @@ namespace Wabbajack
             };
 
             // Load custom ModList settings when game type changes
-            _modListSettings = this.WhenAny(x => x.SelectedGame)
+            _modListSettings = (this).WhenAny(x => x.SelectedGame)
                 .Select(game =>
                 {
                     if (game == null) return null;
@@ -97,67 +99,16 @@ namespace Wabbajack
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(ModlistSettings));
 
-            // Wire start command
-            BeginCommand = ReactiveCommand.CreateFromTask(
-                canExecute: Observable.CombineLatest(
-                        this.WhenAny(x => x.GameLocation.InError),
-                        this.WhenAny(x => x.DownloadsLocation.InError),
-                        this.WhenAny(x => x.StagingLocation.InError),
-                        this.WhenAny(x => x.ModlistSettings)
-                            .Select(x => x?.InError ?? Observable.Return(false))
-                            .Switch(),
-                        (g, d, s, ml) => !g && !d && !s && !ml)
-                    .ObserveOnGuiThread(),
-                execute: async () =>
-                {
-                    try
-                    {
-                        string outputFile = $"{ModlistSettings.ModListName}{ExtensionManager.Extension}";
-                        if (!string.IsNullOrWhiteSpace(parent.OutputLocation.TargetPath))
-                        {
-                            outputFile = Path.Combine(parent.OutputLocation.TargetPath, outputFile);
-                        }
-                        ActiveCompilation = new VortexCompiler(
-                            game: SelectedGame.Game,
-                            gamePath: GameLocation.TargetPath,
-                            vortexFolder: VortexCompiler.TypicalVortexFolder(),
-                            downloadsFolder: DownloadsLocation.TargetPath,
-                            stagingFolder: StagingLocation.TargetPath,
-                            outputFile: outputFile)
-                        {
-                            ModListName = ModlistSettings.ModListName,
-                            ModListAuthor = ModlistSettings.AuthorText,
-                            ModListDescription = ModlistSettings.Description,
-                            ModListImage = ModlistSettings.ImagePath.TargetPath,
-                            ModListWebsite = ModlistSettings.Website,
-                            ModListReadme = ModlistSettings.ReadMeText.TargetPath,
-                        };
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Error(ex, $"Compiler error");
-                        return;
-                    }
-                    await Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await ActiveCompilation.Begin();
-                        }
-                        catch (Exception ex)
-                        {
-                            while (ex.InnerException != null) ex = ex.InnerException;
-                            Utils.Error(ex, $"Compiler error");
-                        }
-                        finally
-                        {
-                            StatusTracker = null;
-                            ActiveCompilation.Dispose();
-                            ActiveCompilation = null;
-                        }
-                    });
-                });
+            CanCompile = Observable.CombineLatest(
+                    this.WhenAny(x => x.GameLocation.InError),
+                    this.WhenAny(x => x.DownloadsLocation.InError),
+                    this.WhenAny(x => x.StagingLocation.InError),
+                    this.WhenAny(x => x.ModlistSettings)
+                        .Select(x => x?.InError ?? Observable.Return(false))
+                        .Switch(),
+                    (g, d, s, ml) => !g && !d && !s && !ml)
+                .Publish()
+                .RefCount();
 
             // Load settings
             _settings = parent.MWVM.Settings.Compiler.VortexCompilation;
@@ -167,7 +118,7 @@ namespace Wabbajack
                 .DisposeWith(CompositeDisposable);
 
             // Load custom game settings when game type changes
-            this.WhenAny(x => x.SelectedGame)
+            (this).WhenAny(x => x.SelectedGame)
                 .Select(game => _settings.ModlistSettings.TryCreate(game.Game))
                 .Pairwise()
                 .Subscribe(pair =>
@@ -229,6 +180,40 @@ namespace Wabbajack
         {
             var gogGame = GOGHandler.Instance.Games.FirstOrDefault(g => g.Game.HasValue && g.Game == SelectedGame.Game);
             GameLocation.TargetPath = gogGame?.Path;
+        }
+
+        public async Task Compile()
+        {
+            string outputFile = $"{ModlistSettings.ModListName}{ExtensionManager.Extension}";
+            if (!string.IsNullOrWhiteSpace(Parent.OutputLocation.TargetPath))
+            {
+                outputFile = Path.Combine(Parent.OutputLocation.TargetPath, outputFile);
+            }
+            try
+            {
+                ActiveCompilation = new VortexCompiler(
+                    game: SelectedGame.Game,
+                    gamePath: GameLocation.TargetPath,
+                    vortexFolder: VortexCompiler.TypicalVortexFolder(),
+                    downloadsFolder: DownloadsLocation.TargetPath,
+                    stagingFolder: StagingLocation.TargetPath,
+                    outputFile: outputFile)
+                {
+                    ModListName = ModlistSettings.ModListName,
+                    ModListAuthor = ModlistSettings.AuthorText,
+                    ModListDescription = ModlistSettings.Description,
+                    ModListImage = ModlistSettings.ImagePath.TargetPath,
+                    ModListWebsite = ModlistSettings.Website,
+                    ModListReadme = ModlistSettings.ReadMeText.TargetPath,
+                };
+                await ActiveCompilation.Begin();
+            }
+            finally
+            {
+                StatusTracker = null;
+                ActiveCompilation.Dispose();
+                ActiveCompilation = null;
+            }
         }
     }
 }
