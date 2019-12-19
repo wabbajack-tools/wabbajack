@@ -488,7 +488,7 @@
       <Version>1.6.5</Version>
     </PackageReference>
     <PackageReference Include="MahApps.Metro.IconPacks">
-      <Version>2.3.0</Version>
+      <Version>3.0.1</Version>
     </PackageReference>
     <PackageReference Include="MegaApiClient">
       <Version>1.7.1</Version>
