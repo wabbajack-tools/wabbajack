@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -76,7 +76,17 @@ namespace Wabbajack
             _Exists = Observable.Interval(TimeSpan.FromSeconds(0.5))
                 .Unit()
                 .StartWith(Unit.Default)
-                .Select(_ => !metadata.NeedsDownload(Location))
+                .Select(_ =>
+                {
+                    try
+                    {
+                        return !metadata.NeedsDownload(Location);
+                    }
+                    catch (Exception)
+                    {
+                        return true;
+                    }
+                })
                 .ToProperty(this, nameof(Exists));
         }
 
