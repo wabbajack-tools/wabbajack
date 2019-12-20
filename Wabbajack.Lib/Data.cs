@@ -87,7 +87,7 @@ namespace Wabbajack.Lib
         public string Website;
 
         /// <summary>
-        ///     Hash of the readme
+        ///     readme path or website
         /// </summary>
         public string Readme;
 
@@ -113,6 +113,10 @@ namespace Wabbajack.Lib
                                             .Take(Environment.ProcessorCount)
                                             .Sum(a => a.Size) * 2;
 
+        /// <summary>
+        ///     Whether readme is a website
+        /// </summary>
+        public bool ReadmeIsWebsite;
     }
 
     public class Directive

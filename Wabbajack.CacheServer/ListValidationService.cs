@@ -144,7 +144,7 @@ namespace Wabbajack.CacheServer
             {
                 foreach (var list in modlists)
                 {
-                    var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + ".wabbajack");
+                    var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + ExtensionManager.Extension);
 
                     if (list.NeedsDownload(modlist_path))
                     {

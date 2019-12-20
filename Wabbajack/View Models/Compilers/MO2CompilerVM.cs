@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 
@@ -37,6 +38,8 @@ namespace Wabbajack
 
         [Reactive]
         public StatusUpdateTracker StatusTracker { get; private set; }
+
+        public IObservable<bool> CanCompile { get; }
 
         public MO2CompilerVM(CompilerVM parent)
         {
@@ -93,8 +96,8 @@ namespace Wabbajack
 
             // Load custom modlist settings per MO2 profile
             _modlistSettings = Observable.CombineLatest(
-                    this.WhenAny(x => x.ModListLocation.ErrorState),
-                    this.WhenAny(x => x.ModListLocation.TargetPath),
+                    (this).WhenAny(x => x.ModListLocation.ErrorState),
+                    (this).WhenAny(x => x.ModListLocation.TargetPath),
                     resultSelector: (state, path) => (State: state, Path: path))
                 // A short throttle is a quick hack to make the above changes "atomic"
                 .Throttle(TimeSpan.FromMilliseconds(25))
@@ -119,67 +122,16 @@ namespace Wabbajack
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(ModlistSettings));
 
-            // Wire start command
-            BeginCommand = ReactiveCommand.CreateFromTask(
-                canExecute: Observable.CombineLatest(
-                        this.WhenAny(x => x.ModListLocation.InError),
-                        this.WhenAny(x => x.DownloadLocation.InError),
-                        parent.WhenAny(x => x.OutputLocation.InError),
-                        this.WhenAny(x => x.ModlistSettings)
-                            .Select(x => x?.InError ?? Observable.Return(false))
-                            .Switch(),
-                        resultSelector: (ml, down, output, modlistSettings) => !ml && !down && !output && !modlistSettings)
-                    .ObserveOnGuiThread(),
-                execute: async () =>
-                {
-                    try
-                    {
-                        string outputFile;
-                        if (string.IsNullOrWhiteSpace(parent.OutputLocation.TargetPath))
-                        {
-                            outputFile = MOProfile + ExtensionManager.Extension;
-                        }
-                        else
-                        {
-                            outputFile = Path.Combine(parent.OutputLocation.TargetPath, MOProfile + ExtensionManager.Extension);
-                        }
-                        ActiveCompilation = new MO2Compiler(
-                            mo2Folder: Mo2Folder,
-                            mo2Profile: MOProfile,
-                            outputFile: outputFile)
-                        {
-                            ModListName = ModlistSettings.ModListName,
-                            ModListAuthor = ModlistSettings.AuthorText,
-                            ModListDescription = ModlistSettings.Description,
-                            ModListImage = ModlistSettings.ImagePath.TargetPath,
-                            ModListWebsite = ModlistSettings.Website,
-                            ModListReadme = ModlistSettings.ReadMeText.TargetPath,
-                        };
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Error(ex, $"Compiler error");
-                        return;
-                    }
-
-                    try
-                    {
-                        await ActiveCompilation.Begin();
-                    }
-                    catch (Exception ex)
-                    {
-                        while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Error(ex, $"Compiler error");
-                    }
-                    finally
-                    {
-                        StatusTracker = null;
-                        ActiveCompilation.Dispose();
-                        ActiveCompilation = null;
-                    }
-                    
-                });
+            CanCompile = Observable.CombineLatest(
+                    this.WhenAny(x => x.ModListLocation.InError),
+                    this.WhenAny(x => x.DownloadLocation.InError),
+                    parent.WhenAny(x => x.OutputLocation.InError),
+                    this.WhenAny(x => x.ModlistSettings)
+                        .Select(x => x?.InError ?? Observable.Return(false))
+                        .Switch(),
+                    resultSelector: (ml, down, output, modlistSettings) => !ml && !down && !output && !modlistSettings)
+                .Publish()
+                .RefCount();
 
             // Load settings
             _settings = parent.MWVM.Settings.Compiler.MO2Compilation;
@@ -193,11 +145,11 @@ namespace Wabbajack
                 .DisposeWith(CompositeDisposable);
 
             // If Mo2 folder changes and download location is empty, set it for convenience
-            this.WhenAny(x => x.Mo2Folder)
+            (this).WhenAny(x => x.Mo2Folder)
                 .DelayInitial(TimeSpan.FromMilliseconds(100))
                 .Where(x => Directory.Exists(x))
                 .FilterSwitch(
-                    this.WhenAny(x => x.DownloadLocation.Exists)
+                    (this).WhenAny(x => x.DownloadLocation.Exists)
                         .Invert())
                 // A skip is needed to ignore the initial signal when the FilterSwitch turns on
                 .Skip(1)
@@ -213,6 +165,43 @@ namespace Wabbajack
             _settings.DownloadLocation = DownloadLocation.TargetPath;
             _settings.LastCompiledProfileLocation = ModListLocation.TargetPath;
             ModlistSettings?.Save();
+        }
+
+        public async Task Compile()
+        {
+            string outputFile;
+            if (string.IsNullOrWhiteSpace(Parent.OutputLocation.TargetPath))
+            {
+                outputFile = MOProfile + ExtensionManager.Extension;
+            }
+            else
+            {
+                outputFile = Path.Combine(Parent.OutputLocation.TargetPath, MOProfile + ExtensionManager.Extension);
+            }
+
+            try
+            {
+                ActiveCompilation = new MO2Compiler(
+                    mo2Folder: Mo2Folder,
+                    mo2Profile: MOProfile,
+                    outputFile: outputFile)
+                {
+                    ModListName = ModlistSettings.ModListName,
+                    ModListAuthor = ModlistSettings.AuthorText,
+                    ModListDescription = ModlistSettings.Description,
+                    ModListImage = ModlistSettings.ImagePath.TargetPath,
+                    ModListWebsite = ModlistSettings.Website,
+                    ModListReadme = ModlistSettings.ReadmeIsWebsite ? ModlistSettings.ReadmeWebsite : ModlistSettings.ReadmeFilePath.TargetPath,
+                    ReadmeIsWebsite = ModlistSettings.ReadmeIsWebsite,
+                };
+                await ActiveCompilation.Begin();
+            }
+            finally
+            {
+                StatusTracker = null;
+                ActiveCompilation.Dispose();
+                ActiveCompilation = null;
+            }
         }
     }
 }

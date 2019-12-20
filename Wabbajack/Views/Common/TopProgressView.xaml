@@ -65,7 +65,7 @@
                 x:Name="LargeProgressBar"
                 Grid.Column="0"
                 Grid.ColumnSpan="4"
-                Background="#88121212"
+                Background="#AA121212"
                 BorderThickness="0"
                 Maximum="1"
                 Opacity="{Binding ProgressOpacityPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"

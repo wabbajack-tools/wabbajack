@@ -22,6 +22,7 @@ namespace Wabbajack.Lib
     public abstract class ACompiler : ABatchProcessor
     {
         public string ModListName, ModListAuthor, ModListDescription, ModListImage, ModListWebsite, ModListReadme;
+        public bool ReadmeIsWebsite;
         public string WabbajackVersion;
 
         protected static string _vfsCacheName = "vfs_compile_cache.bin";
@@ -94,8 +95,10 @@ namespace Wabbajack.Lib
                 ModList.Readme = $"readme{readme.Extension}";
             }
 
+            ModList.ReadmeIsWebsite = ReadmeIsWebsite;
+
             //ModList.ToJSON(Path.Combine(ModListOutputFolder, "modlist.json"));
-            ModList.ToCERAS(Path.Combine(ModListOutputFolder, "modlist"), ref CerasConfig.Config);
+            ModList.ToCERAS(Path.Combine(ModListOutputFolder, "modlist"), CerasConfig.Config);
 
             if (File.Exists(ModListOutputFile))
                 File.Delete(ModListOutputFile);

@@ -24,9 +24,9 @@ namespace Wabbajack.Test
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
-            Helpers.ExtractLibs();
+            await Helpers.Initialize();
             Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => TestContext.WriteLine(msg.ShortDescription));
             Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
                 TestContext.WriteLine("ERROR: User intervetion required: " + msg.ShortDescription));

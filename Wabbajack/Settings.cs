@@ -75,6 +75,7 @@ namespace Wabbajack
         public string Author { get; set; }
         public string Description { get; set; }
         public string Website { get; set; }
+        public bool ReadmeIsWebsite { get; set; }
         public string Readme { get; set; }
         public string SplashScreen { get; set; }
     }
