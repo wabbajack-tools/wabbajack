@@ -329,7 +329,7 @@ namespace Wabbajack.Common
             return new DynamicIniData(new FileIniDataParser().ReadData(new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(file)))));
         }
 
-        public static void ToCERAS<T>(this T obj, string filename, ref SerializerConfig config)
+        public static void ToCERAS<T>(this T obj, string filename, SerializerConfig config)
         {
             var ceras = new CerasSerializer(config);
             byte[] buffer = null;
@@ -343,7 +343,7 @@ namespace Wabbajack.Common
             }
         }
 
-        public static T FromCERAS<T>(this Stream data, ref SerializerConfig config)
+        public static T FromCERAS<T>(this Stream data, SerializerConfig config)
         {
             var ceras = new CerasSerializer(config);
             byte[] bytes = data.ReadAll();
