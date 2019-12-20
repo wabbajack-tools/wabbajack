@@ -36,7 +36,6 @@ namespace Wabbajack
         public readonly Lazy<InstallerVM> Installer;
         public readonly Lazy<ModListGalleryVM> Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
-        public readonly WebBrowserVM WebBrowserVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
         public Dispatcher ViewDispatcher { get; set; }
 
@@ -52,7 +51,6 @@ namespace Wabbajack
             Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
             Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(this));
             ModeSelectionVM = new ModeSelectionVM(this);
-            WebBrowserVM = new WebBrowserVM();
             UserInterventionHandlers = new UserInterventionHandlers(this);
 
             // Set up logging

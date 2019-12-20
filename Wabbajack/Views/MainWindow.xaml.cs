@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows;
 using MahApps.Metro.Controls;
 using Wabbajack.Common;
+using Wabbajack.Lib.LibCefHelpers;
 using Application = System.Windows.Application;
 using Utils = Wabbajack.Common.Utils;
 
@@ -25,21 +27,25 @@ namespace Wabbajack
                 Wabbajack.Common.Utils.Error(((Exception)e.ExceptionObject), "Uncaught error");
             };
 
-            var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            try
-            {
-                if (!ExtensionManager.IsAssociated() || ExtensionManager.NeedsUpdating(appPath))
-                {
-                    ExtensionManager.Associate(appPath);
-                }
-            }
-            catch (Exception e)
-            {
-                Utils.Log($"ExtensionManager had an exception:\n{e}");
-            }
-            
-
             Wabbajack.Common.Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
+
+            // Run some init tasks in background
+            Task.Run(async () =>
+            {
+                await Helpers.Initialize();
+                var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                try
+                {
+                    if (!ExtensionManager.IsAssociated() || ExtensionManager.NeedsUpdating(appPath))
+                    {
+                        ExtensionManager.Associate(appPath);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Utils.Log($"ExtensionManager had an exception:\n{e}");
+                }
+            }).FireAndForget();
 
             // Load settings
             string[] args = Environment.GetCommandLineArgs();
@@ -58,6 +64,18 @@ namespace Wabbajack
             // Set datacontext
             _mwvm = new MainWindowVM(this, _settings);
             DataContext = _mwvm;
+
+            // Bring window to the front if it isn't already
+            this.Initialized += (s, e) =>
+            {
+                this.Activate();
+                this.Topmost = true;
+                this.Focus();
+            };
+            this.ContentRendered += (s, e) =>
+            {
+                this.Topmost = false;
+            };
         }
 
         public void Init(MainWindowVM vm, MainSettings settings)

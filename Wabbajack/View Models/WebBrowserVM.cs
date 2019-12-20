@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
+using Wabbajack.Lib.LibCefHelpers;
 using Xilium.CefGlue.WPF;
 
 namespace Wabbajack
@@ -20,10 +21,17 @@ namespace Wabbajack
         [Reactive]
         public IReactiveCommand BackCommand { get; set; }
 
-        public WebBrowserVM(string url = "http://www.wabbajack.org")
+        private WebBrowserVM(string url = "http://www.wabbajack.org")
         {
             Browser.Address = url;
             Instructions = "Wabbajack Web Browser";
+        }
+
+        public static async Task<WebBrowserVM> GetNew(string url = "http://www.wabbajack.org")
+        {
+            // Make sure libraries are extracted first
+            await Helpers.Initialize();
+            return new WebBrowserVM(url);
         }
     }
 }

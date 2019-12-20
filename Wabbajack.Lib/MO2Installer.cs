@@ -318,5 +318,41 @@ namespace Wabbajack.Lib
 
             File.WriteAllText(Path.Combine(OutputFolder, directive.To), data);
         }
+
+        public static IErrorResponse CheckValidInstallPath(string path)
+        {
+            var ret = Utils.IsDirectoryPathValid(path);
+            if (!ret.Succeeded) return ret;
+
+            if (!Directory.Exists(path)) return ErrorResponse.Success;
+
+            // Check folder does not have a wabbajack modlist
+            foreach (var file in Directory.EnumerateFiles(path, DirectoryEnumerationOptions.Recursive))
+            {
+                if (!File.Exists(file)) continue;
+                if (System.IO.Path.GetExtension(file).Equals(ExtensionManager.Extension))
+                {
+                    return ErrorResponse.Fail($"Cannot install into a folder with a wabbajack modlist inside of it.");
+                }
+            }
+
+            // Check folder is either empty, or a likely valid previous install
+            if (!Directory.IsEmpty(path))
+            {
+                // Some probably naive check, but should be a good starting point to improve later
+                if (!Directory.EnumerateFiles(path).Any(file =>
+                {
+                    var fileName = Path.GetFileName(file);
+                    if (fileName.Equals("ModOrganizer.exe", StringComparison.OrdinalIgnoreCase)) return true;
+                    if (fileName.Equals("ModOrganizer.ini", StringComparison.OrdinalIgnoreCase)) return true;
+                    return false;
+                }))
+                {
+                    return ErrorResponse.Fail($"Cannot install into a non-empty folder that does not look like a previous WJ installation.");
+                }
+            }
+
+            return ErrorResponse.Success;
+        }
     }
 }

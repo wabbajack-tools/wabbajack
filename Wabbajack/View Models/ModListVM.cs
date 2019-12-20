@@ -1,5 +1,6 @@
 ﻿using ReactiveUI;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Reactive;
@@ -81,6 +82,39 @@ namespace Wabbajack
                 })
                 .Replay(1)
                 .RefCount();
+        }
+
+        public void OpenReadmeWindow()
+        {
+            if (string.IsNullOrEmpty(Readme)) return;
+            if (SourceModList.ReadmeIsWebsite)
+            {
+                Process.Start(Readme);
+            }
+            else
+            {
+                using (var fs = new FileStream(ModListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+                using (var ms = new MemoryStream())
+                {
+                    var entry = ar.GetEntry(Readme);
+                    if (entry == null)
+                    {
+                        Utils.Log($"Tried to open a non-existant readme: {Readme}");
+                        return;
+                    }
+                    using (var e = entry.Open())
+                    {
+                        e.CopyTo(ms);
+                    }
+                    ms.Seek(0, SeekOrigin.Begin);
+                    using (var reader = new StreamReader(ms))
+                    {
+                        var viewer = new TextViewer(reader.ReadToEnd(), Name);
+                        viewer.Show();
+                    }
+                }
+            }
         }
     }
 }

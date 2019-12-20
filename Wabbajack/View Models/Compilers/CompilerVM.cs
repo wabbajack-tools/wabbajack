@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
@@ -46,20 +47,18 @@ namespace Wabbajack
         public IReactiveCommand BackCommand { get; }
         public IReactiveCommand GoToModlistCommand { get; }
         public IReactiveCommand CloseWhenCompleteCommand { get; }
+        public IReactiveCommand BeginCommand { get; }
 
         public FilePickerVM OutputLocation { get; }
 
         private readonly ObservableAsPropertyHelper<IUserIntervention> _ActiveGlobalUserIntervention;
         public IUserIntervention ActiveGlobalUserIntervention => _ActiveGlobalUserIntervention.Value;
 
-        private readonly ObservableAsPropertyHelper<bool> _Completed;
-        public bool Completed => _Completed.Value;
-
-        /// <summary>
-        /// Tracks whether compilation has begun
-        /// </summary>
         [Reactive]
-        public bool CompilationMode { get; set; }
+        public bool StartedCompilation { get; set; }
+
+        [Reactive]
+        public ErrorResponse? Completed { get; set; }
 
         public CompilerVM(MainWindowVM mainWindowVM)
         {
@@ -137,7 +136,8 @@ namespace Wabbajack
                 execute: () =>
                 {
                     mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM;
-                    CompilationMode = false;
+                    StartedCompilation = false;
+                    Completed = null;
                 },
                 canExecute: this.WhenAny(x => x.Compiling)
                     .Select(x => !x));
@@ -166,15 +166,6 @@ namespace Wabbajack
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
 
-            _Completed = Observable.CombineLatest(
-                    this.WhenAny(x => x.Compiling),
-                    this.WhenAny(x => x.CompilationMode),
-                resultSelector: (installing, installingMode) =>
-                {
-                    return installingMode && !installing;
-                })
-                .ToProperty(this, nameof(Completed));
-
             _percentCompleted = this.WhenAny(x => x.Compiler.ActiveCompilation)
                 .StartWith(default(ACompiler))
                 .CombineLatest(
@@ -183,21 +174,37 @@ namespace Wabbajack
                     {
                         if (compiler == null)
                         {
-                            return Observable.Return<float>(completed ? 1f : 0f);
+                            return Observable.Return<float>(completed != null ? 1f : 0f);
                         }
-                        return compiler.PercentCompleted;
+                        return compiler.PercentCompleted.StartWith(0);
                     })
                 .Switch()
                 .Debounce(TimeSpan.FromMilliseconds(25))
                 .ToProperty(this, nameof(PercentCompleted));
 
-            // When sub compiler begins an install, mark state variable
-            this.WhenAny(x => x.Compiler.BeginCommand)
-                .Select(x => x?.StartingExecution() ?? Observable.Empty<Unit>())
-                .Switch()
+            BeginCommand = ReactiveCommand.CreateFromTask(
+                canExecute: this.WhenAny(x => x.Compiler.CanCompile)
+                    .Switch(),
+                execute: async () =>
+                {
+                    try
+                    {
+                        await this.Compiler.Compile();
+                        Completed = ErrorResponse.Success;
+                    }
+                    catch (Exception ex)
+                    {
+                        Completed = ErrorResponse.Fail(ex);
+                        while (ex.InnerException != null) ex = ex.InnerException;
+                        Utils.Error(ex, $"Compiler error");
+                    }
+                });
+
+            // When sub compiler begins a compile, mark state variable
+            BeginCommand.StartingExecution()
                 .Subscribe(_ =>
                 {
-                    CompilationMode = true;
+                    StartedCompilation = true;
                 })
                 .DisposeWith(CompositeDisposable);
 
@@ -218,14 +225,16 @@ namespace Wabbajack
                 .ToProperty(this, nameof(ActiveGlobalUserIntervention));
 
             CloseWhenCompleteCommand = ReactiveCommand.Create(
-                canExecute: this.WhenAny(x => x.Completed),
+                canExecute: this.WhenAny(x => x.Completed)
+                    .Select(x => x != null),
                 execute: () =>
                 {
                     MWVM.ShutdownApplication();
                 });
 
             GoToModlistCommand = ReactiveCommand.Create(
-                canExecute: this.WhenAny(x => x.Completed),
+                canExecute: this.WhenAny(x => x.Completed)
+                    .Select(x => x != null),
                 execute: () =>
                 {
                     if (string.IsNullOrWhiteSpace(OutputLocation.TargetPath))

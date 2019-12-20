@@ -46,11 +46,11 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<bool> _installing;
         public bool Installing => _installing.Value;
 
-        /// <summary>
-        /// Tracks whether installation has begun
-        /// </summary>
         [Reactive]
-        public bool InstallingMode { get; set; }
+        public bool StartedInstallation { get; set; }
+
+        [Reactive]
+        public ErrorResponse? Completed { get; set; }
 
         private readonly ObservableAsPropertyHelper<ImageSource> _image;
         public ImageSource Image => _image.Value;
@@ -82,9 +82,6 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<IUserIntervention> _ActiveGlobalUserIntervention;
         public IUserIntervention ActiveGlobalUserIntervention => _ActiveGlobalUserIntervention.Value;
 
-        private readonly ObservableAsPropertyHelper<bool> _Completed;
-        public bool Completed => _Completed.Value;
-
         // Command properties
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
@@ -92,6 +89,7 @@ namespace Wabbajack
         public IReactiveCommand BackCommand { get; }
         public IReactiveCommand CloseWhenCompleteCommand { get; }
         public IReactiveCommand GoToInstallCommand { get; }
+        public IReactiveCommand BeginCommand { get; }
 
         public InstallerVM(MainWindowVM mainWindowVM)
         {
@@ -163,7 +161,7 @@ namespace Wabbajack
                 .Select(modList => modList?.ReportHTML)
                 .ToProperty(this, nameof(HTMLReport));
             _installing = this.WhenAny(x => x.Installer.ActiveInstallation)
-                .Select(compilation => compilation != null)
+                .Select(i => i != null)
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(Installing));
             _TargetManager = this.WhenAny(x => x.ModList)
@@ -182,20 +180,12 @@ namespace Wabbajack
             BackCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
-                    InstallingMode = false;
+                    StartedInstallation = false;
+                    Completed = null;
                     mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM;
                 },
                 canExecute: this.WhenAny(x => x.Installing)
                     .Select(x => !x));
-
-            _Completed = Observable.CombineLatest(
-                    this.WhenAny(x => x.Installing),
-                    this.WhenAny(x => x.InstallingMode),
-                resultSelector: (installing, installingMode) =>
-                {
-                    return installingMode && !installing;
-                })
-                .ToProperty(this, nameof(Completed));
 
             _percentCompleted = this.WhenAny(x => x.Installer.ActiveInstallation)
                 .StartWith(default(AInstaller))
@@ -205,9 +195,9 @@ namespace Wabbajack
                     {
                         if (installer == null)
                         {
-                            return Observable.Return<float>(completed ? 1f : 0f);
+                            return Observable.Return<float>(completed != null ? 1f : 0f);
                         }
-                        return installer.PercentCompleted;
+                        return installer.PercentCompleted.StartWith(0f);
                     })
                 .Switch()
                 .Debounce(TimeSpan.FromMilliseconds(25))
@@ -273,7 +263,7 @@ namespace Wabbajack
             // Define commands
             ShowReportCommand = ReactiveCommand.Create(ShowReport);
             OpenReadmeCommand = ReactiveCommand.Create(
-                execute: OpenReadmeWindow,
+                execute: () => this.ModList?.OpenReadmeWindow(),
                 canExecute: this.WhenAny(x => x.ModList)
                     .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
                     .ObserveOnGuiThread());
@@ -285,11 +275,11 @@ namespace Wabbajack
 
             _progressTitle = Observable.CombineLatest(
                     this.WhenAny(x => x.Installing),
-                    this.WhenAny(x => x.InstallingMode),
-                    resultSelector: (installing, mode) =>
+                    this.WhenAny(x => x.StartedInstallation),
+                    resultSelector: (installing, started) =>
                     {
                         if (!installing) return "Configuring";
-                        return mode ? "Installing" : "Installed";
+                        return started ? "Installing" : "Installed";
                     })
                 .ToProperty(this, nameof(ProgressTitle));
 
@@ -317,13 +307,39 @@ namespace Wabbajack
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
 
+            BeginCommand = ReactiveCommand.CreateFromTask(
+                canExecute: this.WhenAny(x => x.Installer.CanInstall)
+                    .Switch(),
+                execute: async () =>
+                {
+                    try
+                    {
+                        await this.Installer.Install();
+                        Completed = ErrorResponse.Success;
+                        try
+                        {
+                            this.ModList?.OpenReadmeWindow();
+                        }
+                        catch (Exception ex)
+                        {
+                            Utils.Error(ex);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        while (ex.InnerException != null) ex = ex.InnerException;
+                        Utils.Log(ex.StackTrace);
+                        Utils.Log(ex.ToString());
+                        Utils.Log($"{ex.Message} - Can't continue");
+                        Completed = ErrorResponse.Fail(ex);
+                    }
+                });
+
             // When sub installer begins an install, mark state variable
-            this.WhenAny(x => x.Installer.BeginCommand)
-                .Select(x => x?.StartingExecution() ?? Observable.Empty<Unit>())
-                .Switch()
+            BeginCommand.StartingExecution()
                 .Subscribe(_ =>
                 {
-                    InstallingMode = true;
+                    StartedInstallation = true;
                 })
                 .DisposeWith(CompositeDisposable);
 
@@ -344,7 +360,8 @@ namespace Wabbajack
                 .ToProperty(this, nameof(ActiveGlobalUserIntervention));
 
             CloseWhenCompleteCommand = ReactiveCommand.Create(
-                canExecute: this.WhenAny(x => x.Completed),
+                canExecute: this.WhenAny(x => x.Completed)
+                    .Select(x => x != null),
                 execute: () =>
                 {
                     MWVM.ShutdownApplication();
@@ -352,7 +369,8 @@ namespace Wabbajack
 
             GoToInstallCommand = ReactiveCommand.Create(
                 canExecute: Observable.CombineLatest(
-                    this.WhenAny(x => x.Completed),
+                    this.WhenAny(x => x.Completed)
+                        .Select(x => x != null),
                     this.WhenAny(x => x.Installer.SupportsAfterInstallNavigation),
                     resultSelector: (complete, supports) => complete && supports),
                 execute: () =>
@@ -366,32 +384,6 @@ namespace Wabbajack
             var file = Path.GetTempFileName() + ".html";
             File.WriteAllText(file, HTMLReport);
             Process.Start(file);
-        }
-
-        private void OpenReadmeWindow()
-        {
-            if (string.IsNullOrEmpty(ModList.Readme)) return;
-            using (var fs = new FileStream(ModListLocation.TargetPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
-            using (var ms = new MemoryStream())
-            {
-                var entry = ar.GetEntry(ModList.Readme);
-                if (entry == null)
-                {
-                    Utils.Log($"Tried to open a non-existant readme: {ModList.Readme}");
-                    return;
-                }
-                using (var e = entry.Open())
-                {
-                    e.CopyTo(ms);
-                }
-                ms.Seek(0, SeekOrigin.Begin);
-                using (var reader = new StreamReader(ms))
-                {
-                    var viewer = new TextViewer(reader.ReadToEnd(), ModList.Name);
-                    viewer.Show();
-                }
-            }
         }
     }
 }
