@@ -117,7 +117,7 @@ namespace Wabbajack.Lib
             
             if (Directory.Exists(lootPath))
             {
-                    lootFiles = Directory.EnumerateFiles(lootPath, "userlist.yaml", SearchOption.AllDirectories)
+                lootFiles = Directory.EnumerateFiles(lootPath, "userlist.yaml", SearchOption.AllDirectories)
                     .Where(p => p.FileExists())
                     .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
                         { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(lootPath)) });
@@ -415,8 +415,9 @@ namespace Wabbajack.Lib
             var absolutePaths = AllFiles.ToDictionary(e => e.Path, e => e.AbsolutePath);
             await groups.PMap(Queue, group => BuildArchivePatches(group.Key, group, absolutePaths));
 
-            if (InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.PatchID == null) != null)
-                Error("Missing patches after generation, this should not happen");
+            var firstFailedPatch = InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.PatchID == null);
+            if (firstFailedPatch != null)
+                Error($"Missing patches after generation, this should not happen. First failure: {firstFailedPatch.FullPath}");
         }
 
         private async Task BuildArchivePatches(string archiveSha, IEnumerable<PatchedFromArchive> group,
