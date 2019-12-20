@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.HashFunction.xxHash;
 using System.Diagnostics;
@@ -628,6 +628,44 @@ namespace Wabbajack.Common
                     }
 
             return await Task.WhenAll(tasks);
+        }
+
+        public static async Task PMap<TI>(this IEnumerable<TI> coll, WorkQueue queue,
+            Func<TI, Task> f)
+        {
+            var colllst = coll.ToList();
+
+            var remainingTasks = colllst.Count;
+
+            var tasks = colllst.Select(i =>
+            {
+                var tc = new TaskCompletionSource<bool>();
+                queue.QueueTask(async () =>
+                {
+                    try
+                    {
+                        await f(i);
+                        tc.SetResult(true);
+                    }
+                    catch (Exception ex)
+                    {
+                        tc.SetException(ex);
+                    }
+                    Interlocked.Decrement(ref remainingTasks);
+                });
+                return tc.Task;
+            }).ToList();
+
+            // To avoid thread starvation, we'll start to help out in the work queue
+            if (WorkQueue.WorkerThread)
+                while (remainingTasks > 0)
+                    if (queue.Queue.TryTake(out var a, 500))
+                    {
+                        WorkQueue.AsyncLocalCurrentQueue.Value = WorkQueue.ThreadLocalCurrentQueue.Value;
+                        await a();
+                    }
+
+            await Task.WhenAll(tasks);
         }
 
         public static async Task PMap<TI>(this IEnumerable<TI> coll, WorkQueue queue, Action<TI> f)
