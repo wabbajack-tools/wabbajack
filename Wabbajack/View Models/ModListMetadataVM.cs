@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -44,7 +44,7 @@ namespace Wabbajack
             Metadata = metadata;
             IsBroken = metadata.ValidationSummary.HasFailures;
             OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start($"https://www.wabbajack.org/modlist/{Metadata.Links.MachineURL}"));
-            ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, bool>(
+            ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, Unit>(
                 canExecute: this.WhenAny(x => x.IsBroken).Select(x => !x),
                 execute: (unit) => 
                 Observable.Return(unit)
@@ -63,15 +63,31 @@ namespace Wabbajack
                     }
                     return exists;
                 })
+                .Where(exists => exists)
                 // Do any install page swap over on GUI thread
                 .ObserveOnGuiThread()
-                .Do(exists =>
+                .Select(_ =>
                 {
-                    if (exists)
-                    {
-                        _parent.MWVM.OpenInstaller(Path.GetFullPath(Location));
-                    }
-                }));
+                    _parent.MWVM.OpenInstaller(Path.GetFullPath(Location));
+
+                    // Wait for modlist member to be filled, then open its readme
+                    return _parent.MWVM.Installer.Value.WhenAny(x => x.ModList)
+                        .NotNull()
+                        .Take(1)
+                        .Do(modList =>
+                        {
+                            try
+                            {
+                                modList.OpenReadmeWindow();
+                            }
+                            catch (Exception ex)
+                            {
+                                Utils.Error(ex);
+                            }
+                        });
+                })
+                .Switch()
+                .Unit());
 
             _Exists = Observable.Interval(TimeSpan.FromSeconds(0.5))
                 .Unit()
