@@ -4,21 +4,46 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Windows.Input;
+using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Lib.LibCefHelpers;
+using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using Xilium.CefGlue.Common;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class LoversLabDownloader : IDownloader
+    public class LoversLabDownloader : ViewModel, IDownloader, INeedsLogin
     {
         internal HttpClient _authedClient;
+
+
+        #region INeedsDownload
+
+        public ICommand TriggerLogin { get; }
+        public ICommand ClearLogin { get; }
+        public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable("loverslabcookies");
+        public string SiteName => "Lovers Lab";
+        public string MetaInfo => "";
+        public Uri SiteURL => new Uri("https://loverslab.com");
+        public Uri IconUri => new Uri("https://www.loverslab.com/favicon.ico");
+
+
+        #endregion
+
+        public LoversLabDownloader()
+        {
+            TriggerLogin = ReactiveCommand.Create(async () => await Utils.Log(new RequestLoversLabLogin()).Task, IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
+            ClearLogin = ReactiveCommand.Create(() => Utils.DeleteEncryptedJson("loverslabcookies"), IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
+        }
+
 
         public async Task<AbstractDownloadState> GetDownloaderState(dynamic archive_ini)
         {
@@ -84,7 +109,7 @@ namespace Wabbajack.Lib.Downloaders
             }
             catch (FileNotFoundException) { }
 
-            cookies = Utils.Log(new RequestLoversLabLogin()).Task.Result;
+            cookies = await Utils.Log(new RequestLoversLabLogin()).Task;
             return Helpers.GetClient(cookies, "https://www.loverslab.com");
         }
 
@@ -176,6 +201,7 @@ namespace Wabbajack.Lib.Downloaders
                 return $"* Lovers Lab - [{a.Name}](https://www.loverslab.com/files/file/{FileName}/?do=download&r={FileID})";
             }
         }
+
     }
 
     public class RequestLoversLabLogin : AUserIntervention

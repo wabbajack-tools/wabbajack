@@ -12,9 +12,21 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <Button
             Grid.Column="0"
+            Width="35"
+            Height="35"
+            Click="ConfigureLogins_Click"
+            Style="{StaticResource IconBareButtonStyle}">
+            <icon:PackIconMaterial
+                Width="25"
+                Height="25"
+                Kind="Cogs" />
+        </Button>
+        <Button
+            Grid.Column="1"
             Width="35"
             Height="35"
             Click="GitHub_Click"
@@ -25,7 +37,7 @@
                 Kind="GithubCircle" />
         </Button>
         <Button
-            Grid.Column="1"
+            Grid.Column="2"
             Width="35"
             Height="35"
             Margin="4,0,0,0"
@@ -37,7 +49,7 @@
                 Kind="Patreon" />
         </Button>
         <Button
-            Grid.Column="2"
+            Grid.Column="3"
             Width="35"
             Height="35"
             Click="Discord_Click"

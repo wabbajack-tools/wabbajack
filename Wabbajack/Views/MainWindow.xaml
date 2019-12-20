@@ -27,6 +27,9 @@
             <DataTemplate DataType="{x:Type local:InstallerVM}">
                 <local:InstallationView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type local:LoginManagerVM}">
+                <local:LoginManagerView />
+            </DataTemplate>
             <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
                 <local:ModeSelectionView />
             </DataTemplate>

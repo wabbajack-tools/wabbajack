@@ -176,7 +176,9 @@
     <Compile Include="UnderMaintenanceOverlay.xaml.cs">
       <DependentUpon>UnderMaintenanceOverlay.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UserInterventions\ShowLoginManager.cs" />
     <Compile Include="View Models\CPUDisplayVM.cs" />
+    <Compile Include="View Models\LoginManagerVM.cs" />
     <Compile Include="Views\Compilers\CompilationCompleteView.xaml.cs">
       <DependentUpon>CompilationCompleteView.xaml</DependentUpon>
     </Compile>
@@ -211,6 +213,9 @@
     </Compile>
     <Compile Include="Views\LinksView.xaml.cs">
       <DependentUpon>LinksView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\LoginManagerView.xaml.cs">
+      <DependentUpon>LoginManagerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ModeSelectionView.xaml.cs">
       <DependentUpon>ModeSelectionView.xaml</DependentUpon>
@@ -310,6 +315,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\LinksView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\LoginManagerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

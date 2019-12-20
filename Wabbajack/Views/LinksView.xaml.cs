@@ -1,18 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Wabbajack.Common;
+using Wabbajack.UserInterventions;
 
 namespace Wabbajack
 {
@@ -39,6 +29,11 @@ namespace Wabbajack
         private void Patreon_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("https://www.patreon.com/user?u=11907933");
+        }
+
+        private void ConfigureLogins_Click(object sender, RoutedEventArgs e)
+        {
+            Utils.Log(new ShowLoginManager());
         }
     }
 }
