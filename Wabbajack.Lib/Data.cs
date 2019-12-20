@@ -92,11 +92,6 @@ namespace Wabbajack.Lib
         public string Readme;
 
         /// <summary>
-        ///     Whether readme is a website
-        /// </summary>
-        public bool ReadmeIsWebsite;
-
-        /// <summary>
         ///     Content Report in HTML form
         /// </summary>
         public string ReportHTML;
@@ -118,6 +113,10 @@ namespace Wabbajack.Lib
                                             .Take(Environment.ProcessorCount)
                                             .Sum(a => a.Size) * 2;
 
+        /// <summary>
+        ///     Whether readme is a website
+        /// </summary>
+        public bool ReadmeIsWebsite;
     }
 
     public class Directive
