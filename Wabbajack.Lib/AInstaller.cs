@@ -325,11 +325,14 @@ namespace Wabbajack.Lib
 
         public async Task<int> RecommendQueueSize()
         {
-            var output_size = await RecommendQueueSize(OutputFolder);
-            var download_size = await RecommendQueueSize(DownloadFolder);
+            const ulong GB = (1024 * 1024 * 1024);
+            // Most of the heavy lifting is done on the scratch disk, so we'll use the value from that disk
+            var memory = Utils.GetMemoryStatus();
+            // Assume roughly 2GB of ram needed to extract each 7zip archive, and then leave 2GB for the OS
+            var based_on_memory = (memory.ullTotalPhys - (2 * GB)) / (2 * GB);
             var scratch_size = await RecommendQueueSize(Directory.GetCurrentDirectory());
-            var result =  Math.Min(output_size, Math.Min(download_size, scratch_size));
-            Utils.Log($"Recommending a queue size of {result} based on disk performance and number of cores");
+            var result = Math.Min((int)based_on_memory, (int)scratch_size);
+            Utils.Log($"Recommending a queue size of {result} based on disk performance, number of cores, and {((long)memory.ullTotalPhys).ToFileSizeString()} of system RAM");
             return result;
         }
 

@@ -132,14 +132,14 @@ namespace Wabbajack.Lib
                 var dirInfo = new DirectoryInfo(dir);
                 dirInfo.GetDirectories("*", SearchOption.AllDirectories).Do(d =>
                 {
-                    var destPath = d.FullName.Replace(dir, gameFolder);
+                    var destPath = d.FullName.Replace(manualFilesDir, gameFolder);
                     Status($"Creating directory {destPath}");
                     Directory.CreateDirectory(destPath);
                 });
 
                 dirInfo.GetFiles("*", SearchOption.AllDirectories).Do(f =>
                 {
-                    var destPath = f.FullName.Replace(dir, gameFolder);
+                    var destPath = f.FullName.Replace(manualFilesDir, gameFolder);
                     Status($"Copying file {f.FullName} to {destPath}");
                     try
                     {
@@ -207,7 +207,7 @@ namespace Wabbajack.Lib
                     if (directive.To.EndsWith(".meta"))
                         return;
 
-                    Status($"Writing included file {directive.To}");
+                    Info($"Writing included file {directive.To}");
                     var outPath = Path.Combine(OutputFolder, directive.To);
                     if(File.Exists(outPath)) File.Delete(outPath);
                     File.WriteAllBytes(outPath, LoadBytesFromPath(directive.SourceDataID));

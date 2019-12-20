@@ -76,7 +76,7 @@ namespace Wabbajack
             _Exists = Observable.Interval(TimeSpan.FromSeconds(0.5))
                 .Unit()
                 .StartWith(Unit.Default)
-                .Select(_ => File.Exists(Location))
+                .Select(_ => !metadata.NeedsDownload(Location))
                 .ToProperty(this, nameof(Exists));
         }
 

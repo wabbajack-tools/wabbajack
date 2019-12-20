@@ -1,5 +1,14 @@
 ### Changelog
 
+#### Version - 1.0 beta 9 - 12/18/2019
+* Create output folders before trying to download a file
+
+#### Version - 1.0 beta 8 - 12/17/2019
+* Fixed parsing of buggy ini files (Bethesda supports them so we must as well)
+* Disable invalid modlists instead of hiding them
+* Several Vortex improvements
+* Implemented HTTP resuming for file downloads
+
 #### Version - 1.0 beta 7 - 12/15/2019
 * Fixed a regression with HTTP downloading introduced in beta 5
 * No longer show broken modlists in the gallery
