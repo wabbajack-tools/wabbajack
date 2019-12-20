@@ -263,7 +263,7 @@ namespace Wabbajack
             // Define commands
             ShowReportCommand = ReactiveCommand.Create(ShowReport);
             OpenReadmeCommand = ReactiveCommand.Create(
-                execute: OpenReadmeWindow,
+                execute: () => this.ModList?.OpenReadmeWindow(),
                 canExecute: this.WhenAny(x => x.ModList)
                     .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
                     .ObserveOnGuiThread());
@@ -316,6 +316,14 @@ namespace Wabbajack
                     {
                         await this.Installer.Install();
                         Completed = ErrorResponse.Success;
+                        try
+                        {
+                            this.ModList?.OpenReadmeWindow();
+                        }
+                        catch (Exception ex)
+                        {
+                            Utils.Error(ex);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -376,32 +384,6 @@ namespace Wabbajack
             var file = Path.GetTempFileName() + ".html";
             File.WriteAllText(file, HTMLReport);
             Process.Start(file);
-        }
-
-        private void OpenReadmeWindow()
-        {
-            if (string.IsNullOrEmpty(ModList.Readme)) return;
-            using (var fs = new FileStream(ModListLocation.TargetPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
-            using (var ms = new MemoryStream())
-            {
-                var entry = ar.GetEntry(ModList.Readme);
-                if (entry == null)
-                {
-                    Utils.Log($"Tried to open a non-existant readme: {ModList.Readme}");
-                    return;
-                }
-                using (var e = entry.Open())
-                {
-                    e.CopyTo(ms);
-                }
-                ms.Seek(0, SeekOrigin.Begin);
-                using (var reader = new StreamReader(ms))
-                {
-                    var viewer = new TextViewer(reader.ReadToEnd(), ModList.Name);
-                    viewer.Show();
-                }
-            }
         }
     }
 }
