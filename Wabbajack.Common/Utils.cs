@@ -50,6 +50,9 @@ namespace Wabbajack.Common
 
         static Utils()
         {
+            if (!Directory.Exists(Consts.LocalAppDataPath))
+                Directory.CreateDirectory(Consts.LocalAppDataPath);
+
             var programName = Assembly.GetEntryAssembly()?.Location ?? "Wabbajack";
             LogFile = programName + ".log";
             _startTime = DateTime.Now;

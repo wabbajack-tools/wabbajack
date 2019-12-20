@@ -68,7 +68,7 @@
         <ListView Grid.Row="1" ItemsSource="{Binding Downloaders}">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Grid Height="30">
+                    <Grid Height="30" Margin="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="48"></ColumnDefinition>
                             <ColumnDefinition Width="200"></ColumnDefinition>
@@ -79,8 +79,8 @@
                         <Image Grid.Column="0" Source="{Binding IconUrl, Mode=OneTime}"></Image>
                         <Label Grid.Column="1" Width="400" Content="{Binding SiteName, Mode=OneTime}" FontSize="14"></Label>
                         <Label Grid.Column="2" Width="400" Content="{Binding MetaInfo, Mode=OneWay}" FontSize="14"></Label>
-                        <Button Grid.Column="3" Content="Login" Command="{Binding TriggerLogin}"></Button>
-                        <Button Grid.Column="4" Content="Logout" Command="{Binding ClearLogin}"></Button>
+                        <Button Grid.Column="3" Content="Login" Command="{Binding TriggerLogin}" Margin="5"></Button>
+                        <Button Grid.Column="4" Content="Logout" Command="{Binding ClearLogin}" Margin="5"></Button>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
