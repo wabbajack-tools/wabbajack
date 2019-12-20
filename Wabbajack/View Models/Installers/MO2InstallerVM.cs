@@ -48,7 +48,7 @@ namespace Wabbajack
                 PromptTitle = "Select Installation Directory",
             };
             Location.AdditionalError = this.WhenAny(x => x.Location.TargetPath)
-                .Select(x => Utils.IsDirectoryPathValid(x));
+                .Select(x => MO2Installer.CheckValidInstallPath(x));
             DownloadLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.Off,

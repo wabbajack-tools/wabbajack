@@ -318,5 +318,20 @@ namespace Wabbajack.Lib
 
             File.WriteAllText(Path.Combine(OutputFolder, directive.To), data);
         }
+
+        public static IErrorResponse CheckValidInstallPath(string path)
+        {
+            var ret = Utils.IsDirectoryPathValid(path);
+            if (!ret.Succeeded) return ret;
+            foreach (var file in Directory.EnumerateFiles(path, DirectoryEnumerationOptions.Recursive))
+            {
+                if (!File.Exists(file)) continue;
+                if (System.IO.Path.GetExtension(file).Equals(ExtensionManager.Extension))
+                {
+                    return ErrorResponse.Fail($"Cannot install into a folder with a wabbajack modlist inside of it.");
+                }
+            }
+            return ErrorResponse.Success;
+        }
     }
 }
