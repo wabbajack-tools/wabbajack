@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Reactive.Linq;
+using System.Windows.Input;
 using DynamicData;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
 
@@ -22,12 +24,21 @@ namespace Wabbajack
 
         public FilePickerVM ImagePath { get; }
 
-        public FilePickerVM ReadMeText { get; }
+        public FilePickerVM ReadmeFilePath { get; }
+
+        [Reactive]
+        public string ReadmeWebsite { get; set; }
 
         [Reactive]
         public string Website { get; set; }
 
+        [Reactive]
+        public bool ReadmeIsWebsite { get; set; }
+
         public IObservable<bool> InError { get; }
+
+        public ICommand SwapToTextReadmeCommand { get; }
+        public ICommand SwapToWebsiteReadmeCommand { get; }
 
         public ModlistSettingsEditorVM(CompilationModlistSettings settings)
         {
@@ -38,19 +49,24 @@ namespace Wabbajack
                 PathType = FilePickerVM.PathTypeOptions.File,
             };
             ImagePath.Filters.Add(new CommonFileDialogFilter("Banner image", "*.png"));
-            ReadMeText = new FilePickerVM()
+            ReadmeFilePath = new FilePickerVM()
             {
                 PathType = FilePickerVM.PathTypeOptions.File,
                 ExistCheckOption = FilePickerVM.CheckOptions.IfPathNotEmpty,
             };
-            ReadMeText.Filters.Add(new CommonFileDialogFilter("Text", "*.txt"));
+            ReadmeFilePath.Filters.Add(new CommonFileDialogFilter("Text", "*.txt"));
+            ReadmeFilePath.Filters.Add(new CommonFileDialogFilter("HTML File", "*.html"));
 
             InError = Observable.CombineLatest(
                     this.WhenAny(x => x.ImagePath.ErrorState).Select(err => err.Failed),
-                    this.WhenAny(x => x.ReadMeText.ErrorState).Select(err => err.Failed),
-                resultSelector: (img, readme) => img || readme)
+                    this.WhenAny(x => x.ReadmeFilePath.ErrorState).Select(err => err.Failed),
+                    this.WhenAny(x => x.ReadmeIsWebsite),
+                resultSelector: (img, readme, isWebsite) => img || (readme && isWebsite))
                 .Publish()
                 .RefCount();
+
+            SwapToTextReadmeCommand = ReactiveCommand.Create(() => ReadmeIsWebsite = false);
+            SwapToWebsiteReadmeCommand = ReactiveCommand.Create(() => ReadmeIsWebsite = true);
         }
 
         public void Init()
@@ -61,7 +77,15 @@ namespace Wabbajack
                 ModListName = _settings.ModListName;
             }
             Description = _settings.Description;
-            ReadMeText.TargetPath = _settings.Readme;
+            ReadmeIsWebsite = _settings.ReadmeIsWebsite;
+            if (ReadmeIsWebsite)
+            {
+                ReadmeWebsite = _settings.Readme;
+            }
+            else
+            {
+                ReadmeFilePath.TargetPath = _settings.Readme;
+            }
             ImagePath.TargetPath = _settings.SplashScreen;
             Website = _settings.Website;
         }
@@ -71,7 +95,15 @@ namespace Wabbajack
             _settings.Author = AuthorText;
             _settings.ModListName = ModListName;
             _settings.Description = Description;
-            _settings.Readme = ReadMeText.TargetPath;
+            _settings.ReadmeIsWebsite = ReadmeIsWebsite;
+            if (ReadmeIsWebsite)
+            {
+                _settings.Readme = ReadmeWebsite;
+            }
+            else
+            {
+                _settings.Readme = ReadmeFilePath.TargetPath;
+            }
             _settings.SplashScreen = ImagePath.TargetPath;
             _settings.Website = Website;
         }
