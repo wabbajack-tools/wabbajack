@@ -150,12 +150,69 @@
                 <TextBox Style="{StaticResource ValueStyle}" Text="{Binding Website, UpdateSourceTrigger=PropertyChanged}" />
                 <TextBlock
                     Margin="{StaticResource TitleMargin}"
-                    Text="Readme Path"
+                    Text="Readme"
                     ToolTip="Path to a readme file." />
-                <local:FilePicker
-                    PickerVM="{Binding ReadMeText}"
-                    Style="{StaticResource PickerStyle}"
-                    ToolTip="Path to a readme file." />
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <local:FilePicker
+                        Grid.Column="0"
+                        Height="27"
+                        Margin="0,0,3,0"
+                        VerticalAlignment="Center"
+                        PickerVM="{Binding ReadmeFilePath}"
+                        ToolTip="Path to a readme file."
+                        Visibility="{Binding ReadmeIsWebsite, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}" />
+                    <TextBox
+                        Grid.Column="0"
+                        Height="27"
+                        Margin="0,0,3,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding ReadmeWebsite}"
+                        ToolTip="Readme website"
+                        Visibility="{Binding ReadmeIsWebsite, Converter={StaticResource bool2VisibilityConverter}}" />
+                    <Button
+                        Grid.Column="1"
+                        Width="27"
+                        Command="{Binding SwapToWebsiteReadmeCommand}"
+                        ToolTip="Set readme to be a website">
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource IconBareButtonStyle}" TargetType="Button">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ReadmeIsWebsite}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <icon:PackIconMaterial
+                            Width="20"
+                            Height="20"
+                            Kind="Web" />
+                    </Button>
+                    <Button
+                        Grid.Column="2"
+                        Width="27"
+                        Command="{Binding SwapToTextReadmeCommand}"
+                        ToolTip="Source readme from a local file (txt | html)">
+                        <Button.Style>
+                            <Style BasedOn="{StaticResource IconBareButtonStyle}" TargetType="Button">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding ReadmeIsWebsite}" Value="False">
+                                        <Setter Property="Foreground" Value="{StaticResource SecondaryBrush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <icon:PackIconMaterial
+                            Width="20"
+                            Height="20"
+                            Kind="File" />
+                    </Button>
+                </Grid>
             </StackPanel>
         </ScrollViewer>
         <Border

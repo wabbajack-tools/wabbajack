@@ -87,9 +87,14 @@ namespace Wabbajack.Lib
         public string Website;
 
         /// <summary>
-        ///     Hash of the readme
+        ///     readme path or website
         /// </summary>
         public string Readme;
+
+        /// <summary>
+        ///     Whether readme is a website
+        /// </summary>
+        public bool ReadmeIsWebsite;
 
         /// <summary>
         ///     Content Report in HTML form
