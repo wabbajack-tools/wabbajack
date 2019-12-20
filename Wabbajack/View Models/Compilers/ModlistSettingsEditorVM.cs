@@ -61,7 +61,7 @@ namespace Wabbajack
                     this.WhenAny(x => x.ImagePath.ErrorState).Select(err => err.Failed),
                     this.WhenAny(x => x.ReadmeFilePath.ErrorState).Select(err => err.Failed),
                     this.WhenAny(x => x.ReadmeIsWebsite),
-                resultSelector: (img, readme, isWebsite) => img || (readme && isWebsite))
+                resultSelector: (img, readme, isWebsite) => img || (readme && !isWebsite))
                 .Publish()
                 .RefCount();
 
