@@ -72,7 +72,7 @@ namespace Wabbajack.Lib
             {
                 if ((await Utils.Log(new ConfirmUpdateOfExistingInstall { ModListName = ModList.Name, OutputFolder = OutputFolder }).Task) == ConfirmUpdateOfExistingInstall.Choice.Abort)
                 {
-                    Utils.Log("Existing installation at the request of the user, existing mods folder found.");
+                    Utils.Log("Exiting installation at the request of the user, existing mods folder found.");
                     return false;
                 }
             }
