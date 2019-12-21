@@ -45,13 +45,14 @@ namespace Wabbajack.Lib
             ConfigureProcessor(18, await RecommendQueueSize());
             var game = ModList.GameType.MetaData();
 
-            GameFolder = game.GameLocation();
+            if (GameFolder == null)
+                GameFolder = game.GameLocation();
 
             if (GameFolder == null)
             {
                 MessageBox.Show(
                     $"In order to do a proper install Wabbajack needs to know where your {game.MO2Name} folder resides. We tried looking the" +
-                    "game installation location up in the Windows registry but were unable to find it, please make sure you launch the game once before running this installer.",
+                    "game location up in the windows registry but were unable to find it, please make sure you launch the game once before running this installer. ",
                     "Could not find game location", MessageBoxButton.OK);
                 Utils.Log("Exiting because we couldn't find the game folder.");
                 return false;
@@ -269,7 +270,7 @@ namespace Wabbajack.Lib
             var sha = gameFile.FileHash();
             if (sha != directive.SourceESMHash)
                 throw new InvalidDataException(
-                    $"Cannot patch {filename} from the game folder hashes don't match have you already cleaned the file?");
+                    $"Cannot patch {filename} from the game folder because the hashes do not match. Have you already cleaned the file?");
 
             var patchData = LoadBytesFromPath(directive.SourceDataID);
             var toFile = Path.Combine(OutputFolder, directive.To);
@@ -331,7 +332,7 @@ namespace Wabbajack.Lib
                 if (!File.Exists(file)) continue;
                 if (System.IO.Path.GetExtension(file).Equals(ExtensionManager.Extension))
                 {
-                    return ErrorResponse.Fail($"Cannot install into a folder with a wabbajack modlist inside of it.");
+                    return ErrorResponse.Fail($"Cannot install into a folder with a Wabbajack modlist inside of it.");
                 }
             }
 
