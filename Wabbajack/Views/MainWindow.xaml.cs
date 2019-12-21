@@ -24,10 +24,10 @@ namespace Wabbajack
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
                 // Don't do any special logging side effects
-                Wabbajack.Common.Utils.Error(((Exception)e.ExceptionObject), "Uncaught error");
+                Utils.Error(((Exception)e.ExceptionObject), "Uncaught error");
             };
 
-            Wabbajack.Common.Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
+            Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
 
             // Run some init tasks in background
             Task.Run(async () =>

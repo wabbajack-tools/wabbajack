@@ -73,7 +73,7 @@ namespace Wabbajack.Lib
             {
                 if ((await Utils.Log(new ConfirmUpdateOfExistingInstall { ModListName = ModList.Name, OutputFolder = OutputFolder }).Task) == ConfirmUpdateOfExistingInstall.Choice.Abort)
                 {
-                    Utils.Log("Existing installation at the request of the user, existing mods folder found.");
+                    Utils.Log("Exiting installation at the request of the user, existing mods folder found.");
                     return false;
                 }
             }
@@ -270,7 +270,7 @@ namespace Wabbajack.Lib
             var sha = gameFile.FileHash();
             if (sha != directive.SourceESMHash)
                 throw new InvalidDataException(
-                    $"Cannot patch {filename} from the game folder hashes don't match have you already cleaned the file?");
+                    $"Cannot patch {filename} from the game folder because the hashes do not match. Have you already cleaned the file?");
 
             var patchData = LoadBytesFromPath(directive.SourceDataID);
             var toFile = Path.Combine(OutputFolder, directive.To);
@@ -332,7 +332,7 @@ namespace Wabbajack.Lib
                 if (!File.Exists(file)) continue;
                 if (System.IO.Path.GetExtension(file).Equals(ExtensionManager.Extension))
                 {
-                    return ErrorResponse.Fail($"Cannot install into a folder with a wabbajack modlist inside of it.");
+                    return ErrorResponse.Fail($"Cannot install into a folder with a Wabbajack modlist inside of it.");
                 }
             }
 
