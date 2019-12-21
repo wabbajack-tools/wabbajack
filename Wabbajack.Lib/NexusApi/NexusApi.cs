@@ -89,14 +89,19 @@ namespace Wabbajack.Lib.NexusApi
                     return env_key;
                 }
 
-                var result = await Utils.Log(new RequestNexusAuthorization()).Task;
-                result.ToEcryptedJson("nexusapikey");
-                return result;
+                return await RequestAndCacheAPIKey();
             }
             finally
             {
                 _getAPIKeyLock.Release();
             }
+        }
+
+        public static async Task<string> RequestAndCacheAPIKey()
+        {
+            var result = await Utils.Log(new RequestNexusAuthorization()).Task;
+            result.ToEcryptedJson("nexusapikey");
+            return result;
         }
 
         class RefererHandler : RequestHandler

@@ -3,6 +3,7 @@ using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -37,9 +38,17 @@ namespace Wabbajack
         public readonly Lazy<ModListGalleryVM> Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
+        public readonly LoginManagerVM LoginManagerVM;
+
+
+        public readonly List<ViewModel> NavigationTrail = new List<ViewModel>();
+
         public Dispatcher ViewDispatcher { get; set; }
 
         public ICommand CopyVersionCommand { get; }
+
+        public ICommand ShowLoginManagerVM { get; }
+        public ICommand GoBackCommand { get; }
         public string VersionDisplay { get; }
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
@@ -52,6 +61,7 @@ namespace Wabbajack
             Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(this));
             ModeSelectionVM = new ModeSelectionVM(this);
             UserInterventionHandlers = new UserInterventionHandlers(this);
+            LoginManagerVM = new LoginManagerVM(this);
 
             // Set up logging
             Utils.LogMessages
@@ -99,7 +109,6 @@ namespace Wabbajack
                 Clipboard.SetText($"Wabbajack {VersionDisplay}\n{ThisAssembly.Git.Sha}");
             });
         }
-
         private static bool IsStartingFromModlist(out string modlistPath)
         {
             string[] args = Environment.GetCommandLineArgs();
@@ -113,6 +122,7 @@ namespace Wabbajack
             return true;
         }
 
+
         public void OpenInstaller(string path)
         {
             if (path == null) return;
@@ -120,6 +130,19 @@ namespace Wabbajack
             Settings.Installer.LastInstalledListLocation = path;
             ActivePane = installer;
             installer.ModListLocation.TargetPath = path;
+        }
+
+        public void NavigateBack()
+        {
+            var prev = NavigationTrail.Last();
+            NavigationTrail.RemoveAt(NavigationTrail.Count - 1);
+            ActivePane = prev;
+        }
+
+        public void NavigateTo(ViewModel vm)
+        {
+            NavigationTrail.Add(ActivePane);
+            ActivePane = vm;
         }
 
         public void ShutdownApplication()

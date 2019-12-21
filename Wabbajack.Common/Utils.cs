@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -39,14 +40,32 @@ namespace Wabbajack.Common
         }
 
         public static string LogFile { get; private set; }
+
+        public enum FileEventType
+        {
+            Created,
+            Changed,
+            Deleted
+        }
+
         static Utils()
         {
+            if (!Directory.Exists(Consts.LocalAppDataPath))
+                Directory.CreateDirectory(Consts.LocalAppDataPath);
+
             var programName = Assembly.GetEntryAssembly()?.Location ?? "Wabbajack";
             LogFile = programName + ".log";
             _startTime = DateTime.Now;
 
             if (LogFile.FileExists())
                 File.Delete(LogFile);
+
+            var watcher = new FileSystemWatcher(Consts.LocalAppDataPath);
+            AppLocalEvents = Observable.Merge(Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Changed += h, h => watcher.Changed -= h).Select(e => (FileEventType.Changed, e.EventArgs)),
+                                                Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Created += h, h => watcher.Created -= h).Select(e => (FileEventType.Created, e.EventArgs)),
+                                                Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Deleted += h, h => watcher.Deleted -= h).Select(e => (FileEventType.Deleted, e.EventArgs)))
+                                       .ObserveOn(RxApp.TaskpoolScheduler);
+            watcher.EnableRaisingEvents = true;
         }
 
         private static readonly Subject<IStatusMessage> LoggerSubj = new Subject<IStatusMessage>();
@@ -999,11 +1018,36 @@ namespace Wabbajack.Common
 
         public static T FromEncryptedJson<T>(string key)
         {
-            var path = Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack", key);
+            var path = Path.Combine(Consts.LocalAppDataPath, key);
             var bytes = File.ReadAllBytes(path);
             var decoded = ProtectedData.Unprotect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
             return Encoding.UTF8.GetString(decoded).FromJSONString<T>();
         }
+
+        public static bool HaveEncryptedJson(string key)
+        {
+            var path = Path.Combine(Consts.LocalAppDataPath, key);
+            return File.Exists(path);
+        }
+
+        public static IObservable<(FileEventType, FileSystemEventArgs)> AppLocalEvents { get; }
+
+        public static IObservable<bool> HaveEncryptedJsonObservable(string key)
+        {
+            var path = Path.Combine(Consts.LocalAppDataPath, key).ToLower();
+            return AppLocalEvents.Where(t => t.Item2.FullPath.ToLower() == path)
+                                 .Select(_ => File.Exists(path))
+                                 .StartWith(File.Exists(path))
+                                 .DistinctUntilChanged();
+        }
+
+        public static void DeleteEncryptedJson(string key)
+        {
+            var path = Path.Combine(Consts.LocalAppDataPath, key);
+            if (File.Exists(path))
+                File.Delete(path);
+        }
+
 
         public static bool IsInPath(this string path, string parent)
         {
