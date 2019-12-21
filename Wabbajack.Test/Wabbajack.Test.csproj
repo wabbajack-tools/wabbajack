@@ -107,6 +107,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="FilePickerTests.cs" />
     <Compile Include="MiscTests.cs" />
+    <Compile Include="MO2Tests.cs" />
     <Compile Include="ModlistMetadataTests.cs" />
     <Compile Include="RestartingDownloadsTests.cs" />
     <Compile Include="SimpleHTTPServer.cs" />
