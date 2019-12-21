@@ -5,8 +5,10 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
+using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 
@@ -32,6 +34,8 @@ namespace Wabbajack
 
         public IReactiveCommand SlideShowNextItemCommand { get; } = ReactiveCommand.Create(() => { });
         public IReactiveCommand VisitNexusSiteCommand { get; }
+
+        public const int PreloadAmount = 4;
 
         public SlideShow(InstallerVM appState)
         {
@@ -98,7 +102,11 @@ namespace Wabbajack
             _targetMod = Observable.CombineLatest(
                     modVMs.QueryWhenChanged(),
                     selectedIndex,
-                    resultSelector: (query, selected) => query.Items.ElementAtOrDefault(selected % (query.Count == 0 ? 1 : query.Count)))
+                    resultSelector: (query, selected) =>
+                    {
+                        var index = selected % (query.Count == 0 ? 1 : query.Count);
+                        return query.Items.ElementAtOrDefault(index);
+                    })
                 .StartWith(default(ModVM))
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .ToProperty(this, nameof(TargetMod));
@@ -116,14 +124,22 @@ namespace Wabbajack
                     .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());
 
-            // ToDo
-            // Can maybe add "preload" systems to prep upcoming images
-            // This would entail subscribing to modVMs, narrowing it down to Top(X) or Page() somehow.
-            // The result would not be used anywhere, just simply expressing interest in those mods'
-            // images will implicitly cache them
-            //
-            // Page would be really clever to use, but it's not exactly right as its "window" won't follow the current index,
-            // so at the boundary of a page, the next image won't be cached.  Need like a Page() /w an offset parameter, or something.
+            // Preload upcoming images
+            var list = Observable.CombineLatest(
+                    modVMs.QueryWhenChanged(),
+                    selectedIndex,
+                    resultSelector: (query, selected) =>
+                    {
+                        // Retrieve the mods that should be preloaded
+                        var index = selected % (query.Count == 0 ? 1 : query.Count);
+                        var amountToTake = Math.Min(query.Count - index, PreloadAmount);
+                        return query.Items.Skip(index).Take(amountToTake).ToObservable();
+                    })
+                .Select(i => i.ToObservableChangeSet())
+                .Switch()
+                .Transform(mod => mod.ImageObservable.Subscribe())
+                .DisposeMany()
+                .AsObservableList();
         }
     }
 }
