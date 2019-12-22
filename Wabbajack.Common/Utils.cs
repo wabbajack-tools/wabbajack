@@ -1008,7 +1008,7 @@ namespace Wabbajack.Common
                 if (line == null) break;
                 Status(line);
             }
-            p.WaitForExit();
+            p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Deletion process of {path}");
         }
 
         /// <summary>
