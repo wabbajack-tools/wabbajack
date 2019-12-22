@@ -103,6 +103,7 @@
     <Compile Include="Extensions\EnumerableExt.cs" />
     <Compile Include="Extensions\EnumExt.cs" />
     <Compile Include="Extensions\HashHelper.cs" />
+    <Compile Include="Extensions\ProcessExt.cs" />
     <Compile Include="Extensions\RxExt.cs" />
     <Compile Include="Extensions\TaskExt.cs" />
     <Compile Include="FileExtractor.cs" />

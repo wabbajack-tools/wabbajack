@@ -107,7 +107,7 @@ namespace Wabbajack.Common
                 Utils.Error(e, "Error while reading StandardOutput for innounp.exe");
             }
 
-            p.WaitForExit();
+            p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Extracting {name}");
             if (p.ExitCode == 0)
                 return;
 
@@ -204,7 +204,8 @@ namespace Wabbajack.Common
             {
             }
 
-            p.WaitForExit();
+            p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Extracting {name}");
+
             if (p.ExitCode == 0)
             {
                 return;
@@ -254,7 +255,7 @@ namespace Wabbajack.Common
                     Utils.Status($"Testing {name} - {line.Trim()}");
                 }
 
-                p.WaitForExit();
+                p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Testing {name}");
                 return p.ExitCode == 0;
             }
 
@@ -291,7 +292,7 @@ namespace Wabbajack.Common
                 }
             } catch (Exception){}
 
-            testP.WaitForExit();
+            testP.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Can Extract Check {v}");
             return testP.ExitCode == 0;
         }
     }
