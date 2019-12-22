@@ -1011,6 +1011,11 @@ namespace Wabbajack.Common
             p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Deletion process of {path}");
         }
 
+        public static bool IsUnderneathDirectory(string path, string dirPath)
+        {
+            return path.StartsWith(dirPath, StringComparison.OrdinalIgnoreCase);
+        }
+
         /// <summary>
         /// Writes a file to JSON but in an encrypted format in the user's app local directory.
         /// The data will be encrypted so that it can only be read by this machine and this user.

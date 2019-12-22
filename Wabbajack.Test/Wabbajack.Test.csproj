@@ -99,6 +99,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ACompilerTest.cs" />
+    <Compile Include="AsyncLockTests.cs" />
     <Compile Include="AVortexCompilerTest.cs" />
     <Compile Include="CSP\ChannelTests.cs" />
     <Compile Include="CSP\CSPTests.cs" />
@@ -107,6 +108,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="FilePickerTests.cs" />
     <Compile Include="MiscTests.cs" />
+    <Compile Include="MO2Tests.cs" />
     <Compile Include="ModlistMetadataTests.cs" />
     <Compile Include="RestartingDownloadsTests.cs" />
     <Compile Include="SimpleHTTPServer.cs" />

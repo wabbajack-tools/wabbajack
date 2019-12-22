@@ -176,7 +176,7 @@
       <DependentUpon>AttentionBorder.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters\IsTypeVisibilityConverter.cs" />
-    <Compile Include="UnderMaintenanceOverlay.xaml.cs">
+    <Compile Include="Views\Common\UnderMaintenanceOverlay.xaml.cs">
       <DependentUpon>UnderMaintenanceOverlay.xaml</DependentUpon>
     </Compile>
     <Compile Include="UserInterventions\ShowLoginManager.cs" />
@@ -286,7 +286,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="UnderMaintenanceOverlay.xaml">
+    <Page Include="Views\Common\UnderMaintenanceOverlay.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

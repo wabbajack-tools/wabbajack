@@ -62,12 +62,10 @@ namespace Wabbajack.Lib.NexusApi
 
         public async Task<string> Username() => (await UserStatus).name;
 
-        private static SemaphoreSlim _getAPIKeyLock = new SemaphoreSlim(1, 1);
+        private static AsyncLock _getAPIKeyLock = new AsyncLock();
         private static async Task<string> GetApiKey()
         {
-            await _getAPIKeyLock.WaitAsync();
-
-            try
+            using (await _getAPIKeyLock.Wait())
             {
                 // Clean up old location
                 if (File.Exists(API_KEY_CACHE_FILE))
@@ -90,10 +88,6 @@ namespace Wabbajack.Lib.NexusApi
                 }
 
                 return await RequestAndCacheAPIKey();
-            }
-            finally
-            {
-                _getAPIKeyLock.Release();
             }
         }
 

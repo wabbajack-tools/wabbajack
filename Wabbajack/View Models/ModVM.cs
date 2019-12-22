@@ -49,7 +49,8 @@ namespace Wabbajack
                     try
                     {
                         var ret = new MemoryStream();
-                        using (Stream stream = await new HttpClient().GetStreamAsync(url))
+                        using (var client = new HttpClient())
+                        using (Stream stream = await client.GetStreamAsync(url))
                         {
                             stream.CopyTo(ret);
                         }
@@ -82,7 +83,7 @@ namespace Wabbajack
                     }
                 })
                 .Replay(1)
-                .RefCount();
+                .RefCount(TimeSpan.FromMilliseconds(5000));
         }
     }
 }

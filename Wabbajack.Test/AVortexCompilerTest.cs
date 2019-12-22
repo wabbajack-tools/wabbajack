@@ -56,11 +56,11 @@ namespace Wabbajack.Test
         protected async Task<ModList> CompileAndInstall()
         {
             var vortexCompiler = await ConfigureAndRunCompiler();
-            Install(vortexCompiler);
+            await Install(vortexCompiler);
             return vortexCompiler.ModList;
         }
 
-        protected void Install(VortexCompiler vortexCompiler)
+        protected async Task Install(VortexCompiler vortexCompiler)
         {
             var modList = AInstaller.LoadFromFile(vortexCompiler.ModListOutputFile);
             var installer = new MO2Installer(
@@ -71,7 +71,7 @@ namespace Wabbajack.Test
             {
                 GameFolder = utils.GameFolder,
             };
-            installer.Begin().Wait();
+            await installer.Begin();
         }
     }
 }

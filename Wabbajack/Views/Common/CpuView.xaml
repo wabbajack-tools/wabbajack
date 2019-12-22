@@ -12,32 +12,35 @@
     <Grid>
         <Rectangle Fill="{StaticResource HeatedBorderBrush}" Opacity="{Binding ProgressPercent, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
         <ListBox
-            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Stretch"
             BorderBrush="Transparent"
             BorderThickness="1"
-            ItemsSource="{Binding StatusList}">
+            ItemsSource="{Binding StatusList}"
+            ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Grid HorizontalAlignment="Stretch">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="500" />
-                        </Grid.ColumnDefinitions>
+                    <Grid Background="{StaticResource WindowBackgroundBrush}">
                         <mahapps:MetroProgressBar
-                            Grid.Column="0"
-                            Background="{StaticResource WindowBackgroundBrush}"
-                            BorderThickness="0"
-                            Foreground="Transparent"
-                            Maximum="1"
-                            Value="{Binding Status.ProgressPercent, Mode=OneWay}" />
-                        <mahapps:MetroProgressBar
-                            Grid.Column="0"
                             Background="Transparent"
                             BorderThickness="0"
-                            Foreground="{StaticResource PrimaryVariantBrush}"
+                            Foreground="{StaticResource DarkPrimaryVariantBrush}"
                             Maximum="1"
                             Opacity="{Binding Status.ProgressPercent, Mode=OneWay}"
                             Value="{Binding Status.ProgressPercent, Mode=OneWay}" />
-                        <TextBlock Grid.Column="0" Text="{Binding Status.Msg}" />
+                        <Grid Height="1" VerticalAlignment="Bottom">
+                            <mahapps:MetroProgressBar
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="{StaticResource DarkSecondaryBrush}"
+                                Maximum="1"
+                                Value="{Binding Status.ProgressPercent, Mode=OneWay}" />
+                        </Grid>
+                        <TextBlock
+                            Margin="0,0,0,2"
+                            Text="{Binding Status.Msg}"
+                            TextTrimming="CharacterEllipsis"
+                            TextWrapping="NoWrap"
+                            ToolTip="{Binding Status.Msg}" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>

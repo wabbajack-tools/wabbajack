@@ -1,4 +1,4 @@
-﻿<local:UserControlRx
+<local:UserControlRx
     x:Class="Wabbajack.DetailImageView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -88,8 +88,8 @@
             x:Name="TitleTextShadow"
             Grid.Row="2"
             Grid.Column="0"
-            Margin="-20,15,40,-10"
-            Padding="40,10"
+            Margin="-20,5,-20,-20"
+            Padding="40,20"
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
             FontFamily="Lucida Sans"
