@@ -121,9 +121,13 @@ namespace Wabbajack.Common
             }
         }
 
-        public static void Status(string msg, int progress = 0)
+        public static void Status(string msg, int progress = 0, bool alsoLog = false)
         {
             WorkQueue.AsyncLocalCurrentQueue.Value?.Report(msg, progress);
+            if (alsoLog)
+            {
+                Utils.Log(msg);
+            }
         }
 
         /// <summary>

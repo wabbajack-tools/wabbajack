@@ -204,9 +204,15 @@ namespace Wabbajack.Common
             {
             }
 
-            p.WaitForExit();
+            if (!p.WaitForExit(30000))
+            {
+                Utils.Status($"Extracting {name} - Taking a long time to exit.", alsoLog: true);
+                p.WaitForExit();
+            }
+
             if (p.ExitCode == 0)
             {
+                Utils.Log(new GenericInfo($"Extracted {Path.GetFileName(source)}"));
                 return;
             }
             Utils.Log(new _7zipReturnError(p.ExitCode, source, dest, p.StandardOutput.ReadToEnd()));
