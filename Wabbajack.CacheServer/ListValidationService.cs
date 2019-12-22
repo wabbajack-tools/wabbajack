@@ -111,13 +111,13 @@ namespace Wabbajack.CacheServer
 
         public static void Start()
         {
-            new Thread(() =>
+            Task.Run(async () =>
             {
                 while (true)
                 {
                     try
                     {
-                        ValidateLists().Wait();
+                        await ValidateLists();
                     }
                     catch (Exception ex)
                     {
@@ -125,9 +125,9 @@ namespace Wabbajack.CacheServer
                     }
 
                     // Sleep for two hours
-                    Thread.Sleep(1000 * 60 * 60 * 2);
+                    await Task.Delay(1000 * 60 * 60 * 2);
                 }
-            }).Start();
+            }).FireAndForget();
         }
         public static async Task ValidateLists()
         {

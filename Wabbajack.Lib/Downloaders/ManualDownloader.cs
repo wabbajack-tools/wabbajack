@@ -17,6 +17,7 @@ namespace Wabbajack.Lib.Downloaders
         private FileSystemWatcher _watcher;
         private Subject<FileEvent> _fileEvents = new Subject<FileEvent>();
         private KnownFolder _downloadfolder;
+        public readonly AsyncLock Lock = new AsyncLock();
 
         class FileEvent
         {
@@ -81,7 +82,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var downloader = (ManualDownloader)GetDownloader();
                 var absPath = Path.Combine(downloader._downloadfolder.Path, a.Name);
-                lock (downloader)
+                using (await downloader.Lock.Wait())
                 {
                     try
                     {
@@ -95,8 +96,8 @@ namespace Wabbajack.Lib.Downloaders
                             .Select(x => x.FirstOrDefault())
                             .FirstOrDefaultAsync();
                         Process.Start(Url);
-                        
-                        absPath = watcher.Wait()?.FullPath;
+
+                        absPath = (await watcher)?.FullPath;
                         if (!File.Exists(absPath))
                             throw new InvalidDataException($"File not found after manual download operation");
                         File.Move(absPath, destination);

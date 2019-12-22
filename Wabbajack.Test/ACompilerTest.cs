@@ -45,11 +45,11 @@ namespace Wabbajack.Test
         protected async Task<ModList> CompileAndInstall(string profile)
         {
             var compiler = await ConfigureAndRunCompiler(profile);
-            Install(compiler);
+            await Install(compiler);
             return compiler.ModList;
         }
 
-        protected void Install(MO2Compiler compiler)
+        protected async Task Install(MO2Compiler compiler)
         {
             var modlist = AInstaller.LoadFromFile(compiler.ModListOutputFile);
             var installer = new MO2Installer(
@@ -59,7 +59,7 @@ namespace Wabbajack.Test
                 downloadFolder: utils.DownloadsFolder);
             installer.WarnOnOverwrite = false;
             installer.GameFolder = utils.GameFolder;
-            installer.Begin().Wait();
+            await installer.Begin();
         }
     }
 }
