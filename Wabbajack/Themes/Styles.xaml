@@ -41,7 +41,8 @@
     <Color x:Key="Primary">#BB86FC</Color>
     <Color x:Key="PrimaryTransparent">#00BB86FC</Color>
     <Color x:Key="PrimaryVariant">#3700B3</Color>
-    <Color x:Key="DarkPrimaryVariant">#1b0059</Color>
+    <Color x:Key="DarkPrimaryVariant">#270080</Color>
+    <Color x:Key="DarkerPrimaryVariant">#1b0059</Color>
     <Color x:Key="Secondary">#03DAC6</Color>
     <Color x:Key="DarkSecondary">#0e8f83</Color>
     <Color x:Key="DarkerSecondary">#095952</Color>
@@ -117,6 +118,7 @@
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}" />
     <SolidColorBrush x:Key="PrimaryVariantBrush" Color="{StaticResource PrimaryVariant}" />
     <SolidColorBrush x:Key="DarkPrimaryVariantBrush" Color="{StaticResource DarkPrimaryVariant}" />
+    <SolidColorBrush x:Key="DarkerPrimaryVariantBrush" Color="{StaticResource DarkerPrimaryVariant}" />
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}" />
     <SolidColorBrush x:Key="DarkSecondaryBrush" Color="{StaticResource DarkSecondary}" />
     <SolidColorBrush x:Key="DarkerSecondaryBrush" Color="{StaticResource DarkerSecondary}" />

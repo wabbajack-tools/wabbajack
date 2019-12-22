@@ -72,7 +72,7 @@
                 Value="{Binding ProgressPercent, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}">
                 <mahapps:MetroProgressBar.Foreground>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Offset="0" Color="{StaticResource DarkPrimaryVariant}" />
+                        <GradientStop Offset="0" Color="{StaticResource DarkerPrimaryVariant}" />
                         <GradientStop Offset="0.5" Color="{StaticResource PrimaryVariant}" />
                     </LinearGradientBrush>
                 </mahapps:MetroProgressBar.Foreground>
