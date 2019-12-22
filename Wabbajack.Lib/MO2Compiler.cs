@@ -119,8 +119,7 @@ namespace Wabbajack.Lib
             {
                 lootFiles = Directory.EnumerateFiles(lootPath, "userlist.yaml", SearchOption.AllDirectories)
                     .Where(p => p.FileExists())
-                    .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
-                        { Path = Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(lootPath)) });
+                    .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(lootPath))));
             }
 
             if (cancel.IsCancellationRequested) return false;
@@ -158,12 +157,11 @@ namespace Wabbajack.Lib
 
             var mo2Files = Directory.EnumerateFiles(MO2Folder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p]) { Path = p.RelativeTo(MO2Folder) });
+                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(MO2Folder)));
 
             var gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
-                { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
+                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))));
 
             
             ModMetas = Directory.EnumerateDirectories(Path.Combine(MO2Folder, "mods"))

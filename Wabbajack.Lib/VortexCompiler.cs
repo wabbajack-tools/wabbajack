@@ -117,18 +117,15 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Finding Install Files");
             var vortexStagingFiles = Directory.EnumerateFiles(StagingFolder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists() && p != StagingMarkerName && !p.Contains(Consts.ManualGameFilesDir))
-                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
-                    {Path = p.RelativeTo(StagingFolder)});
+                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(StagingFolder)));
             
             var vortexDownloads = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists() && p != DownloadMarkerName)
-                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
-                    {Path = p.RelativeTo(DownloadsFolder)});
+                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(DownloadsFolder)));
 
             var gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p])
-                    { Path = Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath)) });
+                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))));
 
             Info("Indexing Archives");
             IndexedArchives = Directory.EnumerateFiles(DownloadsFolder)

@@ -65,10 +65,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             var id = Guid.NewGuid().ToString();
 
-            var matches = await sourceFiles.PMap(_mo2Compiler.Queue, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e)
-            {
-                Path = Path.Combine(Consts.BSACreationDir, id, e.Name)
-            }));
+            var matches = await sourceFiles.PMap(_mo2Compiler.Queue, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e, Path.Combine(Consts.BSACreationDir, id, e.Name))));
 
 
             foreach (var match in matches)

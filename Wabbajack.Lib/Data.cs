@@ -11,11 +11,14 @@ namespace Wabbajack.Lib
 {
     public class RawSourceFile
     {
+        // ToDo
+        // Make readonly
         public string Path;
 
-        public RawSourceFile(VirtualFile file)
+        public RawSourceFile(VirtualFile file, string path)
         {
             File = file;
+            Path = path;
         }
 
         public string AbsolutePath => File.StagedPath;
