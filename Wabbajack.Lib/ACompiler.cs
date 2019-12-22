@@ -221,6 +221,8 @@ namespace Wabbajack.Lib
 
         public async Task<Archive> ResolveArchive(IndexedArchive archive)
         {
+            Utils.Status($"Checking link for {archive.Name}", alsoLog: true);
+
             if (archive.IniData == null)
                 Error(
                     $"No download metadata found for {archive.Name}, please use MO2 to query info or add a .meta file and try again.");
@@ -237,8 +239,6 @@ namespace Wabbajack.Lib
             result.Hash = archive.File.Hash;
             result.Meta = archive.Meta;
             result.Size = archive.File.Size;
-
-            Info($"Checking link for {archive.Name}");
 
             if (result.State != null && !await result.State.Verify())
                 Error(
