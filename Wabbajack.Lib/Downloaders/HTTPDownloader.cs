@@ -75,8 +75,9 @@ namespace Wabbajack.Lib.Downloaders
 
             public async Task<bool> DoDownload(Archive a, string destination, bool download)
             {
-                if (download && !Directory.Exists(Directory.GetParent(destination).FullName))
-                    Directory.CreateDirectory(Directory.GetParent(destination).FullName);
+                var parent = Directory.GetParent(destination);
+                if (download && !Directory.Exists(parent.FullName))
+                    Directory.CreateDirectory(parent.FullName);
 
                 using (var fs = download ? File.OpenWrite(destination) : null)
                 {
@@ -119,12 +120,6 @@ namespace Wabbajack.Lib.Downloaders
                     var supportsResume = response.Headers.AcceptRanges.FirstOrDefault(f => f == "bytes") != null;
 
                     var contentSize = headerVar != null ? long.Parse(headerVar) : 1;
-
-                    FileInfo fileInfo = new FileInfo(destination);
-                    if (!fileInfo.Directory.Exists)
-                    {
-                        Directory.CreateDirectory(fileInfo.Directory.FullName);
-                    }
 
                     using (var webs = stream)
                     {
