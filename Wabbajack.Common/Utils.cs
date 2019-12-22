@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.HashFunction.xxHash;
 using System.Diagnostics;
@@ -542,6 +542,18 @@ namespace Wabbajack.Common
         }
 
         public static async Task PMap<TI>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
+            Func<TI, Task> f)
+        {
+            var cnt = 0;
+            var collist = coll.ToList();
+            await collist.PMap(queue, async itm =>
+            {
+                updateTracker.MakeUpdate(collist.Count, Interlocked.Increment(ref cnt));
+                await f(itm);
+            });
+        }
+
+        public static async Task PMap<TI>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
             Action<TI> f)
         {
             var cnt = 0;
@@ -553,7 +565,6 @@ namespace Wabbajack.Common
                 return true;
             });
         }
-
 
         public static async Task<TR[]> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue,
             Func<TI, TR> f)
@@ -591,7 +602,6 @@ namespace Wabbajack.Common
 
             return await Task.WhenAll(tasks);
         }
-
 
         public static async Task<TR[]> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue,
             Func<TI, Task<TR>> f)
