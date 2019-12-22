@@ -99,6 +99,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ACompilerTest.cs" />
+    <Compile Include="AsyncLockTests.cs" />
     <Compile Include="AVortexCompilerTest.cs" />
     <Compile Include="CSP\ChannelTests.cs" />
     <Compile Include="CSP\CSPTests.cs" />

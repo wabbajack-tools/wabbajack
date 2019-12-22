@@ -129,6 +129,7 @@
     <Compile Include="StatusUpdate.cs" />
     <Compile Include="SteamHandler.cs" />
     <Compile Include="Utils.cs" />
+    <Compile Include="Util\AsyncLock.cs" />
     <Compile Include="Util\TempFile.cs" />
     <Compile Include="Util\TempFolder.cs" />
     <Compile Include="WorkQueue.cs" />
