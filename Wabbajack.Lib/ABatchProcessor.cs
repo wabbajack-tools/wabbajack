@@ -12,6 +12,12 @@ namespace Wabbajack.Lib
 {
     public abstract class ABatchProcessor : IBatchProcessor
     {
+        static ABatchProcessor()
+        {
+            // Needed so we don't multi-thread into a static constructor
+            var _ = CerasConfig.Config;
+        }
+
         public WorkQueue Queue { get; private set; }
 
         public Context VFS { get; private set; }

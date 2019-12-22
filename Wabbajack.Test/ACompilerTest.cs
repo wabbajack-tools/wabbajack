@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -37,6 +38,8 @@ namespace Wabbajack.Test
                 mo2Folder: utils.MO2Folder,
                 mo2Profile: profile,
                 outputFile: profile + ExtensionManager.Extension);
+            compiler.ModListOutputFolder = Path.Combine(utils.TestFolder, "output_folder");
+            compiler.SyncVFS = false;
             compiler.ShowReportWhenFinished = false;
             Assert.IsTrue(await compiler.Begin());
             return compiler;

@@ -76,6 +76,7 @@ namespace Wabbajack.Test
                 mo2Folder: utils.InstallFolder,
                 mo2Profile: profile,
                 outputFile: profile + ExtensionManager.Extension);
+            compiler.ModListOutputFolder = Path.Combine(utils.WorkingDirectory, "mo2_output");
             compiler.MO2DownloadsFolder = Path.Combine(utils.DownloadsFolder);
             compiler.ShowReportWhenFinished = false;
             Assert.IsTrue(await compiler.Begin());
@@ -164,6 +165,8 @@ namespace Wabbajack.Test
                 mo2Folder: utils.MO2Folder,
                 mo2Profile: profile,
                 outputFile: profile + ExtensionManager.Extension);
+            compiler.ModListOutputFolder = Path.Combine(utils.TestFolder, "output_folder");
+            compiler.SyncVFS = false;
             compiler.ShowReportWhenFinished = false;
             Assert.IsTrue(await compiler.Begin());
             return compiler;

@@ -25,6 +25,7 @@ namespace Wabbajack.Lib
         private string _mo2DownloadsFolder;
         
         public string MO2Folder;
+        public bool SyncVFS { get; set; } = true;
 
         public string MO2Profile { get; }
         public Dictionary<string, dynamic> ModMetas { get; set; }
@@ -35,7 +36,7 @@ namespace Wabbajack.Lib
 
         public GameMetaData CompilingGame { get; set; }
 
-        public override string ModListOutputFolder => "output_folder";
+        public override string ModListOutputFolder { get; set; } = "output_folder";
 
         public override string ModListOutputFile { get; }
 
@@ -80,6 +81,9 @@ namespace Wabbajack.Lib
 
         protected override async Task<bool> _Begin(CancellationToken cancel)
         {
+            if (!Directory.Exists(ModListOutputFolder))
+                Directory.CreateDirectory(ModListOutputFolder);
+
             if (cancel.IsCancellationRequested) return false;
             ConfigureProcessor(19);
             UpdateTracker.Reset();
@@ -113,7 +117,9 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             await VFS.AddRoots(roots);
-            await VFS.WriteToFile(_vfsCacheName);
+
+            if (SyncVFS)
+                await VFS.WriteToFile(_vfsCacheName);
             
             if (Directory.Exists(lootPath))
             {
@@ -135,7 +141,9 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Reindexing downloads after meta inferring");
             await VFS.AddRoot(MO2DownloadsFolder);
-            await VFS.WriteToFile(_vfsCacheName);
+
+            if (SyncVFS)
+                await VFS.WriteToFile(_vfsCacheName);
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Pre-validating Archives");

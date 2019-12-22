@@ -37,7 +37,7 @@ namespace Wabbajack.Lib
 
         public abstract string GamePath { get; }
 
-        public abstract string ModListOutputFolder { get; }
+        public abstract string ModListOutputFolder { get; set; }
         public abstract string ModListOutputFile { get; }
 
         public bool ShowReportWhenFinished { get; set; } = true;
@@ -98,7 +98,7 @@ namespace Wabbajack.Lib
             ModList.ReadmeIsWebsite = ReadmeIsWebsite;
 
             //ModList.ToJSON(Path.Combine(ModListOutputFolder, "modlist.json"));
-            ModList.ToCERAS(Path.Combine(ModListOutputFolder, "modlist"), CerasConfig.Config);
+            ModList.ToCERAS(Path.Combine(ModListOutputFolder, "modlist"), CerasConfig.GetConfig());
 
             if (File.Exists(ModListOutputFile))
                 File.Delete(ModListOutputFile);

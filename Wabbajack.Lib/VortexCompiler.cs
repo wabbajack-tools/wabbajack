@@ -38,7 +38,7 @@ namespace Wabbajack.Lib
 
         public override ModManager ModManager => ModManager.Vortex;
         public override string GamePath { get; }
-        public override string ModListOutputFolder => "output_folder";
+        public override string ModListOutputFolder { get; set; } = "output_folder";
         public override string ModListOutputFile { get; }
 
         public const string StagingMarkerName = "__vortex_staging_folder";

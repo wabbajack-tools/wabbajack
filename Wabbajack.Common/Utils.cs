@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.HashFunction.xxHash;
 using System.Diagnostics;
@@ -50,6 +50,8 @@ namespace Wabbajack.Common
 
         static Utils()
         {
+
+
             if (!Directory.Exists(Consts.LocalAppDataPath))
                 Directory.CreateDirectory(Consts.LocalAppDataPath);
 
@@ -866,6 +868,7 @@ namespace Wabbajack.Common
 
         private static async Task<long> TestDiskSpeedInner(WorkQueue queue, string path)
         {
+            var id = Guid.NewGuid();
             var startTime = DateTime.Now;
             var seconds = 2;
             var results = await Enumerable.Range(0, queue.ThreadCount)
@@ -873,7 +876,7 @@ namespace Wabbajack.Common
                 {
                     var random = new Random();
 
-                    var file = Path.Combine(path, $"size_test{idx}.bin");
+                    var file = Path.Combine(path, $"size_test_{id}_{idx}.bin");
                     long size = 0;
                     byte[] buffer = new byte[1024 * 8];
                     random.NextBytes(buffer);
