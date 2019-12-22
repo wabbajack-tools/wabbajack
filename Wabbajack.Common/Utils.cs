@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.HashFunction.xxHash;
 using System.Diagnostics;
@@ -976,6 +976,11 @@ namespace Wabbajack.Common
                 Status(line);
             }
             p.WaitForExit();
+        }
+
+        public static bool IsUnderneathDirectory(string path, string dirPath)
+        {
+            return path.StartsWith(dirPath, StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>

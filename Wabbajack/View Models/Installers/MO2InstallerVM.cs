@@ -47,8 +47,6 @@ namespace Wabbajack
                 PathType = FilePickerVM.PathTypeOptions.Folder,
                 PromptTitle = "Select Installation Directory",
             };
-            Location.AdditionalError = this.WhenAny(x => x.Location.TargetPath)
-                .Select(x => MO2Installer.CheckValidInstallPath(x));
             DownloadLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.Off,
@@ -57,6 +55,13 @@ namespace Wabbajack
             };
             DownloadLocation.AdditionalError = this.WhenAny(x => x.DownloadLocation.TargetPath)
                 .Select(x => Utils.IsDirectoryPathValid(x));
+            Location.AdditionalError = Observable.CombineLatest(
+                    this.WhenAny(x => x.Location.TargetPath),
+                    this.WhenAny(x => x.DownloadLocation.TargetPath),
+                    resultSelector: (target, download) =>
+                    {
+                        return MO2Installer.CheckValidInstallPath(target, download);
+                    });
 
             CanInstall = Observable.CombineLatest(
                 this.WhenAny(x => x.Location.InError),
@@ -83,7 +88,7 @@ namespace Wabbajack
             _CurrentSettings = installerVM.WhenAny(x => x.ModListLocation.TargetPath)
                 .Select(path => path == null ? null : installerVM.MWVM.Settings.Installer.Mo2ModlistSettings.TryCreate(path))
                 .ToProperty(this, nameof(CurrentSettings));
-            (this).WhenAny(x => x.CurrentSettings)
+            this.WhenAny(x => x.CurrentSettings)
                 .Pairwise()
                 .Subscribe(settingsPair =>
                 {

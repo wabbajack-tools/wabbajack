@@ -319,7 +319,7 @@ namespace Wabbajack.Lib
             File.WriteAllText(Path.Combine(OutputFolder, directive.To), data);
         }
 
-        public static IErrorResponse CheckValidInstallPath(string path)
+        public static IErrorResponse CheckValidInstallPath(string path, string downloadFolder)
         {
             var ret = Utils.IsDirectoryPathValid(path);
             if (!ret.Succeeded) return ret;
@@ -339,8 +339,8 @@ namespace Wabbajack.Lib
             // Check folder is either empty, or a likely valid previous install
             if (!Directory.IsEmpty(path))
             {
-                // Some probably naive check, but should be a good starting point to improve later
-                if (!Directory.EnumerateFiles(path).Any(file =>
+                // If we have a MO2 install, assume good to go
+                if (Directory.EnumerateFiles(path).Any(file =>
                 {
                     var fileName = Path.GetFileName(file);
                     if (fileName.Equals("ModOrganizer.exe", StringComparison.OrdinalIgnoreCase)) return true;
@@ -348,7 +348,19 @@ namespace Wabbajack.Lib
                     return false;
                 }))
                 {
-                    return ErrorResponse.Fail($"Cannot install into a non-empty folder that does not look like a previous WJ installation.");
+                    return ErrorResponse.Success;
+                }
+
+                // If we don't have a MO2 install, and there's any file that's not in the downloads folder, mark failure
+                if (Directory.EnumerateFiles(path).Any(file =>
+                {
+                    var fileName = Path.GetFileName(file);
+                    if (string.IsNullOrWhiteSpace(downloadFolder)) return true;
+                    return !Utils.IsUnderneathDirectory(file, downloadFolder);
+                }))
+                {
+                    return ErrorResponse.Fail($"Cannot install into a non-empty folder that does not look like a previous WJ installation.\n" +
+                        $"To override, delete all installed files from your target installation folder.  Any files in your download folder are okay to keep.");
                 }
             }
 

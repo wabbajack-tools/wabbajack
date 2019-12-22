@@ -19,7 +19,7 @@ namespace Wabbajack.Test
         {
             using (var tempDir = new TempFolder())
             {
-                Assert.IsTrue(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName).Succeeded);
+                Assert.IsTrue(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: null).Succeeded);
             }
         }
 
@@ -28,7 +28,7 @@ namespace Wabbajack.Test
         {
             using (var tempDir = new TempFolder())
             {
-                Assert.IsTrue(MO2Installer.CheckValidInstallPath(Path.Combine(tempDir.Dir.FullName, "Subfolder")).Succeeded);
+                Assert.IsTrue(MO2Installer.CheckValidInstallPath(Path.Combine(tempDir.Dir.FullName, "Subfolder"), downloadFolder: null).Succeeded);
             }
         }
 
@@ -37,7 +37,7 @@ namespace Wabbajack.Test
         {
             using (var tempDir = new TempFolder())
             {
-                Assert.IsFalse(MO2Installer.CheckValidInstallPath($"{tempDir.Dir.FullName}/*").Succeeded);
+                Assert.IsFalse(MO2Installer.CheckValidInstallPath($"{tempDir.Dir.FullName}/*", downloadFolder: null).Succeeded);
             }
         }
 
@@ -48,7 +48,7 @@ namespace Wabbajack.Test
             {
                 File.Create(Path.Combine(tempDir.Dir.FullName, $"ModOrganizer.exe"));
                 File.Create(Path.Combine(tempDir.Dir.FullName, $"modlist{ExtensionManager.Extension}"));
-                Assert.IsFalse(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName).Succeeded);
+                Assert.IsFalse(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: null).Succeeded);
             }
         }
 
@@ -58,7 +58,7 @@ namespace Wabbajack.Test
             using (var tempDir = new TempFolder())
             {
                 File.Create(Path.Combine(tempDir.Dir.FullName, $"ModOrganizer.exe"));
-                Assert.IsTrue(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName).Succeeded);
+                Assert.IsTrue(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: null).Succeeded);
             }
         }
 
@@ -68,7 +68,19 @@ namespace Wabbajack.Test
             using (var tempDir = new TempFolder())
             {
                 File.Create(Path.Combine(tempDir.Dir.FullName, $"someFile.txt"));
-                Assert.IsFalse(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName).Succeeded);
+                Assert.IsFalse(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: null).Succeeded);
+            }
+        }
+
+        [TestMethod]
+        public void CheckValidInstallPath_OverwriteFilesInDownloads()
+        {
+            using (var tempDir = new TempFolder())
+            {
+                var downloadsFolder = Path.Combine(tempDir.Dir.FullName, "downloads");
+                Directory.CreateDirectory(downloadsFolder);
+                File.Create(Path.Combine(tempDir.Dir.FullName, $"downloads/someFile.txt"));
+                Assert.IsFalse(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: downloadsFolder).Succeeded);
             }
         }
         #endregion
