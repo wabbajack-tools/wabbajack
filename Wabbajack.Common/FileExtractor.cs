@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -208,6 +208,7 @@ namespace Wabbajack.Common
 
             if (p.ExitCode == 0)
             {
+                Utils.Status($"Extracting {name} - 100%", 100, alsoLog: true);
                 return;
             }
             Utils.Log(new _7zipReturnError(p.ExitCode, source, dest, p.StandardOutput.ReadToEnd()));
