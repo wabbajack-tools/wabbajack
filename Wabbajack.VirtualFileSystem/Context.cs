@@ -98,6 +98,7 @@ namespace Wabbajack.VirtualFileSystem
             var allFiles = await filesToIndex
                 .PMap(Queue, async f =>
                 {
+                    Utils.Status($"Indexing {Path.GetFileName(f)}");
                     if (byPath.TryGetValue(f, out var found))
                     {
                         var fi = new FileInfo(f);

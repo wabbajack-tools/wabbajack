@@ -128,8 +128,8 @@ namespace Wabbajack.Test
 
             // Update the file and verify that it throws an error.
             utils.GenerateRandomFileData(game_file, 20);
-            var exception = Assert.ThrowsException<AggregateException>(() => Install(compiler));
-            Assert.IsInstanceOfType(exception.InnerExceptions.First(), typeof(InvalidGameESMError));
+            var exception = await Assert.ThrowsExceptionAsync<InvalidGameESMError>(async () => await Install(compiler));
+            Assert.IsInstanceOfType(exception, typeof(InvalidGameESMError));
         }
 
         [TestMethod]
