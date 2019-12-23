@@ -14,6 +14,7 @@ namespace Wabbajack.Test
     {
         const int TypicalThreadCount = 2;
         const int TypicalDelayMS = 50;
+        const int TimeoutSeconds = 15;
 
         [TestMethod]
         public async Task Typical_Action()
@@ -22,7 +23,7 @@ namespace Wabbajack.Test
             {
                 var input = Enumerable.Range(0, TypicalThreadCount * 2).ToArray();
                 var output = new List<int>();
-                await Enumerable.Range(0, TypicalThreadCount * 2)
+                var workTask = Enumerable.Range(0, TypicalThreadCount * 2)
                     .PMap(queue, (item) =>
                     {
                         Assert.IsTrue(WorkQueue.WorkerThread);
@@ -32,6 +33,7 @@ namespace Wabbajack.Test
                             output.Add(item);
                         }
                     });
+                await workTask.TimeoutButContinue(TimeSpan.FromSeconds(TimeoutSeconds), () => throw new TimeoutException());
                 Assert.IsTrue(input.SequenceEqual(output.OrderBy(i => i)));
             }
         }
@@ -42,13 +44,14 @@ namespace Wabbajack.Test
             using (var queue = new WorkQueue(TypicalThreadCount))
             {
                 var input = Enumerable.Range(0, TypicalThreadCount * 2).ToArray();
-                var results = await Enumerable.Range(0, TypicalThreadCount * 2)
+                var workTask = Enumerable.Range(0, TypicalThreadCount * 2)
                     .PMap(queue, (item) =>
                     {
                         Assert.IsTrue(WorkQueue.WorkerThread);
                         Thread.Sleep(TypicalDelayMS);
                         return item.ToString();
                     });
+                var results = await workTask.TimeoutButContinue(TimeSpan.FromSeconds(TimeoutSeconds), () => throw new TimeoutException());
                 Assert.IsTrue(input.Select(i => i.ToString()).SequenceEqual(results));
             }
         }
@@ -60,7 +63,7 @@ namespace Wabbajack.Test
             {
                 var input = Enumerable.Range(0, TypicalThreadCount * 2).ToArray();
                 var output = new List<int>();
-                await Enumerable.Range(0, TypicalThreadCount * 2)
+                var workTask = Enumerable.Range(0, TypicalThreadCount * 2)
                     .PMap(queue, async (item) =>
                     {
                         Assert.IsTrue(WorkQueue.WorkerThread);
@@ -70,6 +73,7 @@ namespace Wabbajack.Test
                             output.Add(item);
                         }
                     });
+                await workTask.TimeoutButContinue(TimeSpan.FromSeconds(TimeoutSeconds), () => throw new TimeoutException());
                 Assert.IsTrue(input.SequenceEqual(output.OrderBy(i => i)));
             }
         }
@@ -80,13 +84,14 @@ namespace Wabbajack.Test
             using (var queue = new WorkQueue(TypicalThreadCount))
             {
                 var input = Enumerable.Range(0, TypicalThreadCount * 2).ToArray();
-                var results = await Enumerable.Range(0, TypicalThreadCount * 2)
+                var workTask = Enumerable.Range(0, TypicalThreadCount * 2)
                     .PMap(queue, async (item) =>
                     {
                         Assert.IsTrue(WorkQueue.WorkerThread);
                         await Task.Delay(TypicalDelayMS);
                         return item.ToString();
                     });
+                var results = await workTask.TimeoutButContinue(TimeSpan.FromSeconds(TimeoutSeconds), () => throw new TimeoutException());
                 Assert.IsTrue(input.Select(i => i.ToString()).SequenceEqual(results));
             }
         }
@@ -99,7 +104,7 @@ namespace Wabbajack.Test
                 var input = Enumerable.Range(0, TypicalThreadCount * 2).ToArray();
                 var inputConstructedResults = input.SelectMany(i => Enumerable.Range(i * 100, TypicalThreadCount * 2));
                 var output = new List<int>();
-                await Enumerable.Range(0, TypicalThreadCount * 2)
+                var workTask = Enumerable.Range(0, TypicalThreadCount * 2)
                     .PMap(queue, async (item) =>
                     {
                         Assert.IsTrue(WorkQueue.WorkerThread);
@@ -114,6 +119,7 @@ namespace Wabbajack.Test
                                 }
                             });
                     });
+                await workTask.TimeoutButContinue(TimeSpan.FromSeconds(TimeoutSeconds), () => throw new TimeoutException());
                 Assert.IsTrue(inputConstructedResults.SequenceEqual(output.OrderBy(i => i)));
             }
         }
@@ -125,7 +131,7 @@ namespace Wabbajack.Test
             {
                 var input = Enumerable.Range(0, TypicalThreadCount * 2).ToArray();
                 var inputConstructedResults = input.SelectMany(i => Enumerable.Range(i * 100, TypicalThreadCount * 2));
-                var results = await Enumerable.Range(0, TypicalThreadCount * 2)
+                var workTask = Enumerable.Range(0, TypicalThreadCount * 2)
                     .PMap(queue, async (item) =>
                     {
                         Assert.IsTrue(WorkQueue.WorkerThread);
@@ -137,6 +143,7 @@ namespace Wabbajack.Test
                                 return subItem;
                             });
                     });
+                var results = await workTask.TimeoutButContinue(TimeSpan.FromSeconds(TimeoutSeconds), () => throw new TimeoutException());
                 Assert.IsTrue(inputConstructedResults.SequenceEqual(results.SelectMany(i => i)));
             }
         }
@@ -149,7 +156,7 @@ namespace Wabbajack.Test
                 var input = Enumerable.Range(0, TypicalThreadCount * 2).ToArray();
                 var inputConstructedResults = input.SelectMany(i => Enumerable.Range(i * 100, TypicalThreadCount * 2));
                 var output = new List<int>();
-                await Enumerable.Range(0, TypicalThreadCount * 2)
+                var workTask = Enumerable.Range(0, TypicalThreadCount * 2)
                     .PMap(queue, async (item) =>
                     {
                         Assert.IsTrue(WorkQueue.WorkerThread);
@@ -164,6 +171,7 @@ namespace Wabbajack.Test
                                 }
                             });
                     });
+                await workTask.TimeoutButContinue(TimeSpan.FromSeconds(TimeoutSeconds), () => throw new TimeoutException());
                 Assert.IsTrue(inputConstructedResults.SequenceEqual(output.OrderBy(i => i)));
             }
         }
@@ -175,7 +183,7 @@ namespace Wabbajack.Test
             {
                 var input = Enumerable.Range(0, TypicalThreadCount * 2).ToArray();
                 var inputConstructedResults = input.SelectMany(i => Enumerable.Range(i * 100, TypicalThreadCount * 2));
-                var results = await Enumerable.Range(0, TypicalThreadCount * 2)
+                var workTask = Enumerable.Range(0, TypicalThreadCount * 2)
                     .PMap(queue, async (item) =>
                     {
                         Assert.IsTrue(WorkQueue.WorkerThread);
@@ -187,6 +195,7 @@ namespace Wabbajack.Test
                                 return subItem;
                             });
                     });
+                var results = await workTask.TimeoutButContinue(TimeSpan.FromSeconds(TimeoutSeconds), () => throw new TimeoutException());
                 Assert.IsTrue(inputConstructedResults.SequenceEqual(results.SelectMany(i => i)));
             }
         }
@@ -198,7 +207,7 @@ namespace Wabbajack.Test
             {
                 var input = Enumerable.Range(0, TypicalThreadCount * 2).ToArray();
                 var inputConstructedResults = input.SelectMany(i => Enumerable.Range(i * 100, TypicalThreadCount * 2));
-                var results = await Enumerable.Range(0, TypicalThreadCount * 2)
+                var workTask = Enumerable.Range(0, TypicalThreadCount * 2)
                     .PMap(queue, async (item) =>
                     {
                         Assert.IsTrue(WorkQueue.WorkerThread);
@@ -213,6 +222,7 @@ namespace Wabbajack.Test
                                 });
                             });
                     });
+                var results = await workTask.TimeoutButContinue(TimeSpan.FromSeconds(TimeoutSeconds), () => throw new TimeoutException());
                 Assert.IsTrue(inputConstructedResults.SequenceEqual(results.SelectMany(i => i)));
             }
         }
