@@ -110,6 +110,7 @@
     <Compile Include="MiscTests.cs" />
     <Compile Include="MO2Tests.cs" />
     <Compile Include="ModlistMetadataTests.cs" />
+    <Compile Include="PMapTests.cs" />
     <Compile Include="RestartingDownloadsTests.cs" />
     <Compile Include="SimpleHTTPServer.cs" />
     <Compile Include="TestUtils.cs" />

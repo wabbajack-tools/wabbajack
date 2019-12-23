@@ -20,8 +20,8 @@ namespace Wabbajack.Common
         private static readonly AsyncLocal<int> _cpuId = new AsyncLocal<int>();
         public int CpuId => _cpuId.Value;
 
-        internal static bool WorkerThread => ThreadLocalCurrentQueue.Value != null;
-        internal static readonly ThreadLocal<WorkQueue> ThreadLocalCurrentQueue = new ThreadLocal<WorkQueue>();
+        public static bool WorkerThread => AsyncLocalCurrentQueue.Value != null;
+        public bool IsWorkerThread => WorkerThread;
         internal static readonly AsyncLocal<WorkQueue> AsyncLocalCurrentQueue = new AsyncLocal<WorkQueue>();
 
         private readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
@@ -61,7 +61,6 @@ namespace Wabbajack.Common
         private async Task ThreadBody(int idx)
         {
             _cpuId.Value = idx;
-            ThreadLocalCurrentQueue.Value = this;
             AsyncLocalCurrentQueue.Value = this;
 
             try
