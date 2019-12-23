@@ -119,7 +119,8 @@ namespace Wabbajack.Lib
         /// <summary>
         ///     Whether readme is a website
         /// </summary>
-        public bool ReadmeIsWebsite;
+        /// DISABLED FOR THIS RELEASE
+        //public bool ReadmeIsWebsite;
     }
 
     public class Directive

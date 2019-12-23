@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 1.0 beta 10 - 12/23/2019
+* Many internal bug fixes releated to deadlocking
+* Take the system RAM into account when configuring queue sizes
+* Fixed the "This shouldn't happen" bug during patching. Thanks Noggog for spending countless hours on tracking down the problems.
+
 #### Version - 1.0 beta 9 - 12/18/2019
 * Create output folders before trying to download a file
 
