@@ -80,7 +80,7 @@ namespace Wabbajack.Test
                 var downloadsFolder = Path.Combine(tempDir.Dir.FullName, "downloads");
                 Directory.CreateDirectory(downloadsFolder);
                 File.Create(Path.Combine(tempDir.Dir.FullName, $"downloads/someFile.txt"));
-                Assert.IsFalse(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: downloadsFolder).Succeeded);
+                Assert.IsTrue(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: downloadsFolder).Succeeded);
             }
         }
         #endregion
