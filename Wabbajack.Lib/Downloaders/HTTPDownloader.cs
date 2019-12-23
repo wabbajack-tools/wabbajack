@@ -75,9 +75,12 @@ namespace Wabbajack.Lib.Downloaders
 
             public async Task<bool> DoDownload(Archive a, string destination, bool download)
             {
-                var parent = Directory.GetParent(destination);
-                if (download && !Directory.Exists(parent.FullName))
-                    Directory.CreateDirectory(parent.FullName);
+                if (download)
+                {
+                    var parent = Directory.GetParent(destination);
+                    if (!Directory.Exists(parent.FullName))
+                        Directory.CreateDirectory(parent.FullName);
+                }
 
                 using (var fs = download ? File.OpenWrite(destination) : null)
                 {
