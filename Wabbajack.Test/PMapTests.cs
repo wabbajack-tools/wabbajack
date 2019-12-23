@@ -12,7 +12,7 @@ namespace Wabbajack.Test
     [TestClass]
     public class PMapTests
     {
-        const int TypicalThreadCount = 2;
+        const int TypicalThreadCount = 6;
         const int TypicalDelayMS = 50;
         const int TimeoutSeconds = 15;
 
