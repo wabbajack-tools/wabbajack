@@ -63,13 +63,7 @@ namespace Wabbajack.Test
                 await Enumerable.Range(0, TypicalThreadCount * 2)
                     .PMap(queue, async (item) =>
                     {
-                        bool isWorker = WorkQueue.WorkerThread;
-                        if (!isWorker)
-                        {
-                            int wer = 23;
-                            wer++;
-                        }
-                        Assert.IsTrue(isWorker);
+                        Assert.IsTrue(WorkQueue.WorkerThread);
                         await Task.Delay(TypicalDelayMS);
                         lock (output)
                         {
@@ -158,23 +152,11 @@ namespace Wabbajack.Test
                 await Enumerable.Range(0, TypicalThreadCount * 2)
                     .PMap(queue, async (item) =>
                     {
-                        bool isWorker = WorkQueue.WorkerThread;
-                        if (!isWorker)
-                        {
-                            int wer = 23;
-                            wer++;
-                        }
-                        Assert.IsTrue(isWorker);
+                        Assert.IsTrue(WorkQueue.WorkerThread);
                         await Enumerable.Range(item * 100, TypicalThreadCount * 2)
                             .PMap(queue, async (subItem) =>
                             {
-                                bool isWorker2 = WorkQueue.WorkerThread;
-                                if (!isWorker2)
-                                {
-                                    int wer = 23;
-                                    wer++;
-                                }
-                                Assert.IsTrue(isWorker2);
+                                Assert.IsTrue(WorkQueue.WorkerThread);
                                 await Task.Delay(TypicalDelayMS);
                                 lock (output)
                                 {
