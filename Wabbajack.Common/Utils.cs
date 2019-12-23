@@ -311,6 +311,13 @@ namespace Wabbajack.Common
             }
         }
 
+        public static Task PDoIndexed<T>(this IEnumerable<T> coll, WorkQueue queue, Action<int, T> f)
+        {
+            return coll.Zip(Enumerable.Range(0, int.MaxValue), (v, idx) => (v, idx))
+                       .PMap(queue, vs=> f(vs.idx, vs.v));
+        }
+
+
 
         /// <summary>
         ///     Loads INI data from the given filename and returns a dynamic type that

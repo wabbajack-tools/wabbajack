@@ -130,10 +130,10 @@ namespace Wabbajack.Lib
                 .ToList();
 
             Info("Installing Archives");
-            await archives.PMap(Queue, UpdateTracker,a => InstallArchive(a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
+            await archives.PMap(Queue, UpdateTracker,a => InstallArchive(Queue, a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
         }
 
-        private async Task InstallArchive(Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
+        private async Task InstallArchive(WorkQueue queue, Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
         {
             Status($"Extracting {archive.Name}");
 
@@ -176,8 +176,8 @@ namespace Wabbajack.Lib
                 File.SetLastWriteTime(to, DateTime.Now);
             }
 
-            vFiles.GroupBy(f => f.FromFile)
-                  .DoIndexed((idx, group) =>
+            await vFiles.GroupBy(f => f.FromFile)
+                  .PDoIndexed(queue, (idx, group) =>
             {
                 Utils.Status("Installing files", idx * 100 / vFiles.Count);
                 var firstDest = Path.Combine(OutputFolder, group.First().To);
