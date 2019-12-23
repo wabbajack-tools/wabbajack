@@ -44,7 +44,8 @@ namespace Compression.BSA.Test
                 (Game.SkyrimSpecialEdition, 12604), // SkyUI
                 (Game.Skyrim, 3863), // SkyUI
                 (Game.Skyrim, 51473), // iNeed
-                (Game.Fallout4, 22223) // 10mm SMG
+                //(Game.Fallout4, 22223) // 10mm SMG
+                (Game.Fallout4, 4472) // True Storms
             };
 
             await Task.WhenAll(modIDs.Select(async (info) =>

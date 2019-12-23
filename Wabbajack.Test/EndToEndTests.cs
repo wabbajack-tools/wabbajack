@@ -31,7 +31,7 @@ namespace Wabbajack.Test
             utils = new TestUtils();
             utils.Game = Game.SkyrimSpecialEdition;
 
-            Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f.ToString()));
+            Utils.LogMessages.Subscribe(f => TestContext.WriteLine($"{DateTime.Now} - {f}"));
 
             if (!Directory.Exists(DOWNLOAD_FOLDER))
                 Directory.CreateDirectory(DOWNLOAD_FOLDER);
