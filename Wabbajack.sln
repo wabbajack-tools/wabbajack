@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Common", "Wabbajack.Common\Wabbajack.Common.csproj", "{B3F3FB6E-B9EB-4F49-9875-D78578BC7AE5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Common", "Wabbajack.Common\Wabbajack.Common.csproj", "{B3F3FB6E-B9EB-4F49-9875-D78578BC7AE5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack", "Wabbajack\Wabbajack.csproj", "{33602679-8484-40C7-A10C-774DFF5D8314}"
 EndProject
@@ -34,7 +34,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.VirtualFileSystem
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.CacheServer", "Wabbajack.CacheServer\Wabbajack.CacheServer.csproj", "{BDC9A094-D235-47CD-83CA-44199B60AB20}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OMODExtraction", "OMODExtraction\OMODExtraction.csproj", "{649B6949-E0A7-4E9E-994A-A3CA2BBB9426}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OMODExtraction", "OMODExtraction\OMODExtraction.csproj", "{649B6949-E0A7-4E9E-994A-A3CA2BBB9426}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -183,8 +183,8 @@ Global
 		{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}.Debug (no commandargs)|x86.Build.0 = Debug|Any CPU
 		{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}.Debug|x64.ActiveCfg = Debug|x64
-		{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}.Debug|x64.Build.0 = Debug|x64
+		{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}.Debug|x64.Build.0 = Debug|Any CPU
 		{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}.Debug|x86.Build.0 = Debug|Any CPU
 		{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -201,8 +201,8 @@ Global
 		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Debug (no commandargs)|x86.Build.0 = Debug|Any CPU
 		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Debug|x64.ActiveCfg = Debug|x64
-		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Debug|x64.Build.0 = Debug|x64
+		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Debug|x64.Build.0 = Debug|Any CPU
 		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Debug|x86.Build.0 = Debug|Any CPU
 		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
