@@ -41,10 +41,10 @@ steps:
   inputs:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
+    testAssemblyVer2: | 
+        **\bin\**\*.Test.dll
     testFiltercriteria: 'TestCategory!=ListValidation'
-    runInParallel: true
-    otherConsoleOptions: /Framework:.NETCoreApp,Version=v3.0
-    
+    otherConsoleOptions: /Framework:".NETCoreApp,Version=v3.0"
 
 - task: DownloadSecureFile@1
   inputs:
