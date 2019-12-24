@@ -4,6 +4,16 @@
         <TargetFramework>netstandard2.0</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
+      <None Remove="7z.dll.gz" />
+      <None Remove="7z.exe.gz" />
+      <None Remove="innounp.exe.gz" />
+    </ItemGroup>
+    <ItemGroup>
+      <EmbeddedResource Include="7z.dll.gz" />
+      <EmbeddedResource Include="7z.exe.gz" />
+      <EmbeddedResource Include="innounp.exe.gz" />
+    </ItemGroup>
+    <ItemGroup>
       <PackageReference Include="Ceras" Version="4.1.7" />
       <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
       <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
