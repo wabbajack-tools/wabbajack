@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Alphaleonis.Win32.Filesystem;
-using Syroot.Windows.IO;
+using Wabbajack.Common.IO;
 
 namespace Wabbajack.Common
 {

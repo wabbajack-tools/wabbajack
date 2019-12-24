@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -10,7 +10,8 @@ using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.GZip;
 using Newtonsoft.Json;
-using OMODFramework;
+using OMODExtraction;
+//using OMODFramework;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Common.StatusFeed.Errors;
 
@@ -118,9 +119,7 @@ namespace Wabbajack.Common
         private static string ExtractAllWithOMOD(string source, string dest)
         {
             Utils.Log($"Extracting {Path.GetFileName(source)}");
-            var f = new Framework();
-            f.SetTempDirectory(dest);
-            var omod = new OMOD(source, ref f);
+            var omod = new OMOD(source);
             omod.ExtractDataFiles();
             omod.ExtractPlugins();
             return dest;

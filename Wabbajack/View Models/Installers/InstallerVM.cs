@@ -1,4 +1,4 @@
-﻿using Syroot.Windows.IO;
+﻿using Wabbajack.Common.IO;
 using System;
 using ReactiveUI;
 using System.Diagnostics;
