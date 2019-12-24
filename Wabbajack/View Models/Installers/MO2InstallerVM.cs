@@ -58,10 +58,10 @@ namespace Wabbajack
             Location.AdditionalError = Observable.CombineLatest(
                     this.WhenAny(x => x.Location.TargetPath),
                     this.WhenAny(x => x.DownloadLocation.TargetPath),
-                    resultSelector: (target, download) =>
-                    {
-                        return MO2Installer.CheckValidInstallPath(target, download);
-                    });
+                    resultSelector: (target, download) => (target, download))
+                .ObserveOn(RxApp.MainThreadScheduler)
+                .Select(i => MO2Installer.CheckValidInstallPath(i.target, i.download))
+                .ObserveOnGuiThread();
 
             CanInstall = Observable.CombineLatest(
                 this.WhenAny(x => x.Location.InError),

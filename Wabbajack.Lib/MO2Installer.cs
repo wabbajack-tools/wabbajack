@@ -327,7 +327,7 @@ namespace Wabbajack.Lib
             if (!Directory.Exists(path)) return ErrorResponse.Success;
 
             // Check folder does not have a wabbajack modlist
-            foreach (var file in Directory.EnumerateFiles(path, DirectoryEnumerationOptions.Recursive))
+            foreach (var file in Directory.EnumerateFiles(path))
             {
                 if (!File.Exists(file)) continue;
                 if (System.IO.Path.GetExtension(file).Equals(ExtensionManager.Extension))
