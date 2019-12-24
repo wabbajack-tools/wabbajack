@@ -110,12 +110,11 @@ namespace Wabbajack.Lib.ModListRegistry
     public class ModlistSummary
     {
         public string Name;
-        public string MachineName;
         public DateTime Checked;
         public int Failed;
         public int Passed;
-        public string Link => $"/lists/status/{MachineName}.json";
-        public string Report => $"/lists/status/{MachineName}.html";
+        public string Link => $"/lists/status/{Name}.json";
+        public string Report => $"/lists/status/{Name}.html";
         public bool HasFailures => Failed > 0;
     }
 
