@@ -24,13 +24,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Test", "Wabbajack
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Lib", "Wabbajack.Lib\Wabbajack.Lib.csproj", "{0A820830-A298-497D-85E0-E9A89EFEF5FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Compression.BSA.Test", "Compression.BSA.Test\Compression.BSA.Test.csproj", "{9C004392-571A-4D28-A9F6-0E25115E6727}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Compression.BSA.Test", "Compression.BSA.Test\Compression.BSA.Test.csproj", "{9C004392-571A-4D28-A9F6-0E25115E6727}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Common.CSP", "Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj", "{9E69BC98-1512-4977-B683-6E7E5292C0B8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.VirtualFileSystem", "Wabbajack.VirtualFileSystem\Wabbajack.VirtualFileSystem.csproj", "{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.VirtualFileSystem", "Wabbajack.VirtualFileSystem\Wabbajack.VirtualFileSystem.csproj", "{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.VirtualFileSystem.Test", "Wabbajack.VirtualFileSystem.Test\Wabbajack.VirtualFileSystem.Test.csproj", "{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.VirtualFileSystem.Test", "Wabbajack.VirtualFileSystem.Test\Wabbajack.VirtualFileSystem.Test.csproj", "{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.CacheServer", "Wabbajack.CacheServer\Wabbajack.CacheServer.csproj", "{BDC9A094-D235-47CD-83CA-44199B60AB20}"
 EndProject
@@ -123,14 +123,14 @@ Global
 		{A47FFF32-782B-4D9F-8704-C98FB32FA8CC}.Release|x86.Build.0 = Release|x86
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|Any CPU.ActiveCfg = Debug|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|Any CPU.Build.0 = Debug|Any CPU
-		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|x64.ActiveCfg = Debug|x64
-		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|x64.Build.0 = Debug|x64
+		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|x64.ActiveCfg = Debug|Any CPU
+		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|x64.Build.0 = Debug|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|x86.ActiveCfg = Debug|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug (no commandargs)|x86.Build.0 = Debug|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug|x64.ActiveCfg = Debug|x64
-		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug|x64.Build.0 = Debug|x64
+		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug|x64.Build.0 = Debug|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Debug|x86.Build.0 = Debug|Any CPU
 		{0A820830-A298-497D-85E0-E9A89EFEF5FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
