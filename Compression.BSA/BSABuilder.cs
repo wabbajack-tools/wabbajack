@@ -60,8 +60,7 @@ namespace Compression.BSA
         {
             get
             {
-                return _files.Select(f => Path.GetDirectoryName(f.Path))
-                    .ToHashSet();
+                return _files.Select(f => Path.GetDirectoryName(f.Path)).Distinct();
             }
         }
 
