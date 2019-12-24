@@ -26,6 +26,7 @@ namespace Wabbajack.CacheServer
             public List<(Archive archive, bool)> Archives { get; set; }
             public DownloadMetadata DownloadMetaData { get; set; }
             public bool HasFailures { get; set; }
+            public string MachineName { get; set; }
         }
 
         public static Dictionary<string, ModListStatus> ModLists { get; set; }
@@ -190,7 +191,7 @@ namespace Wabbajack.CacheServer
 
                     var status = new ModListStatus
                     {
-                        Name = list.Title, 
+                        Name = list.Title,
                         Archives = validated.OrderBy(v => v.archive.Name).ToList(),
                         DownloadMetaData = list.DownloadMetadata,
                         HasFailures = validated.Any(v => v.is_failed)
