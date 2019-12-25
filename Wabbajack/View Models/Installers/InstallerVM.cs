@@ -210,7 +210,7 @@ namespace Wabbajack
             _image = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Error),
                     this.WhenAny(x => x.ModList)
-                        .Select(x => x?.ImageObservable ?? Observable.Empty<BitmapImage>())
+                        .Select(x => x?.ImageObservable ?? Observable.Return(WabbajackLogo))
                         .Switch()
                         .StartWith(WabbajackLogo),
                     this.WhenAny(x => x.Slideshow.Image)
@@ -228,21 +228,24 @@ namespace Wabbajack
                 .Select<BitmapImage, ImageSource>(x => x)
                 .ToProperty(this, nameof(Image));
             _titleText = Observable.CombineLatest(
-                    this.WhenAny(x => x.ModList.Name),
+                    this.WhenAny(x => x.ModList)
+                        .Select(modList => modList?.Name ?? string.Empty),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModName)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(TitleText));
             _authorText = Observable.CombineLatest(
-                    this.WhenAny(x => x.ModList.Author),
+                    this.WhenAny(x => x.ModList)
+                        .Select(modList => modList?.Author ?? string.Empty),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModAuthor)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(AuthorText));
             _description = Observable.CombineLatest(
-                    this.WhenAny(x => x.ModList.Description),
+                    this.WhenAny(x => x.ModList)
+                        .Select(modList => modList?.Description ?? string.Empty),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModDescription)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
