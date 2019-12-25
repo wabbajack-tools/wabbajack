@@ -1,13 +1,14 @@
 ﻿using DynamicData;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Data.HashFunction;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using Microsoft.Win32;
 using Wabbajack.Lib;
 
 namespace Wabbajack.Lib
@@ -184,7 +185,7 @@ namespace Wabbajack.Lib
                         var extension = Path.GetExtension(target);
                         if (extension == null || !extension.StartsWith(".")) return false;
                         extension = extension.Substring(1);
-                        if (!query.Any(filter => filter.Extensions.Any(ext => string.Equals(ext, extension)))) return false;
+                        if (!query.Any(filter => string.Equals(filter.Extension, extension))) return false;
                     }
                     catch (ArgumentException)
                     {
@@ -259,28 +260,28 @@ namespace Wabbajack.Lib
                     {
                         dirPath = TargetPath;
                     }
-                    var dlg = new CommonOpenFileDialog
+                    var dlg = new OpenFileDialog
                     {
                         Title = PromptTitle,
-                        IsFolderPicker = PathType == PathTypeOptions.Folder,
                         InitialDirectory = dirPath,
-                        AddToMostRecentlyUsedList = false,
-                        AllowNonFileSystemItems = false,
-                        DefaultDirectory = dirPath,
-                        EnsureFileExists = true,
-                        EnsurePathExists = true,
-                        EnsureReadOnly = false,
-                        EnsureValidNames = true,
                         Multiselect = false,
-                        ShowPlacesList = true,
                     };
-                    foreach (var filter in Filters.Items)
-                    {
-                        dlg.Filters.Add(filter);
-                    }
-                    if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
+                    dlg.Filter = string.Join("|", Filters.Items.SelectMany(f => new[] {f.DisplayName, f.Extension}));
+                    if (dlg.ShowDialog() != true) return;
                     TargetPath = dlg.FileName;
                 });
+        }
+
+        public class CommonFileDialogFilter
+        {
+            public CommonFileDialogFilter(string rawDisplayName, string extension)
+            {
+                DisplayName = rawDisplayName;
+                Extension = extension;
+            }
+
+            public string DisplayName { get; set; }
+            public string Extension { get; set; }
         }
     }
 }

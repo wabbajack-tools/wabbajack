@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+      <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon />
+    <StartupObject />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+    <PackageReference Include="System.Security.Permissions" Version="4.7.0" />
+    <PackageReference Include="System.Windows.Extensions" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Shell\Controls\CommandLinkWPF.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Shell\ExplorerBrowser\ExplorerBrowser.WPF.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+  </ItemGroup>
+
+</Project>
