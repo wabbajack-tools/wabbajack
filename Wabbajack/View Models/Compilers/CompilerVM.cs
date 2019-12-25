@@ -114,8 +114,9 @@ namespace Wabbajack
 
             _image = this.WhenAny(x => x.CurrentModlistSettings.ImagePath.TargetPath)
                 // Throttle so that it only loads image after any sets of swaps have completed
-                .Throttle(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
+                .Throttle(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
                 .DistinctUntilChanged()
+                .ObserveOn(RxApp.MainThreadScheduler)
                 .Select(path =>
                 {
                     if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Resources/Wabba_Mouth_No_Text.png");
