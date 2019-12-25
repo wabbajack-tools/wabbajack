@@ -381,6 +381,21 @@
                                 <local:VortexInstallerConfigView />
                             </DataTemplate>
                         </ContentPresenter.Resources>
+                        <ContentPresenter.Style>
+                            <Style TargetType="ContentPresenter">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=Content}" Value="{x:Null}">
+                                        <Setter Property="ContentPresenter.ContentTemplate">
+                                            <Setter.Value>
+                                                <DataTemplate>
+                                                    <Rectangle Height="74" />
+                                                </DataTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ContentPresenter.Style>
                     </ContentPresenter>
                 </Grid>
                 <local:BeginButton
