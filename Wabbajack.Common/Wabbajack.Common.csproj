@@ -1,196 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B3F3FB6E-B9EB-4F49-9875-D78578BC7AE5}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Wabbajack.Common</RootNamespace>
-    <AssemblyName>Wabbajack.Common</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>x64</PlatformTarget>
-    <NoWarn>CS1998</NoWarn>
-    <WarningsAsErrors>CS4014</WarningsAsErrors>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoWarn>CS1998</NoWarn>
-    <WarningsAsErrors>CS4014</WarningsAsErrors>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>7.3</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <LangVersion>7.3</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="BSDiff.cs" />
-    <Compile Include="ChildProcessTracker.cs" />
-    <Compile Include="Consts.cs" />
-    <Compile Include="DynamicIniData.cs" />
-    <Compile Include="Error States\ErrorResponse.cs" />
-    <Compile Include="Error States\GetResponse.cs" />
-    <Compile Include="Enums\ModManager.cs" />
-    <Compile Include="ExtensionManager.cs" />
-    <Compile Include="Extensions\DictionaryExt.cs" />
-    <Compile Include="Extensions\EnumerableExt.cs" />
-    <Compile Include="Extensions\EnumExt.cs" />
-    <Compile Include="Extensions\HashHelper.cs" />
-    <Compile Include="Extensions\ProcessExt.cs" />
-    <Compile Include="Extensions\RxExt.cs" />
-    <Compile Include="Extensions\TaskExt.cs" />
-    <Compile Include="FileExtractor.cs" />
-    <Compile Include="GameMetaData.cs" />
-    <Compile Include="GOGHandler.cs" />
-    <Compile Include="Metrics.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SplittingStream.cs" />
-    <Compile Include="StatusFeed\AErrorMessage.cs" />
-    <Compile Include="StatusFeed\AStatusMessage.cs" />
-    <Compile Include="StatusFeed\Interventions\AUserIntervention.cs" />
-    <Compile Include="StatusFeed\Errors\7zipReturnError.cs" />
-    <Compile Include="StatusFeed\Errors\FileExtractionError.cs" />
-    <Compile Include="StatusFeed\Errors\GenericException.cs" />
-    <Compile Include="StatusFeed\Errors\UnconvertedError.cs" />
-    <Compile Include="StatusFeed\GenericInfo.cs" />
-    <Compile Include="StatusFeed\IError.cs" />
-    <Compile Include="StatusFeed\IException.cs" />
-    <Compile Include="StatusFeed\IInfo.cs" />
-    <Compile Include="StatusFeed\Interventions\ConfirmationIntervention.cs" />
-    <Compile Include="StatusFeed\IStatusMessage.cs" />
-    <Compile Include="StatusFeed\Interventions\IUserIntervention.cs" />
-    <Compile Include="StatusFileStream.cs" />
-    <Compile Include="StatusUpdate.cs" />
-    <Compile Include="SteamHandler.cs" />
-    <Compile Include="Utils.cs" />
-    <Compile Include="Util\AsyncLock.cs" />
-    <Compile Include="Util\TempFile.cs" />
-    <Compile Include="Util\TempFolder.cs" />
-    <Compile Include="WorkQueue.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="7z.dll.gz" />
-    <EmbeddedResource Include="7z.exe.gz" />
-    <None Include="app.config" />
-    <EmbeddedResource Include="innounp.exe.gz" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\Compression.BSA\Compression.BSA.csproj">
-      <Project>{ff5d892f-8ff4-44fc-8f7f-cd58f307ad1b}</Project>
-      <Name>Compression.BSA</Name>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj">
-      <Project>{9e69bc98-1512-4977-b683-6e7e5292c0b8}</Project>
-      <Name>Wabbajack.Common.CSP</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="7z.dll" />
-    <Content Include="7z.exe" />
-    <Content Include="innounp.exe" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="AlphaFS">
-      <Version>2.2.6</Version>
-    </PackageReference>
-    <PackageReference Include="Ceras">
-      <Version>4.1.7</Version>
-    </PackageReference>
-    <PackageReference Include="erri120.OMODFramework">
-      <Version>[1.0.0]</Version>
-    </PackageReference>
-    <PackageReference Include="ini-parser">
-      <Version>2.5.2</Version>
-    </PackageReference>
-    <PackageReference Include="Newtonsoft.Json">
-      <Version>12.0.3</Version>
-    </PackageReference>
-    <PackageReference Include="Newtonsoft.Json.Bson">
-      <Version>1.0.2</Version>
-    </PackageReference>
-    <PackageReference Include="ReactiveUI">
-      <Version>11.0.1</Version>
-    </PackageReference>
-    <PackageReference Include="Syroot.Windows.IO.KnownFolders">
-      <Version>1.2.1</Version>
-    </PackageReference>
-    <PackageReference Include="System.Data.HashFunction.xxHash">
-      <Version>2.0.0</Version>
-    </PackageReference>
-    <PackageReference Include="System.Reactive">
-      <Version>4.3.1</Version>
-    </PackageReference>
-    <PackageReference Include="YamlDotNet">
-      <Version>8.0.0</Version>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+    <ItemGroup>
+      <None Remove="7z.dll.gz" />
+      <None Remove="7z.exe.gz" />
+    </ItemGroup>
+    <ItemGroup>
+      <EmbeddedResource Include="7z.dll.gz" />
+      <EmbeddedResource Include="7z.exe.gz" />
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="KnownFolders\" />
+        <Folder Include="Properties\" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="Ceras" Version="4.1.7" />
+      <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
+      <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
+      <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+      <PackageReference Include="ReactiveUI" Version="11.0.6" />
+      <PackageReference Include="SharpZipLib" Version="1.2.0" />
+      <PackageReference Include="System.Data.HashFunction.xxHash" Version="2.0.0" />
+      <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.7.0" />
+      <PackageReference Include="YamlDotNet" Version="8.0.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />
+      <ProjectReference Include="..\OMODExtractor\OMODExtractor.csproj" />
+      <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj" />
+    </ItemGroup>
 </Project>
