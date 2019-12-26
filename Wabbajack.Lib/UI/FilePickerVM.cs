@@ -10,6 +10,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Microsoft.Win32;
 using Wabbajack.Lib;
+using WebSocketSharp;
 
 namespace Wabbajack.Lib
 {
@@ -277,9 +278,11 @@ namespace Wabbajack.Lib
             public CommonFileDialogFilter(string rawDisplayName, string extension)
             {
                 DisplayName = rawDisplayName;
-                Extension = extension;
+                Extension = extension.Trim().Replace("*.", null).Replace(".", null);
+                DecoratedExtension = "*." + Extension;
             }
 
+            public string DecoratedExtension { get; set; }
             public string DisplayName { get; set; }
             public string Extension { get; set; }
         }
