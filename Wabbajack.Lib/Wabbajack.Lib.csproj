@@ -164,7 +164,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <EmbeddedResource Include="LibCefHelpers\cefglue.7z" />
+    <EmbeddedResource Include="LibCefHelpers\cefsharp.7z" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\Compression.BSA\Compression.BSA.csproj">

@@ -22,17 +22,17 @@ namespace Wabbajack.Lib.LibCefHelpers
         /// </summary>
         private static async Task ExtractLibs()
         {
-            if (File.Exists("cefglue.7z") && File.Exists("libcef.dll")) return;
+            if (File.Exists("cefsharp.7z") && File.Exists("libcef.dll")) return;
 
-            using (var fs = File.OpenWrite("cefglue.7z"))
-            using (var rs = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.Lib.LibCefHelpers.cefglue.7z"))
+            using (var fs = File.OpenWrite("cefsharp.7z"))
+            using (var rs = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.Lib.LibCefHelpers.cefsharp.7z"))
             {
                 rs.CopyTo(fs);
                 Utils.Log("Extracting libCef files");
             }
             using (var wq = new WorkQueue(1))
             {
-                await FileExtractor.ExtractAll(wq, "cefglue.7z", ".");
+                await FileExtractor.ExtractAll(wq, "cefsharp.7z", ".");
             }
         }
 
