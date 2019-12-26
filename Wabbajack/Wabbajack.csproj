@@ -476,8 +476,8 @@
     <PackageReference Include="AlphaFS">
       <Version>2.2.6</Version>
     </PackageReference>
-    <PackageReference Include="CefGlue.Wpf">
-      <Version>75.1.28</Version>
+    <PackageReference Include="CefSharp.Wpf">
+      <Version>75.1.143</Version>
     </PackageReference>
     <PackageReference Include="CommonMark.NET">
       <Version>0.15.1</Version>

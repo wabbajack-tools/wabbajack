@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CefSharp;
+using CefSharp.Wpf;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
 using Wabbajack.Lib.LibCefHelpers;
+using Wabbajack.Lib.WebAutomation;
 using Xilium.CefGlue.WPF;
 
 namespace Wabbajack
@@ -16,14 +19,14 @@ namespace Wabbajack
         [Reactive]
         public string Instructions { get; set; }
 
-        public WpfCefBrowser Browser { get; } = new WpfCefBrowser();
+        public IWebBrowser Browser { get; } = new ChromiumWebBrowser();
+        public CefSharpWrapper Driver => new CefSharpWrapper(Browser);
 
         [Reactive]
         public IReactiveCommand BackCommand { get; set; }
 
         private WebBrowserVM(string url = "http://www.wabbajack.org")
         {
-            Browser.Address = url;
             Instructions = "Wabbajack Web Browser";
         }
 

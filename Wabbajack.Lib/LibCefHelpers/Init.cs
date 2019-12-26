@@ -8,8 +8,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using CefSharp;
 using Wabbajack.Common;
-using Xilium.CefGlue;
 
 namespace Wabbajack.Lib.LibCefHelpers
 {
@@ -69,7 +69,7 @@ namespace Wabbajack.Lib.LibCefHelpers
 
         public static async Task<Cookie[]> GetCookies(string domainEnding)
         {
-            var manager = CefCookieManager.GetGlobal(null);
+            var manager = Cef.GetGlobalCookieManager();
             var visitor = new CookieVisitor();
             if (!manager.VisitAllCookies(visitor))
                 return new Cookie[0];
@@ -78,13 +78,18 @@ namespace Wabbajack.Lib.LibCefHelpers
             return (await visitor.Task).Where(c => c.Domain.EndsWith(domainEnding)).ToArray();
         }
 
-        private class CookieVisitor : CefCookieVisitor
+        private class CookieVisitor : ICookieVisitor
         {
             TaskCompletionSource<List<Cookie>> _source = new TaskCompletionSource<List<Cookie>>();
             public Task<List<Cookie>> Task => _source.Task;
 
             public List<Cookie> Cookies { get; } = new List<Cookie>();
-            protected override bool Visit(CefCookie cookie, int count, int total, out bool delete)
+            public void Dispose()
+            {
+                _source.SetResult(Cookies);
+            }
+
+            public bool Visit(CefSharp.Cookie cookie, int count, int total, ref bool deleteCookie)
             {
                 Cookies.Add(new Cookie
                 {
@@ -95,14 +100,8 @@ namespace Wabbajack.Lib.LibCefHelpers
                 });
                 if (count == total)
                     _source.SetResult(Cookies);
-                delete = false;
+                deleteCookie = false;
                 return true;
-            }
-
-            protected override void Dispose(bool disposing)
-            {
-                if (disposing)
-                    _source.SetResult(Cookies);
             }
         }
 

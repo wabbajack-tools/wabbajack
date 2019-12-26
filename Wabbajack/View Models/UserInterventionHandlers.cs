@@ -10,6 +10,7 @@ using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
+using Wabbajack.Lib.WebAutomation;
 using Wabbajack.UserInterventions;
 
 namespace Wabbajack
@@ -60,14 +61,16 @@ namespace Wabbajack
                 case RequestNexusAuthorization c:
                     await WrapBrowserJob(msg, async (vm, cancel) =>
                     {
-                        var key = await NexusApiClient.SetupNexusLogin(vm.Browser, m => vm.Instructions = m, cancel.Token);
+                        await vm.Driver.WaitForInitialized();
+                        var key = await NexusApiClient.SetupNexusLogin(new CefSharpWrapper(vm.Browser), m => vm.Instructions = m, cancel.Token);
                         c.Resume(key);
                     });
                     break;
                 case RequestLoversLabLogin c:
                     await WrapBrowserJob(msg, async (vm, cancel) =>
                     {
-                        var data = await LoversLabDownloader.GetAndCacheLoversLabCookies(vm.Browser, m => vm.Instructions = m, cancel.Token);
+                        await vm.Driver.WaitForInitialized();
+                        var data = await LoversLabDownloader.GetAndCacheLoversLabCookies(new CefSharpWrapper(vm.Browser), m => vm.Instructions = m, cancel.Token);
                         c.Resume(data);
                     });
                     break;

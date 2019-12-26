@@ -153,6 +153,8 @@
     <Compile Include="ViewModel.cs" />
     <Compile Include="VortexCompiler.cs" />
     <Compile Include="VortexInstaller.cs" />
+    <Compile Include="WebAutomation\CefSharpWrapper.cs" />
+    <Compile Include="WebAutomation\IWebDriver.cs" />
     <Compile Include="WebAutomation\WebAutomation.cs" />
     <Compile Include="WebAutomation\WebAutomationWindow.xaml.cs">
       <DependentUpon>WebAutomationWindow.xaml</DependentUpon>
@@ -188,8 +190,8 @@
     <PackageReference Include="AlphaFS">
       <Version>2.2.6</Version>
     </PackageReference>
-    <PackageReference Include="CefGlue.Wpf">
-      <Version>75.1.28</Version>
+    <PackageReference Include="CefSharp.OffScreen">
+      <Version>75.1.143</Version>
     </PackageReference>
     <PackageReference Include="Ceras">
       <Version>4.1.7</Version>
