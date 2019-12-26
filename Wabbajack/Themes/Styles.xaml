@@ -1053,6 +1053,7 @@
                                 Style="{DynamicResource MahApps.Metro.Styles.MetroWatermarkTextBlock}"
                                 Text="{TemplateBinding mahapps:TextBoxHelper.Watermark}"
                                 TextTrimming="{TemplateBinding mahapps:TextBoxHelper.WatermarkTrimming}"
+                                TextAlignment="{TemplateBinding mahapps:TextBoxHelper.WatermarkAlignment}"
                                 TextWrapping="{TemplateBinding mahapps:TextBoxHelper.WatermarkWrapping}"
                                 Visibility="Collapsed" />
                         </Grid>

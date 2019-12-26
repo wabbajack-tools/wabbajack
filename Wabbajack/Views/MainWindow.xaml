@@ -7,6 +7,7 @@
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Wabbajack"
+    TitleBarHeight="25"
     Width="1280"
     Height="960"
     MinWidth="850"
