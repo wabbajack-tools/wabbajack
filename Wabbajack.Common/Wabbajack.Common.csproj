@@ -6,10 +6,12 @@
     <ItemGroup>
       <None Remove="7z.dll.gz" />
       <None Remove="7z.exe.gz" />
+      <None Remove="innounp.exe.gz" />
     </ItemGroup>
     <ItemGroup>
       <EmbeddedResource Include="7z.dll.gz" />
       <EmbeddedResource Include="7z.exe.gz" />
+      <EmbeddedResource Include="innounp.exe.gz" />
     </ItemGroup>
     <ItemGroup>
         <Folder Include="KnownFolders\" />
@@ -25,6 +27,7 @@
       <PackageReference Include="SharpZipLib" Version="1.2.0" />
       <PackageReference Include="System.Data.HashFunction.xxHash" Version="2.0.0" />
       <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.7.0" />
+      <PackageReference Include="System.Security.Principal.Windows" Version="4.7.0" />
       <PackageReference Include="YamlDotNet" Version="8.0.0" />
     </ItemGroup>
     <ItemGroup>

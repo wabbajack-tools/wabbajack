@@ -306,6 +306,8 @@ namespace Wabbajack.Test
         [TestMethod]
         public async Task GameFileSourceDownload()
         {
+            // Test mode off for this test
+            Consts.TestMode = false;
             await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
             var ini = $@"[General]
                         gameName={Game.SkyrimSpecialEdition.MetaData().MO2ArchiveName}
@@ -325,6 +327,7 @@ namespace Wabbajack.Test
 
             Assert.AreEqual("/DLG/LjdGXI=", Utils.FileHash(filename));
             CollectionAssert.AreEqual(File.ReadAllBytes(Path.Combine(Game.SkyrimSpecialEdition.MetaData().GameLocation(), "Data/Update.esm")), File.ReadAllBytes(filename));
+            Consts.TestMode = true;
         }
 
     }
