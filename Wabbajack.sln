@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29102.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Common", "Wabbajack.Common\Wabbajack.Common.csproj", "{B3F3FB6E-B9EB-4F49-9875-D78578BC7AE5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack", "Wabbajack\Wabbajack.csproj", "{33602679-8484-40C7-A10C-774DFF5D8314}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack", "Wabbajack\Wabbajack.csproj", "{33602679-8484-40C7-A10C-774DFF5D8314}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Compression.BSA", "Compression.BSA\Compression.BSA.csproj", "{FF5D892F-8FF4-44FC-8F7F-CD58F307AD1B}"
 EndProject
@@ -20,7 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		RECIPES.md = RECIPES.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.Test", "Wabbajack.Test\Wabbajack.Test.csproj", "{A47FFF32-782B-4D9F-8704-C98FB32FA8CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Test", "Wabbajack.Test\Wabbajack.Test.csproj", "{A47FFF32-782B-4D9F-8704-C98FB32FA8CC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Lib", "Wabbajack.Lib\Wabbajack.Lib.csproj", "{0A820830-A298-497D-85E0-E9A89EFEF5FE}"
 EndProject
@@ -31,8 +31,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.VirtualFileSystem", "Wabbajack.VirtualFileSystem\Wabbajack.VirtualFileSystem.csproj", "{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.VirtualFileSystem.Test", "Wabbajack.VirtualFileSystem.Test\Wabbajack.VirtualFileSystem.Test.csproj", "{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.CacheServer", "Wabbajack.CacheServer\Wabbajack.CacheServer.csproj", "{BDC9A094-D235-47CD-83CA-44199B60AB20}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OMODExtraction", "OMODExtraction\OMODExtraction.csproj", "{649B6949-E0A7-4E9E-994A-A3CA2BBB9426}"
 EndProject
@@ -211,24 +209,6 @@ Global
 		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Release|x64.Build.0 = Release|Any CPU
 		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Release|x86.ActiveCfg = Release|Any CPU
 		{51CEB604-985A-45B9-AF0D-C5BA8CFA1BF0}.Release|x86.Build.0 = Release|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug (no commandargs)|Any CPU.ActiveCfg = Debug|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug (no commandargs)|Any CPU.Build.0 = Debug|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug (no commandargs)|x64.ActiveCfg = Debug|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug (no commandargs)|x64.Build.0 = Debug|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug (no commandargs)|x86.ActiveCfg = Debug|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug (no commandargs)|x86.Build.0 = Debug|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|x64.ActiveCfg = Debug|x64
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|x64.Build.0 = Debug|x64
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|x86.Build.0 = Debug|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x64.ActiveCfg = Release|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x64.Build.0 = Release|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x86.ActiveCfg = Release|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x86.Build.0 = Release|Any CPU
 		{649B6949-E0A7-4E9E-994A-A3CA2BBB9426}.Debug (no commandargs)|Any CPU.ActiveCfg = Debug|Any CPU
 		{649B6949-E0A7-4E9E-994A-A3CA2BBB9426}.Debug (no commandargs)|Any CPU.Build.0 = Debug|Any CPU
 		{649B6949-E0A7-4E9E-994A-A3CA2BBB9426}.Debug (no commandargs)|x64.ActiveCfg = Debug|Any CPU
