@@ -30,6 +30,8 @@ steps:
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '$(solution)'
+    verbosityRestore: Detailed
+    
 
 - task: VSBuild@1
   inputs:
