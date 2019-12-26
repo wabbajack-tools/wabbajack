@@ -18,7 +18,7 @@ namespace Wabbajack.Lib.Downloaders
             var gameName = (string)archiveINI?.General?.gameName;
             var gameFile = (string)archiveINI?.General?.gameFile;
 
-            if (gameFile == null || gameFile == null)
+            if (gameFile == null || gameName == null)
                 return null;
 
             var game = GameRegistry.GetByMO2ArchiveName(gameName);
