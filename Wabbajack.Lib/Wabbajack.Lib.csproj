@@ -9,6 +9,18 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="css-min.css" />
+      <None Remove="css.css" />
+      <None Remove="LibCefHelpers\cefglue.7z" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="css-min.css" />
+      <EmbeddedResource Include="css.css" />
+      <EmbeddedResource Include="LibCefHelpers\cefglue.7z" />
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Include="CefGlue.Wpf" Version="75.1.28" />
       <PackageReference Include="CommonMark.NET" Version="0.15.1" />
       <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
