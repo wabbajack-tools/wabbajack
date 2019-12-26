@@ -7,6 +7,22 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="Resources\banner.png" />
+      <None Remove="Resources\banner_dark.png" />
+      <None Remove="Resources\banner_small.png" />
+      <None Remove="Resources\banner_small_dark.png" />
+      <None Remove="Resources\Icons\gog.png" />
+      <None Remove="Resources\Icons\steam.png" />
+      <None Remove="Resources\Icons\wabbajack.ico" />
+      <None Remove="Resources\MO2Button.png" />
+      <None Remove="Resources\VortexButton.png" />
+      <None Remove="Resources\Wabba_Ded.png" />
+      <None Remove="Resources\Wabba_Mouth.png" />
+      <None Remove="Resources\Wabba_Mouth_No_Text.png" />
+      <None Remove="Resources\Wabba_Mouth_Small.png" />
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Include="CefGlue.Wpf" Version="75.1.28" />
       <PackageReference Include="ControlzEx" Version="4.2.0" />
       <PackageReference Include="MahApps.Metro" Version="2.0.0-alpha0660" />
@@ -16,6 +32,22 @@
     <ItemGroup>
       <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
       <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\banner.png" />
+      <EmbeddedResource Include="Resources\banner_dark.png" />
+      <EmbeddedResource Include="Resources\banner_small.png" />
+      <EmbeddedResource Include="Resources\banner_small_dark.png" />
+      <EmbeddedResource Include="Resources\Icons\gog.png" />
+      <EmbeddedResource Include="Resources\Icons\steam.png" />
+      <EmbeddedResource Include="Resources\Icons\wabbajack.ico" />
+      <EmbeddedResource Include="Resources\MO2Button.png" />
+      <EmbeddedResource Include="Resources\VortexButton.png" />
+      <EmbeddedResource Include="Resources\Wabba_Ded.png" />
+      <Resource Include="Resources\Wabba_Mouth.png" />
+      <EmbeddedResource Include="Resources\Wabba_Mouth_No_Text.png" />
+      <EmbeddedResource Include="Resources\Wabba_Mouth_Small.png" />
     </ItemGroup>
 
 </Project>
