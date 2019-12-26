@@ -1052,7 +1052,6 @@
                                 Foreground="{TemplateBinding Foreground}"
                                 Style="{DynamicResource MahApps.Metro.Styles.MetroWatermarkTextBlock}"
                                 Text="{TemplateBinding mahapps:TextBoxHelper.Watermark}"
-                                TextAlignment="{TemplateBinding mahapps:TextBoxHelper.WatermarkAlignment}"
                                 TextTrimming="{TemplateBinding mahapps:TextBoxHelper.WatermarkTrimming}"
                                 TextWrapping="{TemplateBinding mahapps:TextBoxHelper.WatermarkWrapping}"
                                 Visibility="Collapsed" />

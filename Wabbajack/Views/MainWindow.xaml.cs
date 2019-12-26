@@ -27,7 +27,7 @@ namespace Wabbajack
                 Utils.Error(((Exception)e.ExceptionObject), "Uncaught error");
             };
 
-            Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
+            Utils.Log($"Wabbajack Build");
 
             // Run some init tasks in background
             Task.Run(async () =>

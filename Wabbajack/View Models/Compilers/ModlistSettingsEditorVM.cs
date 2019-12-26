@@ -2,7 +2,6 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
@@ -48,14 +47,14 @@ namespace Wabbajack
                 ExistCheckOption = FilePickerVM.CheckOptions.IfPathNotEmpty,
                 PathType = FilePickerVM.PathTypeOptions.File,
             };
-            ImagePath.Filters.Add(new CommonFileDialogFilter("Banner image", "*.png"));
+            ImagePath.Filters.Add(new FilePickerVM.CommonFileDialogFilter("Banner image", "*.png"));
             ReadmeFilePath = new FilePickerVM()
             {
                 PathType = FilePickerVM.PathTypeOptions.File,
                 ExistCheckOption = FilePickerVM.CheckOptions.IfPathNotEmpty,
             };
-            ReadmeFilePath.Filters.Add(new CommonFileDialogFilter("Text", "*.txt"));
-            ReadmeFilePath.Filters.Add(new CommonFileDialogFilter("HTML File", "*.html"));
+            ReadmeFilePath.Filters.Add(new FilePickerVM.CommonFileDialogFilter("Text", "*.txt"));
+            ReadmeFilePath.Filters.Add(new FilePickerVM.CommonFileDialogFilter("HTML File", "*.html"));
 
             InError = Observable.CombineLatest(
                     this.WhenAny(x => x.ImagePath.ErrorState).Select(err => err.Failed),

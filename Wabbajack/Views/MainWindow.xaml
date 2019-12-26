@@ -15,7 +15,6 @@
     RenderOptions.BitmapScalingMode="HighQuality"
     ResizeMode="CanResize"
     Style="{StaticResource {x:Type Window}}"
-    TitlebarHeight="25"
     UseLayoutRounding="True"
     WindowStyle="ToolWindow"
     mc:Ignorable="d">

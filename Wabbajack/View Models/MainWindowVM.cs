@@ -106,7 +106,7 @@ namespace Wabbajack
             }
             CopyVersionCommand = ReactiveCommand.Create(() =>
             {
-                Clipboard.SetText($"Wabbajack {VersionDisplay}\n{ThisAssembly.Git.Sha}");
+                Clipboard.SetText($"Wabbajack {VersionDisplay}\n");
             });
         }
         private static bool IsStartingFromModlist(out string modlistPath)
