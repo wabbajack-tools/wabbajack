@@ -19,7 +19,6 @@ using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
 using Newtonsoft.Json;
 using ReactiveUI;
-using Syroot.Windows.IO;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Common.StatusFeed.Errors;
 using YamlDotNet.Serialization;
