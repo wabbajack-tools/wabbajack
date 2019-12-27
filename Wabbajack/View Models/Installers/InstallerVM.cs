@@ -281,8 +281,14 @@ namespace Wabbajack
                     this.WhenAny(x => x.StartedInstallation),
                     resultSelector: (installing, started) =>
                     {
-                        if (!installing) return "Configuring";
-                        return started ? "Installing" : "Installed";
+                        if (installing)
+                        {
+                            return "Installing";
+                        }
+                        else
+                        {
+                            return started ? "Installed" : "Configuring";
+                        }
                     })
                 .ToProperty(this, nameof(ProgressTitle));
 

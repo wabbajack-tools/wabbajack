@@ -60,6 +60,9 @@ namespace Wabbajack
         [Reactive]
         public ErrorResponse? Completed { get; set; }
 
+        private readonly ObservableAsPropertyHelper<string> _progressTitle;
+        public string ProgressTitle => _progressTitle.Value;
+
         public CompilerVM(MainWindowVM mainWindowVM)
         {
             MWVM = mainWindowVM;
@@ -247,6 +250,22 @@ namespace Wabbajack
                         Process.Start("explorer.exe", OutputLocation.TargetPath);
                     }
                 });
+
+            _progressTitle = Observable.CombineLatest(
+                    this.WhenAny(x => x.Compiling),
+                    this.WhenAny(x => x.StartedCompilation),
+                    resultSelector: (compiling, started) =>
+                    {
+                        if (compiling)
+                        {
+                            return "Compiling";
+                        }
+                        else
+                        {
+                            return started ? "Compiled" : "Configuring";
+                        }
+                    })
+                .ToProperty(this, nameof(ProgressTitle));
         }
     }
 }
