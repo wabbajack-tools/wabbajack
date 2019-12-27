@@ -301,7 +301,7 @@ namespace Wabbajack
                         return ret;
                     })
                 .ToObservableChangeSet(x => x.Status.ID)
-                .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
+                .Batch(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
                 .Filter(i => i.Status.IsWorking && i.Status.ID != WorkQueue.UnassignedCpuId)
                 .ObserveOn(RxApp.MainThreadScheduler)
