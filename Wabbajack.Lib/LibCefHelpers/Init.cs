@@ -9,18 +9,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using CefSharp;
+using CefSharp.OffScreen;
 using Wabbajack.Common;
 
 namespace Wabbajack.Lib.LibCefHelpers
 {
     public static class Helpers
     {
-        private static readonly Task _initTask;
-
         /// <summary>
         /// We bundle the cef libs inside the .exe, we need to extract them before loading any wpf code that requires them
         /// </summary>
-        private static async Task ExtractLibs()
+        private static void ExtractLibs()
         {
             if (File.Exists("cefsharp.7z") && File.Exists("libcef.dll")) return;
 
@@ -32,18 +31,15 @@ namespace Wabbajack.Lib.LibCefHelpers
             }
             using (var wq = new WorkQueue(1))
             {
-                await FileExtractor.ExtractAll(wq, "cefsharp.7z", ".");
+                FileExtractor.ExtractAll(wq, "cefsharp.7z", ".").Wait();
             }
         }
 
         static Helpers()
         {
-            _initTask = Task.Run(ExtractLibs);
-        }
-
-        public static Task Initialize()
-        {
-            return _initTask;
+            ExtractLibs();
+            if (!Cef.IsInitialized)
+                Cef.Initialize(new CefSettings { MultiThreadedMessageLoop = true });
         }
 
         public static HttpClient GetClient(IEnumerable<Cookie> cookies, string referer)
@@ -111,6 +107,19 @@ namespace Wabbajack.Lib.LibCefHelpers
             public string Value { get; set; }
             public string Domain { get; set; }
             public string Path { get; set; }
+        }
+
+        public static void Init()
+        {
+            // does nothing, but kicks off the static constructor
+        }
+    }
+
+    public static class ModuleInitializer
+    {
+        public static void Initialize()
+        {
+            Helpers.Init();
         }
     }
 }

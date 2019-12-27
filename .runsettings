@@ -5,5 +5,6 @@
       <Workers>0</Workers>
       <Scope>MethodLevel</Scope>
     </Parallelize>
+      <DisableAppDomain>True</DisableAppDomain>
   </MSTest>
 </RunSettings>

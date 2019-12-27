@@ -20,6 +20,7 @@ namespace Wabbajack
 
         public MainWindow()
         {
+            Helpers.Init();
             // Wire any unhandled crashing exceptions to log before exiting
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
@@ -32,7 +33,6 @@ namespace Wabbajack
             // Run some init tasks in background
             Task.Run(async () =>
             {
-                await Helpers.Initialize();
                 var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 try
                 {

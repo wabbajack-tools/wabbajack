@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Alphaleonis.Win32.Filesystem;
+using CefSharp;
+using CefSharp.OffScreen;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
@@ -12,6 +14,7 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
+using Wabbajack.Lib.WebAutomation;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
 
@@ -20,13 +23,17 @@ namespace Wabbajack.Test
     [TestClass]
     public class DownloaderTests
     {
+        static DownloaderTests()
+        {
+            Helpers.Init();
+        }
 
         public TestContext TestContext { get; set; }
 
         [TestInitialize]
         public async Task Setup()
         {
-            await Helpers.Initialize();
+            Helpers.Init();
             Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => TestContext.WriteLine(msg.ShortDescription));
             Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
                 TestContext.WriteLine("ERROR: User intervetion required: " + msg.ShortDescription));
