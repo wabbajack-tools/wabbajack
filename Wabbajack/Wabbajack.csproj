@@ -526,7 +526,7 @@
       <Version>11.0.1</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.Fody">
-      <Version>11.0.1</Version>
+      <Version>11.0.6</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.WPF">
       <Version>11.0.1</Version>
