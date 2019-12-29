@@ -6,8 +6,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using CouchDB.Driver.Extensions;
+using MongoDB.Driver;
 using Nancy;
-using ReactiveUI;
+using Wabbajack.CacheServer.DTOs;
 using Wabbajack.Common;
 
 namespace Wabbajack.CacheServer
@@ -19,19 +21,17 @@ namespace Wabbajack.CacheServer
     {
         private static SemaphoreSlim _lockObject = new SemaphoreSlim(1);
 
-        public static async Task Log(params object[] args)
+        public static async Task Log(DateTime timestamp, string action, string subject)
         {
-            var msg = new[] {string.Join("\t", args.Select(a => a.ToString()))};
+            var msg = new[] {string.Join("\t", new[]{timestamp.ToString(), action, subject})};
             Utils.Log(msg.First());
-            await _lockObject.WaitAsync();
-            try
-            {
-                File.AppendAllLines("stats.tsv", msg);
-            }
-            finally
-            {
-                _lockObject.Release();
-            }
+            var db = Server.Config.Metrics.Connect();
+            await db.InsertOneAsync(new Metric {Timestamp = timestamp, Action = action, Subject = subject});
+        }
+
+        public static Task Log(string action, string subject)
+        {
+            return Log(DateTime.Now, action, subject);
         }
 
         public Metrics() : base("/")
@@ -40,6 +40,26 @@ namespace Wabbajack.CacheServer
             Get("/metrics/chart/", HandleChart);
             Get("/metrics/chart/{Action}/", HandleChart);
             Get("/metrics/chart/{Action}/{Value}/", HandleChart);
+            Get("/metrics/ingest/{filename}", HandleBulkIngest);
+        }
+
+        private async Task<string> HandleBulkIngest(dynamic arg)
+        {
+            Log("Bulk Loading " + arg.filename.ToString());
+
+            var lines = File.ReadAllLines(Path.Combine(@"c:\tmp", (string)arg.filename));
+
+            var db = Server.Config.Metrics.Connect();
+            
+            var data = lines.Select(line => line.Split('\t'))
+                .Where(line => line.Length == 3)
+                .Select(line => new Metric{ Timestamp = DateTime.Parse(line[0]), Action = line[1], Subject = line[2] })
+                .ToList();
+
+            foreach (var metric in data)
+                await db.InsertOneAsync(metric);
+
+            return $"Processed {lines.Length} records";
         }
 
         private async Task<string> HandleMetrics(dynamic arg)
@@ -49,36 +69,33 @@ namespace Wabbajack.CacheServer
             return date.ToString();
         }
 
-        private static async Task<string[]> GetData()
-        {
-            await _lockObject.WaitAsync();
-            try
-            {
-                return File.ReadAllLines("stats.tsv");
-            }
-            finally
-            {
-                _lockObject.Release();
-            }
-        }
-
         private async Task<Response> HandleChart(dynamic arg)
         {
-            var data = (await GetData()).Select(line => line.Split('\t'))
+            /*var data = (await GetData()).Select(line => line.Split('\t'))
                 .Where(line => line.Length == 3)
-                .Select(line => new {date = DateTime.Parse(line[0]), Action = line[1], Value = line[2]});
+                .Select(line => new {date = DateTime.Parse(line[0]), Action = line[1], Value = line[2]});*/
+
+            var q = (IQueryable<Metric>)Server.Config.Metrics.Connect().AsQueryable();
 
             // Remove guids / Default, which come from testing
-            data = data.Where(d => !Guid.TryParse(d.Value ?? "", out _) && (d.Value ?? "") != "Default");
 
             if (arg?.Action != null)
-                data = data.Where(d => d.Action == arg.Action);
+            {
+                var action = (string)arg.Action;
+                q = q.Where(d => d.Action == action);
+            }
 
 
             if (arg?.Value != null)
-                data = data.Where(d => d.Value.StartsWith(arg.Value));
+            {
+                var value = (string)arg.Value;
+                q = q.Where(d => d.Subject.StartsWith(value));
+            }
 
-            var grouped_and_counted = data.GroupBy(d => d.date.ToString("yyyy-MM-dd"))
+            var data = (await q.Take(Int32.MaxValue).ToListAsync()).AsEnumerable();
+            data = data.Where(d => !Guid.TryParse(d.Subject ?? "", out Guid v) && (d.Subject ?? "") != "Default");
+
+            var grouped_and_counted = data.GroupBy(d => d.Timestamp.ToString("yyyy-MM-dd"))
                 .OrderBy(d => d.Key)
                 .Select(d => new {Day = d.Key, Count = d.Count()})
                 .ToList();
@@ -115,6 +132,11 @@ namespace Wabbajack.CacheServer
             var response = (Response)sb.ToString();
             response.ContentType = "text/html";
             return response;
+        }
+
+        public void Log(string l)
+        {
+            Utils.Log("Metrics: " + l);
         }
     }
 }

@@ -1,0 +1,12 @@
+﻿---
+Metrics:
+    Host: internal.test.mongodb
+    Database: wabbajack
+    Collection: metrics
+ListValidation:
+    Host: internal.test.mongodb
+    Database: wabbajack
+    Collection: mod_lists
+    
+
+

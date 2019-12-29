@@ -87,7 +87,7 @@ namespace Wabbajack
         public void OpenReadmeWindow()
         {
             if (string.IsNullOrEmpty(Readme)) return;
-            if (SourceModList.ReadmeIsWebsite)
+            if (false) //SourceModList.ReadmeIsWebsite)
             {
                 Process.Start(Readme);
             }

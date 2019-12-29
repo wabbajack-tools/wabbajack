@@ -6,12 +6,15 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Configuration;
 using Nancy.Diagnostics;
 using Nancy.Hosting.Self;
 using Nancy.TinyIoc;
+using Wabbajack.CacheServer.ServerConfig;
+using Wabbajack.Common;
 
 namespace Wabbajack.CacheServer
 {
@@ -19,6 +22,7 @@ namespace Wabbajack.CacheServer
     {
         private NancyHost _server;
         private HostConfiguration _config;
+        public static BuildServerConfig Config;
 
         public Server(string address)
         {
@@ -26,8 +30,8 @@ namespace Wabbajack.CacheServer
             _config = new HostConfiguration {MaximumConnectionCount = 24, RewriteLocalhost = true};
             //_config.UrlReservations.CreateAutomatically = true;
             _server = new NancyHost(_config, new Uri(address));
-            
-            
+
+            Config = File.ReadAllText("config.yaml").FromYaml<BuildServerConfig>();
         }
 
         public string Address { get; }
