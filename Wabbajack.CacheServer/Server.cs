@@ -5,6 +5,7 @@ using Nancy.Bootstrapper;
 using Nancy.Configuration;
 using Nancy.Hosting.Self;
 using Nancy.TinyIoc;
+using Wabbajack.CacheServer.DTOs;
 using Wabbajack.CacheServer.ServerConfig;
 using Wabbajack.Common;
 
@@ -18,6 +19,7 @@ namespace Wabbajack.CacheServer
 
         static Server()
         {
+            SerializerSettings.Init();
         }
 
 

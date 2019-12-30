@@ -15,6 +15,7 @@ namespace Wabbajack.CacheServer
         public JobQueueEndpoints() : base ("/jobs")
         {
             Get("/", HandleListJobs);
+            Get("/enqueue_curated_for_indexing", HandleEnqueueAllCurated);
         }
 
         private readonly Func<object, string> HandleListJobsTemplate = NettleEngine.GetCompiler().Compile(@"
@@ -46,6 +47,25 @@ namespace Wabbajack.CacheServer
             var response = (Response)HandleListJobsTemplate(new {jobs, time = DateTime.Now});
             response.ContentType = "text/html";
             return response;
+        }
+
+
+        private async Task<string> HandleEnqueueAllCurated(object arg)
+        {
+            var states = await Server.Config.ListValidation.Connect()
+                .AsQueryable()
+                .SelectMany(lst => lst.DetailedStatus.Archives)
+                .Select(a => a.Archive.State)
+                .ToListAsync();
+
+            var jobs = states.Select(state => new IndexJob {State = state})
+                .Select(j => new Job {Payload = j, RequiresNexus = j.UsesNexus})
+                .ToList();
+
+            if (jobs.Count > 0)
+                await Server.Config.JobQueue.Connect().InsertManyAsync(jobs);
+
+            return $"Enqueued {states.Count} jobs";
         }
     }
 }

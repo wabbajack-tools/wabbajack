@@ -74,7 +74,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DTOs\JobQueue\AJobPayload.cs" />
+    <Compile Include="DTOs\JobQueue\IndexJob.cs" />
     <Compile Include="DTOs\JobQueue\Job.cs" />
+    <Compile Include="DTOs\JobQueue\JobResult.cs" />
     <Compile Include="DTOs\Metric.cs" />
     <Compile Include="DTOs\ModListStatus.cs" />
     <Compile Include="DTOs\MongoDoc.cs" />

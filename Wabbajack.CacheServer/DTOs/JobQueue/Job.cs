@@ -19,8 +19,8 @@ namespace Wabbajack.CacheServer.DTOs.JobQueue
 
         [BsonId]
         public Guid Id { get; set; }
-        public DateTime Started { get; set; }
-        public DateTime Ended { get; set; }
+        public DateTime? Started { get; set; }
+        public DateTime? Ended { get; set; }
         public DateTime Created { get; set; } = DateTime.Now;
         public JobPriority Priority { get; set; } = JobPriority.Normal;
         public bool RequiresNexus { get; set; } = true;

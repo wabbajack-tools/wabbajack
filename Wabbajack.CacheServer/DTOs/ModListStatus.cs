@@ -12,10 +12,6 @@ namespace Wabbajack.CacheServer.DTOs
 {
     public class ModListStatus
     {
-        static ModListStatus()
-        {
-            SerializerSettings.Init();
-        }
 
         [BsonId]
         public string Id { get; set; }

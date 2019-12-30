@@ -7,6 +7,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
+using Wabbajack.CacheServer.DTOs.JobQueue;
 using Wabbajack.Lib.Downloaders;
 
 namespace Wabbajack.CacheServer.DTOs
@@ -18,6 +19,11 @@ namespace Wabbajack.CacheServer.DTOs
             var dis = new TypeDiscriminator(typeof(AbstractDownloadState), AbstractDownloadState.NameToType,
                 AbstractDownloadState.TypeToName);
             BsonSerializer.RegisterDiscriminatorConvention(typeof(AbstractDownloadState), dis);
+            BsonClassMap.RegisterClassMap<AbstractDownloadState>(cm => cm.SetIsRootClass(true));
+
+            dis = new TypeDiscriminator(typeof(AJobPayload), AJobPayload.NameToType, AJobPayload.TypeToName);
+            BsonSerializer.RegisterDiscriminatorConvention(typeof(AJobPayload), dis);
+            BsonClassMap.RegisterClassMap<AJobPayload>(cm => cm.SetIsRootClass(true));
         }
     }
 
@@ -44,7 +50,7 @@ namespace Wabbajack.CacheServer.DTOs
 
         public Type GetActualType(IBsonReader bsonReader, Type nominalType)
         {
-            Type type = defaultType;
+            Type type = null;
             var bookmark = bsonReader.GetBookmark();
             bsonReader.ReadStartDocument();
             if (bsonReader.FindElement(ElementName))
@@ -55,6 +61,8 @@ namespace Wabbajack.CacheServer.DTOs
             }
 
             bsonReader.ReturnToBookmark(bookmark);
+            if (type == null)
+                throw new Exception($"Type mis-configuration can't find bson type for ${nominalType}");
             return type;
         }
 
