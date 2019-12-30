@@ -7,6 +7,9 @@ ListValidation:
     Host: internal.test.mongodb
     Database: wabbajack
     Collection: mod_lists
-    
+JobQueue:
+    Host: internal.test.mongodb
+    Database: wabbajack
+    Collection: job_queue    
 
 

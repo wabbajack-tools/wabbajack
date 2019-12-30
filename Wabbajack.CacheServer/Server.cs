@@ -1,16 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Configuration;
-using Nancy.Diagnostics;
 using Nancy.Hosting.Self;
 using Nancy.TinyIoc;
 using Wabbajack.CacheServer.ServerConfig;
@@ -23,6 +15,11 @@ namespace Wabbajack.CacheServer
         private NancyHost _server;
         private HostConfiguration _config;
         public static BuildServerConfig Config;
+
+        static Server()
+        {
+        }
+
 
         public Server(string address)
         {

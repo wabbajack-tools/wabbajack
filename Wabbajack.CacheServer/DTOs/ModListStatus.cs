@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Media.Animation;
-using CouchDB.Driver.Extensions;
-using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
 
@@ -49,7 +47,7 @@ namespace Wabbajack.CacheServer.DTOs
             return result.First();
         }
 
-        public static IQueryable<ModListStatus> All
+        public static IMongoQueryable<ModListStatus> All
         {
             get
             {
@@ -60,8 +58,8 @@ namespace Wabbajack.CacheServer.DTOs
 
     public class DetailedStatus
     {
-        public string Name;
-        public DateTime Checked = DateTime.Now;
+        public string Name { get; set; }
+        public DateTime Checked { get; set; } = DateTime.Now;
         public List<DetailedStatusItem> Archives { get; set; }
         public DownloadMetadata DownloadMetaData { get; set; }
         public bool HasFailures { get; set; }

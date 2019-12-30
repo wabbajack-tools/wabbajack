@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.CacheServer.DTOs;
+using Wabbajack.CacheServer.DTOs.JobQueue;
 
 namespace Wabbajack.CacheServer.ServerConfig
 {
@@ -11,5 +12,7 @@ namespace Wabbajack.CacheServer.ServerConfig
     {
         public MongoConfig<Metric> Metrics { get; set; }
         public MongoConfig<ModListStatus> ListValidation { get; set; }
+
+        public MongoConfig<Job> JobQueue { get; set; }
     }
 }

@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
-using CouchDB.Driver.Extensions;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using Nancy;
 using Wabbajack.CacheServer.DTOs;
 using Wabbajack.Common;
@@ -75,7 +73,7 @@ namespace Wabbajack.CacheServer
                 .Where(line => line.Length == 3)
                 .Select(line => new {date = DateTime.Parse(line[0]), Action = line[1], Value = line[2]});*/
 
-            var q = (IQueryable<Metric>)Server.Config.Metrics.Connect().AsQueryable();
+            var q = Server.Config.Metrics.Connect().AsQueryable();
 
             // Remove guids / Default, which come from testing
 

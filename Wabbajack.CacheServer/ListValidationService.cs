@@ -1,21 +1,18 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
-using CouchDB.Driver.Extensions;
+using MongoDB.Driver;
 using Nancy;
-using Nancy.Responses;
 using Wabbajack.CacheServer.DTOs;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
+using MongoDB.Driver.Linq;
+using Nettle;
 
 namespace Wabbajack.CacheServer
 {
@@ -26,6 +23,7 @@ namespace Wabbajack.CacheServer
             Get("/status", HandleGetLists);
             Get("/status/{Name}.json", HandleGetListJson);
             Get("/status/{Name}.html", HandleGetListHtml);
+
         }
 
         private async Task<string> HandleGetLists(object arg)
@@ -54,34 +52,35 @@ namespace Wabbajack.CacheServer
             return lst.ToJSON();
         }
 
+        
+        private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().Compile(@"
+            <html><body>
+                <h2>{{lst.Name}} - {{lst.Checked}}</h2>
+                <h3>Failed ({{failed.Count}}):</h3>
+                <ul>
+                {{each $.failed }}
+                <li>{{$.Archive.Name}}</li>
+                {{/each}}
+                </ul>
+                <h3>Passed ({{passed.Count}}):</h3>
+                <ul>
+                {{each $.passed }}
+                <li>{{$.Archive.Name}}</li>
+                {{/each}}
+                </ul>
+            </body></html>
+        ");
+
         private async Task<Response> HandleGetListHtml(dynamic arg)
         {
+            
             var lst = (await ModListStatus.ByName((string)arg.Name)).DetailedStatus;
-            var sb = new StringBuilder();
-
-            sb.Append("<html><body>");
-            sb.Append($"<h2>{lst.Name} - {lst.Checked}</h2>");
-
-            var failed_list = lst.Archives.Where(a => a.IsFailing).ToList();
-            sb.Append($"<h3>Failed ({failed_list.Count}):</h3>");
-            sb.Append("<ul>");
-            foreach (var archive in failed_list)
+            var response = (Response)HandleGetListTemplate(new
             {
-                sb.Append($"<li>{archive.Archive.Name}</li>");
-            }
-            sb.Append("</ul>");
-
-            var pased_list = lst.Archives.Where(a => !a.IsFailing).ToList();
-            sb.Append($"<h3>Passed ({pased_list.Count}):</h3>");
-            sb.Append("<ul>");
-            foreach (var archive in pased_list.OrderBy(f => f.Archive.Name))
-            {
-                sb.Append($"<li>{archive.Archive.Name}</li>");
-            }
-            sb.Append("</ul>");
-
-            sb.Append("</body></html>");
-            var response = (Response)sb.ToString();
+                lst,
+                failed = lst.Archives.Where(a => a.IsFailing).ToList(),
+                passed = lst.Archives.Where(a => !a.IsFailing).ToList()
+            });
             response.ContentType = "text/html";
             return response;
         }

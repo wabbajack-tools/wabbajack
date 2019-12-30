@@ -15,7 +15,7 @@ namespace Wabbajack.CacheServer
             Utils.LogMessages.Subscribe(Console.WriteLine);
             using (var server = new Server("http://localhost:8080"))
             {
-                ListValidationService.Start();
+                //ListValidationService.Start();
                 server.Start();
                 Console.ReadLine();
             }
