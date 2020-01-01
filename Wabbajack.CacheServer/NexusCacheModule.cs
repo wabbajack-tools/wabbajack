@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -7,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 using Nancy;
+using Newtonsoft.Json;
 using Wabbajack.CacheServer.DTOs;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
@@ -28,10 +30,62 @@ namespace Wabbajack.CacheServer
             Get("/nexus_api_cache/ingest/{Folder}", HandleIngestCache);
         }
 
+        class UpdatedMod
+        {
+            public long mod_id;
+            public long latest_file_update;
+            public long latest_mod_activity;
+        }
+
         public async Task<object> UpdateCache(object arg)
         {
             var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-            await api.ClearUpdatedModsInCache();
+            
+            var gameTasks = GameRegistry.Games.Values
+                .Where(game => game.NexusName != null)
+                .Select(async game =>
+                {
+                    return (game,
+                        mods: await api.Get<List<UpdatedMod>>(
+                            $"https://api.nexusmods.com/v1/games/{game.NexusName}/mods/updated.json?period=1m"));
+                })
+                .Select(async rTask =>
+                {
+                    var (game, mods) = await rTask;
+                    return mods.Select(mod => new { game = game, mod = mod });
+                }).ToList();
+
+            Utils.Log($"Getting update lits for {gameTasks.Count} games");
+
+            var purge = (await Task.WhenAll(gameTasks))
+                .SelectMany(i => i)
+                .ToList();
+
+            Utils.Log($"Found {purge.Count} updated mods in the last month");
+            using (var queue = new WorkQueue())
+            {
+                var collected = await purge.Select(d =>
+                {
+                    var a = d.mod.latest_file_update.AsUnixTime();
+                    // Mod activity could hide files
+                    var b = d.mod.latest_mod_activity.AsUnixTime();
+
+                    return new {Game = d.game.NexusName, Date = (a > b ? a : b), ModId = d.mod.mod_id.ToString()};
+                }).PMap(queue, async t =>
+                {
+                    var resultA = await Server.Config.NexusModInfos.Connect().DeleteManyAsync(f =>
+                        f.Game == t.Game && f.ModId == t.ModId && f.LastCheckedUTC <= t.Date);
+                    var resultB = await Server.Config.NexusModFiles.Connect().DeleteManyAsync(f =>
+                        f.Game == t.Game && f.ModId == t.ModId && f.LastCheckedUTC <= t.Date);
+                    var resultC = await Server.Config.NexusFileInfos.Connect().DeleteManyAsync(f =>
+                        f.Game == t.Game && f.ModId == t.ModId && f.LastCheckedUTC <= t.Date);
+
+                    return resultA.DeletedCount + resultB.DeletedCount + resultC.DeletedCount;
+                });
+
+                Utils.Log($"Purged {collected.Sum()} cache entries");
+            }
+
             return "Done";
         }
 
@@ -175,7 +229,6 @@ namespace Wabbajack.CacheServer
                 string param = (string)arg.request;
                 var url = new Uri(Encoding.UTF8.GetString(param.FromHex()));
 
-                Utils.Log($"{DateTime.Now} - Not Cached - {url}");
                 var client = new HttpClient();
                 var builder = new UriBuilder(url) {Host = "localhost", Port = Request.Url.Port ?? 8080, Scheme = "http"};
                 client.DefaultRequestHeaders.Add("apikey", Request.Headers["apikey"]); 

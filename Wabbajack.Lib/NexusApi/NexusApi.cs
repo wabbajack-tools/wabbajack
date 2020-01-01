@@ -353,13 +353,6 @@ namespace Wabbajack.Lib.NexusApi
             public string URI { get; set; }
         }
 
-        private class UpdatedMod
-        {
-            public long mod_id;
-            public long latest_file_update;
-            public long latest_mod_activity;
-        }
-
         private static bool? _useLocalCache;
         public static MethodInfo CacheMethod { get; set; }
 
@@ -373,89 +366,6 @@ namespace Wabbajack.Lib.NexusApi
                 return _localCacheDir;
             }
             set => _localCacheDir = value;
-        }
-
-
-        public async Task ClearUpdatedModsInCache()
-        {
-            if (NexusApiClient.CacheMethod == null) return;
-            using (var queue = new WorkQueue())
-            {
-                var invalid_json = (await Directory.EnumerateFiles(LocalCacheDir, "*.json")
-                    .PMap(queue, f =>
-                    {
-                        var s = JsonSerializer.Create();
-                        try
-                        {
-                            using (var tr = File.OpenText(f))
-                                s.Deserialize(new JsonTextReader(tr));
-                            return null;
-                        }
-                        catch (JsonReaderException)
-                        {
-                            return f;
-                        }
-                    })).Where(f => f != null).ToList();
-                Utils.Log($"Found {invalid_json.Count} bad json files");
-                foreach (var file in invalid_json)
-                    File.Delete(file);
-            }
-
-            var gameTasks = GameRegistry.Games.Values
-                .Where(game => game.NexusName != null)
-                .Select(async game =>
-                {
-                    return (game,
-                        mods: await Get<List<UpdatedMod>>(
-                            $"https://api.nexusmods.com/v1/games/{game.NexusName}/mods/updated.json?period=1m"));
-                })
-                .Select(async rTask =>
-                {
-                    var (game, mods) = await rTask;
-                    return mods.Select(mod => new { game = game, mod = mod });
-                });
-            var purge = (await Task.WhenAll(gameTasks))
-                .SelectMany(i => i)
-                .ToList();
-
-            Utils.Log($"Found {purge.Count} updated mods in the last month");
-            using (var queue = new WorkQueue())
-            {
-                var to_purge = (await Directory.EnumerateFiles(LocalCacheDir, "*.json")
-                    .PMap(queue, f =>
-                    {
-                        Utils.Status("Cleaning Nexus cache for");
-                        var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f).FromHex()));
-                        var parts = uri.PathAndQuery.Split('/', '.').ToHashSet();
-                        var found = purge.FirstOrDefault(p =>
-                            parts.Contains(p.game.NexusName) && parts.Contains(p.mod.mod_id.ToString()));
-                        if (found != null)
-                        {
-                            var a = found.mod.latest_file_update.AsUnixTime();
-                            // Mod activity could hide files
-                            var b = found.mod.latest_mod_activity.AsUnixTime();
-                            var should_remove = File.GetLastWriteTimeUtc(f) <= (a > b ? a : b);
-                            return (should_remove, f);
-                        }
-
-                        // ToDo
-                        // Can improve to not read the entire file to see if it starts with null
-                        if (File.ReadAllText(f).StartsWith("null"))
-                            return (true, f);
-
-                        return (false, f);
-                    }))
-                    .Where(p => p.Item1)
-                    .ToList();
-
-                Utils.Log($"Purging {to_purge.Count} cache entries");
-                await to_purge.PMap(queue, f =>
-                {
-                    var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f.f).FromHex()));
-                    Utils.Log($"Purging {uri}");
-                    File.Delete(f.f);
-                });
-            }
         }
     }
 }
