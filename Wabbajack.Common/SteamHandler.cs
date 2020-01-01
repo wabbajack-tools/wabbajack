@@ -65,6 +65,8 @@ namespace Wabbajack.Common
         {
             var steamKey = Registry.CurrentUser.OpenSubKey(SteamRegKey);
             SteamPath = steamKey?.GetValue("SteamPath").ToString();
+            if(string.IsNullOrWhiteSpace(SteamPath) || steamKey == null || !Directory.Exists(SteamPath))
+                Utils.ErrorThrow(new Exception("Could not find the Steam folder!"));
             if(!init) return;
             LoadInstallFolders();
             LoadAllSteamGames();
@@ -92,9 +94,14 @@ namespace Wabbajack.Common
                 if (!l.Contains("BaseInstallFolder_")) return;
                 var s = GetVdfValue(l);
                 s = Path.Combine(s, "steamapps");
-                if(Directory.Exists(s))
-                    paths.Add(s);
+                if (!Directory.Exists(s))
+                    return;
+                
+                paths.Add(s);
+                Utils.Log($"Steam Library found at {s}");
             });
+
+            Utils.Log($"Total number of Steam Libraries found: {paths.Count}");
 
             // Default path in the Steam folder isn't in the configs
             if(Directory.Exists(Path.Combine(SteamPath, "steamapps")))
@@ -145,8 +152,12 @@ namespace Wabbajack.Common
                             g.RequiredFiles.TrueForAll(s => File.Exists(Path.Combine(steamGame.InstallDir, s)))
                             )?.Game;
                     games.Add(steamGame);
+
+                    Utils.Log($"Found Game: {steamGame.Name} ({steamGame.AppId}) at {steamGame.InstallDir}");
                 });
             });
+
+            Utils.Log($"Total number of Steam Games found: {games.Count}");
 
             Games = games;
         }
