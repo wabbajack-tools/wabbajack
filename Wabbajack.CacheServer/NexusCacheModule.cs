@@ -248,7 +248,7 @@ namespace Wabbajack.CacheServer
 
             using (var queue = new WorkQueue())
             {
-                await Directory.EnumerateFiles(Path.Combine("c:\\tmp", (string)arg.Folder)).PMap(queue,
+                await Directory.EnumerateFiles(Path.Combine(Server.Config.Settings.TempDir, (string)arg.Folder)).PMap(queue,
                     async file =>
                     {
                         Utils.Log($"Ingesting {file}");

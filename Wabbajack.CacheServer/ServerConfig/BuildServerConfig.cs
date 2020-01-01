@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MongoDB.Driver.Core.Configuration;
 using Wabbajack.CacheServer.DTOs;
 using Wabbajack.CacheServer.DTOs.JobQueue;
 using Wabbajack.Lib.NexusApi;
@@ -24,5 +25,7 @@ namespace Wabbajack.CacheServer.ServerConfig
         public MongoConfig<NexusCacheData<NexusFileInfo>> NexusFileInfos { get; set; }
 
         public IndexerConfig Indexer { get; set; }
+
+        public Settings Settings { get; set; }
     }
 }
