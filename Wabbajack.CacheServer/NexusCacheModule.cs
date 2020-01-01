@@ -1,12 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using MongoDB.Driver;
 using Nancy;
-using Nancy.Helpers;
+using Wabbajack.CacheServer.DTOs;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
@@ -24,6 +25,7 @@ namespace Wabbajack.CacheServer
             Get("/nexus_api_cache/{request}.json", HandleCacheCall);
             Get("/nexus_api_cache", ListCache);
             Get("/nexus_api_cache/update", UpdateCache);
+            Get("/nexus_api_cache/ingest/{Folder}", HandleIngestCache);
         }
 
         public async Task<object> UpdateCache(object arg)
@@ -47,30 +49,123 @@ namespace Wabbajack.CacheServer
                 }));
         }
 
-        private async Task<object> HandleModInfo(dynamic arg)
+        private async Task<Response> HandleModInfo(dynamic arg)
         {
             Utils.Log($"{DateTime.Now} - Mod Info - {arg.GameName}/{arg.ModID}/");
-            var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-            return api.GetModInfo(GameRegistry.GetByNexusName((string)arg.GameName).Game, (string)arg.ModID).ToJSON();
+            string gameName = arg.GameName;
+            string modId = arg.ModId;
+            var result = await Server.Config.NexusModInfos.Connect()
+                .FindOneAsync(info => info.Game == gameName && info.ModId == modId);
+
+            string method = "CACHED";
+            if (result == null)
+            {
+                var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
+                var path = $"/v1/{gameName}/mods/{modId}.json";
+                var body = await api.Get<ModInfo>(path);
+                result = new NexusCacheData<ModInfo>
+                {
+                    Data = body, 
+                    Path = path, 
+                    Game = gameName,
+                    ModId = modId
+                };
+                try
+                {
+                    await Server.Config.NexusModInfos.Connect().InsertOneAsync(result);
+                }
+                catch (MongoWriteException)
+                {
+
+                }
+
+                method = "NOT_CACHED";
+            }
+
+            Response response = result.Data.ToJSON();
+            response.Headers.Add("WABBAJACK_CACHE_FROM", method);
+            response.ContentType = "application/json";
+            return response;
         }
 
         private async Task<object> HandleFileID(dynamic arg)
         {
             Utils.Log($"{DateTime.Now} - File Info - {arg.GameName}/{arg.ModID}/{arg.FileID}");
-            var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-            return api.GetFileInfo(new NexusDownloader.State
+            string gameName = arg.GameName;
+            string modId = arg.ModId;
+            string fileId = arg.FileId;
+            var result = await Server.Config.NexusFileInfos.Connect()
+                .FindOneAsync(info => info.Game == gameName && info.ModId == modId && info.FileId == fileId);
+
+            string method = "CACHED";
+            if (result == null)
             {
-                GameName = arg.GameName,
-                ModID = arg.ModID,
-                FileID = arg.FileID
-            }).ToJSON();
+                var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
+                var path = $"/v1/{gameName}/mods/{modId}/files/{fileId}.json";
+                var body = await api.Get<NexusFileInfo>(path);
+                result = new NexusCacheData<NexusFileInfo>
+                {
+                    Data = body, 
+                    Path = path, 
+                    Game = gameName, 
+                    ModId = modId,
+                    FileId = fileId
+                };
+                try
+                {
+                    await Server.Config.NexusFileInfos.Connect().InsertOneAsync(result);
+                }
+                catch (MongoWriteException)
+                {
+
+                }
+
+                method = "NOT_CACHED";
+            }
+
+            Response response = result.Data.ToJSON();
+            response.Headers.Add("WABBAJACK_CACHE_FROM", method);
+            response.ContentType = "application/json";
+            return response;
         }
 
         private async Task<object> HandleGetFiles(dynamic arg)
         {
             Utils.Log($"{DateTime.Now} - Mod Files - {arg.GameName} {arg.ModID}");
-            var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-            return api.GetModFiles(GameRegistry.GetByNexusName((string)arg.GameName).Game, (int)arg.ModID).ToJSON();
+            string gameName = arg.GameName;
+            string modId = arg.ModId;
+            var result = await Server.Config.NexusModFiles.Connect()
+                .FindOneAsync(info => info.Game == gameName && info.ModId == modId);
+
+            string method = "CACHED";
+            if (result == null)
+            {
+                var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
+                var path = $"/v1/{gameName}/mods/{modId}/files.json";
+                var body = await api.Get<NexusApiClient.GetModFilesResponse>(path);
+                result = new NexusCacheData<NexusApiClient.GetModFilesResponse>
+                {
+                    Data = body,
+                    Path = path,
+                    Game = gameName,
+                    ModId = modId
+                };
+                try
+                {
+                    await Server.Config.NexusModFiles.Connect().InsertOneAsync(result);
+                }
+                catch (MongoWriteException)
+                {
+
+                }
+
+                method = "NOT_CACHED";
+            }
+
+            Response response = result.Data.ToJSON();
+            response.Headers.Add("WABBAJACK_CACHE_FROM", method);
+            response.ContentType = "application/json";
+            return response;
         }
 
         private async Task<string> HandleCacheCall(dynamic arg)
@@ -79,33 +174,118 @@ namespace Wabbajack.CacheServer
             {
                 string param = (string)arg.request;
                 var url = new Uri(Encoding.UTF8.GetString(param.FromHex()));
-                var path = Path.Combine(NexusApiClient.LocalCacheDir, arg.request + ".json");
 
-                if (!File.Exists(path))
-                {
-                    Utils.Log($"{DateTime.Now} - Not Cached - {url}");
-                    var client = new HttpClient();
-                    var builder = new UriBuilder(url) {Host = "localhost", Port = Request.Url.Port ?? 8080, Scheme = "http"};
-                    client.DefaultRequestHeaders.Add("apikey", Request.Headers["apikey"]);
-                    await client.GetStringAsync(builder.Uri.ToString());
-                    if (!File.Exists(path))
-                    {
-                        Utils.Log($"Still not cached : {path}");
-                        throw new InvalidDataException("Invalid Data");
-                    }
-
-                    Utils.Log($"Is Now Cached : {path}");
-
-                }
-
-                Utils.Log($"{DateTime.Now} - From Cached - {url}");
-                return File.ReadAllText(path);
+                Utils.Log($"{DateTime.Now} - Not Cached - {url}");
+                var client = new HttpClient();
+                var builder = new UriBuilder(url) {Host = "localhost", Port = Request.Url.Port ?? 8080, Scheme = "http"};
+                client.DefaultRequestHeaders.Add("apikey", Request.Headers["apikey"]); 
+                return await client.GetStringAsync(builder.Uri.ToString());
             }
             catch (Exception ex)
             {
                 Utils.Log(ex.ToString());
                 return "ERROR";
             }
+        }
+
+        private async Task<string> HandleIngestCache(dynamic arg)
+        {
+            int count = 0;
+            int failed = 0;
+
+            using (var queue = new WorkQueue())
+            {
+                await Directory.EnumerateFiles(Path.Combine("c:\\tmp", (string)arg.Folder)).PMap(queue,
+                    async file =>
+                    {
+                        Utils.Log($"Ingesting {file}");
+                        if (!file.EndsWith(".json")) return;
+
+                        var fileInfo = new FileInfo(file);
+                        count++;
+
+                        var url = new Url(
+                            Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(file).FromHex()));
+                        var split = url.Path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+                        try
+                        {
+                            switch (split.Length)
+                            {
+                                case 5 when split[3] == "mods":
+                                {
+                                    var body = file.FromJSON<ModInfo>();
+
+                                    var payload = new NexusCacheData<ModInfo>();
+                                    payload.Data = body;
+                                    payload.Game = split[2];
+                                    payload.Path = url.Path;
+                                    payload.ModId = body.mod_id;
+                                    payload.LastCheckedUTC = fileInfo.LastWriteTimeUtc;
+
+                                    try
+                                    {
+                                        await Server.Config.NexusModInfos.Connect().InsertOneAsync(payload);
+                                    }
+                                    catch (MongoWriteException ex)
+                                    {
+
+                                    }
+
+                                    break;
+                                }
+                                case 6 when split[5] == "files.json":
+                                {
+                                    var body = file.FromJSON<NexusApiClient.GetModFilesResponse>();
+                                    var payload = new NexusCacheData<NexusApiClient.GetModFilesResponse>();
+                                    payload.Path = url.Path;
+                                    payload.Data = body;
+                                    payload.Game = split[2];
+                                    payload.ModId = split[4];
+                                    payload.LastCheckedUTC = fileInfo.LastWriteTimeUtc;
+
+                                        try
+                                        {
+                                        await Server.Config.NexusModFiles.Connect().InsertOneAsync(payload);
+                                    }
+                                    catch (MongoWriteException ex)
+                                    {
+
+                                    }
+
+                                    break;
+                                }
+                                case 7 when split[5] == "files":
+                                {
+                                    var body = file.FromJSON<NexusFileInfo>();
+                                    var payload = new NexusCacheData<NexusFileInfo>();
+                                    payload.Data = body;
+                                    payload.Path = url.Path;
+                                    payload.Game = split[2];
+                                    payload.FileId = Path.GetFileNameWithoutExtension(split[6]);
+                                    payload.ModId = split[4];
+                                    payload.LastCheckedUTC = fileInfo.LastWriteTimeUtc;
+
+                                        try
+                                        {
+                                        await Server.Config.NexusFileInfos.Connect().InsertOneAsync(payload);
+                                    }
+                                    catch (MongoWriteException ex)
+                                    {
+
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            failed++;
+                        }
+                    });
+            }
+
+            return $"Inserted {count} caches, {failed} failed";
         }
     }
 }

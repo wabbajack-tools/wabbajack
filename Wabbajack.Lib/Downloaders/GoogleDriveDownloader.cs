@@ -36,6 +36,8 @@ namespace Wabbajack.Lib.Downloaders
         public class State : AbstractDownloadState
         {
             public string Id { get; set; }
+            public override object[] PrimaryKey { get => new object[] {Id}; }
+
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
                 return whitelist.GoogleIDs.Contains(Id);

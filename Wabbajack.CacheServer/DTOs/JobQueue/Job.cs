@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 
 namespace Wabbajack.CacheServer.DTOs.JobQueue
 { 
@@ -23,6 +24,8 @@ namespace Wabbajack.CacheServer.DTOs.JobQueue
         public DateTime? Ended { get; set; }
         public DateTime Created { get; set; } = DateTime.Now;
         public JobPriority Priority { get; set; } = JobPriority.Normal;
+
+        public JobResult Result { get; set; }
         public bool RequiresNexus { get; set; } = true;
         public AJobPayload Payload { get; set; }
 
@@ -36,19 +39,18 @@ namespace Wabbajack.CacheServer.DTOs.JobQueue
         {
             var filter = new BsonDocument
             {
-                {"query", new BsonDocument {{"Started", null}}},
-                {"sort", new BsonDocument{{"Priority", -1}, {"Created", 1}}},
-
+                {"Started", BsonNull.Value}
             };
             var update = new BsonDocument
             {
-                {"update", new BsonDocument {{"$set", new BsonDocument {{"Started", DateTime.Now}}}}}
+                {"$set", new BsonDocument {{"Started", DateTime.Now}}}
             };
-            var job = await Server.Config.JobQueue.Connect().FindOneAndUpdateAsync<Job>(filter, update);
+            var sort = new {Priority=-1, Created=1}.ToBsonDocument();
+            var job = await Server.Config.JobQueue.Connect().FindOneAndUpdateAsync<Job>(filter, update, new FindOneAndUpdateOptions<Job>{Sort = sort});
             return job;
         }
 
-        public static async Task<Job> Finish(Job job)
+        public static async Task<Job> Finish(Job job, JobResult jobResult)
         {
             var filter = new BsonDocument
             {
@@ -56,7 +58,7 @@ namespace Wabbajack.CacheServer.DTOs.JobQueue
             };
             var update = new BsonDocument
             {
-                {"update", new BsonDocument {{"$set", new BsonDocument {{"Ended", DateTime.Now}}}}}
+                {"$set", new BsonDocument {{"Ended", DateTime.Now}, {"Result", jobResult.ToBsonDocument()}}}
             };
             var result = await Server.Config.JobQueue.Connect().FindOneAndUpdateAsync<Job>(filter, update);
             return result;

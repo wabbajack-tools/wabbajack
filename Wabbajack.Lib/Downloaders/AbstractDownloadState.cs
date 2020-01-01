@@ -40,6 +40,8 @@ namespace Wabbajack.Lib.Downloaders
             TypeToName = NameToType.ToDictionary(k => k.Value, k => k.Key);
         }
 
+        public abstract object[] PrimaryKey { get; }
+
 
 
         /// <summary>

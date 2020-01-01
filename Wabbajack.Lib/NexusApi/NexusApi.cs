@@ -201,6 +201,7 @@ namespace Wabbajack.Lib.NexusApi
             {
                 var dailyRemaining = int.Parse(response.Headers.GetValues("x-rl-daily-remaining").First());
                 var hourlyRemaining = int.Parse(response.Headers.GetValues("x-rl-hourly-remaining").First());
+                Utils.Log($"Nexus Requests Remaining: {dailyRemaining} daily - {hourlyRemaining} hourly");
 
                 lock (RemainingLock)
                 {
@@ -222,6 +223,7 @@ namespace Wabbajack.Lib.NexusApi
         {
             ApiKey = apiKey;
 
+            HttpClient.BaseAddress = new Uri("https://api.nexusmods.com");
             // set default headers for all requests to the Nexus API
             var headers = HttpClient.DefaultRequestHeaders;
             headers.Add("User-Agent", Consts.UserAgent);
@@ -240,10 +242,12 @@ namespace Wabbajack.Lib.NexusApi
             return new NexusApiClient(apiKey);
         }
 
-        private async Task<T> Get<T>(string url)
+        public async Task<T> Get<T>(string url)
         {
             var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             UpdateRemaining(response);
+            if (!response.IsSuccessStatusCode)
+                throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
 
             using (var stream = await response.Content.ReadAsStreamAsync())
             {
@@ -253,41 +257,10 @@ namespace Wabbajack.Lib.NexusApi
 
         private async Task<T> GetCached<T>(string url)
         {
-            var code = Encoding.UTF8.GetBytes(url).ToHex() + ".json";
-
-            if (UseLocalCache)
-            {
-                var cache_file = Path.Combine(LocalCacheDir, code);
-
-                lock (_diskLock)
-                {
-                    if (!Directory.Exists(LocalCacheDir))
-                        Directory.CreateDirectory(LocalCacheDir);
-
-
-                    if (File.Exists(cache_file))
-                    {
-                        return cache_file.FromJSON<T>();
-                    }
-                }
-
-                var result = await Get<T>(url);
-
-                if (result == null)
-                    return result;
-
-                lock (_diskLock)
-                {
-                    result.ToJSON(cache_file);
-                }
-
-
-                return result;
-            }
-
             try
             {
-                return await Get<T>(Consts.WabbajackCacheLocation + code);
+                var builder = new UriBuilder(url) { Host = Consts.WabbajackCacheHostname, Port = 80, Scheme = "http" };
+                return await Get<T>(builder.ToString());
             }
             catch (Exception)
             {
@@ -388,15 +361,7 @@ namespace Wabbajack.Lib.NexusApi
         }
 
         private static bool? _useLocalCache;
-        public static bool UseLocalCache
-        {
-            get
-            {
-                if (_useLocalCache == null) return LocalCacheDir != null;
-                return _useLocalCache ?? false;
-            }
-            set => _useLocalCache = value;
-        }
+        public static MethodInfo CacheMethod { get; set; }
 
         private static string _localCacheDir;
         public static string LocalCacheDir
@@ -413,7 +378,7 @@ namespace Wabbajack.Lib.NexusApi
 
         public async Task ClearUpdatedModsInCache()
         {
-            if (!UseLocalCache) return;
+            if (NexusApiClient.CacheMethod == null) return;
             using (var queue = new WorkQueue())
             {
                 var invalid_json = (await Directory.EnumerateFiles(LocalCacheDir, "*.json")

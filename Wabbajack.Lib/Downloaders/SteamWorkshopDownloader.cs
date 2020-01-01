@@ -41,6 +41,8 @@ namespace Wabbajack.Lib.Downloaders
         public class State : AbstractDownloadState
         {
             public SteamWorkshopItem Item { get; set; }
+            public override object[] PrimaryKey { get => new object[] {Item.Game, Item.ItemID}; }
+
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
                 return true;

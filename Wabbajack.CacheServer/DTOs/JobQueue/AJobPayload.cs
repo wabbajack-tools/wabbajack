@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
+using Wabbajack.CacheServer.Jobs;
 
 namespace Wabbajack.CacheServer.DTOs.JobQueue
 {
@@ -19,7 +20,7 @@ namespace Wabbajack.CacheServer.DTOs.JobQueue
 
         public virtual bool UsesNexus { get; } = false;
 
-        public abstract JobResult Execute();
+        public abstract Task<JobResult> Execute();
 
         static AJobPayload()
         {

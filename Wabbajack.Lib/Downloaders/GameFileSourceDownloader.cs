@@ -52,6 +52,8 @@ namespace Wabbajack.Lib.Downloaders
 
             internal string SourcePath => Path.Combine(Game.MetaData().GameLocation(), GameFile);
 
+            public override object[] PrimaryKey { get => new object[] {Game, GameFile}; }
+
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
                 return true;

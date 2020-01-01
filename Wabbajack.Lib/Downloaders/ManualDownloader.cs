@@ -73,6 +73,8 @@ namespace Wabbajack.Lib.Downloaders
         public class State : AbstractDownloadState
         {
             public string Url { get; set; }
+            public override object[] PrimaryKey { get => new object[] {Url}; }
+
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
                 return true;

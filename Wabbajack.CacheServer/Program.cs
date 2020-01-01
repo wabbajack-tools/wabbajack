@@ -16,6 +16,7 @@ namespace Wabbajack.CacheServer
             using (var server = new Server("http://localhost:8080"))
             {
                 //ListValidationService.Start();
+                var tsk = JobQueueEndpoints.StartJobQueue();
                 server.Start();
                 Console.ReadLine();
             }

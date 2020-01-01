@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Policy;
 using System.Threading.Tasks;
 using MongoDB.Driver;
@@ -7,6 +8,7 @@ using MongoDB.Driver.Linq;
 using Nancy;
 using Nettle;
 using Wabbajack.CacheServer.DTOs.JobQueue;
+using Wabbajack.CacheServer.Jobs;
 
 namespace Wabbajack.CacheServer
 {
@@ -55,10 +57,10 @@ namespace Wabbajack.CacheServer
             var states = await Server.Config.ListValidation.Connect()
                 .AsQueryable()
                 .SelectMany(lst => lst.DetailedStatus.Archives)
-                .Select(a => a.Archive.State)
+                .Select(a => a.Archive)
                 .ToListAsync();
 
-            var jobs = states.Select(state => new IndexJob {State = state})
+            var jobs = states.Select(state => new IndexJob {Archive = state})
                 .Select(j => new Job {Payload = j, RequiresNexus = j.UsesNexus})
                 .ToList();
 
@@ -66,6 +68,30 @@ namespace Wabbajack.CacheServer
                 await Server.Config.JobQueue.Connect().InsertManyAsync(jobs);
 
             return $"Enqueued {states.Count} jobs";
+        }
+
+        public static async Task StartJobQueue()
+        {
+            while (true)
+            {
+                try
+                {
+                    var job = await Job.GetNext();
+                    if (job == null)
+                    {
+                        await Task.Delay(5000);
+                        continue;
+                    }
+
+                    var result = await job.Payload.Execute();
+                    await Job.Finish(job, result);
+                }
+                catch (Exception ex)
+                {
+
+                }
+
+            }
         }
     }
 }

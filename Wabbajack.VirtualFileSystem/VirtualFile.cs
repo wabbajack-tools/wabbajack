@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using K4os.Hash.Crc;
 using Wabbajack.Common;
 using Wabbajack.Common.CSP;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -40,6 +42,7 @@ namespace Wabbajack.VirtualFileSystem
         }
 
         public string Hash { get; internal set; }
+        public ExtendedHashes ExtendedHashes { get; set; }
         public long Size { get; internal set; }
 
         public long LastModified { get; internal set; }
@@ -143,6 +146,8 @@ namespace Wabbajack.VirtualFileSystem
                 LastAnalyzed = DateTime.Now.Ticks,
                 Hash = abs_path.FileHash()
             };
+            if (context.UseExtendedHashes)
+                self.ExtendedHashes = ExtendedHashes.FromFile(abs_path);
 
             if (FileExtractor.CanExtract(abs_path))
             {
@@ -161,6 +166,7 @@ namespace Wabbajack.VirtualFileSystem
 
             return self;
         }
+
 
         public void Write(MemoryStream ms)
         {
@@ -264,6 +270,42 @@ namespace Wabbajack.VirtualFileSystem
             return File.OpenRead(StagedPath);
         }
     }
+
+    public class ExtendedHashes
+    {
+        public static ExtendedHashes FromFile(string file)
+        {
+            var hashes = new ExtendedHashes();
+            using (var stream = File.OpenRead(file))
+            {
+                hashes.SHA256 = System.Security.Cryptography.SHA256.Create().ComputeHash(stream).ToHex();
+                stream.Position = 0;
+                hashes.SHA1 = System.Security.Cryptography.SHA1.Create().ComputeHash(stream).ToHex();
+                stream.Position = 0;
+                hashes.MD5 = System.Security.Cryptography.MD5.Create().ComputeHash(stream).ToHex();
+                stream.Position = 0;
+
+                var bytes = new byte[1024 * 8];
+                var crc = new Crc32();
+                while (true)
+                {
+                    var read = stream.Read(bytes, 0, bytes.Length);
+                    if (read == 0) break;
+                    crc.Update(bytes, 0, read);
+                }
+
+                hashes.CRC = crc.DigestBytes().ToHex();
+            }
+
+            return hashes;
+        }
+
+        public string SHA256 { get; set; }
+        public string SHA1 { get; set; }
+        public string MD5 { get; set; }
+        public string CRC { get; set; }
+    }
+
 
     public class CannotStageNativeFile : Exception
     {
