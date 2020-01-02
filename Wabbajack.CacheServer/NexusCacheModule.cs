@@ -115,7 +115,7 @@ namespace Wabbajack.CacheServer
             if (result == null)
             {
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-                var path = $"/v1/{gameName}/mods/{modId}.json";
+                var path = $"/v1/games/{gameName}/mods/{modId}.json";
                 var body = await api.Get<ModInfo>(path);
                 result = new NexusCacheData<ModInfo>
                 {
@@ -155,7 +155,7 @@ namespace Wabbajack.CacheServer
             if (result == null)
             {
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-                var path = $"/v1/{gameName}/mods/{modId}/files/{fileId}.json";
+                var path = $"/v1/games/{gameName}/mods/{modId}/files/{fileId}.json";
                 var body = await api.Get<NexusFileInfo>(path);
                 result = new NexusCacheData<NexusFileInfo>
                 {
@@ -195,7 +195,7 @@ namespace Wabbajack.CacheServer
             if (result == null)
             {
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-                var path = $"/v1/{gameName}/mods/{modId}/files.json";
+                var path = $"/v1/games/{gameName}/mods/{modId}/files.json";
                 var body = await api.Get<NexusApiClient.GetModFilesResponse>(path);
                 result = new NexusCacheData<NexusApiClient.GetModFilesResponse>
                 {
