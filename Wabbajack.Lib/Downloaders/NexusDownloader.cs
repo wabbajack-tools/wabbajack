@@ -139,7 +139,7 @@ namespace Wabbajack.Lib.Downloaders
                 try
                 {
                     var client = await NexusApiClient.Get();
-                    url = await client.GetNexusDownloadLink(this, false);
+                    url = await client.GetNexusDownloadLink(this);
                 }
                 catch (Exception ex)
                 {

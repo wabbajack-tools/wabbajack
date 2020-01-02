@@ -26,7 +26,7 @@ namespace Wabbajack.CacheServer
         public Server(string address)
         {
             Address = address;
-            _config = new HostConfiguration {MaximumConnectionCount = 24, RewriteLocalhost = true};
+            _config = new HostConfiguration {MaximumConnectionCount = 200, RewriteLocalhost = true};
             //_config.UrlReservations.CreateAutomatically = true;
             _server = new NancyHost(_config, new Uri(address));
 

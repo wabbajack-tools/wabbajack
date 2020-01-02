@@ -15,9 +15,13 @@ namespace Wabbajack.CacheServer
             Utils.LogMessages.Subscribe(Console.WriteLine);
             using (var server = new Server("http://localhost:8080"))
             {
-                //ListValidationService.Start();
-                var tsk = JobQueueEndpoints.StartJobQueue();
+                Consts.WabbajackCacheHostname = "localhost";
+                Consts.WabbajackCachePort = 8080;
                 server.Start();
+
+                ListValidationService.Start();
+                var tsk = JobQueueEndpoints.StartJobQueue();
+                
                 Console.ReadLine();
             }
         }

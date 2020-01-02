@@ -259,48 +259,22 @@ namespace Wabbajack.Lib.NexusApi
         {
             try
             {
-                var builder = new UriBuilder(url) { Host = Consts.WabbajackCacheHostname, Port = 80, Scheme = "http" };
+                var builder = new UriBuilder(url) { Host = Consts.WabbajackCacheHostname, Port = Consts.WabbajackCachePort, Scheme = "http" };
                 return await Get<T>(builder.ToString());
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return await Get<T>(url);
             }
 
         }
 
-        public async Task<string> GetNexusDownloadLink(NexusDownloader.State archive, bool cache = false)
+        public async Task<string> GetNexusDownloadLink(NexusDownloader.State archive)
         {
-            if (cache)
-            {
-                var result = await TryGetCachedLink(archive);
-                if (result.Succeeded)
-                {
-                    return result.Value;
-                }
-            }
-
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(archive.GameName)}/mods/{archive.ModID}/files/{archive.FileID}/download_link.json";
             return (await Get<List<DownloadLink>>(url)).First().URI;
-        }
-
-        private async Task<GetResponse<string>> TryGetCachedLink(NexusDownloader.State archive)
-        {
-            if (!Directory.Exists(Consts.NexusCacheDirectory))
-                Directory.CreateDirectory(Consts.NexusCacheDirectory);
-
-            var path = Path.Combine(Consts.NexusCacheDirectory, $"link-{archive.GameName}-{archive.ModID}-{archive.FileID}.txt");
-            if (!File.Exists(path) || (DateTime.Now - new FileInfo(path).LastWriteTime).TotalHours > 24)
-            {
-                File.Delete(path);
-                var result = await GetNexusDownloadLink(archive);
-                File.WriteAllText(path, result);
-                return GetResponse<string>.Succeed(result);
-            }
-
-            return GetResponse<string>.Succeed(File.ReadAllText(path));
         }
 
         public async Task<NexusFileInfo> GetFileInfo(NexusDownloader.State mod)
