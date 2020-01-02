@@ -72,6 +72,14 @@ namespace Wabbajack.CacheServer
 
         public static async Task StartJobQueue()
         {
+            foreach (var task in Enumerable.Range(0, 4))
+            {
+                var tsk = StartJobQueueInner();
+            }
+        }
+
+        private static async Task StartJobQueueInner()
+        {
             while (true)
             {
                 try

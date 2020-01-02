@@ -66,6 +66,7 @@ namespace Wabbajack.CacheServer.Jobs
                     File.Delete(downloadDest);
                 else
                     File.Move(downloadDest, to_path);
+                Utils.DeleteDirectory(Path.Combine(Server.Config.Indexer.DownloadDir, folder));
             }
 
             return JobResult.Success();

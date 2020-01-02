@@ -55,7 +55,7 @@ namespace Wabbajack.CacheServer
                     return mods.Select(mod => new { game = game, mod = mod });
                 }).ToList();
 
-            Utils.Log($"Getting update lits for {gameTasks.Count} games");
+            Utils.Log($"Getting update list for {gameTasks.Count} games");
 
             var purge = (await Task.WhenAll(gameTasks))
                 .SelectMany(i => i)

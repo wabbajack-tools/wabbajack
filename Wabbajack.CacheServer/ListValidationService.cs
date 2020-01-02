@@ -105,7 +105,7 @@ namespace Wabbajack.CacheServer
                 }
             }).FireAndForget();
         }
-        public static async Task ValidateLists()
+        public static async Task ValidateLists(bool skipIfNewer = true)
         {
             Utils.Log("Cleaning Nexus Cache");
             var client = new HttpClient();
@@ -133,6 +133,10 @@ namespace Wabbajack.CacheServer
 
         private static async Task ValidateList(ModlistMetadata list, WorkQueue queue)
         {
+            var existing = await Server.Config.ListValidation.Connect().FindOneAsync(l => l.Id == list.Links.MachineURL);
+            if (existing != null && DateTime.Now - existing.DetailedStatus.Checked < TimeSpan.FromHours(2))
+                return;
+
             var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + ExtensionManager.Extension);
 
             if (list.NeedsDownload(modlist_path))
