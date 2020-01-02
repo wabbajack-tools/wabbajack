@@ -118,6 +118,8 @@ namespace Wabbajack.Lib.Downloaders
             public string FileID { get; set; }
             public string FileName { get; set; }
 
+            public override object[] PrimaryKey { get => new object[] {FileID, FileName}; }
+
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
                 return true;

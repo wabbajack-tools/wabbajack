@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Wabbajack.Common;
@@ -34,6 +35,8 @@ namespace Wabbajack.Lib.Downloaders
         public class State : AbstractDownloadState
         {
             public string Url { get; set; }
+            public override object[] PrimaryKey { get => new object[]{Url}; }
+
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
                 // Everything from Moddb is whitelisted

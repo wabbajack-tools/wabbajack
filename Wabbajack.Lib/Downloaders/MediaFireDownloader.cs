@@ -24,6 +24,8 @@ namespace Wabbajack.Lib.Downloaders
         {
             public string Url { get; set; }
 
+            public override object[] PrimaryKey { get => new object[] {Url};}
+
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
                 return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));

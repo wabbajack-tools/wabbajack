@@ -32,7 +32,7 @@ namespace Wabbajack.Lib
 
                 },
             };
-            Config.VersionTolerance.Mode = VersionToleranceMode.Standard;
+            //Config.VersionTolerance.Mode = VersionToleranceMode.Standard;
         }
     }
 }

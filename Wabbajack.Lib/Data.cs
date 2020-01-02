@@ -119,7 +119,7 @@ namespace Wabbajack.Lib
         /// <summary>
         ///     Whether readme is a website
         /// </summary>
-        public bool ReadmeIsWebsite;
+        //public bool ReadmeIsWebsite;
     }
 
     public class Directive
@@ -245,19 +245,19 @@ namespace Wabbajack.Lib
         /// <summary>
         ///     MurMur3 Hash of the archive
         /// </summary>
-        public string Hash;
+        public string Hash { get; set; }
 
         /// <summary>
         /// Meta INI for the downloaded archive
         /// </summary>
-        public string Meta;
+        public string Meta { get; set; }
 
         /// <summary>
         ///     Human friendly name of this archive
         /// </summary>
-        public string Name;
+        public string Name { get; set; }
 
-        public long Size;
+        public long Size { get; set; }
         public AbstractDownloadState State { get; set; }
     }
 
