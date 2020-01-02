@@ -21,9 +21,16 @@ namespace Wabbajack.CacheServer
         public ListValidationService() : base("/lists")
         {
             Get("/status", HandleGetLists);
+            Get("/force_recheck", HandleForceRecheck);
             Get("/status/{Name}.json", HandleGetListJson);
             Get("/status/{Name}.html", HandleGetListHtml);
 
+        }
+
+        private async Task<string> HandleForceRecheck(object arg)
+        {
+            await ValidateLists(false);
+            return "done";
         }
 
         private async Task<string> HandleGetLists(object arg)
@@ -120,7 +127,7 @@ namespace Wabbajack.CacheServer
                 {
                     try
                     {
-                        await ValidateList(list, queue);
+                        await ValidateList(list, queue, skipIfNewer);
                     }
                     catch (Exception ex)
                     {
@@ -131,10 +138,10 @@ namespace Wabbajack.CacheServer
             Utils.Log($"Done validating {modlists.Count} lists");
         }
 
-        private static async Task ValidateList(ModlistMetadata list, WorkQueue queue)
+        private static async Task ValidateList(ModlistMetadata list, WorkQueue queue, bool skipIfNewer = true)
         {
             var existing = await Server.Config.ListValidation.Connect().FindOneAsync(l => l.Id == list.Links.MachineURL);
-            if (existing != null && DateTime.Now - existing.DetailedStatus.Checked < TimeSpan.FromHours(2))
+            if (skipIfNewer && existing != null && DateTime.Now - existing.DetailedStatus.Checked < TimeSpan.FromHours(2))
                 return;
 
             var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + ExtensionManager.Extension);
