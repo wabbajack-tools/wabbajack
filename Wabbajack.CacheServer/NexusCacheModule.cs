@@ -142,7 +142,7 @@ namespace Wabbajack.CacheServer
             return response;
         }
 
-        private async Task<object> HandleFileID(dynamic arg)
+        private async Task<Response> HandleFileID(dynamic arg)
         {
             Utils.Log($"{DateTime.Now} - File Info - {arg.GameName}/{arg.ModID}/{arg.FileID}");
             string gameName = arg.GameName;
@@ -183,7 +183,7 @@ namespace Wabbajack.CacheServer
             return response;
         }
 
-        private async Task<object> HandleGetFiles(dynamic arg)
+        private async Task<Response> HandleGetFiles(dynamic arg)
         {
             Utils.Log($"{DateTime.Now} - Mod Files - {arg.GameName} {arg.ModID}");
             string gameName = arg.GameName;

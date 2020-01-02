@@ -77,23 +77,30 @@ namespace Wabbajack.CacheServer.Jobs
             var name = isTop ? Path.GetFileName(file.Name) : file.Name;
             var ifile = new IndexedFile
             {
-                Name = name, 
-                Extension = Path.GetExtension(name),
                 Hash = file.Hash,
                 SHA256 = file.ExtendedHashes.SHA256,
                 SHA1 = file.ExtendedHashes.SHA1,
                 MD5 = file.ExtendedHashes.MD5,
                 CRC = file.ExtendedHashes.CRC,
                 Size = file.Size,
-                Children = file.Children != null ? file.Children.Select(f =>
-                {
-                    ConvertArchive(files, f, false);
-                    return f.Hash;
-                }).ToList() : new List<string>()
+                Children = file.Children != null ? file.Children.Select(
+                    f =>
+                    {
+                        ConvertArchive(files, f, false);
+
+                        return new ChildFile
+                        {
+                            Hash = f.Hash,
+                            Name = f.Name.ToLowerInvariant(),
+                            Extension = Path.GetExtension(f.Name.ToLowerInvariant())
+                        };
+                    }).ToList() : new List<ChildFile>()
             };
             ifile.IsArchive = ifile.Children.Count > 0;
             files.Add(ifile);
             return files;
         }
+
+
     }
 }
