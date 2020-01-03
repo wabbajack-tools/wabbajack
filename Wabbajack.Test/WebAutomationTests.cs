@@ -11,6 +11,7 @@ namespace Wabbajack.Test
     [TestClass]
     public class WebAutomationTests
     {
+        /* 
         [TestMethod]
         public async Task TestBasicNavigation()
         {
@@ -30,5 +31,6 @@ namespace Wabbajack.Test
                 Assert.IsTrue((await w.GetAttr("a.input", "href")).StartsWith("http://"));
             }
         }
+        */
     }
 }
