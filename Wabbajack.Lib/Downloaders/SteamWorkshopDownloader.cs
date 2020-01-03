@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Common.StoreHandlers;
 using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
@@ -50,18 +51,17 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task Download(Archive a, string destination)
             {
-                var currentLib = "";
-                SteamHandler.Instance.InstallFolders.Where(f => f.Contains(Item.Game.InstallDir)).Do(s => currentLib = s);
+                var currentLib = Item.Game.Universe;
 
-                var downloadFolder = Path.Combine(currentLib, "workshop", "downloads", Item.Game.AppId.ToString());
-                var contentFolder = Path.Combine(currentLib, "workshop", "content", Item.Game.AppId.ToString());
+                var downloadFolder = Path.Combine(currentLib, "workshop", "downloads", Item.Game.ID.ToString());
+                var contentFolder = Path.Combine(currentLib, "workshop", "content", Item.Game.ID.ToString());
                 var p = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = Path.Combine(SteamHandler.Instance.SteamPath, "steam.exe"),
+                        FileName = Path.Combine(StoreHandler.Instance.SteamHandler.SteamPath, "steam.exe"),
                         CreateNoWindow = true,
-                        Arguments = $"console +workshop_download_item {Item.Game.AppId} {Item.ItemID}"
+                        Arguments = $"console +workshop_download_item {Item.Game.ID} {Item.ItemID}"
                     }
                 };
 

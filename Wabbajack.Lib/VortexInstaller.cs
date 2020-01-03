@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Windows;
 using Wabbajack.Common;
+using Wabbajack.Common.StoreHandlers;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using DirectoryInfo = Alphaleonis.Win32.Filesystem.DirectoryInfo;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -157,7 +158,7 @@ namespace Wabbajack.Lib
         {
             //var currentLib = "";
             SteamGame currentSteamGame = null;
-            SteamHandler.Instance.Games.Where(g => g.Game == GameInfo.Game).Do(s => currentSteamGame = s);
+            StoreHandler.Instance.SteamHandler.Games.Where(g => g.Game == GameInfo.Game).Do(s => currentSteamGame = (SteamGame)s);
             /*SteamHandler.Instance.InstallFolders.Where(f => f.Contains(currentSteamGame.InstallDir)).Do(s => currentLib = s);
 
             var downloadFolder = Path.Combine(currentLib, "workshop", "downloads", currentSteamGame.AppId.ToString());
@@ -188,9 +189,9 @@ namespace Wabbajack.Lib
                     {
                         StartInfo = new ProcessStartInfo
                         {
-                            FileName = System.IO.Path.Combine(SteamHandler.Instance.SteamPath, "steam.exe"),
+                            FileName = Path.Combine(StoreHandler.Instance.SteamHandler.SteamPath, "steam.exe"),
                             CreateNoWindow = true,
-                            Arguments = $"console +workshop_download_item {currentSteamGame.AppId} {item.ItemID}"
+                            Arguments = $"console +workshop_download_item {currentSteamGame.ID} {currentSteamGame.ID}"
                         }
                     };
 

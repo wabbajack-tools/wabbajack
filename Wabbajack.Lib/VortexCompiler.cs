@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.WindowsAPICodePack.Shell;
 using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.StoreHandlers;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
@@ -70,11 +71,10 @@ namespace Wabbajack.Lib
             ActiveArchives = new List<string>();
 
             // there can be max one game after filtering
-            SteamHandler.Instance.Games.Where(g => g.Game != null && g.Game == game).Do(g =>
+            StoreHandler.Instance.StoreGames.Where(g => g.Game == game && g.Type == StoreType.STEAM).Do(g =>
             {
                 _isSteamGame = true;
-                _steamGame = g;
-                SteamHandler.Instance.LoadWorkshopItems(_steamGame);
+                _steamGame = (SteamGame)g;
                 _hasSteamWorkshopItems = _steamGame.WorkshopItems.Count > 0;
             });
         }
@@ -431,7 +431,7 @@ namespace Wabbajack.Lib
                 var metaString = "[General]\n" +
                                  "repository=Steam\n" +
                                  $"gameName={GameName}\n" +
-                                 $"steamID={_steamGame.AppId}\n" +
+                                 $"steamID={_steamGame.ID}\n" +
                                  $"itemID={item.ItemID}\n" +
                                  $"itemSize={item.Size}\n";
                 try
