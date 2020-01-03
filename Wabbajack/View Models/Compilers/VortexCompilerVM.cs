@@ -11,7 +11,6 @@ using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Common.StoreHandlers;
 using Wabbajack.Lib;
-using GOGHandler = Wabbajack.Common.GOGHandler;
 
 namespace Wabbajack
 {
