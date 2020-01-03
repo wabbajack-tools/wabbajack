@@ -13,6 +13,7 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
 using MongoDB.Driver.Linq;
 using Nettle;
+using Nettle.Functions;
 
 namespace Wabbajack.CacheServer
 {
@@ -24,6 +25,7 @@ namespace Wabbajack.CacheServer
             Get("/force_recheck", HandleForceRecheck);
             Get("/status/{Name}.json", HandleGetListJson);
             Get("/status/{Name}.html", HandleGetListHtml);
+            Get("/status/{Name}/broken.rss", HandleGetRSSFeed);
 
         }
 
@@ -80,7 +82,7 @@ namespace Wabbajack.CacheServer
 
         private async Task<Response> HandleGetListHtml(dynamic arg)
         {
-            
+
             var lst = (await ModListStatus.ByName((string)arg.Name)).DetailedStatus;
             var response = (Response)HandleGetListTemplate(new
             {
@@ -90,6 +92,39 @@ namespace Wabbajack.CacheServer
             });
             response.ContentType = "text/html";
             return response;
+        }
+
+        private static readonly Func<object, string> HandleGetRSSFeedTemplate = NettleEngine.GetCompiler().Compile(@"
+<?xml version=""1.0""?>
+<rss version=""2.0"">
+  <channel>
+    <title>{{lst.Name}} - Broken Mods</title>
+    <link>http://build.wabbajack.org/status/{{lst.Name}}.html</link>
+    <description>These are mods that are broken and need updating</description>
+    {{ each $.failed }}
+    <item>
+       <title>{{$.Archive.Name}}</title>
+       <link>{{$.Archive.Name}}</link>
+    </item>
+    {{/each}}
+  </channel>
+</rss>
+        ");
+
+        public async Task<Response> HandleGetRSSFeed(dynamic arg)
+        {
+            var metric = Metrics.Log("failed_rss", arg.Name);
+            var lst = (await ModListStatus.ByName((string)arg.Name)).DetailedStatus;
+            var response = (Response)HandleGetRSSFeedTemplate(new
+            {
+                lst,
+                failed = lst.Archives.Where(a => a.IsFailing).ToList(),
+                passed = lst.Archives.Where(a => !a.IsFailing).ToList()
+            });
+            response.ContentType = "application/rss+xml";
+            await metric;
+            return response;
+
         }
 
         public static void Start()
