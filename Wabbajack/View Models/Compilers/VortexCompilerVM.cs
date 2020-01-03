@@ -9,6 +9,7 @@ using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
+using Wabbajack.Common.StoreHandlers;
 using Wabbajack.Lib;
 
 namespace Wabbajack
@@ -172,14 +173,12 @@ namespace Wabbajack
 
         private void SetGameToSteamLocation()
         {
-            var steamGame = SteamHandler.Instance.Games.FirstOrDefault(g => g.Game.HasValue && g.Game == SelectedGame.Game);
-            GameLocation.TargetPath = steamGame?.InstallDir;
+            GameLocation.TargetPath = StoreHandler.Instance.GetGamePath(SelectedGame.Game, StoreType.STEAM);
         }
 
         private void SetGameToGogLocation()
         {
-            var gogGame = GOGHandler.Instance.Games.FirstOrDefault(g => g.Game.HasValue && g.Game == SelectedGame.Game);
-            GameLocation.TargetPath = gogGame?.Path;
+            GameLocation.TargetPath = StoreHandler.Instance.GetGamePath(SelectedGame.Game, StoreType.GOG);
         }
 
         public async Task Compile()

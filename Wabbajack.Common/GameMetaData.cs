@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.Win32;
+using Wabbajack.Common.StoreHandlers;
 
 namespace Wabbajack.Common
 {
@@ -71,11 +72,7 @@ namespace Wabbajack.Common
 
         public string GameLocation()
         {
-            if (Consts.TestMode)
-                return Directory.GetCurrentDirectory();
-
-            return SteamHandler.Instance.Games.FirstOrDefault(g => g.Game == Game)?.InstallDir ??
-                   GOGHandler.Instance.Games.FirstOrDefault(g => g.Game == Game)?.Path;
+            return Consts.TestMode ? Directory.GetCurrentDirectory() : StoreHandler.Instance.GetGamePath(Game);
         }
     }
 
