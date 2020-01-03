@@ -132,8 +132,6 @@ namespace Wabbajack.Common
                                 return;
                         if(l.Contains("\"name\""))
                             steamGame.Name = GetVdfValue(l);
-                        if (l.Contains("\"buildid\""))
-                            steamGame.BuildId = GetVdfValue(l);
                         if (l.Contains("\"installdir\""))
                         {
                             var path = Path.Combine(p, "common", GetVdfValue(l));

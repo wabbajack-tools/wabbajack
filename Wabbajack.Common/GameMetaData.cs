@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.Win32;
@@ -68,6 +70,21 @@ namespace Wabbajack.Common
         // file to check if the game is present, useful when steamIds and gogIds dont help
         public List<string> RequiredFiles { get; internal set; }
         public bool Disabled { get; internal set; }
+        
+        public string InstalledVersion
+        {
+            get
+            {
+                if (GameLocation() == null)
+                    throw new GameNotInstalledException(this);
+                if (MainExecutable == null)
+                    throw new NotImplementedException();
+
+                return FileVersionInfo.GetVersionInfo(Path.Combine(GameLocation(), MainExecutable)).ProductVersion;
+            }
+        }
+        
+        public string MainExecutable { get; internal set; }
 
         public string GameLocation()
         {
@@ -76,6 +93,13 @@ namespace Wabbajack.Common
 
             return SteamHandler.Instance.Games.FirstOrDefault(g => g.Game == Game)?.InstallDir ??
                    GOGHandler.Instance.Games.FirstOrDefault(g => g.Game == Game)?.Path;
+        }
+    }
+
+    public class GameNotInstalledException : Exception
+    {
+        public GameNotInstalledException(GameMetaData gameMetaData) : base($"Game {gameMetaData.Game} does not appear to be installed.")
+        {
         }
     }
 
@@ -125,7 +149,8 @@ namespace Wabbajack.Common
                     RequiredFiles = new List<string>
                     {
                         "oblivion.exe"
-                    }
+                    },
+                    MainExecutable = "Oblivion.exe"
                 }
             },
 
@@ -143,7 +168,8 @@ namespace Wabbajack.Common
                     {
                         "falloutlauncher.exe",
                         "data\\fallout3.esm"
-                    }
+                    },
+                    MainExecutable = "Fallout3.exe"
                 }
             },
             {
@@ -159,7 +185,8 @@ namespace Wabbajack.Common
                     RequiredFiles = new List<string>
                     {
                         "FalloutNV.exe"
-                    }
+                    },
+                    MainExecutable = "FalloutNV.exe"
                 }
             },
             {
@@ -175,7 +202,8 @@ namespace Wabbajack.Common
                     RequiredFiles = new List<string>
                     {
                         "tesv.exe"
-                    }
+                    },
+                    MainExecutable = "TESV.exe"
                 }
             },
             {
@@ -191,7 +219,8 @@ namespace Wabbajack.Common
                     RequiredFiles = new List<string>
                     {
                         "SkyrimSE.exe"
-                    }
+                    },
+                    MainExecutable = "SkyrimSE.exe"
                 }
             },
             {
@@ -207,7 +236,8 @@ namespace Wabbajack.Common
                     RequiredFiles = new List<string>
                     {
                         "Fallout4.exe"
-                    }
+                    },
+                    MainExecutable = "Fallout4.exe"
                 }
             },
             /*{
