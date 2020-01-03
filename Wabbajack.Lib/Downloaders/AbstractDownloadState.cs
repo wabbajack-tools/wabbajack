@@ -3,18 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
-using MongoDB.Bson.Serialization.Attributes;
 using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    /// <summary>
-    /// Base for all abstract downloaders
-    /// </summary>
-    [BsonDiscriminator(RootClass = true)]
-    [BsonKnownTypes(typeof(HTTPDownloader.State), typeof(GameFileSourceDownloader.State), typeof(GoogleDriveDownloader.State),
-    typeof(LoversLabDownloader.State), typeof(ManualDownloader.State), typeof(MediaFireDownloader.State), typeof(MegaDownloader.State),
-    typeof(ModDBDownloader.State), typeof(NexusDownloader.State), typeof(SteamWorkshopDownloader.State))]
     public abstract class AbstractDownloadState
     {
 
