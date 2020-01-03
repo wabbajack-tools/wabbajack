@@ -15,6 +15,7 @@ namespace Wabbajack.Common
         public int AppId;
         public string Name;
         public string InstallDir;
+        public string BuildId;
         public Game? Game;
 
         public HashSet<SteamWorkshopItem> WorkshopItems;
@@ -131,6 +132,8 @@ namespace Wabbajack.Common
                                 return;
                         if(l.Contains("\"name\""))
                             steamGame.Name = GetVdfValue(l);
+                        if (l.Contains("\"buildid\""))
+                            steamGame.BuildId = GetVdfValue(l);
                         if (l.Contains("\"installdir\""))
                         {
                             var path = Path.Combine(p, "common", GetVdfValue(l));
