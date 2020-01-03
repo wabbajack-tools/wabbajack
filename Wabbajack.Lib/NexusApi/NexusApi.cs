@@ -222,14 +222,28 @@ namespace Wabbajack.Lib.NexusApi
 
         public async Task<T> Get<T>(string url)
         {
-            var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-            UpdateRemaining(response);
-            if (!response.IsSuccessStatusCode)
-                throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
-
-            using (var stream = await response.Content.ReadAsStreamAsync())
+            int retries = 0;
+            TOP:
+            try
             {
-                return stream.FromJSON<T>();
+                var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                UpdateRemaining(response);
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+
+
+                using (var stream = await response.Content.ReadAsStreamAsync())
+                {
+                    return stream.FromJSON<T>();
+                }
+            }
+            catch (TimeoutException)
+            {
+                if (retries == Consts.MaxHTTPRetries)
+                    throw;
+                Utils.Log($"Nexus call to {url} failed, retrying {retries} of {Consts.MaxHTTPRetries}");
+                retries++;
+                goto TOP;
             }
         }
 

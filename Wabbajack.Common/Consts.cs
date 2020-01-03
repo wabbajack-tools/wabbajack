@@ -95,5 +95,6 @@ namespace Wabbajack.Common
 
         public static string WabbajackCacheHostname = "build.wabbajack.org";
         public static int WabbajackCachePort = 80;
+        public static int MaxHTTPRetries = 4;
     }
 }
