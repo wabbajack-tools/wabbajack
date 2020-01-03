@@ -33,9 +33,17 @@ namespace Wabbajack.Common
         public GOGHandler(bool init)
         {
             var gogKey = Registry.LocalMachine.OpenSubKey(GOGRegKey) ?? Registry.LocalMachine.OpenSubKey(GOG64RegKey);
-            GOGKey = gogKey;
-            if (!init) return;
-            LoadAllGames();
+            if (gogKey == null)
+            {
+                Utils.ErrorThrow(new Exception("Could not find GOG in registry!"));
+            }
+            else
+            {
+                Utils.Log($"GOG registry key is ${gogKey}");
+                GOGKey = gogKey;
+                if (!init) return;
+                LoadAllGames();
+            }
         }
 
         /// <summary>
@@ -57,20 +65,58 @@ namespace Wabbajack.Common
             Games = new HashSet<GOGGame>();
             if (GOGKey == null) return;
             string[] keys = GOGKey.GetSubKeyNames();
+            Utils.Log($"Found {keys.Length} SubKeys for GOG");
             foreach (var key in keys)
             {
+                if (!int.TryParse(key, out var gameID))
+                {
+                    Utils.ErrorThrow(new Exception($"Could not read gameID for key {key}"));
+                }
+
+                var subKey = GOGKey.OpenSubKey(key);
+                if (subKey == null)
+                {
+                    Utils.ErrorThrow(new Exception($"Could not open SubKey for {key}"));
+                    return;
+                }
+
+                var gameNameValue = subKey.GetValue("GAMENAME");
+                if (gameNameValue == null)
+                {
+                    Utils.ErrorThrow(new Exception($"Could not get GAMENAME for {gameID} at {key}"));
+                    return;
+                }
+
+                var gameName = gameNameValue.ToString();
+
+                var pathValue = subKey.GetValue("PATH");
+                if (pathValue == null)
+                {
+                    Utils.ErrorThrow(new Exception($"Could not get PATH for {gameID} at {key}"));
+                    return;
+                }
+
+                var path = pathValue.ToString();
+
+
                 var game = new GOGGame
                 {
-                    GameID = int.Parse(key),
-                    GameName = GOGKey.OpenSubKey(key)?.GetValue("GAMENAME").ToString(),
-                    Path = GOGKey.OpenSubKey(key)?.GetValue("PATH").ToString()
+                    GameID = gameID,
+                    GameName = gameName,
+                    Path = path
                 };
+
+                Utils.Log($"Found GOG Game: {gameName}({gameID}) at {path}");
 
                 game.Game = GameRegistry.Games.Values
                     .FirstOrDefault(g => g.GOGIDs != null && g.GOGIDs.Contains(game.GameID)
                       &&
                       g.RequiredFiles.TrueForAll(s => File.Exists(Path.Combine(game.Path, s))))?.Game;
 
+                if (game.Game == null)
+                {
+                    Utils.Log("Found no matching game, continuing");
+                }
                 Games.Add(game);
             }
         }
