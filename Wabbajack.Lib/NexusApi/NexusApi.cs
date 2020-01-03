@@ -1,7 +1,6 @@
 ﻿using ReactiveUI;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -9,22 +8,18 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Authentication;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Documents;
-using Syroot.Windows.IO;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.LibCefHelpers;
 using WebSocketSharp;
-using Xilium.CefGlue;
-using Xilium.CefGlue.Common;
-using Xilium.CefGlue.Common.Handlers;
-using Xilium.CefGlue.WPF;
 using static Wabbajack.Lib.NexusApi.NexusApiUtils;
 using System.Threading;
+using CefSharp;
+using CefSharp.Handler;
 using Newtonsoft.Json;
+using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.NexusApi
 {
@@ -98,30 +93,13 @@ namespace Wabbajack.Lib.NexusApi
             return result;
         }
 
-        class RefererHandler : RequestHandler
-        {
-            private string _referer;
-
-            public RefererHandler(string referer)
-            {
-                _referer = referer;
-            }
-            protected override bool OnBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, bool userGesture, bool isRedirect)
-            {
-                base.OnBeforeBrowse(browser, frame, request, userGesture, isRedirect);
-                if (request.ReferrerURL == null)
-                    request.SetReferrer(_referer, CefReferrerPolicy.Default);
-                return false;
-            }
-        }
-
-        public static async Task<string> SetupNexusLogin(BaseCefBrowser browser, Action<string> updateStatus, CancellationToken cancel)
+        public static async Task<string> SetupNexusLogin(IWebDriver browser, Action<string> updateStatus, CancellationToken cancel)
         {
             updateStatus("Please Log Into the Nexus");
-            browser.Address = "https://users.nexusmods.com/auth/continue?client_id=nexus&redirect_uri=https://www.nexusmods.com/oauth/callback&response_type=code&referrer=//www.nexusmods.com";
+            await browser.NavigateTo(new Uri("https://users.nexusmods.com/auth/continue?client_id=nexus&redirect_uri=https://www.nexusmods.com/oauth/callback&response_type=code&referrer=//www.nexusmods.com"));
             while (true)
             {
-                var cookies = await Helpers.GetCookies("nexusmods.com");
+                var cookies = await browser.GetCookies("nexusmods.com");
                 if (cookies.Any(c => c.Name == "member_id"))
                     break;
                 cancel.ThrowIfCancellationRequested();
@@ -147,7 +125,7 @@ namespace Wabbajack.Lib.NexusApi
                 await Task.Delay(1000, cancel);
 
                 // open a web browser to get user permission
-                browser.Address = $"https://www.nexusmods.com/sso?id={guid}&application={Consts.AppName}";
+                await browser.NavigateTo(new Uri($"https://www.nexusmods.com/sso?id={guid}&application={Consts.AppName}"));
                 using (cancel.Register(() =>
                 {
                     api_key.SetCanceled();

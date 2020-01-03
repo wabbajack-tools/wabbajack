@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -15,7 +16,7 @@ namespace Wabbajack.Test
         [TestInitialize]
         public async Task TestInitialize()
         {
-            await Helpers.Initialize();
+            Helpers.Init();
             Consts.TestMode = true;
 
             utils = new TestUtils();

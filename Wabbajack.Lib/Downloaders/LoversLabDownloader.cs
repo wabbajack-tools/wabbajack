@@ -15,7 +15,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
-using Xilium.CefGlue.Common;
+using Wabbajack.Lib.WebAutomation;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib.Downloaders
@@ -64,16 +64,15 @@ namespace Wabbajack.Lib.Downloaders
             _authedClient = (await GetAuthedClient()) ?? throw new Exception("not logged into LL, TODO");
         }
 
-        public static async Task<Helpers.Cookie[]> GetAndCacheLoversLabCookies(BaseCefBrowser browser, Action<string> updateStatus, CancellationToken cancel)
+        public static async Task<Helpers.Cookie[]> GetAndCacheLoversLabCookies(IWebDriver browser, Action<string> updateStatus, CancellationToken cancel)
         {
             updateStatus("Please Log Into Lovers Lab");
-            browser.Address = "https://www.loverslab.com/login";
-
+            await browser.NavigateTo(new Uri("https://www.loverslab.com/login"));
             async Task<bool> CleanAds()
             {
                 try
                 {
-                    await browser.EvaluateJavaScript<string>(
+                    await browser.EvaluateJavaScript(
                         "document.querySelectorAll(\".ll_adblock\").forEach(function (itm) { itm.innerHTML = \"\";});");
                 }
                 catch (Exception ex)
@@ -87,7 +86,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 cancel.ThrowIfCancellationRequested();
                 await CleanAds();
-                cookies = (await Helpers.GetCookies("loverslab.com"));
+                cookies = (await browser.GetCookies("loverslab.com"));
                 if (cookies.FirstOrDefault(c => c.Name == "ips4_member_id") != null)
                     break;
                 await Task.Delay(500, cancel);

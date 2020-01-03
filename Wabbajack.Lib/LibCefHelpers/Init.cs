@@ -8,42 +8,38 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using CefSharp;
+using CefSharp.OffScreen;
 using Wabbajack.Common;
-using Xilium.CefGlue;
 
 namespace Wabbajack.Lib.LibCefHelpers
 {
     public static class Helpers
     {
-        private static readonly Task _initTask;
-
         /// <summary>
         /// We bundle the cef libs inside the .exe, we need to extract them before loading any wpf code that requires them
         /// </summary>
-        private static async Task ExtractLibs()
+        private static void ExtractLibs()
         {
-            if (File.Exists("cefglue.7z") && File.Exists("libcef.dll")) return;
+            if (File.Exists("cefsharp.7z") && File.Exists("libcef.dll")) return;
 
-            using (var fs = File.OpenWrite("cefglue.7z"))
-            using (var rs = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.Lib.LibCefHelpers.cefglue.7z"))
+            using (var fs = File.OpenWrite("cefsharp.7z"))
+            using (var rs = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.Lib.LibCefHelpers.cefsharp.7z"))
             {
                 rs.CopyTo(fs);
                 Utils.Log("Extracting libCef files");
             }
             using (var wq = new WorkQueue(1))
             {
-                await FileExtractor.ExtractAll(wq, "cefglue.7z", ".");
+                FileExtractor.ExtractAll(wq, "cefsharp.7z", ".").Wait();
             }
         }
 
         static Helpers()
         {
-            _initTask = Task.Run(ExtractLibs);
-        }
-
-        public static Task Initialize()
-        {
-            return _initTask;
+            ExtractLibs();
+            //if (!Cef.IsInitialized)
+            //    Cef.Initialize(new CefSettings { MultiThreadedMessageLoop = true });
         }
 
         public static HttpClient GetClient(IEnumerable<Cookie> cookies, string referer)
@@ -69,7 +65,7 @@ namespace Wabbajack.Lib.LibCefHelpers
 
         public static async Task<Cookie[]> GetCookies(string domainEnding)
         {
-            var manager = CefCookieManager.GetGlobal(null);
+            var manager = Cef.GetGlobalCookieManager();
             var visitor = new CookieVisitor();
             if (!manager.VisitAllCookies(visitor))
                 return new Cookie[0];
@@ -78,13 +74,18 @@ namespace Wabbajack.Lib.LibCefHelpers
             return (await visitor.Task).Where(c => c.Domain.EndsWith(domainEnding)).ToArray();
         }
 
-        private class CookieVisitor : CefCookieVisitor
+        private class CookieVisitor : ICookieVisitor
         {
             TaskCompletionSource<List<Cookie>> _source = new TaskCompletionSource<List<Cookie>>();
             public Task<List<Cookie>> Task => _source.Task;
 
             public List<Cookie> Cookies { get; } = new List<Cookie>();
-            protected override bool Visit(CefCookie cookie, int count, int total, out bool delete)
+            public void Dispose()
+            {
+                _source.SetResult(Cookies);
+            }
+
+            public bool Visit(CefSharp.Cookie cookie, int count, int total, ref bool deleteCookie)
             {
                 Cookies.Add(new Cookie
                 {
@@ -95,14 +96,8 @@ namespace Wabbajack.Lib.LibCefHelpers
                 });
                 if (count == total)
                     _source.SetResult(Cookies);
-                delete = false;
+                deleteCookie = false;
                 return true;
-            }
-
-            protected override void Dispose(bool disposing)
-            {
-                if (disposing)
-                    _source.SetResult(Cookies);
             }
         }
 
@@ -112,6 +107,19 @@ namespace Wabbajack.Lib.LibCefHelpers
             public string Value { get; set; }
             public string Domain { get; set; }
             public string Path { get; set; }
+        }
+
+        public static void Init()
+        {
+            // does nothing, but kicks off the static constructor
+        }
+    }
+
+    public static class ModuleInitializer
+    {
+        public static void Initialize()
+        {
+            Helpers.Init();
         }
     }
 }
