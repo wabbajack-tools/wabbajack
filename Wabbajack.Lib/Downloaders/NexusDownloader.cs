@@ -112,18 +112,20 @@ namespace Wabbajack.Lib.Downloaders
 
         public class State : AbstractDownloadState
         {
-            public string Author;
-            public string FileID;
-            public string GameName;
-            public string ModID;
-            public string UploadedBy;
-            public string UploaderProfile;
-            public string Version;
-            public string SlideShowPic;
-            public string ModName;
-            public string NexusURL;
-            public string Summary;
-            public bool Adult;
+            public string Author { get; set; }
+            public string FileID { get; set; }
+            public string GameName { get; set; }
+            public string ModID { get; set; }
+            public string UploadedBy { get; set; }
+            public string UploaderProfile { get; set; }
+            public string Version { get; set; }
+            public string SlideShowPic { get; set; }
+            public string ModName { get; set; }
+            public string NexusURL { get; set; }
+            public string Summary { get; set; }
+            public bool Adult { get; set; }
+
+            public override object[] PrimaryKey { get => new object[]{GameName, ModID, FileID};}
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -137,7 +139,7 @@ namespace Wabbajack.Lib.Downloaders
                 try
                 {
                     var client = await NexusApiClient.Get();
-                    url = await client.GetNexusDownloadLink(this, false);
+                    url = await client.GetNexusDownloadLink(this);
                 }
                 catch (Exception ex)
                 {

@@ -92,5 +92,8 @@ namespace Wabbajack.Common
         public static string LocalAppDataPath => Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack");
 
         public static string WabbajackCacheLocation = "http://build.wabbajack.org/nexus_api_cache/";
+
+        public static string WabbajackCacheHostname = "build.wabbajack.org";
+        public static int WabbajackCachePort = 80;
     }
 }

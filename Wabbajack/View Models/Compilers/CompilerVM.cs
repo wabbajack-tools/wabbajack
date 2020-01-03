@@ -60,6 +60,9 @@ namespace Wabbajack
         [Reactive]
         public ErrorResponse? Completed { get; set; }
 
+        private readonly ObservableAsPropertyHelper<string> _progressTitle;
+        public string ProgressTitle => _progressTitle.Value;
+
         public CompilerVM(MainWindowVM mainWindowVM)
         {
             MWVM = mainWindowVM;
@@ -114,8 +117,9 @@ namespace Wabbajack
 
             _image = this.WhenAny(x => x.CurrentModlistSettings.ImagePath.TargetPath)
                 // Throttle so that it only loads image after any sets of swaps have completed
-                .Throttle(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
+                .Throttle(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
                 .DistinctUntilChanged()
+                .ObserveOn(RxApp.MainThreadScheduler)
                 .Select(path =>
                 {
                     if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Resources/Wabba_Mouth_No_Text.png");
@@ -157,7 +161,7 @@ namespace Wabbajack
                         return ret;
                     })
                 .ToObservableChangeSet(x => x.Status.ID)
-                .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
+                .Batch(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
                 .Filter(i => i.Status.IsWorking && i.Status.ID != WorkQueue.UnassignedCpuId)
                 .ObserveOn(RxApp.MainThreadScheduler)
@@ -246,6 +250,22 @@ namespace Wabbajack
                         Process.Start("explorer.exe", OutputLocation.TargetPath);
                     }
                 });
+
+            _progressTitle = Observable.CombineLatest(
+                    this.WhenAny(x => x.Compiling),
+                    this.WhenAny(x => x.StartedCompilation),
+                    resultSelector: (compiling, started) =>
+                    {
+                        if (compiling)
+                        {
+                            return "Compiling";
+                        }
+                        else
+                        {
+                            return started ? "Compiled" : "Configuring";
+                        }
+                    })
+                .ToProperty(this, nameof(ProgressTitle));
         }
     }
 }

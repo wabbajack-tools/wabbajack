@@ -40,10 +40,7 @@ namespace Wabbajack
         public readonly UserInterventionHandlers UserInterventionHandlers;
         public readonly LoginManagerVM LoginManagerVM;
 
-
         public readonly List<ViewModel> NavigationTrail = new List<ViewModel>();
-
-        public Dispatcher ViewDispatcher { get; set; }
 
         public ICommand CopyVersionCommand { get; }
 
@@ -54,7 +51,6 @@ namespace Wabbajack
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
         {
             MainWindow = mainWindow;
-            ViewDispatcher = MainWindow.Dispatcher;
             Settings = settings;
             Installer = new Lazy<InstallerVM>(() => new InstallerVM(this));
             Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));

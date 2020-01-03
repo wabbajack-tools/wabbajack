@@ -63,6 +63,8 @@ namespace Wabbajack.Lib.Downloaders
             [Exclude]
             public HttpClient Client { get; set; }
 
+            public override object[] PrimaryKey { get => new object[] {Url};}
+
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
                 return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));

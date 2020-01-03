@@ -210,7 +210,7 @@ namespace Wabbajack
             _image = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Error),
                     this.WhenAny(x => x.ModList)
-                        .Select(x => x?.ImageObservable ?? Observable.Empty<BitmapImage>())
+                        .Select(x => x?.ImageObservable ?? Observable.Return(WabbajackLogo))
                         .Switch()
                         .StartWith(WabbajackLogo),
                     this.WhenAny(x => x.Slideshow.Image)
@@ -228,21 +228,24 @@ namespace Wabbajack
                 .Select<BitmapImage, ImageSource>(x => x)
                 .ToProperty(this, nameof(Image));
             _titleText = Observable.CombineLatest(
-                    this.WhenAny(x => x.ModList.Name),
+                    this.WhenAny(x => x.ModList)
+                        .Select(modList => modList?.Name ?? string.Empty),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModName)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(TitleText));
             _authorText = Observable.CombineLatest(
-                    this.WhenAny(x => x.ModList.Author),
+                    this.WhenAny(x => x.ModList)
+                        .Select(modList => modList?.Author ?? string.Empty),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModAuthor)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
                 .ToProperty(this, nameof(AuthorText));
             _description = Observable.CombineLatest(
-                    this.WhenAny(x => x.ModList.Description),
+                    this.WhenAny(x => x.ModList)
+                        .Select(modList => modList?.Description ?? string.Empty),
                     this.WhenAny(x => x.Slideshow.TargetMod.ModDescription)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
@@ -278,8 +281,14 @@ namespace Wabbajack
                     this.WhenAny(x => x.StartedInstallation),
                     resultSelector: (installing, started) =>
                     {
-                        if (!installing) return "Configuring";
-                        return started ? "Installing" : "Installed";
+                        if (installing)
+                        {
+                            return "Installing";
+                        }
+                        else
+                        {
+                            return started ? "Installed" : "Configuring";
+                        }
                     })
                 .ToProperty(this, nameof(ProgressTitle));
 
@@ -298,7 +307,7 @@ namespace Wabbajack
                         return ret;
                     })
                 .ToObservableChangeSet(x => x.Status.ID)
-                .Batch(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
+                .Batch(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
                 .Filter(i => i.Status.IsWorking && i.Status.ID != WorkQueue.UnassignedCpuId)
                 .ObserveOn(RxApp.MainThreadScheduler)

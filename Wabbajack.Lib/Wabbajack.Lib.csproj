@@ -57,6 +57,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MongoDB.Bson">
+      <HintPath>..\..\..\Users\tbald\.nuget\packages\mongodb.bson\2.10.0\lib\net452\MongoDB.Bson.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -214,7 +217,7 @@
       <Version>11.0.6</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.Fody">
-      <Version>11.0.1</Version>
+      <Version>11.0.6</Version>
     </PackageReference>
     <PackageReference Include="SharpCompress">
       <Version>0.24.0</Version>
@@ -223,7 +226,7 @@
       <Version>1.2.1</Version>
     </PackageReference>
     <PackageReference Include="System.Reactive">
-      <Version>4.3.1</Version>
+      <Version>4.3.2</Version>
     </PackageReference>
     <PackageReference Include="WebSocketSharpFork">
       <Version>1.0.4</Version>

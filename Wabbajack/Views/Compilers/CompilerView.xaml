@@ -77,7 +77,7 @@
             Grid.ColumnSpan="5"
             OverhangShadow="True"
             ProgressPercent="{Binding PercentCompleted}"
-            StatePrefixTitle="Compiling" />
+            StatePrefixTitle="{Binding ProgressTitle}" />
         <Button
             x:Name="BackButton"
             Grid.Row="0"

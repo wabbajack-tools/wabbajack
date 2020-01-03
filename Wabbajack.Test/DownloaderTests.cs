@@ -222,10 +222,10 @@ namespace Wabbajack.Test
         [TestMethod]
         public async Task NexusDownload()
         {
-            var old_val = NexusApiClient.UseLocalCache;
+            var old_val = NexusApiClient.CacheMethod;
             try
             {
-                NexusApiClient.UseLocalCache = false;
+                NexusApiClient.CacheMethod = null;
                 var ini = @"[General]
                         gameName=SkyrimSE
                         modID = 12604
@@ -251,7 +251,7 @@ namespace Wabbajack.Test
             }
             finally
             {
-                NexusApiClient.UseLocalCache = old_val;
+                NexusApiClient.CacheMethod = old_val;
             }
         }
 

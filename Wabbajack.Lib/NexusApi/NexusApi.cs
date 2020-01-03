@@ -179,6 +179,7 @@ namespace Wabbajack.Lib.NexusApi
             {
                 var dailyRemaining = int.Parse(response.Headers.GetValues("x-rl-daily-remaining").First());
                 var hourlyRemaining = int.Parse(response.Headers.GetValues("x-rl-hourly-remaining").First());
+                Utils.Log($"Nexus Requests Remaining: {dailyRemaining} daily - {hourlyRemaining} hourly");
 
                 lock (RemainingLock)
                 {
@@ -200,6 +201,7 @@ namespace Wabbajack.Lib.NexusApi
         {
             ApiKey = apiKey;
 
+            HttpClient.BaseAddress = new Uri("https://api.nexusmods.com");
             // set default headers for all requests to the Nexus API
             var headers = HttpClient.DefaultRequestHeaders;
             headers.Add("User-Agent", Consts.UserAgent);
@@ -218,10 +220,12 @@ namespace Wabbajack.Lib.NexusApi
             return new NexusApiClient(apiKey);
         }
 
-        private async Task<T> Get<T>(string url)
+        public async Task<T> Get<T>(string url)
         {
             var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             UpdateRemaining(response);
+            if (!response.IsSuccessStatusCode)
+                throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
 
             using (var stream = await response.Content.ReadAsStreamAsync())
             {
@@ -231,81 +235,24 @@ namespace Wabbajack.Lib.NexusApi
 
         private async Task<T> GetCached<T>(string url)
         {
-            var code = Encoding.UTF8.GetBytes(url).ToHex() + ".json";
-
-            if (UseLocalCache)
-            {
-                var cache_file = Path.Combine(LocalCacheDir, code);
-
-                lock (_diskLock)
-                {
-                    if (!Directory.Exists(LocalCacheDir))
-                        Directory.CreateDirectory(LocalCacheDir);
-
-
-                    if (File.Exists(cache_file))
-                    {
-                        return cache_file.FromJSON<T>();
-                    }
-                }
-
-                var result = await Get<T>(url);
-
-                if (result == null)
-                    return result;
-
-                lock (_diskLock)
-                {
-                    result.ToJSON(cache_file);
-                }
-
-
-                return result;
-            }
-
             try
             {
-                return await Get<T>(Consts.WabbajackCacheLocation + code);
+                var builder = new UriBuilder(url) { Host = Consts.WabbajackCacheHostname, Port = Consts.WabbajackCachePort, Scheme = "http" };
+                return await Get<T>(builder.ToString());
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return await Get<T>(url);
             }
 
         }
 
-        public async Task<string> GetNexusDownloadLink(NexusDownloader.State archive, bool cache = false)
+        public async Task<string> GetNexusDownloadLink(NexusDownloader.State archive)
         {
-            if (cache)
-            {
-                var result = await TryGetCachedLink(archive);
-                if (result.Succeeded)
-                {
-                    return result.Value;
-                }
-            }
-
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(archive.GameName)}/mods/{archive.ModID}/files/{archive.FileID}/download_link.json";
             return (await Get<List<DownloadLink>>(url)).First().URI;
-        }
-
-        private async Task<GetResponse<string>> TryGetCachedLink(NexusDownloader.State archive)
-        {
-            if (!Directory.Exists(Consts.NexusCacheDirectory))
-                Directory.CreateDirectory(Consts.NexusCacheDirectory);
-
-            var path = Path.Combine(Consts.NexusCacheDirectory, $"link-{archive.GameName}-{archive.ModID}-{archive.FileID}.txt");
-            if (!File.Exists(path) || (DateTime.Now - new FileInfo(path).LastWriteTime).TotalHours > 24)
-            {
-                File.Delete(path);
-                var result = await GetNexusDownloadLink(archive);
-                File.WriteAllText(path, result);
-                return GetResponse<string>.Succeed(result);
-            }
-
-            return GetResponse<string>.Succeed(File.ReadAllText(path));
         }
 
         public async Task<NexusFileInfo> GetFileInfo(NexusDownloader.State mod)
@@ -358,23 +305,8 @@ namespace Wabbajack.Lib.NexusApi
             public string URI { get; set; }
         }
 
-        private class UpdatedMod
-        {
-            public long mod_id;
-            public long latest_file_update;
-            public long latest_mod_activity;
-        }
-
         private static bool? _useLocalCache;
-        public static bool UseLocalCache
-        {
-            get
-            {
-                if (_useLocalCache == null) return LocalCacheDir != null;
-                return _useLocalCache ?? false;
-            }
-            set => _useLocalCache = value;
-        }
+        public static MethodInfo CacheMethod { get; set; }
 
         private static string _localCacheDir;
         public static string LocalCacheDir
@@ -386,89 +318,6 @@ namespace Wabbajack.Lib.NexusApi
                 return _localCacheDir;
             }
             set => _localCacheDir = value;
-        }
-
-
-        public async Task ClearUpdatedModsInCache()
-        {
-            if (!UseLocalCache) return;
-            using (var queue = new WorkQueue())
-            {
-                var invalid_json = (await Directory.EnumerateFiles(LocalCacheDir, "*.json")
-                    .PMap(queue, f =>
-                    {
-                        var s = JsonSerializer.Create();
-                        try
-                        {
-                            using (var tr = File.OpenText(f))
-                                s.Deserialize(new JsonTextReader(tr));
-                            return null;
-                        }
-                        catch (JsonReaderException)
-                        {
-                            return f;
-                        }
-                    })).Where(f => f != null).ToList();
-                Utils.Log($"Found {invalid_json.Count} bad json files");
-                foreach (var file in invalid_json)
-                    File.Delete(file);
-            }
-
-            var gameTasks = GameRegistry.Games.Values
-                .Where(game => game.NexusName != null)
-                .Select(async game =>
-                {
-                    return (game,
-                        mods: await Get<List<UpdatedMod>>(
-                            $"https://api.nexusmods.com/v1/games/{game.NexusName}/mods/updated.json?period=1m"));
-                })
-                .Select(async rTask =>
-                {
-                    var (game, mods) = await rTask;
-                    return mods.Select(mod => new { game = game, mod = mod });
-                });
-            var purge = (await Task.WhenAll(gameTasks))
-                .SelectMany(i => i)
-                .ToList();
-
-            Utils.Log($"Found {purge.Count} updated mods in the last month");
-            using (var queue = new WorkQueue())
-            {
-                var to_purge = (await Directory.EnumerateFiles(LocalCacheDir, "*.json")
-                    .PMap(queue, f =>
-                    {
-                        Utils.Status("Cleaning Nexus cache for");
-                        var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f).FromHex()));
-                        var parts = uri.PathAndQuery.Split('/', '.').ToHashSet();
-                        var found = purge.FirstOrDefault(p =>
-                            parts.Contains(p.game.NexusName) && parts.Contains(p.mod.mod_id.ToString()));
-                        if (found != null)
-                        {
-                            var a = found.mod.latest_file_update.AsUnixTime();
-                            // Mod activity could hide files
-                            var b = found.mod.latest_mod_activity.AsUnixTime();
-                            var should_remove = File.GetLastWriteTimeUtc(f) <= (a > b ? a : b);
-                            return (should_remove, f);
-                        }
-
-                        // ToDo
-                        // Can improve to not read the entire file to see if it starts with null
-                        if (File.ReadAllText(f).StartsWith("null"))
-                            return (true, f);
-
-                        return (false, f);
-                    }))
-                    .Where(p => p.Item1)
-                    .ToList();
-
-                Utils.Log($"Purging {to_purge.Count} cache entries");
-                await to_purge.PMap(queue, f =>
-                {
-                    var uri = new Uri(Encoding.UTF8.GetString(Path.GetFileNameWithoutExtension(f.f).FromHex()));
-                    Utils.Log($"Purging {uri}");
-                    File.Delete(f.f);
-                });
-            }
         }
     }
 }

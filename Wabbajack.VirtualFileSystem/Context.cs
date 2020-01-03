@@ -35,11 +35,14 @@ namespace Wabbajack.VirtualFileSystem
         public StatusUpdateTracker UpdateTracker { get; set; } = new StatusUpdateTracker(1);
 
         public WorkQueue  Queue { get; }
+        public bool UseExtendedHashes { get; set; }
 
-        public Context(WorkQueue queue)
+        public Context(WorkQueue queue, bool extendedHashes = false)
         {
             Queue = queue;
+            UseExtendedHashes = extendedHashes;
         }
+
 
         public TemporaryDirectory GetTemporaryFolder()
         {

@@ -320,7 +320,7 @@ namespace Wabbajack.Lib
 
             Utils.Log(
                 $"Removing {remove.Count} archives from the compilation state, this is probably not an issue but reference this if you have compilation failures");
-            remove.Do(r => Utils.Log($"Resolution failed for: {r.File}"));
+            remove.Do(r => Utils.Log($"Resolution failed for: {r.File.FullPath}"));
             IndexedArchives.RemoveAll(a => remove.Contains(a));
         }
 

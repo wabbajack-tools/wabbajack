@@ -1,4 +1,4 @@
-﻿using DynamicData;
+using DynamicData;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -80,7 +80,7 @@ namespace Wabbajack.Lib
                     this.WhenAny(x => x.TargetPath)
                         // Dont want to debounce the initial value, because we know it's null
                         .Skip(1)
-                        .Debounce(TimeSpan.FromMilliseconds(200))
+                        .Debounce(TimeSpan.FromMilliseconds(200), RxApp.TaskpoolScheduler)
                         .StartWith(default(string)),
                     resultSelector: (existsOption, type, path) => (ExistsOption: existsOption, Type: type, Path: path))
                 .StartWith((ExistsOption: ExistCheckOption, Type: PathType, Path: TargetPath))
@@ -107,7 +107,7 @@ namespace Wabbajack.Lib
                 .Replay(1)
                 .RefCount();
 
-            _exists = Observable.Interval(TimeSpan.FromSeconds(3))
+            _exists = Observable.Interval(TimeSpan.FromSeconds(3), RxApp.TaskpoolScheduler)
                 // Only check exists on timer if desired
                 .FilterSwitch(doExistsCheck)
                 .Unit()
@@ -119,6 +119,7 @@ namespace Wabbajack.Lib
                 .CombineLatest(existsCheckTuple,
                     resultSelector: (_, tuple) => tuple)
                 // Refresh exists
+                .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(t =>
                 {
                     switch (t.ExistsOption)
@@ -146,7 +147,7 @@ namespace Wabbajack.Lib
                     }
                 })
                 .DistinctUntilChanged()
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOnGuiThread()
                 .StartWith(false)
                 .ToProperty(this, nameof(Exists));
 
@@ -217,6 +218,7 @@ namespace Wabbajack.Lib
                         if (filter.Failed) return filter;
                         return ErrorResponse.Convert(err);
                     })
+                .ObserveOnGuiThread()
                 .ToProperty(this, nameof(ErrorState));
 
             _inError = this.WhenAny(x => x.ErrorState)
@@ -242,6 +244,7 @@ namespace Wabbajack.Lib
                         if (!string.IsNullOrWhiteSpace(filters)) return filters;
                         return err?.Reason;
                     })
+                .ObserveOnGuiThread()
                 .ToProperty(this, nameof(ErrorTooltip));
         }
 

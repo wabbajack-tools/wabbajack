@@ -1,52 +1,41 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using MongoDB.Driver;
 using Nancy;
-using Nancy.Responses;
+using Wabbajack.CacheServer.DTOs;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
+using MongoDB.Driver.Linq;
+using Nettle;
 
 namespace Wabbajack.CacheServer
 {
     public class ListValidationService : NancyModule
     {
-        public class ModListStatus
-        {
-            public string Name;
-            public DateTime Checked = DateTime.Now;
-            public List<(Archive archive, bool)> Archives { get; set; }
-            public DownloadMetadata DownloadMetaData { get; set; }
-            public bool HasFailures { get; set; }
-            public string MachineName { get; set; }
-        }
-
-        public static Dictionary<string, ModListStatus> ModLists { get; set; }
-
         public ListValidationService() : base("/lists")
         {
             Get("/status", HandleGetLists);
+            Get("/force_recheck", HandleForceRecheck);
             Get("/status/{Name}.json", HandleGetListJson);
             Get("/status/{Name}.html", HandleGetListHtml);
+
         }
 
-        private object HandleGetLists(object arg)
+        private async Task<string> HandleForceRecheck(object arg)
         {
-            var summaries = ModLists.Values.Select(m => new ModlistSummary
-            {
-                Name = m.Name,
-                Checked = m.Checked,
-                Failed = m.Archives.Count(a => a.Item2),
-                Passed = m.Archives.Count(a => !a.Item2),
-            }).ToList();
+            await ValidateLists(false);
+            return "done";
+        }
+
+        private async Task<string> HandleGetLists(object arg)
+        {
+            var summaries = await ModListStatus.All.Select(m => m.Summary).ToListAsync();
             return summaries.ToJSON();
         }
 
@@ -63,49 +52,42 @@ namespace Wabbajack.CacheServer
             public List<ArchiveSummary> Passed;
 
         }
-        private object HandleGetListJson(dynamic arg)
+        private async Task<string> HandleGetListJson(dynamic arg)
         {
-            var lst = ModLists[(string)arg.Name];
-            var summary = new DetailedSummary
-            {
-                Name = lst.Name,
-                Checked = lst.Checked,
-                Failed = lst.Archives.Where(a => a.Item2)
-                    .Select(a => new ArchiveSummary {Name = a.archive.Name, State = a.archive.State}).ToList(),
-                Passed = lst.Archives.Where(a => !a.Item2)
-                    .Select(a => new ArchiveSummary { Name = a.archive.Name, State = a.archive.State }).ToList(),
-            };
-            return summary.ToJSON();
+            var metric = Metrics.Log("list_validation.get_list_json", (string)arg.Name);
+            var lst = (await ModListStatus.ByName((string)arg.Name)).DetailedStatus;
+            return lst.ToJSON();
         }
 
-        private object HandleGetListHtml(dynamic arg)
+        
+        private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().Compile(@"
+            <html><body>
+                <h2>{{lst.Name}} - {{lst.Checked}}</h2>
+                <h3>Failed ({{failed.Count}}):</h3>
+                <ul>
+                {{each $.failed }}
+                <li>{{$.Archive.Name}}</li>
+                {{/each}}
+                </ul>
+                <h3>Passed ({{passed.Count}}):</h3>
+                <ul>
+                {{each $.passed }}
+                <li>{{$.Archive.Name}}</li>
+                {{/each}}
+                </ul>
+            </body></html>
+        ");
+
+        private async Task<Response> HandleGetListHtml(dynamic arg)
         {
-            var lst = ModLists[(string)arg.Name];
-            var sb = new StringBuilder();
-
-            sb.Append("<html><body>");
-            sb.Append($"<h2>{lst.Name} - {lst.Checked}</h2>");
-
-            var failed_list = lst.Archives.Where(a => a.Item2).ToList();
-            sb.Append($"<h3>Failed ({failed_list.Count}):</h3>");
-            sb.Append("<ul>");
-            foreach (var archive in failed_list)
+            
+            var lst = (await ModListStatus.ByName((string)arg.Name)).DetailedStatus;
+            var response = (Response)HandleGetListTemplate(new
             {
-                sb.Append($"<li>{archive.archive.Name}</li>");
-            }
-            sb.Append("</ul>");
-
-            var pased_list = lst.Archives.Where(a => !a.Item2).ToList();
-            sb.Append($"<h3>Passed ({pased_list.Count}):</h3>");
-            sb.Append("<ul>");
-            foreach (var archive in pased_list.OrderBy(f => f.archive.Name))
-            {
-                sb.Append($"<li>{archive.archive.Name}</li>");
-            }
-            sb.Append("</ul>");
-
-            sb.Append("</body></html>");
-            var response = (Response)sb.ToString();
+                lst,
+                failed = lst.Archives.Where(a => a.IsFailing).ToList(),
+                passed = lst.Archives.Where(a => !a.IsFailing).ToList()
+            });
             response.ContentType = "text/html";
             return response;
         }
@@ -130,79 +112,104 @@ namespace Wabbajack.CacheServer
                 }
             }).FireAndForget();
         }
-        public static async Task ValidateLists()
+        public static async Task ValidateLists(bool skipIfNewer = true)
         {
             Utils.Log("Cleaning Nexus Cache");
             var client = new HttpClient();
-            await client.GetAsync("http://build.wabbajack.org/nexus_api_cache/update");
+            //await client.GetAsync("http://build.wabbajack.org/nexus_api_cache/update");
 
             Utils.Log("Starting Modlist Validation");
             var modlists = await ModlistMetadata.LoadFromGithub();
-
-            var statuses = new Dictionary<string, ModListStatus>();
 
             using (var queue = new WorkQueue())
             {
                 foreach (var list in modlists)
                 {
-                    var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + ExtensionManager.Extension);
-
-                    if (list.NeedsDownload(modlist_path))
+                    try
                     {
-                        if (File.Exists(modlist_path))
-                            File.Delete(modlist_path);
-
-                        var state = DownloadDispatcher.ResolveArchive(list.Links.Download);
-                        Utils.Log($"Downloading {list.Links.MachineURL} - {list.Title}");
-                        await state.Download(modlist_path);
+                        await ValidateList(list, queue, skipIfNewer);
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        Utils.Log($"No changes detected from downloaded modlist");
                     }
-
-
-                    Utils.Log($"Loading {modlist_path}");
-
-                    var installer = AInstaller.LoadFromFile(modlist_path);
-
-                    Utils.Log($"{installer.Archives.Count} archives to validate");
- 
-                    DownloadDispatcher.PrepareAll(installer.Archives.Select(a => a.State));
-
-                    var validated = (await installer.Archives
-                            .PMap(queue, async archive =>
-                            {
-                                Utils.Log($"Validating: {archive.Name}");
-                                bool is_failed;
-                                try
-                                {
-                                    is_failed = !(await archive.State.Verify());
-                                }
-                                catch (Exception)
-                                {
-                                    is_failed = false;
-                                }
-
-                                return (archive, is_failed);
-                            }))
-                        .ToList();
-
-
-                    var status = new ModListStatus
-                    {
-                        Name = list.Title,
-                        Archives = validated.OrderBy(v => v.archive.Name).ToList(),
-                        DownloadMetaData = list.DownloadMetadata,
-                        HasFailures = validated.Any(v => v.is_failed)
-                    };
-
-                    statuses.Add(status.Name, status);
-                 }
+                }
             }
 
-            Utils.Log($"Done validating {statuses.Count} lists");
-            ModLists = statuses;
+            Utils.Log($"Done validating {modlists.Count} lists");
+        }
+
+        private static async Task ValidateList(ModlistMetadata list, WorkQueue queue, bool skipIfNewer = true)
+        {
+            var existing = await Server.Config.ListValidation.Connect().FindOneAsync(l => l.Id == list.Links.MachineURL);
+            if (skipIfNewer && existing != null && DateTime.Now - existing.DetailedStatus.Checked < TimeSpan.FromHours(2))
+                return;
+
+            var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + ExtensionManager.Extension);
+
+            if (list.NeedsDownload(modlist_path))
+            {
+                if (File.Exists(modlist_path))
+                    File.Delete(modlist_path);
+
+                var state = DownloadDispatcher.ResolveArchive(list.Links.Download);
+                Utils.Log($"Downloading {list.Links.MachineURL} - {list.Title}");
+                await state.Download(modlist_path);
+            }
+            else
+            {
+                Utils.Log($"No changes detected from downloaded modlist");
+            }
+
+
+            Utils.Log($"Loading {modlist_path}");
+
+            var installer = AInstaller.LoadFromFile(modlist_path);
+
+            Utils.Log($"{installer.Archives.Count} archives to validate");
+
+            DownloadDispatcher.PrepareAll(installer.Archives.Select(a => a.State));
+
+            var validated = (await installer.Archives
+                    .PMap(queue, async archive =>
+                    {
+                        Utils.Log($"Validating: {archive.Name}");
+                        bool is_failed;
+                        try
+                        {
+                            is_failed = !(await archive.State.Verify());
+                        }
+                        catch (Exception)
+                        {
+                            is_failed = false;
+                        }
+
+                        return new DetailedStatusItem {IsFailing = is_failed, Archive = archive};
+                    }))
+                .ToList();
+
+
+            var status = new DetailedStatus
+            {
+                Name = list.Title,
+                Archives = validated.OrderBy(v => v.Archive.Name).ToList(),
+                DownloadMetaData = list.DownloadMetadata,
+                HasFailures = validated.Any(v => v.IsFailing)
+            };
+
+            var dto = new ModListStatus
+            {
+                Id = list.Links.MachineURL,
+                Summary = new ModlistSummary
+                {
+                    Name = status.Name,
+                    Checked = status.Checked,
+                    Failed = status.Archives.Count(a => a.IsFailing),
+                    Passed = status.Archives.Count(a => !a.IsFailing),
+                },
+                DetailedStatus = status,
+                Metadata = list
+            };
+            await ModListStatus.Update(dto);
         }
     }
 }

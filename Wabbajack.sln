@@ -34,7 +34,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.VirtualFileSystem
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.CacheServer", "Wabbajack.CacheServer\Wabbajack.CacheServer.csproj", "{BDC9A094-D235-47CD-83CA-44199B60AB20}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OMODExtractor", "OMODExtractor\OMODExtractor.csproj", "{37E4D421-8FD3-4D57-8F3A-7A511D6ED5C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OMODExtractor", "OMODExtractor\OMODExtractor.csproj", "{37E4D421-8FD3-4D57-8F3A-7A511D6ED5C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -225,8 +225,8 @@ Global
 		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Debug|x86.Build.0 = Debug|Any CPU
 		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x64.ActiveCfg = Release|Any CPU
-		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x64.Build.0 = Release|Any CPU
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x64.ActiveCfg = Release|x64
+		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x64.Build.0 = Release|x64
 		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x86.ActiveCfg = Release|Any CPU
 		{BDC9A094-D235-47CD-83CA-44199B60AB20}.Release|x86.Build.0 = Release|Any CPU
 		{37E4D421-8FD3-4D57-8F3A-7A511D6ED5C5}.Debug (no commandargs)|Any CPU.ActiveCfg = Debug|Any CPU

@@ -59,7 +59,7 @@ namespace Wabbajack
                     this.WhenAny(x => x.Location.TargetPath),
                     this.WhenAny(x => x.DownloadLocation.TargetPath),
                     resultSelector: (target, download) => (target, download))
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(i => MO2Installer.CheckValidInstallPath(i.target, i.download))
                 .ObserveOnGuiThread();
 
