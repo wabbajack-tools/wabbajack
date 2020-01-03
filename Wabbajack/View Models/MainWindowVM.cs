@@ -40,7 +40,7 @@ namespace Wabbajack
         public readonly UserInterventionHandlers UserInterventionHandlers;
         public readonly LoginManagerVM LoginManagerVM;
 
-        public readonly List<ViewModel> NavigationTrail = new List<ViewModel>();
+        private readonly Stack<ViewModel> _navigationTrail = new Stack<ViewModel>();
 
         public ICommand CopyVersionCommand { get; }
 
@@ -152,14 +152,17 @@ namespace Wabbajack
 
         public void NavigateBack()
         {
-            var prev = NavigationTrail.Last();
-            NavigationTrail.RemoveAt(NavigationTrail.Count - 1);
-            ActivePane = prev;
+            if (_navigationTrail.Count == 0)
+            {
+                Utils.Log("Tried to pop an empty navigation trail");
+                ActivePane = ModeSelectionVM;
+            }
+            ActivePane = _navigationTrail.Pop();
         }
 
         public void NavigateTo(ViewModel vm)
         {
-            NavigationTrail.Add(ActivePane);
+            _navigationTrail.Push(ActivePane);
             ActivePane = vm;
         }
 
