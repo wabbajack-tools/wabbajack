@@ -37,6 +37,7 @@ namespace Wabbajack.Lib.Downloaders
                 Game = GameRegistry.GetByMO2ArchiveName(gameName).Game, 
                 GameFile = gameFile,
                 Hash = hash,
+                GameVersion = GameRegistry.GetByMO2ArchiveName(gameName).InstalledVersion
             };
         }
 
@@ -49,10 +50,12 @@ namespace Wabbajack.Lib.Downloaders
             public Game Game { get; set; }
             public string GameFile { get; set; }
             public string Hash { get; set; }
+            
+            public string GameVersion { get; set; }
 
             internal string SourcePath => Path.Combine(Game.MetaData().GameLocation(), GameFile);
 
-            public override object[] PrimaryKey { get => new object[] {Game, GameFile}; }
+            public override object[] PrimaryKey { get => new object[] {Game, GameVersion, GameFile}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {

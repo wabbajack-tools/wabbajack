@@ -1,7 +1,6 @@
 ﻿using ReactiveUI;
 using System;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
@@ -50,7 +49,7 @@ namespace Wabbajack
                     {
                         var ret = new MemoryStream();
                         using (var client = new HttpClient())
-                        using (Stream stream = await client.GetStreamAsync(url))
+                        using (var stream = await client.GetStreamAsync(url))
                         {
                             stream.CopyTo(ret);
                         }
@@ -58,28 +57,28 @@ namespace Wabbajack
                         ret.Seek(0, SeekOrigin.Begin);
                         return ret;
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        Utils.Error(ex, $"Exception while caching slide {ModName} ({ModID})");
-                        return default(MemoryStream);
+                        Utils.Log($"Skipping slide for mod {ModName} ({ModID})");
+                        return default;
                     }
                 })
                 .ObserveOn(RxApp.MainThreadScheduler)
                 .Select(memStream =>
                 {
-                    if (memStream == null) return default(BitmapImage);
+                    if (memStream == null) return default;
                     try
                     {
                         return UIUtils.BitmapImageFromStream(memStream);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        Utils.Error(ex, $"Exception while caching slide {ModName} ({ModID})");
-                        return default(BitmapImage);
+                        Utils.Log($"Skipping slide for mod {ModName} ({ModID})");
+                        return default;
                     }
                     finally
                     {
-                        memStream?.Dispose();
+                        memStream.Dispose();
                     }
                 })
                 .Replay(1)

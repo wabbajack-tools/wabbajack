@@ -198,6 +198,9 @@
     <PackageReference Include="CommonMark.NET">
       <Version>0.15.1</Version>
     </PackageReference>
+    <PackageReference Include="HtmlAgilityPack">
+      <Version>1.11.17</Version>
+    </PackageReference>
     <PackageReference Include="MegaApiClient">
       <Version>1.7.1</Version>
     </PackageReference>

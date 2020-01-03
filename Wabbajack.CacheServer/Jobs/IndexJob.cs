@@ -34,7 +34,7 @@ namespace Wabbajack.CacheServer.Jobs
 
             string fileName = Archive.Name;
             string folder = Guid.NewGuid().ToString();
-            Utils.Log($"Indexer is downloading ${fileName}");
+            Utils.Log($"Indexer is downloading {fileName}");
             var downloadDest = Path.Combine(Server.Config.Indexer.DownloadDir, folder, fileName);
             await Archive.State.Download(downloadDest);
 

@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
+using Wabbajack.Common.StoreHandlers;
 
 namespace Wabbajack.Lib.CompilationSteps
 {

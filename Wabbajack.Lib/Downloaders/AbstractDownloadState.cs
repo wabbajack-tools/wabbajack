@@ -51,6 +51,10 @@ namespace Wabbajack.Lib.Downloaders
 
         public async Task Download(string destination)
         {
+            var path = Path.GetDirectoryName(destination);
+            if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            
             await Download(new Archive {Name = Path.GetFileName(destination)}, destination);
         }
 
