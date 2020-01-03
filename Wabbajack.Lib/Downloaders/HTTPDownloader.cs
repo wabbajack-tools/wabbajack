@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection.Emit;
 using System.Threading.Tasks;
+using System.Web;
 using Windows.Networking.BackgroundTransfer;
 using Ceras;
 using SharpCompress.Common;
@@ -105,6 +106,9 @@ namespace Wabbajack.Lib.Downloaders
                     var response = await client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
                     TOP:
 
+                    if (!response.IsSuccessStatusCode)
+                        throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
+                    
                     Stream stream;
                     try
                     {
