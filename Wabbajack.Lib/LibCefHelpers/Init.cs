@@ -38,8 +38,8 @@ namespace Wabbajack.Lib.LibCefHelpers
         static Helpers()
         {
             ExtractLibs();
-            if (!Cef.IsInitialized)
-                Cef.Initialize(new CefSettings { MultiThreadedMessageLoop = true });
+            //if (!Cef.IsInitialized)
+            //    Cef.Initialize(new CefSettings { MultiThreadedMessageLoop = true });
         }
 
         public static HttpClient GetClient(IEnumerable<Cookie> cookies, string referer)
