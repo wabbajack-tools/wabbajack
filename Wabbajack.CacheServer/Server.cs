@@ -54,7 +54,8 @@ namespace Wabbajack.CacheServer
             {
                 ctx.Response.WithHeader("Access-Control-Allow-Origin", "*")
                     .WithHeader("Access-Control-Allow-Methods", "POST, GET")
-                    .WithHeader("Access-Control-Allow-Headers", "Accept, Origin, Content-type");
+                    .WithHeader("Access-Control-Allow-Headers", "Accept, Origin, Content-type")
+                    .WithHeader("Cache-Control","no-store");
             });
         }
 
@@ -63,6 +64,16 @@ namespace Wabbajack.CacheServer
             environment.Tracing(
                 enabled: true,
                 displayErrorTraces: true);
+        }
+
+        protected override void ConfigureApplicationContainer(TinyIoCContainer container)
+        {
+            container.Register<Heartbeat>();
+            container.Register<JobQueueEndpoints>();
+            container.Register<ListValidationService>();
+            container.Register<Metrics>();
+            container.Register<NexusCacheModule>();
+            container.Register<TestingEndpoints>();
         }
     }
 }

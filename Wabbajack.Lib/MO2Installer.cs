@@ -7,6 +7,7 @@ using System.Threading;
 using System.Windows;
 using Alphaleonis.Win32.Filesystem;
 using IniParser;
+using IniParser.Model;
 using IniParser.Model.Configuration;
 using IniParser.Parser;
 using Wabbajack.Common;
@@ -288,8 +289,18 @@ namespace Wabbajack.Lib
             foreach (var file in Directory.EnumerateFiles(Path.Combine(OutputFolder, "profiles"), "*refs.ini",
                 DirectoryEnumerationOptions.Recursive))
             {
+                IniData data;
                 var parser = new FileIniDataParser(new IniDataParser(config));
-                var data = parser.ReadFile(file);
+                try
+                {
+                    data = parser.ReadFile(file);
+                }
+                catch (Exception ex)
+                {
+                    Utils.Log($"Skipping screen size remap for {file} due to parse error.");
+                    continue;
+                }
+
                 if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
                 {
                     data.Sections["Display"]["iSize W"] = SystemParameters.PrimaryScreenWidth.ToString();
