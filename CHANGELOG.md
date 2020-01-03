@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 1.0 beta 11 - 1/3/2020
+* Rewrote the ModDB downloader to retry with other mirrors after failure
+* INI parse errors are now soft errors
+* Fixed several backend stability bugs
+* Changed application version scheme to better match the actual app version
+
 #### Version - 1.0 beta 10 - 12/23/2019
 * Many internal bug fixes releated to deadlocking
 * Take the system RAM into account when configuring queue sizes
