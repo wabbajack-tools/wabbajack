@@ -36,7 +36,7 @@ namespace Wabbajack.Common.StoreHandlers
 
         private const string SteamRegKey = @"Software\Valve\Steam";
 
-        private string SteamPath { get; set; }
+        public string SteamPath { get; set; }
         private List<string> SteamUniverses { get; set; }
 
         private string SteamConfig => Path.Combine(SteamPath, "config", "config.vdf");
@@ -122,6 +122,9 @@ namespace Wabbajack.Common.StoreHandlers
                 Utils.Log("Could not find any Steam Libraries!");
                 return false;
             }
+
+            if(Games == null)
+                Games = new List<AStoreGame>();
 
             SteamUniverses.Do(u =>
             {

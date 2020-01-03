@@ -57,6 +57,11 @@ namespace Wabbajack.Common.StoreHandlers
             return StoreGames.FirstOrDefault(g => g.Game == game)?.Path;
         }
 
+        public string GetGamePath(Game game, StoreType type)
+        {
+            return StoreGames.FirstOrDefault(g => g.Type == type && g.Game == game)?.Path;
+        }
+
         public string GetGamePath(int id)
         {
             return StoreGames.FirstOrDefault(g => g.ID == id)?.Path;

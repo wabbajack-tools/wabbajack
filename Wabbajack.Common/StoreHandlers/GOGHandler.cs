@@ -56,6 +56,9 @@ namespace Wabbajack.Common.StoreHandlers
 
         public override bool LoadAllGames()
         {
+            if(Games == null)
+                Games = new List<AStoreGame>();
+
             try
             {
                 string[] keys = GOGKey.GetSubKeyNames();
@@ -94,9 +97,16 @@ namespace Wabbajack.Common.StoreHandlers
 
                     var path = pathValue.ToString();
 
-                    var game = new GOGGame() {ID = gameID, Name = gameName, Path = path};
+                    var game = new GOGGame
+                    {
+                        ID = gameID, 
+                        Name = gameName, 
+                        Path = path
+                    };
 
                     var gameMeta = GameRegistry.Games.Values.FirstOrDefault(g =>
+                        g.GOGIDs != null
+                        &&
                         g.GOGIDs.Contains(game.ID)
                         &&
                         g.RequiredFiles.TrueForAll(file =>
