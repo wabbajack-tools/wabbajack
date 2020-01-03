@@ -15,7 +15,6 @@ namespace Wabbajack.Common
         public int AppId;
         public string Name;
         public string InstallDir;
-        public string BuildId;
         public Game? Game;
 
         public HashSet<SteamWorkshopItem> WorkshopItems;
