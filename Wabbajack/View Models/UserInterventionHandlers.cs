@@ -27,13 +27,12 @@ namespace Wabbajack
         private async Task WrapBrowserJob(IUserIntervention intervention, Func<WebBrowserVM, CancellationTokenSource, Task> toDo)
         {
             CancellationTokenSource cancel = new CancellationTokenSource();
-            var oldPane = MainWindow.ActivePane;
             var vm = await WebBrowserVM.GetNew();
-            MainWindow.ActivePane = vm;
+            MainWindow.NavigateTo(vm);
             vm.BackCommand = ReactiveCommand.Create(() =>
             {
                 cancel.Cancel();
-                MainWindow.ActivePane = oldPane;
+                MainWindow.NavigateBack();
                 intervention.Cancel();
             });
 
@@ -51,7 +50,7 @@ namespace Wabbajack
                 intervention.Cancel();
             }
 
-            MainWindow.ActivePane = oldPane;
+            MainWindow.NavigateBack();
         }
 
         public async Task Handle(IUserIntervention msg)

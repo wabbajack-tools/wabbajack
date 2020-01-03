@@ -29,8 +29,7 @@ namespace Wabbajack
         public ModListGalleryVM(MainWindowVM mainWindowVM)
         {
             MWVM = mainWindowVM;
-            BackCommand = ReactiveCommand.Create(
-                execute: () => mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM);
+            BackCommand = ReactiveCommand.Create(mainWindowVM.NavigateBack);
             RefreshCommand = ReactiveCommand.Create(() => { });
 
             RefreshCommand.StartingExecution()

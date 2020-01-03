@@ -139,7 +139,7 @@ namespace Wabbajack
             BackCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
-                    mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM;
+                    mainWindowVM.NavigateBack();
                     StartedCompilation = false;
                     Completed = null;
                 },

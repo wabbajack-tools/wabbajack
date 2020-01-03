@@ -32,8 +32,8 @@ namespace Wabbajack
                     _mainVM.OpenInstaller(path);
                 });
 
-            CompileCommand = ReactiveCommand.Create(() => mainVM.ActivePane = mainVM.Compiler.Value);
-            BrowseCommand = ReactiveCommand.Create(() => mainVM.ActivePane = mainVM.Gallery.Value);
+            CompileCommand = ReactiveCommand.Create(() => mainVM.NavigateTo(mainVM.Compiler.Value));
+            BrowseCommand = ReactiveCommand.Create(() => mainVM.NavigateTo(mainVM.Gallery.Value));
         }
     }
 }
