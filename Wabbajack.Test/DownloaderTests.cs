@@ -189,6 +189,7 @@ namespace Wabbajack.Test
             //Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
 
+        /*
         [TestMethod]
         public async Task MediaFireDownload()
         {
@@ -217,7 +218,7 @@ namespace Wabbajack.Test
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
 
-        }
+        }*/
 
         [TestMethod]
         public async Task NexusDownload()
