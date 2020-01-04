@@ -19,12 +19,12 @@ namespace Wabbajack.CacheServer
     {
         private static SemaphoreSlim _lockObject = new SemaphoreSlim(1);
 
-        public static async Task Log(DateTime timestamp, string action, string subject)
+        public static async Task Log(DateTime timestamp, string action, string subject, string metricsKey = null)
         {
-            var msg = new[] {string.Join("\t", new[]{timestamp.ToString(), action, subject})};
+            var msg = new[] {string.Join("\t", new[]{timestamp.ToString(), metricsKey, action, subject})};
             Utils.Log(msg.First());
             var db = Server.Config.Metrics.Connect();
-            await db.InsertOneAsync(new Metric {Timestamp = timestamp, Action = action, Subject = subject});
+            await db.InsertOneAsync(new Metric {Timestamp = timestamp, Action = action, Subject = subject, MetricsKey = metricsKey});
         }
 
         public static Task Log(string action, string subject)
@@ -63,7 +63,7 @@ namespace Wabbajack.CacheServer
         private async Task<string> HandleMetrics(dynamic arg)
         {
             var date = DateTime.UtcNow;
-            await Log(date, arg.Action, arg.Value);
+            await Log(date, arg.Action, arg.Value, Request.Headers[Consts.MetricsKeyHeader].FirstOrDefault());
             return date.ToString();
         }
 

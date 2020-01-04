@@ -9,6 +9,13 @@ namespace Wabbajack.Common
 {
     public class Metrics
     {
+        static Metrics()
+        {
+            if (!Utils.HaveEncryptedJson(Consts.MetricsKeyHeader))
+            {
+                Utils.ToEcryptedJson(Consts.MetricsKeyHeader, Utils.MakeRandomKey());
+            }
+        }
         /// <summary>
         /// This is all we track for metrics, action, and value. The action will be like
         /// "downloaded", the value "Joe's list".
@@ -20,6 +27,7 @@ namespace Wabbajack.Common
             var client = new HttpClient();
             try
             {
+                client.DefaultRequestHeaders.Add(Consts.MetricsKeyHeader, Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader));
                 await client.GetAsync($"http://build.wabbajack.org/metrics/{action}/{value}");
             }
             catch (Exception) { }

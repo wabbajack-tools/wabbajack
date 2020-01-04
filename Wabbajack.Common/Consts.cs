@@ -90,6 +90,7 @@ namespace Wabbajack.Common
 
         public static string HashFileExtension => ".xxHash";
         public static string LocalAppDataPath => Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack");
+        public static string MetricsKeyHeader => "x-metrics-key";
 
         public static string WabbajackCacheLocation = "http://build.wabbajack.org/nexus_api_cache/";
 
