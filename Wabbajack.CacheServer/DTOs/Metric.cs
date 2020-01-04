@@ -12,5 +12,6 @@ namespace Wabbajack.CacheServer.DTOs
         public DateTime Timestamp;
         public string Action;
         public string Subject;
+        public string MetricsKey;
     }
 }

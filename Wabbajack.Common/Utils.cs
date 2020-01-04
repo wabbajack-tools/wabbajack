@@ -1123,5 +1123,13 @@ namespace Wabbajack.Common
             GlobalMemoryStatusEx(mstat);
             return mstat;
         }
+
+        public static string MakeRandomKey()
+        {
+            var random = new Random();
+            byte[] bytes = new byte[32];
+            random.NextBytes(bytes);
+            return bytes.ToHex();
+        }
     }
 }
