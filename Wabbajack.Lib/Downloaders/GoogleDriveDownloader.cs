@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 
@@ -53,9 +54,11 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var initialURL = $"https://drive.google.com/uc?id={Id}&export=download";
                 var client = new HttpClient();
-                var result = await client.GetStringAsync(initialURL);
+                var response = await client.GetAsync(initialURL);
+                if (!response.IsSuccessStatusCode)
+                    throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
                 var regex = new Regex("(?<=/uc\\?export=download&amp;confirm=).*(?=;id=)");
-                var confirm = regex.Match(result);
+                var confirm = regex.Match(await response.Content.ReadAsStringAsync());
                 var url = $"https://drive.google.com/uc?export=download&confirm={confirm}&id={Id}";
                 var httpState = new HTTPDownloader.State {Url = url, Client = client};
                 return httpState;
