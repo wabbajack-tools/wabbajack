@@ -289,11 +289,19 @@ namespace Wabbajack.Lib
             foreach (var file in Directory.EnumerateFiles(Path.Combine(OutputFolder, "profiles"), "*refs.ini",
                 DirectoryEnumerationOptions.Recursive))
             {
-                IniData data;
-                var parser = new FileIniDataParser(new IniDataParser(config));
                 try
                 {
+                    IniData data;
+                    var parser = new FileIniDataParser(new IniDataParser(config));
                     data = parser.ReadFile(file);
+                    
+                    if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
+                    {
+                        data.Sections["Display"]["iSize W"] = SystemParameters.PrimaryScreenWidth.ToString();
+                        data.Sections["Display"]["iSize H"] = SystemParameters.PrimaryScreenHeight.ToString();
+                    }
+
+                    parser.WriteFile(file, data);
                 }
                 catch (Exception ex)
                 {
@@ -301,13 +309,6 @@ namespace Wabbajack.Lib
                     continue;
                 }
 
-                if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
-                {
-                    data.Sections["Display"]["iSize W"] = SystemParameters.PrimaryScreenWidth.ToString();
-                    data.Sections["Display"]["iSize H"] = SystemParameters.PrimaryScreenHeight.ToString();
-                }
-
-                parser.WriteFile(file, data);
             }
         }
 
