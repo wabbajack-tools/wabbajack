@@ -105,15 +105,18 @@ namespace Wabbajack.Common.StoreHandlers
                     };
 
                     var gameMeta = GameRegistry.Games.Values.FirstOrDefault(g =>
-                        g.GOGIDs != null
-                        &&
-                        g.GOGIDs.Contains(game.ID)
-                        &&
-                        g.RequiredFiles.TrueForAll(file =>
-                            File.Exists(Path.Combine(game.Path, file))));
+                    {
+                        return g.GOGIDs != null
+                               && (g.SteamIDs?.Contains(gameID) ?? false)
+                               && (g.RequiredFiles?.TrueForAll(file => File.Exists(Path.Combine(game.Path, file))) ??
+                                   true);
+                    });
 
                     if (gameMeta == null)
+                    {
+                        Utils.Log($"GOG Game \"{gameName}\"({gameID}) is not supported, skipping");
                         return;
+                    }
 
                     game.Game = gameMeta.Game;
 
