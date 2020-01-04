@@ -131,7 +131,7 @@ namespace Wabbajack.Common.StoreHandlers
                 Directory.EnumerateFiles(u, "*.acf", SearchOption.TopDirectoryOnly).Where(File.Exists).Do(f =>
                 {
                     var game = new SteamGame();
-                    var valid = false;
+                    var gotID = false;
 
                     File.ReadAllLines(f).Do(l =>
                     {
@@ -140,6 +140,7 @@ namespace Wabbajack.Common.StoreHandlers
                             if (!int.TryParse(GetVdfValue(l), out var id))
                                 return;
                             game.ID = id;
+                            gotID = true;
                         }
 
                         if (l.Contains("\"name\""))
@@ -149,21 +150,19 @@ namespace Wabbajack.Common.StoreHandlers
                         {
                             var path = Path.Combine(u, "common", GetVdfValue(l));
                             if (Directory.Exists(path))
+                            {
                                 game.Path = path;
-                            else
-                                return;
+                            }
                         }
-
-                        valid = true;
                     });
 
-                    if (!valid) return;
+                    if (!gotID || !Directory.Exists(game.Path)) return;
 
-                    var gameMeta = GameRegistry.Games.Values.FirstOrDefault(g => 
-                        g.SteamIDs.Contains(game.ID)
-                        && 
-                        g.RequiredFiles.TrueForAll(file => 
-                            File.Exists(Path.Combine(game.Path, file))));
+                    var gameMeta = GameRegistry.Games.Values.FirstOrDefault(g =>
+                    {
+                        return (g.SteamIDs?.Contains(game.ID) ?? false)
+                            && (g.RequiredFiles?.TrueForAll(file => File.Exists(Path.Combine(game.Path, file))) ?? true);
+                    });
 
                     if (gameMeta == null)
                         return;

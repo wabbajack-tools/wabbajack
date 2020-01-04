@@ -335,11 +335,9 @@ namespace Wabbajack
                         }
                     }
                     catch (Exception ex)
-                    {
+                    { 
+                        Utils.Error(ex, $"Encountered error, can't continue");
                         while (ex.InnerException != null) ex = ex.InnerException;
-                        Utils.Log(ex.StackTrace);
-                        Utils.Log(ex.ToString());
-                        Utils.Log($"{ex.Message} - Can't continue");
                         Completed = ErrorResponse.Fail(ex);
                     }
                 });
