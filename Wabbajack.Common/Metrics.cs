@@ -13,7 +13,7 @@ namespace Wabbajack.Common
         {
             if (!Utils.HaveEncryptedJson(Consts.MetricsKeyHeader))
             {
-                Utils.ToEcryptedJson(Consts.MetricsKeyHeader, Utils.MakeRandomKey());
+                Utils.ToEcryptedJson(Utils.MakeRandomKey(), Consts.MetricsKeyHeader);
             }
         }
         /// <summary>
@@ -27,10 +27,14 @@ namespace Wabbajack.Common
             var client = new HttpClient();
             try
             {
-                client.DefaultRequestHeaders.Add(Consts.MetricsKeyHeader, Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader));
+                client.DefaultRequestHeaders.Add(Consts.MetricsKeyHeader,
+                    Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader));
                 await client.GetAsync($"http://build.wabbajack.org/metrics/{action}/{value}");
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                
+            }
         }
     }
 }

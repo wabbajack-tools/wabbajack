@@ -166,6 +166,7 @@ namespace Wabbajack.CacheServer
                     }
                     catch (Exception ex)
                     {
+                        Utils.Log(ex.ToString());
                     }
                 }
             }
