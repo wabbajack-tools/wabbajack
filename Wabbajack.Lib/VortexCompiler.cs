@@ -217,7 +217,7 @@ namespace Wabbajack.Lib
             IEnumerable<NoMatch> noMatch = results.OfType<NoMatch>().ToList();
             Info($"No match for {noMatch.Count()} files");
             foreach (var file in noMatch)
-                Info($"     {file.To}");
+                Info($"     {file.To} - {file.Reason}");
             if (noMatch.Any())
             {
                 if (IgnoreMissingFiles)
