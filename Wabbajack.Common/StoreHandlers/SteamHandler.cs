@@ -128,6 +128,8 @@ namespace Wabbajack.Common.StoreHandlers
 
             SteamUniverses.Do(u =>
             {
+                Utils.Log($"Searching for Steam Games in {u}");
+
                 Directory.EnumerateFiles(u, "*.acf", SearchOption.TopDirectoryOnly).Where(File.Exists).Do(f =>
                 {
                     var game = new SteamGame();
@@ -146,14 +148,12 @@ namespace Wabbajack.Common.StoreHandlers
                         if (l.Contains("\"name\""))
                             game.Name = GetVdfValue(l);
 
-                        if (l.Contains("\"installdir\""))
-                        {
-                            var path = Path.Combine(u, "common", GetVdfValue(l));
-                            if (Directory.Exists(path))
-                            {
-                                game.Path = path;
-                            }
-                        }
+                        if (!l.Contains("\"installdir\""))
+                            return;
+
+                        var path = Path.Combine(u, "common", GetVdfValue(l));
+                        if (Directory.Exists(path))
+                            game.Path = path;
                     });
 
                     if (!gotID || !Directory.Exists(game.Path)) return;
@@ -165,7 +165,10 @@ namespace Wabbajack.Common.StoreHandlers
                     });
 
                     if (gameMeta == null)
+                    {
+                        Utils.Log($"Steam Game {game.Name}({game.ID}) is not supported, skipping");
                         return;
+                    }
 
                     game.Game = gameMeta.Game;
                     game.Universe = u;
@@ -183,7 +186,7 @@ namespace Wabbajack.Common.StoreHandlers
             return true;
         }
 
-        private void LoadWorkshopItems(SteamGame game)
+        private static void LoadWorkshopItems(SteamGame game)
         {
             if(game.WorkshopItems == null)
                 game.WorkshopItems = new List<SteamWorkshopItem>();
