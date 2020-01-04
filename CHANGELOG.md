@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 1.0 beta 12 - 1/3/22020
+* Breaking change: the internal serialization format has changed, this will make existing lists inoperable on the latest version of WJ
+* Added a change to serialization to make it backwards-compatible in the future
+* Added an anonymous key to the metrics
+* Fixed INI errors (again)
+
 #### Version - 1.0 beta 11 - 1/3/2020
 * Rewrote the ModDB downloader to retry with other mirrors after failure
 * INI parse errors are now soft errors
