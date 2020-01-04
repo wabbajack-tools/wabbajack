@@ -73,7 +73,11 @@ namespace Wabbajack.Lib.Downloaders
                 try
                 {
                     await browser.EvaluateJavaScript(
-                        "document.querySelectorAll(\".ll_adblock\").forEach(function (itm) { itm.innerHTML = \"\";});");
+                        "document.querySelectorAll(\".ll_adblock\").forEach(function (itm) { itm.innerHTML = \"\";});" +
+                        "var overlay = document.getElementsByClassName(\"ac-overlay\");" +
+                        "overlay[0].parentNode.removeChild(overlay[0]);" +
+                        "var container = document.getElementsByClassName(\"ac-container\");" +
+                        "container[0].parentNode.removeChild(container[0]);");
                 }
                 catch (Exception ex)
                 {
