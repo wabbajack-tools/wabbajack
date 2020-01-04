@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
+using Wabbajack.Common.StoreHandlers;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
@@ -46,7 +47,8 @@ namespace Wabbajack.Lib
             MO2Ini = Path.Combine(MO2Folder, "ModOrganizer.ini").LoadIniFile();
             var mo2game = (string)MO2Ini.General.gameName;
             CompilingGame = GameRegistry.Games.First(g => g.Value.MO2Name == mo2game).Value;
-            GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
+            GamePath = StoreHandler.Instance.GetGamePath(CompilingGame.Game);
+            // GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
             ModListOutputFile = outputFile;
         }
 
