@@ -95,7 +95,7 @@ namespace Wabbajack.Lib
                 ModList.Readme = $"readme{readme.Extension}";
             }
 
-            //ModList.ReadmeIsWebsite = ReadmeIsWebsite;
+            ModList.ReadmeIsWebsite = ReadmeIsWebsite;
 
             ModList.ToCERAS(Path.Combine(ModListOutputFolder, "modlist"), CerasConfig.Config);
 
