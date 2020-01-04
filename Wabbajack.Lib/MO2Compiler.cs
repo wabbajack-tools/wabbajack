@@ -232,7 +232,7 @@ namespace Wabbajack.Lib
             if (nomatch.Any())
             {
                 foreach (var file in nomatch)
-                    Info($"     {file.To}");
+                    Info($"     {file.To} - {file.Reason}");
                 if (IgnoreMissingFiles)
                 {
                     Info("Continuing even though files were missing at the request of the user.");
