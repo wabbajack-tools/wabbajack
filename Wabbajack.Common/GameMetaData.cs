@@ -409,7 +409,7 @@ namespace Wabbajack.Common
                     GOGIDs = new List<int>{1453375253},
                     RequiredFiles = new List<string>
                     {
-                        "StardewValley.exe"
+                        "Stardew Valley.exe"
                     }
                 }
             }
