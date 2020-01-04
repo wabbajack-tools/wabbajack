@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -291,14 +292,15 @@ namespace Wabbajack.Lib
             {
                 try
                 {
-                    IniData data;
                     var parser = new FileIniDataParser(new IniDataParser(config));
-                    data = parser.ReadFile(file);
-                    
+                    var data = parser.ReadFile(file);
+                    if (data.Sections["Display"] == null)
+                        return;
+
                     if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
                     {
-                        data.Sections["Display"]["iSize W"] = SystemParameters.PrimaryScreenWidth.ToString();
-                        data.Sections["Display"]["iSize H"] = SystemParameters.PrimaryScreenHeight.ToString();
+                        data.Sections["Display"]["iSize W"] = SystemParameters.PrimaryScreenWidth.ToString(CultureInfo.CurrentCulture);
+                        data.Sections["Display"]["iSize H"] = SystemParameters.PrimaryScreenHeight.ToString(CultureInfo.CurrentCulture);
                     }
 
                     parser.WriteFile(file, data);
@@ -308,7 +310,6 @@ namespace Wabbajack.Lib
                     Utils.Log($"Skipping screen size remap for {file} due to parse error.");
                     continue;
                 }
-
             }
         }
 
