@@ -1,4 +1,4 @@
-using DynamicData;
+﻿using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -43,7 +43,6 @@ namespace Wabbajack
         public ICommand CopyVersionCommand { get; }
 
         public ICommand ShowLoginManagerVM { get; }
-        public ICommand GoBackCommand { get; }
         public string VersionDisplay { get; }
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
@@ -153,7 +152,8 @@ namespace Wabbajack
             ActivePane = vm;
         }
 
-        public void NavigateTo(BackNavigatingVM vm)
+        public void NavigateTo<T>(T vm)
+            where T : ViewModel, IBackNavigatingVM
         {
             vm.NavigateBackTarget = ActivePane;
             ActivePane = vm;

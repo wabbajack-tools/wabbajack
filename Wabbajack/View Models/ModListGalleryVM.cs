@@ -15,22 +15,20 @@ using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack
 {
-    public class ModListGalleryVM : ViewModel
+    public class ModListGalleryVM : BackNavigatingVM
     {
         public MainWindowVM MWVM { get; }
 
         public ObservableCollectionExtended<ModListMetadataVM> ModLists { get; } = new ObservableCollectionExtended<ModListMetadataVM>();
 
-        public IReactiveCommand BackCommand { get; }
         public IReactiveCommand RefreshCommand { get; }
 
         private int missingHashFallbackCounter;
 
         public ModListGalleryVM(MainWindowVM mainWindowVM)
+            : base(mainWindowVM)
         {
             MWVM = mainWindowVM;
-            BackCommand = ReactiveCommand.Create(
-                execute: () => mainWindowVM.NavigateTo(mainWindowVM.ModeSelectionVM));
             RefreshCommand = ReactiveCommand.Create(() => { });
 
             RefreshCommand.StartingExecution()
