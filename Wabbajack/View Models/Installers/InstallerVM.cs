@@ -20,10 +20,11 @@ using DynamicData.Binding;
 using Wabbajack.Common.StatusFeed;
 using System.Reactive;
 using System.Collections.Generic;
+using System.Windows.Input;
 
 namespace Wabbajack
 {
-    public class InstallerVM : ViewModel
+    public class InstallerVM : ViewModel, IBackNavigatingVM
     {
         public SlideShow Slideshow { get; }
 
@@ -36,6 +37,9 @@ namespace Wabbajack
         public ModListVM ModList => _modList.Value;
 
         public FilePickerVM ModListLocation { get; }
+
+        [Reactive]
+        public ViewModel NavigateBackTarget { get; set; }
 
         private readonly ObservableAsPropertyHelper<ISubInstallerVM> _installer;
         public ISubInstallerVM Installer => _installer.Value;
@@ -182,10 +186,14 @@ namespace Wabbajack
                 {
                     StartedInstallation = false;
                     Completed = null;
-                    mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM;
+                    mainWindowVM.NavigateTo(mainWindowVM.ModeSelectionVM);
                 },
-                canExecute: this.WhenAny(x => x.Installing)
-                    .Select(x => !x));
+                canExecute: Observable.CombineLatest(
+                        this.WhenAny(x => x.Installing)
+                            .Select(x => !x),
+                        this.ConstructCanNavigateBack(),
+                        resultSelector: (i, b) => i && b)
+                    .ObserveOnGuiThread());
 
             _percentCompleted = this.WhenAny(x => x.Installer.ActiveInstallation)
                 .StartWith(default(AInstaller))

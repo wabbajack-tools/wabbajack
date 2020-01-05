@@ -11,7 +11,6 @@ using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.WebAutomation;
-using Wabbajack.UserInterventions;
 
 namespace Wabbajack
 {
@@ -29,11 +28,11 @@ namespace Wabbajack
             CancellationTokenSource cancel = new CancellationTokenSource();
             var oldPane = MainWindow.ActivePane;
             var vm = await WebBrowserVM.GetNew();
-            MainWindow.ActivePane = vm;
+            MainWindow.NavigateTo(vm);
             vm.BackCommand = ReactiveCommand.Create(() =>
             {
                 cancel.Cancel();
-                MainWindow.ActivePane = oldPane;
+                MainWindow.NavigateTo(oldPane);
                 intervention.Cancel();
             });
 
@@ -51,7 +50,7 @@ namespace Wabbajack
                 intervention.Cancel();
             }
 
-            MainWindow.ActivePane = oldPane;
+            MainWindow.NavigateTo(oldPane);
         }
 
         public async Task Handle(IUserIntervention msg)
@@ -75,9 +74,6 @@ namespace Wabbajack
                     });
                     break;
                 case ConfirmationIntervention c:
-                    break;
-                case ShowLoginManager c:
-                    MainWindow.NavigateTo(MainWindow.LoginManagerVM);
                     break;
                 default:
                     throw new NotImplementedException($"No handler for {msg}");

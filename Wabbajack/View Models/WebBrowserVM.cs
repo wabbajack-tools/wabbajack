@@ -13,13 +13,16 @@ using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack
 {
-    public class WebBrowserVM : ViewModel
+    public class WebBrowserVM : ViewModel, IBackNavigatingVM
     {
         [Reactive]
         public string Instructions { get; set; }
 
         public IWebBrowser Browser { get; } = new ChromiumWebBrowser();
         public CefSharpWrapper Driver => new CefSharpWrapper(Browser);
+
+        [Reactive]
+        public ViewModel NavigateBackTarget { get; set; }
 
         [Reactive]
         public IReactiveCommand BackCommand { get; set; }

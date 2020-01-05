@@ -29,23 +29,21 @@ namespace Wabbajack
         public MainSettings Settings { get; }
 
         [Reactive]
-        public ViewModel ActivePane { get; set; }
+        public ViewModel ActivePane { get; private set; }
 
         public ObservableCollectionExtended<IStatusMessage> Log { get; } = new ObservableCollectionExtended<IStatusMessage>();
 
         public readonly Lazy<CompilerVM> Compiler;
         public readonly Lazy<InstallerVM> Installer;
+        public readonly Lazy<SettingsVM> SettingsPane;
         public readonly Lazy<ModListGalleryVM> Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
-        public readonly LoginManagerVM LoginManagerVM;
-
-        public readonly List<ViewModel> NavigationTrail = new List<ViewModel>();
 
         public ICommand CopyVersionCommand { get; }
-
         public ICommand ShowLoginManagerVM { get; }
-        public ICommand GoBackCommand { get; }
+        public ICommand OpenSettingsCommand { get; }
+
         public string VersionDisplay { get; }
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
@@ -54,10 +52,10 @@ namespace Wabbajack
             Settings = settings;
             Installer = new Lazy<InstallerVM>(() => new InstallerVM(this));
             Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
+            SettingsPane = new Lazy<SettingsVM>(() => new SettingsVM(this));
             Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(this));
             ModeSelectionVM = new ModeSelectionVM(this);
             UserInterventionHandlers = new UserInterventionHandlers(this);
-            LoginManagerVM = new LoginManagerVM(this);
 
             // Set up logging
             Utils.LogMessages
@@ -103,12 +101,12 @@ namespace Wabbajack
             if (IsStartingFromModlist(out var path))
             {
                 Installer.Value.ModListLocation.TargetPath = path;
-                ActivePane = Installer.Value;
+                NavigateTo(Installer.Value);
             }
             else
             {
                 // Start on mode selection
-                ActivePane = ModeSelectionVM;
+                NavigateTo(ModeSelectionVM);
             }
 
             try
@@ -126,6 +124,10 @@ namespace Wabbajack
             {
                 Clipboard.SetText($"Wabbajack {VersionDisplay}\n{ThisAssembly.Git.Sha}");
             });
+            OpenSettingsCommand = ReactiveCommand.Create(
+                canExecute: this.WhenAny(x => x.ActivePane)
+                    .Select(active => !SettingsPane.IsValueCreated || !object.ReferenceEquals(active, SettingsPane.Value)),
+                execute: () => NavigateTo(SettingsPane.Value));
         }
         private static bool IsStartingFromModlist(out string modlistPath)
         {
@@ -146,20 +148,19 @@ namespace Wabbajack
             if (path == null) return;
             var installer = Installer.Value;
             Settings.Installer.LastInstalledListLocation = path;
-            ActivePane = installer;
+            NavigateTo(installer);
             installer.ModListLocation.TargetPath = path;
-        }
-
-        public void NavigateBack()
-        {
-            var prev = NavigationTrail.Last();
-            NavigationTrail.RemoveAt(NavigationTrail.Count - 1);
-            ActivePane = prev;
         }
 
         public void NavigateTo(ViewModel vm)
         {
-            NavigationTrail.Add(ActivePane);
+            ActivePane = vm;
+        }
+
+        public void NavigateTo<T>(T vm)
+            where T : ViewModel, IBackNavigatingVM
+        {
+            vm.NavigateBackTarget = ActivePane;
             ActivePane = vm;
         }
 

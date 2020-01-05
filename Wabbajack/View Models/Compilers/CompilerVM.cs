@@ -18,12 +18,15 @@ using Wabbajack.Lib;
 
 namespace Wabbajack
 {
-    public class CompilerVM : ViewModel
+    public class CompilerVM : ViewModel, IBackNavigatingVM
     {
         public MainWindowVM MWVM { get; }
 
         private readonly ObservableAsPropertyHelper<BitmapImage> _image;
         public BitmapImage Image => _image.Value;
+
+        [Reactive]
+        public ViewModel NavigateBackTarget { get; set; }
 
         [Reactive]
         public ModManager SelectedCompilerType { get; set; }
@@ -139,12 +142,16 @@ namespace Wabbajack
             BackCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
-                    mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM;
+                    mainWindowVM.NavigateTo(mainWindowVM.ModeSelectionVM);
                     StartedCompilation = false;
                     Completed = null;
                 },
-                canExecute: this.WhenAny(x => x.Compiling)
-                    .Select(x => !x));
+                canExecute: Observable.CombineLatest(
+                        this.WhenAny(x => x.Compiling)
+                            .Select(x => !x),
+                        this.ConstructCanNavigateBack(),
+                        resultSelector: (i, b) => i && b)
+                    .ObserveOnGuiThread());
 
             // Compile progress updates and populate ObservableCollection
             Dictionary<int, CPUDisplayVM> cpuDisplays = new Dictionary<int, CPUDisplayVM>();
