@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 1.0 beta 13 - 1/4/22020
+* Several fixes for steam game handling
+* Fixes for metrics reporting
+
 #### Version - 1.0 beta 12 - 1/3/22020
 * Breaking change: the internal serialization format has changed, this will make existing lists inoperable on the latest version of WJ
 * Added a change to serialization to make it backwards-compatible in the future
