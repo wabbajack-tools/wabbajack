@@ -158,7 +158,7 @@ namespace Wabbajack.CacheServer
 
             using (var queue = new WorkQueue())
             {
-                foreach (var list in modlists)
+                foreach (var list in modlists.Skip(2).Take(1))
                 {
                     try
                     {
@@ -177,7 +177,7 @@ namespace Wabbajack.CacheServer
         private static async Task ValidateList(ModlistMetadata list, WorkQueue queue, bool skipIfNewer = true)
         {
             var existing = await Server.Config.ListValidation.Connect().FindOneAsync(l => l.Id == list.Links.MachineURL);
-            if (skipIfNewer && existing != null && DateTime.Now - existing.DetailedStatus.Checked < TimeSpan.FromHours(2))
+            if (skipIfNewer && existing != null && DateTime.UtcNow - existing.DetailedStatus.Checked < TimeSpan.FromHours(2))
                 return;
 
             var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + ExtensionManager.Extension);
