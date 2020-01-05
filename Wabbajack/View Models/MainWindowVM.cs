@@ -1,4 +1,4 @@
-﻿using DynamicData;
+using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -39,8 +39,6 @@ namespace Wabbajack
         public readonly ModeSelectionVM ModeSelectionVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
         public readonly LoginManagerVM LoginManagerVM;
-
-        public readonly List<ViewModel> NavigationTrail = new List<ViewModel>();
 
         public ICommand CopyVersionCommand { get; }
 
@@ -150,16 +148,14 @@ namespace Wabbajack
             installer.ModListLocation.TargetPath = path;
         }
 
-        public void NavigateBack()
-        {
-            var prev = NavigationTrail.Last();
-            NavigationTrail.RemoveAt(NavigationTrail.Count - 1);
-            ActivePane = prev;
-        }
-
         public void NavigateTo(ViewModel vm)
         {
-            NavigationTrail.Add(ActivePane);
+            ActivePane = vm;
+        }
+
+        public void NavigateTo(BackNavigatingVM vm)
+        {
+            vm.NavigateBackTarget = ActivePane;
             ActivePane = vm;
         }
 

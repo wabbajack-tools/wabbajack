@@ -172,6 +172,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="View Models\BackNavigatingVM.cs" />
     <Compile Include="Views\Common\AttentionBorder.xaml.cs">
       <DependentUpon>AttentionBorder.xaml</DependentUpon>
     </Compile>
