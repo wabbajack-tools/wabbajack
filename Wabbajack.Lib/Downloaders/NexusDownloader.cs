@@ -13,38 +13,35 @@ using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class NexusDownloader : ViewModel, IDownloader, INeedsLogin
+    public class NexusDownloader : IDownloader, INeedsLogin
     {
         private bool _prepared;
         private SemaphoreSlim _lock = new SemaphoreSlim(1);
         private UserStatus _status;
         private NexusApiClient _client;
 
-        public NexusDownloader()
-        {
-            TriggerLogin = ReactiveCommand.Create(async () => await NexusApiClient.RequestAndCacheAPIKey(), IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
-            ClearLogin = ReactiveCommand.Create(() => Utils.DeleteEncryptedJson("nexusapikey"), IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
-        }
-
         public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable("nexusapikey");
 
         public string SiteName => "Nexus Mods";
 
-        public string MetaInfo
-        {
-            get
-            {
-                return "";
-            }
-        } 
-
+        public string MetaInfo => "";
 
         public Uri SiteURL => new Uri("https://www.nexusmods.com");
 
         public Uri IconUri => new Uri("https://www.nexusmods.com/favicon.ico");
-        
+
         public ICommand TriggerLogin { get; }
         public ICommand ClearLogin { get; }
+
+        public NexusDownloader()
+        {
+            TriggerLogin = ReactiveCommand.CreateFromTask(
+                execute: () => Utils.CatchAndLog(NexusApiClient.RequestAndCacheAPIKey), 
+                canExecute: IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
+            ClearLogin = ReactiveCommand.Create(
+                execute: () => Utils.CatchAndLog(() => Utils.DeleteEncryptedJson("nexusapikey")),
+                canExecute: IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
+        }
 
         public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {

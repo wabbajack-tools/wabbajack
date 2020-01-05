@@ -20,8 +20,6 @@ namespace Wabbajack
 
         private readonly VortexCompilationSettings _settings;
 
-        public IReactiveCommand BeginCommand { get; }
-
         private readonly ObservableAsPropertyHelper<ModlistSettingsEditorVM> _modListSettings;
         public ModlistSettingsEditorVM ModlistSettings => _modListSettings.Value;
 

@@ -8,7 +8,7 @@ using System.Windows.Input;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public interface INeedsLogin : INotifyPropertyChanged
+    public interface INeedsLogin
     {
         ICommand TriggerLogin { get; }
         ICommand ClearLogin { get; }
@@ -17,6 +17,5 @@ namespace Wabbajack.Lib.Downloaders
         string MetaInfo { get; }
         Uri SiteURL { get; }
         Uri IconUri { get; }
-
     }
 }

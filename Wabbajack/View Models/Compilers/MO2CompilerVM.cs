@@ -28,8 +28,6 @@ namespace Wabbajack
 
         public FilePickerVM ModListLocation { get; }
 
-        public IReactiveCommand BeginCommand { get; }
-
         [Reactive]
         public ACompiler ActiveCompilation { get; private set; }
 

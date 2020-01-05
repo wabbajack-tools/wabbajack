@@ -20,7 +20,7 @@ using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class LoversLabDownloader : ViewModel, IDownloader, INeedsLogin
+    public class LoversLabDownloader : IDownloader, INeedsLogin
     {
         internal HttpClient _authedClient;
 
@@ -40,8 +40,12 @@ namespace Wabbajack.Lib.Downloaders
 
         public LoversLabDownloader()
         {
-            TriggerLogin = ReactiveCommand.Create(async () => await Utils.Log(new RequestLoversLabLogin()).Task, IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
-            ClearLogin = ReactiveCommand.Create(() => Utils.DeleteEncryptedJson("loverslabcookies"), IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
+            TriggerLogin = ReactiveCommand.CreateFromTask(
+                execute: () => Utils.CatchAndLog(async () => await Utils.Log(new RequestLoversLabLogin()).Task),
+                canExecute: IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
+            ClearLogin = ReactiveCommand.Create(
+                execute: () => Utils.CatchAndLog(() => Utils.DeleteEncryptedJson("loverslabcookies")),
+                canExecute: IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
         }
 
 
@@ -222,7 +226,7 @@ namespace Wabbajack.Lib.Downloaders
         public override void Cancel()
         {
             Handled = true;
-            _source.SetCanceled();
+            _source.TrySetCanceled();
         }
     }
 }

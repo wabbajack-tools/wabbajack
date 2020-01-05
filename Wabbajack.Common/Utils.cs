@@ -129,6 +129,30 @@ namespace Wabbajack.Common
             }
         }
 
+        public static void CatchAndLog(Action a)
+        {
+            try
+            {
+                a();
+            }
+            catch (Exception ex)
+            {
+                Utils.Error(ex);
+            }
+        }
+
+        public static async Task CatchAndLog(Func<Task> f)
+        {
+            try
+            {
+                await f();
+            }
+            catch (Exception ex)
+            {
+                Utils.Error(ex);
+            }
+        }
+
         /// <summary>
         ///     MurMur3 hashes the file pointed to by this string
         /// </summary>
