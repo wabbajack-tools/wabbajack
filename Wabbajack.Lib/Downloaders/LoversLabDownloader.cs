@@ -226,7 +226,7 @@ namespace Wabbajack.Lib.Downloaders
         public override void Cancel()
         {
             Handled = true;
-            _source.SetCanceled();
+            _source.TrySetCanceled();
         }
     }
 }
