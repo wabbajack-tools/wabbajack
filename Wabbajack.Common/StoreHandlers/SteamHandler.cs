@@ -92,7 +92,7 @@ namespace Wabbajack.Common.StoreHandlers
 
             File.ReadAllLines(SteamConfig).Do(l =>
             {
-                if (!l.Contains("BaseInstallFolder_")) return;
+                if (!l.ContainsCaseInsensitive("BaseInstallFolder_")) return;
                 var s = GetVdfValue(l);
                 s = Path.Combine(s, "steamapps");
                 if (!Directory.Exists(s))
@@ -137,7 +137,7 @@ namespace Wabbajack.Common.StoreHandlers
 
                     File.ReadAllLines(f).Do(l =>
                     {
-                        if (l.Contains("\"appid\""))
+                        if (l.ContainsCaseInsensitive("\"appid\""))
                         {
                             if (!int.TryParse(GetVdfValue(l), out var id))
                                 return;
@@ -145,10 +145,10 @@ namespace Wabbajack.Common.StoreHandlers
                             gotID = true;
                         }
 
-                        if (l.Contains("\"name\""))
+                        if (l.ContainsCaseInsensitive("\"name\""))
                             game.Name = GetVdfValue(l);
 
-                        if (!l.Contains("\"installdir\""))
+                        if (!l.ContainsCaseInsensitive("\"installdir\""))
                             return;
 
                         var path = Path.Combine(u, "common", GetVdfValue(l));
@@ -220,7 +220,7 @@ namespace Wabbajack.Common.StoreHandlers
                         currentItem = new SteamWorkshopItem();
 
                     var currentLine = lines.IndexOf(l);
-                    if (l.Contains("\"appid\"") && !foundAppID)
+                    if (l.ContainsCaseInsensitive("\"appid\"") && !foundAppID)
                     {
                         if (!int.TryParse(GetVdfValue(l), out var appID))
                             return;
@@ -234,7 +234,7 @@ namespace Wabbajack.Common.StoreHandlers
                     if (!foundAppID)
                         return;
 
-                    if (l.Contains("\"SizeOnDisk\""))
+                    if (l.ContainsCaseInsensitive("\"SizeOnDisk\""))
                     {
                         if (!int.TryParse(GetVdfValue(l), out var sizeOnDisk))
                             return;
@@ -242,10 +242,10 @@ namespace Wabbajack.Common.StoreHandlers
                         game.WorkshopItemsSize += sizeOnDisk;
                     }
 
-                    if (l.Contains("\"WorkshopItemsInstalled\""))
+                    if (l.ContainsCaseInsensitive("\"WorkshopItemsInstalled\""))
                         workshopItemsInstalled = currentLine;
 
-                    if (l.Contains("\"WorkshopItemDetails\""))
+                    if (l.ContainsCaseInsensitive("\"WorkshopItemDetails\""))
                         workshopItemDetails = currentLine;
 
                     if (workshopItemsInstalled == 0)
