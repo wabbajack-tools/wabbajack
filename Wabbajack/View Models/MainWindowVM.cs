@@ -129,16 +129,16 @@ namespace Wabbajack
                     .Select(active => !SettingsPane.IsValueCreated || !object.ReferenceEquals(active, SettingsPane.Value)),
                 execute: () => NavigateTo(SettingsPane.Value));
         }
+
         private static bool IsStartingFromModlist(out string modlistPath)
         {
-            string[] args = Environment.GetCommandLineArgs();
-            if (args.Length != 3 || !args[1].Contains("-i"))
+            if (CLIArguments.InstallPath == null)
             {
                 modlistPath = default;
                 return false;
             }
 
-            modlistPath = args[2];
+            modlistPath = CLIArguments.InstallPath;
             return true;
         }
 
