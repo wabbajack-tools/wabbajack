@@ -74,7 +74,29 @@ namespace Wabbajack
             Utils.LogMessages
                 .OfType<IUserIntervention>()
                 .ObserveOnGuiThread()
-                .SelectTask(msg => UserInterventionHandlers.Handle(msg))
+                .SelectTask(async msg =>
+                {
+                    try
+                    {
+                        await UserInterventionHandlers.Handle(msg);
+                    }
+                    catch (Exception ex) 
+                    when (ex.GetType() != typeof(TaskCanceledException))
+                    {
+                        Utils.Error(ex, $"Error while handling user intervention of type {msg?.GetType()}");
+                        try
+                        {
+                            if (!msg.Handled)
+                            {
+                                msg.Cancel();
+                            }
+                        }
+                        catch (Exception cancelEx)
+                        {
+                            Utils.Error(cancelEx, $"Error while cancelling user intervention of type {msg?.GetType()}");
+                        }
+                    }
+                })
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
 
