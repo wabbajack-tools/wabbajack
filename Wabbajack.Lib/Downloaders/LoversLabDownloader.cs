@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows.Input;
+using CefSharp;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Lib.LibCefHelpers;
@@ -20,32 +21,17 @@ using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class LoversLabDownloader : IDownloader, INeedsLogin
+    public class LoversLabDownloader : AbstractNeedsLoginDownloader, IDownloader
     {
-        internal HttpClient _authedClient;
-
-
         #region INeedsDownload
-
-        public ICommand TriggerLogin { get; }
-        public ICommand ClearLogin { get; }
-        public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable("loverslabcookies");
-        public string SiteName => "Lovers Lab";
-        public string MetaInfo => "";
-        public Uri SiteURL => new Uri("https://loverslab.com");
-        public Uri IconUri => new Uri("https://www.loverslab.com/favicon.ico");
-
-
+        public override string SiteName => "Lovers Lab";
+        public override Uri SiteURL => new Uri("https://loverslab.com");
+        public override Uri IconUri => new Uri("https://www.loverslab.com/favicon.ico");
         #endregion
 
-        public LoversLabDownloader()
+        public LoversLabDownloader() : base(new Uri("https://www.loverslab.com/login"), 
+            "loverslabcookies", "loverslab.com", "ips4_member_id")
         {
-            TriggerLogin = ReactiveCommand.CreateFromTask(
-                execute: () => Utils.CatchAndLog(async () => await Utils.Log(new RequestLoversLabLogin()).Task),
-                canExecute: IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
-            ClearLogin = ReactiveCommand.Create(
-                execute: () => Utils.CatchAndLog(() => Utils.DeleteEncryptedJson("loverslabcookies")),
-                canExecute: IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
         }
 
 
@@ -62,58 +48,17 @@ namespace Wabbajack.Lib.Downloaders
                 FileName = file
             };
         }
-
-        public async Task Prepare()
+        protected override async Task WhileWaiting(IWebDriver browser)
         {
-            _authedClient = (await GetAuthedClient()) ?? throw new Exception("not logged into LL, TODO");
-        }
-
-        public static async Task<Helpers.Cookie[]> GetAndCacheLoversLabCookies(IWebDriver browser, Action<string> updateStatus, CancellationToken cancel)
-        {
-            updateStatus("Please Log Into Lovers Lab");
-            await browser.NavigateTo(new Uri("https://www.loverslab.com/login"));
-            async Task<bool> CleanAds()
-            {
-                try
-                {
-                    await browser.EvaluateJavaScript(
-                        "document.querySelectorAll(\".ll_adblock\").forEach(function (itm) { itm.innerHTML = \"\";});");
-                }
-                catch (Exception ex)
-                {
-                    Utils.Error(ex);
-                }
-                return false;
-            }
-            var cookies = new Helpers.Cookie[0];
-            while (true)
-            {
-                cancel.ThrowIfCancellationRequested();
-                await CleanAds();
-                cookies = (await browser.GetCookies("loverslab.com"));
-                if (cookies.FirstOrDefault(c => c.Name == "ips4_member_id") != null)
-                    break;
-                await Task.Delay(500, cancel);
-            }
-
-            cookies.ToEcryptedJson("loverslabcookies");
-
-            return cookies;
-        }
-
-        public async Task<HttpClient> GetAuthedClient()
-        {
-            Helpers.Cookie[] cookies;
             try
             {
-                cookies = Utils.FromEncryptedJson<Helpers.Cookie[]>("loverslabcookies");
-                if (cookies != null)
-                    return Helpers.GetClient(cookies, "https://www.loverslab.com");
+                await browser.EvaluateJavaScript(
+                    "document.querySelectorAll(\".ll_adblock\").forEach(function (itm) { itm.innerHTML = \"\";});");
             }
-            catch (FileNotFoundException) { }
-
-            cookies = await Utils.Log(new RequestLoversLabLogin()).Task;
-            return Helpers.GetClient(cookies, "https://www.loverslab.com");
+            catch (Exception ex)
+            {
+                Utils.Error(ex);
+            }
         }
 
         public class State : AbstractDownloadState
@@ -141,7 +86,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var result = DownloadDispatcher.GetInstance<LoversLabDownloader>();
                 TOP:
-                var html = await result._authedClient.GetStringAsync(
+                var html = await result.AuthedClient.GetStringAsync(
                     $"https://www.loverslab.com/files/file/{FileName}/?do=download&r={FileID}");
 
                 var pattern = new Regex("(?<=csrfKey=).*(?=[&\"\'])");
@@ -153,7 +98,7 @@ namespace Wabbajack.Lib.Downloaders
                 var url =
                     $"https://www.loverslab.com/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
 
-                var streamResult = await result._authedClient.GetAsync(url);
+                var streamResult = await result.AuthedClient.GetAsync(url);
                 if (streamResult.StatusCode != HttpStatusCode.OK)
                 {
                     Utils.Error(new InvalidOperationException(), $"LoversLab servers reported an error for file: {FileID}");
@@ -207,26 +152,5 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-    }
-
-    public class RequestLoversLabLogin : AUserIntervention
-    {
-        public override string ShortDescription => "Getting LoversLab information";
-        public override string ExtendedDescription { get; }
-
-        private readonly TaskCompletionSource<Helpers.Cookie[]> _source = new TaskCompletionSource<Helpers.Cookie[]>();
-        public Task<Helpers.Cookie[]> Task => _source.Task;
-
-        public void Resume(Helpers.Cookie[] cookies)
-        {
-            Handled = true;
-            _source.SetResult(cookies);
-        }
-
-        public override void Cancel()
-        {
-            Handled = true;
-            _source.TrySetCanceled();
-        }
     }
 }
