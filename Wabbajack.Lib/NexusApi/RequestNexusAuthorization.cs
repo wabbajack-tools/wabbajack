@@ -24,7 +24,7 @@ namespace Wabbajack.Lib.NexusApi
         public override void Cancel()
         {
             Handled = true;
-            _source.SetCanceled();
+            _source.TrySetCanceled();
         }
     }
 }
