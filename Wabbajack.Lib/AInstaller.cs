@@ -377,6 +377,30 @@ namespace Wabbajack.Lib
               .Where(d => d != null)
               .Do(d => indexed.Remove(d.To));
 
+            Utils.Log("Cleaning empty folders");
+            var expectedFolders = indexed.Keys.SelectMany(path =>
+            {
+                // Get all the folders and all the folder parents
+                // so for foo\bar\baz\qux.txt this emits ["foo", "foo\\bar", "foo\\bar\\baz"]
+                var split = path.Split('\\');
+                return Enumerable.Range(1, split.Length - 1).Select(t => string.Join("\\", split.Take(t)));
+            }).Distinct()
+              .Select(p => Path.Combine(OutputFolder, p))
+              .ToHashSet();
+
+            try
+            {
+                Directory.EnumerateDirectories(OutputFolder, DirectoryEnumerationOptions.Recursive)
+                    .Where(p => !expectedFolders.Contains(p))
+                    .OrderByDescending(p => p.Length)
+                    .Do(p => Directory.Delete(p));
+            }
+            catch (Exception)
+            {
+                // ignored because it's not worth throwing a fit over
+                Utils.Log("Error when trying to clean empty folders. This doesn't really matter.");
+            }
+
             UpdateTracker.NextStep("Updating Modlist");
             Utils.Log($"Optimized {ModList.Directives.Count} directives to {indexed.Count} required");
             var requiredArchives = indexed.Values.OfType<FromArchive>()

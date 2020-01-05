@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -87,6 +88,11 @@ namespace Wabbajack.Test
             var extra_path = utils.PathOfInstalledFile(mod, @"something_i_made.foo");
             File.WriteAllText(extra_path, "bleh");
 
+            var extra_folder = Path.Combine(Path.GetDirectoryName(utils.PathOfInstalledFile(mod, @"something_i_made.foo")), "folder_i_made");
+            Directory.CreateDirectory(extra_folder);
+            
+            Assert.IsTrue(Directory.Exists(extra_folder));
+
 
             var unchanged_modified = File.GetLastWriteTime(unchanged_path);
             var modified_modified = File.GetLastWriteTime(modified_path);
@@ -105,6 +111,7 @@ namespace Wabbajack.Test
             Assert.AreEqual(unchanged_modified, File.GetLastWriteTime(unchanged_path));
             Assert.AreNotEqual(modified_modified, File.GetLastWriteTime(modified_path));
             Assert.IsFalse(File.Exists(extra_path));
+            Assert.IsFalse(Directory.Exists(extra_folder));
         }
 
 
