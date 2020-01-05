@@ -172,6 +172,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="View Models\Settings\SettingsVM.cs" />
+    <Compile Include="Views\Settings\SettingsView.xaml.cs">
+      <DependentUpon>SettingsView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Common\AttentionBorder.xaml.cs">
       <DependentUpon>AttentionBorder.xaml</DependentUpon>
     </Compile>
@@ -179,10 +183,9 @@
     <Compile Include="Views\Common\UnderMaintenanceOverlay.xaml.cs">
       <DependentUpon>UnderMaintenanceOverlay.xaml</DependentUpon>
     </Compile>
-    <Compile Include="UserInterventions\ShowLoginManager.cs" />
     <Compile Include="Util\AsyncLazy.cs" />
     <Compile Include="View Models\CPUDisplayVM.cs" />
-    <Compile Include="View Models\LoginManagerVM.cs" />
+    <Compile Include="View Models\Settings\LoginManagerVM.cs" />
     <Compile Include="Views\Compilers\CompilationCompleteView.xaml.cs">
       <DependentUpon>CompilationCompleteView.xaml</DependentUpon>
     </Compile>
@@ -217,9 +220,6 @@
     </Compile>
     <Compile Include="Views\LinksView.xaml.cs">
       <DependentUpon>LinksView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\LoginManagerView.xaml.cs">
-      <DependentUpon>LoginManagerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ModeSelectionView.xaml.cs">
       <DependentUpon>ModeSelectionView.xaml</DependentUpon>
@@ -269,6 +269,9 @@
     <Compile Include="Views\ModListGalleryView.xaml.cs">
       <DependentUpon>ModListGalleryView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Settings\LoginManagerView.xaml.cs">
+      <DependentUpon>LoginManagerView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\TextViewer.xaml.cs">
       <DependentUpon>TextViewer.xaml</DependentUpon>
     </Compile>
@@ -282,6 +285,10 @@
     <Compile Include="Views\WebBrowserView.xaml.cs">
       <DependentUpon>WebBrowserView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\Settings\SettingsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Common\AttentionBorder.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -323,10 +330,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\LinksView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Views\LoginManagerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -387,6 +390,10 @@
     <Page Include="Views\ModListGalleryView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\Settings\LoginManagerView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\TextViewer.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -572,6 +579,9 @@
   </ItemGroup>
   <ItemGroup>
     <SplashScreen Include="Resources\Wabba_Mouth_Small.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="UserInterventions\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

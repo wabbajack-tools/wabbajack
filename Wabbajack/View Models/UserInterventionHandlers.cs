@@ -11,7 +11,6 @@ using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.WebAutomation;
-using Wabbajack.UserInterventions;
 
 namespace Wabbajack
 {
@@ -74,9 +73,6 @@ namespace Wabbajack
                     });
                     break;
                 case ConfirmationIntervention c:
-                    break;
-                case ShowLoginManager c:
-                    MainWindow.NavigateTo(MainWindow.LoginManagerVM);
                     break;
                 default:
                     throw new NotImplementedException($"No handler for {msg}");

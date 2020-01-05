@@ -12,13 +12,12 @@ namespace Wabbajack
 {
     public class LoginManagerVM : ViewModel
     {
-        private MainWindowVM mainWindowVM;
         public ICommand BackCommand { get; }
         public List<INeedsLogin> Downloaders { get; }
 
-        public LoginManagerVM(MainWindowVM mainWindowVM)
+        public LoginManagerVM(SettingsVM settingsVM)
         {
-            BackCommand = ReactiveCommand.Create(() => mainWindowVM.NavigateBack());
+            BackCommand = ReactiveCommand.Create(() => settingsVM.MWVM.NavigateBack());
             Downloaders = DownloadDispatcher.Downloaders.OfType<INeedsLogin>().ToList();
         }
     }
