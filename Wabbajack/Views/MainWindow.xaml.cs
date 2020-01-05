@@ -48,9 +48,7 @@ namespace Wabbajack
             }).FireAndForget();
 
             // Load settings
-            string[] args = Environment.GetCommandLineArgs();
-            if ((args.Length > 1 && args[1] == "nosettings")
-                || !MainSettings.TryLoadTypicalSettings(out var settings))
+            if (CLIArguments.NoSettings || !MainSettings.TryLoadTypicalSettings(out var settings))
             {
                 _settings = new MainSettings();
                 RunWhenLoaded(DefaultSettings);
