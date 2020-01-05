@@ -11,6 +11,9 @@ namespace Wabbajack.Common
 
         [CLIOptions("apikey")]
         public static string ApiKey { get; set; }
+
+        [CLIOptions("install", ShortOption = 'i')]
+        public static string InstallPath { get; set; }
     }
 
     public static class CLI
@@ -21,7 +24,7 @@ namespace Wabbajack.Common
         /// <param name="args"><see cref="Environment.GetCommandLineArgs"/></param>
         public static void ParseOptions(string[] args)
         {
-            if (args.Length == 0) return;
+            if (args.Length == 1) return;
             // get all properties of the class Options
             typeof(CLIArguments).GetProperties().Do(p =>
             {
@@ -30,31 +33,33 @@ namespace Wabbajack.Common
                     return;
 
                 var cur = optionAttr[0];
-                if (cur == null) return;
-                
-                if (cur.Option != null && args.Any(a => a.Contains($"--{cur.Option}")))
-                {
-                    if (p.PropertyType == typeof(bool))
-                    {
-                        p.SetValue(p, true);
-                        return;
-                    }
+                if (cur?.Option == null) return;
 
-                    // filter to get the actual argument
-                    var filtered = args.Where(a => a.Contains($"--{cur.Option}")).ToList();
-                    if (filtered.Count != 1) return;
-
-                    // eg: --apikey="something"
-                    var arg = filtered[0];
-                    arg = arg.Replace($"--{cur.Option}=", "");
-
-                    // prev: --apikey="something", result: something
-                    if (p.PropertyType == typeof(string))
-                        p.SetValue(p, arg);
-                }
-
-                if (cur.ShortOption == 0) return;
+                FillVariable(cur.Option, ref p, ref args, false);
+                FillVariable(cur.ShortOption, ref p, ref args, true);
             });
+        }
+
+        private static void FillVariable(dynamic option, ref PropertyInfo p, ref string[] args, bool single)
+        {
+            var s = single ? $"-{option}" : $"--{option}";
+
+            if (!args.Any(a => a.Contains(s))) return;
+
+            if (p.PropertyType == typeof(bool))
+            {
+                p.SetValue(p, true);
+                return;
+            }
+
+            var filtered = args.Where(a => a.Contains(s)).ToList();
+            if (filtered.Count != 1) return;
+
+            var arg = filtered[0];
+            arg = arg.Replace($"{s}=", "");
+
+            if(p.PropertyType == typeof(string))
+                p.SetValue(p, arg);
         }
     }
 
