@@ -65,11 +65,11 @@ namespace Wabbajack
                         c.Resume(key);
                     });
                     break;
-                case RequestLoversLabLogin c:
+                case AbstractNeedsLoginDownloader.RequestSiteLogin c:
                     await WrapBrowserJob(msg, async (vm, cancel) =>
                     {
                         await vm.Driver.WaitForInitialized();
-                        var data = await LoversLabDownloader.GetAndCacheLoversLabCookies(new CefSharpWrapper(vm.Browser), m => vm.Instructions = m, cancel.Token);
+                        var data = await c.Downloader.GetAndCacheCookies(new CefSharpWrapper(vm.Browser), m => vm.Instructions = m, cancel.Token);
                         c.Resume(data);
                     });
                     break;
