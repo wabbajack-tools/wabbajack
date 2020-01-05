@@ -182,7 +182,7 @@ namespace Wabbajack
                 {
                     StartedInstallation = false;
                     Completed = null;
-                    mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM;
+                    mainWindowVM.NavigateTo(mainWindowVM.ModeSelectionVM);
                 },
                 canExecute: this.WhenAny(x => x.Installing)
                     .Select(x => !x));

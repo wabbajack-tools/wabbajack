@@ -29,7 +29,7 @@ namespace Wabbajack
         public MainSettings Settings { get; }
 
         [Reactive]
-        public ViewModel ActivePane { get; set; }
+        public ViewModel ActivePane { get; private set; }
 
         public ObservableCollectionExtended<IStatusMessage> Log { get; } = new ObservableCollectionExtended<IStatusMessage>();
 
@@ -101,12 +101,12 @@ namespace Wabbajack
             if (IsStartingFromModlist(out var path))
             {
                 Installer.Value.ModListLocation.TargetPath = path;
-                ActivePane = Installer.Value;
+                NavigateTo(Installer.Value);
             }
             else
             {
                 // Start on mode selection
-                ActivePane = ModeSelectionVM;
+                NavigateTo(ModeSelectionVM);
             }
 
             try
@@ -144,7 +144,7 @@ namespace Wabbajack
             if (path == null) return;
             var installer = Installer.Value;
             Settings.Installer.LastInstalledListLocation = path;
-            ActivePane = installer;
+            NavigateTo(installer);
             installer.ModListLocation.TargetPath = path;
         }
 

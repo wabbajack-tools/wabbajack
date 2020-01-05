@@ -29,11 +29,11 @@ namespace Wabbajack
             CancellationTokenSource cancel = new CancellationTokenSource();
             var oldPane = MainWindow.ActivePane;
             var vm = await WebBrowserVM.GetNew();
-            MainWindow.ActivePane = vm;
+            MainWindow.NavigateTo(vm);
             vm.BackCommand = ReactiveCommand.Create(() =>
             {
                 cancel.Cancel();
-                MainWindow.ActivePane = oldPane;
+                MainWindow.NavigateTo(oldPane);
                 intervention.Cancel();
             });
 
@@ -51,7 +51,7 @@ namespace Wabbajack
                 intervention.Cancel();
             }
 
-            MainWindow.ActivePane = oldPane;
+            MainWindow.NavigateTo(oldPane);
         }
 
         public async Task Handle(IUserIntervention msg)

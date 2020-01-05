@@ -30,7 +30,7 @@ namespace Wabbajack
         {
             MWVM = mainWindowVM;
             BackCommand = ReactiveCommand.Create(
-                execute: () => mainWindowVM.ActivePane = mainWindowVM.ModeSelectionVM);
+                execute: () => mainWindowVM.NavigateTo(mainWindowVM.ModeSelectionVM));
             RefreshCommand = ReactiveCommand.Create(() => { });
 
             RefreshCommand.StartingExecution()

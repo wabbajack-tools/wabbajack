@@ -21,7 +21,7 @@ namespace Wabbajack
         public BackNavigatingVM(MainWindowVM mainWindowVM)
         {
             BackCommand = ReactiveCommand.Create(
-                execute: () => Utils.CatchAndLog(() => mainWindowVM.ActivePane = NavigateBackTarget),
+                execute: () => Utils.CatchAndLog(() => mainWindowVM.NavigateTo(NavigateBackTarget)),
                 canExecute: this.WhenAny(x => x.NavigateBackTarget)
                     .Select(x => x != null)
                     .ObserveOnGuiThread());
