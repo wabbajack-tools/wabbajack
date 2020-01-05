@@ -20,7 +20,7 @@ using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class LoversLabDownloader : ViewModel, IDownloader, INeedsLogin
+    public class LoversLabDownloader : IDownloader, INeedsLogin
     {
         internal HttpClient _authedClient;
 

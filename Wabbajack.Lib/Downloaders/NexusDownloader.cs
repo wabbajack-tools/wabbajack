@@ -13,7 +13,7 @@ using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class NexusDownloader : ViewModel, IDownloader, INeedsLogin
+    public class NexusDownloader : IDownloader, INeedsLogin
     {
         private bool _prepared;
         private SemaphoreSlim _lock = new SemaphoreSlim(1);
