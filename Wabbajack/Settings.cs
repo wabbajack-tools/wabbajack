@@ -5,11 +5,12 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Subjects;
 using Wabbajack.Common;
+using Wabbajack.Lib;
 
 namespace Wabbajack
 {
     [JsonObject(MemberSerialization.OptOut)]
-    public class MainSettings
+    public class MainSettings : ViewModel
     {
         private static string _filename = "settings.json";
 
@@ -21,7 +22,7 @@ namespace Wabbajack
         public CompilerSettings Compiler { get; set; } = new CompilerSettings();
 
         private Subject<Unit> _saveSignal = new Subject<Unit>();
-        [JsonIgnoreAttribute]
+        [JsonIgnore]
         public IObservable<Unit> SaveSignal => _saveSignal;
 
         public static bool TryLoadTypicalSettings(out MainSettings settings)

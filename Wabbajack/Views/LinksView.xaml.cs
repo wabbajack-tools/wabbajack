@@ -2,7 +2,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using Wabbajack.Common;
-using Wabbajack.UserInterventions;
 
 namespace Wabbajack
 {
@@ -29,11 +28,6 @@ namespace Wabbajack
         private void Patreon_Click(object sender, RoutedEventArgs e)
         {
             Process.Start("https://www.patreon.com/user?u=11907933");
-        }
-
-        private void ConfigureLogins_Click(object sender, RoutedEventArgs e)
-        {
-            Utils.Log(new ShowLoginManager());
         }
     }
 }

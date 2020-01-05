@@ -35,14 +35,15 @@ namespace Wabbajack
 
         public readonly Lazy<CompilerVM> Compiler;
         public readonly Lazy<InstallerVM> Installer;
+        public readonly Lazy<SettingsVM> SettingsPane;
         public readonly Lazy<ModListGalleryVM> Gallery;
         public readonly ModeSelectionVM ModeSelectionVM;
         public readonly UserInterventionHandlers UserInterventionHandlers;
-        public readonly LoginManagerVM LoginManagerVM;
 
         public ICommand CopyVersionCommand { get; }
-
         public ICommand ShowLoginManagerVM { get; }
+        public ICommand OpenSettingsCommand { get; }
+
         public string VersionDisplay { get; }
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
@@ -51,10 +52,10 @@ namespace Wabbajack
             Settings = settings;
             Installer = new Lazy<InstallerVM>(() => new InstallerVM(this));
             Compiler = new Lazy<CompilerVM>(() => new CompilerVM(this));
+            SettingsPane = new Lazy<SettingsVM>(() => new SettingsVM(this));
             Gallery = new Lazy<ModListGalleryVM>(() => new ModListGalleryVM(this));
             ModeSelectionVM = new ModeSelectionVM(this);
             UserInterventionHandlers = new UserInterventionHandlers(this);
-            LoginManagerVM = new LoginManagerVM(this);
 
             // Set up logging
             Utils.LogMessages
@@ -123,6 +124,10 @@ namespace Wabbajack
             {
                 Clipboard.SetText($"Wabbajack {VersionDisplay}\n{ThisAssembly.Git.Sha}");
             });
+            OpenSettingsCommand = ReactiveCommand.Create(
+                canExecute: this.WhenAny(x => x.ActivePane)
+                    .Select(active => !SettingsPane.IsValueCreated || !object.ReferenceEquals(active, SettingsPane.Value)),
+                execute: () => NavigateTo(SettingsPane.Value));
         }
         private static bool IsStartingFromModlist(out string modlistPath)
         {
