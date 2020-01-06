@@ -22,8 +22,14 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!_indexed.TryGetValue(Path.GetFileName(source.File.Name.ToLower()), out var choices))
-                return null;
+            var name = Path.GetFileName(source.File.Name.ToLower());
+            string nameWithoutExt = name;
+            if (Path.GetExtension(name) == ".mohidden")
+                nameWithoutExt = Path.GetFileNameWithoutExtension(name);
+            
+            if (!_indexed.TryGetValue(Path.GetFileName(name), out var choices))
+                if (!_indexed.TryGetValue(Path.GetFileName(nameWithoutExt), out choices)) 
+                    return null;
 
             var mod_ini = ((MO2Compiler)_compiler).ModMetas.FirstOrDefault(f => source.Path.StartsWith(f.Key));
             var installationFile = mod_ini.Value?.General?.installationFile;
