@@ -365,16 +365,26 @@ namespace Wabbajack.Common
 
         public static void ToCERAS<T>(this T obj, string filename, SerializerConfig config)
         {
+            byte[] final;
+            final = ToCERAS(obj, config);
+            File.WriteAllBytes(filename, final);
+        }
+
+        public static byte[] ToCERAS<T>(this T obj, SerializerConfig config)
+        {
+            byte[] final;
             var ceras = new CerasSerializer(config);
             byte[] buffer = null;
             ceras.Serialize(obj, ref buffer);
-            using(var m1 = new MemoryStream(buffer))
+
+            using (var m1 = new MemoryStream(buffer))
             using (var m2 = new MemoryStream())
             {
                 BZip2.Compress(m1, m2, false, 9);
                 m2.Seek(0, SeekOrigin.Begin);
-                File.WriteAllBytes(filename, m2.ToArray());
+                final = m2.ToArray();
             }
+            return final;
         }
 
         public static T FromCERAS<T>(this Stream data, SerializerConfig config)
