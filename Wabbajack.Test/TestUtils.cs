@@ -185,12 +185,15 @@ namespace Wabbajack.Test
 
         public void VerifyAllFiles()
         {
+            var skip_files = new HashSet<string> {"portable.txt"};
             foreach (var dest_file in Directory.EnumerateFiles(InstallFolder, "*", DirectoryEnumerationOptions.Recursive))
             {
                 var rel_file = dest_file.RelativeTo(InstallFolder);
                 if (rel_file.StartsWith(Consts.LOOTFolderFilesDir) || rel_file.StartsWith(Consts.GameFolderFilesDir))
                     continue;
-                Assert.IsTrue(File.Exists(Path.Combine(MO2Folder, rel_file)), $"Only in Destination: {rel_file}");
+                
+                if (!skip_files.Contains(Path.GetExtension(rel_file))) 
+                    Assert.IsTrue(File.Exists(Path.Combine(MO2Folder, rel_file)), $"Only in Destination: {rel_file}");
             }
 
             var skip_extensions = new HashSet<string> {".txt", ".ini"};

@@ -73,6 +73,8 @@ namespace Wabbajack.Test
 
                 });
 
+
+            
             var modlist = await CompileAndInstall(profile);
             var directive = modlist.Directives.Where(m => m.To == $"mods\\{moddest}\\merged.esp").FirstOrDefault();
 
