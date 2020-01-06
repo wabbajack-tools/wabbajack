@@ -344,6 +344,10 @@ namespace Wabbajack.Lib
         public async Task OptimizeModlist()
         {
             Utils.Log("Optimizing Modlist directives");
+            
+            // Clone the modlist so our changes don't modify the original data
+            ModList = ModList.Clone();
+            
             var indexed = ModList.Directives.ToDictionary(d => d.To);
 
             UpdateTracker.NextStep("Looking for files to delete");
