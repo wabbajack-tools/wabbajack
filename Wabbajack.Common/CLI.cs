@@ -6,14 +6,17 @@ namespace Wabbajack.Common
 {
     public static class CLIArguments
     {
-        [CLIOptions("nosettings")]
+        [CLIOptions("nosettings", HelpText = "Don't load the saved Settings")]
         public static bool NoSettings { get; set; }
 
-        [CLIOptions("apikey")]
+        [CLIOptions("apikey", HelpText = "Manually input an Nexus api key")]
         public static string ApiKey { get; set; }
 
-        [CLIOptions("install", ShortOption = 'i')]
+        [CLIOptions("install", ShortOption = 'i', HelpText = "Install a ModList via CLI")]
         public static string InstallPath { get; set; }
+
+        [CLIOptions("help", ShortOption = 'h', HelpText = "Display this message")]
+        public static bool Help { get; set; }
     }
 
     public static class CLI
@@ -37,6 +40,26 @@ namespace Wabbajack.Common
 
                 FillVariable(cur.Option, ref p, ref args, false);
                 FillVariable(cur.ShortOption, ref p, ref args, true);
+            });
+        }
+
+        public static void DisplayHelpText()
+        {
+            Console.WriteLine("Wabbajack CLI Help Text");
+            Console.WriteLine("{0,-20} | {1,-15} | {2,-30}", "Option", "Short Option", "Help Text");
+
+            typeof(CLIArguments).GetProperties().Do(p =>
+            {
+                var optionAttr = (CLIOptions[])p.GetCustomAttributes(typeof(CLIOptions));
+                if (optionAttr.Length != 1)
+                    return;
+
+                var cur = optionAttr[0];
+                if (cur?.Option == null) return;
+
+                var shortText = cur.ShortOption != 0 ? $"-{cur.ShortOption}" : "";
+                var helpText = string.IsNullOrWhiteSpace(cur.HelpText) ? "" : cur.HelpText;
+                Console.WriteLine("{0,-20} | {1,-15} | {2,-30}", $"--{cur.Option}", shortText, helpText);
             });
         }
 
@@ -70,6 +93,8 @@ namespace Wabbajack.Common
         public string Option;
         // -shortOption, short name of the option. Eg: -o
         public char ShortOption;
+        // text to be displayed when --help is called
+        public string HelpText;
 
         public CLIOptions(string option)
         {

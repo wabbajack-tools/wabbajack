@@ -15,6 +15,8 @@ namespace Wabbajack
         public App()
         {
             CLI.ParseOptions(Environment.GetCommandLineArgs());
+            if(CLIArguments.Help)
+                CLI.DisplayHelpText();
         }
     }
 }
