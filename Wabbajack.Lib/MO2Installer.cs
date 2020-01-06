@@ -44,7 +44,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             var metric = Metrics.Send("begin_install", ModList.Name);
 
-            ConfigureProcessor(18, await RecommendQueueSize());
+            ConfigureProcessor(19, await RecommendQueueSize());
             var game = ModList.GameType.MetaData();
 
             if (GameFolder == null)
@@ -135,6 +135,9 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Generating Merges");
             await zEditIntegration.GenerateMerges(this);
 
+            UpdateTracker.NextStep("Set MO2 into portable");
+            ForcePortable();
+
             UpdateTracker.NextStep("Updating System-specific ini settings");
             SetScreenSizeInPrefs();
 
@@ -144,6 +147,20 @@ namespace Wabbajack.Lib
             return true;
         }
 
+        private void ForcePortable()
+        {
+            var path = Path.Combine(OutputFolder, "portable.txt");
+            if (File.Exists(path)) return;
+
+            try
+            {
+                File.WriteAllText(path, "Created by Wabbajack");
+            }
+            catch (Exception e)
+            {
+                Utils.Error(e, $"Could not create portable.txt in {OutputFolder}");
+            }
+        }
 
         private async Task InstallIncludedDownloadMetas()
         {
