@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -12,17 +13,23 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using ReactiveUI;
 
 namespace Wabbajack
 {
     /// <summary>
-    /// Interaction logic for LoginManager.xaml
+    /// Interaction logic for LoginSettingsView.xaml
     /// </summary>
-    public partial class LoginManagerView : UserControl
+    public partial class LoginSettingsView : ReactiveUserControl<LoginManagerVM>
     {
-        public LoginManagerView()
+        public LoginSettingsView()
         {
             InitializeComponent();
+            this.WhenActivated(disposable =>
+            {
+                this.OneWayBind(this.ViewModel, x => x.Downloaders, x => x.DownloadersList.ItemsSource)
+                    .DisposeWith(disposable);
+            });
         }
     }
 }

@@ -48,6 +48,7 @@ namespace Wabbajack
 
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
         {
+            ConverterRegistration.Register();
             MainWindow = mainWindow;
             Settings = settings;
             Installer = new Lazy<InstallerVM>(() => new InstallerVM(this));

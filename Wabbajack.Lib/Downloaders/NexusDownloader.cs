@@ -24,7 +24,7 @@ namespace Wabbajack.Lib.Downloaders
 
         public string SiteName => "Nexus Mods";
 
-        public string MetaInfo => "";
+        public IObservable<string> MetaInfo => Observable.Return("");
 
         public Uri SiteURL => new Uri("https://www.nexusmods.com");
 

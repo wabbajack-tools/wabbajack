@@ -31,7 +31,7 @@ namespace Wabbajack.Lib.Downloaders
         public ICommand ClearLogin { get; }
         public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable("loverslabcookies");
         public string SiteName => "Lovers Lab";
-        public string MetaInfo => "";
+        public IObservable<string> MetaInfo => Observable.Return("");
         public Uri SiteURL => new Uri("https://loverslab.com");
         public Uri IconUri => new Uri("https://www.loverslab.com/favicon.ico");
 

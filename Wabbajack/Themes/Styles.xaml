@@ -53,6 +53,7 @@
     <Color x:Key="IntenseSecondary">#00ffe7</Color>
     <Color x:Key="Complementary">#C7FC86</Color>
     <Color x:Key="DarkComplementary">#8eb55e</Color>
+    <Color x:Key="ComplementaryBackground">#4b6130</Color>
     <Color x:Key="IntenseComplementary">#abf74d</Color>
     <Color x:Key="Analogous1">#868CFC</Color>
     <Color x:Key="Analogous2">#F686FC</Color>
@@ -130,6 +131,7 @@
     <SolidColorBrush x:Key="ComplementaryBrush" Color="{StaticResource Complementary}" />
     <SolidColorBrush x:Key="DarkComplementaryBrush" Color="{StaticResource DarkComplementary}" />
     <SolidColorBrush x:Key="IntenseComplementaryBrush" Color="{StaticResource IntenseComplementary}" />
+    <SolidColorBrush x:Key="ComplementaryBackgroundBrush" Color="{StaticResource ComplementaryBackground}" />
     <SolidColorBrush x:Key="Analogous1Brush" Color="{StaticResource Analogous1}" />
     <SolidColorBrush x:Key="Analogous2Brush" Color="{StaticResource Analogous2}" />
     <SolidColorBrush x:Key="Triadic1Brush" Color="{StaticResource Triadic1}" />
@@ -250,9 +252,14 @@
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
     </Style>
 
+    <Style TargetType="{x:Type ItemsControl}">
+        <Setter Property="Focusable" Value="False" />
+    </Style>
+
     <!--  ScrollBar  -->
     <Style TargetType="{x:Type ScrollViewer}">
         <Setter Property="Background" Value="{DynamicResource ScrollViewerBackground}" />
+        <Setter Property="Focusable" Value="False" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ScrollViewer}">
@@ -279,7 +286,8 @@
                             CanHorizontallyScroll="False"
                             CanVerticallyScroll="False"
                             Content="{TemplateBinding Content}"
-                            ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Focusable="False" />
                         <ScrollBar
                             x:Name="PART_VerticalScrollBar"
                             Grid.Row="0"
@@ -1157,8 +1165,54 @@
         </Setter>
     </Style>
 
-
     <Style x:Key="MainButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}" />
+        <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="1" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid>
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="3">
+                            <ContentPresenter
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                RecognizesAccessKey="True"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource DarkComplementaryBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource ComplementaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource ComplementaryBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource IntenseComplementaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+                            <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="LargeButtonStyle" TargetType="{x:Type Button}">
         <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}" />
         <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />

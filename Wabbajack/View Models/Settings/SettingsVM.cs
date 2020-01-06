@@ -11,13 +11,15 @@ namespace Wabbajack
     public class SettingsVM : BackNavigatingVM
     {
         public MainWindowVM MWVM { get; }
-        public LoginManagerVM LoginManagerVM { get; }
+        public LoginManagerVM Login { get; }
+        public PerformanceSettings Performance { get; }
 
         public SettingsVM(MainWindowVM mainWindowVM)
             : base(mainWindowVM)
         {
             MWVM = mainWindowVM;
-            LoginManagerVM = new LoginManagerVM(this);
+            Login = new LoginManagerVM(this);
+            Performance = mainWindowVM.Settings.Performance;
         }
     }
 }

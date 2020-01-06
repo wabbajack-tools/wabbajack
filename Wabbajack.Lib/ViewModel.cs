@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using Newtonsoft.Json;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Reactive.Disposables;
@@ -9,6 +10,7 @@ namespace Wabbajack.Lib
     public class ViewModel : ReactiveObject, IDisposable
     {
         private readonly Lazy<CompositeDisposable> _compositeDisposable = new Lazy<CompositeDisposable>();
+        [JsonIgnore]
         public CompositeDisposable CompositeDisposable => _compositeDisposable.Value;
 
         public virtual void Dispose()

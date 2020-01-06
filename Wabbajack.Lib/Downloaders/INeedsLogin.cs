@@ -14,7 +14,7 @@ namespace Wabbajack.Lib.Downloaders
         ICommand ClearLogin { get; }
         IObservable<bool> IsLoggedIn { get; }
         string SiteName { get; }
-        string MetaInfo { get; }
+        IObservable<string> MetaInfo { get; }
         Uri SiteURL { get; }
         Uri IconUri { get; }
     }

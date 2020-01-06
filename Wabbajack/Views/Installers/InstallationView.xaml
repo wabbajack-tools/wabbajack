@@ -257,6 +257,7 @@
                     Margin="30,5"
                     Command="{Binding OpenReadmeCommand}"
                     FontSize="20"
+                    Style="{StaticResource LargeButtonStyle}"
                     ToolTip="Open the readme for the modlist">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -281,6 +282,7 @@
                     Margin="30,5"
                     Command="{Binding VisitWebsiteCommand}"
                     FontSize="20"
+                    Style="{StaticResource LargeButtonStyle}"
                     ToolTip="Open the webpage for the modlist">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -305,6 +307,7 @@
                     Margin="30,5"
                     Command="{Binding ShowReportCommand}"
                     FontSize="20"
+                    Style="{StaticResource LargeButtonStyle}"
                     ToolTip="Open an explicit listing of all actions this modlist will take">
                     <Grid>
                         <Grid.ColumnDefinitions>
