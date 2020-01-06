@@ -158,7 +158,7 @@ namespace Wabbajack.CacheServer
 
             using (var queue = new WorkQueue())
             {
-                foreach (var list in modlists.Skip(2).Take(1))
+                foreach (var list in modlists)
                 {
                     try
                     {

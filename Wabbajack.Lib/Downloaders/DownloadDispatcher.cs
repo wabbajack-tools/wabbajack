@@ -18,6 +18,7 @@ namespace Wabbajack.Lib.Downloaders
             new NexusDownloader(),
             new MediaFireDownloader(),
             new LoversLabDownloader(),
+            new VectorPlexusDownloader(),
             new HTTPDownloader(),
             new ManualDownloader(),
         };
