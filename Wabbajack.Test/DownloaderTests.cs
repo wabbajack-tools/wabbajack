@@ -310,6 +310,34 @@ namespace Wabbajack.Test
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
+        
+        [TestMethod]
+        public async Task VectorPlexusDownload()
+        {
+            await DownloadDispatcher.GetInstance<VectorPlexusDownloader>().Prepare();
+            var ini = @"[General]
+                        directURL=https://vectorplexus.com/files/file/290-wabbajack-test-file";
+
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.IsNotNull(state);
+
+            /*var url_state = DownloadDispatcher.ResolveArchive("https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1");
+            Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
+                ((HTTPDownloader.State)url_state).Url);
+                */
+            var converted = state.ViaJSON();
+            Assert.IsTrue(await converted.Verify());
+            var filename = Guid.NewGuid().ToString();
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            await converted.Download(new Archive { Name = "Vector Plexus Test.zip" }, filename);
+
+            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+
+            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+        }
 
         [TestMethod]
         public async Task GameFileSourceDownload()

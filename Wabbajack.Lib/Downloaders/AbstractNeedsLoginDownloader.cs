@@ -20,7 +20,7 @@ namespace Wabbajack.Lib.Downloaders
         private readonly string _encryptedKeyName;
         private readonly string _cookieDomain;
         private readonly string _cookieName;
-        protected HttpClient AuthedClient;
+        internal HttpClient AuthedClient;
 
         /// <summary>
         /// Sets up all the login facilites needed for a INeedsLogin downloader based on having the user log
