@@ -192,7 +192,7 @@ namespace Wabbajack.Test
                 if (rel_file.StartsWith(Consts.LOOTFolderFilesDir) || rel_file.StartsWith(Consts.GameFolderFilesDir))
                     continue;
                 
-                if (!skip_files.Contains(Path.GetExtension(rel_file))) 
+                if (!skip_files.Contains(rel_file)) 
                     Assert.IsTrue(File.Exists(Path.Combine(MO2Folder, rel_file)), $"Only in Destination: {rel_file}");
             }
 
