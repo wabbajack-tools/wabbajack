@@ -125,6 +125,7 @@
     <Compile Include="CompilationSteps\Serialization.cs" />
     <Compile Include="Downloaders\AbstractIPS4Downloader.cs" />
     <Compile Include="Downloaders\AbstractNeedsLoginDownloader.cs" />
+    <Compile Include="Downloaders\DeadlyStreamDownloader.cs" />
     <Compile Include="Downloaders\GameFileSourceDownloader.cs" />
     <Compile Include="Downloaders\INeedsLogin.cs" />
     <Compile Include="Downloaders\LoversLabDownloader.cs" />
