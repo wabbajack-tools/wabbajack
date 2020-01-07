@@ -20,12 +20,13 @@ namespace Wabbajack.Lib
 
         public override ModManager ModManager => ModManager.Vortex;
 
-        public VortexInstaller(string archive, ModList modList, string outputFolder, string downloadFolder)
+        public VortexInstaller(string archive, ModList modList, string outputFolder, string downloadFolder, SystemParameters parameters)
             : base(
                   archive: archive,
                   modList: modList,
                   outputFolder: outputFolder,
-                  downloadFolder: downloadFolder)
+                  downloadFolder: downloadFolder,
+                  parameters: parameters)
         {
             #if DEBUG
             // TODO: only for testing

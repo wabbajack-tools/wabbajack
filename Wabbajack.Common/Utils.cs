@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.HashFunction.xxHash;
 using System.Diagnostics;
@@ -1120,6 +1121,20 @@ namespace Wabbajack.Common
         public static bool IsInPath(this string path, string parent)
         {
             return path.ToLower().TrimEnd('\\').StartsWith(parent.ToLower().TrimEnd('\\') + "\\");
+        }
+
+        public static HashSet<T> ToHashSet<T>(this IEnumerable<T> coll)
+        {
+            var hs = new HashSet<T>();
+            coll.Do(v => hs.Add(v));
+            return hs;
+        }
+        
+        public static HashSet<T> ToHashSet<T>(this T[] coll)
+        {
+            var hs = new HashSet<T>();
+            coll.Do(v => hs.Add(v));
+            return hs;
         }
 
         public class NexusErrorResponse

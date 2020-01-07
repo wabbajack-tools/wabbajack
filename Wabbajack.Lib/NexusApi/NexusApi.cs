@@ -8,17 +8,12 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Authentication;
-using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.LibCefHelpers;
 using WebSocketSharp;
 using static Wabbajack.Lib.NexusApi.NexusApiUtils;
 using System.Threading;
-using CefSharp;
-using CefSharp.Handler;
-using Newtonsoft.Json;
 using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.NexusApi

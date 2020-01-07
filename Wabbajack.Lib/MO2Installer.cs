@@ -30,12 +30,13 @@ namespace Wabbajack.Lib
 
         public string GameFolder { get; set; }
 
-        public MO2Installer(string archive, ModList modList, string outputFolder, string downloadFolder)
+        public MO2Installer(string archive, ModList modList, string outputFolder, string downloadFolder, SystemParameters parameters)
             : base(
                   archive: archive,
                   modList: modList,
                   outputFolder: outputFolder, 
-                  downloadFolder: downloadFolder)
+                  downloadFolder: downloadFolder,
+                  parameters: parameters)
         {
         }
 
@@ -280,8 +281,8 @@ namespace Wabbajack.Lib
 
                     if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
                     {
-                        data.Sections["Display"]["iSize W"] = SystemParameters.PrimaryScreenWidth.ToString(CultureInfo.CurrentCulture);
-                        data.Sections["Display"]["iSize H"] = SystemParameters.PrimaryScreenHeight.ToString(CultureInfo.CurrentCulture);
+                        data.Sections["Display"]["iSize W"] = SystemParameters.ScreenWidth.ToString(CultureInfo.CurrentCulture);
+                        data.Sections["Display"]["iSize H"] = SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture);
                     }
 
                     parser.WriteFile(file, data);

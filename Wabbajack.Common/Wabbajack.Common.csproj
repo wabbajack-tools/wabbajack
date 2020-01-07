@@ -5,35 +5,35 @@
         <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
     <ItemGroup>
-      <None Remove="7z.dll.gz" />
-      <None Remove="7z.exe.gz" />
-      <None Remove="innounp.exe.gz" />
+        <None Remove="7z.dll.gz" />
+        <None Remove="7z.exe.gz" />
+        <None Remove="innounp.exe.gz" />
     </ItemGroup>
     <ItemGroup>
-      <EmbeddedResource Include="7z.dll.gz" />
-      <EmbeddedResource Include="7z.exe.gz" />
-      <EmbeddedResource Include="innounp.exe.gz" />
+        <EmbeddedResource Include="7z.dll.gz" />
+        <EmbeddedResource Include="7z.exe.gz" />
+        <EmbeddedResource Include="innounp.exe.gz" />
     </ItemGroup>
     <ItemGroup>
         <Folder Include="KnownFolders\" />
         <Folder Include="Properties\" />
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="Ceras" Version="4.1.7" />
-      <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
-      <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-      <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
-      <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-      <PackageReference Include="ReactiveUI" Version="11.1.1" />
-      <PackageReference Include="SharpZipLib" Version="1.2.0" />
-      <PackageReference Include="System.Data.HashFunction.xxHash" Version="2.0.0" />
-      <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.7.0" />
-      <PackageReference Include="System.Security.Principal.Windows" Version="4.7.0" />
-      <PackageReference Include="YamlDotNet" Version="8.0.0" />
+        <PackageReference Include="Ceras" Version="4.1.7" />
+        <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
+        <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
+        <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+        <PackageReference Include="ReactiveUI" Version="11.1.1" />
+        <PackageReference Include="SharpZipLib" Version="1.2.0" />
+        <PackageReference Include="System.Data.HashFunction.xxHash" Version="2.0.0" />
+        <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.7.0" />
+        <PackageReference Include="System.Security.Principal.Windows" Version="4.7.0" />
+        <PackageReference Include="YamlDotNet" Version="8.0.0" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />
-      <ProjectReference Include="..\OMODExtractor\OMODExtractor.csproj" />
-      <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj" />
+        <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />
+        <ProjectReference Include="..\OMODExtractor\OMODExtractor.csproj" />
+        <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj" />
     </ItemGroup>
 </Project>
