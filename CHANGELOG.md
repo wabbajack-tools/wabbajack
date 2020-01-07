@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 1.0 beta 15 - 1/6/2020
+* Don't delete the download folder when deleting empty folders during an update
+* If `Game Folder Files` exists in the MO2 folder during compilation the Game folder will be ignored as a file source
+
 #### Version - 1.0 beta 14 - 1/6/2020
 * Updating a list twice without starting WJ no longer deletes your modlist
 * .mohidden files will now be correctly detected during binary patching
