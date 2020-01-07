@@ -1,5 +1,6 @@
 ﻿using Compression.BSA;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -159,11 +160,21 @@ namespace Wabbajack.Lib
                 .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(MO2Folder)));
 
-            var gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
-                .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))));
+            // If Game Folder Files exists, ignore the game folder
+            IEnumerable<RawSourceFile> gameFiles;
+            if (!Directory.Exists(Path.Combine(MO2Folder, Consts.GameFolderFilesDir)))
+            {
+                gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
+                    .Where(p => p.FileExists())
+                    .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p],
+                        Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))));
+            }
+            else
+            {
+                gameFiles = new List<RawSourceFile>();
+            }
 
-            
+
             ModMetas = Directory.EnumerateDirectories(Path.Combine(MO2Folder, "mods"))
                 .Keep(f =>
                 {
