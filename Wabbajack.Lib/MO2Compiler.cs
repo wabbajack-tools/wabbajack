@@ -496,6 +496,7 @@ namespace Wabbajack.Lib
             Utils.Log("Generating compilation stack");
             return new List<ICompilationStep>
             {
+                new IgnoreGameFilesIfGameFolderFilesExist(this),
                 new IncludePropertyFiles(this),
                 new IgnoreStartsWith(this,"logs\\"),
                 new IgnoreStartsWith(this, "downloads\\"),
