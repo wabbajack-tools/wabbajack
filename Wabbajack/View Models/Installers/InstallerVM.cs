@@ -90,7 +90,7 @@ namespace Wabbajack
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand VisitWebsiteCommand { get; }
-        public IReactiveCommand BackCommand { get; }
+        public ReactiveCommand<Unit, Unit> BackCommand { get; }
         public IReactiveCommand CloseWhenCompleteCommand { get; }
         public IReactiveCommand GoToInstallCommand { get; }
         public IReactiveCommand BeginCommand { get; }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -27,8 +28,8 @@ namespace Wabbajack.Lib.Downloaders
 
         #region INeedsDownload
 
-        public ICommand TriggerLogin { get; }
-        public ICommand ClearLogin { get; }
+        public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
+        public ReactiveCommand<Unit, Unit> ClearLogin { get; }
         public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable("loverslabcookies");
         public string SiteName => "Lovers Lab";
         public IObservable<string> MetaInfo => Observable.Return("");

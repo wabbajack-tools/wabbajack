@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,8 +31,8 @@ namespace Wabbajack.Lib.Downloaders
 
         public Uri IconUri => new Uri("https://www.nexusmods.com/favicon.ico");
 
-        public ICommand TriggerLogin { get; }
-        public ICommand ClearLogin { get; }
+        public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
+        public ReactiveCommand<Unit, Unit> ClearLogin { get; }
 
         public NexusDownloader()
         {

@@ -22,20 +22,21 @@ namespace Wabbajack
                 .Select(x => new LoginTargetVM(x))
                 .ToList();
         }
+    }
 
-        public class LoginTargetVM : ViewModel
+    public class LoginTargetVM : ViewModel
+    {
+        private readonly ObservableAsPropertyHelper<string> _MetaInfo;
+        public string MetaInfo => _MetaInfo.Value;
+
+        public INeedsLogin Login { get; }
+
+        public LoginTargetVM(INeedsLogin login)
         {
-            private readonly ObservableAsPropertyHelper<string> _MetaInfo;
-            public string MetaInfo => _MetaInfo.Value;
-
-            public INeedsLogin Login { get; }
-
-            public LoginTargetVM(INeedsLogin login)
-            {
-                Login = login;
-                _MetaInfo = login.MetaInfo
-                    .ToProperty(this, nameof(MetaInfo));
-            }
+            Login = login;
+            _MetaInfo = login.MetaInfo
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(MetaInfo));
         }
     }
 }

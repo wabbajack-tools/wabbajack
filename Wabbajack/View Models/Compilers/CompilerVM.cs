@@ -47,7 +47,7 @@ namespace Wabbajack
 
         public ObservableCollectionExtended<IStatusMessage> Log => MWVM.Log;
 
-        public IReactiveCommand BackCommand { get; }
+        public ReactiveCommand<Unit, Unit> BackCommand { get; }
         public IReactiveCommand GoToModlistCommand { get; }
         public IReactiveCommand CloseWhenCompleteCommand { get; }
         public IReactiveCommand BeginCommand { get; }

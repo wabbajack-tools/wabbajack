@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -27,11 +28,11 @@ namespace Wabbajack
             InitializeComponent();
             this.WhenActivated(disposable =>
             {
-                this.OneWayBind(this.ViewModel, x => x.BackCommand, x => x.BackButton.Command)
+                this.OneWayBindStrict(this.ViewModel, x => x.BackCommand, x => x.BackButton.Command)
                     .DisposeWith(disposable);
-                this.OneWayBind(this.ViewModel, x => x.Login, x => x.LoginView.ViewModel)
+                this.OneWayBindStrict(this.ViewModel, x => x.Login, x => x.LoginView.ViewModel)
                     .DisposeWith(disposable);
-                this.OneWayBind(this.ViewModel, x => x.Performance, x => x.PerformanceView.ViewModel)
+                this.OneWayBindStrict(this.ViewModel, x => x.Performance, x => x.PerformanceView.ViewModel)
                     .DisposeWith(disposable);
             });
         }

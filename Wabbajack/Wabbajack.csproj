@@ -176,6 +176,9 @@
     <Compile Include="Converters\CommandConverter.cs" />
     <Compile Include="Converters\ConverterRegistration.cs" />
     <Compile Include="Extensions\IViewForExt.cs" />
+    <Compile Include="Views\Settings\LoginItemView.xaml.cs">
+      <DependentUpon>LoginItemView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Settings\LoginSettingsView.xaml.cs">
       <DependentUpon>LoginSettingsView.xaml</DependentUpon>
     </Compile>
@@ -293,6 +296,10 @@
     <Compile Include="Views\WebBrowserView.xaml.cs">
       <DependentUpon>WebBrowserView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\Settings\LoginItemView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Settings\LoginSettingsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
