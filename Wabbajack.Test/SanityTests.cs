@@ -32,6 +32,44 @@ namespace Wabbajack.Test
 
             utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
         }
+        
+        [TestMethod]
+        public async Task TestDirectMatchFromGameFolder()
+        {
+
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var test_pex = utils.AddGameFile(@"enbstuff\test.pex", 10);
+
+            utils.Configure();
+
+            utils.AddManualDownload(
+                new Dictionary<string, byte[]> {{"/baz/biz.pex", File.ReadAllBytes(test_pex)}});
+
+            await CompileAndInstall(profile);
+
+            utils.VerifyInstalledGameFile(@"enbstuff\test.pex");
+        }
+        
+        [TestMethod]
+        public async Task TestDirectMatchIsIgnoredWhenGameFolderFilesOverrideExists()
+        {
+
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var test_pex = utils.AddGameFile(@"enbstuff\test.pex", 10);
+
+            utils.Configure();
+
+            Directory.CreateDirectory(Path.Combine(utils.MO2Folder, Consts.GameFolderFilesDir));
+
+            utils.AddManualDownload(
+                new Dictionary<string, byte[]> {{"/baz/biz.pex", File.ReadAllBytes(test_pex)}});
+
+            await CompileAndInstall(profile);
+
+            Assert.IsFalse(File.Exists(Path.Combine(utils.InstallFolder, Consts.GameFolderFilesDir, @"enbstuff\test.pex")));
+        }
 
         [TestMethod]
         public async Task TestDuplicateFilesAreCopied()
