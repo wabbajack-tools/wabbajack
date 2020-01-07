@@ -12,8 +12,7 @@ namespace Wabbajack.Common
 {
     public class WorkQueue : IDisposable
     {
-        internal BlockingCollection<Func<Task>>
-            Queue = new BlockingCollection<Func<Task>>(new ConcurrentStack<Func<Task>>());
+        internal BlockingCollection<Func<Task>> Queue = new BlockingCollection<Func<Task>>(new ConcurrentStack<Func<Task>>());
 
         public const int UnassignedCpuId = 0;
 
@@ -36,15 +35,12 @@ namespace Wabbajack.Common
         // implement log messages in a non-singleton fashion, they will already be wired up properly.
         public IObservable<IStatusMessage> LogMessages => Utils.LogMessages;
 
-        public WorkQueue(int threadCount = 0)
-        {
-            StartThreads(threadCount == 0 ? Environment.ProcessorCount : threadCount);
-        }
+        public int ThreadCount { get; private set; }
 
-        private void StartThreads(int threadCount)
+        public WorkQueue(int? threadCount = null)
         {
-            ThreadCount = threadCount;
-            Threads = Enumerable.Range(1, threadCount)
+            ThreadCount = threadCount ?? Environment.ProcessorCount;
+            Threads = Enumerable.Range(1, ThreadCount)
                 .Select(idx =>
                 {
                     var thread = new Thread(() => ThreadBody(idx).Wait());
@@ -55,8 +51,6 @@ namespace Wabbajack.Common
                     return thread;
                 }).ToList();
         }
-
-        public int ThreadCount { get; private set; }
 
         private async Task ThreadBody(int idx)
         {
