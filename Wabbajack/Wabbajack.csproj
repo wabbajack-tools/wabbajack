@@ -172,6 +172,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="UI\FilePickerVM.cs" />
+    <Compile Include="UI\UIUtils.cs" />
     <Compile Include="View Models\BackNavigatingVM.cs" />
     <Compile Include="View Models\Settings\SettingsVM.cs" />
     <Compile Include="Views\Settings\SettingsView.xaml.cs">

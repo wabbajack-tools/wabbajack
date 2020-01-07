@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
+using Wabbajack.UI;
 
 namespace Wabbajack
 {

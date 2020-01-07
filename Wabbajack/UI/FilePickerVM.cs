@@ -10,7 +10,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Wabbajack.Lib;
 
-namespace Wabbajack.Lib
+namespace Wabbajack.UI
 {
     public class FilePickerVM : ViewModel
     {

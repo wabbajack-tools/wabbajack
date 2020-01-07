@@ -8,7 +8,7 @@ using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 
-namespace Wabbajack.Lib
+namespace Wabbajack.UI
 {
     public static class UIUtils
     {

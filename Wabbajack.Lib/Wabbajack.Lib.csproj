@@ -159,8 +159,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReportBuilder.cs" />
     <Compile Include="StatusMessages\ConfirmUpdateOfExistingInstall.cs" />
-    <Compile Include="UI\FilePickerVM.cs" />
-    <Compile Include="UI\UIUtils.cs" />
+    <Compile Include="StatusMessages\CriticalFailureIntervention.cs" />
+    <Compile Include="StatusMessages\YesNoIntervention.cs" />
     <Compile Include="Validation\DTOs.cs" />
     <Compile Include="Validation\ValidateModlist.cs" />
     <Compile Include="ViewModel.cs" />
@@ -213,9 +213,6 @@
     </PackageReference>
     <PackageReference Include="MegaApiClient">
       <Version>1.7.1</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft-WindowsAPICodePack-Shell">
-      <Version>1.1.3.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Toolkit.Wpf.UI.Controls.WebView">
       <Version>6.0.0</Version>

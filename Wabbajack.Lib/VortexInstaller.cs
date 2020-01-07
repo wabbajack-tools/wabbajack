@@ -39,11 +39,15 @@ namespace Wabbajack.Lib
         {
             if (cancel.IsCancellationRequested) return false;
             var metric = Metrics.Send("begin_install", ModList.Name);
-            MessageBox.Show(
+            var result = await Utils.Log(new YesNoIntervention(
                 "Vortex Support is still experimental and may produce unexpected results. " +
                 "If anything fails go to the special vortex support channels on the discord. @erri120#2285 " +
-                "for support.", "Warning",
-                MessageBoxButton.OK);
+                "for support.", "Continue with experimental feature?")).Task;
+            if (result == ConfirmationIntervention.Choice.Abort)
+            {
+                Utils.Log("Exiting at request of user");
+                return false;
+            }
 
             if (cancel.IsCancellationRequested) return false;
             ConfigureProcessor(10, await RecommendQueueSize());
@@ -108,11 +112,11 @@ namespace Wabbajack.Lib
             if (!ModList.Directives.Any(d => d.To.StartsWith(Consts.ManualGameFilesDir)))
                 return;
 
-            var result = MessageBox.Show("Some mods from this ModList must be installed directly into " +
+            var result = await Utils.Log(new YesNoIntervention("Some mods from this ModList must be installed directly into " +
                                              "the game folder. Do you want to do this manually or do you want Wabbajack " +
-                                             "to do this for you?", "Question", MessageBoxButton.YesNo);
+                                             "to do this for you?", "Install game folder mods?")).Task;
 
-            if (result != MessageBoxResult.Yes)
+            if (result != ConfirmationIntervention.Choice.Continue)
                 return;
 
             var manualFilesDir = Path.Combine(OutputFolder, Consts.ManualGameFilesDir);
@@ -167,12 +171,13 @@ namespace Wabbajack.Lib
             if (!ModList.Directives.Any(s => s is SteamMeta))
                 return;
 
-            var result = MessageBox.Show("The ModList you are installing requires Steam Workshop Items to exist. " +
-                                         "You can check the Workshop Items in the manifest of this ModList. Wabbajack can start Steam for you " +
-                                         "and download the Items automatically. Do you want to proceed with this step?",
-                "Warning", MessageBoxButton.YesNo);
+            var result = await Utils.Log(new YesNoIntervention(
+                "The ModList you are installing requires Steam Workshop Items to exist. " +
+                "You can check the Workshop Items in the manifest of this ModList. Wabbajack can start Steam for you " +
+                "and download the Items automatically. Do you want to proceed with this step?",
+                "Download Steam Workshop Items?")).Task;
 
-            if (result != MessageBoxResult.Yes)
+            if (result != ConfirmationIntervention.Choice.Continue)
                 return;
 
             await ModList.Directives.OfType<SteamMeta>()
