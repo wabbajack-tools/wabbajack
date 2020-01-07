@@ -382,7 +382,10 @@ namespace Wabbajack.Lib
               .Do(d => indexed.Remove(d.To));
 
             Utils.Log("Cleaning empty folders");
-            var expectedFolders = indexed.Keys.SelectMany(path =>
+            var expectedFolders = indexed.Keys
+                // We ignore the last part of the path, so we need a dummy file name
+                .Append(Path.Combine(DownloadFolder, "_"))
+                .SelectMany(path =>
             {
                 // Get all the folders and all the folder parents
                 // so for foo\bar\baz\qux.txt this emits ["foo", "foo\\bar", "foo\\bar\\baz"]
