@@ -15,7 +15,7 @@ namespace Wabbajack.Lib.CompilationSteps
         public IgnoreDisabledMods(ACompiler compiler) : base(compiler)
         {
             _mo2Compiler = (MO2Compiler) compiler;
-            var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IsAlwaysEnabled(f.Value)).Select(f => f.Key).ToHashSet();
+            var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IsAlwaysEnabled(f.Value)).Select(f => f.Key).Distinct();
 
             _allEnabledMods = _mo2Compiler.SelectedProfiles
                 .SelectMany(p => File.ReadAllLines(Path.Combine(_mo2Compiler.MO2Folder, "profiles", p, "modlist.txt")))

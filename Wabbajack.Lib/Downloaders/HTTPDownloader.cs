@@ -7,11 +7,10 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection.Emit;
 using System.Threading.Tasks;
-using System.Web;
-using Windows.Networking.BackgroundTransfer;
 using Ceras;
 using SharpCompress.Common;
 using Wabbajack.Common;
+using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
 

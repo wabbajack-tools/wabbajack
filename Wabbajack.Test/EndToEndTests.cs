@@ -8,6 +8,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
+using Wabbajack.Util;
 
 namespace Wabbajack.Test
 {
@@ -153,7 +154,8 @@ namespace Wabbajack.Test
                 archive: compiler.ModListOutputFile, 
                 modList: modlist,
                 outputFolder: utils.InstallFolder,
-                downloadFolder: utils.DownloadsFolder);
+                downloadFolder: utils.DownloadsFolder,
+                parameters: SystemParametersConstructor.Create());
             installer.GameFolder = utils.GameFolder;
             await installer.Begin();
         }

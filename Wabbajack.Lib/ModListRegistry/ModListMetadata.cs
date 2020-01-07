@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using File = System.IO.File;
@@ -45,7 +45,7 @@ namespace Wabbajack.Lib.ModListRegistry
             public string ImageUri { get; set; }
 
             [JsonIgnore]
-            public BitmapImage Image { get; set; }
+            public Bitmap Image { get; set; }
 
             [JsonProperty("readme")]
             public string Readme { get; set; }

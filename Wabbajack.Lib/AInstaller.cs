@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
@@ -27,13 +28,16 @@ namespace Wabbajack.Lib
         public string ModListArchive { get; private set; }
         public ModList ModList { get; private set; }
         public Dictionary<string, string> HashedArchives { get; set; }
+        
+        public SystemParameters SystemParameters { get; set; }
 
-        public AInstaller(string archive, ModList modList, string outputFolder, string downloadFolder)
+        public AInstaller(string archive, ModList modList, string outputFolder, string downloadFolder, SystemParameters parameters)
         {
             ModList = modList;
             ModListArchive = archive;
             OutputFolder = outputFolder;
             DownloadFolder = downloadFolder;
+            SystemParameters = parameters;
         }
 
         public void Info(string msg)
@@ -108,7 +112,7 @@ namespace Wabbajack.Lib
             Info("Building Folder Structure");
             ModList.Directives
                 .Select(d => Path.Combine(OutputFolder, Path.GetDirectoryName(d.To)))
-                .ToHashSet()
+                .Distinct()
                 .Do(f =>
                 {
                     if (Directory.Exists(f)) return;

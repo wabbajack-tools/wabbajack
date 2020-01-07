@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Util;
 
 namespace Wabbajack.Test
 {
@@ -67,7 +68,8 @@ namespace Wabbajack.Test
                 archive: vortexCompiler.ModListOutputFile, 
                 modList: modList,
                 outputFolder: utils.InstallFolder,
-                downloadFolder: utils.DownloadsFolder)
+                downloadFolder: utils.DownloadsFolder,
+                parameters: SystemParametersConstructor.Create())
             {
                 GameFolder = utils.GameFolder,
             };

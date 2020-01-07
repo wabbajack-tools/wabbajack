@@ -1,8 +1,8 @@
 ﻿using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Web;
 using Wabbajack.Common;
+using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
