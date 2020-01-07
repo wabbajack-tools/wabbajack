@@ -68,5 +68,7 @@
     <ItemGroup>
       <None Remove="LibCefHelpers\cefsharp.7z" />
       <EmbeddedResource Include="LibCefHelpers\cefsharp.7z" />
+      <None Remove="css-min.css" />
+      <EmbeddedResource Include="css-min.css" />
     </ItemGroup>
 </Project>
