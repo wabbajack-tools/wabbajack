@@ -4,6 +4,10 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      <NoWarn>1701;1702; CS1998</NoWarn>
+      <WarningsAsErrors>NU1605, CS4014</WarningsAsErrors>
+    </PropertyGroup>
     <ItemGroup>
       <PackageReference Include="CefSharp.Common">
         <Version>75.1.143</Version>

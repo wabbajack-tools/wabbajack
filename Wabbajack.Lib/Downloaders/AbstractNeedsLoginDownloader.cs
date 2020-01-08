@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,11 +49,11 @@ namespace Wabbajack.Lib.Downloaders
                 canExecute: IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
         }
         
-        public ICommand TriggerLogin { get; }
-        public ICommand ClearLogin { get; }
+        public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
+        public ReactiveCommand<Unit, Unit> ClearLogin { get; }
         public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable(_encryptedKeyName);
         public abstract string SiteName { get; }
-        public virtual string MetaInfo { get; }
+        public virtual IObservable<string> MetaInfo { get; }
         public abstract Uri SiteURL { get; }
         public virtual Uri IconUri { get; }
 
