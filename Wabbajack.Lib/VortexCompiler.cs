@@ -484,6 +484,7 @@ namespace Wabbajack.Lib
                 new IgnoreGameFiles(this),
 
                 new DirectMatch(this),
+                new IncludeTaggedMods(this, Consts.WABBAJACK_INCLUDE),
 
                 new IgnoreGameFiles(this),
 
