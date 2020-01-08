@@ -109,12 +109,19 @@ namespace Wabbajack.Lib.ModListRegistry
 
     public class ModlistSummary
     {
-        public string Name;
-        public DateTime Checked;
-        public int Failed;
-        public int Passed;
+        [JsonProperty("name")]
+        public string Name { get; set; }
+        [JsonProperty("checked")]
+        public DateTime Checked { get; set; }
+        [JsonProperty("failed")]
+        public int Failed { get; set; }
+        [JsonProperty("passed")]
+        public int Passed { get; set; }
+        [JsonProperty("link")]
         public string Link => $"/lists/status/{Name}.json";
+        [JsonProperty("report")]
         public string Report => $"/lists/status/{Name}.html";
+        [JsonProperty("has_failures")]
         public bool HasFailures => Failed > 0;
     }
 

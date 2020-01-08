@@ -15,35 +15,35 @@ namespace Wabbajack.Lib.NexusApi
 
     public class NexusFileInfo
     {
-        public ulong category_id;
-        public string category_name;
-        public string changelog_html;
-        public string description;
-        public string external_virus_scan_url;
-        public ulong file_id;
-        public string file_name;
-        public bool is_primary;
-        public string mod_version;
-        public string name;
-        public ulong size;
-        public ulong size_kb;
-        public DateTime uploaded_time;
-        public ulong uploaded_timestamp;
-        public string version;
+        public ulong category_id { get; set; }
+        public string category_name { get; set; }
+        public string changelog_html { get; set; }
+        public string description { get; set; }
+        public string external_virus_scan_url { get; set; }
+        public ulong file_id { get; set; }
+        public string file_name { get; set; }
+        public bool is_primary { get; set; }
+        public string mod_version { get; set; }
+        public string name { get; set; }
+        public ulong size { get; set; }
+        public ulong size_kb { get; set; }
+        public DateTime uploaded_time { get; set; }
+        public ulong uploaded_timestamp { get; set; }
+        public string version { get; set; }
     }
 
     public class ModInfo
     {
-        public uint _internal_version;
-        public string game_name;
-        public string mod_id;
-        public string name;
-        public string summary;
-        public string author;
-        public string uploaded_by;
-        public string uploaded_users_profile_url;
-        public string picture_url;
-        public bool contains_adult_content;
+        public uint _internal_version { get; set; }
+        public string game_name { get; set; }
+        public string mod_id { get; set; }
+        public string name { get; set; }
+        public string summary { get; set; }
+        public string author { get; set; }
+        public string uploaded_by { get; set; }
+        public string uploaded_users_profile_url { get; set; }
+        public string picture_url { get; set; }
+        public bool contains_adult_content { get; set; }
     }
 
     public class MD5Response
