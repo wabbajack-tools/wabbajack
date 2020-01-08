@@ -1,5 +1,18 @@
 ### Changelog
 
+#### Version - 1.0 beta 15 - 1/6/2020
+* Don't delete the download folder when deleting empty folders during an update
+* If `Game Folder Files` exists in the MO2 folder during compilation the Game folder will be ignored as a file source
+
+#### Version - 1.0 beta 14 - 1/6/2020
+* Updating a list twice without starting WJ no longer deletes your modlist
+* .mohidden files will now be correctly detected during binary patching
+* Added support for MO2's new path format
+* Added support for MO2 2.2.2's `portable.txt` feature
+* Added support for VectorPlexus downloads
+* Added a new CLI interface for providing Nexus API key overrides
+* Several UI backend improvements
+
 #### Version - 1.0 beta 13 - 1/4/22020
 * Several fixes for steam game handling
 * Fixes for metrics reporting

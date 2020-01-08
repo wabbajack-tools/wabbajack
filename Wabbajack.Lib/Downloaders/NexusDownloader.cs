@@ -36,6 +36,11 @@ namespace Wabbajack.Lib.Downloaders
 
         public NexusDownloader()
         {
+            if (CLIArguments.ApiKey != null)
+            {
+                CLIArguments.ApiKey.ToEcryptedJson("nexusapikey");
+            }
+
             TriggerLogin = ReactiveCommand.CreateFromTask(
                 execute: () => Utils.CatchAndLog(NexusApiClient.RequestAndCacheAPIKey), 
                 canExecute: IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));

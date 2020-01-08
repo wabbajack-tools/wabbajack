@@ -11,6 +11,8 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.UI;
+using Wabbajack.Util;
 
 namespace Wabbajack
 {
@@ -148,7 +150,8 @@ namespace Wabbajack
                 archive: Parent.ModListLocation.TargetPath,
                 modList: Parent.ModList.SourceModList,
                 outputFolder: Location.TargetPath,
-                downloadFolder: DownloadLocation.TargetPath);
+                downloadFolder: DownloadLocation.TargetPath,
+                parameters: SystemParametersConstructor.Create());
 
             await Task.Run(async () =>
             {

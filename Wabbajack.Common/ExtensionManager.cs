@@ -19,7 +19,7 @@ namespace Wabbajack.Common
         {
             {"", "Wabbajack"},
             {"FriendlyTypeName", "Wabbajack"},
-            {"shell\\open\\command",  "\"{appPath}\" -i \"%1\""},
+            {"shell\\open\\command",  "\"{appPath}\" -i=\"%1\""},
         };
 
         private static readonly Dictionary<string, string> ExtList = new Dictionary<string, string>
@@ -34,7 +34,7 @@ namespace Wabbajack.Common
             var tempKey = progIDKey?.OpenSubKey("shell\\open\\command");
             if (progIDKey == null || tempKey == null) return true;
             var value = tempKey.GetValue("");
-            return value == null || value.ToString().Equals($"\"{appPath}\" -i \"%1\"");
+            return value == null || value.ToString().Equals($"\"{appPath}\" -i=\"%1\"");
         }
 
         public static bool IsAssociated()

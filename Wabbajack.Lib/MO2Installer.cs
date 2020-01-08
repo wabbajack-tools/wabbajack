@@ -30,12 +30,13 @@ namespace Wabbajack.Lib
 
         public string GameFolder { get; set; }
 
-        public MO2Installer(string archive, ModList modList, string outputFolder, string downloadFolder)
+        public MO2Installer(string archive, ModList modList, string outputFolder, string downloadFolder, SystemParameters parameters)
             : base(
                   archive: archive,
                   modList: modList,
                   outputFolder: outputFolder, 
-                  downloadFolder: downloadFolder)
+                  downloadFolder: downloadFolder,
+                  parameters: parameters)
         {
         }
 
@@ -44,7 +45,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             var metric = Metrics.Send("begin_install", ModList.Name);
 
-            ConfigureProcessor(18, await RecommendQueueSize());
+            ConfigureProcessor(19, await RecommendQueueSize());
             var game = ModList.GameType.MetaData();
 
             if (GameFolder == null)
@@ -52,10 +53,10 @@ namespace Wabbajack.Lib
 
             if (GameFolder == null)
             {
-                MessageBox.Show(
+                await Utils.Log(new CriticalFailureIntervention(
                     $"In order to do a proper install Wabbajack needs to know where your {game.MO2Name} folder resides. We tried looking the" +
                     "game location up in the windows registry but were unable to find it, please make sure you launch the game once before running this installer. ",
-                    "Could not find game location", MessageBoxButton.OK);
+                    "Could not find game location")).Task;
                 Utils.Log("Exiting because we couldn't find the game folder.");
                 return false;
             }
@@ -135,6 +136,9 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Generating Merges");
             await zEditIntegration.GenerateMerges(this);
 
+            UpdateTracker.NextStep("Set MO2 into portable");
+            ForcePortable();
+
             UpdateTracker.NextStep("Updating System-specific ini settings");
             SetScreenSizeInPrefs();
 
@@ -144,6 +148,20 @@ namespace Wabbajack.Lib
             return true;
         }
 
+        private void ForcePortable()
+        {
+            var path = Path.Combine(OutputFolder, "portable.txt");
+            if (File.Exists(path)) return;
+
+            try
+            {
+                File.WriteAllText(path, "Created by Wabbajack");
+            }
+            catch (Exception e)
+            {
+                Utils.Error(e, $"Could not create portable.txt in {OutputFolder}");
+            }
+        }
 
         private async Task InstallIncludedDownloadMetas()
         {
@@ -171,42 +189,6 @@ namespace Wabbajack.Lib
                     Utils.ErrorThrow(new InvalidGameESMError(esm, hash, gameFile));
                 }
             }
-        }
-
-        private async Task AskToEndorse()
-        {
-            var mods = ModList.Archives
-                .Select(m => m.State)
-                .OfType<NexusDownloader.State>()
-                .GroupBy(f => (f.GameName, f.ModID))
-                .Select(mod => mod.First())
-                .ToArray();
-
-            var result = MessageBox.Show(
-                $"Installation has completed, but you have installed {mods.Length} from the Nexus, would you like to" +
-                " endorse these mods to show support to the authors? It will only take a few moments.", "Endorse Mods?",
-                MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            if (result != MessageBoxResult.Yes) return;
-
-            // Shuffle mods so that if we hit a API limit we don't always miss the same mods
-            var r = new Random();
-            for (var i = 0; i < mods.Length; i++)
-            {
-                var a = r.Next(mods.Length);
-                var b = r.Next(mods.Length);
-                var tmp = mods[a];
-                mods[a] = mods[b];
-                mods[b] = tmp;
-            }
-
-            await mods.PMap(Queue, async mod =>
-            {
-                var client = await NexusApiClient.Get();
-                var er = await client.EndorseMod(mod);
-                Utils.Log($"Endorsed {mod.GameName} - {mod.ModID} - Result: {er.message}");
-            });
-            Info("Done! You may now exit the application!");
         }
 
         private async Task BuildBSAs()
@@ -299,8 +281,8 @@ namespace Wabbajack.Lib
 
                     if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
                     {
-                        data.Sections["Display"]["iSize W"] = SystemParameters.PrimaryScreenWidth.ToString(CultureInfo.CurrentCulture);
-                        data.Sections["Display"]["iSize H"] = SystemParameters.PrimaryScreenHeight.ToString(CultureInfo.CurrentCulture);
+                        data.Sections["Display"]["iSize W"] = SystemParameters.ScreenWidth.ToString(CultureInfo.CurrentCulture);
+                        data.Sections["Display"]["iSize H"] = SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture);
                     }
 
                     parser.WriteFile(file, data);

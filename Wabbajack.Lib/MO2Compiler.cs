@@ -1,5 +1,6 @@
 ﻿using Compression.BSA;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -159,11 +160,21 @@ namespace Wabbajack.Lib
                 .Where(p => p.FileExists())
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(MO2Folder)));
 
-            var gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
-                .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))));
+            // If Game Folder Files exists, ignore the game folder
+            IEnumerable<RawSourceFile> gameFiles;
+            if (!Directory.Exists(Path.Combine(MO2Folder, Consts.GameFolderFilesDir)))
+            {
+                gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
+                    .Where(p => p.FileExists())
+                    .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p],
+                        Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))));
+            }
+            else
+            {
+                gameFiles = new List<RawSourceFile>();
+            }
 
-            
+
             ModMetas = Directory.EnumerateDirectories(Path.Combine(MO2Folder, "mods"))
                 .Keep(f =>
                 {
@@ -496,6 +507,7 @@ namespace Wabbajack.Lib
             Utils.Log("Generating compilation stack");
             return new List<ICompilationStep>
             {
+                new IgnoreGameFilesIfGameFolderFilesExist(this),
                 new IncludePropertyFiles(this),
                 new IgnoreStartsWith(this,"logs\\"),
                 new IgnoreStartsWith(this, "downloads\\"),
@@ -536,7 +548,8 @@ namespace Wabbajack.Lib
                 new IgnoreEndsWith(this, "HavokBehaviorPostProcess.exe"),
                 // Theme file MO2 downloads somehow
                 new IgnoreEndsWith(this, "splash.png"),
-
+                // File to force MO2 into portable mode
+                new IgnoreEndsWith(this, "portable.txt"), 
                 new IgnoreEndsWith(this, ".bin"),
                 new IgnoreEndsWith(this, ".refcache"),
 

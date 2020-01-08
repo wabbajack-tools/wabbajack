@@ -127,6 +127,7 @@
     <Compile Include="EndToEndTests.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FilePickerTests.cs" />
+    <Compile Include="IniTests.cs" />
     <Compile Include="MiscTests.cs" />
     <Compile Include="MO2Tests.cs" />
     <Compile Include="ModlistMetadataTests.cs" />

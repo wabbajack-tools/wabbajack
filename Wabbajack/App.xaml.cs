@@ -14,7 +14,9 @@ namespace Wabbajack
     {
         public App()
         {
-            // Do initialization in MainWindow ctor
+            CLI.ParseOptions(Environment.GetCommandLineArgs());
+            if(CLIArguments.Help)
+                CLI.DisplayHelpText();
         }
     }
 }

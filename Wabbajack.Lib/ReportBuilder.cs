@@ -129,7 +129,7 @@ namespace Wabbajack.Lib
                 .Concat(lst.Directives
                     .OfType<PatchedFromArchive>()
                     .Select(f => (f.To, "patched", SizeForID(f.PatchID))))
-                .ToHashSet()
+                .Distinct()
                 .OrderByDescending(f => f.Item3);
 
             NoWrapText("\n\n### Summary of inlined files in this installer");

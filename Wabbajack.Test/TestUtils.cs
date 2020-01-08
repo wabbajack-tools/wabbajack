@@ -177,7 +177,26 @@ namespace Wabbajack.Test
                     Assert.Fail($"Index {x} of {mod}\\{file} are not the same");
             }
         }
+        
+        public void VerifyInstalledGameFile(string file)
+        {
+            var src = Path.Combine(GameFolder, file);
+            Assert.IsTrue(File.Exists(src), src);
 
+            var dest = Path.Combine(InstallFolder, Consts.GameFolderFilesDir, file);
+            Assert.IsTrue(File.Exists(dest), dest);
+
+            var src_data = File.ReadAllBytes(src);
+            var dest_data = File.ReadAllBytes(dest);
+
+            Assert.AreEqual(src_data.Length, dest_data.Length);
+
+            for(int x = 0; x < src_data.Length; x++)
+            {
+                if (src_data[x] != dest_data[x])
+                    Assert.Fail($"Index {x} of {Consts.GameFolderFilesDir}\\{file} are not the same");
+            }
+        }
         public string PathOfInstalledFile(string mod, string file)
         {
             return Path.Combine(InstallFolder, "mods", mod, file);
@@ -185,12 +204,15 @@ namespace Wabbajack.Test
 
         public void VerifyAllFiles()
         {
+            var skip_files = new HashSet<string> {"portable.txt"};
             foreach (var dest_file in Directory.EnumerateFiles(InstallFolder, "*", DirectoryEnumerationOptions.Recursive))
             {
                 var rel_file = dest_file.RelativeTo(InstallFolder);
                 if (rel_file.StartsWith(Consts.LOOTFolderFilesDir) || rel_file.StartsWith(Consts.GameFolderFilesDir))
                     continue;
-                Assert.IsTrue(File.Exists(Path.Combine(MO2Folder, rel_file)), $"Only in Destination: {rel_file}");
+                
+                if (!skip_files.Contains(rel_file)) 
+                    Assert.IsTrue(File.Exists(Path.Combine(MO2Folder, rel_file)), $"Only in Destination: {rel_file}");
             }
 
             var skip_extensions = new HashSet<string> {".txt", ".ini"};
@@ -214,6 +236,16 @@ namespace Wabbajack.Test
                     Assert.AreEqual(src_file.FileHash(), dest_file.FileHash(), $"Differing content hash {rel_file}");
                 }
             }
+        }
+
+        public string AddGameFile(string path, int i)
+        {
+            var full_path = Path.Combine(GameFolder, path);
+            var dir = Path.GetDirectoryName(full_path);
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            GenerateRandomFileData(full_path, i);
+            return full_path;
         }
     }
 }

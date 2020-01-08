@@ -9,6 +9,7 @@ using DynamicData;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.UI;
 
 namespace Wabbajack.Test
 {

@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Threading;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.WebAutomation;
@@ -65,13 +66,26 @@ namespace Wabbajack
                         c.Resume(key);
                     });
                     break;
-                case RequestLoversLabLogin c:
+                case AbstractNeedsLoginDownloader.RequestSiteLogin c:
                     await WrapBrowserJob(msg, async (vm, cancel) =>
                     {
                         await vm.Driver.WaitForInitialized();
-                        var data = await LoversLabDownloader.GetAndCacheLoversLabCookies(new CefSharpWrapper(vm.Browser), m => vm.Instructions = m, cancel.Token);
+                        var data = await c.Downloader.GetAndCacheCookies(new CefSharpWrapper(vm.Browser), m => vm.Instructions = m, cancel.Token);
                         c.Resume(data);
                     });
+                    break;
+                case YesNoIntervention c:
+                    var result = MessageBox.Show(c.ExtendedDescription, c.ShortDescription, MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+                    if (result == MessageBoxResult.Yes)
+                        c.Confirm();
+                    else
+                        c.Cancel();
+                    break;
+                case CriticalFailureIntervention c:
+                    MessageBox.Show(c.ExtendedDescription, c.ShortDescription, MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                    c.Cancel();
                     break;
                 case ConfirmationIntervention c:
                     break;

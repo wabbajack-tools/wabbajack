@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Ceras;
 using Compression.BSA;
@@ -120,6 +121,11 @@ namespace Wabbajack.Lib
         ///     Whether readme is a website
         /// </summary>
         public bool ReadmeIsWebsite;
+
+        public ModList Clone()
+        {
+            return new MemoryStream(this.ToCERAS(CerasConfig.Config)).FromCERAS<ModList>(CerasConfig.Config);
+        }
     }
 
     public class Directive

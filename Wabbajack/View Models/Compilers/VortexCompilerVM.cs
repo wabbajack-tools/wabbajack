@@ -11,6 +11,7 @@ using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Common.StoreHandlers;
 using Wabbajack.Lib;
+using Wabbajack.UI;
 
 namespace Wabbajack
 {

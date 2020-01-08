@@ -8,6 +8,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
+using Wabbajack.UI;
 
 namespace Wabbajack
 {

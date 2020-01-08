@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.UI;
 
 namespace Wabbajack
 {

@@ -5,8 +5,8 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using Syroot.Windows.IO;
 using Wabbajack.Common;
+using Wabbajack.Common.IO;
 using Wabbajack.Lib.Validation;
 using File = System.IO.File;
 

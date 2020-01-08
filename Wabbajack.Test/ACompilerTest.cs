@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.LibCefHelpers;
+using Wabbajack.Util;
 
 namespace Wabbajack.Test
 {
@@ -57,7 +58,8 @@ namespace Wabbajack.Test
                 archive: compiler.ModListOutputFile,
                 modList: modlist,
                 outputFolder: utils.InstallFolder,
-                downloadFolder: utils.DownloadsFolder);
+                downloadFolder: utils.DownloadsFolder,
+                parameters: SystemParametersConstructor.Create());
             installer.WarnOnOverwrite = false;
             installer.GameFolder = utils.GameFolder;
             await installer.Begin();

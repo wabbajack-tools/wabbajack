@@ -178,7 +178,7 @@ namespace Wabbajack.Common
                     MO2Name = "New Vegas",
                     MO2ArchiveName = "falloutnv",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\falloutnv",
-                    SteamIDs = new List<int> {22380},
+                    SteamIDs = new List<int> {22380, 22490}, // normal and RU version
                     RequiredFiles = new List<string>
                     {
                         "FalloutNV.exe"

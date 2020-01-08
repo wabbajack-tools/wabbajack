@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
@@ -27,13 +28,16 @@ namespace Wabbajack.Lib
         public string ModListArchive { get; private set; }
         public ModList ModList { get; private set; }
         public Dictionary<string, string> HashedArchives { get; set; }
+        
+        public SystemParameters SystemParameters { get; set; }
 
-        public AInstaller(string archive, ModList modList, string outputFolder, string downloadFolder)
+        public AInstaller(string archive, ModList modList, string outputFolder, string downloadFolder, SystemParameters parameters)
         {
             ModList = modList;
             ModListArchive = archive;
             OutputFolder = outputFolder;
             DownloadFolder = downloadFolder;
+            SystemParameters = parameters;
         }
 
         public void Info(string msg)
@@ -108,7 +112,7 @@ namespace Wabbajack.Lib
             Info("Building Folder Structure");
             ModList.Directives
                 .Select(d => Path.Combine(OutputFolder, Path.GetDirectoryName(d.To)))
-                .ToHashSet()
+                .Distinct()
                 .Do(f =>
                 {
                     if (Directory.Exists(f)) return;
@@ -344,6 +348,10 @@ namespace Wabbajack.Lib
         public async Task OptimizeModlist()
         {
             Utils.Log("Optimizing Modlist directives");
+            
+            // Clone the modlist so our changes don't modify the original data
+            ModList = ModList.Clone();
+            
             var indexed = ModList.Directives.ToDictionary(d => d.To);
 
             UpdateTracker.NextStep("Looking for files to delete");
@@ -376,6 +384,33 @@ namespace Wabbajack.Lib
             }))
               .Where(d => d != null)
               .Do(d => indexed.Remove(d.To));
+
+            Utils.Log("Cleaning empty folders");
+            var expectedFolders = indexed.Keys
+                // We ignore the last part of the path, so we need a dummy file name
+                .Append(Path.Combine(DownloadFolder, "_"))
+                .SelectMany(path =>
+            {
+                // Get all the folders and all the folder parents
+                // so for foo\bar\baz\qux.txt this emits ["foo", "foo\\bar", "foo\\bar\\baz"]
+                var split = path.Split('\\');
+                return Enumerable.Range(1, split.Length - 1).Select(t => string.Join("\\", split.Take(t)));
+            }).Distinct()
+              .Select(p => Path.Combine(OutputFolder, p))
+              .ToHashSet();
+
+            try
+            {
+                Directory.EnumerateDirectories(OutputFolder, DirectoryEnumerationOptions.Recursive)
+                    .Where(p => !expectedFolders.Contains(p))
+                    .OrderByDescending(p => p.Length)
+                    .Do(p => Directory.Delete(p));
+            }
+            catch (Exception)
+            {
+                // ignored because it's not worth throwing a fit over
+                Utils.Log("Error when trying to clean empty folders. This doesn't really matter.");
+            }
 
             UpdateTracker.NextStep("Updating Modlist");
             Utils.Log($"Optimized {ModList.Directives.Count} directives to {indexed.Count} required");

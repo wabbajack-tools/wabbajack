@@ -172,6 +172,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="UI\FilePickerVM.cs" />
+    <Compile Include="UI\UIUtils.cs" />
+    <Compile Include="Util\SystemParametersConstructor.cs" />
     <Compile Include="Converters\IntDownCastConverter.cs" />
     <Compile Include="Converters\CommandConverter.cs" />
     <Compile Include="Converters\ConverterRegistration.cs" />
@@ -555,7 +558,7 @@
       <Version>11.1.1</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.Fody">
-      <Version>11.1.1</Version>
+      <Version>11.1.6</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.WPF">
       <Version>11.1.1</Version>
