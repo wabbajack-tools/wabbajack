@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -325,19 +325,6 @@ namespace Wabbajack.Lib
                             $"This modlist requires {required.ToFileSizeString()} on {g.Key} but only {available.ToFileSizeString()} is available.");
                 });
             */
-        }
-
-        public async Task<int> RecommendQueueSize()
-        {
-            const ulong GB = (1024 * 1024 * 1024);
-            // Most of the heavy lifting is done on the scratch disk, so we'll use the value from that disk
-            var memory = Utils.GetMemoryStatus();
-            // Assume roughly 2GB of ram needed to extract each 7zip archive, and then leave 2GB for the OS
-            var based_on_memory = (memory.ullTotalPhys - (2 * GB)) / (2 * GB);
-            var scratch_size = await RecommendQueueSize(Directory.GetCurrentDirectory());
-            var result = Math.Min((int)based_on_memory, (int)scratch_size);
-            Utils.Log($"Recommending a queue size of {result} based on disk performance, number of cores, and {((long)memory.ullTotalPhys).ToFileSizeString()} of system RAM");
-            return result;
         }
 
 

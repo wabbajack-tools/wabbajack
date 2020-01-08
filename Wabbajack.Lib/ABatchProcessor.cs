@@ -47,6 +47,11 @@ namespace Wabbajack.Lib
 
         private readonly CompositeDisposable _subs = new CompositeDisposable();
 
+        // WorkQueue settings
+        public bool ManualCoreLimit = true;
+        public byte MaxCores = byte.MaxValue;
+        public double TargetUsagePercent = 1.0d;
+
         protected void ConfigureProcessor(int steps, int threads = 0)
         {
             if (1 == Interlocked.CompareExchange(ref _configured, 1, 1))
@@ -62,6 +67,33 @@ namespace Wabbajack.Lib
             UpdateTracker.Progress.Subscribe(_percentCompleted);
             UpdateTracker.StepName.Subscribe(_textStatus);
             VFS = new Context(Queue) { UpdateTracker = UpdateTracker };
+        }
+
+        public async Task<int> RecommendQueueSize()
+        {
+            const ulong GB = (1024 * 1024 * 1024);
+            // Most of the heavy lifting is done on the scratch disk, so we'll use the value from that disk
+            var memory = Utils.GetMemoryStatus();
+            // Assume roughly 2GB of ram needed to extract each 7zip archive, and then leave 2GB for the OS
+            var based_on_memory = (memory.ullTotalPhys - (2 * GB)) / (2 * GB);
+            var scratch_size = await RecommendQueueSize(Directory.GetCurrentDirectory());
+            var result = Math.Min((int)based_on_memory, (int)scratch_size);
+            Utils.Log($"Recommending a queue size of {result} based on disk performance, number of cores, and {((long)memory.ullTotalPhys).ToFileSizeString()} of system RAM");
+            if (ManualCoreLimit)
+            {
+                if (result > MaxCores)
+                {
+                    Utils.Log($"Only using {MaxCores} due to user preferences.");
+                }
+                result = MaxCores;
+            }
+            else if (TargetUsagePercent < 1.0d && TargetUsagePercent > 0d)
+            {
+                result = (int)Math.Ceiling(result * TargetUsagePercent);
+                result = Math.Max(1, result);
+                Utils.Log($"Only using {result} due to user scaling preferences of {(TargetUsagePercent * 100)}%.");
+            }
+            return result;
         }
 
         public static async Task<int> RecommendQueueSize(string folder)

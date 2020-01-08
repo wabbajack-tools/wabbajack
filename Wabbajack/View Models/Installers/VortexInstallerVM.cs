@@ -68,7 +68,12 @@ namespace Wabbajack
                 modList: Parent.ModList.SourceModList,
                 outputFolder: staging,
                 downloadFolder: download,
-                parameters: SystemParametersConstructor.Create());
+                parameters: SystemParametersConstructor.Create())
+            {
+                ManualCoreLimit = Parent.MWVM.Settings.Performance.Manual,
+                MaxCores = Parent.MWVM.Settings.Performance.MaxCores,
+                TargetUsagePercent = Parent.MWVM.Settings.Performance.TargetUsage,
+            };
 
             await Task.Run(async () =>
             {
