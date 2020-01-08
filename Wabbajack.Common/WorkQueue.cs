@@ -26,7 +26,7 @@ namespace Wabbajack.Common
         private readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
 
-        public List<Thread> Threads { get; private set; }
+        public List<Task> Tasks { get; private set; }
 
         private CancellationTokenSource _cancel = new CancellationTokenSource();
 
@@ -40,15 +40,13 @@ namespace Wabbajack.Common
         public WorkQueue(int? threadCount = null)
         {
             ThreadCount = threadCount ?? Environment.ProcessorCount;
-            Threads = Enumerable.Range(1, ThreadCount)
+            Tasks = Enumerable.Range(1, ThreadCount)
                 .Select(idx =>
                 {
-                    var thread = new Thread(() => ThreadBody(idx).Wait());
-                    thread.Priority = ThreadPriority.BelowNormal;
-                    thread.IsBackground = true;
-                    thread.Name = string.Format("Wabbajack_Worker_{0}", idx);
-                    thread.Start();
-                    return thread;
+                    return Task.Run(async () =>
+                    {
+                        await ThreadBody(idx);
+                    });
                 }).ToList();
         }
 
@@ -78,6 +76,10 @@ namespace Wabbajack.Common
             }
             catch (OperationCanceledException)
             {
+            }
+            catch (Exception ex)
+            {
+                Utils.Error(ex, "Error in WorkQueue thread.");
             }
         }
 
