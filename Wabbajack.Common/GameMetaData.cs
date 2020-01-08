@@ -143,6 +143,7 @@ namespace Wabbajack.Common
                     MO2ArchiveName = "oblivion",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Oblivion",
                     SteamIDs = new List<int> {22330},
+                    GOGIDs = new List<int>{1458058109},
                     RequiredFiles = new List<string>
                     {
                         "oblivion.exe"
@@ -179,6 +180,7 @@ namespace Wabbajack.Common
                     MO2ArchiveName = "falloutnv",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\falloutnv",
                     SteamIDs = new List<int> {22380, 22490}, // normal and RU version
+                    GOGIDs = new List<int>{1454587428},
                     RequiredFiles = new List<string>
                     {
                         "FalloutNV.exe"
