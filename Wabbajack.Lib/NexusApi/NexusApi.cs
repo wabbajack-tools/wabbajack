@@ -272,7 +272,7 @@ namespace Wabbajack.Lib.NexusApi
 
         public class GetModFilesResponse
         {
-            public List<NexusFileInfo> files;
+            public List<NexusFileInfo> files { get; set; }
         }
 
         public async Task<GetModFilesResponse> GetModFiles(Game game, int modid)

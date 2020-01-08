@@ -122,7 +122,6 @@
     <Compile Include="ServerConfig\BuildServerConfig.cs" />
     <Compile Include="ServerConfig\IndexerConfig.cs" />
     <Compile Include="ServerConfig\MongoConfig.cs" />
-    <Compile Include="ServerConfig\Settings.cs" />
     <Compile Include="TestingEndpoints.cs" />
   </ItemGroup>
   <ItemGroup>
