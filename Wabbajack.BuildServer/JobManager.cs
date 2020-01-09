@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
@@ -70,7 +71,8 @@ namespace Wabbajack.BuildServer
             while (true)
             {
                 await KillOrphanedJobs();
-                await PollNexusMods();
+                await ScheduledJob<GetNexusUpdatesJob>(TimeSpan.FromHours(2));
+                await ScheduledJob<UpdateModLists>(TimeSpan.FromMinutes(30));
                 await Task.Delay(10000);
             }
         }
@@ -93,31 +95,36 @@ namespace Wabbajack.BuildServer
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Error, ex, "Error in JobScheduler when scheduling GetNexusUpdatesJob");
+                Logger.Log(LogLevel.Error, ex, "Error in JobScheduler when scheduling KillOrphanedJobs");
             }
         }
-
-        private async Task PollNexusMods()
+        
+        private async Task ScheduledJob<T>(TimeSpan span) where T : AJobPayload, new()
         {
             try
             {
-                var updaters = await Db.Jobs.AsQueryable()
-                    .Where(j => j.Payload is GetNexusUpdatesJob)
-                    .Where(j => j.Started == null)
-                    .OrderBy(j => j.Created)
+                var jobs = await Db.Jobs.AsQueryable()
+                    .Where(j => j.Payload is T)
+                    .OrderByDescending(j => j.Created)
+                    .Take(10)
                     .ToListAsync();
-                if (updaters.Count == 0)
+
+                foreach (var job in jobs)
                 {
-                    await Db.Jobs.InsertOneAsync(new Job
-                    {
-                        Payload = new GetNexusUpdatesJob()
-                    });
+                    if (job.Started == null || job.Ended == null) return;
+                    if (DateTime.Now - job.Ended < span) return;
                 }
+                await Db.Jobs.InsertOneAsync(new Job
+                {
+                    Payload = new T()
+                });
             }
             catch (Exception ex)
             {
-                Logger.Log(LogLevel.Error, ex, "Error in JobScheduler when scheduling GetNexusUpdatesJob");
+                
+                Logger.Log(LogLevel.Error, ex, $"Error in JobScheduler when scheduling {typeof(T).Name}");
             }
         }
+
     }
 }
