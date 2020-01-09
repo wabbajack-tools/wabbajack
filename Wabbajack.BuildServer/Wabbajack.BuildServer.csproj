@@ -7,7 +7,9 @@
         <WebProject_DirectoryAccessLevelKey>0</WebProject_DirectoryAccessLevelKey>
         <PublishTrimmed>true</PublishTrimmed>
         <PublishSingleFile>true</PublishSingleFile>
-        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
 
     <ItemGroup>
@@ -53,6 +55,9 @@
       <None Remove="7z.exe" />
       <None Remove="7z.dll" />
       <None Remove="swiftshader\**" />
+      <None Update="public\metrics.html">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
