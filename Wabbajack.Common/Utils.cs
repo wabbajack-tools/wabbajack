@@ -769,6 +769,7 @@ namespace Wabbajack.Common
             {
                 var key = select(v);
                 if (set.Contains(key)) continue;
+                set.Add(key);
                 yield return v;
             }
         }

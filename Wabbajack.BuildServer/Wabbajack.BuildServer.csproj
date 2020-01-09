@@ -7,7 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="graphiql" Version="1.2.0" />
+        <PackageReference Include="GraphQL" Version="3.0.0-preview-1352" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="3.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
         <PackageReference Include="Microsoft.OpenApi" Version="1.1.4" />
         <PackageReference Include="MongoDB.Driver" Version="2.10.0" />
         <PackageReference Include="MongoDB.Driver.Core" Version="2.10.0" />
@@ -44,6 +48,23 @@
       <None Remove="cef.pak" />
       <None Remove="7z.exe" />
       <None Remove="7z.dll" />
+      <None Remove="swiftshader\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\MetricsDashboard.cshtml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="swiftshader\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="swiftshader\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Remove="swiftshader\**" />
     </ItemGroup>
 
 </Project>

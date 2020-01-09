@@ -10,7 +10,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Conventions;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Lib.Downloaders;
-using Newtonsoft.Json.
+
 
 namespace Wabbajack.BuildServer
 {
