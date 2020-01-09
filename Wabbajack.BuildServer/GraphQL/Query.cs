@@ -19,6 +19,30 @@ namespace Wabbajack.BuildServer.GraphQL
                 var data =  db.Jobs.AsQueryable().Where(j => j.Ended == null).ToList();
                 return data;
             });
+
+            FieldAsync<ListGraphType<ModListStatusType>>("modLists",
+                arguments: new QueryArguments(new QueryArgument<ArchiveEnumFilterType>
+                {
+                    Name = "filter", Description = "Filter lists to those that only have these archive classifications"
+                }),
+                resolve: async context =>
+                {
+                    var arg = context.GetArgument<string>("filter");
+                    var lists = db.ModListStatus.AsQueryable();
+                    switch (arg)
+                    {
+                        case "FAILED":
+                            lists = lists.Where(l => l.DetailedStatus.HasFailures);
+                            break;
+                        case "PASSED":
+                            lists = lists.Where(a => !a.DetailedStatus.HasFailures);
+                            break;
+                        default:
+                            break;
+                    }
+
+                    return await lists.ToListAsync();
+                });
             
             FieldAsync<ListGraphType<JobType>>("job",
                 arguments: new QueryArguments(

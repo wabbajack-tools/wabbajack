@@ -19,7 +19,7 @@ namespace Wabbajack.BuildServer.Controllers
         }
         
         [HttpGet]
-        [Route("status")]
+        [Route("status.json")]
         public async Task<IList<ModlistSummary>> HandleGetLists()
         {
             return await Db.ModListStatus.AsQueryable().Select(m => m.Summary).ToListAsync();
