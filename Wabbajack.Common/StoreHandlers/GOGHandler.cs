@@ -104,11 +104,7 @@ namespace Wabbajack.Common.StoreHandlers
                         Path = path
                     };
 
-                    var gameMeta = GameRegistry.Games.Values.FirstOrDefault(g =>
-                    {
-                        return (g.GOGIDs?.Contains(gameID) ?? false)
-                            && (g.RequiredFiles?.TrueForAll(file => File.Exists(Path.Combine(game.Path, file))) ?? true);
-                    });
+                    var gameMeta = GameRegistry.Games.Values.FirstOrDefault(g => (g.GOGIDs?.Contains(gameID) ?? false));
                     
                     if (gameMeta == null)
                     {
