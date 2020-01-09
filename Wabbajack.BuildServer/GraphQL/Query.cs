@@ -54,16 +54,6 @@ namespace Wabbajack.BuildServer.GraphQL
                     return data;
                 });
 
-            Field<VirtualFileType> ("indexedFileTree",
-                arguments: new QueryArguments(
-                    new QueryArgument<IdGraphType> {Name = "hash", Description = "Hash of the Job"}),
-                resolve: context =>
-                {
-                    var hash = context.GetArgument<string>("hash");
-                    var data = db.IndexedFiles.AsQueryable().Where(j => j.Hash == hash).FirstOrDefault();
-                    return data;
-                });
-
             FieldAsync<ListGraphType<MetricResultType>>("dailyUniqueMetrics",
                 arguments: new QueryArguments(
                     new QueryArgument<MetricEnum> {Name = "metric_type", Description = "The grouping of metric data to query"}
