@@ -12,8 +12,8 @@ namespace Wabbajack.BuildServer.Models.JobQueue
     {
         public static List<Type> KnownSubTypes = new List<Type>
         {
-            typeof(IndexJob)
-            
+            typeof(IndexJob),
+            typeof(GetNexusUpdatesJob)
         };
         public static Dictionary<Type, string> TypeToName { get; set; }
         public static Dictionary<string, Type> NameToType { get; set; }
@@ -24,7 +24,7 @@ namespace Wabbajack.BuildServer.Models.JobQueue
 
         public virtual bool UsesNexus { get; } = false;
 
-        public abstract Task<JobResult> Execute(DBContext db);
+        public abstract Task<JobResult> Execute(DBContext db, AppSettings settings);
 
         static AJobPayload()
         {
