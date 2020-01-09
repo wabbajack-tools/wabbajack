@@ -48,6 +48,8 @@ namespace Wabbajack.BuildServer
             });
            
             services.AddSingleton<DBContext>();
+            services.AddSingleton<JobManager>();
+            services.AddSingleton<AppSettings>();
             services.AddControllers(o =>
             {
                 
@@ -55,6 +57,8 @@ namespace Wabbajack.BuildServer
             {
                 o.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
+            
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -79,6 +83,7 @@ namespace Wabbajack.BuildServer
             });
             app.UseRouting();
 
+            app.UseJobManager();
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseFileServer(new FileServerOptions

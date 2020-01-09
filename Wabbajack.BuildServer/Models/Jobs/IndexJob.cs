@@ -19,13 +19,10 @@ namespace Wabbajack.BuildServer.Models.Jobs
     public class IndexJob : AJobPayload
     {
         public Archive Archive { get; set; }
-        public override string Description { get; } = "Validate and index an archive";
+        public override string Description => $"Index ${Archive.State.PrimaryKey} and save the download/file state";
         public override bool UsesNexus { get => Archive.State is NexusDownloader.State; }
-        public override async Task<JobResult> Execute(DBContext db)
+        public override async Task<JobResult> Execute(DBContext db, AppSettings settings)
         {
-            
-            /*
-
             var pk = new List<object>();
             pk.Add(AbstractDownloadState.TypeToName[Archive.State.GetType()]);
             pk.AddRange(Archive.State.PrimaryKey);
@@ -38,13 +35,13 @@ namespace Wabbajack.BuildServer.Models.Jobs
             string fileName = Archive.Name;
             string folder = Guid.NewGuid().ToString();
             Utils.Log($"Indexer is downloading {fileName}");
-            var downloadDest = Path.Combine(Server.Config.Indexer.DownloadDir, folder, fileName);
+            var downloadDest = Path.Combine(settings.DownloadDir, folder, fileName);
             await Archive.State.Download(downloadDest);
 
             using (var queue = new WorkQueue())
             {
                 var vfs = new Context(queue, true);
-                await vfs.AddRoot(Path.Combine(Server.Config.Indexer.DownloadDir, folder));
+                await vfs.AddRoot(Path.Combine(settings.DownloadDir, folder));
                 var archive = vfs.Index.ByRootPath.First();
                 var converted = ConvertArchive(new List<IndexedFile>(), archive.Value);
                 try
@@ -63,15 +60,15 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     IsValid = true
                 });
 
-                var to_path = Path.Combine(Server.Config.Indexer.ArchiveDir,
+                var to_path = Path.Combine(settings.ArchiveDir,
                     $"{Path.GetFileName(fileName)}_{archive.Value.Hash.FromBase64().ToHex()}_{Path.GetExtension(fileName)}");
                 if (File.Exists(to_path))
                     File.Delete(downloadDest);
                 else
                     File.Move(downloadDest, to_path);
-                Utils.DeleteDirectory(Path.Combine(Server.Config.Indexer.DownloadDir, folder));
+                Utils.DeleteDirectory(Path.Combine(settings.DownloadDir, folder));
             }
-*/
+
             return JobResult.Success();
         }
 
