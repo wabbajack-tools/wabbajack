@@ -317,7 +317,7 @@ namespace Wabbajack
                 .Batch(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
                 .Filter(i => i.Status.IsWorking && i.Status.ID != WorkQueue.UnassignedCpuId)
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOnGuiThread()
                 .Sort(SortExpressionComparer<CPUDisplayVM>.Ascending(s => s.StartTime))
                 .Bind(StatusList)
                 .Subscribe()

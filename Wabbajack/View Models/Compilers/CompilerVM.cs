@@ -1,4 +1,4 @@
-﻿using DynamicData;
+using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -123,7 +123,7 @@ namespace Wabbajack
                 // Throttle so that it only loads image after any sets of swaps have completed
                 .Throttle(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
                 .DistinctUntilChanged()
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOnGuiThread()
                 .Select(path =>
                 {
                     if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Resources/Wabba_Mouth_No_Text.png");
@@ -172,8 +172,8 @@ namespace Wabbajack
                 .Batch(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
                 .Filter(i => i.Status.IsWorking && i.Status.ID != WorkQueue.UnassignedCpuId)
-                .ObserveOn(RxApp.MainThreadScheduler)
                 .Sort(SortExpressionComparer<CPUDisplayVM>.Ascending(s => s.StartTime))
+                .ObserveOnGuiThread()
                 .Bind(StatusList)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);

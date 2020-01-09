@@ -63,8 +63,8 @@ namespace Wabbajack
                 .ToObservableChangeSet()
                 .Buffer(TimeSpan.FromMilliseconds(250), RxApp.TaskpoolScheduler)
                 .Where(l => l.Count > 0)
-                .ObserveOn(RxApp.MainThreadScheduler)
                 .FlattenBufferResult()
+                .ObserveOnGuiThread()
                 .Bind(Log)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);

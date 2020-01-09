@@ -42,10 +42,10 @@ namespace Wabbajack.Lib.Downloaders
 
             TriggerLogin = ReactiveCommand.CreateFromTask(
                 execute: () => Utils.CatchAndLog(NexusApiClient.RequestAndCacheAPIKey), 
-                canExecute: IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
+                canExecute: IsLoggedIn.Select(b => !b).ObserveOnGuiThread());
             ClearLogin = ReactiveCommand.Create(
                 execute: () => Utils.CatchAndLog(() => Utils.DeleteEncryptedJson("nexusapikey")),
-                canExecute: IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
+                canExecute: IsLoggedIn.ObserveOnGuiThread());
         }
 
         public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
