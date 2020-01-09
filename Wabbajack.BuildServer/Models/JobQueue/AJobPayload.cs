@@ -13,7 +13,8 @@ namespace Wabbajack.BuildServer.Models.JobQueue
         public static List<Type> KnownSubTypes = new List<Type>
         {
             typeof(IndexJob),
-            typeof(GetNexusUpdatesJob)
+            typeof(GetNexusUpdatesJob),
+            typeof(UpdateModLists)
         };
         public static Dictionary<Type, string> TypeToName { get; set; }
         public static Dictionary<string, Type> NameToType { get; set; }

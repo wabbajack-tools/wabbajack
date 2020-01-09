@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using GraphQL;
 using GraphQL.Language.AST;
@@ -26,6 +27,7 @@ namespace Wabbajack.BuildServer.Controllers
             var schema = new Schema
             {
                 Query = new Query(Db),
+                Mutation = new Mutation(Db)
             };
             
             var result = await new DocumentExecuter().ExecuteAsync(_ =>
