@@ -22,6 +22,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using Wabbajack.BuildServer.Controllers;
 using Wabbajack.BuildServer.Models;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
+using Wabbajack.BuildServer.Controllers;
 using Microsoft.Extensions.FileProviders;
 using Directory = System.IO.Directory;
 
@@ -44,15 +45,15 @@ namespace Wabbajack.BuildServer
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "Wabbajack Build API", Version = "v1"});
             });
-           
+
             services.AddSingleton<DBContext>();
             services.AddSingleton<JobManager>();
             services.AddSingleton<AppSettings>();
-            services.AddControllers(o =>
+            services.AddMvc();
+            services.AddControllers()
+                .AddNewtonsoftJson(o =>
             {
                 
-            }).AddNewtonsoftJson(o =>
-            {
                 o.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             });
             

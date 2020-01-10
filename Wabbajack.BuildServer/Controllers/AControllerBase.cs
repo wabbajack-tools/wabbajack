@@ -4,10 +4,11 @@ using Wabbajack.BuildServer.Models;
 
 namespace Wabbajack.BuildServer.Controllers
 {
+    [ApiController]
     public abstract class AControllerBase<T> : ControllerBase
     {
-        protected readonly ILogger<T> Logger;
         protected readonly DBContext Db;
+        protected readonly ILogger<T> Logger;
 
         protected AControllerBase(ILogger<T> logger, DBContext db)
         {

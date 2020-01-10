@@ -2,11 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <OutputType>Exe</OutputType>
         <UserSecretsId>aspnet-Wabbajack.BuildServer-6E798B30-DB04-4436-BE65-F043AF37B314</UserSecretsId>
         <WebProject_DirectoryAccessLevelKey>0</WebProject_DirectoryAccessLevelKey>
-        <PublishTrimmed>true</PublishTrimmed>
-        <PublishSingleFile>true</PublishSingleFile>
         <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
         <Configurations>Debug;Release</Configurations>
         <Platforms>AnyCPU;x64</Platforms>

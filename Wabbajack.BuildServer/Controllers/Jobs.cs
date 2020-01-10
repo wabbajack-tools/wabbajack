@@ -26,6 +26,5 @@ namespace Wabbajack.BuildServer.Controllers
                 .OrderByDescending(j => j.Priority)
                 .ToListAsync();
         }
-        
     }
 }

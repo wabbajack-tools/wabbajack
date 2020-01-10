@@ -11,13 +11,12 @@ namespace Wabbajack.BuildServer.Controllers
 {
     [ApiController]
     [Route("/lists")]
-
     public class ListValidation : AControllerBase<ListValidation>
     {
         public ListValidation(ILogger<ListValidation> logger, DBContext db) : base(logger, db)
         {
         }
-        
+
         [HttpGet]
         [Route("status.json")]
         public async Task<IList<ModlistSummary>> HandleGetLists()

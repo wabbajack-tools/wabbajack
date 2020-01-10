@@ -13,14 +13,13 @@ namespace Wabbajack.BuildServer.Controllers
     [Route("/v1/games/")]
     public class NexusCache : AControllerBase<NexusCache>
     {
-        
         public NexusCache(ILogger<NexusCache> logger, DBContext db) : base(logger, db)
         {
         }
-        
+
         /// <summary>
-        /// Looks up the mod details for a given Gamename/ModId pair. If the entry is not found in the cache it will
-        /// be requested from the server (using the caller's Nexus API key if provided).
+        ///     Looks up the mod details for a given Gamename/ModId pair. If the entry is not found in the cache it will
+        ///     be requested from the server (using the caller's Nexus API key if provided).
         /// </summary>
         /// <param name="db"></param>
         /// <param name="GameName">The Nexus game name</param>
@@ -38,13 +37,7 @@ namespace Wabbajack.BuildServer.Controllers
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
                 var path = $"/v1/games/{GameName}/mods/{ModId}.json";
                 var body = await api.Get<ModInfo>(path);
-                result = new NexusCacheData<ModInfo>
-                {
-                    Data = body, 
-                    Path = path, 
-                    Game = GameName,
-                    ModId = ModId
-                };
+                result = new NexusCacheData<ModInfo> {Data = body, Path = path, Game = GameName, ModId = ModId};
                 try
                 {
                     await Db.NexusModInfos.InsertOneAsync(result);
@@ -74,10 +67,7 @@ namespace Wabbajack.BuildServer.Controllers
                 var body = await api.Get<NexusApiClient.GetModFilesResponse>(path);
                 result = new NexusCacheData<NexusApiClient.GetModFilesResponse>
                 {
-                    Data = body,
-                    Path = path,
-                    Game = GameName,
-                    ModId = ModId
+                    Data = body, Path = path, Game = GameName, ModId = ModId
                 };
                 try
                 {
@@ -85,7 +75,6 @@ namespace Wabbajack.BuildServer.Controllers
                 }
                 catch (MongoWriteException)
                 {
-
                 }
 
                 method = "NOT_CACHED";
@@ -96,10 +85,11 @@ namespace Wabbajack.BuildServer.Controllers
         }
 
         [HttpGet]
-        [Route("{GameName}/mods/{ModId}/files/{FileId}.json")]        
+        [Route("{GameName}/mods/{ModId}/files/{FileId}.json")]
         public async Task<object> GetFileInfo(string GameName, string ModId, string FileId)
         {
-            var result = await Db.NexusFileInfos.FindOneAsync(info => info.Game == GameName && info.ModId == ModId && info.FileId == FileId);
+            var result = await Db.NexusFileInfos.FindOneAsync(info =>
+                info.Game == GameName && info.ModId == ModId && info.FileId == FileId);
 
             string method = "CACHED";
             if (result == null)
@@ -109,9 +99,9 @@ namespace Wabbajack.BuildServer.Controllers
                 var body = await api.Get<NexusFileInfo>(path);
                 result = new NexusCacheData<NexusFileInfo>
                 {
-                    Data = body, 
-                    Path = path, 
-                    Game = GameName, 
+                    Data = body,
+                    Path = path,
+                    Game = GameName,
                     ModId = ModId,
                     FileId = FileId
                 };
@@ -121,7 +111,6 @@ namespace Wabbajack.BuildServer.Controllers
                 }
                 catch (MongoWriteException)
                 {
-
                 }
 
                 method = "NOT_CACHED";
@@ -130,7 +119,5 @@ namespace Wabbajack.BuildServer.Controllers
             Response.Headers.Add("x-cache-method", method);
             return result.Data;
         }
-
-
     }
 }

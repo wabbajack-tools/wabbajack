@@ -22,7 +22,7 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("{xxHashAsBase64}")]
         public async Task<IndexedVirtualFile> GetFile(string xxHashAsBase64)
         {
-            var id = xxHashAsBase64;//.FromHex().ToBase64();
+            var id = xxHashAsBase64.FromHex().ToBase64();
             var query = new[]
             {
                 new BsonDocument("$match",
@@ -47,16 +47,18 @@ namespace Wabbajack.BuildServer.Controllers
                 if (t == null)
                     return null;
 
-                Dictionary<string, TreeResult> indexed_children= new Dictionary<string, TreeResult>();
-                if (t.IsArchive) 
+                Dictionary<string, TreeResult> indexed_children = new Dictionary<string, TreeResult>();
+                if (t.IsArchive)
                     indexed_children = t.ChildFiles.ToDictionary(t => t.Hash);
-                
+
                 var file = new IndexedVirtualFile
                 {
                     Name = Name,
                     Size = t.Size,
-                    Hash =  t.Hash,
-                    Children = t.IsArchive ? t.Children.Select(child => Convert(indexed_children[child.Hash], child.Name)).ToList() : new List<IndexedVirtualFile>()
+                    Hash = t.Hash,
+                    Children = t.IsArchive
+                        ? t.Children.Select(child => Convert(indexed_children[child.Hash], child.Name)).ToList()
+                        : new List<IndexedVirtualFile>()
                 };
                 return file;
             }
@@ -68,7 +70,5 @@ namespace Wabbajack.BuildServer.Controllers
         {
             public List<TreeResult> ChildFiles { get; set; }
         }
-
-
     }
 }
