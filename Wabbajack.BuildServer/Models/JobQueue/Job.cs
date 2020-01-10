@@ -54,7 +54,7 @@ namespace Wabbajack.BuildServer.Models.JobQueue
         {
             var filter = new BsonDocument
             {
-                {"query", new BsonDocument {{"Id", job.Id}}},
+                {"query", new BsonDocument {{"_id", job.Id}}},
             };
             var update = new BsonDocument
             {
