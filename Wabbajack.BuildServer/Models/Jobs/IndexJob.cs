@@ -19,7 +19,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
     public class IndexJob : AJobPayload
     {
         public Archive Archive { get; set; }
-        public override string Description => $"Index ${Archive.State.PrimaryKey} and save the download/file state";
+        public override string Description => $"Index ${Archive.State.PrimaryKeyString} and save the download/file state";
         public override bool UsesNexus { get => Archive.State is NexusDownloader.State; }
         public override async Task<JobResult> Execute(DBContext db, AppSettings settings)
         {
