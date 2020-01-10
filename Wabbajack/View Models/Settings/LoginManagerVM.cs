@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -34,7 +35,7 @@ namespace Wabbajack
         public LoginTargetVM(INeedsLogin login)
         {
             Login = login;
-            _MetaInfo = login.MetaInfo
+            _MetaInfo = (login.MetaInfo ?? Observable.Return(""))
                 .ObserveOnGuiThread()
                 .ToProperty(this, nameof(MetaInfo));
         }
