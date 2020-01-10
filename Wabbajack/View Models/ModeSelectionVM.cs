@@ -1,6 +1,6 @@
-﻿using Alphaleonis.Win32.Filesystem;
-using ReactiveUI;
+﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;

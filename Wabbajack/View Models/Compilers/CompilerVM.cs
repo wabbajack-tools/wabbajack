@@ -1,4 +1,4 @@
-using DynamicData;
+﻿using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -154,28 +154,10 @@ namespace Wabbajack
                         resultSelector: (i, b) => i && b)
                     .ObserveOnGuiThread());
 
-            // Compile progress updates and populate ObservableCollection
-            Dictionary<int, CPUDisplayVM> cpuDisplays = new Dictionary<int, CPUDisplayVM>();
-            this.WhenAny(x => x.Compiler.ActiveCompilation)
-                .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>())
-                .ObserveOn(RxApp.TaskpoolScheduler)
-                // Attach start times to incoming CPU items
-                .Scan(
-                    new CPUDisplayVM(),
-                    (_, cpu) =>
-                    {
-                        var ret = cpuDisplays.TryCreate(cpu.ID);
-                        ret.AbsorbStatus(cpu);
-                        return ret;
-                    })
-                .ToObservableChangeSet(x => x.Status.ID)
-                .Batch(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
-                .EnsureUniqueChanges()
-                .Filter(i => i.Status.IsWorking && i.Status.ID != WorkQueue.UnassignedCpuId)
-                .Sort(SortExpressionComparer<CPUDisplayVM>.Ascending(s => s.StartTime))
-                .ObserveOnGuiThread()
-                .Bind(StatusList)
-                .Subscribe()
+            UIUtils.BindCpuStatus(
+                this.WhenAny(x => x.Compiler.ActiveCompilation)
+                    .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>()),
+                StatusList)
                 .DisposeWith(CompositeDisposable);
 
             _percentCompleted = this.WhenAny(x => x.Compiler.ActiveCompilation)
