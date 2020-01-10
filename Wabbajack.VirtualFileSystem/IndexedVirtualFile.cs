@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Wabbajack.Lib.DTOs
+namespace Wabbajack.VirtualFileSystem
 {
     /// <summary>
     /// Response from the Build server for a indexed file

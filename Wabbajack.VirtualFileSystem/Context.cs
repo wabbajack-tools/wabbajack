@@ -72,7 +72,7 @@ namespace Wabbajack.VirtualFileSystem
                                         return found;
                                 }
 
-                                return await VirtualFile.Analyze(this, null, f, f);
+                                return await VirtualFile.Analyze(this, null, f, f, true);
                             });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
@@ -109,7 +109,7 @@ namespace Wabbajack.VirtualFileSystem
                             return found;
                     }
 
-                    return await VirtualFile.Analyze(this, null, f, f);
+                    return await VirtualFile.Analyze(this, null, f, f, true);
                 });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());

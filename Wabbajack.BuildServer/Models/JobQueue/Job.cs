@@ -18,8 +18,7 @@ namespace Wabbajack.BuildServer.Models.JobQueue
             High,
         }
 
-        [BsonId]
-        public Guid Id { get; set; }
+        [BsonId] public String Id { get; set; } = Guid.NewGuid().ToString();
         public DateTime? Started { get; set; }
         public DateTime? Ended { get; set; }
         public DateTime Created { get; set; } = DateTime.Now;
@@ -29,7 +28,7 @@ namespace Wabbajack.BuildServer.Models.JobQueue
         public bool RequiresNexus { get; set; } = true;
         public AJobPayload Payload { get; set; }
 
-        public static async Task<Guid> Enqueue(DBContext db, Job job)
+        public static async Task<String> Enqueue(DBContext db, Job job)
         {
             await db.Jobs.InsertOneAsync(job);
             return job.Id;
@@ -54,7 +53,7 @@ namespace Wabbajack.BuildServer.Models.JobQueue
         {
             var filter = new BsonDocument
             {
-                {"query", new BsonDocument {{"_id", job.Id}}},
+                {"_id", job.Id},
             };
             var update = new BsonDocument
             {

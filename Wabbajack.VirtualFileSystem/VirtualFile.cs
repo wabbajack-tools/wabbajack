@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -133,9 +134,40 @@ namespace Wabbajack.VirtualFileSystem
         }
 
         public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, string abs_path,
-            string rel_path)
+            string rel_path, bool topLevel)
         {
+            var hash = abs_path.FileHash();
             var fi = new FileInfo(abs_path);
+
+            if (FileExtractor.MightBeArchive(abs_path))
+            {
+                var result = await TryGetContentsFromServer(hash);
+
+                if (result != null)
+                {
+                    VirtualFile Convert(IndexedVirtualFile file, string path, VirtualFile vparent)
+                    {
+                        var vself = new VirtualFile
+                        {
+                            Context = context,
+                            Name = path,
+                            Parent = vparent,
+                            Size = file.Size,
+                            LastModified = fi.LastWriteTimeUtc.Ticks,
+                            LastAnalyzed = DateTime.Now.Ticks,
+                            Hash = file.Hash,
+
+                        };
+
+                        vself.Children = file.Children.Select(f => Convert(f, f.Name, vself)).ToImmutableList();
+
+                        return vself;
+                    }
+
+                    return Convert(result, rel_path, parent);
+                }
+            }
+
             var self = new VirtualFile
             {
                 Context = context,
@@ -144,7 +176,7 @@ namespace Wabbajack.VirtualFileSystem
                 Size = fi.Length,
                 LastModified = fi.LastWriteTimeUtc.Ticks,
                 LastAnalyzed = DateTime.Now.Ticks,
-                Hash = abs_path.FileHash()
+                Hash = hash
             };
             if (context.UseExtendedHashes)
                 self.ExtendedHashes = ExtendedHashes.FromFile(abs_path);
@@ -157,7 +189,7 @@ namespace Wabbajack.VirtualFileSystem
                     await FileExtractor.ExtractAll(context.Queue, abs_path, tempFolder.FullName);
 
                     var list = await Directory.EnumerateFiles(tempFolder.FullName, "*", SearchOption.AllDirectories)
-                                        .PMap(context.Queue, abs_src => Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName)));
+                                        .PMap(context.Queue, abs_src => Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName), false));
 
                     self.Children = list.ToImmutableList();
                 }
@@ -165,6 +197,27 @@ namespace Wabbajack.VirtualFileSystem
             }
 
             return self;
+        }
+
+        private static async Task<IndexedVirtualFile> TryGetContentsFromServer(string hash)
+        {
+            try
+            {
+                var client = new HttpClient();
+                var response = await client.GetAsync($"http://{Consts.WabbajackCacheHostname}/indexed_files/{hash.FromBase64().ToHex()}");
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                using (var stream = await response.Content.ReadAsStreamAsync())
+                {
+                    return stream.FromJSON<IndexedVirtualFile>();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
 
 

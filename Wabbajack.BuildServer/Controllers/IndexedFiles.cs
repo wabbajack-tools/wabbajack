@@ -7,7 +7,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.Common;
-using Wabbajack.Lib.DTOs;
+using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.BuildServer.Controllers
 {
@@ -20,7 +20,7 @@ namespace Wabbajack.BuildServer.Controllers
 
         [HttpGet]
         [Route("{xxHashAsBase64}")]
-        public async Task<IndexedVirtualFile> GetFile(string xxHashAsBase64)
+        public async Task<IActionResult> GetFile(string xxHashAsBase64)
         {
             var id = xxHashAsBase64.FromHex().ToBase64();
             var query = new[]
@@ -63,7 +63,10 @@ namespace Wabbajack.BuildServer.Controllers
                 return file;
             }
 
-            return Convert(result.FirstOrDefault());
+            var first = result.FirstOrDefault();
+            if (first == null)
+                return NotFound();
+            return Ok(Convert(first));
         }
 
         public class TreeResult : IndexedFile

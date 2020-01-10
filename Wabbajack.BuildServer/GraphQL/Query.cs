@@ -49,7 +49,7 @@ namespace Wabbajack.BuildServer.GraphQL
                     new QueryArgument<IdGraphType> {Name = "id", Description = "Id of the Job"}),
                 resolve: async context =>
                 {
-                    var id = Guid.Parse(context.GetArgument<string>("id"));
+                    var id = context.GetArgument<string>("id");
                     var data = await db.Jobs.AsQueryable().Where(j => j.Id == id).ToListAsync();
                     return data;
                 });
