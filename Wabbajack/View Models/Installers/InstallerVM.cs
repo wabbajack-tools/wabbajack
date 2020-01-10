@@ -299,28 +299,10 @@ namespace Wabbajack
                     })
                 .ToProperty(this, nameof(ProgressTitle));
 
-            Dictionary<int, CPUDisplayVM> cpuDisplays = new Dictionary<int, CPUDisplayVM>();
-            // Compile progress updates and populate ObservableCollection
-            this.WhenAny(x => x.Installer.ActiveInstallation)
-                .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>())
-                .ObserveOn(RxApp.TaskpoolScheduler)
-                // Attach start times to incoming CPU items
-                .Scan(
-                    new CPUDisplayVM(),
-                    (_, cpu) =>
-                    {
-                        var ret = cpuDisplays.TryCreate(cpu.ID);
-                        ret.AbsorbStatus(cpu);
-                        return ret;
-                    })
-                .ToObservableChangeSet(x => x.Status.ID)
-                .Batch(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
-                .EnsureUniqueChanges()
-                .Filter(i => i.Status.IsWorking && i.Status.ID != WorkQueue.UnassignedCpuId)
-                .ObserveOn(RxApp.MainThreadScheduler)
-                .Sort(SortExpressionComparer<CPUDisplayVM>.Ascending(s => s.StartTime))
-                .Bind(StatusList)
-                .Subscribe()
+            UIUtils.BindCpuStatus(
+                this.WhenAny(x => x.Installer.ActiveInstallation)
+                    .SelectMany(c => c?.QueueStatus ?? Observable.Empty<CPUStatus>()),
+                StatusList)
                 .DisposeWith(CompositeDisposable);
 
             BeginCommand = ReactiveCommand.CreateFromTask(

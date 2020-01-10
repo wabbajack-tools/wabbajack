@@ -64,7 +64,7 @@ namespace Wabbajack
                         return default;
                     }
                 })
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOnGuiThread()
                 .Select(memStream =>
                 {
                     if (memStream == null) return default;

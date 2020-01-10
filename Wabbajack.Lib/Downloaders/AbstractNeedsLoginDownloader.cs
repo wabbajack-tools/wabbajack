@@ -42,10 +42,10 @@ namespace Wabbajack.Lib.Downloaders
             
             TriggerLogin = ReactiveCommand.CreateFromTask(
                 execute: () => Utils.CatchAndLog(async () => await Utils.Log(new RequestSiteLogin(this)).Task),
-                canExecute: IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
+                canExecute: IsLoggedIn.Select(b => !b).ObserveOnGuiThread());
             ClearLogin = ReactiveCommand.Create(
                 execute: () => Utils.CatchAndLog(() => Utils.DeleteEncryptedJson(_encryptedKeyName)),
-                canExecute: IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
+                canExecute: IsLoggedIn.ObserveOnGuiThread());
         }
         
         public ICommand TriggerLogin { get; }

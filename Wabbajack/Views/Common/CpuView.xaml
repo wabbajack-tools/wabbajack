@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="Wabbajack.CpuView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -25,22 +25,22 @@
                             BorderThickness="0"
                             Foreground="{StaticResource DarkPrimaryVariantBrush}"
                             Maximum="1"
-                            Opacity="{Binding Status.ProgressPercent, Mode=OneWay}"
-                            Value="{Binding Status.ProgressPercent, Mode=OneWay}" />
+                            Opacity="{Binding ProgressPercent, Mode=OneWay}"
+                            Value="{Binding ProgressPercent, Mode=OneWay}" />
                         <Grid Height="1" VerticalAlignment="Bottom">
                             <mahapps:MetroProgressBar
                                 Background="Transparent"
                                 BorderThickness="0"
                                 Foreground="{StaticResource DarkSecondaryBrush}"
                                 Maximum="1"
-                                Value="{Binding Status.ProgressPercent, Mode=OneWay}" />
+                                Value="{Binding ProgressPercent, Mode=OneWay}" />
                         </Grid>
                         <TextBlock
                             Margin="0,0,0,2"
-                            Text="{Binding Status.Msg}"
+                            Text="{Binding Msg, Mode=OneWay}"
                             TextTrimming="CharacterEllipsis"
                             TextWrapping="NoWrap"
-                            ToolTip="{Binding Status.Msg}" />
+                            ToolTip="{Binding Msg, Mode=OneWay}" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>

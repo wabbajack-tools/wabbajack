@@ -1,6 +1,10 @@
-﻿using Microsoft.WindowsAPICodePack.Dialogs;
+﻿using DynamicData;
+using DynamicData.Binding;
+using Microsoft.WindowsAPICodePack.Dialogs;
+using ReactiveUI;
 using System;
 using System.IO;
+using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,6 +56,24 @@ namespace Wabbajack.UI
             if (ofd.ShowDialog() == DialogResult.OK)
                 return ofd.FileName;
             return null;
+        }
+
+        public static IDisposable BindCpuStatus(IObservable<CPUStatus> status, ObservableCollectionExtended<CPUDisplayVM> list)
+        {
+            return status.ObserveOn(RxApp.TaskpoolScheduler)
+                .ToObservableChangeSet(x => x.ID)
+                .Batch(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
+                .EnsureUniqueChanges()
+                .TransformAndCache(
+                    onAdded: (key, cpu) => new CPUDisplayVM(cpu),
+                    onUpdated: (change, vm) => vm.AbsorbStatus(change.Current))
+                .AutoRefresh(x => x.IsWorking)
+                .AutoRefresh(x => x.StartTime)
+                .Filter(i => i.IsWorking && i.ID != WorkQueue.UnassignedCpuId)
+                .Sort(SortExpressionComparer<CPUDisplayVM>.Ascending(s => s.StartTime))
+                .ObserveOnGuiThread()
+                .Bind(list)
+                .Subscribe();
         }
     }
 }

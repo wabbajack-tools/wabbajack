@@ -172,6 +172,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Extensions\DynamicDataExt.cs" />
     <Compile Include="UI\FilePickerVM.cs" />
     <Compile Include="UI\UIUtils.cs" />
     <Compile Include="Util\SystemParametersConstructor.cs" />
@@ -584,8 +585,6 @@
   <ItemGroup>
     <SplashScreen Include="Resources\Wabba_Mouth_Small.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="UserInterventions\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
