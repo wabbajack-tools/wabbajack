@@ -51,7 +51,7 @@ namespace Wabbajack.Lib
             }
 
             if (cancel.IsCancellationRequested) return false;
-            ConfigureProcessor(10, await RecommendQueueSize());
+            ConfigureProcessor(10, ConstructDynamicNumThreads(await RecommendQueueSize()));
             Directory.CreateDirectory(DownloadFolder);
 
             if (cancel.IsCancellationRequested) return false;

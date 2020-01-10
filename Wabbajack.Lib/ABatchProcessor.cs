@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
@@ -48,17 +49,17 @@ namespace Wabbajack.Lib
         private readonly CompositeDisposable _subs = new CompositeDisposable();
 
         // WorkQueue settings
-        public bool ManualCoreLimit = true;
-        public byte MaxCores = byte.MaxValue;
-        public double TargetUsagePercent = 1.0d;
+        public BehaviorSubject<bool> ManualCoreLimit = new BehaviorSubject<bool>(true);
+        public BehaviorSubject<byte> MaxCores = new BehaviorSubject<byte>(byte.MaxValue);
+        public BehaviorSubject<double> TargetUsagePercent = new BehaviorSubject<double>(1.0d);
 
-        protected void ConfigureProcessor(int steps, int threads = 0)
+        protected void ConfigureProcessor(int steps, IObservable<int> numThreads = null)
         {
             if (1 == Interlocked.CompareExchange(ref _configured, 1, 1))
             {
                 throw new InvalidDataException("Can't configure a processor twice");
             }
-            Queue = new WorkQueue(threads);
+            Queue = new WorkQueue(numThreads);
             UpdateTracker = new StatusUpdateTracker(steps);
             Queue.Status.Subscribe(_queueStatus)
                 .DisposeWith(_subs);
@@ -79,21 +80,32 @@ namespace Wabbajack.Lib
             var scratch_size = await RecommendQueueSize(Directory.GetCurrentDirectory());
             var result = Math.Min((int)based_on_memory, (int)scratch_size);
             Utils.Log($"Recommending a queue size of {result} based on disk performance, number of cores, and {((long)memory.ullTotalPhys).ToFileSizeString()} of system RAM");
-            if (ManualCoreLimit)
-            {
-                if (result > MaxCores)
-                {
-                    Utils.Log($"Only using {MaxCores} due to user preferences.");
-                }
-                result = MaxCores;
-            }
-            else if (TargetUsagePercent < 1.0d && TargetUsagePercent > 0d)
-            {
-                result = (int)Math.Ceiling(result * TargetUsagePercent);
-                result = Math.Max(1, result);
-                Utils.Log($"Only using {result} due to user scaling preferences of {(TargetUsagePercent * 100)}%.");
-            }
             return result;
+        }
+
+        public IObservable<int> ConstructDynamicNumThreads(int recommendedCount)
+        {
+            return Observable.CombineLatest(
+                ManualCoreLimit,
+                MaxCores,
+                TargetUsagePercent,
+                resultSelector: (manual, max, target) =>
+                {
+                    if (manual)
+                    {
+                        if (recommendedCount > max)
+                        {
+                            Utils.Log($"Only using {max} due to user preferences.");
+                        }
+                        return Math.Min(max, recommendedCount);
+                    }
+                    else if (target < 1.0d && target > 0d)
+                    {
+                        var ret = (int)Math.Ceiling(recommendedCount * target);
+                        return Math.Max(1, ret);
+                    }
+                    return recommendedCount;
+                });
         }
 
         public static async Task<int> RecommendQueueSize(string folder)
@@ -141,5 +153,7 @@ namespace Wabbajack.Lib
             Queue?.Dispose();
             _isRunning.OnNext(false);
         }
+
+        public void Add(IDisposable disposable) => _subs.Add(disposable);
     }
 }

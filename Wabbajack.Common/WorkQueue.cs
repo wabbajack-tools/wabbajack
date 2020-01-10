@@ -1,11 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
+using DynamicData;
 using Wabbajack.Common.StatusFeed;
 
 namespace Wabbajack.Common
@@ -26,33 +28,56 @@ namespace Wabbajack.Common
         private readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
 
-        public List<Task> Tasks { get; private set; }
+        private int _nextCpuID = 1; // Start at 1, as 0 is "Unassigned"
+        private int _desiredCount = 0;
+        private List<(int CpuID, Task Task)> _tasks = new List<(int CpuID, Task Task)>();
+        public int DesiredNumWorkers => _desiredCount;
 
-        private CancellationTokenSource _cancel = new CancellationTokenSource();
+        private CancellationTokenSource _shutdown = new CancellationTokenSource();
+
+        private CompositeDisposable _disposables = new CompositeDisposable();
 
         // This is currently a lie, as it wires to the Utils singleton stream This is still good to have, 
         // so that logic related to a single WorkQueue can subscribe to this dummy member so that If/when we 
         // implement log messages in a non-singleton fashion, they will already be wired up properly.
         public IObservable<IStatusMessage> LogMessages => Utils.LogMessages;
 
-        public int ThreadCount { get; private set; }
+        private AsyncLock _lock = new AsyncLock();
 
         public WorkQueue(int? threadCount = null)
+            : this(Observable.Return(threadCount ?? Environment.ProcessorCount))
         {
-            ThreadCount = threadCount ?? Environment.ProcessorCount;
-            Tasks = Enumerable.Range(1, ThreadCount)
-                .Select(idx =>
-                {
-                    return Task.Run(async () =>
-                    {
-                        await ThreadBody(idx);
-                    });
-                }).ToList();
         }
 
-        private async Task ThreadBody(int idx)
+        public WorkQueue(IObservable<int> numThreads)
         {
-            _cpuId.Value = idx;
+            (numThreads ?? Observable.Return(Environment.ProcessorCount))
+                .DistinctUntilChanged()
+                .SelectTask(AddNewThreadsIfNeeded)
+                .Subscribe()
+                .DisposeWith(_disposables);
+        }
+
+        private async Task AddNewThreadsIfNeeded(int desired)
+        {
+            using (await _lock.Wait())
+            {
+                _desiredCount = desired;
+                while (_desiredCount > _tasks.Count)
+                {
+                    var cpuID = _nextCpuID++;
+                    _tasks.Add((cpuID,
+                        Task.Run(async () =>
+                        {
+                            await ThreadBody(cpuID);
+                        })));
+                }
+            }
+        }
+
+        private async Task ThreadBody(int cpuID)
+        {
+            _cpuId.Value = cpuID;
             AsyncLocalCurrentQueue.Value = this;
 
             try
@@ -60,11 +85,11 @@ namespace Wabbajack.Common
                 while (true)
                 {
                     Report("Waiting", 0, false);
-                    if (_cancel.IsCancellationRequested) return;
+                    if (_shutdown.IsCancellationRequested) return;
                     Func<Task> f;
                     try
                     {
-                        f = Queue.Take(_cancel.Token);
+                        f = Queue.Take(_shutdown.Token);
                     }
                     catch (Exception)
                     {
@@ -72,6 +97,32 @@ namespace Wabbajack.Common
                     }
 
                     await f();
+
+                    // Check if we're currently trimming threads
+                    if (_desiredCount >= _tasks.Count) continue;
+
+                    // Noticed that we may need to shut down, lock and check again
+                    using (await _lock.Wait())
+                    {
+                        // Check if another thread shut down before this one and got us in line
+                        if (_desiredCount >= _tasks.Count) continue;
+
+                        Report("Shutting down", 0, false);
+                        // Remove this task from list
+                        for (int i = 0; i < _tasks.Count; i++)
+                        {
+                            if (_tasks[i].CpuID == cpuID)
+                            {
+                                _tasks.RemoveAt(i);
+                                // Shutdown thread
+                                Report("Shutting down", 0, false);
+                                return;
+                            }
+                        }
+                        // Failed to remove, warn and then shutdown anyway
+                        Utils.Error($"Could not remove thread from workpool with CPU ID {cpuID}");
+                        return;
+                    }
                 }
             }
             catch (OperationCanceledException)
@@ -103,7 +154,8 @@ namespace Wabbajack.Common
 
         public void Dispose()
         {
-            _cancel.Cancel();
+            _shutdown.Cancel();
+            _disposables.Dispose();
             Queue?.Dispose();
         }
     }

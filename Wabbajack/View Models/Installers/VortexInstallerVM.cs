@@ -63,31 +63,29 @@ namespace Wabbajack
 
             var download = VortexCompiler.RetrieveDownloadLocation(TargetGame);
             var staging = VortexCompiler.RetrieveStagingLocation(TargetGame);
-            installer = new VortexInstaller(
+            using (installer = new VortexInstaller(
                 archive: Parent.ModListLocation.TargetPath,
                 modList: Parent.ModList.SourceModList,
                 outputFolder: staging,
                 downloadFolder: download,
-                parameters: SystemParametersConstructor.Create())
+                parameters: SystemParametersConstructor.Create()))
             {
-                ManualCoreLimit = Parent.MWVM.Settings.Performance.Manual,
-                MaxCores = Parent.MWVM.Settings.Performance.MaxCores,
-                TargetUsagePercent = Parent.MWVM.Settings.Performance.TargetUsage,
-            };
+                Parent.MWVM.Settings.Performance.AttachToBatchProcessor(installer);
 
-            await Task.Run(async () =>
-            {
-                try
+                await Task.Run(async () =>
                 {
-                    var workTask = installer.Begin();
-                    ActiveInstallation = installer;
-                    await workTask;
-                }
-                finally
-                {
-                    ActiveInstallation = null;
-                }
-            });
+                    try
+                    {
+                        var workTask = installer.Begin();
+                        ActiveInstallation = installer;
+                        await workTask;
+                    }
+                    finally
+                    {
+                        ActiveInstallation = null;
+                    }
+                });
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Subjects;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -83,6 +84,19 @@ namespace Wabbajack
 
         private double _TargetUsage = 1.0d;
         public double TargetUsage { get => _TargetUsage; set => this.RaiseAndSetIfChanged(ref _TargetUsage, value); }
+
+        public void AttachToBatchProcessor(ABatchProcessor processor)
+        {
+            processor.Add(
+                this.WhenAny(x => x.Manual)
+                    .Subscribe(processor.ManualCoreLimit));
+            processor.Add(
+                this.WhenAny(x => x.MaxCores)
+                    .Subscribe(processor.MaxCores));
+            processor.Add(
+                this.WhenAny(x => x.TargetUsage)
+                    .Subscribe(processor.TargetUsagePercent));
+        }
     }
 
     public class CompilationModlistSettings

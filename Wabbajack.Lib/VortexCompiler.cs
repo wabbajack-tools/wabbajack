@@ -85,7 +85,7 @@ namespace Wabbajack.Lib
 
             Info($"Starting Vortex compilation for {GameName} at {GamePath} with staging folder at {StagingFolder} and downloads folder at {DownloadsFolder}.");
 
-            ConfigureProcessor(12);
+            ConfigureProcessor(12, ConstructDynamicNumThreads(await RecommendQueueSize()));
             UpdateTracker.Reset();
 
             if (cancel.IsCancellationRequested) return false;

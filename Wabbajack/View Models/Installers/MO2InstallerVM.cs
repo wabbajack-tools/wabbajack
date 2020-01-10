@@ -146,32 +146,30 @@ namespace Wabbajack
 
         public async Task Install()
         {
-            var installer = new MO2Installer(
+            using (var installer = new MO2Installer(
                 archive: Parent.ModListLocation.TargetPath,
                 modList: Parent.ModList.SourceModList,
                 outputFolder: Location.TargetPath,
                 downloadFolder: DownloadLocation.TargetPath,
-                parameters: SystemParametersConstructor.Create())
+                parameters: SystemParametersConstructor.Create()))
             {
-                ManualCoreLimit = Parent.MWVM.Settings.Performance.Manual,
-                MaxCores = Parent.MWVM.Settings.Performance.MaxCores,
-                TargetUsagePercent = Parent.MWVM.Settings.Performance.TargetUsage,
-            };
+                Parent.MWVM.Settings.Performance.AttachToBatchProcessor(installer);
 
-            await Task.Run(async () =>
-            {
-                try
+                await Task.Run(async () =>
                 {
-                    var workTask = installer.Begin();
-                    ActiveInstallation = installer;
-                    await workTask;
-                    return ErrorResponse.Success;
-                }
-                finally
-                {
-                    ActiveInstallation = null;
-                }
-            });
+                    try
+                    {
+                        var workTask = installer.Begin();
+                        ActiveInstallation = installer;
+                        await workTask;
+                        return ErrorResponse.Success;
+                    }
+                    finally
+                    {
+                        ActiveInstallation = null;
+                    }
+                });
+            }
         }
     }
 }

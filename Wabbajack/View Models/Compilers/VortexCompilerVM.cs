@@ -189,7 +189,7 @@ namespace Wabbajack
             }
             try
             {
-                ActiveCompilation = new VortexCompiler(
+                using (ActiveCompilation = new VortexCompiler(
                     game: SelectedGame.Game,
                     gamePath: GameLocation.TargetPath,
                     vortexFolder: VortexCompiler.TypicalVortexFolder(),
@@ -204,11 +204,11 @@ namespace Wabbajack
                     ModListWebsite = ModlistSettings.Website,
                     ModListReadme = ModlistSettings.ReadmeIsWebsite ? ModlistSettings.ReadmeWebsite : ModlistSettings.ReadmeFilePath.TargetPath,
                     ReadmeIsWebsite = ModlistSettings.ReadmeIsWebsite,
-                    ManualCoreLimit = Parent.MWVM.Settings.Performance.Manual,
-                    MaxCores = Parent.MWVM.Settings.Performance.MaxCores,
-                    TargetUsagePercent = Parent.MWVM.Settings.Performance.TargetUsage,
-                };
-                await ActiveCompilation.Begin();
+                })
+                {
+                    Parent.MWVM.Settings.Performance.AttachToBatchProcessor(ActiveCompilation);
+                    await ActiveCompilation.Begin();
+                }
             }
             finally
             {
