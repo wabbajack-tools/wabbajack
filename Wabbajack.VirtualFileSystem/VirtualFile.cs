@@ -139,7 +139,7 @@ namespace Wabbajack.VirtualFileSystem
             var hash = abs_path.FileHash();
             var fi = new FileInfo(abs_path);
 
-            if (FileExtractor.MightBeArchive(abs_path))
+            if (!context.UseExtendedHashes && FileExtractor.MightBeArchive(abs_path))
             {
                 var result = await TryGetContentsFromServer(hash);
 

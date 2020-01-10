@@ -19,10 +19,15 @@ namespace Wabbajack.VirtualFileSystem
 {
     public class Context
     {
+        static Context()
+        {
+            Utils.Log("Cleaning VFS, this may take a bit of time");
+            Utils.DeleteDirectory(_stagingFolder);
+        }
         public const ulong FileVersion = 0x02;
         public const string Magic = "WABBAJACK VFS FILE";
 
-        private readonly string _stagingFolder = "vfs_staging";
+        private static readonly string _stagingFolder = "vfs_staging";
         public IndexRoot Index { get; private set; } = IndexRoot.Empty;
 
         /// <summary>

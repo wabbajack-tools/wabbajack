@@ -73,6 +73,7 @@ namespace Wabbajack.BuildServer
                 await KillOrphanedJobs();
                 await ScheduledJob<GetNexusUpdatesJob>(TimeSpan.FromHours(2));
                 await ScheduledJob<UpdateModLists>(TimeSpan.FromMinutes(30));
+                await ScheduledJob<EnqueueAllArchives>(TimeSpan.FromHours(2));
                 await Task.Delay(10000);
             }
         }
