@@ -118,6 +118,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ABatchProcessorTests.cs" />
     <Compile Include="ACompilerTest.cs" />
     <Compile Include="AsyncLockTests.cs" />
     <Compile Include="AVortexCompilerTest.cs" />
@@ -143,6 +144,7 @@
     <Compile Include="UtilsTests.cs" />
     <Compile Include="VortexTests.cs" />
     <Compile Include="WebAutomationTests.cs" />
+    <Compile Include="WorkQueueTests.cs" />
     <Compile Include="zEditIntegrationTests.cs" />
   </ItemGroup>
   <ItemGroup>

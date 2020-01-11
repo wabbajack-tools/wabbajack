@@ -128,23 +128,32 @@ namespace Wabbajack.Lib
                 ManualCoreLimit,
                 MaxCores,
                 TargetUsagePercent,
-                resultSelector: (manual, max, target) =>
+                (manual, max, target) => CalculateThreadsToUse(recommendedCount, manual, max, target));
+        }
+
+        /// <summary>
+        /// Calculates the number of threads to use, based off recommended values and user preferences
+        /// </summary>
+        public static int CalculateThreadsToUse(
+            int recommendedCount,
+            bool manual,
+            byte manualMax,
+            double targetUsage)
+        {
+            if (manual)
+            {
+                if (recommendedCount > manualMax)
                 {
-                    if (manual)
-                    {
-                        if (recommendedCount > max)
-                        {
-                            Utils.Log($"Only using {max} due to user preferences.");
-                        }
-                        return Math.Min(max, recommendedCount);
-                    }
-                    else if (target < 1.0d && target > 0d)
-                    {
-                        var ret = (int)Math.Ceiling(recommendedCount * target);
-                        return Math.Max(1, ret);
-                    }
-                    return recommendedCount;
-                });
+                    Utils.Log($"Only using {manualMax} due to user preferences.");
+                }
+                return Math.Max(1, Math.Min(manualMax, recommendedCount));
+            }
+            else if (targetUsage < 1.0d && targetUsage >= 0d)
+            {
+                var ret = (int)Math.Ceiling(recommendedCount * targetUsage);
+                return Math.Max(1, ret);
+            }
+            return recommendedCount;
         }
 
         protected abstract Task<bool> _Begin(CancellationToken cancel);
