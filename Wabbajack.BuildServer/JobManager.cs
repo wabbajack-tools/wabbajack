@@ -71,9 +71,9 @@ namespace Wabbajack.BuildServer
             while (true)
             {
                 await KillOrphanedJobs();
-                await ScheduledJob<GetNexusUpdatesJob>(TimeSpan.FromHours(2));
-                await ScheduledJob<UpdateModLists>(TimeSpan.FromMinutes(30));
-                await ScheduledJob<EnqueueAllArchives>(TimeSpan.FromHours(2));
+                await ScheduledJob<GetNexusUpdatesJob>(TimeSpan.FromHours(2), Job.JobPriority.High);
+                await ScheduledJob<UpdateModLists>(TimeSpan.FromMinutes(30), Job.JobPriority.High);
+                await ScheduledJob<EnqueueAllArchives>(TimeSpan.FromHours(2), Job.JobPriority.Low);
                 await Task.Delay(10000);
             }
         }
@@ -100,7 +100,7 @@ namespace Wabbajack.BuildServer
             }
         }
         
-        private async Task ScheduledJob<T>(TimeSpan span) where T : AJobPayload, new()
+        private async Task ScheduledJob<T>(TimeSpan span, Job.JobPriority priority) where T : AJobPayload, new()
         {
             try
             {
@@ -117,6 +117,7 @@ namespace Wabbajack.BuildServer
                 }
                 await Db.Jobs.InsertOneAsync(new Job
                 {
+                    Priority = priority,
                     Payload = new T()
                 });
             }

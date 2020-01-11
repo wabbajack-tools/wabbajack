@@ -26,7 +26,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 {
                     try
                     {
-                        await ValidateList(db, list, queue);
+                        await EnqueueFromList(db, list, queue);
                     }
                     catch (Exception ex)
                     {
@@ -38,7 +38,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             return JobResult.Success();
         }
 
-        private static async Task ValidateList(DBContext db, ModlistMetadata list, WorkQueue queue)
+        private static async Task EnqueueFromList(DBContext db, ModlistMetadata list, WorkQueue queue)
         {
             var existing = await db.ModListStatus.FindOneAsync(l => l.Id == list.Links.MachineURL);
 
@@ -77,7 +77,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
             Utils.Log($"Found {missing.Count} missing archives, enqueing indexing jobs");
 
-            var jobs = missing.Select(a => new Job {Payload = new IndexJob {Archive = a}});
+            var jobs = missing.Select(a => new Job {Payload = new IndexJob {Archive = a}, Priority = Job.JobPriority.Low});
 
             Utils.Log($"Writing jobs to the DB");
             await db.Jobs.InsertManyAsync(jobs, new InsertManyOptions {IsOrdered = false});
