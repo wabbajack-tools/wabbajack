@@ -67,7 +67,7 @@ namespace Wabbajack
                         return default(MemoryStream);
                     }
                 })
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOnGuiThread()
                 .Select(memStream =>
                 {
                     if (memStream == null) return default(BitmapImage);

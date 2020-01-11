@@ -108,7 +108,7 @@ namespace Wabbajack
                         return query.Items.ElementAtOrDefault(index);
                     })
                 .StartWith(default(ModVM))
-                .ObserveOn(RxApp.MainThreadScheduler)
+                .ObserveOnGuiThread()
                 .ToProperty(this, nameof(TargetMod));
 
             // Mark interest and materialize image of target mod
