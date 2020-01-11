@@ -134,7 +134,7 @@ namespace Wabbajack.Common
                     // Noticed that we may need to shut down, lock and check again
                     using (await _lock.Wait())
                     {
-                        // Check if another thread shut down before this one and got us in line
+                        // Check if another thread shut down before this one and got us back to the desired amount already
                         if (DesiredNumWorkers >= _tasks.Count) continue;
 
                         Report("Shutting down", 0, false);
