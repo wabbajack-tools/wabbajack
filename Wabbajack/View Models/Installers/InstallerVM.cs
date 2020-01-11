@@ -25,7 +25,7 @@ using Wabbajack.UI;
 
 namespace Wabbajack
 {
-    public class InstallerVM : ViewModel, IBackNavigatingVM
+    public class InstallerVM : ViewModel, IBackNavigatingVM, ICpuStatusVM
     {
         public SlideShow Slideshow { get; }
 

@@ -180,6 +180,7 @@
     <Compile Include="Converters\CommandConverter.cs" />
     <Compile Include="Converters\ConverterRegistration.cs" />
     <Compile Include="Extensions\IViewForExt.cs" />
+    <Compile Include="View Models\Interfaces\ICpuStatusVM.cs" />
     <Compile Include="Views\Settings\LoginItemView.xaml.cs">
       <DependentUpon>LoginItemView.xaml</DependentUpon>
     </Compile>

@@ -19,7 +19,7 @@ using Wabbajack.UI;
 
 namespace Wabbajack
 {
-    public class CompilerVM : ViewModel, IBackNavigatingVM
+    public class CompilerVM : ViewModel, IBackNavigatingVM, ICpuStatusVM
     {
         public MainWindowVM MWVM { get; }
 

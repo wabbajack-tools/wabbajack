@@ -422,6 +422,8 @@
             <local:CpuView
                 Grid.Column="2"
                 ProgressPercent="{Binding PercentCompleted, Mode=OneWay}"
+                ViewModel="{Binding}"
+                SettingsHook="{Binding MWVM.Settings}"
                 Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}, ConverterParameter=False}" />
             <local:AttentionBorder Grid.Column="2" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}}">
                 <local:AttentionBorder.DisplayContent>
