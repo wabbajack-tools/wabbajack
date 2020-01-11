@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.Common;
 using Wabbajack.VirtualFileSystem;
@@ -16,6 +17,23 @@ namespace Wabbajack.BuildServer.Controllers
     {
         public IndexedFiles(ILogger<IndexedFiles> logger, DBContext db) : base(logger, db)
         {
+        }
+
+        [HttpGet]
+        [Route("/{xxHashAsBase64}/meta.ini")]
+        public async Task<IActionResult> GetFileMeta(string xxHashAsBase64)
+        {
+            var id = xxHashAsBase64.FromHex().ToBase64();
+            var state = await Db.DownloadStates.AsQueryable()
+                .Where(d => d.Hash == id && d.IsValid)
+                .OrderByDescending(d => d.LastValidationTime)
+                .Take(1)
+                .ToListAsync();
+
+            if (state.Count == 0)
+                return NotFound();
+            Response.ContentType = "text/plain";
+            return Ok(string.Join("\r\n", state.FirstOrDefault().State.GetMetaIni()));
         }
 
         [HttpGet]
