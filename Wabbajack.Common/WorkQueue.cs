@@ -48,23 +48,40 @@ namespace Wabbajack.Common
 
         private readonly Subject<IObservable<int>> _activeNumThreadsObservable = new Subject<IObservable<int>>();
 
+        /// <summary>
+        /// Creates a WorkQueue with the given number of threads
+        /// </summary>
+        /// <param name="threadCount">Number of threads for the WorkQueue to have.  Null represents default, which is the Processor count of the machine.</param>
         public WorkQueue(int? threadCount = null)
             : this(Observable.Return(threadCount ?? Environment.ProcessorCount))
         {
         }
 
+        /// <summary>
+        /// Creates a WorkQueue whos number of threads is determined by the given observable
+        /// </summary>
+        /// <param name="numThreads">Driving observable that determines how many threads should be actively pulling jobs from the queue</param>
         public WorkQueue(IObservable<int> numThreads)
         {
+            // Hook onto the number of active threads subject, and subscribe to it for changes
             _activeNumThreadsObservable
+                // Select the latest driving observable
                 .Select(x => x ?? Observable.Return(Environment.ProcessorCount))
                 .Switch()
+                .StartWith(Environment.ProcessorCount)
                 .DistinctUntilChanged()
+                // Add new threads if it increases
                 .SelectTask(AddNewThreadsIfNeeded)
                 .Subscribe()
                 .DisposeWith(_disposables);
+            // Set the incoming driving observable to be active
             SetActiveThreadsObservable(numThreads);
         }
 
+        /// <summary>
+        /// Sets the driving observable that determines how many threads should be actively pulling jobs from the queue
+        /// </summary>
+        /// <param name="numThreads">Driving observable that determines how many threads should be actively pulling jobs from the queue</param>
         public void SetActiveThreadsObservable(IObservable<int> numThreads)
         {
             _activeNumThreadsObservable.OnNext(numThreads);
