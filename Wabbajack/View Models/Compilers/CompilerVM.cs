@@ -67,6 +67,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _progressTitle;
         public string ProgressTitle => _progressTitle.Value;
 
+        private readonly ObservableAsPropertyHelper<(int CurrentCPUs, int DesiredCPUs)> _CurrentCpuCount;
+        public (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount => _CurrentCpuCount.Value;
+
         public CompilerVM(MainWindowVM mainWindowVM)
         {
             MWVM = mainWindowVM;
@@ -256,6 +259,11 @@ namespace Wabbajack
                         }
                     })
                 .ToProperty(this, nameof(ProgressTitle));
+
+            _CurrentCpuCount = this.WhenAny(x => x.Compiler.ActiveCompilation.Queue.CurrentCpuCount)
+                .Switch()
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(CurrentCpuCount));
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Wabbajack.Lib
 {
     public abstract class ABatchProcessor : IBatchProcessor
     {
-        public WorkQueue Queue { get; private set; }
+        public WorkQueue Queue { get; } = new WorkQueue();
 
         public Context VFS { get; private set; }
 
@@ -59,7 +59,7 @@ namespace Wabbajack.Lib
             {
                 throw new InvalidDataException("Can't configure a processor twice");
             }
-            Queue = new WorkQueue(numThreads);
+            Queue.SetActiveThreadsObservable(numThreads);
             UpdateTracker = new StatusUpdateTracker(steps);
             Queue.Status.Subscribe(_queueStatus)
                 .DisposeWith(_subs);

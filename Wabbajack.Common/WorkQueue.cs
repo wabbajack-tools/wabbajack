@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,9 +29,8 @@ namespace Wabbajack.Common
         public IObservable<CPUStatus> Status => _Status;
 
         private int _nextCpuID = 1; // Start at 1, as 0 is "Unassigned"
-        private int _desiredCount = 0;
         private List<(int CpuID, Task Task)> _tasks = new List<(int CpuID, Task Task)>();
-        public int DesiredNumWorkers => _desiredCount;
+        public int DesiredNumWorkers { get; private set; } = 0;
 
         private CancellationTokenSource _shutdown = new CancellationTokenSource();
 
@@ -44,6 +43,11 @@ namespace Wabbajack.Common
 
         private AsyncLock _lock = new AsyncLock();
 
+        private readonly BehaviorSubject<(int DesiredCPUs, int CurrentCPUs)> _cpuCountSubj = new BehaviorSubject<(int DesiredCPUs, int CurrentCPUs)>((0, 0));
+        public IObservable<(int CurrentCPUs, int DesiredCPUs)> CurrentCpuCount => _cpuCountSubj;
+
+        private readonly Subject<IObservable<int>> _activeNumThreadsObservable = new Subject<IObservable<int>>();
+
         public WorkQueue(int? threadCount = null)
             : this(Observable.Return(threadCount ?? Environment.ProcessorCount))
         {
@@ -51,19 +55,27 @@ namespace Wabbajack.Common
 
         public WorkQueue(IObservable<int> numThreads)
         {
-            (numThreads ?? Observable.Return(Environment.ProcessorCount))
+            _activeNumThreadsObservable
+                .Select(x => x ?? Observable.Return(Environment.ProcessorCount))
+                .Switch()
                 .DistinctUntilChanged()
                 .SelectTask(AddNewThreadsIfNeeded)
                 .Subscribe()
                 .DisposeWith(_disposables);
+            SetActiveThreadsObservable(numThreads);
+        }
+
+        public void SetActiveThreadsObservable(IObservable<int> numThreads)
+        {
+            _activeNumThreadsObservable.OnNext(numThreads);
         }
 
         private async Task AddNewThreadsIfNeeded(int desired)
         {
             using (await _lock.Wait())
             {
-                _desiredCount = desired;
-                while (_desiredCount > _tasks.Count)
+                DesiredNumWorkers = desired;
+                while (DesiredNumWorkers > _tasks.Count)
                 {
                     var cpuID = _nextCpuID++;
                     _tasks.Add((cpuID,
@@ -72,6 +84,7 @@ namespace Wabbajack.Common
                             await ThreadBody(cpuID);
                         })));
                 }
+                _cpuCountSubj.OnNext((_tasks.Count, DesiredNumWorkers));
             }
         }
 
@@ -99,13 +112,13 @@ namespace Wabbajack.Common
                     await f();
 
                     // Check if we're currently trimming threads
-                    if (_desiredCount >= _tasks.Count) continue;
+                    if (DesiredNumWorkers >= _tasks.Count) continue;
 
                     // Noticed that we may need to shut down, lock and check again
                     using (await _lock.Wait())
                     {
                         // Check if another thread shut down before this one and got us in line
-                        if (_desiredCount >= _tasks.Count) continue;
+                        if (DesiredNumWorkers >= _tasks.Count) continue;
 
                         Report("Shutting down", 0, false);
                         // Remove this task from list
@@ -114,6 +127,7 @@ namespace Wabbajack.Common
                             if (_tasks[i].CpuID == cpuID)
                             {
                                 _tasks.RemoveAt(i);
+                                _cpuCountSubj.OnNext((_tasks.Count, DesiredNumWorkers));
                                 // Shutdown thread
                                 Report("Shutting down", 0, false);
                                 return;

@@ -12,5 +12,6 @@ namespace Wabbajack
     {
         ObservableCollectionExtended<CPUDisplayVM> StatusList { get; }
         MainWindowVM MWVM { get; }
+        (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount { get; }
     }
 }

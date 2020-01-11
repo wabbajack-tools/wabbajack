@@ -87,6 +87,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<IUserIntervention> _ActiveGlobalUserIntervention;
         public IUserIntervention ActiveGlobalUserIntervention => _ActiveGlobalUserIntervention.Value;
 
+        private readonly ObservableAsPropertyHelper<(int CurrentCPUs, int DesiredCPUs)> _CurrentCpuCount;
+        public (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount => _CurrentCpuCount.Value;
+
         // Command properties
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
@@ -373,6 +376,11 @@ namespace Wabbajack
                 {
                     Installer.AfterInstallNavigation();
                 });
+
+            _CurrentCpuCount = this.WhenAny(x => x.Installer.ActiveInstallation.Queue.CurrentCpuCount)
+                .Switch()
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(CurrentCpuCount));
         }
 
         private void ShowReport()

@@ -66,6 +66,18 @@ namespace Wabbajack
 
                 this.BindStrict(this.ViewModel, x => x.MWVM.Settings.Performance.TargetUsage, x => x.TargetPercentageSlider.Value)
                     .DisposeWith(disposable);
+
+                this.OneWayBindStrict(this.ViewModel, x => x.MWVM.Settings.Performance.TargetUsage, x => x.PercentageText.Text, x => $"{x.ToString("f2")}%")
+                    .DisposeWith(disposable);
+
+                this.WhenAny(x => x.ViewModel.CurrentCpuCount)
+                    .DistinctUntilChanged()
+                    .ObserveOnGuiThread()
+                    .Subscribe(x =>
+                    {
+                        this.CpuCountText.Text = $"{x.CurrentCPUs} / {x.DesiredCPUs}";
+                    })
+                    .DisposeWith(disposable);
             });
         }
     }
