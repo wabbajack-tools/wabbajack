@@ -80,5 +80,6 @@ namespace Wabbajack.Lib.Downloaders
         public abstract IDownloader GetDownloader();
 
         public abstract string GetReportEntry(Archive a);
+        public abstract string[] GetMetaIni();
     }
 }

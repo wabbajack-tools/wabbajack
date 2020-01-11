@@ -145,6 +145,7 @@ namespace Wabbajack.VirtualFileSystem
 
                 if (result != null)
                 {
+                    Utils.Log($"Downloaded VFS data for {Path.GetFileName(abs_path)}");
                     VirtualFile Convert(IndexedVirtualFile file, string path, VirtualFile vparent)
                     {
                         var vself = new VirtualFile

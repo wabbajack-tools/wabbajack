@@ -41,7 +41,15 @@ namespace Wabbajack.Lib.Downloaders
             public string FileID { get; set; }
             public string FileName { get; set; }
 
-            public override object[] PrimaryKey { get => new object[] {FileID, FileName}; }
+            public override object[] PrimaryKey
+            {
+                get
+                {
+                    if (FileID == null) 
+                        return new object[] {Downloader.SiteURL, FileName};
+                    return new object[] {Downloader.SiteURL, FileName, FileID};
+                }
+            }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -143,6 +151,25 @@ namespace Wabbajack.Lib.Downloaders
                 var downloader = (INeedsLogin)GetDownloader();
                 return $"* {((INeedsLogin)GetDownloader()).SiteName} - [{a.Name}](https://{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID})";
             }
+
+            public override string[] GetMetaIni()
+            {
+                var downloader = Downloader;
+                
+                if (FileID != null)
+                    return new[]
+                    {
+                        "[General]",
+                        $"directURL=https://{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1"
+                    };
+                return new[]
+                {
+                    "[General]",
+                    $"directURL=https://{downloader.SiteURL.Host}/files/file/{FileName}"
+                };
+            }
+
+            private static AbstractNeedsLoginDownloader Downloader => (AbstractNeedsLoginDownloader)(object)DownloadDispatcher.GetInstance<TDownloader>();
         }
 
         protected AbstractIPS4Downloader(Uri loginUri, string encryptedKeyName, string cookieDomain) : 

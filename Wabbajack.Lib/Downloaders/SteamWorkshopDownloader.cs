@@ -94,6 +94,17 @@ namespace Wabbajack.Lib.Downloaders
             {
                 return $"* Steam - [{Item.ItemID}]";
             }
+
+            public override string[] GetMetaIni()
+            {
+                return new[]
+                {
+                    "[General]", 
+                    $"itemID={Item.ItemID}", 
+                    $"steamID={Item.Game.Game.MetaData().SteamIDs.First()}",
+                    $"itemSize={Item.Size}"
+                };
+            }
         }
     }
 }

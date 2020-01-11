@@ -881,7 +881,7 @@ namespace Wabbajack.Common
         }
 
         /// <summary>
-        /// Roundtrips the value throught the JSON routines
+        /// Roundtrips the value through the JSON routines
         /// </summary>
         /// <typeparam name="TV"></typeparam>
         /// <typeparam name="TR"></typeparam>

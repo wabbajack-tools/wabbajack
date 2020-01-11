@@ -107,6 +107,11 @@ namespace Wabbajack.Lib.Downloaders
             {
                 return $"* ModDB - [{a.Name}]({Url})";
             }
+
+            public override string[] GetMetaIni()
+            {
+                return new[] {"[General]", $"directURL={Url}"};
+            }
         }
     }
 }

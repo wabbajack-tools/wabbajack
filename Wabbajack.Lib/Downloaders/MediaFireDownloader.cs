@@ -69,7 +69,14 @@ namespace Wabbajack.Lib.Downloaders
                 return $"* [{a.Name} - {Url}]({Url})";
             }
 
-
+            public override string[] GetMetaIni()
+            {
+                return new []
+                {
+                    "[General]",
+                    $"directURL={Url}"
+                };
+            }
         }
 
         public async Task Prepare()

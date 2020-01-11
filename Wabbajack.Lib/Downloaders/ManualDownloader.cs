@@ -125,6 +125,15 @@ namespace Wabbajack.Lib.Downloaders
             {
                 return $"* Manual Download - [{a.Name} - {Url}]({Url})";
             }
+
+            public override string[] GetMetaIni()
+            {
+                return new [] {
+                    "[General]",
+                    $"manualURL={Url}"
+                    
+                };
+            }
         }
     }
 }
