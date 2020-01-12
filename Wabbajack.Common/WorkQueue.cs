@@ -31,7 +31,7 @@ namespace Wabbajack.Common
         public IObservable<CPUStatus> Status => _Status;
 
         private int _nextCpuID = 1; // Start at 1, as 0 is "Unassigned"
-        internal List<(int CpuID, Task Task)> _tasks = new List<(int CpuID, Task Task)>();
+        internal Dictionary<int, Task> _tasks = new Dictionary<int, Task>();
         public int DesiredNumWorkers { get; private set; } = 0;
 
         private CancellationTokenSource _shutdown = new CancellationTokenSource();
@@ -98,11 +98,10 @@ namespace Wabbajack.Common
                 while (DesiredNumWorkers > _tasks.Count)
                 {
                     var cpuID = _nextCpuID++;
-                    _tasks.Add((cpuID,
-                        Task.Run(async () =>
-                        {
-                            await ThreadBody(cpuID);
-                        })));
+                    _tasks[cpuID] = Task.Run(async () =>
+                    {
+                        await ThreadBody(cpuID);
+                    });
                 }
                 _cpuCountSubj.OnNext((_tasks.Count, DesiredNumWorkers));
             }
@@ -146,21 +145,13 @@ namespace Wabbajack.Common
                         // Check if another thread shut down before this one and got us back to the desired amount already
                         if (DesiredNumWorkers >= _tasks.Count) continue;
 
-                        Report("Shutting down", 0, false);
-                        // Remove this task from list
-                        for (int i = 0; i < _tasks.Count; i++)
+                        // Shutdown
+                        if (!_tasks.Remove(cpuID))
                         {
-                            if (_tasks[i].CpuID == cpuID)
-                            {
-                                _tasks.RemoveAt(i);
-                                _cpuCountSubj.OnNext((_tasks.Count, DesiredNumWorkers));
-                                // Shutdown thread
-                                Report("Shutting down", 0, false);
-                                return;
-                            }
+                            Utils.Error($"Could not remove thread from workpool with CPU ID {cpuID}");
                         }
-                        // Failed to remove, warn and then shutdown anyway
-                        Utils.Error($"Could not remove thread from workpool with CPU ID {cpuID}");
+                        Report("Shutting down", 0, false);
+                        _cpuCountSubj.OnNext((_tasks.Count, DesiredNumWorkers));
                         return;
                     }
                 }
