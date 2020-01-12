@@ -7,6 +7,7 @@
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:options="http://schemas.microsoft.com/winfx/2006/xaml/presentation/options"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     mc:Ignorable="d">
 
     <!--  Converters  -->
@@ -52,6 +53,7 @@
     <Color x:Key="IntenseSecondary">#00ffe7</Color>
     <Color x:Key="Complementary">#C7FC86</Color>
     <Color x:Key="DarkComplementary">#8eb55e</Color>
+    <Color x:Key="ComplementaryBackground">#4b6130</Color>
     <Color x:Key="IntenseComplementary">#abf74d</Color>
     <Color x:Key="Analogous1">#868CFC</Color>
     <Color x:Key="Analogous2">#F686FC</Color>
@@ -129,12 +131,11 @@
     <SolidColorBrush x:Key="ComplementaryBrush" Color="{StaticResource Complementary}" />
     <SolidColorBrush x:Key="DarkComplementaryBrush" Color="{StaticResource DarkComplementary}" />
     <SolidColorBrush x:Key="IntenseComplementaryBrush" Color="{StaticResource IntenseComplementary}" />
+    <SolidColorBrush x:Key="ComplementaryBackgroundBrush" Color="{StaticResource ComplementaryBackground}" />
     <SolidColorBrush x:Key="Analogous1Brush" Color="{StaticResource Analogous1}" />
     <SolidColorBrush x:Key="Analogous2Brush" Color="{StaticResource Analogous2}" />
     <SolidColorBrush x:Key="Triadic1Brush" Color="{StaticResource Triadic1}" />
     <SolidColorBrush x:Key="Triadic2Brush" Color="{StaticResource Triadic2}" />
-
-    <SolidColorBrush x:Key="TabControlNormalBorderBrush" Color="{StaticResource WindowBackgroundColor}" />
 
     <SolidColorBrush x:Key="TabItemHotBackground" Color="{StaticResource HotColor}" />
     <SolidColorBrush x:Key="TabItemSelectedBackground" Color="{StaticResource LightBackgroundColor}" />
@@ -251,307 +252,14 @@
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
     </Style>
 
-
-    <!--  TabControl  -->
-    <Style TargetType="{x:Type TabControl}">
-        <Style.Resources>
-            <Style x:Key="BottomStyle" TargetType="{x:Type FrameworkElement}">
-                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
-                <Setter Property="RenderTransform">
-                    <Setter.Value>
-                        <TransformGroup>
-                            <ScaleTransform ScaleX="1" ScaleY="-1" />
-                            <SkewTransform AngleX="0" AngleY="0" />
-                            <RotateTransform Angle="0" />
-                            <TranslateTransform />
-                        </TransformGroup>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style x:Key="RightStyle" TargetType="{x:Type FrameworkElement}">
-                <Setter Property="LayoutTransform">
-                    <Setter.Value>
-                        <RotateTransform Angle="90" />
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style x:Key="RoundedCornerLeftStyle" TargetType="{x:Type FrameworkElement}">
-                <Setter Property="LayoutTransform">
-                    <Setter.Value>
-                        <RotateTransform Angle="-90" />
-                    </Setter.Value>
-                </Setter>
-                <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
-                <Setter Property="RenderTransform">
-                    <Setter.Value>
-                        <ScaleTransform ScaleY="-1" />
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style x:Key="LeftStyle" TargetType="{x:Type FrameworkElement}">
-                <Setter Property="LayoutTransform">
-                    <Setter.Value>
-                        <RotateTransform Angle="-90" />
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style x:Key="DefaultStyle" TargetType="{x:Type FrameworkElement}">
-                <Setter Property="LayoutTransform">
-                    <Setter.Value>
-                        <RotateTransform Angle="0" />
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style x:Key="TabItemFocusVisual">
-                <Setter Property="Control.Template">
-                    <Setter.Value>
-                        <ControlTemplate>
-                            <Rectangle
-                                Margin="3,3,3,1"
-                                SnapsToDevicePixels="true"
-                                Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"
-                                StrokeDashArray="1 2"
-                                StrokeThickness="1" />
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-
-            <Style TargetType="{x:Type TabItem}">
-                <Setter Property="FocusVisualStyle" Value="{StaticResource TabItemFocusVisual}" />
-                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-                <Setter Property="Padding" Value="6,1,6,1" />
-                <Setter Property="BorderBrush" Value="{StaticResource TabControlNormalBorderBrush}" />
-                <Setter Property="Background" Value="{StaticResource ButtonNormalBackground}" />
-                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="{x:Type TabItem}">
-                            <Grid x:Name="Container">
-                                <Grid
-                                    x:Name="Grid"
-                                    Margin="1,0,-12,0"
-                                    SnapsToDevicePixels="true">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-                                    <Border
-                                        x:Name="Bd"
-                                        Grid.Column="0"
-                                        Padding="{TemplateBinding Padding}"
-                                        Background="{TemplateBinding Background}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        BorderThickness="0"
-                                        CornerRadius="3,0,0,0">
-                                        <ContentPresenter
-                                            x:Name="Content"
-                                            Margin="6,1,6,1"
-                                            HorizontalAlignment="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
-                                            VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
-                                            ContentSource="Header"
-                                            RecognizesAccessKey="True"
-                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                                    </Border>
-                                    <Path
-                                        x:Name="RoundedCorner"
-                                        Grid.Row="0"
-                                        Grid.Column="1"
-                                        Width="24"
-                                        Data="{StaticResource TabItemRoundedCorner}"
-                                        Fill="{TemplateBinding Background}"
-                                        Stretch="Fill" />
-                                </Grid>
-                            </Grid>
-                            <ControlTemplate.Triggers>
-                                <Trigger Property="IsMouseOver" Value="true">
-                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource TabItemHotBackground}" />
-                                    <Setter TargetName="RoundedCorner" Property="Fill" Value="{StaticResource TabItemHotBackground}" />
-                                </Trigger>
-                                <Trigger Property="IsSelected" Value="true">
-                                    <Setter Property="Panel.ZIndex" Value="1" />
-                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource TabItemSelectedBackground}" />
-                                    <Setter TargetName="RoundedCorner" Property="Fill" Value="{StaticResource TabItemSelectedBackground}" />
-                                </Trigger>
-                                <MultiTrigger>
-                                    <MultiTrigger.Conditions>
-                                        <Condition Property="IsSelected" Value="false" />
-                                        <Condition Property="IsMouseOver" Value="true" />
-                                    </MultiTrigger.Conditions>
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource TabItemHotBorderBrush}" />
-                                    <Setter TargetName="RoundedCorner" Property="Fill" Value="{StaticResource TabItemHotBorderBrush}" />
-                                </MultiTrigger>
-                                <Trigger Property="TabStripPlacement" Value="Bottom">
-                                    <!--<Setter Property="BorderThickness" TargetName="Bd" Value="1,0,1,1"/>-->
-                                    <Setter TargetName="RoundedCorner" Property="Style" Value="{StaticResource BottomStyle}" />
-                                    <Setter TargetName="Bd" Property="Style" Value="{StaticResource BottomStyle}" />
-                                    <Setter TargetName="Content" Property="Style" Value="{StaticResource BottomStyle}" />
-                                </Trigger>
-                                <Trigger Property="TabStripPlacement" Value="Left">
-                                    <!--<Setter Property="BorderThickness" TargetName="Bd" Value="1,1,0,1"/>-->
-                                    <Setter TargetName="Bd" Property="Grid.Row" Value="0" />
-                                    <Setter TargetName="Bd" Property="Grid.Column" Value="0" />
-                                    <Setter TargetName="RoundedCorner" Property="Grid.Row" Value="1" />
-                                    <Setter TargetName="RoundedCorner" Property="Grid.Column" Value="0" />
-                                    <Setter TargetName="RoundedCorner" Property="Style" Value="{StaticResource RoundedCornerLeftStyle}" />
-                                    <Setter TargetName="Bd" Property="Style" Value="{StaticResource LeftStyle}" />
-                                    <Setter TargetName="Content" Property="Style" Value="{StaticResource DefaultStyle}" />
-                                    <Setter TargetName="Grid" Property="Margin" Value="0,1,0,-16" />
-                                    <Setter TargetName="Bd" Property="CornerRadius" Value="0 3 0 0" />
-                                    <Setter TargetName="RoundedCorner" Property="Margin" Value="0,4,0,0" />
-                                </Trigger>
-                                <Trigger Property="TabStripPlacement" Value="Right">
-                                    <!--<Setter Property="BorderThickness" TargetName="Bd" Value="0,1,1,1"/>-->
-                                    <Setter TargetName="Bd" Property="Grid.Row" Value="0" />
-                                    <Setter TargetName="Bd" Property="Grid.Column" Value="1" />
-                                    <Setter TargetName="RoundedCorner" Property="Grid.Row" Value="1" />
-                                    <Setter TargetName="RoundedCorner" Property="Grid.Column" Value="1" />
-                                    <Setter TargetName="RoundedCorner" Property="Style" Value="{StaticResource RightStyle}" />
-                                    <Setter TargetName="Bd" Property="Style" Value="{StaticResource RightStyle}" />
-                                    <Setter TargetName="Content" Property="Style" Value="{StaticResource DefaultStyle}" />
-                                    <Setter TargetName="Grid" Property="Margin" Value="0,1,0,-12" />
-                                </Trigger>
-                                <MultiTrigger>
-                                    <MultiTrigger.Conditions>
-                                        <Condition Property="IsSelected" Value="true" />
-                                        <Condition Property="TabStripPlacement" Value="Top" />
-                                    </MultiTrigger.Conditions>
-                                    <Setter Property="Margin" Value="0,0,0,-1" />
-                                </MultiTrigger>
-                                <MultiTrigger>
-                                    <MultiTrigger.Conditions>
-                                        <Condition Property="IsSelected" Value="true" />
-                                        <Condition Property="TabStripPlacement" Value="Bottom" />
-                                    </MultiTrigger.Conditions>
-                                    <Setter Property="Margin" Value="0,-1,0,0" />
-                                </MultiTrigger>
-                                <MultiTrigger>
-                                    <MultiTrigger.Conditions>
-                                        <Condition Property="IsSelected" Value="true" />
-                                        <Condition Property="TabStripPlacement" Value="Left" />
-                                    </MultiTrigger.Conditions>
-                                    <Setter Property="Margin" Value="0,0,-1,0" />
-                                </MultiTrigger>
-                                <MultiTrigger>
-                                    <MultiTrigger.Conditions>
-                                        <Condition Property="IsSelected" Value="true" />
-                                        <Condition Property="TabStripPlacement" Value="Right" />
-                                    </MultiTrigger.Conditions>
-                                    <Setter Property="Margin" Value="-1,0,0,0" />
-                                </MultiTrigger>
-                                <Trigger Property="IsEnabled" Value="false">
-                                    <Setter TargetName="Bd" Property="Background" Value="{StaticResource TabItemDisabledBackground}" />
-                                    <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource TabItemDisabledBorderBrush}" />
-                                    <Setter TargetName="RoundedCorner" Property="Fill" Value="{StaticResource TabItemDisabledBackground}" />
-                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Style>
-        </Style.Resources>
-        <Setter Property="OverridesDefaultStyle" Value="True" />
-        <!--<Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>-->
-        <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-        <Setter Property="Padding" Value="4" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="BorderBrush" Value="{StaticResource TabControlNormalBorderBrush}" />
-        <Setter Property="Background" Value="{DynamicResource TabItemSelectedBackground}" />
-        <Setter Property="HorizontalContentAlignment" Value="Center" />
-        <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="{x:Type TabControl}">
-                    <Grid
-                        ClipToBounds="true"
-                        KeyboardNavigation.TabNavigation="Local"
-                        SnapsToDevicePixels="true">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition x:Name="ColumnDefinition0" />
-                            <ColumnDefinition x:Name="ColumnDefinition1" Width="0" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition x:Name="RowDefinition0" Height="Auto" />
-                            <RowDefinition x:Name="RowDefinition1" Height="*" />
-                        </Grid.RowDefinitions>
-                        <TabPanel
-                            x:Name="HeaderPanel"
-                            Grid.Row="0"
-                            Grid.Column="0"
-                            Panel.ZIndex="1"
-                            IsItemsHost="true"
-                            KeyboardNavigation.TabIndex="1" />
-                        <Border
-                            x:Name="ContentPanel"
-                            Grid.Row="1"
-                            Grid.Column="0"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            KeyboardNavigation.DirectionalNavigation="Contained"
-                            KeyboardNavigation.TabIndex="2"
-                            KeyboardNavigation.TabNavigation="Local">
-                            <ContentPresenter
-                                x:Name="PART_SelectedContentHost"
-                                Margin="{TemplateBinding Padding}"
-                                ContentSource="SelectedContent"
-                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                        </Border>
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="TabStripPlacement" Value="Bottom">
-                            <Setter TargetName="HeaderPanel" Property="Grid.Row" Value="1" />
-                            <Setter TargetName="ContentPanel" Property="Grid.Row" Value="0" />
-                            <Setter TargetName="RowDefinition0" Property="Height" Value="*" />
-                            <Setter TargetName="RowDefinition1" Property="Height" Value="Auto" />
-                            <!--<Setter Property="Margin" TargetName="HeaderPanel" Value="2,0,2,2"/>-->
-                        </Trigger>
-                        <Trigger Property="TabStripPlacement" Value="Left">
-                            <Setter TargetName="HeaderPanel" Property="Grid.Row" Value="0" />
-                            <Setter TargetName="ContentPanel" Property="Grid.Row" Value="0" />
-                            <Setter TargetName="HeaderPanel" Property="Grid.Column" Value="0" />
-                            <Setter TargetName="ContentPanel" Property="Grid.Column" Value="1" />
-                            <Setter TargetName="ColumnDefinition0" Property="Width" Value="Auto" />
-                            <Setter TargetName="ColumnDefinition1" Property="Width" Value="*" />
-                            <Setter TargetName="RowDefinition0" Property="Height" Value="*" />
-                            <Setter TargetName="RowDefinition1" Property="Height" Value="0" />
-                            <!--<Setter Property="Margin" TargetName="HeaderPanel" Value="2,2,0,2"/>-->
-                        </Trigger>
-                        <Trigger Property="TabStripPlacement" Value="Right">
-                            <Setter TargetName="HeaderPanel" Property="Grid.Row" Value="0" />
-                            <Setter TargetName="ContentPanel" Property="Grid.Row" Value="0" />
-                            <Setter TargetName="HeaderPanel" Property="Grid.Column" Value="1" />
-                            <Setter TargetName="ContentPanel" Property="Grid.Column" Value="0" />
-                            <Setter TargetName="ColumnDefinition0" Property="Width" Value="*" />
-                            <Setter TargetName="ColumnDefinition1" Property="Width" Value="Auto" />
-                            <Setter TargetName="RowDefinition0" Property="Height" Value="*" />
-                            <Setter TargetName="RowDefinition1" Property="Height" Value="0" />
-                            <!--<Setter Property="Margin" TargetName="HeaderPanel" Value="0,2,2,2"/>-->
-                            <Setter TargetName="HeaderPanel" Property="Grid.Column" Value="1" />
-
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="false">
-                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+    <Style TargetType="{x:Type ItemsControl}">
+        <Setter Property="Focusable" Value="False" />
     </Style>
+
     <!--  ScrollBar  -->
     <Style TargetType="{x:Type ScrollViewer}">
         <Setter Property="Background" Value="{DynamicResource ScrollViewerBackground}" />
+        <Setter Property="Focusable" Value="False" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ScrollViewer}">
@@ -578,7 +286,8 @@
                             CanHorizontallyScroll="False"
                             CanVerticallyScroll="False"
                             Content="{TemplateBinding Content}"
-                            ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Focusable="False" />
                         <ScrollBar
                             x:Name="PART_VerticalScrollBar"
                             Grid.Row="0"
@@ -1456,8 +1165,54 @@
         </Setter>
     </Style>
 
-
     <Style x:Key="MainButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}" />
+        <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Foreground" Value="{StaticResource ButtonForeground}" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="1" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Grid>
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="3">
+                            <ContentPresenter
+                                Margin="{TemplateBinding Padding}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                RecognizesAccessKey="True"
+                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter Property="Background" Value="{StaticResource DarkHoverBackgroundBrush}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource DarkComplementaryBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource ComplementaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter Property="Background" Value="{StaticResource PressedButtonBackground}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource ComplementaryBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource IntenseComplementaryBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}" />
+                            <Setter Property="Background" Value="{StaticResource DisabledButtonBackground}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="LargeButtonStyle" TargetType="{x:Type Button}">
         <Setter Property="FocusVisualStyle" Value="{StaticResource ButtonFocusVisual}" />
         <Setter Property="Background" Value="{StaticResource DarkBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
@@ -2195,7 +1950,10 @@
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
                         SnapsToDevicePixels="true">
-                        <ScrollViewer Padding="{TemplateBinding Padding}" Focusable="false">
+                        <ScrollViewer
+                            Padding="{TemplateBinding Padding}"
+                            Background="{TemplateBinding Background}"
+                            Focusable="false">
                             <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                         </ScrollViewer>
                     </Border>
@@ -3750,4 +3508,10 @@
         <Setter Property="FontSize" Value="14" />
     </Style>
     <Style BasedOn="{StaticResource MainFilePickerStyle}" TargetType="{x:Type local:FilePicker}" />
+
+    <Style BasedOn="{StaticResource MetroTabControl}" TargetType="TabControl" />
+    <Style BasedOn="{StaticResource MetroTabItem}" TargetType="{x:Type TabItem}" />
+
+    <sys:Double x:Key="TabItemFontSize">18</sys:Double>
+
 </ResourceDictionary>

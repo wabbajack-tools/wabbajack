@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
 using CefSharp;
@@ -25,7 +26,7 @@ namespace Wabbajack
         public ViewModel NavigateBackTarget { get; set; }
 
         [Reactive]
-        public IReactiveCommand BackCommand { get; set; }
+        public ReactiveCommand<Unit, Unit> BackCommand { get; set; }
 
         private WebBrowserVM(string url = "http://www.wabbajack.org")
         {

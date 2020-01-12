@@ -1,8 +1,10 @@
 ﻿using Newtonsoft.Json;
+using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Subjects;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -10,7 +12,7 @@ using Wabbajack.Lib;
 namespace Wabbajack
 {
     [JsonObject(MemberSerialization.OptOut)]
-    public class MainSettings : ViewModel
+    public class MainSettings
     {
         private static string _filename = "settings.json";
 
@@ -20,6 +22,7 @@ namespace Wabbajack
         public double Width { get; set; }
         public InstallerSettings Installer { get; set; } = new InstallerSettings();
         public CompilerSettings Compiler { get; set; } = new CompilerSettings();
+        public PerformanceSettings Performance { get; set; } = new PerformanceSettings();
 
         private Subject<Unit> _saveSignal = new Subject<Unit>();
         [JsonIgnore]
@@ -68,6 +71,32 @@ namespace Wabbajack
         public string OutputLocation { get; set; }
         public MO2CompilationSettings MO2Compilation { get; } = new MO2CompilationSettings();
         public VortexCompilationSettings VortexCompilation { get; } = new VortexCompilationSettings();
+    }
+
+    [JsonObject(MemberSerialization.OptOut)]
+    public class PerformanceSettings : ViewModel
+    {
+        private bool _Manual = false;
+        public bool Manual { get => _Manual; set => this.RaiseAndSetIfChanged(ref _Manual, value); }
+
+        private byte _MaxCores = byte.MaxValue;
+        public byte MaxCores { get => _MaxCores; set => this.RaiseAndSetIfChanged(ref _MaxCores, value); }
+
+        private double _TargetUsage = 1.0d;
+        public double TargetUsage { get => _TargetUsage; set => this.RaiseAndSetIfChanged(ref _TargetUsage, value); }
+
+        public void AttachToBatchProcessor(ABatchProcessor processor)
+        {
+            processor.Add(
+                this.WhenAny(x => x.Manual)
+                    .Subscribe(processor.ManualCoreLimit));
+            processor.Add(
+                this.WhenAny(x => x.MaxCores)
+                    .Subscribe(processor.MaxCores));
+            processor.Add(
+                this.WhenAny(x => x.TargetUsage)
+                    .Subscribe(processor.TargetUsagePercent));
+        }
     }
 
     public class CompilationModlistSettings

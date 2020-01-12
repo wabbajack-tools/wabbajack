@@ -28,9 +28,6 @@
             <DataTemplate DataType="{x:Type local:InstallerVM}">
                 <local:InstallationView />
             </DataTemplate>
-            <DataTemplate DataType="{x:Type local:LoginManagerVM}">
-                <local:LoginManagerView />
-            </DataTemplate>
             <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
                 <local:ModeSelectionView />
             </DataTemplate>
@@ -41,7 +38,7 @@
                 <local:WebBrowserView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:SettingsVM}">
-                <local:SettingsView />
+                <local:SettingsView ViewModel="{Binding}" />
             </DataTemplate>
         </ContentPresenter.Resources>
     </ContentPresenter>

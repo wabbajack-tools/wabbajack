@@ -25,7 +25,7 @@ using Wabbajack.UI;
 
 namespace Wabbajack
 {
-    public class InstallerVM : ViewModel, IBackNavigatingVM
+    public class InstallerVM : ViewModel, IBackNavigatingVM, ICpuStatusVM
     {
         public SlideShow Slideshow { get; }
 
@@ -87,11 +87,14 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<IUserIntervention> _ActiveGlobalUserIntervention;
         public IUserIntervention ActiveGlobalUserIntervention => _ActiveGlobalUserIntervention.Value;
 
+        private readonly ObservableAsPropertyHelper<(int CurrentCPUs, int DesiredCPUs)> _CurrentCpuCount;
+        public (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount => _CurrentCpuCount.Value;
+
         // Command properties
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
         public IReactiveCommand VisitWebsiteCommand { get; }
-        public IReactiveCommand BackCommand { get; }
+        public ReactiveCommand<Unit, Unit> BackCommand { get; }
         public IReactiveCommand CloseWhenCompleteCommand { get; }
         public IReactiveCommand GoToInstallCommand { get; }
         public IReactiveCommand BeginCommand { get; }
@@ -373,6 +376,11 @@ namespace Wabbajack
                 {
                     Installer.AfterInstallNavigation();
                 });
+
+            _CurrentCpuCount = this.WhenAny(x => x.Installer.ActiveInstallation.Queue.CurrentCpuCount)
+                .Switch()
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(CurrentCpuCount));
         }
 
         private void ShowReport()

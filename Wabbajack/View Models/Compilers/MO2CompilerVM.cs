@@ -180,7 +180,7 @@ namespace Wabbajack
 
             try
             {
-                ActiveCompilation = new MO2Compiler(
+                using (ActiveCompilation = new MO2Compiler(
                     mo2Folder: Mo2Folder,
                     mo2Profile: MOProfile,
                     outputFile: outputFile)
@@ -192,13 +192,16 @@ namespace Wabbajack
                     ModListWebsite = ModlistSettings.Website,
                     ModListReadme = ModlistSettings.ReadmeIsWebsite ? ModlistSettings.ReadmeWebsite : ModlistSettings.ReadmeFilePath.TargetPath,
                     ReadmeIsWebsite = ModlistSettings.ReadmeIsWebsite,
-                };
-                await ActiveCompilation.Begin();
+                })
+                {
+                    Parent.MWVM.Settings.Performance.AttachToBatchProcessor(ActiveCompilation);
+
+                    await ActiveCompilation.Begin();
+                }
             }
             finally
             {
                 StatusTracker = null;
-                ActiveCompilation.Dispose();
                 ActiveCompilation = null;
             }
         }

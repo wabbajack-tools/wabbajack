@@ -19,7 +19,7 @@ using Wabbajack.UI;
 
 namespace Wabbajack
 {
-    public class CompilerVM : ViewModel, IBackNavigatingVM
+    public class CompilerVM : ViewModel, IBackNavigatingVM, ICpuStatusVM
     {
         public MainWindowVM MWVM { get; }
 
@@ -48,7 +48,7 @@ namespace Wabbajack
 
         public ObservableCollectionExtended<IStatusMessage> Log => MWVM.Log;
 
-        public IReactiveCommand BackCommand { get; }
+        public ReactiveCommand<Unit, Unit> BackCommand { get; }
         public IReactiveCommand GoToModlistCommand { get; }
         public IReactiveCommand CloseWhenCompleteCommand { get; }
         public IReactiveCommand BeginCommand { get; }
@@ -66,6 +66,9 @@ namespace Wabbajack
 
         private readonly ObservableAsPropertyHelper<string> _progressTitle;
         public string ProgressTitle => _progressTitle.Value;
+
+        private readonly ObservableAsPropertyHelper<(int CurrentCPUs, int DesiredCPUs)> _CurrentCpuCount;
+        public (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount => _CurrentCpuCount.Value;
 
         public CompilerVM(MainWindowVM mainWindowVM)
         {
@@ -256,6 +259,11 @@ namespace Wabbajack
                         }
                     })
                 .ToProperty(this, nameof(ProgressTitle));
+
+            _CurrentCpuCount = this.WhenAny(x => x.Compiler.ActiveCompilation.Queue.CurrentCpuCount)
+                .Switch()
+                .ObserveOnGuiThread()
+                .ToProperty(this, nameof(CurrentCpuCount));
         }
     }
 }

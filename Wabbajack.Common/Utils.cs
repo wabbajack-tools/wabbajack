@@ -90,6 +90,11 @@ namespace Wabbajack.Common
             return msg;
         }
 
+        public static void Error(string errMessage)
+        {
+            Log(errMessage);
+        }
+
         public static void Error(Exception ex, string extraMessage = null)
         {
             Log(new GenericException(ex, extraMessage));
@@ -932,7 +937,7 @@ namespace Wabbajack.Common
         {
             var startTime = DateTime.Now;
             var seconds = 2;
-            var results = await Enumerable.Range(0, queue.ThreadCount)
+            var results = await Enumerable.Range(0, queue.DesiredNumWorkers)
                 .PMap(queue, idx =>
                 {
                     var random = new Random();

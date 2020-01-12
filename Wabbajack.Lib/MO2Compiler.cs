@@ -82,7 +82,7 @@ namespace Wabbajack.Lib
         protected override async Task<bool> _Begin(CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested) return false;
-            ConfigureProcessor(19);
+            ConfigureProcessor(19, ConstructDynamicNumThreads(await RecommendQueueSize()));
             UpdateTracker.Reset();
             UpdateTracker.NextStep("Gathering information");
             Info("Looking for other profiles");

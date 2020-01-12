@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;

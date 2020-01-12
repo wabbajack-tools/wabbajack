@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,14 +16,14 @@ namespace Wabbajack
     public interface IBackNavigatingVM : IReactiveObject
     {
         ViewModel NavigateBackTarget { get; set; }
-        IReactiveCommand BackCommand { get; }
+        ReactiveCommand<Unit, Unit> BackCommand { get; }
     }
 
     public class BackNavigatingVM : ViewModel, IBackNavigatingVM
     {
         [Reactive]
         public ViewModel NavigateBackTarget { get; set; }
-        public IReactiveCommand BackCommand { get; protected set; }
+        public ReactiveCommand<Unit, Unit> BackCommand { get; protected set; }
 
         public BackNavigatingVM(MainWindowVM mainWindowVM)
         {
