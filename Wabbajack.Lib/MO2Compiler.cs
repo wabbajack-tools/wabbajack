@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
@@ -344,31 +345,20 @@ namespace Wabbajack.Lib
 
             if (to_find.Count == 0) return;
 
-            var games = new[]{CompilingGame}.Concat(GameRegistry.Games.Values.Where(g => g != CompilingGame));
-            var game_files = games
-                .Where(g => g.GameLocation() != null)
-                .SelectMany(game => Directory.EnumerateFiles(game.GameLocation(), "*", DirectoryEnumerationOptions.Recursive).Select(name => (game, name)))
-                .GroupBy(f => (Path.GetFileName(f.name), new FileInfo(f.name).Length))
-                .ToDictionary(f => f.Key);
-
-            await to_find.PMap(Queue, f =>
+            await to_find.PMap(Queue, async f =>
             {
                 var vf = VFS.Index.ByFullPath[f];
-                if (!game_files.TryGetValue((Path.GetFileName(f), vf.Size), out var found))
-                    return;
+                var client = new HttpClient();
+                var response =
+                    await client.GetAsync(
+                        $"http://build.wabbajack.org/indexed_files/{vf.Hash.FromBase64().ToHex()}/meta.ini");
+                
+                if (!response.IsSuccessStatusCode) return;
 
-                var (game, name) = found.FirstOrDefault(ff => ff.name.FileHash() == vf.Hash);
-                if (name == null)
-                    return;
-
-                File.WriteAllLines(f+".meta", new[]
-                {
-                    "[General]",
-                    $"gameName={game.MO2ArchiveName}",
-                    $"gameFile={name.RelativeTo(game.GameLocation()).Replace("\\", "/")}"
-                });
+                var ini_data = await response.Content.ReadAsStringAsync();
+                Utils.Log($"Inferred .meta for {Path.GetFileName(vf.FullPath)}, writing to disk");
+                File.WriteAllText(vf.FullPath + ".meta", ini_data);
             });
-
         }
 
 

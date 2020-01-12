@@ -35,7 +35,18 @@ namespace Wabbajack.Lib.Downloaders
         }
 
         public abstract object[] PrimaryKey { get; }
-
+        
+        public string PrimaryKeyString
+        {
+            get
+            {
+                var pk = new List<object>();
+                pk.Add(AbstractDownloadState.TypeToName[GetType()]);
+                pk.AddRange(PrimaryKey);
+                var pk_str = string.Join("|",pk.Select(p => p.ToString()));
+                return pk_str;
+            }
+        }
 
 
         /// <summary>
@@ -69,5 +80,6 @@ namespace Wabbajack.Lib.Downloaders
         public abstract IDownloader GetDownloader();
 
         public abstract string GetReportEntry(Archive a);
+        public abstract string[] GetMetaIni();
     }
 }

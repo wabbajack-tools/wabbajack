@@ -202,7 +202,7 @@ namespace Wabbajack.Common
                 throw ex;
             }
         }
-
+        
         public static string FileHashCached(this string file, bool nullOnIOError = false)
         {
             var hashPath = file + Consts.HashFileExtension;
@@ -774,6 +774,7 @@ namespace Wabbajack.Common
             {
                 var key = select(v);
                 if (set.Contains(key)) continue;
+                set.Add(key);
                 yield return v;
             }
         }
@@ -885,7 +886,7 @@ namespace Wabbajack.Common
         }
 
         /// <summary>
-        /// Roundtrips the value throught the JSON routines
+        /// Roundtrips the value through the JSON routines
         /// </summary>
         /// <typeparam name="TV"></typeparam>
         /// <typeparam name="TR"></typeparam>

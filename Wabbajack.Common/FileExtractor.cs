@@ -259,6 +259,7 @@ namespace Wabbajack.Common
                 return p.ExitCode == 0;
             }
 
+
             var testInfo = new ProcessStartInfo
             {
                 FileName = "7z.exe",
@@ -294,6 +295,13 @@ namespace Wabbajack.Common
 
             testP.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Can Extract Check {v}");
             return testP.ExitCode == 0;
+        }
+        
+        
+        public static bool MightBeArchive(string path)
+        {
+            var ext = Path.GetExtension(path.ToLower());
+            return ext == ".exe" || Consts.SupportedArchives.Contains(ext) || Consts.SupportedBSAs.Contains(ext);
         }
     }
 }

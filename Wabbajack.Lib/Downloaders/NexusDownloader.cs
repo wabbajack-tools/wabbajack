@@ -204,6 +204,11 @@ namespace Wabbajack.Lib.Downloaders
                     $"    * Author : [{UploadedBy}]({profile})", 
                     $"    * Version : {Version}");
             }
+
+            public override string[] GetMetaIni()
+            {
+                return new[] {"[General]", $"gameName={GameName}", $"modID={ModID}", $"fileID={FileID}"};
+            }
         }
     }
 }

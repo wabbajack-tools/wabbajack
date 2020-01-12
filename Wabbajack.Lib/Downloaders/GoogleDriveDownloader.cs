@@ -79,6 +79,11 @@ namespace Wabbajack.Lib.Downloaders
             {
                 return $"* GoogleDrive - [{a.Name}](https://drive.google.com/uc?id={Id}&export=download)";
             }
+
+            public override string[] GetMetaIni()
+            {
+                return new [] {"[General]",$"directURL=https://drive.google.com/uc?id={Id}&export=download"};
+            }
         }
     }
 }

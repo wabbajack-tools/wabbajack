@@ -63,7 +63,7 @@ namespace Wabbajack.Test
                 ((MegaDownloader.State)url_state).Url);
 
 
-            var converted = state.ViaJSON();
+            var converted = await state.RoundTripState();
             Assert.IsTrue(await converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
@@ -93,7 +93,7 @@ namespace Wabbajack.Test
             Assert.AreEqual("https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?dl=1", 
                 ((HTTPDownloader.State)url_state).Url);
 
-            var converted = state.ViaJSON();
+            var converted = await state.RoundTripState();
             Assert.IsTrue(await converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
@@ -123,7 +123,7 @@ namespace Wabbajack.Test
             Assert.AreEqual("1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_",
                 ((GoogleDriveDownloader.State)url_state).Id);
 
-            var converted = state.ViaJSON();
+            var converted = await state.RoundTripState();
             Assert.IsTrue(await converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
@@ -152,7 +152,7 @@ namespace Wabbajack.Test
             Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
                 ((HTTPDownloader.State)url_state).Url);
 
-            var converted = state.ViaJSON();
+            var converted = await state.RoundTripState();
             Assert.IsTrue(await converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
@@ -176,7 +176,7 @@ namespace Wabbajack.Test
 
             Assert.IsNotNull(state);
 
-            var converted = state.ViaJSON();
+            var converted = await state.RoundTripState();
             Assert.IsTrue(await converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
@@ -206,7 +206,7 @@ namespace Wabbajack.Test
             Assert.AreEqual("http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt",
                 ((MediaFireDownloader.State) url_state).Url);
 
-            var converted = state.ViaJSON();
+            var converted = await state.RoundTripState();
             Assert.IsTrue(await converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
@@ -237,7 +237,7 @@ namespace Wabbajack.Test
                 Assert.IsNotNull(state);
 
 
-                var converted = state.ViaJSON();
+                var converted = await state.RoundTripState();
                 Assert.IsTrue(await converted.Verify());
                 // Exercise the cache code
                 Assert.IsTrue(await converted.Verify());
@@ -272,7 +272,7 @@ namespace Wabbajack.Test
             Assert.AreEqual("https://www.moddb.com/downloads/start/124908?referer=https%3A%2F%2Fwww.moddb.com%2Fmods%2Fautopause",
                 ((ModDBDownloader.State)url_state).Url);
 
-            var converted = state.ViaJSON();
+            var converted = await state.RoundTripState();
             Assert.IsTrue(await converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
@@ -298,7 +298,7 @@ namespace Wabbajack.Test
             Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
                 ((HTTPDownloader.State)url_state).Url);
                 */
-            var converted = state.ViaJSON();
+            var converted = await state.RoundTripState();
             Assert.IsTrue(await converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
@@ -326,7 +326,7 @@ namespace Wabbajack.Test
             Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
                 ((HTTPDownloader.State)url_state).Url);
                 */
-            var converted = state.ViaJSON();
+            var converted = await state.RoundTripState();
             Assert.IsTrue(await converted.Verify());
             var filename = Guid.NewGuid().ToString();
 
@@ -353,7 +353,7 @@ namespace Wabbajack.Test
 
             Assert.IsNotNull(state);
 
-            var converted = state.ViaJSON();
+            var converted = await state.RoundTripState();
             Assert.IsTrue(await converted.Verify());
             var filename = Guid.NewGuid().ToString();
 

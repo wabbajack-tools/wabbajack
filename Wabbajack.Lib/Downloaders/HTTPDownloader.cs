@@ -193,6 +193,17 @@ namespace Wabbajack.Lib.Downloaders
             {
                 return $"* [{a.Name} - {Url}]({Url})";
             }
+
+            public override string[] GetMetaIni()
+            {
+                if (Headers != null)
+                    return new [] {"[General]",
+                          $"directURL={Url}",
+                          $"directURLHeaders={string.Join("|", Headers)}"};
+                else
+                    return new [] {"[General]", $"directURL={Url}"};
+
+            }
         }
     }
 }
