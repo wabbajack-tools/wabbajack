@@ -197,7 +197,7 @@ namespace Wabbajack.Common
                 throw ex;
             }
         }
-
+        
         public static string FileHashCached(this string file, bool nullOnIOError = false)
         {
             var hashPath = file + Consts.HashFileExtension;

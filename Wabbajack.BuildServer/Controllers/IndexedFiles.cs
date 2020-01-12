@@ -20,7 +20,7 @@ namespace Wabbajack.BuildServer.Controllers
         }
 
         [HttpGet]
-        [Route("/{xxHashAsBase64}/meta.ini")]
+        [Route("{xxHashAsBase64}/meta.ini")]
         public async Task<IActionResult> GetFileMeta(string xxHashAsBase64)
         {
             var id = xxHashAsBase64.FromHex().ToBase64();
@@ -55,7 +55,35 @@ namespace Wabbajack.BuildServer.Controllers
                         {"as", "ChildFiles"},
                         {"maxDepth", 8},
                         {"restrictSearchWithMatch", new BsonDocument()}
-                    })
+                    }),
+                new BsonDocument("$project", 
+                new BsonDocument
+                {
+                    // If we return all fields some BSAs will return more that 16MB which is the
+                    // maximum doc size that can can be returned from MongoDB
+                    { "_id", 1 }, 
+                    { "Size", 1 }, 
+                    { "Children.Name", 1 }, 
+                    { "Children.Hash", 1 }, 
+                    { "ChildFiles._id", 1 }, 
+                    { "ChildFiles.Size", 1 }, 
+                    { "ChildFiles.Children.Name", 1 }, 
+                    { "ChildFiles.Children.Hash", 1 }, 
+                    { "ChildFiles.ChildFiles._id", 1 }, 
+                    { "ChildFiles.ChildFiles.Size", 1 }, 
+                    { "ChildFiles.ChildFiles.Children.Name", 1 }, 
+                    { "ChildFiles.ChildFiles.Children.Hash", 1 }, 
+                    { "ChildFiles.ChildFiles.ChildFiles._id", 1 }, 
+                    { "ChildFiles.ChildFiles.ChildFiles.Size", 1 }, 
+                    { "ChildFiles.ChildFiles.ChildFiles.Children.Name", 1 }, 
+                    { "ChildFiles.ChildFiles.ChildFiles.Children.Hash", 1 }, 
+                    { "ChildFiles.ChildFiles.ChildFiles.ChildFiles._id", 1 }, 
+                    { "ChildFiles.ChildFiles.ChildFiles.ChildFiles.Size", 1 }, 
+                    { "ChildFiles.ChildFiles.ChildFiles.ChildFiles.Children.Name", 1 }, 
+                    { "ChildFiles.ChildFiles.ChildFiles.ChildFiles.Children.Hash", 1 }, 
+                    { "ChildFiles.ChildFiles.ChildFiles.ChildFiles.ChildFiles._id", 1 }, 
+                    { "ChildFiles.ChildFiles.ChildFiles.ChildFiles.ChildFiles.Size", 1 }
+                })
             };
 
             var result = await Db.IndexedFiles.AggregateAsync<TreeResult>(query);
@@ -66,7 +94,7 @@ namespace Wabbajack.BuildServer.Controllers
                     return null;
 
                 Dictionary<string, TreeResult> indexed_children = new Dictionary<string, TreeResult>();
-                if (t.IsArchive)
+                if (t.ChildFiles != null && t.ChildFiles.Count > 0)
                     indexed_children = t.ChildFiles.ToDictionary(t => t.Hash);
 
                 var file = new IndexedVirtualFile
@@ -74,7 +102,7 @@ namespace Wabbajack.BuildServer.Controllers
                     Name = Name,
                     Size = t.Size,
                     Hash = t.Hash,
-                    Children = t.IsArchive
+                    Children = t.ChildFiles != null
                         ? t.Children.Select(child => Convert(indexed_children[child.Hash], child.Name)).ToList()
                         : new List<IndexedVirtualFile>()
                 };
