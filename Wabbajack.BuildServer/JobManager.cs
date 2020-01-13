@@ -71,11 +71,11 @@ namespace Wabbajack.BuildServer
             while (true)
             {
                 await KillOrphanedJobs();
-                //await ScheduledJob<GetNexusUpdatesJob>(TimeSpan.FromHours(2), Job.JobPriority.High);
+                await ScheduledJob<GetNexusUpdatesJob>(TimeSpan.FromHours(2), Job.JobPriority.High);
                 await ScheduledJob<UpdateModLists>(TimeSpan.FromMinutes(30), Job.JobPriority.High);
-                //await ScheduledJob<EnqueueAllArchives>(TimeSpan.FromHours(2), Job.JobPriority.Low);
-                //await ScheduledJob<EnqueueAllGameFiles>(TimeSpan.FromHours(24), Job.JobPriority.High);
-                //await ScheduledJob<EnqueueRecentFiles>(TimeSpan.FromHours(6), Job.JobPriority.Low);
+                await ScheduledJob<EnqueueAllArchives>(TimeSpan.FromHours(2), Job.JobPriority.Low);
+                await ScheduledJob<EnqueueAllGameFiles>(TimeSpan.FromHours(24), Job.JobPriority.High);
+                await ScheduledJob<EnqueueRecentFiles>(TimeSpan.FromHours(6), Job.JobPriority.Low);
                 await Task.Delay(10000);
             }
         }
