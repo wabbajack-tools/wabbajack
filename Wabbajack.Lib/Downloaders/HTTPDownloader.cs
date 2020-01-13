@@ -119,12 +119,23 @@ namespace Wabbajack.Lib.Downloaders
                         return false;
                     }
 
-                    if (!download)
-                        return true;
 
                     var headerVar = a.Size == 0 ? "1" : a.Size.ToString();
+                    long header_content_size = 0;
                     if (response.Content.Headers.Contains("Content-Length"))
+                    {
                         headerVar = response.Content.Headers.GetValues("Content-Length").FirstOrDefault();
+                        if (headerVar != null)
+                            long.TryParse(headerVar, out header_content_size);
+                    }
+
+                    if (!download)
+                    {
+                        if (a.Size != 0 && header_content_size != 0)
+                            return a.Size == header_content_size;
+                        return true;
+                    }
+
                     var supportsResume = response.Headers.AcceptRanges.FirstOrDefault(f => f == "bytes") != null;
 
                     var contentSize = headerVar != null ? long.Parse(headerVar) : 1;
@@ -179,9 +190,9 @@ namespace Wabbajack.Lib.Downloaders
                 }
             }
 
-            public override async Task<bool> Verify()
+            public override async Task<bool> Verify(Archive a)
             {
-                return await DoDownload(new Archive {Name = ""}, "", false);
+                return await DoDownload(a, "", false);
             }
 
             public override IDownloader GetDownloader()

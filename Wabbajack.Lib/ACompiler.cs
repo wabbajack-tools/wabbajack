@@ -239,7 +239,7 @@ namespace Wabbajack.Lib
             result.Meta = archive.Meta;
             result.Size = archive.File.Size;
 
-            if (result.State != null && !await result.State.Verify())
+            if (result.State != null && !await result.State.Verify(result))
                 Error(
                     $"Unable to resolve link for {archive.Name}. If this is hosted on the Nexus the file may have been removed.");
 

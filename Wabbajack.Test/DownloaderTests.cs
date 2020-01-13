@@ -64,7 +64,7 @@ namespace Wabbajack.Test
 
 
             var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify());
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
             var filename = Guid.NewGuid().ToString();
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist {AllowedPrefixes = new List<string>{"https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k" } }));
@@ -94,7 +94,7 @@ namespace Wabbajack.Test
                 ((HTTPDownloader.State)url_state).Url);
 
             var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify());
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
             var filename = Guid.NewGuid().ToString();
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?" } }));
@@ -124,7 +124,7 @@ namespace Wabbajack.Test
                 ((GoogleDriveDownloader.State)url_state).Id);
 
             var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify());
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
             var filename = Guid.NewGuid().ToString();
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { GoogleIDs = new List<string> { "1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_" } }));
@@ -153,7 +153,7 @@ namespace Wabbajack.Test
                 ((HTTPDownloader.State)url_state).Url);
 
             var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify());
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
             var filename = Guid.NewGuid().ToString();
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://build.wabbajack.org/" } }));
@@ -177,7 +177,7 @@ namespace Wabbajack.Test
             Assert.IsNotNull(state);
 
             var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify());
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
             var filename = Guid.NewGuid().ToString();
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://build.wabbajack.org/" } }));
@@ -238,9 +238,9 @@ namespace Wabbajack.Test
 
 
                 var converted = await state.RoundTripState();
-                Assert.IsTrue(await converted.Verify());
+                Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
                 // Exercise the cache code
-                Assert.IsTrue(await converted.Verify());
+                Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
                 var filename = Guid.NewGuid().ToString();
 
                 Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> () }));
@@ -273,7 +273,7 @@ namespace Wabbajack.Test
                 ((ModDBDownloader.State)url_state).Url);
 
             var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify());
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
             var filename = Guid.NewGuid().ToString();
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
@@ -299,7 +299,7 @@ namespace Wabbajack.Test
                 ((HTTPDownloader.State)url_state).Url);
                 */
             var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify());
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
             var filename = Guid.NewGuid().ToString();
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
@@ -327,7 +327,7 @@ namespace Wabbajack.Test
                 ((HTTPDownloader.State)url_state).Url);
                 */
             var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify());
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
             var filename = Guid.NewGuid().ToString();
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
@@ -354,7 +354,7 @@ namespace Wabbajack.Test
             Assert.IsNotNull(state);
 
             var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify());
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
             var filename = Guid.NewGuid().ToString();
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));

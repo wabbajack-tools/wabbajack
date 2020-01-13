@@ -129,7 +129,7 @@ namespace Wabbajack.Lib.Downloaders
                 public int CurrentTime { get; set; }
             }
 
-            public override async Task<bool> Verify()
+            public override async Task<bool> Verify(Archive a)
             {
                 var stream = await ResolveDownloadStream();
                 if (stream == null)

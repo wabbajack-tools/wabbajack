@@ -64,10 +64,10 @@ namespace Wabbajack.Lib.Downloaders
                 return httpState;
             }
 
-            public override async Task<bool> Verify()
+            public override async Task<bool> Verify(Archive a)
             {
                 var state = await ToHttpState();
-                return await state.Verify();
+                return await state.Verify(a);
             }
 
             public override IDownloader GetDownloader()

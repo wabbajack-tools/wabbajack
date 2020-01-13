@@ -93,7 +93,7 @@ namespace Wabbajack.BuildServer.Controllers
             var response = HandleGetListTemplate(new
             {
                 lst,
-                ago = (DateTime.Now - lst.Checked).TotalMinutes,
+                ago = (DateTime.UtcNow - lst.Checked).TotalMinutes,
                 failed = lst.Archives.Where(a => a.IsFailing).ToList(),
                 passed = lst.Archives.Where(a => !a.IsFailing).ToList()
             });

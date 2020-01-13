@@ -75,7 +75,7 @@ namespace Wabbajack.Lib.Downloaders
         /// Returns true if this link is still valid
         /// </summary>
         /// <returns></returns>
-        public abstract Task<bool> Verify();
+        public abstract Task<bool> Verify(Archive archive);
 
         public abstract IDownloader GetDownloader();
 

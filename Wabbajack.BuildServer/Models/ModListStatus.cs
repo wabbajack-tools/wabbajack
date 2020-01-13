@@ -47,7 +47,7 @@ namespace Wabbajack.BuildServer.Models
     public class DetailedStatus
     {
         public string Name { get; set; }
-        public DateTime Checked { get; set; } = DateTime.Now;
+        public DateTime Checked { get; set; } = DateTime.UtcNow;
         public List<DetailedStatusItem> Archives { get; set; }
         public DownloadMetadata DownloadMetaData { get; set; }
         public bool HasFailures { get; set; }

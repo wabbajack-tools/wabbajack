@@ -158,7 +158,7 @@ namespace Wabbajack.Lib.Downloaders
 
             }
 
-            public override async Task<bool> Verify()
+            public override async Task<bool> Verify(Archive a)
             {
                 try
                 {

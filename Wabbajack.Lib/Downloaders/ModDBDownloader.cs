@@ -92,7 +92,7 @@ namespace Wabbajack.Lib.Downloaders
                 return mirrors.Select(d => d.Link).ToArray();
             }
 
-            public override async Task<bool> Verify()
+            public override async Task<bool> Verify(Archive a)
             {
                 await GetDownloadUrls();
                 return true;
