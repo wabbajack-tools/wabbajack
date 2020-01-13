@@ -16,7 +16,8 @@ namespace Wabbajack.BuildServer.Models.JobQueue
             typeof(GetNexusUpdatesJob),
             typeof(UpdateModLists),
             typeof(EnqueueAllArchives),
-            typeof(EnqueueAllGameFiles)
+            typeof(EnqueueAllGameFiles),
+            typeof(EnqueueRecentFiles)
         };
         public static Dictionary<Type, string> TypeToName { get; set; }
         public static Dictionary<string, Type> NameToType { get; set; }

@@ -20,7 +20,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
             using (var queue = new WorkQueue())
             {
-                foreach (var list in modlists)
+                foreach (var list in modlists.Skip(1).Take(1))
                 {
                     try
                     {

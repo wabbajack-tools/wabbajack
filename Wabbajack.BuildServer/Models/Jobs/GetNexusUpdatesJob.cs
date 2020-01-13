@@ -5,6 +5,7 @@ using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.Lib.NexusApi;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 
 
 namespace Wabbajack.BuildServer.Models.Jobs
@@ -21,9 +22,17 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 .Where(game => game.NexusName != null)
                 .Select(async game =>
                 {
-                    return (game,
-                        mods: await api.Get<List<UpdatedMod>>(
-                            $"https://api.nexusmods.com/v1/games/{game.NexusName}/mods/updated.json?period=1m"));
+                    var mods = await api.Get<List<NexusUpdateEntry>>(
+                        $"https://api.nexusmods.com/v1/games/{game.NexusName}/mods/updated.json?period=1m");
+                    
+                    var entry = new NexusCacheData<List<NexusUpdateEntry>>();
+                    entry.Game = game.NexusName;
+                    entry.Path = $"/v1/games/{game.NexusName}/mods/updated.json?period=1m";
+                    entry.Data = mods;
+
+                    await entry.Upsert(db.NexusUpdates);
+
+                    return (game, mods);
                 })
                 .Select(async rTask =>
                 {
@@ -40,14 +49,16 @@ namespace Wabbajack.BuildServer.Models.Jobs
             Utils.Log($"Found {purge.Count} updated mods in the last month");
             using (var queue = new WorkQueue())
             {
-                var collected = await purge.Select(d =>
+                var collected = purge.Select(d =>
                 {
-                    var a = d.mod.latest_file_update.AsUnixTime();
+                    var a = d.mod.LatestFileUpdate.AsUnixTime();
                     // Mod activity could hide files
-                    var b = d.mod.latest_mod_activity.AsUnixTime();
+                    var b = d.mod.LastestModActivity.AsUnixTime();
 
-                    return new {Game = d.game.NexusName, Date = (a > b ? a : b), ModId = d.mod.mod_id.ToString()};
-                }).PMap(queue, async t =>
+                    return new {Game = d.game.NexusName, Date = (a > b ? a : b), ModId = d.mod.ModId.ToString()};
+                });
+                    
+                var purged = await collected.PMap(queue, async t =>
                 {
                     var resultA = await db.NexusModInfos.DeleteManyAsync(f =>
                         f.Game == t.Game && f.ModId == t.ModId && f.LastCheckedUTC <= t.Date);
@@ -59,17 +70,12 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     return resultA.DeletedCount + resultB.DeletedCount + resultC.DeletedCount;
                 });
 
-                Utils.Log($"Purged {collected.Sum()} cache entries");
+                Utils.Log($"Purged {purged.Sum()} cache entries");
             }
 
             return JobResult.Success();
         }
         
-        class UpdatedMod
-        {
-            public long mod_id;
-            public long latest_file_update;
-            public long latest_mod_activity;
-        }
+
     }
 }
