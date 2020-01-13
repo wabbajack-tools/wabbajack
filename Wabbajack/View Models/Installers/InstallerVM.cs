@@ -116,7 +116,7 @@ namespace Wabbajack
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
-                PromptTitle = "Select a modlist to install"
+                PromptTitle = "Select a ModList to install"
             };
 
             // Swap to proper sub VM based on selected type
@@ -174,12 +174,12 @@ namespace Wabbajack
                 .Select(modList => modList?.ModManager)
                 .ToProperty(this, nameof(TargetManager));
 
-            // Add additional error check on modlist
+            // Add additional error check on ModList
             ModListLocation.AdditionalError = this.WhenAny(x => x.ModList)
                 .Select<ModListVM, IErrorResponse>(modList =>
                 {
-                    if (modList == null) return ErrorResponse.Fail("Modlist path resulted in a null object.");
-                    if (modList.Error != null) return ErrorResponse.Fail("Modlist is corrupt", modList.Error);
+                    if (modList == null) return ErrorResponse.Fail("ModList path resulted in a null object.");
+                    if (modList.Error != null) return ErrorResponse.Fail("ModList is corrupt", modList.Error);
                     return ErrorResponse.Success;
                 });
 
@@ -215,7 +215,7 @@ namespace Wabbajack
 
             Slideshow = new SlideShow(this);
 
-            // Set display items to modlist if configuring or complete,
+            // Set display items to ModList if configuring or complete,
             // or to the current slideshow data if installing
             _image = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Error),

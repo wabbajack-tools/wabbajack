@@ -90,7 +90,7 @@ namespace Wabbajack.Lib.NexusApi
 
         public static async Task<string> SetupNexusLogin(IWebDriver browser, Action<string> updateStatus, CancellationToken cancel)
         {
-            updateStatus("Please Log Into the Nexus");
+            updateStatus("Please log into the Nexus");
             await browser.NavigateTo(new Uri("https://users.nexusmods.com/auth/continue?client_id=nexus&redirect_uri=https://www.nexusmods.com/oauth/callback&response_type=code&referrer=//www.nexusmods.com"));
             while (true)
             {
@@ -111,7 +111,7 @@ namespace Wabbajack.Lib.NexusApi
                 }
             })
             {
-                updateStatus("Please Authorize Wabbajack to Download Mods");
+                updateStatus("Please authorize Wabbajack to download Nexus mods");
                 var api_key = new TaskCompletionSource<string>();
                 websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
 
@@ -174,7 +174,7 @@ namespace Wabbajack.Lib.NexusApi
             {
                 var dailyRemaining = int.Parse(response.Headers.GetValues("x-rl-daily-remaining").First());
                 var hourlyRemaining = int.Parse(response.Headers.GetValues("x-rl-hourly-remaining").First());
-                Utils.Log($"Nexus Requests Remaining: {dailyRemaining} daily - {hourlyRemaining} hourly");
+                Utils.Log($"Nexus requests remaining: {dailyRemaining} daily - {hourlyRemaining} hourly");
 
                 lock (RemainingLock)
                 {

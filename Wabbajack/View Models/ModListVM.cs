@@ -101,7 +101,7 @@ namespace Wabbajack
                     var entry = ar.GetEntry(Readme);
                     if (entry == null)
                     {
-                        Utils.Log($"Tried to open a non-existant readme: {Readme}");
+                        Utils.Log($"Tried to open a non-existent readme: {Readme}");
                         return;
                     }
                     using (var e = entry.Open())

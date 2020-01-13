@@ -335,14 +335,14 @@ namespace Wabbajack.Lib
                 if (ActiveArchives.Contains(archive))
                     return;
 
-                Utils.Log($"Adding Archive {archive} to ActiveArchives");
+                Utils.Log($"Adding archive {archive} to ActiveArchives");
                 ActiveArchives.Add(archive);
             });
         }
 
         private async Task CreateMetaFiles()
         {
-            Utils.Log("Getting Nexus api_key, please click authorize if a browser window appears");
+            Utils.Log("Getting Nexus API key, please click authorize if a browser window appears");
             var nexusClient = await NexusApiClient.Get();
 
             var archives = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly).Where(f =>
@@ -423,7 +423,7 @@ namespace Wabbajack.Lib
                 var filePath = Path.Combine(DownloadsFolder, $"steamWorkshopItem_{item.ItemID}.meta");
                 if (File.Exists(filePath))
                 {
-                    Utils.Log($"File {filePath} already exists, skipping...");
+                    Utils.Log($"File {filePath} already exists, skipping");
                     return;
                 }
 

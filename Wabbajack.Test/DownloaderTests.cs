@@ -36,7 +36,7 @@ namespace Wabbajack.Test
             Helpers.Init();
             Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => TestContext.WriteLine(msg.ShortDescription));
             Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
-                TestContext.WriteLine("ERROR: User intervetion required: " + msg.ShortDescription));
+                TestContext.WriteLine("ERROR: User intervention required: " + msg.ShortDescription));
 
         }
 

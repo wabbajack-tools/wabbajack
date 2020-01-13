@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -322,7 +322,7 @@ namespace Wabbajack.Lib
                     var available = DriveInfo(g.Key).FreeBytesAvailable;
                     if (required - contains > available)
                         throw new NotEnoughDiskSpaceException(
-                            $"This modlist requires {required.ToFileSizeString()} on {g.Key} but only {available.ToFileSizeString()} is available.");
+                            $"This ModList requires {required.ToFileSizeString()} on {g.Key} but only {available.ToFileSizeString()} is available.");
                 });
             */
         }
@@ -334,9 +334,9 @@ namespace Wabbajack.Lib
         /// </summary>
         public async Task OptimizeModlist()
         {
-            Utils.Log("Optimizing Modlist directives");
+            Utils.Log("Optimizing ModList directives");
             
-            // Clone the modlist so our changes don't modify the original data
+            // Clone the ModList so our changes don't modify the original data
             ModList = ModList.Clone();
             
             var indexed = ModList.Directives.ToDictionary(d => d.To);
@@ -346,11 +346,11 @@ namespace Wabbajack.Lib
                 .PMap(Queue, UpdateTracker, f =>
                 {
                     var relative_to = f.RelativeTo(OutputFolder);
-                    Utils.Status($"Checking if modlist file {relative_to}");
+                    Utils.Status($"Checking if ModList file {relative_to}");
                     if (indexed.ContainsKey(relative_to) || f.IsInPath(DownloadFolder))
                         return;
 
-                    Utils.Log($"Deleting {relative_to} it's not part of this modlist");
+                    Utils.Log($"Deleting {relative_to} it's not part of this ModList");
                     File.Delete(f);
                 });
 
@@ -399,7 +399,7 @@ namespace Wabbajack.Lib
                 Utils.Log("Error when trying to clean empty folders. This doesn't really matter.");
             }
 
-            UpdateTracker.NextStep("Updating Modlist");
+            UpdateTracker.NextStep("Updating ModList");
             Utils.Log($"Optimized {ModList.Directives.Count} directives to {indexed.Count} required");
             var requiredArchives = indexed.Values.OfType<FromArchive>()
                 .GroupBy(d => d.ArchiveHashPath[0])
