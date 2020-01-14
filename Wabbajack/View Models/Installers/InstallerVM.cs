@@ -21,7 +21,6 @@ using Wabbajack.Common.StatusFeed;
 using System.Reactive;
 using System.Collections.Generic;
 using System.Windows.Input;
-using Wabbajack.UI;
 
 namespace Wabbajack
 {

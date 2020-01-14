@@ -91,7 +91,7 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Stretch="UniformToFill">
-                        <Image x:Name="ModlistImage" Source="{Binding Metadata.Links.ImageUri}">
+                        <Image x:Name="ModListImage" Source="{Binding Metadata.Links.ImageUri}">
                             <Image.Style>
                                 <Style TargetType="Image">
                                     <Style.Triggers>

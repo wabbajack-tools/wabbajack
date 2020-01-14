@@ -51,6 +51,9 @@ namespace Wabbajack
                 this.WhenAny(x => x.ViewModel.ExecuteCommand)
                     .BindToStrict(this, x => x.ExecuteButton.Command)
                     .DisposeWith(dispose);
+                this.WhenAny(x => x.ViewModel.Image)
+                    .BindToStrict(this, x => x.ModListImage.Source)
+                    .DisposeWith(dispose);
             });
         }
     }

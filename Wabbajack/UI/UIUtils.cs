@@ -4,6 +4,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
@@ -12,7 +13,7 @@ using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 
-namespace Wabbajack.UI
+namespace Wabbajack
 {
     public static class UIUtils
     {
@@ -74,6 +75,50 @@ namespace Wabbajack.UI
                 .ObserveOnGuiThread()
                 .Bind(list)
                 .Subscribe();
+        }
+
+        public static IObservable<BitmapImage> DownloadBitmapImage(this IObservable<string> obs, Action<Exception> exceptionHandler)
+        {
+            return obs
+                .ObserveOn(RxApp.TaskpoolScheduler)
+                .SelectTask(async url =>
+                {
+                    try
+                    {
+                        var ret = new MemoryStream();
+                        using (var client = new HttpClient())
+                        using (var stream = await client.GetStreamAsync(url))
+                        {
+                            stream.CopyTo(ret);
+                        }
+
+                        ret.Seek(0, SeekOrigin.Begin);
+                        return ret;
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptionHandler(ex);
+                        return default;
+                    }
+                })
+                .ObserveOnGuiThread()
+                .Select(memStream =>
+                {
+                    if (memStream == null) return default;
+                    try
+                    {
+                        return BitmapImageFromStream(memStream);
+                    }
+                    catch (Exception ex)
+                    {
+                        exceptionHandler(ex);
+                        return default;
+                    }
+                    finally
+                    {
+                        memStream.Dispose();
+                    }
+                });
         }
     }
 }

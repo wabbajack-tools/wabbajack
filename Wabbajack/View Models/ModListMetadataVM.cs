@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using Alphaleonis.Win32.Filesystem;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -37,6 +38,9 @@ namespace Wabbajack
 
         [Reactive]
         public bool IsBroken { get; private set; }
+
+        private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
+        public BitmapImage Image => _Image.Value;
 
         public ModListMetadataVM(ModListGalleryVM parent, ModlistMetadata metadata)
         {
@@ -104,6 +108,10 @@ namespace Wabbajack
                     }
                 })
                 .ToProperty(this, nameof(Exists));
+
+            _Image = Observable.Return(Metadata.Links.ImageUri)
+                .DownloadBitmapImage((ex) => Utils.Log($"Error downloading modlist image {Metadata.Title}"))
+                .ToProperty(this, nameof(Image));
         }
 
         private Task Download()

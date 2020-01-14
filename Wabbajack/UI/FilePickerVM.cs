@@ -1,4 +1,4 @@
-using DynamicData;
+﻿using DynamicData;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -10,7 +10,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Wabbajack.Lib;
 
-namespace Wabbajack.UI
+namespace Wabbajack
 {
     public class FilePickerVM : ViewModel
     {
