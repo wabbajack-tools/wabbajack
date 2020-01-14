@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -39,6 +39,9 @@ namespace Wabbajack
         [Reactive]
         public bool IsBroken { get; private set; }
 
+        [Reactive]
+        public IErrorResponse Error { get; private set; }
+
         private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
         public BitmapImage Image => _Image.Value;
 
@@ -61,7 +64,15 @@ namespace Wabbajack
                 {
                     if (!exists)
                     {
-                        await Download();
+                        try
+                        {
+                            await Download();
+                        }
+                        catch (Exception ex)
+                        {
+                            Error = ErrorResponse.Fail(ex);
+                            return false;
+                        }
                         // Return an updated check on exists
                         return File.Exists(Location);
                     }
