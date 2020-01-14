@@ -7,8 +7,8 @@ namespace Wabbajack
         public readonly static ErrorResponse Success = Succeed();
         public readonly static ErrorResponse Failure = new ErrorResponse();
 
-        public readonly bool Succeeded;
-        public readonly Exception Exception;
+        public bool Succeeded { get; }
+        public Exception Exception { get; }
         private readonly string _reason;
 
         public bool Failed => !Succeeded;

@@ -8,7 +8,6 @@ using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
-using Wabbajack.UI;
 
 namespace Wabbajack
 {
@@ -44,44 +43,7 @@ namespace Wabbajack
             ImageURL = m.SlideShowPic;
             ImageObservable = Observable.Return(ImageURL)
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .SelectTask(async url =>
-                {
-                    try
-                    {
-                        var ret = new MemoryStream();
-                        using (var client = new HttpClient())
-                        using (var stream = await client.GetStreamAsync(url))
-                        {
-                            stream.CopyTo(ret);
-                        }
-
-                        ret.Seek(0, SeekOrigin.Begin);
-                        return ret;
-                    }
-                    catch (Exception)
-                    {
-                        Utils.Log($"Skipping slide for mod {ModName} ({ModID})");
-                        return default;
-                    }
-                })
-                .ObserveOnGuiThread()
-                .Select(memStream =>
-                {
-                    if (memStream == null) return default;
-                    try
-                    {
-                        return UIUtils.BitmapImageFromStream(memStream);
-                    }
-                    catch (Exception)
-                    {
-                        Utils.Log($"Skipping slide for mod {ModName} ({ModID})");
-                        return default;
-                    }
-                    finally
-                    {
-                        memStream.Dispose();
-                    }
-                })
+                .DownloadBitmapImage((ex) => Utils.Log($"Skipping slide for mod {ModName} ({ModID})"))
                 .Replay(1)
                 .RefCount(TimeSpan.FromMilliseconds(5000));
         }

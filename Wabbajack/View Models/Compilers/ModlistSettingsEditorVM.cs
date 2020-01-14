@@ -6,7 +6,6 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
-using Wabbajack.UI;
 
 namespace Wabbajack
 {

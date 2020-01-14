@@ -6,7 +6,6 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Wabbajack.Common;
 using Wabbajack.Lib;
-using Wabbajack.UI;
 
 namespace Wabbajack
 {

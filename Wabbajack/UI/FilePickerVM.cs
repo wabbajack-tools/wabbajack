@@ -1,4 +1,4 @@
-using DynamicData;
+﻿using DynamicData;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -10,7 +10,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using Wabbajack.Lib;
 
-namespace Wabbajack.UI
+namespace Wabbajack
 {
     public class FilePickerVM : ViewModel
     {
@@ -109,7 +109,7 @@ namespace Wabbajack.UI
 
             _exists = Observable.Interval(TimeSpan.FromSeconds(3), RxApp.TaskpoolScheduler)
                 // Only check exists on timer if desired
-                .FilterSwitch(doExistsCheck)
+                .FlowSwitch(doExistsCheck)
                 .Unit()
                 // Also check though, when fields change
                 .Merge(this.WhenAny(x => x.PathType).Unit())

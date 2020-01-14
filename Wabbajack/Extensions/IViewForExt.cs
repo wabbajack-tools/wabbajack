@@ -56,10 +56,10 @@ namespace Wabbajack
 
         public static IReactiveBinding<TView, TViewModel, (object view, bool isViewModel)> BindStrict<TViewModel, TView, TVMProp, TVProp>(
             this TView view,
-            TViewModel viewModel, 
+            TViewModel viewModel,
             Expression<Func<TViewModel, TVMProp>> vmProperty,
-            Expression<Func<TView, TVProp>> viewProperty, 
-            Func<TVMProp, TVProp> vmToViewConverter, 
+            Expression<Func<TView, TVProp>> viewProperty,
+            Func<TVMProp, TVProp> vmToViewConverter,
             Func<TVProp, TVMProp> viewToVmConverter)
             where TViewModel : class
             where TView : class, IViewFor
@@ -70,6 +70,27 @@ namespace Wabbajack
                 viewProperty: viewProperty,
                 vmToViewConverter: vmToViewConverter,
                 viewToVmConverter: viewToVmConverter);
+        }
+
+        public static IDisposable BindToStrict<TValue, TTarget>(
+            this IObservable<TValue> @this,
+            TTarget target,
+            Expression<Func<TTarget, TValue>> property)
+            where TTarget : class
+        {
+            return @this.BindTo<TValue, TTarget, TValue>(target, property);
+        }
+
+        /// <summary>
+        /// Just a function to signify a field is being used, so it triggers compile errors if it changes
+        /// </summary>
+        public static void MarkAsNeeded<TView, TViewModel, TVMProp>(
+            this TView view,
+            TViewModel viewModel,
+            Expression<Func<TViewModel, TVMProp>> vmProperty)
+            where TViewModel : class
+            where TView : class, IViewFor
+        {
         }
     }
 }

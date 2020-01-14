@@ -44,9 +44,6 @@ namespace Wabbajack.Lib.ModListRegistry
             [JsonProperty("image")]
             public string ImageUri { get; set; }
 
-            [JsonIgnore]
-            public Bitmap Image { get; set; }
-
             [JsonProperty("readme")]
             public string Readme { get; set; }
 

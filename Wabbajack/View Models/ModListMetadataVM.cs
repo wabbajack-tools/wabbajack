@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using Alphaleonis.Win32.Filesystem;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -38,6 +39,12 @@ namespace Wabbajack
         [Reactive]
         public bool IsBroken { get; private set; }
 
+        [Reactive]
+        public IErrorResponse Error { get; private set; }
+
+        private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
+        public BitmapImage Image => _Image.Value;
+
         public ModListMetadataVM(ModListGalleryVM parent, ModlistMetadata metadata)
         {
             _parent = parent;
@@ -57,7 +64,15 @@ namespace Wabbajack
                 {
                     if (!exists)
                     {
-                        await Download();
+                        try
+                        {
+                            await Download();
+                        }
+                        catch (Exception ex)
+                        {
+                            Error = ErrorResponse.Fail(ex);
+                            return false;
+                        }
                         // Return an updated check on exists
                         return File.Exists(Location);
                     }
@@ -92,6 +107,7 @@ namespace Wabbajack
             _Exists = Observable.Interval(TimeSpan.FromSeconds(0.5))
                 .Unit()
                 .StartWith(Unit.Default)
+                .FlowSwitch(_parent.WhenAny(x => x.IsActive))
                 .Select(_ =>
                 {
                     try
@@ -104,6 +120,10 @@ namespace Wabbajack
                     }
                 })
                 .ToProperty(this, nameof(Exists));
+
+            _Image = Observable.Return(Metadata.Links.ImageUri)
+                .DownloadBitmapImage((ex) => Utils.Log($"Error downloading modlist image {Metadata.Title}"))
+                .ToProperty(this, nameof(Image));
         }
 
         private Task Download()

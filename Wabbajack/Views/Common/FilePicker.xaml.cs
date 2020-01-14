@@ -2,8 +2,6 @@
 using System.Windows.Controls;
 using System.Windows.Data;
 using Wabbajack.Lib;
-using Wabbajack.UI;
-
 namespace Wabbajack
 {
     /// <summary>
