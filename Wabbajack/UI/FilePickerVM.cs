@@ -109,7 +109,7 @@ namespace Wabbajack
 
             _exists = Observable.Interval(TimeSpan.FromSeconds(3), RxApp.TaskpoolScheduler)
                 // Only check exists on timer if desired
-                .FilterSwitch(doExistsCheck)
+                .FlowSwitch(doExistsCheck)
                 .Unit()
                 // Also check though, when fields change
                 .Merge(this.WhenAny(x => x.PathType).Unit())

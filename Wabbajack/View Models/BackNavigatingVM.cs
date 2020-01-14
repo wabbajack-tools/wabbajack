@@ -25,12 +25,19 @@ namespace Wabbajack
         public ViewModel NavigateBackTarget { get; set; }
         public ReactiveCommand<Unit, Unit> BackCommand { get; protected set; }
 
+        private readonly ObservableAsPropertyHelper<bool> _IsActive;
+        public bool IsActive => _IsActive.Value;
+
         public BackNavigatingVM(MainWindowVM mainWindowVM)
         {
             BackCommand = ReactiveCommand.Create(
                 execute: () => Utils.CatchAndLog(() => mainWindowVM.NavigateTo(NavigateBackTarget)),
                 canExecute: this.ConstructCanNavigateBack()
                     .ObserveOnGuiThread());
+
+            _IsActive = mainWindowVM.WhenAny(x => x.ActivePane)
+                .Select(x => object.ReferenceEquals(this, x))
+                .ToProperty(this, nameof(IsActive));
         }
     }
 

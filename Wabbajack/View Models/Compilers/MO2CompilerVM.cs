@@ -146,7 +146,7 @@ namespace Wabbajack
             (this).WhenAny(x => x.Mo2Folder)
                 .DelayInitial(TimeSpan.FromMilliseconds(100))
                 .Where(x => Directory.Exists(x))
-                .FilterSwitch(
+                .FlowSwitch(
                     (this).WhenAny(x => x.DownloadLocation.Exists)
                         .Invert())
                 // A skip is needed to ignore the initial signal when the FilterSwitch turns on

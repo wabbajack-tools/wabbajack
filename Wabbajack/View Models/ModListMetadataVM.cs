@@ -107,6 +107,7 @@ namespace Wabbajack
             _Exists = Observable.Interval(TimeSpan.FromSeconds(0.5))
                 .Unit()
                 .StartWith(Unit.Default)
+                .FlowSwitch(_parent.WhenAny(x => x.IsActive))
                 .Select(_ =>
                 {
                     try

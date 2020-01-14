@@ -60,7 +60,7 @@ namespace Wabbajack
                 // When filter switch enabled, fire an initial signal
                 .StartWith(Unit.Default)
                 // Only subscribe to slideshow triggers if enabled and installing
-                .FilterSwitch(
+                .FlowSwitch(
                     Observable.CombineLatest(
                         this.WhenAny(x => x.Enable),
                         this.WhenAny(x => x.Installer.Installing),

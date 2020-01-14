@@ -40,7 +40,7 @@ namespace Wabbajack
         /// <param name="source">Source observable to subscribe to if on</param>
         /// <param name="filterSwitch">On/Off signal of whether to subscribe to source observable</param>
         /// <returns>Observable that publishes data from source, if the switch is on.</returns>
-        public static IObservable<T> FilterSwitch<T>(this IObservable<T> source, IObservable<bool> filterSwitch)
+        public static IObservable<T> FlowSwitch<T>(this IObservable<T> source, IObservable<bool> filterSwitch)
         {
             return filterSwitch
                 .DistinctUntilChanged()
@@ -211,7 +211,7 @@ namespace Wabbajack
 
         public static IObservable<T> DelayInitial<T>(this IObservable<T> source, TimeSpan delay)
         {
-            return source.FilterSwitch(
+            return source.FlowSwitch(
                 Observable.Return(System.Reactive.Unit.Default)
                     .Delay(delay)
                     .Select(_ => true)
@@ -220,7 +220,7 @@ namespace Wabbajack
 
         public static IObservable<T> DelayInitial<T>(this IObservable<T> source, TimeSpan delay, IScheduler scheduler)
         {
-            return source.FilterSwitch(
+            return source.FlowSwitch(
                 Observable.Return(System.Reactive.Unit.Default)
                     .Delay(delay, scheduler)
                     .Select(_ => true)
