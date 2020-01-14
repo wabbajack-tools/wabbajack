@@ -11,7 +11,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
 {
     public class GetNexusUpdatesJob : AJobPayload
     {
-        public override string Description => "Poll the nexus for updated mods, and clean any references to those mods";
+        public override string Description => "Poll the Nexus for updated mods, and clean any references to those mods";
 
         public override async Task<JobResult> Execute(DBContext db, AppSettings settings)
         {

@@ -108,13 +108,13 @@ namespace Wabbajack.Common.StoreHandlers
                     
                     if (gameMeta == null)
                     {
-                        Utils.Log($"GOG Game \"{gameName}\"({gameID}) is not supported, skipping");
+                        Utils.Log($"GOG Game \"{gameName}\" ({gameID}) is not supported, skipping");
                         return;
                     }
 
                     game.Game = gameMeta.Game;
 
-                    Utils.Log($"Found GOG Game: \"{game.Name}\"({game.ID}) at {game.Path}");
+                    Utils.Log($"Found GOG Game: \"{game.Name}\" ({game.ID}) at {game.Path}");
 
                     Games.Add(game);
                 });

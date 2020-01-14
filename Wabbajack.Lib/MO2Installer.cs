@@ -54,8 +54,8 @@ namespace Wabbajack.Lib
             if (GameFolder == null)
             {
                 await Utils.Log(new CriticalFailureIntervention(
-                    $"In order to do a proper install Wabbajack needs to know where your {game.MO2Name} folder resides. We tried looking the" +
-                    "game location up in the windows registry but were unable to find it, please make sure you launch the game once before running this installer. ",
+                    $"In order to do a proper install Wabbajack needs to know where your {game.MO2Name} folder resides. We tried looking the " +
+                    "game location up in the Windows Registry but were unable to find it, please make sure you launch the game once before running this installer. ",
                     "Could not find game location")).Task;
                 Utils.Log("Exiting because we couldn't find the game folder.");
                 return false;
@@ -82,7 +82,7 @@ namespace Wabbajack.Lib
             }
 
             if (cancel.IsCancellationRequested) return false;
-            UpdateTracker.NextStep("Optimizing Modlist");
+            UpdateTracker.NextStep("Optimizing ModList");
             await OptimizeModlist();
 
             if (cancel.IsCancellationRequested) return false;
@@ -321,13 +321,13 @@ namespace Wabbajack.Lib
 
             if (!Directory.Exists(path)) return ErrorResponse.Success;
 
-            // Check folder does not have a wabbajack modlist
+            // Check folder does not have a Wabbajack ModList
             foreach (var file in Directory.EnumerateFiles(path))
             {
                 if (!File.Exists(file)) continue;
                 if (System.IO.Path.GetExtension(file).Equals(ExtensionManager.Extension))
                 {
-                    return ErrorResponse.Fail($"Cannot install into a folder with a Wabbajack modlist inside of it.");
+                    return ErrorResponse.Fail($"Cannot install into a folder with a Wabbajack ModList inside of it");
                 }
             }
 

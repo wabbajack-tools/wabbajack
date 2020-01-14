@@ -46,13 +46,13 @@ namespace Wabbajack
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
-                PromptTitle = "Select modlist"
+                PromptTitle = "Select a ModList"
             };
             DownloadLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.Folder,
-                PromptTitle = "Select download location",
+                PromptTitle = "Select a downloads location",
             };
 
             _mo2Folder = this.WhenAny(x => x.ModListLocation.TargetPath)
@@ -84,15 +84,15 @@ namespace Wabbajack
                 })
                 .ToProperty(this, nameof(MOProfile));
 
-            // Wire missing Mo2Folder to signal error state for Modlist Location
+            // Wire missing Mo2Folder to signal error state for ModList Location
             ModListLocation.AdditionalError = this.WhenAny(x => x.Mo2Folder)
                 .Select<string, IErrorResponse>(moFolder =>
                 {
                     if (Directory.Exists(moFolder)) return ErrorResponse.Success;
-                    return ErrorResponse.Fail($"MO2 Folder could not be located from the given modlist location.{Environment.NewLine}Make sure your modlist is inside a valid MO2 distribution.");
+                    return ErrorResponse.Fail($"MO2 folder could not be located from the given ModList location.{Environment.NewLine}Make sure your ModList is inside a valid MO2 distribution.");
                 });
 
-            // Load custom modlist settings per MO2 profile
+            // Load custom ModList settings per MO2 profile
             _modlistSettings = Observable.CombineLatest(
                     (this).WhenAny(x => x.ModListLocation.ErrorState),
                     (this).WhenAny(x => x.ModListLocation.TargetPath),

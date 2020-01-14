@@ -41,7 +41,7 @@ namespace Wabbajack.BuildServer
                                 continue;
                             }
 
-                            Logger.Log(LogLevel.Information, $"Starting Job: {job.Payload.Description}");
+                            Logger.Log(LogLevel.Information, $"Starting job: {job.Payload.Description}");
                             JobResult result;
                             try
                             {
@@ -57,7 +57,7 @@ namespace Wabbajack.BuildServer
                         }
                         catch (Exception ex)
                         {
-                            Logger.Log(LogLevel.Error, ex, $"Error getting or updating Job");
+                            Logger.Log(LogLevel.Error, ex, $"Error getting or updating job");
 
                         }
                     }

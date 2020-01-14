@@ -146,7 +146,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log($"{a.Name} - Error Getting Nexus Download URL - {ex.Message}");
+                    Utils.Log($"{a.Name} - Error getting Nexus download URL - {ex.Message}");
                     return;
                 }
 
@@ -183,7 +183,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log($"{ModName} - {GameName} - {ModID} - {FileID} - Error Getting Nexus Download URL - {ex}");
+                    Utils.Log($"{ModName} - {GameName} - {ModID} - {FileID} - Error getting Nexus download URL - {ex}");
                     return false;
                 }
 

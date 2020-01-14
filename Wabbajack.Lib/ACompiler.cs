@@ -82,9 +82,9 @@ namespace Wabbajack.Lib
 
         public void ExportModList()
         {
-            Utils.Log($"Exporting ModList to : {ModListOutputFile}");
+            Utils.Log($"Exporting ModList to {ModListOutputFile}");
 
-            // Modify readme and modlist image to relative paths if they exist
+            // Modify readme and ModList image to relative paths if they exist
             if (File.Exists(ModListImage))
             {
                 ModList.Image = "modlist-image.png";

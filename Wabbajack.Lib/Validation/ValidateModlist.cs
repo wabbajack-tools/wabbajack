@@ -11,8 +11,8 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 namespace Wabbajack.Lib.Validation
 {
     /// <summary>
-    /// Core class for rights management. Given a Wabbajack modlist this class will return a list of all the
-    /// know rights violations of the modlist
+    /// Core class for rights management. Given a Wabbajack ModList this class will return a list of all the
+    /// known rights violations of the ModList
     /// </summary>
     public class ValidateModlist
     {
@@ -39,18 +39,18 @@ namespace Wabbajack.Lib.Validation
         public async Task LoadListsFromGithub()
         {
             var client = new HttpClient();
-            Utils.Log("Loading Nexus Mod Permissions");
+            Utils.Log("Loading Nexus mod permissions");
             using (var result = await client.GetStreamAsync(Consts.ModPermissionsURL))
             {
                 AuthorPermissions = result.FromYaml<Dictionary<string, Author>>();
                 Utils.Log($"Loaded permissions for {AuthorPermissions.Count} authors");
             }
 
-            Utils.Log("Loading Server Whitelist");
+            Utils.Log("Loading server whitelist");
             using (var result = await client.GetStreamAsync(Consts.ServerWhitelistURL))
             {
                 ServerWhitelist = result.FromYaml<ServerWhitelist>();
-                Utils.Log($"Loaded permissions for {ServerWhitelist.AllowedPrefixes.Count} servers and {ServerWhitelist.GoogleIDs.Count} GDrive files");
+                Utils.Log($"Loaded permissions for {ServerWhitelist.AllowedPrefixes.Count} servers and {ServerWhitelist.GoogleIDs.Count} Google Drive files");
             }
 
         }
@@ -66,12 +66,11 @@ namespace Wabbajack.Lib.Validation
             errors.Do(e => Utils.Log(e));
             if (errors.Count() > 0)
             {
-                Utils.Log($"{errors.Count()} validation errors found, cannot continue.");
                 throw new Exception($"{errors.Count()} validation errors found, cannot continue.");
             }
             else
             {
-                Utils.Log("No Validation failures");
+                Utils.Log("No validation failures");
             }
         }
 
@@ -141,7 +140,7 @@ namespace Wabbajack.Lib.Validation
                         if (!(archive.permissions.CanExtractBSAs ?? true) &&
                             p.ArchiveHashPath.Skip(1).ButLast().Any(a => Consts.SupportedBSAs.Contains(Path.GetExtension(a).ToLower())))
                         {
-                            ValidationErrors.Push($"{p.To} from {url} is set to disallow BSA Extraction");
+                            ValidationErrors.Push($"{p.To} from {url} is set to disallow BSA extraction");
                         }
                     }
                 });
@@ -157,7 +156,7 @@ namespace Wabbajack.Lib.Validation
                        if (!(permissions.CanUseInOtherGames ?? true))
                        {
                            ValidationErrors.Push(
-                               $"The modlist is for {nexus} but {m.Name} is for game type {((NexusDownloader.State)m.State).GameName} and is not allowed to be converted to other game types");
+                               $"The ModList is for {nexus} but {m.Name} is for game type {((NexusDownloader.State)m.State).GameName} and is not allowed to be converted to other game types");
                        }
                    });
 

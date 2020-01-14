@@ -119,7 +119,7 @@ namespace Wabbajack.Common.StoreHandlers
 
             if (SteamUniverses.Count == 0)
             {
-                Utils.Log("Could not find any Steam Libraries!");
+                Utils.Log("Could not find any Steam Libraries");
                 return false;
             }
 
@@ -166,14 +166,14 @@ namespace Wabbajack.Common.StoreHandlers
 
                     if (gameMeta == null)
                     {
-                        Utils.Log($"Steam Game {game.Name}({game.ID}) is not supported, skipping");
+                        Utils.Log($"Steam Game \"{game.Name}\" ({game.ID}) is not supported, skipping");
                         return;
                     }
 
                     game.Game = gameMeta.Game;
                     game.Universe = u;
 
-                    Utils.Log($"Found Steam Game: \"{game.Name}\"({game.ID}) at {game.Path}");
+                    Utils.Log($"Found Steam Game: \"{game.Name}\" ({game.ID}) at {game.Path}");
 
                     LoadWorkshopItems(game);
 
@@ -200,7 +200,7 @@ namespace Wabbajack.Common.StoreHandlers
                 if (Path.GetFileName(f) != $"appworkshop{game.ID}.acf")
                     return;
 
-                Utils.Log($"Found workshop item file {f} for \"{game.Name}\"");
+                Utils.Log($"Found Steam Workshop item file {f} for \"{game.Name}\"");
 
                 var lines = File.ReadAllLines(f);
                 var end = false;
@@ -282,7 +282,7 @@ namespace Wabbajack.Common.StoreHandlers
                     currentItem.Game = game;
                     game.WorkshopItems.Add(currentItem);
 
-                    Utils.Log($"Found WorkshopItem {currentItem.ItemID}");
+                    Utils.Log($"Found Steam Workshop item {currentItem.ItemID}");
 
                     currentItem = null;
                     end = true;

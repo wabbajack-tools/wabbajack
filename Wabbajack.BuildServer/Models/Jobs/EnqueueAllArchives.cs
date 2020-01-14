@@ -17,7 +17,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
         public override string Description => "Add missing modlist archives to indexer";
         public override async Task<JobResult> Execute(DBContext db, AppSettings settings)
         {
-            Utils.Log("Starting modlist indexing");
+            Utils.Log("Starting ModList indexing");
             var modlists = await ModlistMetadata.LoadFromGithub();
 
             using (var queue = new WorkQueue())
@@ -56,7 +56,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             }
             else
             {
-                Utils.Log($"No changes detected from downloaded modlist");
+                Utils.Log($"No changes detected from downloaded ModList");
             }
 
             Utils.Log($"Loading {modlist_path}");
@@ -79,7 +79,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
             var jobs = missing.Select(a => new Job {Payload = new IndexJob {Archive = a}, Priority = Job.JobPriority.Low});
 
-            Utils.Log($"Writing jobs to the DB");
+            Utils.Log($"Writing jobs to the database");
             await db.Jobs.InsertManyAsync(jobs, new InsertManyOptions {IsOrdered = false});
             Utils.Log($"Done adding archives for {installer.Name}");
         }

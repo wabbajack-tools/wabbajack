@@ -91,7 +91,7 @@ namespace Wabbajack
                         .Shuffle(_random)
                         .AsObservableChangeSet(x => x.ModID);
                 })
-                // Switch to the new list after every modlist change
+                // Switch to the new list after every ModList change
                 .Switch()
                 // Filter out any NSFW slides if we don't want them
                 .AutoRefreshOnObservable(slide => this.WhenAny(x => x.ShowNSFW))

@@ -42,7 +42,7 @@ namespace Wabbajack.Lib
             var metric = Metrics.Send("begin_install", ModList.Name);
             var result = await Utils.Log(new YesNoIntervention(
                 "Vortex Support is still experimental and may produce unexpected results. " +
-                "If anything fails go to the special vortex support channels on the discord. @erri120#2285 " +
+                "If anything fails please go to the special Vortex support channels on the Wabbajack Discord and contact @erri120#2285 " +
                 "for support.", "Continue with experimental feature?")).Task;
             if (result == ConfirmationIntervention.Choice.Abort)
             {
@@ -115,7 +115,7 @@ namespace Wabbajack.Lib
 
             var result = await Utils.Log(new YesNoIntervention("Some mods from this ModList must be installed directly into " +
                                              "the game folder. Do you want to do this manually or do you want Wabbajack " +
-                                             "to do this for you?", "Install game folder mods?")).Task;
+                                             "to do this for you?", "Move mods into game folder?")).Task;
 
             if (result != ConfirmationIntervention.Choice.Continue)
                 return;
@@ -173,7 +173,7 @@ namespace Wabbajack.Lib
                 return;
 
             var result = await Utils.Log(new YesNoIntervention(
-                "The ModList you are installing requires Steam Workshop Items to exist. " +
+                "The ModList you are installing requires Steam Workshop items to exist. " +
                 "You can check the Workshop Items in the manifest of this ModList. Wabbajack can start Steam for you " +
                 "and download the Items automatically. Do you want to proceed with this step?",
                 "Download Steam Workshop Items?")).Task;
