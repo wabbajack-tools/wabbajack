@@ -7,6 +7,8 @@ using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Lib.Validation;
+using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
@@ -20,11 +22,15 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
             using (var queue = new WorkQueue())
             {
+                            
+                var whitelists = new ValidateModlist(queue);
+                await whitelists.LoadListsFromGithub();
+                
                 foreach (var list in modlists)
                 {
                     try
                     {
-                        await ValidateList(db, list, queue);
+                        await ValidateList(db, list, queue, whitelists);
                     }
                     catch (Exception ex)
                     {
@@ -36,7 +42,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             return JobResult.Success();
         }
         
-         private static async Task ValidateList(DBContext db, ModlistMetadata list, WorkQueue queue)
+         private static async Task ValidateList(DBContext db, ModlistMetadata list, WorkQueue queue, ValidateModlist whitelists)
         {
             var existing = await db.ModListStatus.FindOneAsync(l => l.Id == list.Links.MachineURL);
             
@@ -65,14 +71,14 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
             DownloadDispatcher.PrepareAll(installer.Archives.Select(a => a.State));
 
+
             var validated = (await installer.Archives
                     .PMap(queue, async archive =>
                     {
-                        Utils.Log($"Validating: {archive.Name}");
                         bool is_failed;
                         try
                         {
-                            is_failed = !(await archive.State.Verify());
+                            is_failed = !(await archive.State.Verify(archive)) || !archive.State.IsWhitelisted(whitelists.ServerWhitelist);
                         }
                         catch (Exception)
                         {
@@ -105,7 +111,12 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 DetailedStatus = status,
                 Metadata = list
             };
+            Utils.Log(
+                $"Writing Update for {dto.Summary.Name} - {dto.Summary.Failed} failed - {dto.Summary.Passed} passed");
             await ModListStatus.Update(db, dto);
+            Utils.Log(
+                $"Done updating {dto.Summary.Name}");
+
         }
     }
 }

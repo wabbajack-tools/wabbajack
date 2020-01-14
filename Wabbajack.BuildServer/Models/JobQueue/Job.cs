@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack.BuildServer.Models.JobQueue
 { 

@@ -37,7 +37,7 @@ namespace Wabbajack.Lib.Downloaders
                 client.DownloadFile(fileLink, destination);
             }
 
-            public override async Task<bool> Verify()
+            public override async Task<bool> Verify(Archive a)
             {
                 var client = new MegaApiClient();
                 Utils.Status("Logging into MEGA (as anonymous)");

@@ -37,7 +37,7 @@ namespace Wabbajack.Lib.Downloaders
                 await result.Download(a, destination);
             }
 
-            public override async Task<bool> Verify()
+            public override async Task<bool> Verify(Archive a)
             {
                 return await Resolve() != null;
             }
