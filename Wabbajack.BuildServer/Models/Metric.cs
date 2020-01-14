@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -24,6 +25,7 @@ namespace Wabbajack.BuildServer.Models
         
         public static async Task<IEnumerable<MetricResult>> Report(DBContext db, string grouping)
         {
+            var regex = new Regex("\\d+\\.");
             var data = await db.Metrics.AsQueryable()
                 .Where(m => m.MetricsKey != null)
                 .Where(m => m.Action == grouping)
@@ -40,7 +42,7 @@ namespace Wabbajack.BuildServer.Models
             
             var results = data
                 .Where(d => !Guid.TryParse(d.Subject, out var _))
-                .GroupBy(d => d.Subject)
+                .GroupBy(d => regex.Split(d.Subject).First())
                 .Select(by_series =>
                 {
                     var by_day = by_series.GroupBy(d => d.Timestamp.ToString("yyyy-MM-dd"))
