@@ -173,6 +173,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Extensions\DynamicDataExt.cs" />
+    <Compile Include="Views\ModListTileView.xaml.cs">
+      <DependentUpon>ModListTileView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="UI\FilePickerVM.cs" />
     <Compile Include="UI\UIUtils.cs" />
     <Compile Include="Util\SystemParametersConstructor.cs" />
@@ -301,6 +304,10 @@
     <Compile Include="Views\WebBrowserView.xaml.cs">
       <DependentUpon>WebBrowserView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Views\ModListTileView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\Settings\LoginItemView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
