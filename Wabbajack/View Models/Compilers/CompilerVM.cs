@@ -243,18 +243,24 @@ namespace Wabbajack
                     }
                 });
 
-            _progressTitle = Observable.CombineLatest(
-                    this.WhenAny(x => x.Compiling),
-                    this.WhenAny(x => x.StartedCompilation),
-                    resultSelector: (compiling, started) =>
+            _progressTitle = this.WhenAnyValue(
+                    x => x.Compiling,
+                    x => x.StartedCompilation,
+                    x => x.Completed,
+                    selector: (compiling, started, completed) =>
                     {
                         if (compiling)
                         {
                             return "Compiling";
                         }
+                        else if (started)
+                        {
+                            if (completed == null) return "Compiling";
+                            return completed.Value.Succeeded ? "Compiled" : "Failed";
+                        }
                         else
                         {
-                            return started ? "Compiled" : "Configuring";
+                            return "Configuring";
                         }
                     })
                 .ToProperty(this, nameof(ProgressTitle));

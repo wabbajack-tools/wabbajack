@@ -285,18 +285,24 @@ namespace Wabbajack
                     .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());
 
-            _progressTitle = Observable.CombineLatest(
-                    this.WhenAny(x => x.Installing),
-                    this.WhenAny(x => x.StartedInstallation),
-                    resultSelector: (installing, started) =>
+            _progressTitle = this.WhenAnyValue(
+                    x => x.Installing,
+                    x => x.StartedInstallation,
+                    x => x.Completed,
+                    selector: (installing, started, completed) =>
                     {
                         if (installing)
                         {
                             return "Installing";
                         }
+                        else if (started)
+                        {
+                            if (completed == null) return "Installing";
+                            return completed.Value.Succeeded ? "Installed" : "Failed";
+                        }
                         else
                         {
-                            return started ? "Installed" : "Configuring";
+                            return "Configuring";
                         }
                     })
                 .ToProperty(this, nameof(ProgressTitle));
