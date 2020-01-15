@@ -1131,9 +1131,7 @@ namespace Wabbajack.Common
 
         public static HashSet<T> ToHashSet<T>(this IEnumerable<T> coll)
         {
-            var hs = new HashSet<T>();
-            coll.Do(v => hs.Add(v));
-            return hs;
+            return new HashSet<T>(coll);
         }
         
         public static HashSet<T> ToHashSet<T>(this T[] coll)
