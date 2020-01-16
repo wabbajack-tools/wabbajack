@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using File = System.IO.File;
@@ -39,6 +40,7 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonIgnore] 
         public ModlistSummary ValidationSummary { get; set; } = new ModlistSummary();
 
+        [BsonIgnoreExtraElements]
         public class LinksObject
         {
             [JsonProperty("image")]

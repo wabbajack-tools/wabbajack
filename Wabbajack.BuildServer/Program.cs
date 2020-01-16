@@ -21,7 +21,11 @@ namespace Wabbajack.BuildServer
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseUrls("http://*:5000");
-                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseStartup<Startup>()
+                        .UseKestrel(options =>
+                        {
+                            options.Limits.MaxRequestBodySize = null;
+                        });
                 });
     }
 }

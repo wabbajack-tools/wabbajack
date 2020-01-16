@@ -11,5 +11,7 @@ namespace Wabbajack.BuildServer
         
         public string DownloadDir { get; set; }
         public string ArchiveDir { get; set; }
+        
+        public bool MinimalMode { get; set; }
     }
 }

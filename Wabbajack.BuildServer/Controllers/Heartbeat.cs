@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer.Models;
@@ -26,6 +27,14 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<TimeSpan> GetHeartbeat()
         {
             return DateTime.Now - _startTime;
+        }
+
+        [HttpGet("only-authenticated")]
+        [Authorize]
+        public IActionResult OnlyAuthenticated()
+        {
+            var message = $"Hello from {nameof(OnlyAuthenticated)}";
+            return new ObjectResult(message);
         }
     }
 }
