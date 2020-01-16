@@ -1,4 +1,4 @@
-﻿using Syroot.Windows.IO;
+using Syroot.Windows.IO;
 using System;
 using ReactiveUI;
 using System.Diagnostics;
@@ -30,8 +30,8 @@ namespace Wabbajack
 
         public MainWindowVM MWVM { get; }
 
-        public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/Resources/Wabba_Mouth_No_Text.png")).Stream);
-        public BitmapImage WabbajackErrLogo { get; } = UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/Resources/Wabba_Ded.png")).Stream);
+        public static BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/Resources/Wabba_Mouth_No_Text.png")).Stream);
+        public static BitmapImage WabbajackErrLogo { get; } = UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/Resources/Wabba_Ded.png")).Stream);
 
         private readonly ObservableAsPropertyHelper<ModListVM> _modList;
         public ModListVM ModList => _modList.Value;
@@ -91,6 +91,9 @@ namespace Wabbajack
 
         private readonly ObservableAsPropertyHelper<bool> _LoadingModlist;
         public bool LoadingModlist => _LoadingModlist.Value;
+
+        private readonly ObservableAsPropertyHelper<bool> _IsActive;
+        public bool IsActive => _IsActive.Value;
 
         // Command properties
         public IReactiveCommand ShowReportCommand { get; }
@@ -154,8 +157,28 @@ namespace Wabbajack
                 })
                 .DisposeWith(CompositeDisposable);
 
-            _modList = this.WhenAny(x => x.ModListLocation.TargetPath)
+            _IsActive = this.ConstructIsActive(MWVM)
+                .ToProperty(this, nameof(IsActive));
+
+            // Active path represents the path to currently have loaded
+            // If we're not actively showing, then "unload" the active path
+            var activePath = Observable.CombineLatest(
+                    this.WhenAny(x => x.ModListLocation.TargetPath),
+                    this.WhenAny(x => x.IsActive),
+                    resultSelector: (path, active) => (path, active))
+                .Select(x =>
+                {
+                    if (!x.active) return default(string);
+                    return x.path;
+                })
+                // Throttle slightly so changes happen more atomically
+                .Throttle(TimeSpan.FromMilliseconds(50))
+                .Replay(1)
+                .RefCount();
+
+            _modList = activePath
                 .ObserveOn(RxApp.TaskpoolScheduler)
+                // Convert from active path to modlist VM
                 .Select(modListPath =>
                 {
                     if (modListPath == null) return default(ModListVM);
@@ -166,8 +189,8 @@ namespace Wabbajack
                 .StartWith(default(ModListVM))
                 .ToProperty(this, nameof(ModList));
             _LoadingModlist = Observable.Merge(
-                    // When target location changes, mark as loading
-                    this.WhenAny(x => x.ModListLocation.TargetPath)
+                    // When active path changes, mark as loading
+                    activePath
                         .Select(_ => true),
                     // When the resulting modlist comes in, mark it as done
                     this.WhenAny(x => x.ModList)
@@ -230,20 +253,21 @@ namespace Wabbajack
             _image = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Error),
                     this.WhenAny(x => x.ModList)
-                        .Select(x => x?.ImageObservable ?? Observable.Return(WabbajackLogo))
+                        .Select(x => x?.ImageObservable ?? Observable.Return(default(BitmapImage)))
                         .Switch()
-                        .StartWith(WabbajackLogo),
+                        .StartWith(default(BitmapImage)),
                     this.WhenAny(x => x.Slideshow.Image)
                         .StartWith(default(BitmapImage)),
                     this.WhenAny(x => x.Installing),
-                    resultSelector: (err, modList, slideshow, installing) =>
+                    this.WhenAny(x => x.LoadingModlist),
+                    resultSelector: (err, modList, slideshow, installing, loading) =>
                     {
                         if (err != null)
                         {
                             return WabbajackErrLogo;
                         }
-                        var ret = installing ? slideshow : modList;
-                        return ret ?? WabbajackLogo;
+                        if (loading) return default;
+                        return installing ? slideshow : modList;
                     })
                 .Select<BitmapImage, ImageSource>(x => x)
                 .ToProperty(this, nameof(Image));
