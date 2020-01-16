@@ -27,11 +27,13 @@ namespace Wabbajack.BuildServer.Models
         public IMongoCollection<Metric> Metrics => Client.GetCollection<Metric>(_settings.Collections["Metrics"]);
         public IMongoCollection<IndexedFile> IndexedFiles => Client.GetCollection<IndexedFile>(_settings.Collections["IndexedFiles"]);
         public IMongoCollection<NexusCacheData<List<NexusUpdateEntry>>> NexusUpdates => Client.GetCollection<NexusCacheData<List<NexusUpdateEntry>>>(_settings.Collections["NexusUpdates"]);
+        
+        public IMongoCollection<ApiKey> ApiKeys => Client.GetCollection<ApiKey>(_settings.Collections["ApiKeys"]);        
+        public IMongoCollection<UploadedFile> UploadedFiles => Client.GetCollection<UploadedFile>(_settings.Collections["UploadedFiles"]);
 
         public IMongoCollection<NexusCacheData<NexusApiClient.GetModFilesResponse>> NexusModFiles =>
             Client.GetCollection<NexusCacheData<NexusApiClient.GetModFilesResponse>>(
                 _settings.Collections["NexusModFiles"]);
-
         private IMongoDatabase Client => new MongoClient($"mongodb://{_settings.Host}").GetDatabase(_settings.Database);
     }
     public class Settings

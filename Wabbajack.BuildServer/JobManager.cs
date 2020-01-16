@@ -26,6 +26,7 @@ namespace Wabbajack.BuildServer
 
         public void StartJobRunners()
         {
+            if (Settings.MinimalMode) return;
             for (var idx = 0; idx < 2; idx++)
             {
                 Task.Run(async () =>
@@ -67,6 +68,7 @@ namespace Wabbajack.BuildServer
         
         public async Task JobScheduler()
         {
+            if (Settings.MinimalMode) return;
             Utils.LogMessages.Subscribe(msg => Logger.Log(LogLevel.Information, msg.ToString()));
             while (true)
             {

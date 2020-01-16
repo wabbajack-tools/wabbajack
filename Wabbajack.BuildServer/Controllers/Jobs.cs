@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
@@ -10,6 +11,7 @@ using Wabbajack.BuildServer.Models.JobQueue;
 
 namespace Wabbajack.BuildServer.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("/jobs")]
     public class Jobs : AControllerBase<Jobs>
