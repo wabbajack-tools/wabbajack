@@ -89,6 +89,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<(int CurrentCPUs, int DesiredCPUs)> _CurrentCpuCount;
         public (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount => _CurrentCpuCount.Value;
 
+        private readonly ObservableAsPropertyHelper<bool> _LoadingModlist;
+        public bool LoadingModlist => _LoadingModlist.Value;
+
         // Command properties
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
@@ -162,6 +165,14 @@ namespace Wabbajack
                 .ObserveOnGuiThread()
                 .StartWith(default(ModListVM))
                 .ToProperty(this, nameof(ModList));
+            _LoadingModlist = Observable.Merge(
+                    // When target location changes, mark as loading
+                    this.WhenAny(x => x.ModListLocation.TargetPath)
+                        .Select(_ => true),
+                    // When the resulting modlist comes in, mark it as done
+                    this.WhenAny(x => x.ModList)
+                        .Select(_ => false))
+                .ToProperty(this, nameof(LoadingModlist));
             _htmlReport = this.WhenAny(x => x.ModList)
                 .Select(modList => modList?.ReportHTML)
                 .ToProperty(this, nameof(HTMLReport));

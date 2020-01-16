@@ -7,6 +7,7 @@
     xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:lib="clr-namespace:Wabbajack.Lib;assembly=Wabbajack.Lib"
     xmlns:local="clr-namespace:Wabbajack"
+    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DataContext="{d:DesignInstance local:InstallerVM}"
     d:DesignHeight="500"
@@ -48,11 +49,14 @@
             Grid.Row="1"
             Margin="5,0,5,5">
             <Border BorderBrush="{StaticResource BorderInterestBrush}" BorderThickness="1,0,1,1">
-                <local:DetailImageView
-                    Title="{Binding TitleText, Mode=OneWay}"
-                    Author="{Binding AuthorText, Mode=OneWay}"
-                    Description="{Binding Description, Mode=OneWay}"
-                    Image="{Binding Image, Mode=OneWay}" />
+                <Grid>
+                    <local:DetailImageView
+                        Title="{Binding TitleText, Mode=OneWay}"
+                        Author="{Binding AuthorText, Mode=OneWay}"
+                        Description="{Binding Description, Mode=OneWay}"
+                        Image="{Binding Image, Mode=OneWay}" />
+                    <mahapps:ProgressRing Visibility="{Binding LoadingModlist, Mode=OneWay, Converter={StaticResource bool2VisibilityHiddenConverter}}" />
+                </Grid>
             </Border>
             <Grid
                 Margin="0,20,25,0"
@@ -422,8 +426,8 @@
             <local:CpuView
                 Grid.Column="2"
                 ProgressPercent="{Binding PercentCompleted, Mode=OneWay}"
-                ViewModel="{Binding}"
                 SettingsHook="{Binding MWVM.Settings}"
+                ViewModel="{Binding}"
                 Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}, ConverterParameter=False}" />
             <local:AttentionBorder Grid.Column="2" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}}">
                 <local:AttentionBorder.DisplayContent>
