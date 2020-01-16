@@ -27,6 +27,9 @@
       <PackageReference Include="Genbox.AlphaFS">
         <Version>2.2.2.1</Version>
       </PackageReference>
+      <PackageReference Include="GraphQL.Client">
+        <Version>2.0.0-alpha.3</Version>
+      </PackageReference>
       <PackageReference Include="HtmlAgilityPack">
         <Version>1.11.17</Version>
       </PackageReference>
