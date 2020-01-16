@@ -13,7 +13,7 @@ namespace Wabbajack
 {
     public class ModListVM : ViewModel
     {
-        public ModList SourceModList { get; }
+        public ModList SourceModList { get; private set; }
         public Exception Error { get; }
         public string ModListPath { get; }
         public string Name => SourceModList?.Name;
@@ -122,6 +122,14 @@ namespace Wabbajack
                     }
                 }
             }
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            // Just drop reference explicitly, as it's large, so it can be GCed
+            // Even if someone is holding a stale reference to the VM
+            this.SourceModList = null;
         }
     }
 }

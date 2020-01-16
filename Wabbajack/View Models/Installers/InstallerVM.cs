@@ -185,9 +185,19 @@ namespace Wabbajack
                     if (!File.Exists(modListPath)) return default(ModListVM);
                     return new ModListVM(modListPath);
                 })
+                .DisposeOld()
                 .ObserveOnGuiThread()
                 .StartWith(default(ModListVM))
                 .ToProperty(this, nameof(ModList));
+
+            // Force GC collect when modlist changes, just to make sure we clean up any loose large items immediately
+            this.WhenAny(x => x.ModList)
+                .Delay(TimeSpan.FromMilliseconds(50))
+                .Subscribe(x =>
+                {
+                    GC.Collect();
+                });
+
             _LoadingModlist = Observable.Merge(
                     // When active path changes, mark as loading
                     activePath

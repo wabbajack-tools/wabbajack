@@ -143,7 +143,7 @@ namespace Wabbajack
                 .DisposeWith(CompositeDisposable);
 
             // If Mo2 folder changes and download location is empty, set it for convenience
-            (this).WhenAny(x => x.Mo2Folder)
+            this.WhenAny(x => x.Mo2Folder)
                 .DelayInitial(TimeSpan.FromMilliseconds(100))
                 .Where(x => Directory.Exists(x))
                 .FlowSwitch(

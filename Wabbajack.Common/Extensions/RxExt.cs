@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -67,7 +67,7 @@ namespace Wabbajack
         /// <param name="filterSwitch">On/Off signal of whether to subscribe to source observable</param>
         /// <param name="valueOnOff">Value to fire when switching off</param>
         /// <returns>Observable that publishes data from source, if the switch is on.</returns>
-        public static IObservable<T> FilterSwitch<T>(this IObservable<T> source, IObservable<bool> filterSwitch, T valueWhenOff)
+        public static IObservable<T> FlowSwitch<T>(this IObservable<T> source, IObservable<bool> filterSwitch, T valueWhenOff)
         {
             return filterSwitch
                 .DistinctUntilChanged()
@@ -225,6 +225,22 @@ namespace Wabbajack
                     .Delay(delay, scheduler)
                     .Select(_ => true)
                     .StartWith(false));
+        }
+
+        public static IObservable<T> DisposeOld<T>(this IObservable<T> source)
+            where T : IDisposable
+        {
+            return source
+                .StartWith(default(T))
+                .Pairwise()
+                .Do(x =>
+                {
+                    if (x.Previous != null)
+                    {
+                        x.Previous.Dispose();
+                    }
+                })
+                .Select(x => x.Current);
         }
     }
 }

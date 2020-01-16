@@ -80,19 +80,20 @@ namespace Wabbajack
                 {
                     if (modList?.SourceModList?.Archives == null)
                     {
-                        return Observable.Empty<ModVM>()
+                        return Observable.Empty<NexusDownloader.State>()
                             .ToObservableChangeSet(x => x.ModID);
                     }
                     return modList.SourceModList.Archives
                         .Select(m => m.State)
                         .OfType<NexusDownloader.State>()
-                        .Select(nexus => new ModVM(nexus))
                         // Shuffle it
                         .Shuffle(_random)
                         .AsObservableChangeSet(x => x.ModID);
                 })
                 // Switch to the new list after every ModList change
                 .Switch()
+                .Transform(nexus => new ModVM(nexus))
+                .DisposeMany()
                 // Filter out any NSFW slides if we don't want them
                 .AutoRefreshOnObservable(slide => this.WhenAny(x => x.ShowNSFW))
                 .Filter(slide => !slide.IsNSFW || ShowNSFW)
