@@ -543,7 +543,7 @@
       <Version>1.1.11</Version>
     </PackageReference>
     <PackageReference Include="MahApps.Metro">
-      <Version>1.6.5</Version>
+      <Version>2.0.0-alpha0660</Version>
     </PackageReference>
     <PackageReference Include="MahApps.Metro.IconPacks">
       <Version>3.1.0</Version>
@@ -561,16 +561,16 @@
       <Version>1.0.2</Version>
     </PackageReference>
     <PackageReference Include="protobuf-net">
-      <Version>2.4.4</Version>
+      <Version>3.0.0-alpha.128</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.Events.WPF">
-      <Version>11.1.6</Version>
+      <Version>11.1.11</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.Fody">
-      <Version>11.1.6</Version>
+      <Version>11.1.11</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.WPF">
-      <Version>11.1.6</Version>
+      <Version>11.1.11</Version>
     </PackageReference>
     <PackageReference Include="SharpCompress">
       <Version>0.24.0</Version>

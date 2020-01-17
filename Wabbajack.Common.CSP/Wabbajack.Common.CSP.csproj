@@ -6,7 +6,7 @@
     </PropertyGroup>
     <ItemGroup>
       <PackageReference Include="System.Reactive" Version="4.3.2" />
-      <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.3" />
+      <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.0-preview.18571.3" />
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Properties\" />
