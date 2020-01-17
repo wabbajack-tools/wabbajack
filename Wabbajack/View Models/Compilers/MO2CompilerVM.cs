@@ -98,7 +98,7 @@ namespace Wabbajack
                     (this).WhenAny(x => x.ModListLocation.TargetPath),
                     resultSelector: (state, path) => (State: state, Path: path))
                 // A short throttle is a quick hack to make the above changes "atomic"
-                .Throttle(TimeSpan.FromMilliseconds(25))
+                .Throttle(TimeSpan.FromMilliseconds(25), RxApp.MainThreadScheduler)
                 .Select(u =>
                 {
                     if (u.State.Failed) return null;
@@ -142,7 +142,7 @@ namespace Wabbajack
 
             // If Mo2 folder changes and download location is empty, set it for convenience
             this.WhenAny(x => x.Mo2Folder)
-                .DelayInitial(TimeSpan.FromMilliseconds(100))
+                .DelayInitial(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
                 .Where(x => Directory.Exists(x))
                 .FlowSwitch(
                     (this).WhenAny(x => x.DownloadLocation.Exists)

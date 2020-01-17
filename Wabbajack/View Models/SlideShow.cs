@@ -66,7 +66,7 @@ namespace Wabbajack
                         this.WhenAny(x => x.Installer.Installing),
                         resultSelector: (enabled, installing) => enabled && installing))
                 // Block spam
-                .Debounce(TimeSpan.FromMilliseconds(250))
+                .Debounce(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
                 .Scan(
                     seed: 0,
                     accumulator: (i, _) => i + 1)

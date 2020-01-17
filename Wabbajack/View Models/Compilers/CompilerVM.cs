@@ -123,7 +123,7 @@ namespace Wabbajack
 
             _image = this.WhenAny(x => x.CurrentModlistSettings.ImagePath.TargetPath)
                 // Throttle so that it only loads image after any sets of swaps have completed
-                .Throttle(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
+                .Throttle(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
                 .DistinctUntilChanged()
                 .ObserveOnGuiThread()
                 .Select(path =>
@@ -174,7 +174,7 @@ namespace Wabbajack
                         return compiler.PercentCompleted.StartWith(0);
                     })
                 .Switch()
-                .Debounce(TimeSpan.FromMilliseconds(25))
+                .Debounce(TimeSpan.FromMilliseconds(25), RxApp.MainThreadScheduler)
                 .ToGuiProperty(this, nameof(PercentCompleted));
 
             BeginCommand = ReactiveCommand.CreateFromTask(

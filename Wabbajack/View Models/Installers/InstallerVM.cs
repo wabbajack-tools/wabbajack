@@ -172,7 +172,7 @@ namespace Wabbajack
                     return x.path;
                 })
                 // Throttle slightly so changes happen more atomically
-                .Throttle(TimeSpan.FromMilliseconds(50))
+                .Throttle(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
                 .Replay(1)
                 .RefCount();
 
@@ -192,7 +192,7 @@ namespace Wabbajack
 
             // Force GC collect when modlist changes, just to make sure we clean up any loose large items immediately
             this.WhenAny(x => x.ModList)
-                .Delay(TimeSpan.FromMilliseconds(50))
+                .Delay(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
                 .Subscribe(x =>
                 {
                     GC.Collect();
@@ -252,7 +252,7 @@ namespace Wabbajack
                         return installer.PercentCompleted.StartWith(0f);
                     })
                 .Switch()
-                .Debounce(TimeSpan.FromMilliseconds(25))
+                .Debounce(TimeSpan.FromMilliseconds(25), RxApp.MainThreadScheduler)
                 .ToGuiProperty(this, nameof(PercentCompleted));
 
             Slideshow = new SlideShow(this);

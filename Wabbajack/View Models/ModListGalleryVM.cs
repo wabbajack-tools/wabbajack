@@ -52,7 +52,7 @@ namespace Wabbajack
             this.WhenAny(x => x.IsActive)
                 .Where(x => !x)
                 .Skip(1)
-                .Delay(TimeSpan.FromMilliseconds(50))
+                .Delay(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
                 .Subscribe(_ =>
                 {
                     GC.Collect();
