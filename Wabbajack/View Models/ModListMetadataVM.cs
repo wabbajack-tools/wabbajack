@@ -45,6 +45,9 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
         public BitmapImage Image => _Image.Value;
 
+        private readonly ObservableAsPropertyHelper<bool> _LoadingImage;
+        public bool LoadingImage => _LoadingImage.Value;
+
         public ModListMetadataVM(ModListGalleryVM parent, ModlistMetadata metadata)
         {
             _parent = parent;
@@ -119,11 +122,18 @@ namespace Wabbajack
                         return true;
                     }
                 })
-                .ToProperty(this, nameof(Exists));
+                .ToGuiProperty(this, nameof(Exists));
 
-            _Image = Observable.Return(Metadata.Links.ImageUri)
-                .DownloadBitmapImage((ex) => Utils.Log($"Error downloading modlist image {Metadata.Title}"))
-                .ToProperty(this, nameof(Image));
+            var imageObs = Observable.Return(Metadata.Links.ImageUri)
+                .DownloadBitmapImage((ex) => Utils.Log($"Error downloading modlist image {Metadata.Title}"));
+
+            _Image = imageObs
+                .ToGuiProperty(this, nameof(Image));
+
+            _LoadingImage = imageObs
+                .Select(x => false)
+                .StartWith(true)
+                .ToGuiProperty(this, nameof(LoadingImage));
         }
 
         private Task Download()

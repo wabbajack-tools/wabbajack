@@ -614,6 +614,8 @@
   <ItemGroup>
     <SplashScreen Include="Resources\Wabba_Mouth_Small.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Interfaces\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

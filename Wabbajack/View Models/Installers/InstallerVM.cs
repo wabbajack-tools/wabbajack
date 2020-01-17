@@ -30,8 +30,8 @@ namespace Wabbajack
 
         public MainWindowVM MWVM { get; }
 
-        public BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/Resources/Wabba_Mouth_No_Text.png")).Stream);
-        public BitmapImage WabbajackErrLogo { get; } = UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/Resources/Wabba_Ded.png")).Stream);
+        public static BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/Resources/Wabba_Mouth_No_Text.png")).Stream);
+        public static BitmapImage WabbajackErrLogo { get; } = UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/Resources/Wabba_Ded.png")).Stream);
 
         private readonly ObservableAsPropertyHelper<ModListVM> _modList;
         public ModListVM ModList => _modList.Value;
@@ -89,6 +89,12 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<(int CurrentCPUs, int DesiredCPUs)> _CurrentCpuCount;
         public (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount => _CurrentCpuCount.Value;
 
+        private readonly ObservableAsPropertyHelper<bool> _LoadingModlist;
+        public bool LoadingModlist => _LoadingModlist.Value;
+
+        private readonly ObservableAsPropertyHelper<bool> _IsActive;
+        public bool IsActive => _IsActive.Value;
+
         // Command properties
         public IReactiveCommand ShowReportCommand { get; }
         public IReactiveCommand OpenReadmeCommand { get; }
@@ -141,7 +147,7 @@ namespace Wabbajack
                     pair.Previous?.Unload();
                 })
                 .Select(p => p.Current)
-                .ToProperty(this, nameof(Installer));
+                .ToGuiProperty(this, nameof(Installer));
 
             // Load settings
             MWVM.Settings.SaveSignal
@@ -151,27 +157,64 @@ namespace Wabbajack
                 })
                 .DisposeWith(CompositeDisposable);
 
-            _modList = this.WhenAny(x => x.ModListLocation.TargetPath)
+            _IsActive = this.ConstructIsActive(MWVM)
+                .ToGuiProperty(this, nameof(IsActive));
+
+            // Active path represents the path to currently have loaded
+            // If we're not actively showing, then "unload" the active path
+            var activePath = Observable.CombineLatest(
+                    this.WhenAny(x => x.ModListLocation.TargetPath),
+                    this.WhenAny(x => x.IsActive),
+                    resultSelector: (path, active) => (path, active))
+                .Select(x =>
+                {
+                    if (!x.active) return default(string);
+                    return x.path;
+                })
+                // Throttle slightly so changes happen more atomically
+                .Throttle(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
+                .Replay(1)
+                .RefCount();
+
+            _modList = activePath
                 .ObserveOn(RxApp.TaskpoolScheduler)
+                // Convert from active path to modlist VM
                 .Select(modListPath =>
                 {
                     if (modListPath == null) return default(ModListVM);
                     if (!File.Exists(modListPath)) return default(ModListVM);
                     return new ModListVM(modListPath);
                 })
+                .DisposeOld()
                 .ObserveOnGuiThread()
                 .StartWith(default(ModListVM))
-                .ToProperty(this, nameof(ModList));
+                .ToGuiProperty(this, nameof(ModList));
+
+            // Force GC collect when modlist changes, just to make sure we clean up any loose large items immediately
+            this.WhenAny(x => x.ModList)
+                .Delay(TimeSpan.FromMilliseconds(50), RxApp.MainThreadScheduler)
+                .Subscribe(x =>
+                {
+                    GC.Collect();
+                });
+
+            _LoadingModlist = Observable.Merge(
+                    // When active path changes, mark as loading
+                    activePath
+                        .Select(_ => true),
+                    // When the resulting modlist comes in, mark it as done
+                    this.WhenAny(x => x.ModList)
+                        .Select(_ => false))
+                .ToGuiProperty(this, nameof(LoadingModlist));
             _htmlReport = this.WhenAny(x => x.ModList)
                 .Select(modList => modList?.ReportHTML)
-                .ToProperty(this, nameof(HTMLReport));
+                .ToGuiProperty(this, nameof(HTMLReport));
             _installing = this.WhenAny(x => x.Installer.ActiveInstallation)
                 .Select(i => i != null)
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(Installing));
+                .ToGuiProperty(this, nameof(Installing));
             _TargetManager = this.WhenAny(x => x.ModList)
                 .Select(modList => modList?.ModManager)
-                .ToProperty(this, nameof(TargetManager));
+                .ToGuiProperty(this, nameof(TargetManager));
 
             // Add additional error check on ModList
             ModListLocation.AdditionalError = this.WhenAny(x => x.ModList)
@@ -209,8 +252,8 @@ namespace Wabbajack
                         return installer.PercentCompleted.StartWith(0f);
                     })
                 .Switch()
-                .Debounce(TimeSpan.FromMilliseconds(25))
-                .ToProperty(this, nameof(PercentCompleted));
+                .Debounce(TimeSpan.FromMilliseconds(25), RxApp.MainThreadScheduler)
+                .ToGuiProperty(this, nameof(PercentCompleted));
 
             Slideshow = new SlideShow(this);
 
@@ -219,23 +262,24 @@ namespace Wabbajack
             _image = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList.Error),
                     this.WhenAny(x => x.ModList)
-                        .Select(x => x?.ImageObservable ?? Observable.Return(WabbajackLogo))
+                        .Select(x => x?.ImageObservable ?? Observable.Return(default(BitmapImage)))
                         .Switch()
-                        .StartWith(WabbajackLogo),
+                        .StartWith(default(BitmapImage)),
                     this.WhenAny(x => x.Slideshow.Image)
                         .StartWith(default(BitmapImage)),
                     this.WhenAny(x => x.Installing),
-                    resultSelector: (err, modList, slideshow, installing) =>
+                    this.WhenAny(x => x.LoadingModlist),
+                    resultSelector: (err, modList, slideshow, installing, loading) =>
                     {
                         if (err != null)
                         {
                             return WabbajackErrLogo;
                         }
-                        var ret = installing ? slideshow : modList;
-                        return ret ?? WabbajackLogo;
+                        if (loading) return default;
+                        return installing ? slideshow : modList;
                     })
                 .Select<BitmapImage, ImageSource>(x => x)
-                .ToProperty(this, nameof(Image));
+                .ToGuiProperty(this, nameof(Image));
             _titleText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList)
                         .Select(modList => modList?.Name ?? string.Empty),
@@ -243,7 +287,7 @@ namespace Wabbajack
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
-                .ToProperty(this, nameof(TitleText));
+                .ToGuiProperty(this, nameof(TitleText));
             _authorText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList)
                         .Select(modList => modList?.Author ?? string.Empty),
@@ -251,7 +295,7 @@ namespace Wabbajack
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
-                .ToProperty(this, nameof(AuthorText));
+                .ToGuiProperty(this, nameof(AuthorText));
             _description = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList)
                         .Select(modList => modList?.Description ?? string.Empty),
@@ -259,7 +303,7 @@ namespace Wabbajack
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
-                .ToProperty(this, nameof(Description));
+                .ToGuiProperty(this, nameof(Description));
             _modListName = Observable.CombineLatest(
                         this.WhenAny(x => x.ModList.Error)
                             .Select(x => x != null),
@@ -270,7 +314,7 @@ namespace Wabbajack
                         if (err) return "Corrupted Modlist";
                         return name;
                     })
-                .ToProperty(this, nameof(ModListName));
+                .ToGuiProperty(this, nameof(ModListName));
 
             // Define commands
             ShowReportCommand = ReactiveCommand.Create(ShowReport);
@@ -285,21 +329,27 @@ namespace Wabbajack
                     .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());
 
-            _progressTitle = Observable.CombineLatest(
-                    this.WhenAny(x => x.Installing),
-                    this.WhenAny(x => x.StartedInstallation),
-                    resultSelector: (installing, started) =>
+            _progressTitle = this.WhenAnyValue(
+                    x => x.Installing,
+                    x => x.StartedInstallation,
+                    x => x.Completed,
+                    selector: (installing, started, completed) =>
                     {
                         if (installing)
                         {
                             return "Installing";
                         }
+                        else if (started)
+                        {
+                            if (completed == null) return "Installing";
+                            return completed.Value.Succeeded ? "Installed" : "Failed";
+                        }
                         else
                         {
-                            return started ? "Installed" : "Configuring";
+                            return "Configuring";
                         }
                     })
-                .ToProperty(this, nameof(ProgressTitle));
+                .ToGuiProperty(this, nameof(ProgressTitle));
 
             UIUtils.BindCpuStatus(
                 this.WhenAny(x => x.Installer.ActiveInstallation)
@@ -354,8 +404,7 @@ namespace Wabbajack
             _ActiveGlobalUserIntervention = activeInterventions.Connect()
                 .Filter(x => x.CpuID == WorkQueue.UnassignedCpuId)
                 .QueryWhenChanged(query => query.FirstOrDefault())
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(ActiveGlobalUserIntervention));
+                .ToGuiProperty(this, nameof(ActiveGlobalUserIntervention));
 
             CloseWhenCompleteCommand = ReactiveCommand.Create(
                 canExecute: this.WhenAny(x => x.Completed)
@@ -378,8 +427,7 @@ namespace Wabbajack
 
             _CurrentCpuCount = this.WhenAny(x => x.Installer.ActiveInstallation.Queue.CurrentCpuCount)
                 .Switch()
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(CurrentCpuCount));
+                .ToGuiProperty(this, nameof(CurrentCpuCount));
         }
 
         private void ShowReport()

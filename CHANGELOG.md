@@ -1,5 +1,9 @@
 ### Changelog
 
+* Progress ring displays when downloading modlist images
+* GUI releases memory of download modlists better when navigating around
+* Fixed phrasing after failed installations to say "failed".
+
 #### Version - 1.0 beta 15 - 1/6/2020
 * Don't delete the download folder when deleting empty folders during an update
 * If `Game Folder Files` exists in the MO2 folder during compilation the Game folder will be ignored as a file source

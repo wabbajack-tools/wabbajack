@@ -66,7 +66,7 @@ namespace Wabbajack
                         this.WhenAny(x => x.Installer.Installing),
                         resultSelector: (enabled, installing) => enabled && installing))
                 // Block spam
-                .Debounce(TimeSpan.FromMilliseconds(250))
+                .Debounce(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
                 .Scan(
                     seed: 0,
                     accumulator: (i, _) => i + 1)
@@ -80,19 +80,20 @@ namespace Wabbajack
                 {
                     if (modList?.SourceModList?.Archives == null)
                     {
-                        return Observable.Empty<ModVM>()
+                        return Observable.Empty<NexusDownloader.State>()
                             .ToObservableChangeSet(x => x.ModID);
                     }
                     return modList.SourceModList.Archives
                         .Select(m => m.State)
                         .OfType<NexusDownloader.State>()
-                        .Select(nexus => new ModVM(nexus))
                         // Shuffle it
                         .Shuffle(_random)
                         .AsObservableChangeSet(x => x.ModID);
                 })
                 // Switch to the new list after every ModList change
                 .Switch()
+                .Transform(nexus => new ModVM(nexus))
+                .DisposeMany()
                 // Filter out any NSFW slides if we don't want them
                 .AutoRefreshOnObservable(slide => this.WhenAny(x => x.ShowNSFW))
                 .Filter(slide => !slide.IsNSFW || ShowNSFW)
@@ -108,15 +109,14 @@ namespace Wabbajack
                         return query.Items.ElementAtOrDefault(index);
                     })
                 .StartWith(default(ModVM))
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(TargetMod));
+                .ToGuiProperty(this, nameof(TargetMod));
 
             // Mark interest and materialize image of target mod
             _image = this.WhenAny(x => x.TargetMod)
                 // We want to Switch here, not SelectMany, as we want to hotswap to newest target without waiting on old ones
                 .Select(x => x?.ImageObservable ?? Observable.Return(default(BitmapImage)))
                 .Switch()
-                .ToProperty(this, nameof(Image));
+                .ToGuiProperty(this, nameof(Image));
 
             VisitNexusSiteCommand = ReactiveCommand.Create(
                 execute: () => Process.Start(TargetMod.ModURL),

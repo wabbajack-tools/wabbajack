@@ -36,8 +36,7 @@ namespace Wabbajack
         {
             Login = login;
             _MetaInfo = (login.MetaInfo ?? Observable.Return(""))
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(MetaInfo));
+                .ToGuiProperty(this, nameof(MetaInfo));
         }
     }
 }

@@ -39,7 +39,7 @@ namespace Wabbajack
             Parent = installerVM;
 
             _TargetGame = installerVM.WhenAny(x => x.ModList.SourceModList.GameType)
-                .ToProperty(this, nameof(TargetGame));
+                .ToGuiProperty(this, nameof(TargetGame));
 
             CanInstall = Observable.CombineLatest(
                 this.WhenAny(x => x.TargetGame)

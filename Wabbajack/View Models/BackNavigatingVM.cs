@@ -35,9 +35,8 @@ namespace Wabbajack
                 canExecute: this.ConstructCanNavigateBack()
                     .ObserveOnGuiThread());
 
-            _IsActive = mainWindowVM.WhenAny(x => x.ActivePane)
-                .Select(x => object.ReferenceEquals(this, x))
-                .ToProperty(this, nameof(IsActive));
+            _IsActive = this.ConstructIsActive(mainWindowVM)
+                .ToGuiProperty(this, nameof(IsActive));
         }
     }
 
@@ -47,6 +46,12 @@ namespace Wabbajack
         {
             return vm.WhenAny(x => x.NavigateBackTarget)
                 .Select(x => x != null);
+        }
+
+        public static IObservable<bool> ConstructIsActive(this IBackNavigatingVM vm, MainWindowVM mwvm)
+        {
+            return mwvm.WhenAny(x => x.ActivePane)
+                .Select(x => object.ReferenceEquals(vm, x));
         }
     }
 }

@@ -68,7 +68,7 @@ namespace Wabbajack
                         return null;
                     }
                 })
-                .ToProperty(this, nameof(Mo2Folder));
+                .ToGuiProperty(this, nameof(Mo2Folder));
             _moProfile = this.WhenAny(x => x.ModListLocation.TargetPath)
                 .Select(loc =>
                 {
@@ -82,7 +82,7 @@ namespace Wabbajack
                         return null;
                     }
                 })
-                .ToProperty(this, nameof(MOProfile));
+                .ToGuiProperty(this, nameof(MOProfile));
 
             // Wire missing Mo2Folder to signal error state for ModList Location
             ModListLocation.AdditionalError = this.WhenAny(x => x.Mo2Folder)
@@ -98,7 +98,7 @@ namespace Wabbajack
                     (this).WhenAny(x => x.ModListLocation.TargetPath),
                     resultSelector: (state, path) => (State: state, Path: path))
                 // A short throttle is a quick hack to make the above changes "atomic"
-                .Throttle(TimeSpan.FromMilliseconds(25))
+                .Throttle(TimeSpan.FromMilliseconds(25), RxApp.MainThreadScheduler)
                 .Select(u =>
                 {
                     if (u.State.Failed) return null;
@@ -116,9 +116,7 @@ namespace Wabbajack
                     pair.Current?.Init();
                 })
                 .Select(x => x.Current)
-                // Save to property
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(ModlistSettings));
+                .ToGuiProperty(this, nameof(ModlistSettings));
 
             CanCompile = Observable.CombineLatest(
                     this.WhenAny(x => x.ModListLocation.InError),
@@ -143,8 +141,8 @@ namespace Wabbajack
                 .DisposeWith(CompositeDisposable);
 
             // If Mo2 folder changes and download location is empty, set it for convenience
-            (this).WhenAny(x => x.Mo2Folder)
-                .DelayInitial(TimeSpan.FromMilliseconds(100))
+            this.WhenAny(x => x.Mo2Folder)
+                .DelayInitial(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
                 .Where(x => Directory.Exists(x))
                 .FlowSwitch(
                     (this).WhenAny(x => x.DownloadLocation.Exists)

@@ -2,13 +2,17 @@
 using System.Windows;
 using System.Windows.Controls;
 using ReactiveUI;
+using System;
+using ReactiveUI.Fody.Helpers;
+using Wabbajack.Lib;
+using System.Reactive.Disposables;
 
 namespace Wabbajack
 {
     /// <summary>
     /// Interaction logic for TopProgressView.xaml
     /// </summary>
-    public partial class TopProgressView : UserControlRx
+    public partial class TopProgressView : UserControlRx<ViewModel>
     {
         public double ProgressPercent
         {
@@ -50,18 +54,22 @@ namespace Wabbajack
         public static readonly DependencyProperty ShadowMarginProperty = DependencyProperty.Register(nameof(ShadowMargin), typeof(bool), typeof(TopProgressView),
              new FrameworkPropertyMetadata(true));
 
-        private readonly ObservableAsPropertyHelper<double> _ProgressOpacityPercent;
-        public double ProgressOpacityPercent => _ProgressOpacityPercent.Value;
+        [Reactive]
+        public double ProgressOpacityPercent { get; private set; }
 
         public TopProgressView()
         {
             InitializeComponent();
-            _ProgressOpacityPercent = this.WhenAny(x => x.ProgressPercent)
-                .Select(x =>
-                {
-                    return 0.3 + x * 0.7;
-                })
-                .ToProperty(this, nameof(ProgressOpacityPercent));
+            this.WhenActivated(dispose =>
+            {
+                this.WhenAny(x => x.ProgressPercent)
+                    .Select(x =>
+                    {
+                        return 0.3 + x * 0.7;
+                    })
+                    .Subscribe(x => ProgressOpacityPercent = x)
+                    .DisposeWith(dispose);
+            });
         }
     }
 }

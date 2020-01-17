@@ -54,6 +54,10 @@ namespace Wabbajack
                 this.WhenAny(x => x.ViewModel.Image)
                     .BindToStrict(this, x => x.ModListImage.Source)
                     .DisposeWith(dispose);
+                this.WhenAny(x => x.ViewModel.LoadingImage)
+                    .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
+                    .BindToStrict(this, x => x.LoadingProgress.Visibility)
+                    .DisposeWith(dispose);
             });
         }
     }

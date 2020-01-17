@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -67,7 +67,7 @@ namespace Wabbajack
         /// <param name="filterSwitch">On/Off signal of whether to subscribe to source observable</param>
         /// <param name="valueOnOff">Value to fire when switching off</param>
         /// <returns>Observable that publishes data from source, if the switch is on.</returns>
-        public static IObservable<T> FilterSwitch<T>(this IObservable<T> source, IObservable<bool> filterSwitch, T valueWhenOff)
+        public static IObservable<T> FlowSwitch<T>(this IObservable<T> source, IObservable<bool> filterSwitch, T valueWhenOff)
         {
             return filterSwitch
                 .DistinctUntilChanged()
@@ -88,7 +88,7 @@ namespace Wabbajack
         /// Inspiration:
         /// http://reactivex.io/documentation/operators/debounce.html
         /// https://stackoverflow.com/questions/20034476/how-can-i-use-reactive-extensions-to-throttle-events-using-a-max-window-size
-        public static IObservable<T> Debounce<T>(this IObservable<T> source, TimeSpan interval, IScheduler scheduler = null)
+        public static IObservable<T> Debounce<T>(this IObservable<T> source, TimeSpan interval, IScheduler scheduler)
         {
             scheduler = scheduler ?? Scheduler.Default;
             return Observable.Create<T>(o =>
@@ -209,15 +209,6 @@ namespace Wabbajack
             });
         }
 
-        public static IObservable<T> DelayInitial<T>(this IObservable<T> source, TimeSpan delay)
-        {
-            return source.FlowSwitch(
-                Observable.Return(System.Reactive.Unit.Default)
-                    .Delay(delay)
-                    .Select(_ => true)
-                    .StartWith(false));
-        }
-
         public static IObservable<T> DelayInitial<T>(this IObservable<T> source, TimeSpan delay, IScheduler scheduler)
         {
             return source.FlowSwitch(
@@ -225,6 +216,22 @@ namespace Wabbajack
                     .Delay(delay, scheduler)
                     .Select(_ => true)
                     .StartWith(false));
+        }
+
+        public static IObservable<T> DisposeOld<T>(this IObservable<T> source)
+            where T : IDisposable
+        {
+            return source
+                .StartWith(default(T))
+                .Pairwise()
+                .Do(x =>
+                {
+                    if (x.Previous != null)
+                    {
+                        x.Previous.Dispose();
+                    }
+                })
+                .Select(x => x.Current);
         }
     }
 }

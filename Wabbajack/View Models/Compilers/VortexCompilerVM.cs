@@ -94,9 +94,7 @@ namespace Wabbajack
                     current?.Init();
                 })
                 .Select(x => x.Current)
-                // Save to property
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(ModlistSettings));
+                .ToGuiProperty(this, nameof(ModlistSettings));
 
             CanCompile = Observable.CombineLatest(
                     this.WhenAny(x => x.GameLocation.InError),

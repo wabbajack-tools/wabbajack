@@ -13,7 +13,7 @@ namespace Wabbajack
 {
     public class ModListVM : ViewModel
     {
-        public ModList SourceModList { get; }
+        public ModList SourceModList { get; private set; }
         public Exception Error { get; }
         public string ModListPath { get; }
         public string Name => SourceModList?.Name;
@@ -42,6 +42,7 @@ namespace Wabbajack
             }
 
             ImageObservable = Observable.Return(Unit.Default)
+                // Download and retrieve bytes on background thread
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .Select(filePath =>
                 {
@@ -66,6 +67,7 @@ namespace Wabbajack
                         return default(MemoryStream);
                     }
                 })
+                // Create Bitmap image on GUI thread
                 .ObserveOnGuiThread()
                 .Select(memStream =>
                 {
@@ -79,6 +81,11 @@ namespace Wabbajack
                         Utils.Error(ex, $"Exception while caching Mod List image {Name}");
                         return default(BitmapImage);
                     }
+                })
+                // If ever would return null, show WJ logo instead
+                .Select(x =>
+                {
+                    return x ?? InstallerVM.WabbajackLogo;
                 })
                 .Replay(1)
                 .RefCount();
@@ -115,6 +122,14 @@ namespace Wabbajack
                     }
                 }
             }
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            // Just drop reference explicitly, as it's large, so it can be GCed
+            // Even if someone is holding a stale reference to the VM
+            this.SourceModList = null;
         }
     }
 }

@@ -80,7 +80,7 @@ namespace Wabbajack
                     this.WhenAny(x => x.TargetPath)
                         // Dont want to debounce the initial value, because we know it's null
                         .Skip(1)
-                        .Debounce(TimeSpan.FromMilliseconds(200), RxApp.TaskpoolScheduler)
+                        .Debounce(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
                         .StartWith(default(string)),
                     resultSelector: (existsOption, type, path) => (ExistsOption: existsOption, Type: type, Path: path))
                 .StartWith((ExistsOption: ExistCheckOption, Type: PathType, Path: TargetPath))
@@ -147,9 +147,8 @@ namespace Wabbajack
                     }
                 })
                 .DistinctUntilChanged()
-                .ObserveOnGuiThread()
                 .StartWith(false)
-                .ToProperty(this, nameof(Exists));
+                .ToGuiProperty(this, nameof(Exists));
 
             var passesFilters = Observable.CombineLatest(
                     this.WhenAny(x => x.TargetPath),
@@ -218,12 +217,11 @@ namespace Wabbajack
                         if (filter.Failed) return filter;
                         return ErrorResponse.Convert(err);
                     })
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(ErrorState));
+                .ToGuiProperty(this, nameof(ErrorState));
 
             _inError = this.WhenAny(x => x.ErrorState)
                 .Select(x => !x.Succeeded)
-                .ToProperty(this, nameof(InError));
+                .ToGuiProperty(this, nameof(InError));
 
             // Doesn't derive from ErrorState, as we want to bubble non-empty tooltips,
             // which is slightly different logic
@@ -244,8 +242,7 @@ namespace Wabbajack
                         if (!string.IsNullOrWhiteSpace(filters)) return filters;
                         return err?.Reason;
                     })
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(ErrorTooltip));
+                .ToGuiProperty(this, nameof(ErrorTooltip));
         }
 
         public ICommand ConstructTypicalPickerCommand()
