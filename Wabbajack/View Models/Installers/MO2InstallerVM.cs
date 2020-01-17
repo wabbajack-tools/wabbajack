@@ -88,7 +88,7 @@ namespace Wabbajack
             // Load settings
             _CurrentSettings = installerVM.WhenAny(x => x.ModListLocation.TargetPath)
                 .Select(path => path == null ? null : installerVM.MWVM.Settings.Installer.Mo2ModlistSettings.TryCreate(path))
-                .ToProperty(this, nameof(CurrentSettings));
+                .ToGuiProperty(this, nameof(CurrentSettings));
             this.WhenAny(x => x.CurrentSettings)
                 .Pairwise()
                 .Subscribe(settingsPair =>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
@@ -36,7 +36,7 @@ namespace Wabbajack
                     .ObserveOnGuiThread());
 
             _IsActive = this.ConstructIsActive(mainWindowVM)
-                .ToProperty(this, nameof(IsActive));
+                .ToGuiProperty(this, nameof(IsActive));
         }
     }
 

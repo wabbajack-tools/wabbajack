@@ -68,7 +68,7 @@ namespace Wabbajack
                         return null;
                     }
                 })
-                .ToProperty(this, nameof(Mo2Folder));
+                .ToGuiProperty(this, nameof(Mo2Folder));
             _moProfile = this.WhenAny(x => x.ModListLocation.TargetPath)
                 .Select(loc =>
                 {
@@ -82,7 +82,7 @@ namespace Wabbajack
                         return null;
                     }
                 })
-                .ToProperty(this, nameof(MOProfile));
+                .ToGuiProperty(this, nameof(MOProfile));
 
             // Wire missing Mo2Folder to signal error state for ModList Location
             ModListLocation.AdditionalError = this.WhenAny(x => x.Mo2Folder)
@@ -116,9 +116,7 @@ namespace Wabbajack
                     pair.Current?.Init();
                 })
                 .Select(x => x.Current)
-                // Save to property
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(ModlistSettings));
+                .ToGuiProperty(this, nameof(ModlistSettings));
 
             CanCompile = Observable.CombineLatest(
                     this.WhenAny(x => x.ModListLocation.InError),

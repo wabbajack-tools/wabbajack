@@ -109,15 +109,14 @@ namespace Wabbajack
                         return query.Items.ElementAtOrDefault(index);
                     })
                 .StartWith(default(ModVM))
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(TargetMod));
+                .ToGuiProperty(this, nameof(TargetMod));
 
             // Mark interest and materialize image of target mod
             _image = this.WhenAny(x => x.TargetMod)
                 // We want to Switch here, not SelectMany, as we want to hotswap to newest target without waiting on old ones
                 .Select(x => x?.ImageObservable ?? Observable.Return(default(BitmapImage)))
                 .Switch()
-                .ToProperty(this, nameof(Image));
+                .ToGuiProperty(this, nameof(Image));
 
             VisitNexusSiteCommand = ReactiveCommand.Create(
                 execute: () => Process.Start(TargetMod.ModURL),

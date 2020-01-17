@@ -115,11 +115,11 @@ namespace Wabbajack
                     pair.Previous?.Unload();
                 })
                 .Select(p => p.Current)
-                .ToProperty(this, nameof(Compiler));
+                .ToGuiProperty(this, nameof(Compiler));
 
             // Let sub VM determine what settings we're displaying and when
             _currentModlistSettings = this.WhenAny(x => x.Compiler.ModlistSettings)
-                .ToProperty(this, nameof(CurrentModlistSettings));
+                .ToGuiProperty(this, nameof(CurrentModlistSettings));
 
             _image = this.WhenAny(x => x.CurrentModlistSettings.ImagePath.TargetPath)
                 // Throttle so that it only loads image after any sets of swaps have completed
@@ -135,12 +135,11 @@ namespace Wabbajack
                     }
                     return null;
                 })
-                .ToProperty(this, nameof(Image));
+                .ToGuiProperty(this, nameof(Image));
 
             _compiling = this.WhenAny(x => x.Compiler.ActiveCompilation)
                 .Select(compilation => compilation != null)
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(Compiling));
+                .ToGuiProperty(this, nameof(Compiling));
 
             BackCommand = ReactiveCommand.Create(
                 execute: () =>
@@ -176,7 +175,7 @@ namespace Wabbajack
                     })
                 .Switch()
                 .Debounce(TimeSpan.FromMilliseconds(25))
-                .ToProperty(this, nameof(PercentCompleted));
+                .ToGuiProperty(this, nameof(PercentCompleted));
 
             BeginCommand = ReactiveCommand.CreateFromTask(
                 canExecute: this.WhenAny(x => x.Compiler.CanCompile)
@@ -217,8 +216,7 @@ namespace Wabbajack
             _ActiveGlobalUserIntervention = activeInterventions.Connect()
                 .Filter(x => x.CpuID == WorkQueue.UnassignedCpuId)
                 .QueryWhenChanged(query => query.FirstOrDefault())
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(ActiveGlobalUserIntervention));
+                .ToGuiProperty(this, nameof(ActiveGlobalUserIntervention));
 
             CloseWhenCompleteCommand = ReactiveCommand.Create(
                 canExecute: this.WhenAny(x => x.Completed)
@@ -263,12 +261,11 @@ namespace Wabbajack
                             return "Configuring";
                         }
                     })
-                .ToProperty(this, nameof(ProgressTitle));
+                .ToGuiProperty(this, nameof(ProgressTitle));
 
             _CurrentCpuCount = this.WhenAny(x => x.Compiler.ActiveCompilation.Queue.CurrentCpuCount)
                 .Switch()
-                .ObserveOnGuiThread()
-                .ToProperty(this, nameof(CurrentCpuCount));
+                .ToGuiProperty(this, nameof(CurrentCpuCount));
         }
     }
 }

@@ -119,11 +119,11 @@ namespace Wabbajack
                         return true;
                     }
                 })
-                .ToProperty(this, nameof(Exists));
+                .ToGuiProperty(this, nameof(Exists));
 
             _Image = Observable.Return(Metadata.Links.ImageUri)
                 .DownloadBitmapImage((ex) => Utils.Log($"Error downloading modlist image {Metadata.Title}"))
-                .ToProperty(this, nameof(Image));
+                .ToGuiProperty(this, nameof(Image));
         }
 
         private Task Download()

@@ -2,10 +2,12 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Kernel;
 using ReactiveUI;
+using Wabbajack.Lib;
 
 namespace Wabbajack
 {
@@ -78,6 +80,29 @@ namespace Wabbajack
             return new ChangeSet<TObject, TKey>(changes);
         }
 
+        public static ObservableAsPropertyHelper<TRet> ToGuiProperty<TRet>(
+            this IObservable<TRet> source,
+            ViewModel vm,
+            string property,
+            TRet initialValue = default,
+            bool deferSubscription = false)
+        {
+            return source
+                .ToProperty(vm, property, initialValue, deferSubscription, RxApp.MainThreadScheduler)
+                .DisposeWith(vm.CompositeDisposable);
+        }
+
+        public static void ToGuiProperty<TRet>(
+            this IObservable<TRet> source,
+            ViewModel vm,
+            string property,
+            out ObservableAsPropertyHelper<TRet> result,
+            TRet initialValue = default,
+            bool deferSubscription = false)
+        {
+            source.ToProperty(vm, property, out result, initialValue, deferSubscription, RxApp.MainThreadScheduler)
+                .DisposeWith(vm.CompositeDisposable);
+        }
 
         internal static Optional<Change<TObject, TKey>> Reduce<TObject, TKey>(Optional<Change<TObject, TKey>> previous, Change<TObject, TKey> next)
         {
