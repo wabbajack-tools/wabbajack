@@ -1,15 +1,20 @@
 ﻿using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+using System;
 using System.Linq;
+using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
 using System.Windows.Media;
+using Wabbajack.Lib;
 
 namespace Wabbajack
 {
     /// <summary>
     /// Interaction logic for DetailImageView.xaml
     /// </summary>
-    public partial class DetailImageView : UserControlRx
+    public partial class DetailImageView : UserControlRx<ViewModel>
     {
         public ImageSource Image
         {
@@ -51,30 +56,36 @@ namespace Wabbajack
         public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(nameof(Description), typeof(string), typeof(DetailImageView),
              new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
-        private readonly ObservableAsPropertyHelper<bool> _showAuthor;
-        public bool ShowAuthor => _showAuthor.Value;
+        [Reactive]
+        public bool ShowAuthor { get; private set; }
 
-        private readonly ObservableAsPropertyHelper<bool> _showDescription;
-        public bool ShowDescription => _showDescription.Value;
+        [Reactive]
+        public bool ShowDescription { get; private set; }
 
-        private readonly ObservableAsPropertyHelper<bool> _showTitle;
-        public bool ShowTitle => _showTitle.Value;
+        [Reactive]
+        public bool ShowTitle { get; private set; }
 
         public DetailImageView()
         {
             InitializeComponent();
 
-            _showAuthor = this.WhenAny(x => x.Author)
-                .Select(x => !string.IsNullOrWhiteSpace(x))
-                .ToProperty(this, nameof(ShowAuthor));
+            this.WhenActivated(dispose =>
+            {
+                this.WhenAny(x => x.Author)
+                    .Select(x => !string.IsNullOrWhiteSpace(x))
+                    .Subscribe(x => ShowAuthor = x)
+                    .DisposeWith(dispose);
 
-            _showDescription = this.WhenAny(x => x.Description)
-                .Select(x => !string.IsNullOrWhiteSpace(x))
-                .ToProperty(this, nameof(ShowDescription));
+                this.WhenAny(x => x.Description)
+                    .Select(x => !string.IsNullOrWhiteSpace(x))
+                    .Subscribe(x => ShowDescription = x)
+                    .DisposeWith(dispose);
 
-            _showTitle = this.WhenAny(x => x.Title)
-                .Select(x => !string.IsNullOrWhiteSpace(x))
-                .ToProperty(this, nameof(ShowTitle));
+                this.WhenAny(x => x.Title)
+                    .Select(x => !string.IsNullOrWhiteSpace(x))
+                    .Subscribe(x => ShowTitle = x)
+                    .DisposeWith(dispose);
+            });
         }
     }
 }
