@@ -15,6 +15,9 @@
         <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="3.1.1" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="3.1.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
         <PackageReference Include="Microsoft.OpenApi" Version="1.1.4" />
         <PackageReference Include="MongoDB.Driver" Version="2.10.1" />
