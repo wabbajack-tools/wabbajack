@@ -38,7 +38,7 @@ namespace Wabbajack.BuildServer.Controllers
         }
 
         [HttpGet]
-        [Route("/export")]
+        [Route("export")]
         public async Task<string> Export()
         {
             if (!Directory.Exists("exported_users"))
