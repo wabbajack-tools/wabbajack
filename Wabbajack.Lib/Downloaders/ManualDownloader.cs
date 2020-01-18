@@ -88,8 +88,7 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     try
                     {
-                        Utils.Log($"You must manually visit {Url} and download {a.Name} file by hand");
-                        Utils.Log($"Waiting for {a.Name}");
+                        Utils.Log($"You must visit {Url} and download file: {a.Name}");
                         downloader._watcher.EnableRaisingEvents = true;
                         var watcher = downloader._fileEvents
                             .Where(f => f.Size == a.Size)

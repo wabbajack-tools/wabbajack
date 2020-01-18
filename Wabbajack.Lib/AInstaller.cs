@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.NexusApi;
 using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -233,6 +234,22 @@ namespace Wabbajack.Lib
 
             Info("Getting Nexus API Key, if a browser appears, please accept");
 
+            var client = await NexusApiClient.Get();
+            bool premium = await client.IsPremium();
+
+            //If we aren't premium, fall back to manual downloading method by converting states.
+            if (!premium)
+            {
+                Utils.Log($"Nexus user {await client.Username()} is not a premium account. Falling back to manual downloads.");
+                foreach (var a in missing.Where(a => a.State.GetType() == typeof(NexusDownloader.State)))
+                {
+                    a.State = new ManualDownloader.State
+                    {
+                        Url = (a.State as NexusDownloader.State).NexusURL
+                    };
+                }
+            }
+
             var dispatchers = missing.Select(m => m.State.GetDownloader()).Distinct();
 
             await Task.WhenAll(dispatchers.Select(d => d.Prepare()));
@@ -244,10 +261,13 @@ namespace Wabbajack.Lib
         {
             if (download)
             {
+                int manuallyDownloaded = 0;
                 foreach (var a in missing.Where(a => a.State.GetType() == typeof(ManualDownloader.State)))
                 {
+                    Info($"[{manuallyDownloaded}/{missing.Count}] Waiting for: {a.Name}");
                     var outputPath = Path.Combine(DownloadFolder, a.Name);
                     await a.State.Download(a, outputPath);
+                    manuallyDownloaded++;
                 }
             }
 
