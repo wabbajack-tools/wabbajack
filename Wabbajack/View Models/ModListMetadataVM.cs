@@ -70,7 +70,12 @@ namespace Wabbajack
                     {
                         try
                         {
-                            await Download();
+                            var success = await Download();
+                            if (!success)
+                            {
+                                Error = ErrorResponse.Fail("Download was marked unsuccessful");
+                                return false;
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -137,7 +142,7 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(LoadingImage));
         }
 
-        private async Task Download()
+        private async Task<bool> Download()
         {
             ProgressPercent = 0d;
             using (var queue = new WorkQueue(1))
@@ -150,9 +155,10 @@ namespace Wabbajack
                     try
                     {
                         var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
-                        await downloader.Download(new Archive { Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0 }, Location);
+                        var result = await downloader.Download(new Archive { Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0 }, Location);
+                        // Want to rehash to current file, even if failed?
                         Location.FileHashCached();
-                        tcs.SetResult(true);
+                        tcs.SetResult(result);
                     }
                     catch (Exception ex)
                     {
@@ -160,9 +166,9 @@ namespace Wabbajack
                     }
                 });
 
-                await Task.WhenAll(
-                    tcs.Task,
-                    Metrics.Send(Metrics.Downloading, Metadata.Title));
+                await Metrics.Send(Metrics.Downloading, Metadata.Title);
+
+                return await tcs.Task;
             }
         }
     }
