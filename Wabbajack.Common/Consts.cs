@@ -27,7 +27,7 @@ namespace Wabbajack.Common
 
         public static HashSet<string> SupportedBSAs = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".bsa", ".ba2"};
 
-        public static HashSet<string> ConfigFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".json", ".ini", ".yml"};
+        public static HashSet<string> ConfigFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".json", ".ini", ".yml", ".xml"};
         public static HashSet<string> ESPFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".esp", ".esm", ".esl"};
         public static HashSet<string> AssetFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".dds", ".tga", ".nif", ".psc", ".pex"};
 
