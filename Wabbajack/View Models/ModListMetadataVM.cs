@@ -31,7 +31,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<bool> _Exists;
         public bool Exists => _Exists.Value;
 
-        public string Location => Path.Combine(Consts.ModListDownloadFolder, Metadata.Links.MachineURL + ExtensionManager.Extension);
+        public string Location { get; }
 
         [Reactive]
         public double ProgressPercent { get; private set; }
@@ -52,6 +52,7 @@ namespace Wabbajack
         {
             _parent = parent;
             Metadata = metadata;
+            Location = Path.Combine(Consts.ModListDownloadFolder, Metadata.Links.MachineURL + ExtensionManager.Extension);
             IsBroken = metadata.ValidationSummary.HasFailures;
             OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start($"https://www.wabbajack.org/modlist/{Metadata.Links.MachineURL}"));
             ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, Unit>(
@@ -69,7 +70,12 @@ namespace Wabbajack
                     {
                         try
                         {
-                            await Download();
+                            var success = await Download();
+                            if (!success)
+                            {
+                                Error = ErrorResponse.Fail("Download was marked unsuccessful");
+                                return false;
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -136,24 +142,34 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(LoadingImage));
         }
 
-        private Task Download()
+        private async Task<bool> Download()
         {
             ProgressPercent = 0d;
-            var queue = new WorkQueue(1);
-            var sub = queue.Status.Select(i => i.ProgressPercent)
-                .Subscribe(percent => ProgressPercent = percent);
-            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-            var metric = Metrics.Send("downloading", Metadata.Title);
-            queue.QueueTask(async () =>
+            using (var queue = new WorkQueue(1))
+            using (queue.Status.Select(i => i.ProgressPercent)
+                .Subscribe(percent => ProgressPercent = percent))
             {
-                var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
-                await downloader.Download(new Archive{ Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0}, Location);
-                Location.FileHashCached();
-                sub.Dispose();
-                tcs.SetResult(true);
-            });
+                var tcs = new TaskCompletionSource<bool>();
+                queue.QueueTask(async () =>
+                {
+                    try
+                    {
+                        var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
+                        var result = await downloader.Download(new Archive { Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0 }, Location);
+                        // Want to rehash to current file, even if failed?
+                        Location.FileHashCached();
+                        tcs.SetResult(result);
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.SetException(ex);
+                    }
+                });
 
-            return tcs.Task;
+                await Metrics.Send(Metrics.Downloading, Metadata.Title);
+
+                return await tcs.Task;
+            }
         }
     }
 }

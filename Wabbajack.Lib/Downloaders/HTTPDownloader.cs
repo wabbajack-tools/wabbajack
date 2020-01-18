@@ -70,7 +70,7 @@ namespace Wabbajack.Lib.Downloaders
                 return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
             }
 
-            public override Task Download(Archive a, string destination)
+            public override Task<bool> Download(Archive a, string destination)
             {
                 return DoDownload(a, destination, true);
             }
@@ -84,7 +84,7 @@ namespace Wabbajack.Lib.Downloaders
                         Directory.CreateDirectory(parent.FullName);
                 }
 
-                using (var fs = download ? File.OpenWrite(destination) : null)
+                using (var fs = download ? File.Open(destination, FileMode.Create) : null)
                 {
                     var client = Client ?? new HttpClient();
                     client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
@@ -103,11 +103,11 @@ namespace Wabbajack.Lib.Downloaders
 
                     Utils.Status($"Starting Download {a?.Name ?? Url}", 0);
                     var response = await client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
-                    TOP:
+TOP:
 
                     if (!response.IsSuccessStatusCode)
                         throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
-                    
+
                     Stream stream;
                     try
                     {

@@ -23,7 +23,7 @@ namespace Wabbajack.Lib.LibCefHelpers
         {
             if (File.Exists("cefsharp.7z") && File.Exists("libcef.dll")) return;
 
-            using (var fs = File.OpenWrite("cefsharp.7z"))
+            using (var fs = File.Open("cefsharp.7z", System.IO.FileMode.Create))
             using (var rs = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.Lib.LibCefHelpers.cefsharp.7z"))
             {
                 rs.CopyTo(fs);

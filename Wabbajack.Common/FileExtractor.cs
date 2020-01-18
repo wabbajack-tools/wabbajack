@@ -27,10 +27,7 @@ namespace Wabbajack.Common
 
         private static void ExtractResource(string from, string to)
         {
-            if (File.Exists(to))
-                File.Delete(to);
-
-            using (var ous = File.OpenWrite(to))
+            using (var ous = File.Open(to, System.IO.FileMode.Create))
             using (var ins = new GZipInputStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(from)))
             {
                 ins.CopyTo(ous);
@@ -144,7 +141,7 @@ namespace Wabbajack.Common
                             if (!Directory.Exists(parent))
                                 Directory.CreateDirectory(parent);
 
-                            using (var fs = File.OpenWrite(outPath))
+                            using (var fs = File.Open(outPath, System.IO.FileMode.Create))
                             {
                                 f.CopyDataTo(fs);
                             }

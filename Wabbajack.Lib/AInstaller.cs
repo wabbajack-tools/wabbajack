@@ -214,7 +214,7 @@ namespace Wabbajack.Lib
                     File.Delete(toFile);
 
                     // Patch it
-                    using (var outStream = File.OpenWrite(toFile))
+                    using (var outStream = File.Open(toFile, FileMode.Create))
                     {
                         BSDiff.Apply(oldData, () => new MemoryStream(patchData), outStream);
                     }
