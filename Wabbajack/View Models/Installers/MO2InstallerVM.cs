@@ -143,7 +143,7 @@ namespace Wabbajack
             Process.Start("explorer.exe", Location.TargetPath);
         }
 
-        public async Task Install()
+        public async Task<bool> Install()
         {
             using (var installer = new MO2Installer(
                 archive: Parent.ModListLocation.TargetPath,
@@ -154,14 +154,13 @@ namespace Wabbajack
             {
                 Parent.MWVM.Settings.Performance.AttachToBatchProcessor(installer);
 
-                await Task.Run(async () =>
+                return await Task.Run(async () =>
                 {
                     try
                     {
                         var workTask = installer.Begin();
                         ActiveInstallation = installer;
-                        await workTask;
-                        return ErrorResponse.Success;
+                        return await workTask;
                     }
                     finally
                     {

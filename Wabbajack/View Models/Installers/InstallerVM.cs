@@ -364,8 +364,8 @@ namespace Wabbajack
                 {
                     try
                     {
-                        await this.Installer.Install();
-                        Completed = ErrorResponse.Success;
+                        var success = await this.Installer.Install();
+                        Completed = ErrorResponse.Create(success);
                         try
                         {
                             this.ModList?.OpenReadmeWindow();

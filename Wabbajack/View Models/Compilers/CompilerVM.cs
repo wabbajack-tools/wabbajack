@@ -184,8 +184,8 @@ namespace Wabbajack
                 {
                     try
                     {
-                        await this.Compiler.Compile();
-                        Completed = ErrorResponse.Success;
+                        var successful = await this.Compiler.Compile();
+                        Completed = ErrorResponse.Create(successful);
                     }
                     catch (Exception ex)
                     {

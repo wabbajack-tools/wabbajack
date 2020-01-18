@@ -18,6 +18,6 @@ namespace Wabbajack
         void AfterInstallNavigation();
         int ConfigVisualVerticalOffset { get; }
         IObservable<bool> CanInstall { get; }
-        Task Install();
+        Task<bool> Install();
     }
 }

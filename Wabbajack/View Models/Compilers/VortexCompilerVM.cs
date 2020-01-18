@@ -177,7 +177,7 @@ namespace Wabbajack
             GameLocation.TargetPath = StoreHandler.Instance.GetGamePath(SelectedGame.Game, StoreType.GOG);
         }
 
-        public async Task Compile()
+        public async Task<bool> Compile()
         {
             string outputFile = $"{ModlistSettings.ModListName}{ExtensionManager.Extension}";
             if (!string.IsNullOrWhiteSpace(Parent.OutputLocation.TargetPath))
@@ -204,7 +204,7 @@ namespace Wabbajack
                 })
                 {
                     Parent.MWVM.Settings.Performance.AttachToBatchProcessor(ActiveCompilation);
-                    await ActiveCompilation.Begin();
+                    return await ActiveCompilation.Begin();
                 }
             }
             finally

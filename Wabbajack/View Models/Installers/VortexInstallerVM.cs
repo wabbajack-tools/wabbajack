@@ -57,7 +57,7 @@ namespace Wabbajack
             throw new NotImplementedException();
         }
 
-        public async Task Install()
+        public async Task<bool> Install()
         {
             AInstaller installer;
 
@@ -72,13 +72,13 @@ namespace Wabbajack
             {
                 Parent.MWVM.Settings.Performance.AttachToBatchProcessor(installer);
 
-                await Task.Run(async () =>
+                return await Task.Run(async () =>
                 {
                     try
                     {
                         var workTask = installer.Begin();
                         ActiveInstallation = installer;
-                        await workTask;
+                        return await workTask;
                     }
                     finally
                     {
