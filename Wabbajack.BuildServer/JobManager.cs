@@ -106,6 +106,8 @@ namespace Wabbajack.BuildServer
         
         private async Task ScheduledJob<T>(TimeSpan span, Job.JobPriority priority) where T : AJobPayload, new()
         {
+            if (!Settings.RunBackEndJobs && typeof(T).IsSubclassOf(typeof(IBackEndJob))) return;
+            if (!Settings.RunFrontEndJobs && typeof(T).IsSubclassOf(typeof(IFrontEndJob))) return;
             try
             {
                 var jobs = await Db.Jobs.AsQueryable()

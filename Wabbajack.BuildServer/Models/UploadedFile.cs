@@ -18,15 +18,14 @@ namespace Wabbajack.BuildServer.Models
         public DateTime UploadDate { get; set; } = DateTime.UtcNow;
 
         [BsonIgnore]
-        public string MungedName => $"{Path.GetFileNameWithoutExtension(Name)}-{Id}-{Path.GetExtension(Name)}";
+        public string MungedName => $"{Path.GetFileNameWithoutExtension(Name)}-{Id}{Path.GetExtension(Name)}";
 
-        [BsonIgnore] public object Uri => $"https://static.wabbajack.org/files/{MungedName}";
+        [BsonIgnore] public object Uri => $"https://build.wabbajack.org/files/{MungedName}";
 
         public static async Task<UploadedFile> Ingest(DBContext db, IFormFile src, string uploader)
         {
             var record = new UploadedFile {Uploader = uploader, Name = src.FileName, Id = Guid.NewGuid().ToString()};
-            var dest_path =
-                $@"public\\files\\{Path.GetFileNameWithoutExtension(src.FileName)}-{record.Id}{Path.GetExtension(src.FileName)}";
+            var dest_path = $@"public\\files\\{record.MungedName}";
 
             using (var stream = File.OpenWrite(dest_path)) 
                 await src.CopyToAsync(stream);

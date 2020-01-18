@@ -173,6 +173,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Extensions\DynamicDataExt.cs" />
+    <Compile Include="View Models\Settings\AuthorFilesVM.cs" />
     <Compile Include="Views\ModListTileView.xaml.cs">
       <DependentUpon>ModListTileView.xaml</DependentUpon>
     </Compile>
@@ -184,6 +185,9 @@
     <Compile Include="Converters\ConverterRegistration.cs" />
     <Compile Include="Extensions\IViewForExt.cs" />
     <Compile Include="View Models\Interfaces\ICpuStatusVM.cs" />
+    <Compile Include="Views\Settings\AuthorFilesView.xaml.cs">
+      <DependentUpon>AuthorFilesView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Settings\LoginItemView.xaml.cs">
       <DependentUpon>LoginItemView.xaml</DependentUpon>
     </Compile>
@@ -308,6 +312,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\Settings\AuthorFilesView.xaml" />
     <Page Include="Views\Settings\LoginItemView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -543,7 +548,7 @@
       <Version>1.1.11</Version>
     </PackageReference>
     <PackageReference Include="MahApps.Metro">
-      <Version>2.0.0-alpha0660</Version>
+      <Version>1.6.5</Version>
     </PackageReference>
     <PackageReference Include="MahApps.Metro.IconPacks">
       <Version>3.1.0</Version>

@@ -30,10 +30,9 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<IActionResult> UploadFile(IList<IFormFile> files)
         {
             var user = User.FindFirstValue(ClaimTypes.Name);
-            foreach (var file in files) 
-                await UploadedFile.Ingest(Db, file, user);
-
-            return Ok();
+            UploadedFile result = null;
+            result = await UploadedFile.Ingest(Db, files.First(), user);
+            return Ok(result.Uri.ToString());
         }
         
         private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().Compile(@"

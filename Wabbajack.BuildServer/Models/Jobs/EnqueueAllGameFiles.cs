@@ -12,7 +12,7 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
-    public class EnqueueAllGameFiles : AJobPayload
+    public class EnqueueAllGameFiles : AJobPayload, IBackEndJob
     {
         public override string Description { get => $"Enqueue all game files for indexing"; }
         public override async Task<JobResult> Execute(DBContext db, AppSettings settings)

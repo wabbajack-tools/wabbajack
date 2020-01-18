@@ -16,7 +16,7 @@ using Wabbajack.VirtualFileSystem;
 namespace Wabbajack.BuildServer.Models.Jobs
 { 
     
-    public class IndexJob : AJobPayload
+    public class IndexJob : AJobPayload, IBackEndJob
     {
         public Archive Archive { get; set; }
         public override string Description => $"Index ${Archive.State.PrimaryKeyString} and save the download/file state";
