@@ -259,7 +259,7 @@ namespace Wabbajack.Lib
             var patchData = LoadBytesFromPath(directive.SourceDataID);
             var toFile = Path.Combine(OutputFolder, directive.To);
             Status($"Patching {filename}");
-            using (var output = File.OpenWrite(toFile))
+            using (var output = File.Open(toFile, FileMode.Create))
             using (var input = File.OpenRead(gameFile))
             {
                 BSDiff.Apply(input, () => new MemoryStream(patchData), output);

@@ -65,7 +65,7 @@ namespace Wabbajack.Lib.Downloaders
             public override async Task<bool> Download(Archive a, string destination)
             {
                 using(var src = File.OpenRead(SourcePath))
-                using (var dest = File.OpenWrite(destination))
+                using (var dest = File.Open(destination, System.IO.FileMode.Create))
                 {
                     var size = new FileInfo(SourcePath).Length;
                     src.CopyToWithStatus(size, dest, "Copying from Game folder");

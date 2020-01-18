@@ -179,7 +179,7 @@ namespace Wabbajack.Lib
                 }
             }
 
-            using (var fs = File.OpenWrite($"{ModList.Name}.md"))
+            using (var fs = File.Open($"{ModList.Name}.md", System.IO.FileMode.Create))
             {
                 fs.SetLength(0);
                 using (var reporter = new ReportBuilder(fs, ModListOutputFolder))

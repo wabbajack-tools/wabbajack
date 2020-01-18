@@ -51,7 +51,7 @@ namespace Compression.BSA
         public void Build(string filename)
         {
             SortEntries();
-            using (var fs = File.OpenWrite(filename))
+            using (var fs = File.Open(filename, FileMode.Create))
             using (var bw = new BinaryWriter(fs))
             {
                 bw.Write(Encoding.ASCII.GetBytes(_state.HeaderMagic));

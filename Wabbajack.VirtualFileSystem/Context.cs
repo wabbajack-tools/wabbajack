@@ -148,7 +148,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public async Task WriteToFile(string filename)
         {
-            using (var fs = File.OpenWrite(filename))
+            using (var fs = File.Open(filename, FileMode.Create))
             using (var bw = new BinaryWriter(fs, Encoding.UTF8, true))
             {
                 fs.SetLength(0);

@@ -90,9 +90,7 @@ namespace Compression.BSA
         public void Build(string outputName)
         {
             RegenFolderRecords();
-            if (File.Exists(outputName)) File.Delete(outputName);
-
-            using (var fs = File.OpenWrite(outputName))
+            using (var fs = File.Open(outputName, FileMode.Create))
             using (var wtr = new BinaryWriter(fs))
             {
                 wtr.Write(_fileId);

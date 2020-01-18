@@ -417,7 +417,7 @@ namespace Wabbajack.Common
         /*
         public static void ToBSON<T>(this T obj, string filename)
         {
-            using (var fo = File.OpenWrite(filename))
+            using (var fo = File.Open(filename, System.IO.FileMode.Create))
             using (var br = new BsonDataWriter(fo))
             {
                 fo.SetLength(0);
@@ -518,7 +518,7 @@ namespace Wabbajack.Common
 
         public static void BZip2ExtractToFile(this Stream src, string dest)
         {
-            using (var os = File.OpenWrite(dest))
+            using (var os = File.Open(dest, System.IO.FileMode.Create))
             {
                 os.SetLength(0);
                 using (var bz = new BZip2InputStream(src))
@@ -828,7 +828,7 @@ namespace Wabbajack.Common
                 {
                     var tmpName = Path.Combine("patch_cache", Guid.NewGuid() + ".tmp");
 
-                    using (var f = File.OpenWrite(tmpName))
+                    using (var f = File.Open(tmpName, System.IO.FileMode.Create))
                     {
                         Status("Creating Patch");
                         BSDiff.Create(a, b, f);
@@ -947,7 +947,7 @@ namespace Wabbajack.Common
                     long size = 0;
                     byte[] buffer = new byte[1024 * 8];
                     random.NextBytes(buffer);
-                    using (var fs = File.OpenWrite(file))
+                    using (var fs = File.Open(file, System.IO.FileMode.Create))
                     {
                         while (DateTime.Now < startTime + new TimeSpan(0, 0, seconds))
                         {

@@ -110,7 +110,7 @@ namespace Compression.BSA.Test
                         Directory.CreateDirectory(Path.GetDirectoryName(absName));
 
 
-                    using (var fs = File.OpenWrite(absName))
+                    using (var fs = File.Open(absName, FileMode.Create))
                     {
                         file.CopyDataTo(fs);
                     }

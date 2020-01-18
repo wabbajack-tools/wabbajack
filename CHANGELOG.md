@@ -3,6 +3,7 @@
 * Progress ring displays when downloading modlist images
 * GUI releases memory of download modlists better when navigating around
 * Fixed phrasing after failed installations to say "failed".
+* Fixed download bug that was marking some modlists as corrupted if they were replacing older versions.
 
 #### Version - 1.0 beta 15 - 1/6/2020
 * Don't delete the download folder when deleting empty folders during an update

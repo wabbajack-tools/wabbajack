@@ -59,7 +59,7 @@ namespace Wabbajack.Lib.Downloaders
             public override async Task<bool> Download(Archive a, string destination)
             {
                 var stream = await ResolveDownloadStream();
-                using (var file = File.OpenWrite(destination))
+                using (var file = File.Open(destination, FileMode.Create))
                 {
                     stream.CopyTo(file);
                 }
