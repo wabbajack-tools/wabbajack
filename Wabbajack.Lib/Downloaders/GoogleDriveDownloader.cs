@@ -44,10 +44,10 @@ namespace Wabbajack.Lib.Downloaders
                 return whitelist.GoogleIDs.Contains(Id);
             }
 
-            public override async Task Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, string destination)
             {
                 var state = await ToHttpState();
-                await state.Download(a, destination);
+                return await state.Download(a, destination);
             }
 
             private async Task<HTTPDownloader.State> ToHttpState()

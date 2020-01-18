@@ -62,7 +62,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, string destination)
             {
                 using(var src = File.OpenRead(SourcePath))
                 using (var dest = File.OpenWrite(destination))
@@ -70,6 +70,7 @@ namespace Wabbajack.Lib.Downloaders
                     var size = new FileInfo(SourcePath).Length;
                     src.CopyToWithStatus(size, dest, "Copying from Game folder");
                 }
+                return true;
             }
 
             public override async Task<bool> Verify(Archive a)

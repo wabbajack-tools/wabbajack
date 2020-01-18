@@ -80,7 +80,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, string destination)
             {
                 var downloader = (ManualDownloader)GetDownloader();
                 var absPath = Path.Combine(downloader._downloadfolder.Path, a.Name);
@@ -109,6 +109,7 @@ namespace Wabbajack.Lib.Downloaders
                         downloader._watcher.EnableRaisingEvents = false;
                     }
                 }
+                return true;
             }
 
             public override async Task<bool> Verify(Archive a)

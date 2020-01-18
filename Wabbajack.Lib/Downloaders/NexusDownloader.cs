@@ -136,7 +136,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, string destination)
             {
                 string url;
                 try
@@ -147,16 +147,15 @@ namespace Wabbajack.Lib.Downloaders
                 catch (Exception ex)
                 {
                     Utils.Log($"{a.Name} - Error getting Nexus download URL - {ex.Message}");
-                    return;
+                    return false;
                 }
 
                 Utils.Log($"Downloading Nexus Archive - {a.Name} - {GameName} - {ModID} - {FileID}");
 
-                await new HTTPDownloader.State
+                return await new HTTPDownloader.State
                 {
                     Url = url
                 }.Download(a, destination);
-
             }
 
             public override async Task<bool> Verify(Archive a)

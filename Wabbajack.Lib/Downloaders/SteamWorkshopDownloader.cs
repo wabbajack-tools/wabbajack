@@ -49,7 +49,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, string destination)
             {
                 var currentLib = Item.Game.Universe;
 
@@ -77,6 +77,8 @@ namespace Wabbajack.Lib.Downloaders
 
                     Thread.Sleep(1000);
                 }
+
+                return true;
             }
 
             public override async Task<bool> Verify(Archive a)

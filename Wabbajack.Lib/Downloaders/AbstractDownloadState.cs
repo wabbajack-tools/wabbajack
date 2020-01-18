@@ -60,15 +60,15 @@ namespace Wabbajack.Lib.Downloaders
         /// Downloads this file to the given destination location
         /// </summary>
         /// <param name="destination"></param>
-        public abstract Task Download(Archive a, string destination);
+        public abstract Task<bool> Download(Archive a, string destination);
 
-        public async Task Download(string destination)
+        public async Task<bool> Download(string destination)
         {
             var path = Path.GetDirectoryName(destination);
             if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
                 Directory.CreateDirectory(path);
             
-            await Download(new Archive {Name = Path.GetFileName(destination)}, destination);
+            return await Download(new Archive {Name = Path.GetFileName(destination)}, destination);
         }
 
         /// <summary>

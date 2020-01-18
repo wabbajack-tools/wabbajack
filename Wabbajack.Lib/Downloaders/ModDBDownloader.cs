@@ -46,23 +46,25 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, string destination)
             {
                 var urls = await GetDownloadUrls();
                 Utils.Log($"Found {urls.Length} ModDB mirrors for {a.Name}");
-                foreach (var (url, idx) in urls.Zip(Enumerable.Range(0, urls.Length), (s, i) => (s, i))) {
+                foreach (var (url, idx) in urls.Zip(Enumerable.Range(0, urls.Length), (s, i) => (s, i)))
+                {
                     try
                     {
                         await new HTTPDownloader.State {Url = url}.Download(a, destination);
-                        break;
+                        return true;
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         if (idx == urls.Length - 1)
                             throw;
                         Utils.Log($"Download from {url} failed, trying next mirror");
                     }
                 }
+                return false;
             }
 
             private async Task<string[]> GetDownloadUrls()

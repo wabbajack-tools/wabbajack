@@ -70,7 +70,7 @@ namespace Wabbajack.Lib.Downloaders
                 return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
             }
 
-            public override Task Download(Archive a, string destination)
+            public override Task<bool> Download(Archive a, string destination)
             {
                 return DoDownload(a, destination, true);
             }
