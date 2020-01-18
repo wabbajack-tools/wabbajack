@@ -19,6 +19,7 @@ using Wabbajack.Lib.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+using SectionData = Wabbajack.Common.SectionData;
 
 namespace Wabbajack.Lib
 {
@@ -45,7 +46,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             var metric = Metrics.Send("begin_install", ModList.Name);
 
-            ConfigureProcessor(19, ConstructDynamicNumThreads(await RecommendQueueSize()));
+            ConfigureProcessor(20, ConstructDynamicNumThreads(await RecommendQueueSize()));
             var game = ModList.GameType.MetaData();
 
             if (GameFolder == null)
@@ -139,6 +140,9 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Set MO2 into portable");
             ForcePortable();
 
+            UpdateTracker.NextStep("Create Empty Output Mods");
+            CreateOutputMods();
+
             UpdateTracker.NextStep("Updating System-specific ini settings");
             SetScreenSizeInPrefs();
 
@@ -146,6 +150,38 @@ namespace Wabbajack.Lib
             var metric2 = Metrics.Send("finish_install", ModList.Name);
 
             return true;
+        }
+
+        private void CreateOutputMods()
+        {
+            Directory.EnumerateFiles(Path.Combine(OutputFolder, "profiles"), "settings.ini", DirectoryEnumerationOptions.Recursive).Do(f =>
+            {
+                var ini = f.LoadIniFile();
+                if (ini == null)
+                {
+                    Utils.Log($"settings.ini is null for {f}, skipping");
+                    return;
+                }
+
+                var overwrites = ini.custom_overwrites;
+                if (overwrites == null)
+                {
+                    Utils.Log("No custom overwrites found, skipping");
+                    return;
+                }
+
+                if (overwrites is SectionData data)
+                {
+                    data.Coll.Do(keyData =>
+                    {
+                        var v = keyData.Value;
+                        var mod = Path.Combine(OutputFolder, "mods", v);
+
+                        if (!Directory.Exists(mod))
+                            Directory.CreateDirectory(mod);
+                    });
+                }
+            });
         }
 
         private void ForcePortable()

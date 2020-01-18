@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 using IniParser;
@@ -16,7 +15,7 @@ namespace Wabbajack.Common
 
         public DynamicIniData(IniData value) //
         {
-            this._value = value;
+            _value = value;
         }
 
         public static dynamic FromIni(IniData data)
@@ -37,19 +36,19 @@ namespace Wabbajack.Common
         }
     }
 
-    internal class SectionData : DynamicObject
+    public class SectionData : DynamicObject
     {
-        private readonly KeyDataCollection _coll;
+        public KeyDataCollection Coll { get; }
 
         public SectionData(KeyDataCollection coll)
         {
-            _coll = coll;
+            Coll = coll;
         }
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            result = _coll[binder.Name];
-            if (result is string) result = Interpret((string)result);
+            result = Coll[binder.Name];
+            if (result is string s) result = Interpret(s);
             return true;
         }
 
@@ -70,7 +69,7 @@ namespace Wabbajack.Common
 
         private static string UnescapeUTF8(string s)
         {
-            List<byte> acc = new List<byte>();
+            var acc = new List<byte>();
             for (var i = 0; i < s.Length; i++)
             {
                 var c = s[i];
@@ -109,8 +108,8 @@ namespace Wabbajack.Common
                 return false;
             }
 
-            result = _coll[(string) indexes[0]];
-            if (result is string) result = Regex.Unescape(((string)result).Trim('"'));
+            result = Coll[(string) indexes[0]];
+            if (result is string s) result = Regex.Unescape(s.Trim('"'));
             return true;
         }
     }
