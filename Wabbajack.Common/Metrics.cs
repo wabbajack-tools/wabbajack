@@ -9,6 +9,10 @@ namespace Wabbajack.Common
 {
     public class Metrics
     {
+        public const string Downloading = "downloading";
+        public const string BeginInstall = "begin_install";
+        public const string FinishInstall = "finish_install";
+
         static Metrics()
         {
             if (!Utils.HaveEncryptedJson(Consts.MetricsKeyHeader))

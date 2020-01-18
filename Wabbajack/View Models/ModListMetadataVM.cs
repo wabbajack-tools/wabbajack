@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -143,7 +143,7 @@ namespace Wabbajack
             var sub = queue.Status.Select(i => i.ProgressPercent)
                 .Subscribe(percent => ProgressPercent = percent);
             TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-            var metric = Metrics.Send("downloading", Metadata.Title);
+            var metric = Metrics.Send(Metrics.Downloading, Metadata.Title);
             queue.QueueTask(async () =>
             {
                 var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);

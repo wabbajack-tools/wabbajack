@@ -39,7 +39,7 @@ namespace Wabbajack.Lib
         protected override async Task<bool> _Begin(CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested) return false;
-            var metric = Metrics.Send("begin_install", ModList.Name);
+            var metric = Metrics.Send(Metrics.BeginInstall, ModList.Name);
             var result = await Utils.Log(new YesNoIntervention(
                 "Vortex Support is still experimental and may produce unexpected results. " +
                 "If anything fails please go to the special Vortex support channels on the Wabbajack Discord and contact @erri120#2285 " +
@@ -103,7 +103,7 @@ namespace Wabbajack.Lib
             await InstallSteamWorkshopItems();
 
             //InstallIncludedDownloadMetas();
-            var metric2 = Metrics.Send("finish_install", ModList.Name);
+            var metric2 = Metrics.Send(Metrics.FinishInstall, ModList.Name);
             UpdateTracker.NextStep("Installation complete! You may exit the program.");
             return true;
         }
