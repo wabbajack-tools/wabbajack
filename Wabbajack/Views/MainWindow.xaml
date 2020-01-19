@@ -32,7 +32,7 @@
                 <local:ModeSelectionView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
-                <local:ModListGalleryView />
+                <local:ModListGalleryView ViewModel="{Binding}" />
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:WebBrowserVM}">
                 <local:WebBrowserView />
