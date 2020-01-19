@@ -114,7 +114,6 @@ namespace Wabbajack.BuildServer
                 FileProvider = new PhysicalFileProvider(
                     Path.Combine(Directory.GetCurrentDirectory(), "public")),
                 StaticFileOptions = {ServeUnknownFileTypes = true},
-                EnableDirectoryBrowsing = true
             });
 
             app.UseEndpoints(endpoints =>

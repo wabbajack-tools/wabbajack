@@ -20,6 +20,6 @@ namespace Wabbajack.BuildServer.Models
         [BsonIgnore]
         public string MungedName => $"{Path.GetFileNameWithoutExtension(Name)}-{Id}{Path.GetExtension(Name)}";
 
-        [BsonIgnore] public object Uri => $"https://build.wabbajack.org/files/{MungedName}";
+        [BsonIgnore] public object Uri => $"https://wabbajack.b-cdn.net/{MungedName}";
     }
 }
