@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -14,6 +16,7 @@ using MongoDB.Driver.Linq;
 using Nettle;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.Common;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.BuildServer.Controllers
 {
@@ -24,16 +27,60 @@ namespace Wabbajack.BuildServer.Controllers
   
         }
 
-        [HttpPost]
-        [Authorize]
-        [Route("upload_file")]
-        public async Task<IActionResult> UploadFile(IList<IFormFile> files)
+        [HttpPut]
+        [Route("upload_file/{Name}/start")]
+        public async Task<IActionResult> UploadFileStreaming(string Name)
+        {
+            var guid = Guid.NewGuid();
+            var key = Encoding.UTF8.GetBytes($"{Path.GetFileNameWithoutExtension(Name)}|{guid.ToString()}|{Path.GetExtension(Name)}").ToHex();
+            System.IO.File.Create(Path.Combine("public", "files", key)).Close();
+            Utils.Log($"Starting Ingest for {key}");
+            return Ok(key);
+        }
+
+        static private HashSet<char> HexChars = new HashSet<char>("abcdef1234567890");
+        [HttpPut]
+        [Route("upload_file/{Key}/data/{Offset}")]
+        public async Task<IActionResult> UploadFilePart(string Key, long Offset)
+        {
+            if (!Key.All(a => HexChars.Contains(a)))
+                return BadRequest("NOT A VALID FILENAME");
+            Utils.Log($"Writing at position {Offset} in ingest file {Key}");
+            await using (var file = System.IO.File.Open(Path.Combine("public", "files", Key), FileMode.Open, FileAccess.Write))
+            {
+                file.Position = Offset;
+                await Request.Body.CopyToAsync(file);
+                return Ok(file.Position.ToString());
+            }
+        }
+
+        [HttpPut]
+        [Route("upload_file/{Key}/finish")]
+        public async Task<IActionResult> UploadFileFinish(string Key)
         {
             var user = User.FindFirstValue(ClaimTypes.Name);
-            UploadedFile result = null;
-            result = await UploadedFile.Ingest(Db, files.First(), user);
-            return Ok(result.Uri.ToString());
+            if (!Key.All(a => HexChars.Contains(a)))
+                return BadRequest("NOT A VALID FILENAME");
+            var parts = Encoding.UTF8.GetString(Key.FromHex()).Split('|');
+            var final_name = $"{parts[0]}-{parts[1]}{parts[2]}";
+            var original_name = $"{parts[0]}{parts[2]}";
+
+            var final_path = Path.Combine("public", "files", final_name);
+            System.IO.File.Move(Path.Combine("public", "files", Key), final_path);
+            var hash = await final_path.FileHashAsync();
+
+            var record = new UploadedFile
+            {
+                Id = parts[1],
+                Hash = hash, 
+                Name = original_name, 
+                Uploader = user, 
+                Size = new FileInfo(final_path).Length
+            };
+            await Db.UploadedFiles.InsertOneAsync(record);
+            return Ok(record.Uri);
         }
+
         
         private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().Compile(@"
             <html><body>
@@ -69,5 +116,7 @@ namespace Wabbajack.BuildServer.Controllers
                 Content = response
             };
         }
+        
+        
     }
 }

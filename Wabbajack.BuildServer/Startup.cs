@@ -26,6 +26,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using Wabbajack.BuildServer.Controllers;
 using Wabbajack.BuildServer.Models;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
+using Microsoft.AspNetCore.StaticFiles;
 using Wabbajack.BuildServer.Controllers;
 using Microsoft.Extensions.FileProviders;
 using Directory = System.IO.Directory;
@@ -89,8 +90,13 @@ namespace Wabbajack.BuildServer
             app.UseHttpsRedirection();
             app.UseGraphiQl();
             app.UseDeveloperExceptionPage();
+            
+            var provider = new FileExtensionContentTypeProvider();
+            provider.Mappings[".rar"] = "application/x-rar-compressed";
+            provider.Mappings[".7z"] = "application/x-7z-compressed";
+            provider.Mappings[".zip"] = "application/zip";
+            provider.Mappings[".wabbajack"] = "application/zip";
             app.UseStaticFiles();
-            //app.UseHttpsRedirection();
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
@@ -106,7 +112,9 @@ namespace Wabbajack.BuildServer
             app.UseFileServer(new FileServerOptions
             {
                 FileProvider = new PhysicalFileProvider(
-                    Path.Combine(Directory.GetCurrentDirectory(), "public"))
+                    Path.Combine(Directory.GetCurrentDirectory(), "public")),
+                StaticFileOptions = {ServeUnknownFileTypes = true},
+                EnableDirectoryBrowsing = true
             });
 
             app.UseEndpoints(endpoints =>

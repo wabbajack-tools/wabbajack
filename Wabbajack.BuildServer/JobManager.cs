@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Nettle;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.BuildServer.Models.Jobs;
@@ -106,8 +107,8 @@ namespace Wabbajack.BuildServer
         
         private async Task ScheduledJob<T>(TimeSpan span, Job.JobPriority priority) where T : AJobPayload, new()
         {
-            if (!Settings.RunBackEndJobs && typeof(T).IsSubclassOf(typeof(IBackEndJob))) return;
-            if (!Settings.RunFrontEndJobs && typeof(T).IsSubclassOf(typeof(IFrontEndJob))) return;
+            if (!Settings.RunBackEndJobs && typeof(T).ImplementsInterface(typeof(IBackEndJob))) return;
+            if (!Settings.RunFrontEndJobs && typeof(T).ImplementsInterface(typeof(IFrontEndJob))) return;
             try
             {
                 var jobs = await Db.Jobs.AsQueryable()

@@ -18,7 +18,6 @@ namespace Wabbajack.Lib.GraphQL
     public class GraphQLService
     {
         public static readonly Uri BaseURL = new Uri("https://build.wabbajack.org/graphql");
-        public static readonly Uri UploadURL = new Uri("https://build.wabbajack.org/upload_file");
         
         public static async Task<List<UploadedFile>> GetUploadedFiles()
         {
@@ -41,31 +40,5 @@ namespace Wabbajack.Lib.GraphQL
             return result.GetDataFieldAs<List<UploadedFile>>("uploadedFiles");
         }
 
-        public static Task<string> UploadFile(WorkQueue queue, string filename)
-        {
-            var tcs = new TaskCompletionSource<string>();
-            queue.QueueTask(async () =>
-            {
-                using (var stream =
-                    new StatusFileStream(File.OpenRead(filename), $"Uploading {Path.GetFileName(filename)}", queue))
-                {
-                    var client = new HttpClient();
-                    client.DefaultRequestHeaders.Add("X-API-KEY", AuthorAPI.GetAPIKey());
-                    var content = new StreamContent(stream);
-                    var form = new MultipartFormDataContent
-                    {
-                        {content, "files", Path.GetFileName(filename)}
-                    };
-                    content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-
-                    var response = await client.PostAsync(UploadURL, form);
-                    if (response.IsSuccessStatusCode)
-                        tcs.SetResult(await response.Content.ReadAsStringAsync());
-                    else 
-                        tcs.SetResult("FAILED");
-                }
-            });
-            return tcs.Task;
-        }
     }
 }

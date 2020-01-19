@@ -21,18 +21,5 @@ namespace Wabbajack.BuildServer.Models
         public string MungedName => $"{Path.GetFileNameWithoutExtension(Name)}-{Id}{Path.GetExtension(Name)}";
 
         [BsonIgnore] public object Uri => $"https://build.wabbajack.org/files/{MungedName}";
-
-        public static async Task<UploadedFile> Ingest(DBContext db, IFormFile src, string uploader)
-        {
-            var record = new UploadedFile {Uploader = uploader, Name = src.FileName, Id = Guid.NewGuid().ToString()};
-            var dest_path = $@"public\\files\\{record.MungedName}";
-
-            using (var stream = File.OpenWrite(dest_path)) 
-                await src.CopyToAsync(stream);
-            record.Size = new FileInfo(dest_path).Length;
-            record.Hash = await dest_path.FileHashAsync();
-            await db.UploadedFiles.InsertOneAsync(record);
-            return record;
-        }
     }
 }

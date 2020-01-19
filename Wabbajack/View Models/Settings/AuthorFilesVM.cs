@@ -51,7 +51,7 @@ namespace Wabbajack
 
             Upload = ReactiveCommand.Create(async () =>
             {
-                SelectedFile = await GraphQLService.UploadFile(Queue, SelectedFile);
+                SelectedFile = await AuthorAPI.UploadFile(Queue, SelectedFile);
             });
         }
     }
