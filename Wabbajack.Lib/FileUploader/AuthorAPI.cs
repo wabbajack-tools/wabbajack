@@ -53,7 +53,7 @@ namespace Wabbajack.Lib.FileUploader
                         if (new_size != data.Length) 
                             data = new byte[new_size];
 
-                        stream.ReadAsync(data, 0, data.Length);
+                        await stream.ReadAsync(data, 0, data.Length);
 
                         response = await client.PutAsync(UploadURL + $"/{key}/data/{old_offset}",
                             new ByteArrayContent(data));
