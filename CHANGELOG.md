@@ -4,6 +4,7 @@
 * GUI releases memory of download modlists better when navigating around
 * Fixed phrasing after failed installations to say "failed".
 * Fixed download bug that was marking some modlists as corrupted if they were replacing older versions.
+* While compiling Wabbajack will attempt to download VFS and .meta data from the build server
 
 #### Version - 1.0 beta 15 - 1/6/2020
 * Don't delete the download folder when deleting empty folders during an update
