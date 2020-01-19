@@ -12,7 +12,7 @@ using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
-    public class UpdateModLists : AJobPayload
+    public class UpdateModLists : AJobPayload, IFrontEndJob
     {
         public override string Description => "Validate curated modlists";
         public override async Task<JobResult> Execute(DBContext db, AppSettings settings)

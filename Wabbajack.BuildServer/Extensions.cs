@@ -1,12 +1,15 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Wabbajack.Common;
+using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.BuildServer
 {
@@ -23,6 +26,23 @@ namespace Wabbajack.BuildServer
             var tsk = manager.JobScheduler();
 
             manager.StartJobRunners();
+        }
+        
+        public static async Task CopyFileAsync(string sourcePath, string destinationPath)
+        {
+            using (Stream source = File.OpenRead(sourcePath))
+            {
+                using(Stream destination = File.Create(destinationPath))
+                {
+                    await source.CopyToAsync(destination);
+                }
+            }
+        }
+
+        
+        public static AuthenticationBuilder AddApiKeySupport(this AuthenticationBuilder authenticationBuilder, Action<ApiKeyAuthenticationOptions> options)
+        {
+            return authenticationBuilder.AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationOptions.DefaultScheme, options);
         }
     }
 }

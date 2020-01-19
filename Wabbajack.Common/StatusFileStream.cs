@@ -6,9 +6,11 @@ namespace Wabbajack.Common
     {
         private string _message;
         private Stream _inner;
+        private WorkQueue _queue;
 
-        public StatusFileStream(Stream fs, string message)
+        public StatusFileStream(Stream fs, string message, WorkQueue queue = null)
         {
+            _queue = queue;
             _inner = fs;
             _message = message;
         }
@@ -36,7 +38,14 @@ namespace Wabbajack.Common
 
         private void UpdateStatus()
         {
-            if (_inner.Length != 0)
+            if (_inner.Length == 0)
+            {
+                return;
+            }
+
+            if (_queue != null)
+                _queue.Report(_message, (int) (_inner.Position * 100 / _inner.Length));
+            else
                 Utils.Status(_message, (int) (_inner.Position * 100 / _inner.Length));
         }
 

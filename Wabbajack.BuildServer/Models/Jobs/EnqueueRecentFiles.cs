@@ -13,7 +13,7 @@ using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
-    public class EnqueueRecentFiles : AJobPayload
+    public class EnqueueRecentFiles : AJobPayload, IFrontEndJob
     {
         public override string Description => "Enqueue the past days worth of mods for indexing";
         

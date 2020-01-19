@@ -53,6 +53,13 @@ namespace Wabbajack.BuildServer.GraphQL
                     var data = await db.Jobs.AsQueryable().Where(j => j.Id == id).ToListAsync();
                     return data;
                 });
+            
+            FieldAsync<ListGraphType<UploadedFileType>>("uploadedFiles",
+                resolve: async context =>
+                {
+                    var data = await db.UploadedFiles.AsQueryable().ToListAsync();
+                    return data;
+                });
 
             FieldAsync<ListGraphType<MetricResultType>>("dailyUniqueMetrics",
                 arguments: new QueryArguments(

@@ -12,7 +12,7 @@ using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
-    public class EnqueueAllArchives : AJobPayload
+    public class EnqueueAllArchives : AJobPayload, IBackEndJob
     {
         public override string Description => "Add missing modlist archives to indexer";
         public override async Task<JobResult> Execute(DBContext db, AppSettings settings)

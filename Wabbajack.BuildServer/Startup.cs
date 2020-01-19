@@ -11,7 +11,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.AzureAD.UI;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,6 +26,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using Wabbajack.BuildServer.Controllers;
 using Wabbajack.BuildServer.Models;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
+using Microsoft.AspNetCore.StaticFiles;
 using Wabbajack.BuildServer.Controllers;
 using Microsoft.Extensions.FileProviders;
 using Directory = System.IO.Directory;
@@ -44,6 +49,19 @@ namespace Wabbajack.BuildServer
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "Wabbajack Build API", Version = "v1"});
+            });
+            
+            services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = ApiKeyAuthenticationOptions.DefaultScheme;
+                    options.DefaultChallengeScheme = ApiKeyAuthenticationOptions.DefaultScheme;
+                })
+                .AddApiKeySupport(options => {});
+
+            services.Configure<FormOptions>(x =>
+            {
+                x.ValueLengthLimit = int.MaxValue;
+                x.MultipartBodyLengthLimit = int.MaxValue;
             });
 
             services.AddSingleton<DBContext>();
@@ -69,10 +87,16 @@ namespace Wabbajack.BuildServer
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseHttpsRedirection();
             app.UseGraphiQl();
             app.UseDeveloperExceptionPage();
+            
+            var provider = new FileExtensionContentTypeProvider();
+            provider.Mappings[".rar"] = "application/x-rar-compressed";
+            provider.Mappings[".7z"] = "application/x-7z-compressed";
+            provider.Mappings[".zip"] = "application/zip";
+            provider.Mappings[".wabbajack"] = "application/zip";
             app.UseStaticFiles();
-            //app.UseHttpsRedirection();
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
@@ -88,7 +112,8 @@ namespace Wabbajack.BuildServer
             app.UseFileServer(new FileServerOptions
             {
                 FileProvider = new PhysicalFileProvider(
-                    Path.Combine(Directory.GetCurrentDirectory(), "public"))
+                    Path.Combine(Directory.GetCurrentDirectory(), "public")),
+                StaticFileOptions = {ServeUnknownFileTypes = true},
             });
 
             app.UseEndpoints(endpoints =>

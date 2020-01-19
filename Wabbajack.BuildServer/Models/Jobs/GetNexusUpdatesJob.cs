@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
-    public class GetNexusUpdatesJob : AJobPayload
+    public class GetNexusUpdatesJob : AJobPayload, IFrontEndJob
     {
         public override string Description => "Poll the Nexus for updated mods, and clean any references to those mods";
 

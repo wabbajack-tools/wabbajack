@@ -173,6 +173,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Extensions\DynamicDataExt.cs" />
+    <Compile Include="View Models\Settings\AuthorFilesVM.cs" />
     <Compile Include="Views\ModListTileView.xaml.cs">
       <DependentUpon>ModListTileView.xaml</DependentUpon>
     </Compile>
@@ -184,6 +185,9 @@
     <Compile Include="Converters\ConverterRegistration.cs" />
     <Compile Include="Extensions\IViewForExt.cs" />
     <Compile Include="View Models\Interfaces\ICpuStatusVM.cs" />
+    <Compile Include="Views\Settings\AuthorFilesView.xaml.cs">
+      <DependentUpon>AuthorFilesView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Settings\LoginItemView.xaml.cs">
       <DependentUpon>LoginItemView.xaml</DependentUpon>
     </Compile>
@@ -308,6 +312,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\Settings\AuthorFilesView.xaml" />
     <Page Include="Views\Settings\LoginItemView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -561,16 +566,16 @@
       <Version>1.0.2</Version>
     </PackageReference>
     <PackageReference Include="protobuf-net">
-      <Version>2.4.4</Version>
+      <Version>3.0.0-alpha.128</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.Events.WPF">
-      <Version>11.1.6</Version>
+      <Version>11.1.11</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.Fody">
-      <Version>11.1.6</Version>
+      <Version>11.1.11</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI.WPF">
-      <Version>11.1.6</Version>
+      <Version>11.1.11</Version>
     </PackageReference>
     <PackageReference Include="SharpCompress">
       <Version>0.24.0</Version>
