@@ -27,7 +27,7 @@ namespace Wabbajack
                     if (string.IsNullOrWhiteSpace(path)
                         || !File.Exists(path))
                     {
-                        path = UIUtils.OpenFileDialog($"*{ExtensionManager.ModListExtension}|*{ExtensionManager.ModListExtension}");
+                        path = UIUtils.OpenFileDialog($"*{Consts.ModListExtension}|*{Consts.ModListExtension}");
                     }
                     _mainVM.OpenInstaller(path);
                 });

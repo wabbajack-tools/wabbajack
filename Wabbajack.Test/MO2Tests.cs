@@ -47,7 +47,7 @@ namespace Wabbajack.Test
             using (var tempDir = new TempFolder())
             {
                 File.Create(Path.Combine(tempDir.Dir.FullName, $"ModOrganizer.exe"));
-                File.Create(Path.Combine(tempDir.Dir.FullName, $"modlist{ExtensionManager.ModListExtension}"));
+                File.Create(Path.Combine(tempDir.Dir.FullName, $"modlist{Consts.ModListExtension}"));
                 Assert.IsFalse(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: null).Succeeded);
             }
         }

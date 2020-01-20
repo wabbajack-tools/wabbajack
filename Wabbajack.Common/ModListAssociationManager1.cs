@@ -5,15 +5,13 @@ using Microsoft.Win32;
 
 namespace Wabbajack.Common
 {
-    public class ExtensionManager
+    public class ModListAssociationManager
     {
         [DllImport("Shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
-        public static string ModListExtension = ".wabbajack";
-
         private static readonly string ProgIDPath = "Software\\Classes\\Wabbajack";
-        private static readonly string ExtPath = $"Software\\Classes\\{ModListExtension}";
+        private static readonly string ExtPath = $"Software\\Classes\\{Consts.ModListExtension}";
         
         private static readonly Dictionary<string, string> ProgIDList = new Dictionary<string, string>
         {

@@ -38,7 +38,7 @@ namespace Wabbajack.Test
             var compiler = new MO2Compiler(
                 mo2Folder: utils.MO2Folder,
                 mo2Profile: profile,
-                outputFile: profile + ExtensionManager.ModListExtension);
+                outputFile: profile + Consts.ModListExtension);
             compiler.ShowReportWhenFinished = false;
             Assert.IsTrue(await compiler.Begin());
             return compiler;

@@ -179,7 +179,7 @@ namespace Wabbajack
 
         public async Task<bool> Compile()
         {
-            string outputFile = $"{ModlistSettings.ModListName}{ExtensionManager.ModListExtension}";
+            string outputFile = $"{ModlistSettings.ModListName}{Consts.ModListExtension}";
             if (!string.IsNullOrWhiteSpace(Parent.OutputLocation.TargetPath))
             {
                 outputFile = Path.Combine(Parent.OutputLocation.TargetPath, outputFile);
