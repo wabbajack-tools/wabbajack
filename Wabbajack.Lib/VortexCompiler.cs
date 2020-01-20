@@ -61,7 +61,7 @@ namespace Wabbajack.Lib
             if (string.IsNullOrEmpty(ModListName))
             {
                 ModListName = $"Vortex ModList for {Game.ToString()}";
-                ModListOutputFile = $"{ModListName}{ExtensionManager.Extension}";
+                ModListOutputFile = $"{ModListName}{ExtensionManager.ModListExtension}";
             }
 
             GameName = Game.MetaData().NexusName;

@@ -10,10 +10,10 @@ namespace Wabbajack.Common
         [DllImport("Shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
-        public static string Extension = ".wabbajack";
+        public static string ModListExtension = ".wabbajack";
 
         private static readonly string ProgIDPath = "Software\\Classes\\Wabbajack";
-        private static readonly string ExtPath = $"Software\\Classes\\{Extension}";
+        private static readonly string ExtPath = $"Software\\Classes\\{ModListExtension}";
         
         private static readonly Dictionary<string, string> ProgIDList = new Dictionary<string, string>
         {
