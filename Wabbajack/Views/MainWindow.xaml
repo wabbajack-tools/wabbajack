@@ -23,7 +23,7 @@
     <ContentPresenter Content="{Binding ActivePane}">
         <ContentPresenter.Resources>
             <DataTemplate DataType="{x:Type local:CompilerVM}">
-                <local:CompilerView />
+                <local:CompilerView ViewModel="{Binding}" />
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:InstallerVM}">
                 <local:InstallationView />
