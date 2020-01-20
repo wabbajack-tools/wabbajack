@@ -20,14 +20,6 @@ namespace Wabbajack
     /// </summary>
     public partial class AttentionBorder : UserControl
     {
-        public object DisplayContent
-        {
-            get => (object)GetValue(DisplayContentProperty);
-            set => SetValue(DisplayContentProperty, value);
-        }
-        public static readonly DependencyProperty DisplayContentProperty = DependencyProperty.Register(nameof(DisplayContent), typeof(object), typeof(AttentionBorder),
-             new FrameworkPropertyMetadata(default(object)));
-
         public bool Failure
         {
             get => (bool)GetValue(FailureProperty);
@@ -35,10 +27,5 @@ namespace Wabbajack
         }
         public static readonly DependencyProperty FailureProperty = DependencyProperty.Register(nameof(Failure), typeof(bool), typeof(AttentionBorder),
              new FrameworkPropertyMetadata(default(bool)));
-
-        public AttentionBorder()
-        {
-            InitializeComponent();
-        }
     }
 }

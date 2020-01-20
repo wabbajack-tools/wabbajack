@@ -299,13 +299,11 @@
             <local:CpuView
                 x:Name="CpuView"
                 Grid.Column="2"
-                ViewModel="{Binding}"/>
+                ViewModel="{Binding}" />
             <local:AttentionBorder x:Name="UserInterventionsControl" Grid.Column="2">
-                <local:AttentionBorder.DisplayContent>
-                    <Grid>
-                        <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />
-                    </Grid>
-                </local:AttentionBorder.DisplayContent>
+                <Grid>
+                    <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />
+                </Grid>
             </local:AttentionBorder>
             <local:CompilationCompleteView x:Name="CompilationComplete" Grid.Column="2" />
         </Grid>
