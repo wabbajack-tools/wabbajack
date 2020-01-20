@@ -137,7 +137,7 @@ namespace Wabbajack.Test
 
             await FileExtractor.ExtractAll(Queue, src, Path.Combine(utils.ModsFolder, mod_name));
 
-            File.WriteAllText(dest + ".meta", ini);
+            File.WriteAllText(dest + Consts.MetaFileExtension, ini);
         }
 
         private async Task<ModList> CompileAndInstall(string profile)

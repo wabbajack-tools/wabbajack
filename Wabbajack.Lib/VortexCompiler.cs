@@ -127,13 +127,13 @@ namespace Wabbajack.Lib
 
             Info("Indexing Archives");
             IndexedArchives = Directory.EnumerateFiles(DownloadsFolder)
-                .Where(f => File.Exists(f + ".meta"))
+                .Where(f => File.Exists(f + Consts.MetaFileExtension))
                 .Select(f => new IndexedArchive
                 {
                     File = VFS.Index.ByRootPath[f],
                     Name = Path.GetFileName(f),
-                    IniData = (f + ".meta").LoadIniFile(),
-                    Meta = File.ReadAllText(f + ".meta")
+                    IniData = (f + Consts.MetaFileExtension).LoadIniFile(),
+                    Meta = File.ReadAllText(f + Consts.MetaFileExtension)
                 })
                 .ToList();
 
@@ -331,7 +331,7 @@ namespace Wabbajack.Lib
             var nexusClient = await NexusApiClient.Get();
 
             var archives = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly).Where(f =>
-                File.Exists(f) && Path.GetExtension(f) != ".meta" && Path.GetExtension(f) != ".xxHash" &&
+                File.Exists(f) && Path.GetExtension(f) != Consts.MetaFileExtension && Path.GetExtension(f) != ".xxHash" &&
                 !File.Exists($"{f}.meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)));
 
             await archives.PMap(Queue, async f =>
@@ -359,7 +359,7 @@ namespace Wabbajack.Lib
                                   $"fileID={md5Response[0].file_details.file_id}\n" +
                                   $"version={md5Response[0].file_details.version}\n" +
                                   $"hash={hash}\n";
-                    File.WriteAllText(f + ".meta", metaString, Encoding.UTF8);
+                    File.WriteAllText(f + Consts.MetaFileExtension, metaString, Encoding.UTF8);
                 }
                 else
                 {
@@ -368,7 +368,7 @@ namespace Wabbajack.Lib
             });
 
             var otherFiles = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly).Where(f =>
-                Path.GetExtension(f) == ".meta" && !ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)));
+                Path.GetExtension(f) == Consts.MetaFileExtension && !ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)));
 
             await otherFiles.PMap(Queue, async f =>
             {

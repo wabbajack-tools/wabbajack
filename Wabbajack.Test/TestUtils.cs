@@ -147,7 +147,7 @@ namespace Wabbajack.Test
                 });
             }
 
-            File.WriteAllLines(Path.Combine(DownloadsFolder, name+".meta"),
+            File.WriteAllLines(Path.Combine(DownloadsFolder, name + Consts.MetaFileExtension),
                 
                 new string[]
                 {

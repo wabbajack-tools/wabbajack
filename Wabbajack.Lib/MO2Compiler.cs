@@ -140,13 +140,13 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Pre-validating Archives");
 
             IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
-                .Where(f => File.Exists(f + ".meta"))
+                .Where(f => File.Exists(f + Consts.MetaFileExtension))
                 .Select(f => new IndexedArchive
                 {
                     File = VFS.Index.ByRootPath[f],
                     Name = Path.GetFileName(f),
-                    IniData = (f + ".meta").LoadIniFile(),
-                    Meta = File.ReadAllText(f + ".meta")
+                    IniData = (f + Consts.MetaFileExtension).LoadIniFile(),
+                    Meta = File.ReadAllText(f + Consts.MetaFileExtension)
                 })
                 .ToList();
 
@@ -324,8 +324,8 @@ namespace Wabbajack.Lib
         private async Task InferMetas()
         {
             var to_find = Directory.EnumerateFiles(MO2DownloadsFolder)
-                .Where(f => !f.EndsWith(".meta") && !f.EndsWith(Consts.HashFileExtension))
-                .Where(f => !File.Exists(f + ".meta"))
+                .Where(f => !f.EndsWith(Consts.MetaFileExtension) && !f.EndsWith(Consts.HashFileExtension))
+                .Where(f => !File.Exists(f + Consts.MetaFileExtension))
                 .ToList();
 
             if (to_find.Count == 0) return;
@@ -342,7 +342,7 @@ namespace Wabbajack.Lib
 
                 var ini_data = await response.Content.ReadAsStringAsync();
                 Utils.Log($"Inferred .meta for {Path.GetFileName(vf.FullPath)}, writing to disk");
-                File.WriteAllText(vf.FullPath + ".meta", ini_data);
+                File.WriteAllText(vf.FullPath + Consts.MetaFileExtension, ini_data);
             });
         }
 
@@ -352,7 +352,7 @@ namespace Wabbajack.Lib
             Utils.Log($"Including {SelectedArchives.Count} .meta files for downloads");
             await SelectedArchives.PMap(Queue, a =>
             {
-                var source = Path.Combine(MO2DownloadsFolder, a.Name + ".meta");
+                var source = Path.Combine(MO2DownloadsFolder, a.Name + Consts.MetaFileExtension);
                 InstallDirectives.Add(new ArchiveMeta()
                 {
                     SourceDataID = IncludeFile(File.ReadAllText(source)),
