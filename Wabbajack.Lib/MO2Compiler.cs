@@ -330,6 +330,8 @@ namespace Wabbajack.Lib
 
             if (to_find.Count == 0) return;
 
+            Utils.Log($"Attempting to infer {to_find.Count} metas from the server.");
+
             await to_find.PMap(Queue, async f =>
             {
                 var vf = VFS.Index.ByFullPath[f];
