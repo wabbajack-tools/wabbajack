@@ -305,7 +305,10 @@
                     <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />
                 </Grid>
             </local:AttentionBorder>
-            <local:CompilationCompleteView x:Name="CompilationComplete" Grid.Column="2" />
+            <local:CompilationCompleteView
+                x:Name="CompilationComplete"
+                Grid.Column="2"
+                ViewModel="{Binding}" />
         </Grid>
     </Grid>
 </rxui:ReactiveUserControl>

@@ -1,4 +1,4 @@
-﻿<UserControl
+﻿<rxui:ReactiveUserControl
     x:Class="Wabbajack.CompilationCompleteView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,10 +6,12 @@
     xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="http://reactiveui.net"
     d:DesignHeight="450"
     d:DesignWidth="800"
+    x:TypeArguments="local:CompilerVM"
     mc:Ignorable="d">
-    <local:AttentionBorder ClipToBounds="True" Failure="{Binding Completed.Failed}">
+    <local:AttentionBorder x:Name="AttentionBorder" ClipToBounds="True">
         <Grid Margin="5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*" />
@@ -21,6 +23,7 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <TextBlock
+                x:Name="TitleText"
                 Grid.Row="0"
                 Grid.Column="0"
                 Grid.ColumnSpan="3"
@@ -32,16 +35,6 @@
                 <TextBlock.Effect>
                     <DropShadowEffect BlurRadius="25" Opacity="0.5" />
                 </TextBlock.Effect>
-                <TextBlock.Style>
-                    <Style TargetType="TextBlock">
-                        <Setter Property="Text" Value="Compilation Complete" />
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Completed.Failed}" Value="True">
-                                <Setter Property="Text" Value="Compilation Failed" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </TextBlock.Style>
             </TextBlock>
             <Grid
                 Grid.Row="1"
@@ -52,10 +45,10 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Button
+                    x:Name="BackButton"
                     Grid.Row="0"
                     Width="55"
                     Height="55"
-                    Command="{Binding BackCommand}"
                     Style="{StaticResource CircleButtonStyle}">
                     <icon:PackIconMaterial
                         Width="28"
@@ -72,16 +65,15 @@
             <Grid
                 Grid.Row="1"
                 Grid.Column="1"
-                VerticalAlignment="Center"
-                Visibility="{Binding CompilerSupportsAfterCompileNavigation, Converter={StaticResource bool2VisibilityConverter}}">
+                VerticalAlignment="Center">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Button
+                    x:Name="GoToModlistButton"
                     Width="55"
                     Height="55"
-                    Command="{Binding GoToModlistCommand}"
                     Style="{StaticResource CircleButtonStyle}">
                     <icon:PackIconMaterial
                         Width="25"
@@ -127,9 +119,9 @@
                                 </Button.Effect>
                             </Button>-->
                 <Button
+                    x:Name="CloseWhenCompletedButton"
                     Width="55"
                     Height="55"
-                    Command="{Binding CloseWhenCompleteCommand}"
                     Style="{StaticResource CircleButtonStyle}">
                     <icon:PackIconMaterial
                         Width="30"
@@ -145,4 +137,4 @@
             </Grid>
         </Grid>
     </local:AttentionBorder>
-</UserControl>
+</rxui:ReactiveUserControl>
