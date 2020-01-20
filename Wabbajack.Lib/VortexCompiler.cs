@@ -35,8 +35,6 @@ namespace Wabbajack.Lib
         public string StagingFolder { get; set; }
         public string DownloadsFolder { get; set; }
 
-        public bool IgnoreMissingFiles { get; set; }
-
         public override ModManager ModManager => ModManager.Vortex;
         public override string GamePath { get; }
         public override string ModListOutputFolder => "output_folder";
@@ -214,22 +212,9 @@ namespace Wabbajack.Lib
             Info("Running Compilation Stack");
             var results = await AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f));
 
-            IEnumerable<NoMatch> noMatch = results.OfType<NoMatch>().ToList();
-            Info($"No match for {noMatch.Count()} files");
-            foreach (var file in noMatch)
-                Info($"     {file.To} - {file.Reason}");
-            if (noMatch.Any())
-            {
-                if (IgnoreMissingFiles)
-                {
-                    Info("Continuing even though files were missing at the request of the user.");
-                }
-                else
-                {
-                    Info("Exiting due to no way to compile these files");
-                    return false;
-                }
-            }
+            var noMatch = results.OfType<NoMatch>().ToList();
+            PrintNoMatches(noMatch);
+            if (CheckForNoMatchExit(noMatch)) return false;
 
             InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
 

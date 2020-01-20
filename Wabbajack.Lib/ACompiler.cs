@@ -42,6 +42,8 @@ namespace Wabbajack.Lib
 
         public bool ShowReportWhenFinished { get; set; } = true;
 
+        public bool IgnoreMissingFiles { get; set; }
+
         public ICollection<Archive> SelectedArchives = new List<Archive>();
         public List<Directive> InstallDirectives = new List<Directive>();
         public List<RawSourceFile> AllFiles = new List<RawSourceFile>();
@@ -50,7 +52,7 @@ namespace Wabbajack.Lib
         public List<IndexedArchive> IndexedArchives = new List<IndexedArchive>();
         public Dictionary<string, IEnumerable<VirtualFile>> IndexedFiles = new Dictionary<string, IEnumerable<VirtualFile>>();
 
-        public void Info(string msg)
+        public static void Info(string msg)
         {
             Utils.Log(msg);
         }
@@ -60,7 +62,7 @@ namespace Wabbajack.Lib
             Queue.Report(msg, 0);
         }
 
-        public void Error(string msg)
+        public static void Error(string msg)
         {
             Utils.Log(msg);
             throw new Exception(msg);
@@ -260,5 +262,47 @@ namespace Wabbajack.Lib
 
         public abstract IEnumerable<ICompilationStep> GetStack();
         public abstract IEnumerable<ICompilationStep> MakeStack();
+
+        public static void PrintNoMatches(ICollection<NoMatch> noMatches)
+        {
+            const int max = 10;
+            Info($"No match for {noMatches.Count} files");
+            if (noMatches.Count > 0)
+            {
+                int count = 0;
+                foreach (var file in noMatches)
+                {
+                    if (count++ < max)
+                    {
+                        Utils.Log($"     {file.To} - {file.Reason}");
+                    }
+                    else
+                    {
+                        Utils.LogStraightToFile($"     {file.To} - {file.Reason}");
+                    }
+                    if (count == max && noMatches.Count > max)
+                    {
+                        Utils.Log($"     ...");
+                    }
+                }
+            }
+        }
+
+        public bool CheckForNoMatchExit(ICollection<NoMatch> noMatches)
+        {
+            if (noMatches.Count > 0)
+            {
+                if (IgnoreMissingFiles)
+                {
+                    Info("Continuing even though files were missing at the request of the user.");
+                }
+                else
+                {
+                    Info("Exiting due to no way to compile these files");
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
