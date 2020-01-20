@@ -435,7 +435,10 @@
                     <local:ConfirmUpdateOfExistingInstallView Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type lib:ConfirmUpdateOfExistingInstall}}" />
                 </Grid>
             </local:AttentionBorder>
-            <local:InstallationCompleteView Grid.Column="2" Visibility="{Binding Completed, Converter={StaticResource IsNotNullVisibilityConverter}, FallbackValue=Collapsed}" />
+            <local:InstallationCompleteView
+                Grid.Column="2"
+                ViewModel="{Binding}"
+                Visibility="{Binding Completed, Converter={StaticResource IsNotNullVisibilityConverter}, FallbackValue=Collapsed}" />
         </Grid>
     </Grid>
 </UserControl>

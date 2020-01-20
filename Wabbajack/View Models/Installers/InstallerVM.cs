@@ -96,13 +96,13 @@ namespace Wabbajack
         public bool IsActive => _IsActive.Value;
 
         // Command properties
-        public IReactiveCommand ShowReportCommand { get; }
-        public IReactiveCommand OpenReadmeCommand { get; }
-        public IReactiveCommand VisitWebsiteCommand { get; }
+        public ReactiveCommand<Unit, Unit> ShowReportCommand { get; }
+        public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
+        public ReactiveCommand<Unit, Unit> VisitWebsiteCommand { get; }
         public ReactiveCommand<Unit, Unit> BackCommand { get; }
-        public IReactiveCommand CloseWhenCompleteCommand { get; }
-        public IReactiveCommand GoToInstallCommand { get; }
-        public IReactiveCommand BeginCommand { get; }
+        public ReactiveCommand<Unit, Unit> CloseWhenCompleteCommand { get; }
+        public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
+        public ReactiveCommand<Unit, Unit> BeginCommand { get; }
 
         public InstallerVM(MainWindowVM mainWindowVM)
         {
@@ -324,7 +324,11 @@ namespace Wabbajack
                     .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
                     .ObserveOnGuiThread());
             VisitWebsiteCommand = ReactiveCommand.Create(
-                execute: () => Process.Start(ModList.Website),
+                execute: () =>
+                {
+                    Process.Start(ModList.Website);
+                    return Unit.Default;
+                },
                 canExecute: this.WhenAny(x => x.ModList.Website)
                     .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());
