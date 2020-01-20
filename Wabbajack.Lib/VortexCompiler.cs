@@ -331,7 +331,7 @@ namespace Wabbajack.Lib
             var nexusClient = await NexusApiClient.Get();
 
             var archives = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly).Where(f =>
-                File.Exists(f) && Path.GetExtension(f) != Consts.MetaFileExtension && Path.GetExtension(f) != ".xxHash" &&
+                File.Exists(f) && Path.GetExtension(f) != Consts.MetaFileExtension && Path.GetExtension(f) != Consts.HashFileExtension &&
                 !File.Exists($"{f}.meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)));
 
             await archives.PMap(Queue, async f =>
