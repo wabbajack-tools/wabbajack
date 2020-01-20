@@ -29,7 +29,7 @@
         <PackageReference Include="System.Data.HashFunction.xxHash" Version="2.0.0" />
         <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.7.0" />
         <PackageReference Include="System.Security.Principal.Windows" Version="4.7.0" />
-        <PackageReference Include="YamlDotNet" Version="8.0.0" />
+        <PackageReference Include="YamlDotNet" Version="8.1.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />
