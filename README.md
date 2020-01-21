@@ -125,6 +125,17 @@ Look at the [`CONTRIBUTING.md`](https://github.com/halgari/wabbajack/blob/master
 
 I (_halgari_) used to be a developer working on Automaton. Sadly development was moving a bit too slowly for my liking, and I realized that a complete rewrite would allow the implementation of some really nice features (like BSA packing). As such I made the decision to strike out on my own and make an app that worked first, and then make it pretty. The end result is an app with a ton of features, and a less than professional UI. But that's my motto when coding "_make it work, then make it pretty_".
 
+**Can I charge for a Wabbajack Modlist I created?**
+
+No, as specified in the license, Wabbajack modlists must be available for free. Any payment in exchange for access to a Wabbajack
+installer is strictly prohibited. This includes paywalling, "pay for beta access", "pay for current version, previous version is free",
+or any sort of other quid-pro-quo monitization structure. The Wabbajack team reserves the right to implement software that will prohibit the installation of any lists that are paywalled. 
+
+**Can I accept donations for my installer?**
+
+Absolutely! As long as the act of donating does not entitle the donator to access to the installer. The installer must be free, 
+donations must be a "thank you" not a purchase of services or content. 
+
 ## Thanks to
 
 Our testers and Discord members who encourage development and help test the builds.
