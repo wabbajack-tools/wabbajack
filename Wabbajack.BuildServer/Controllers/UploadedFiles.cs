@@ -15,16 +15,22 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Nettle;
 using Wabbajack.BuildServer.Models;
+using Wabbajack.BuildServer.Models.JobQueue;
+using Wabbajack.BuildServer.Models.Jobs;
 using Wabbajack.Common;
+using Wabbajack.Lib;
+using Wabbajack.Lib.Downloaders;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.BuildServer.Controllers
 {
     public class UploadedFiles : AControllerBase<UploadedFiles>
     {
-        public UploadedFiles(ILogger<UploadedFiles> logger, DBContext db) : base(logger, db)
+        private AppSettings _settings;
+
+        public UploadedFiles(ILogger<UploadedFiles> logger, DBContext db, AppSettings settings) : base(logger, db)
         {
-  
+            _settings = settings;
         }
 
         [HttpPut]
@@ -68,6 +74,7 @@ namespace Wabbajack.BuildServer.Controllers
             var final_path = Path.Combine("public", "files", final_name);
             System.IO.File.Move(Path.Combine("public", "files", Key), final_path);
             var hash = await final_path.FileHashAsync();
+            
 
             var record = new UploadedFile
             {
@@ -78,6 +85,23 @@ namespace Wabbajack.BuildServer.Controllers
                 Size = new FileInfo(final_path).Length
             };
             await Db.UploadedFiles.InsertOneAsync(record);
+            await Db.Jobs.InsertOneAsync(new Job
+            {
+                Payload = new IndexJob
+                {
+                    Archive = new Archive
+                    {
+                        Name = record.MungedName,
+                        Size = record.Size,
+                        Hash = record.Hash,
+                        State = new HTTPDownloader.State
+                        {
+                            Url = record.Uri
+                        }
+                    }
+                }
+            });
+            
             return Ok(record.Uri);
         }
 
@@ -91,6 +115,7 @@ namespace Wabbajack.BuildServer.Controllers
                 </table>
             </body></html>
         ");
+
 
         [HttpGet]
         [Route("uploaded_files")]

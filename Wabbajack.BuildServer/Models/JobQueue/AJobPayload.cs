@@ -17,7 +17,8 @@ namespace Wabbajack.BuildServer.Models.JobQueue
             typeof(UpdateModLists),
             typeof(EnqueueAllArchives),
             typeof(EnqueueAllGameFiles),
-            typeof(EnqueueRecentFiles)
+            typeof(EnqueueRecentFiles),
+            typeof(UploadToCDN)
         };
         public static Dictionary<Type, string> TypeToName { get; set; }
         public static Dictionary<string, Type> NameToType { get; set; }
