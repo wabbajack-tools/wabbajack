@@ -81,8 +81,7 @@ namespace Wabbajack.Lib
             // Most of the heavy lifting is done on the scratch disk, so we'll use the value from that disk
             var memory = Utils.GetMemoryStatus();
             // Assume roughly 2GB of ram needed to extract each 7zip archive, and then leave 2GB for the OS. If calculation is lower or equal to 1 GB, use 1GB
-            var memory_guess = (memory.ullTotalPhys - (2 * GB)) / (2 * GB);
-            var based_on_memory = (memory_guess <= (1 * GB)) ? (1 * GB) : memory_guess;
+            var based_on_memory = Math.Max((memory.ullTotalPhys - (2 * GB)) / (2 * GB), 1);
             var scratch_size = await RecommendQueueSize(Directory.GetCurrentDirectory());
             var result = Math.Min((int)based_on_memory, (int)scratch_size);
             Utils.Log($"Recommending a queue size of {result} based on disk performance, number of cores, and {((long)memory.ullTotalPhys).ToFileSizeString()} of system RAM");
