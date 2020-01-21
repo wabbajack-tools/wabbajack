@@ -188,7 +188,7 @@
       <Version>12.0.3</Version>
     </PackageReference>
     <PackageReference Include="ReactiveUI">
-      <Version>11.1.11</Version>
+      <Version>11.1.12</Version>
     </PackageReference>
     <PackageReference Include="System.Reactive">
       <Version>4.3.2</Version>
