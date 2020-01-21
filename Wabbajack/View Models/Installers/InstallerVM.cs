@@ -96,9 +96,9 @@ namespace Wabbajack
         public bool IsActive => _IsActive.Value;
 
         // Command properties
-        public ReactiveCommand<Unit, Unit> ShowReportCommand { get; }
+        public ReactiveCommand<Unit, Unit> ShowManifestCommand { get; }
         public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
-        public ReactiveCommand<Unit, Unit> VisitWebsiteCommand { get; }
+        public ReactiveCommand<Unit, Unit> VisitModListWebsiteCommand { get; }
         public ReactiveCommand<Unit, Unit> BackCommand { get; }
         public ReactiveCommand<Unit, Unit> CloseWhenCompleteCommand { get; }
         public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
@@ -317,13 +317,13 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(ModListName));
 
             // Define commands
-            ShowReportCommand = ReactiveCommand.Create(ShowReport);
+            ShowManifestCommand = ReactiveCommand.Create(ShowReport);
             OpenReadmeCommand = ReactiveCommand.Create(
                 execute: () => this.ModList?.OpenReadmeWindow(),
                 canExecute: this.WhenAny(x => x.ModList)
                     .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
                     .ObserveOnGuiThread());
-            VisitWebsiteCommand = ReactiveCommand.Create(
+            VisitModListWebsiteCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
                     Process.Start(ModList.Website);

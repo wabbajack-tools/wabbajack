@@ -26,7 +26,7 @@
                 <local:CompilerView ViewModel="{Binding}" />
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:InstallerVM}">
-                <local:InstallationView />
+                <local:InstallationView ViewModel="{Binding}" />
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
                 <local:ModeSelectionView />
