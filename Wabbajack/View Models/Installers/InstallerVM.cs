@@ -96,13 +96,13 @@ namespace Wabbajack
         public bool IsActive => _IsActive.Value;
 
         // Command properties
-        public IReactiveCommand ShowReportCommand { get; }
-        public IReactiveCommand OpenReadmeCommand { get; }
-        public IReactiveCommand VisitWebsiteCommand { get; }
+        public ReactiveCommand<Unit, Unit> ShowManifestCommand { get; }
+        public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
+        public ReactiveCommand<Unit, Unit> VisitModListWebsiteCommand { get; }
         public ReactiveCommand<Unit, Unit> BackCommand { get; }
-        public IReactiveCommand CloseWhenCompleteCommand { get; }
-        public IReactiveCommand GoToInstallCommand { get; }
-        public IReactiveCommand BeginCommand { get; }
+        public ReactiveCommand<Unit, Unit> CloseWhenCompleteCommand { get; }
+        public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
+        public ReactiveCommand<Unit, Unit> BeginCommand { get; }
 
         public InstallerVM(MainWindowVM mainWindowVM)
         {
@@ -317,14 +317,18 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(ModListName));
 
             // Define commands
-            ShowReportCommand = ReactiveCommand.Create(ShowReport);
+            ShowManifestCommand = ReactiveCommand.Create(ShowReport);
             OpenReadmeCommand = ReactiveCommand.Create(
                 execute: () => this.ModList?.OpenReadmeWindow(),
                 canExecute: this.WhenAny(x => x.ModList)
                     .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
                     .ObserveOnGuiThread());
-            VisitWebsiteCommand = ReactiveCommand.Create(
-                execute: () => Process.Start(ModList.Website),
+            VisitModListWebsiteCommand = ReactiveCommand.Create(
+                execute: () =>
+                {
+                    Process.Start(ModList.Website);
+                    return Unit.Default;
+                },
                 canExecute: this.WhenAny(x => x.ModList.Website)
                     .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());
@@ -393,11 +397,19 @@ namespace Wabbajack
 
             // Listen for user interventions, and compile a dynamic list of all unhandled ones
             var activeInterventions = this.WhenAny(x => x.Installer.ActiveInstallation)
-                .SelectMany(c => c?.LogMessages ?? Observable.Empty<IStatusMessage>())
-                .WhereCastable<IStatusMessage, IUserIntervention>()
-                .ToObservableChangeSet()
-                .AutoRefresh(i => i.Handled)
-                .Filter(i => !i.Handled)
+                .WithLatestFrom(
+                    this.WhenAny(x => x.Installer),
+                    (activeInstall, installer) =>
+                    {
+                        if (activeInstall == null) return Observable.Empty<IChangeSet<IUserIntervention>>();
+                        return activeInstall.LogMessages
+                            .WhereCastable<IStatusMessage, IUserIntervention>()
+                            .ToObservableChangeSet()
+                            .AutoRefresh(i => i.Handled)
+                            .Filter(i => !i.Handled)
+                            .Transform(x => installer.InterventionConverter(x));
+                    })
+                .Switch()
                 .AsObservableList();
 
             // Find the top intervention /w no CPU ID to be marked as "global"

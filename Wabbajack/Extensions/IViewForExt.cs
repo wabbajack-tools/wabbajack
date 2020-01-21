@@ -54,6 +54,26 @@ namespace Wabbajack
                 viewProperty: viewProperty);
         }
 
+        public static IReactiveBinding<TView, TViewModel, (object view, bool isViewModel)> BindStrict<TViewModel, TView, TVMProp, TVProp, TDontCare>(
+            this TView view,
+            TViewModel viewModel,
+            Expression<Func<TViewModel, TVMProp>> vmProperty,
+            Expression<Func<TView, TVProp>> viewProperty,
+            IObservable<TDontCare> signalViewUpdate,
+            Func<TVMProp, TVProp> vmToViewConverter,
+            Func<TVProp, TVMProp> viewToVmConverter)
+            where TViewModel : class
+            where TView : class, IViewFor
+        {
+            return view.Bind(
+                viewModel: viewModel,
+                vmProperty: vmProperty,
+                viewProperty: viewProperty,
+                signalViewUpdate: signalViewUpdate,
+                vmToViewConverter: vmToViewConverter,
+                viewToVmConverter: viewToVmConverter);
+        }
+
         public static IReactiveBinding<TView, TViewModel, (object view, bool isViewModel)> BindStrict<TViewModel, TView, TVMProp, TVProp>(
             this TView view,
             TViewModel viewModel,
@@ -78,7 +98,9 @@ namespace Wabbajack
             Expression<Func<TTarget, TValue>> property)
             where TTarget : class
         {
-            return @this.BindTo<TValue, TTarget, TValue>(target, property);
+            return @this
+                .ObserveOnGuiThread()
+                .BindTo<TValue, TTarget, TValue>(target, property);
         }
 
         /// <summary>

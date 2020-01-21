@@ -87,5 +87,7 @@ namespace Wabbajack
                 });
             }
         }
+
+        public IUserIntervention InterventionConverter(IUserIntervention intervention) => intervention;
     }
 }

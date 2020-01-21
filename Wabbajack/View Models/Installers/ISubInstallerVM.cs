@@ -19,5 +19,6 @@ namespace Wabbajack
         int ConfigVisualVerticalOffset { get; }
         IObservable<bool> CanInstall { get; }
         Task<bool> Install();
+        IUserIntervention InterventionConverter(IUserIntervention intervention);
     }
 }

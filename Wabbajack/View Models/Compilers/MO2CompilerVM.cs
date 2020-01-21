@@ -189,6 +189,7 @@ namespace Wabbajack
                     ModListWebsite = ModlistSettings.Website,
                     ModListReadme = ModlistSettings.ReadmeIsWebsite ? ModlistSettings.ReadmeWebsite : ModlistSettings.ReadmeFilePath.TargetPath,
                     ReadmeIsWebsite = ModlistSettings.ReadmeIsWebsite,
+                    MO2DownloadsFolder = DownloadLocation.TargetPath,
                 })
                 {
                     Parent.MWVM.Settings.Performance.AttachToBatchProcessor(ActiveCompilation);

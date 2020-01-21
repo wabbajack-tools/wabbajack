@@ -40,7 +40,7 @@ namespace Wabbajack
             set => SetValue(SettingsHookProperty, value);
         }
         public static readonly DependencyProperty SettingsHookProperty = DependencyProperty.Register(nameof(SettingsHook), typeof(MainSettings), typeof(CpuView),
-             new FrameworkPropertyMetadata(default(SettingsVM)));
+             new FrameworkPropertyMetadata(default(SettingsVM), WireNotifyPropertyChanged));
 
         private bool _ShowingSettings;
         public bool ShowingSettings { get => _ShowingSettings; set => this.RaiseAndSetIfChanged(ref _ShowingSettings, value); }
