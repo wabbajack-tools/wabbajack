@@ -169,5 +169,16 @@ namespace Wabbajack
                 });
             }
         }
+
+        public IUserIntervention InterventionConverter(IUserIntervention intervention)
+        {
+            switch (intervention)
+            {
+                case ConfirmUpdateOfExistingInstall confirm:
+                    return new ConfirmUpdateOfExistingInstallVM(this, confirm);
+                default:
+                    return intervention;
+            }
+        }
     }
 }

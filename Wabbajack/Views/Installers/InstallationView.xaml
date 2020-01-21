@@ -401,11 +401,18 @@
                 x:Name="CpuView"
                 Grid.Column="2"
                 ViewModel="{Binding}" />
-            <local:AttentionBorder x:Name="UserInterventionsControl" Grid.Column="2">
-                <Grid>
-                    <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />
-                    <local:ConfirmUpdateOfExistingInstallView Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type lib:ConfirmUpdateOfExistingInstall}}" />
-                </Grid>
+            <local:AttentionBorder
+                x:Name="UserInterventionsControl"
+                Grid.Column="2"
+                Content="{Binding ActiveGlobalUserIntervention}">
+                <local:AttentionBorder.Resources>
+                    <DataTemplate DataType="{x:Type common:ConfirmationIntervention}">
+                        <local:ConfirmationInterventionView ViewModel="{Binding}" />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type local:ConfirmUpdateOfExistingInstallVM}">
+                        <local:ConfirmUpdateOfExistingInstallView ViewModel="{Binding}" />
+                    </DataTemplate>
+                </local:AttentionBorder.Resources>
             </local:AttentionBorder>
             <local:InstallationCompleteView
                 x:Name="InstallComplete"

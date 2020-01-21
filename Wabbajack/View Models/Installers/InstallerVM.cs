@@ -397,11 +397,19 @@ namespace Wabbajack
 
             // Listen for user interventions, and compile a dynamic list of all unhandled ones
             var activeInterventions = this.WhenAny(x => x.Installer.ActiveInstallation)
-                .SelectMany(c => c?.LogMessages ?? Observable.Empty<IStatusMessage>())
-                .WhereCastable<IStatusMessage, IUserIntervention>()
-                .ToObservableChangeSet()
-                .AutoRefresh(i => i.Handled)
-                .Filter(i => !i.Handled)
+                .WithLatestFrom(
+                    this.WhenAny(x => x.Installer),
+                    (activeInstall, installer) =>
+                    {
+                        if (activeInstall == null) return Observable.Empty<IChangeSet<IUserIntervention>>();
+                        return activeInstall.LogMessages
+                            .WhereCastable<IStatusMessage, IUserIntervention>()
+                            .ToObservableChangeSet()
+                            .AutoRefresh(i => i.Handled)
+                            .Filter(i => !i.Handled)
+                            .Transform(x => installer.InterventionConverter(x));
+                    })
+                .Switch()
                 .AsObservableList();
 
             // Find the top intervention /w no CPU ID to be marked as "global"
