@@ -14,7 +14,6 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             var result = source.EvolveTo<NoMatch>();
             result.Reason = "No Match in Stack";
-            Utils.Log($"No match for: {source.Path}");
             return result;
         }
 

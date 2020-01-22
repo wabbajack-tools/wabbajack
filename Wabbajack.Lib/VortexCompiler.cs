@@ -35,8 +35,6 @@ namespace Wabbajack.Lib
         public string StagingFolder { get; set; }
         public string DownloadsFolder { get; set; }
 
-        public bool IgnoreMissingFiles { get; set; }
-
         public override ModManager ModManager => ModManager.Vortex;
         public override string GamePath { get; }
         public override string ModListOutputFolder => "output_folder";
@@ -63,7 +61,7 @@ namespace Wabbajack.Lib
             if (string.IsNullOrEmpty(ModListName))
             {
                 ModListName = $"Vortex ModList for {Game.ToString()}";
-                ModListOutputFile = $"{ModListName}{ExtensionManager.Extension}";
+                ModListOutputFile = $"{ModListName}{Consts.ModListExtension}";
             }
 
             GameName = Game.MetaData().NexusName;
@@ -129,13 +127,13 @@ namespace Wabbajack.Lib
 
             Info("Indexing Archives");
             IndexedArchives = Directory.EnumerateFiles(DownloadsFolder)
-                .Where(f => File.Exists(f + ".meta"))
+                .Where(f => File.Exists(f + Consts.MetaFileExtension))
                 .Select(f => new IndexedArchive
                 {
                     File = VFS.Index.ByRootPath[f],
                     Name = Path.GetFileName(f),
-                    IniData = (f + ".meta").LoadIniFile(),
-                    Meta = File.ReadAllText(f + ".meta")
+                    IniData = (f + Consts.MetaFileExtension).LoadIniFile(),
+                    Meta = File.ReadAllText(f + Consts.MetaFileExtension)
                 })
                 .ToList();
 
@@ -214,22 +212,9 @@ namespace Wabbajack.Lib
             Info("Running Compilation Stack");
             var results = await AllFiles.PMap(Queue, f => RunStack(stack.Where(s => s != null), f));
 
-            IEnumerable<NoMatch> noMatch = results.OfType<NoMatch>().ToList();
-            Info($"No match for {noMatch.Count()} files");
-            foreach (var file in noMatch)
-                Info($"     {file.To} - {file.Reason}");
-            if (noMatch.Any())
-            {
-                if (IgnoreMissingFiles)
-                {
-                    Info("Continuing even though files were missing at the request of the user.");
-                }
-                else
-                {
-                    Info("Exiting due to no way to compile these files");
-                    return false;
-                }
-            }
+            var noMatch = results.OfType<NoMatch>().ToList();
+            PrintNoMatches(noMatch);
+            if (CheckForNoMatchExit(noMatch)) return false;
 
             InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
 
@@ -346,7 +331,7 @@ namespace Wabbajack.Lib
             var nexusClient = await NexusApiClient.Get();
 
             var archives = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly).Where(f =>
-                File.Exists(f) && Path.GetExtension(f) != ".meta" && Path.GetExtension(f) != ".xxHash" &&
+                File.Exists(f) && Path.GetExtension(f) != Consts.MetaFileExtension && Path.GetExtension(f) != Consts.HashFileExtension &&
                 !File.Exists($"{f}.meta") && ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)));
 
             await archives.PMap(Queue, async f =>
@@ -374,7 +359,7 @@ namespace Wabbajack.Lib
                                   $"fileID={md5Response[0].file_details.file_id}\n" +
                                   $"version={md5Response[0].file_details.version}\n" +
                                   $"hash={hash}\n";
-                    File.WriteAllText(f + ".meta", metaString, Encoding.UTF8);
+                    File.WriteAllText(f + Consts.MetaFileExtension, metaString, Encoding.UTF8);
                 }
                 else
                 {
@@ -383,7 +368,7 @@ namespace Wabbajack.Lib
             });
 
             var otherFiles = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly).Where(f =>
-                Path.GetExtension(f) == ".meta" && !ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)));
+                Path.GetExtension(f) == Consts.MetaFileExtension && !ActiveArchives.Contains(Path.GetFileNameWithoutExtension(f)));
 
             await otherFiles.PMap(Queue, async f =>
             {

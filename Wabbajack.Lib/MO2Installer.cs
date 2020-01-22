@@ -361,7 +361,7 @@ namespace Wabbajack.Lib
             foreach (var file in Directory.EnumerateFiles(path))
             {
                 if (!File.Exists(file)) continue;
-                if (System.IO.Path.GetExtension(file).Equals(ExtensionManager.Extension))
+                if (System.IO.Path.GetExtension(file).Equals(Consts.ModListExtension))
                 {
                     return ErrorResponse.Fail($"Cannot install into a folder with a Wabbajack ModList inside of it");
                 }

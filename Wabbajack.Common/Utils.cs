@@ -85,7 +85,7 @@ namespace Wabbajack.Common
 
         public static T Log<T>(T msg) where T : IStatusMessage
         {
-            LogToFile(msg.ExtendedDescription);
+            LogStraightToFile(msg.ExtendedDescription);
             LoggerSubj.OnNext(msg);
             return msg;
         }
@@ -108,7 +108,7 @@ namespace Wabbajack.Common
 
         public static void Error(IException err)
         {
-            LogToFile($"{err.ShortDescription}\n{err.Exception.StackTrace}");
+            LogStraightToFile($"{err.ShortDescription}\n{err.Exception.StackTrace}");
             LoggerSubj.OnNext(err);
         }
 
@@ -118,7 +118,7 @@ namespace Wabbajack.Common
             throw err.Exception;
         }
 
-        private static void LogToFile(string msg)
+        public static void LogStraightToFile(string msg)
         {
             lock (_lock)
             {
