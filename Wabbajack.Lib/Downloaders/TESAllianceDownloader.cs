@@ -6,7 +6,7 @@ namespace Wabbajack.Lib.Downloaders
     {
         #region INeedsDownload
         public override string SiteName => "TESAlliance";
-        public override Uri SiteURL => new Uri("http://tesalliance.org");
+        public override Uri SiteURL => new Uri("http://tesalliance.org/forums/index.php?");
         public override Uri IconUri => new Uri("http://tesalliance.org/favicon.ico");
         #endregion
 
