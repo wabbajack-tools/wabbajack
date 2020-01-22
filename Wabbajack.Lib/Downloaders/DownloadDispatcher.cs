@@ -21,6 +21,7 @@ namespace Wabbajack.Lib.Downloaders
             new VectorPlexusDownloader(),
             new DeadlyStreamDownloader(),
             new AFKModsDownloader(),
+            new TESAllianceDownloader(),
             new HTTPDownloader(),
             new ManualDownloader(),
         };

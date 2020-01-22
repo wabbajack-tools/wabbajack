@@ -29,8 +29,7 @@ namespace Wabbajack.Lib
                     typeof(BA2FileEntryState), typeof(MediaFireDownloader.State), typeof(ArchiveMeta),
                     typeof(PropertyFile), typeof(SteamMeta), typeof(SteamWorkshopDownloader), typeof(SteamWorkshopDownloader.State),
                     typeof(LoversLabDownloader.State), typeof(GameFileSourceDownloader.State), typeof(VectorPlexusDownloader.State),
-                    typeof(DeadlyStreamDownloader.State), typeof(AFKModsDownloader.State)
-
+                    typeof(DeadlyStreamDownloader.State), typeof(AFKModsDownloader.State), typeof(TESAllianceDownloader.State)
                 },
             };
             Config.VersionTolerance.Mode = VersionToleranceMode.Standard;
