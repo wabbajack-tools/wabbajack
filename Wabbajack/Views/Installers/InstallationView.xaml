@@ -1,4 +1,4 @@
-<UserControl
+<rxui:ReactiveUserControl
     x:Class="Wabbajack.InstallationView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -9,9 +9,11 @@
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="http://reactiveui.net"
     d:DataContext="{d:DesignInstance local:InstallerVM}"
     d:DesignHeight="500"
     d:DesignWidth="800"
+    x:TypeArguments="local:InstallerVM"
     mc:Ignorable="d">
     <UserControl.Resources>
         <Style
@@ -41,21 +43,17 @@
             </Rectangle.Fill>
         </Rectangle>
         <local:HeatedBackgroundView
+            x:Name="HeatedBackground"
             Grid.Row="0"
-            Grid.RowSpan="3"
-            PercentCompleted="{Binding PercentCompleted}" />
+            Grid.RowSpan="3" />
         <Grid
             x:Name="Slideshow"
             Grid.Row="1"
             Margin="5,0,5,5">
             <Border BorderBrush="{StaticResource BorderInterestBrush}" BorderThickness="1,0,1,1">
                 <Grid>
-                    <local:DetailImageView
-                        Title="{Binding TitleText, Mode=OneWay}"
-                        Author="{Binding AuthorText, Mode=OneWay}"
-                        Description="{Binding Description, Mode=OneWay}"
-                        Image="{Binding Image, Mode=OneWay}" />
-                    <mahapps:ProgressRing Visibility="{Binding LoadingModlist, Mode=OneWay, Converter={StaticResource bool2VisibilityHiddenConverter}}" />
+                    <local:DetailImageView x:Name="DetailImage" />
+                    <mahapps:ProgressRing x:Name="ModlistLoadingRing" />
                 </Grid>
             </Border>
             <Grid
@@ -108,12 +106,12 @@
                     </Style>
                 </Grid.Style>
                 <Button
+                    x:Name="SkipSlideButton"
                     Grid.Column="3"
                     Width="60"
                     Height="60"
                     Margin="6"
                     Background="{StaticResource BackgroundBrush}"
-                    Command="{Binding Slideshow.SlideShowNextItemCommand}"
                     Style="{StaticResource CircleButtonStyle}"
                     ToolTip="Skip to the next mod">
                     <icon:PackIconFontAwesome
@@ -126,17 +124,7 @@
                     Grid.Column="2"
                     Margin="6"
                     Background="{StaticResource BackgroundBrush}"
-                    IsChecked="{Binding Slideshow.Enable}">
-                    <ToggleButton.Style>
-                        <Style BasedOn="{StaticResource SlideshowButton}" TargetType="ToggleButton">
-                            <Setter Property="ToolTip" Value="Play slideshow" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Slideshow.Enable}" Value="True">
-                                    <Setter Property="ToolTip" Value="Pause slideshow" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ToggleButton.Style>
+                    Style="{StaticResource SlideshowButton}">
                     <icon:PackIconMaterial>
                         <icon:PackIconMaterial.Style>
                             <Style TargetType="icon:PackIconMaterial">
@@ -151,32 +139,22 @@
                     </icon:PackIconMaterial>
                 </ToggleButton>
                 <Button
+                    x:Name="OpenWebsite"
                     Grid.Column="1"
                     Margin="6"
                     Background="{StaticResource BackgroundBrush}"
-                    Command="{Binding Slideshow.VisitNexusSiteCommand}"
                     Style="{StaticResource SlideshowButton}"
-                    ToolTip="Open Nexus Website">
+                    ToolTip="Open mod's website">
                     <icon:PackIconMaterial
                         Width="28"
                         Height="28"
                         Kind="Web" />
                 </Button>
                 <ToggleButton
+                    x:Name="ShowNSFWButton"
                     Grid.Column="0"
                     Background="{StaticResource BackgroundBrush}"
-                    IsChecked="{Binding Slideshow.ShowNSFW}"
-                    ToolTip="Show NSFW mods">
-                    <ToggleButton.Style>
-                        <Style BasedOn="{StaticResource SlideshowButton}" TargetType="ToggleButton">
-                            <Setter Property="ToolTip" Value="Show NSFW mods" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Slideshow.ShowNSFW}" Value="True">
-                                    <Setter Property="ToolTip" Value="Hide NSFW mods" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ToggleButton.Style>
+                    Style="{StaticResource SlideshowButton}">
                     <Grid>
                         <TextBlock
                             Margin="4"
@@ -187,24 +165,22 @@
                             FontWeight="Bold"
                             Text="NSFW" />
                         <icon:PackIconOcticons
+                            x:Name="NSFWSlashIcon"
                             Width="40"
                             Height="40"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Center"
                             Foreground="#88FFFFFF"
-                            Kind="CircleSlash"
-                            Visibility="{Binding Slideshow.ShowNSFW, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}" />
+                            Kind="CircleSlash" />
                     </Grid>
                 </ToggleButton>
             </Grid>
         </Grid>
         <!--  Comes after slideshow control, so that any effects/overlap goes on top  -->
         <local:TopProgressView
-            Title="{Binding ModListName}"
+            x:Name="TopProgressBar"
             Grid.Row="0"
-            Grid.RowSpan="2"
-            ProgressPercent="{Binding PercentCompleted}"
-            StatePrefixTitle="{Binding ProgressTitle}">
+            Grid.RowSpan="2">
             <!--  Readd when Pause/Stop implementations added  -->
             <!--<Button Grid.Column="2"
                     ToolTip="Pause Installation"
@@ -234,17 +210,16 @@
             Margin="7,5,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Command="{Binding BackCommand}"
             Style="{StaticResource IconCircleButtonStyle}"
             ToolTip="Back to main menu">
             <icon:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
         </Button>
         <!--  Bottom Area  -->
         <Grid
+            x:Name="BottomButtonInputGrid"
             Grid.Row="2"
             Margin="5,0,5,5"
-            ClipToBounds="True"
-            Visibility="{Binding StartedInstallation, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
+            ClipToBounds="True">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="4" />
@@ -257,9 +232,9 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <Button
+                    x:Name="OpenReadmePreInstallButton"
                     Grid.Row="0"
                     Margin="30,5"
-                    Command="{Binding OpenReadmeCommand}"
                     FontSize="20"
                     Style="{StaticResource LargeButtonStyle}"
                     ToolTip="Open the readme for the modlist">
@@ -282,9 +257,9 @@
                     </Grid>
                 </Button>
                 <Button
+                    x:Name="VisitWebsitePreInstallButton"
                     Grid.Row="1"
                     Margin="30,5"
-                    Command="{Binding VisitWebsiteCommand}"
                     FontSize="20"
                     Style="{StaticResource LargeButtonStyle}"
                     ToolTip="Open the webpage for the modlist">
@@ -307,9 +282,9 @@
                     </Grid>
                 </Button>
                 <Button
+                    x:Name="ShowManifestPreInstallButton"
                     Grid.Row="2"
                     Margin="30,5"
-                    Command="{Binding ShowReportCommand}"
                     FontSize="20"
                     Style="{StaticResource LargeButtonStyle}"
                     ToolTip="Open an explicit listing of all actions this modlist will take">
@@ -345,8 +320,7 @@
                     Grid.Column="0"
                     Margin="5"
                     VerticalAlignment="Center"
-                    Background="Transparent"
-                    Visibility="{Binding StartedInstallation, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
+                    Background="Transparent">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
@@ -358,7 +332,7 @@
                         <ColumnDefinition Width="20" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Rectangle Grid.Row="0" Height="{Binding Installer.ConfigVisualVerticalOffset, Mode=OneWay}" />
+                    <Rectangle x:Name="InstallConfigSpacer" Grid.Row="0" />
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="0"
@@ -368,18 +342,18 @@
                         Text="Target Modlist"
                         TextAlignment="Center" />
                     <local:FilePicker
+                        x:Name="ModListLocationPicker"
                         Grid.Row="1"
                         Grid.Column="2"
                         Height="30"
                         VerticalAlignment="Center"
-                        FontSize="14"
-                        PickerVM="{Binding ModListLocation}" />
+                        FontSize="14" />
                     <ContentPresenter
+                        x:Name="InstallerCustomizationContent"
                         Grid.Row="3"
                         Grid.Column="0"
                         Grid.ColumnSpan="3"
-                        VerticalAlignment="Top"
-                        Content="{Binding Installer}">
+                        VerticalAlignment="Top">
                         <ContentPresenter.Resources>
                             <DataTemplate DataType="{x:Type local:MO2InstallerVM}">
                                 <local:MO2InstallerConfigView />
@@ -406,38 +380,44 @@
                     </ContentPresenter>
                 </Grid>
                 <local:BeginButton
+                    x:Name="BeginButton"
                     Grid.Column="2"
                     Margin="0,0,25,0"
                     HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Command="{Binding BeginCommand, Mode=OneWay}" />
+                    VerticalAlignment="Center" />
             </Grid>
         </Grid>
         <Grid
+            x:Name="MidInstallDisplayGrid"
             Grid.Row="2"
-            Margin="5,0,5,5"
-            Visibility="{Binding StartedInstallation, Converter={StaticResource bool2VisibilityConverter}, FallbackValue=Hidden}">
+            Margin="5,0,5,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="4*" />
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
-            <local:LogView Grid.Column="0" ProgressPercent="{Binding PercentCompleted, Mode=OneWay}" />
+            <local:LogView x:Name="LogView" Grid.Column="0" />
             <local:CpuView
+                x:Name="CpuView"
                 Grid.Column="2"
-                ProgressPercent="{Binding PercentCompleted, Mode=OneWay}"
-                SettingsHook="{Binding MWVM.Settings}"
-                ViewModel="{Binding}"
-                Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}, ConverterParameter=False}" />
-            <local:AttentionBorder Grid.Column="2" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsNotNullVisibilityConverter}}">
-                <local:AttentionBorder.DisplayContent>
-                    <Grid>
-                        <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />
-                        <local:ConfirmUpdateOfExistingInstallView Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type lib:ConfirmUpdateOfExistingInstall}}" />
-                    </Grid>
-                </local:AttentionBorder.DisplayContent>
+                ViewModel="{Binding}" />
+            <local:AttentionBorder
+                x:Name="UserInterventionsControl"
+                Grid.Column="2"
+                Content="{Binding ActiveGlobalUserIntervention}">
+                <local:AttentionBorder.Resources>
+                    <DataTemplate DataType="{x:Type common:ConfirmationIntervention}">
+                        <local:ConfirmationInterventionView ViewModel="{Binding}" />
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type local:ConfirmUpdateOfExistingInstallVM}">
+                        <local:ConfirmUpdateOfExistingInstallView ViewModel="{Binding}" />
+                    </DataTemplate>
+                </local:AttentionBorder.Resources>
             </local:AttentionBorder>
-            <local:InstallationCompleteView Grid.Column="2" Visibility="{Binding Completed, Converter={StaticResource IsNotNullVisibilityConverter}, FallbackValue=Collapsed}" />
+            <local:InstallationCompleteView
+                x:Name="InstallComplete"
+                Grid.Column="2"
+                ViewModel="{Binding}" />
         </Grid>
     </Grid>
-</UserControl>
+</rxui:ReactiveUserControl>

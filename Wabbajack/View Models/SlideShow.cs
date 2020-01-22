@@ -32,8 +32,8 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ModVM> _targetMod;
         public ModVM TargetMod => _targetMod.Value;
 
-        public IReactiveCommand SlideShowNextItemCommand { get; } = ReactiveCommand.Create(() => { });
-        public IReactiveCommand VisitNexusSiteCommand { get; }
+        public ReactiveCommand<Unit, Unit> SlideShowNextItemCommand { get; } = ReactiveCommand.Create(() => { });
+        public ReactiveCommand<Unit, Unit> VisitNexusSiteCommand { get; }
 
         public const int PreloadAmount = 4;
 
@@ -119,7 +119,11 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(Image));
 
             VisitNexusSiteCommand = ReactiveCommand.Create(
-                execute: () => Process.Start(TargetMod.ModURL),
+                execute: () =>
+                {
+                    Process.Start(TargetMod.ModURL);
+                    return Unit.Default;
+                },
                 canExecute: this.WhenAny(x => x.TargetMod.ModURL)
                     .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());

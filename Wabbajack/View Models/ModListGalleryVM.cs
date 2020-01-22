@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
 
@@ -23,6 +25,9 @@ namespace Wabbajack
 
         private int missingHashFallbackCounter;
 
+        [Reactive]
+        public IErrorResponse Error { get; set; }
+
         public ModListGalleryVM(MainWindowVM mainWindowVM)
             : base(mainWindowVM)
         {
@@ -32,8 +37,18 @@ namespace Wabbajack
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .SelectTask(async _ =>
                 {
-                    return (await ModlistMetadata.LoadFromGithub())
-                        .AsObservableChangeSet(x => x.DownloadMetadata?.Hash ?? $"Fallback{missingHashFallbackCounter++}");
+                    try
+                    {
+                        Error = null;
+                        var list = await ModlistMetadata.LoadFromGithub();
+                        return list.AsObservableChangeSet(x => x.DownloadMetadata?.Hash ?? $"Fallback{missingHashFallbackCounter++}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.Error(ex);
+                        Error = ErrorResponse.Fail(ex);
+                        return Observable.Empty<IChangeSet<ModlistMetadata, string>>();
+                    }
                 })
                 // Unsubscribe and release when not active
                 .FlowSwitch(

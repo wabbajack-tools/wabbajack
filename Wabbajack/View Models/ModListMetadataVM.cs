@@ -166,7 +166,9 @@ namespace Wabbajack
                     }
                 });
 
-                await Metrics.Send(Metrics.Downloading, Metadata.Title);
+
+                Task.Run(() => Metrics.Send(Metrics.Downloading, Metadata.Title))
+                    .FireAndForget(ex => Utils.Error(ex, "Error sending download metric"));
 
                 return await tcs.Task;
             }

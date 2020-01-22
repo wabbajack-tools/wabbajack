@@ -1,5 +1,9 @@
 ### Changelog
 
+=======
+* Fix for website readme compilation
+* Fix for compiler downloads folder specification (was always standard path)
+
 #### Version - 1.0 beta 16 - 1/19/2020
 * Progress ring displays when downloading modlist images
 * GUI releases memory of download modlists better when navigating around

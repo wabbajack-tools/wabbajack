@@ -1,4 +1,4 @@
-﻿<UserControl
+﻿<rxui:ReactiveUserControl
     x:Class="Wabbajack.InstallationCompleteView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -6,150 +6,141 @@
     xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:Wabbajack"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:rxui="http://reactiveui.net"
     d:DesignHeight="450"
     d:DesignWidth="800"
+    x:TypeArguments="local:InstallerVM"
     mc:Ignorable="d">
-    <local:AttentionBorder ClipToBounds="True" Failure="{Binding Completed.Failed}">
-        <local:AttentionBorder.DisplayContent>
-            <Grid Margin="5">
+    <local:AttentionBorder x:Name="AttentionBorder" ClipToBounds="True">
+        <Grid Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="3*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                x:Name="TitleText"
+                Grid.Row="0"
+                Grid.Column="0"
+                Grid.ColumnSpan="4"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                FontFamily="Lucida Sans"
+                FontSize="22"
+                FontWeight="Black">
+                <TextBlock.Effect>
+                    <DropShadowEffect BlurRadius="25" Opacity="0.5" />
+                </TextBlock.Effect>
+            </TextBlock>
+            <Grid
+                Grid.Row="1"
+                Grid.Column="0"
+                VerticalAlignment="Center">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="3*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
+                <Button
+                    x:Name="BackButton"
                     Grid.Row="0"
-                    Grid.Column="0"
-                    Grid.ColumnSpan="4"
+                    Width="50"
+                    Height="50"
+                    Style="{StaticResource CircleButtonStyle}">
+                    <icon:PackIconMaterial
+                        Width="25"
+                        Height="25"
+                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                        Kind="ArrowLeft" />
+                </Button>
+                <TextBlock
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Bottom"
-                    FontFamily="Lucida Sans"
-                    FontSize="22"
-                    FontWeight="Black">
-                    <TextBlock.Effect>
-                        <DropShadowEffect BlurRadius="25" Opacity="0.5" />
-                    </TextBlock.Effect>
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Text" Value="Installation Complete" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Completed.Failed}" Value="True">
-                                    <Setter Property="Text" Value="Installation Failed" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-                <Grid
-                    Grid.Row="1"
-                    Grid.Column="0"
-                    VerticalAlignment="Center">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Button
-                        Grid.Row="0"
-                        Width="50"
-                        Height="50"
-                        Command="{Binding BackCommand}"
-                        Style="{StaticResource CircleButtonStyle}">
-                        <icon:PackIconMaterial
-                            Width="25"
-                            Height="25"
-                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                            Kind="ArrowLeft" />
-                    </Button>
-                    <TextBlock
-                        Grid.Row="1"
-                        Margin="0,10,0,0"
-                        HorizontalAlignment="Center"
-                        Text="Main Menu" />
-                </Grid>
-                <Grid
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    VerticalAlignment="Center"
-                    Visibility="{Binding InstallerSupportsAfterInstallNavigation, Converter={StaticResource bool2VisibilityConverter}}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Button
-                        Width="50"
-                        Height="50"
-                        Command="{Binding GoToInstallCommand}"
-                        Style="{StaticResource CircleButtonStyle}">
-                        <icon:PackIconMaterial
-                            Width="23"
-                            Height="23"
-                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                            Kind="FolderMove" />
-                    </Button>
-                    <TextBlock
-                        Grid.Row="1"
-                        Margin="0,10,0,0"
-                        HorizontalAlignment="Center"
-                        Text="Install Folder" />
-                </Grid>
-                <Grid
-                    Grid.Row="1"
-                    Grid.Column="2"
-                    VerticalAlignment="Center"
-                    Background="Transparent">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Button
-                        Width="50"
-                        Height="50"
-                        Command="{Binding OpenReadmeCommand}"
-                        Style="{StaticResource CircleButtonStyle}">
-                        <icon:PackIconFontAwesome
-                            Width="25"
-                            Height="25"
-                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                            Kind="ReadmeBrands" />
-                    </Button>
-                    <TextBlock
-                        Grid.Row="1"
-                        Margin="0,10,0,0"
-                        HorizontalAlignment="Center"
-                        Text="Readme" />
-                </Grid>
-                <Grid
-                    Grid.Row="1"
-                    Grid.Column="3"
-                    VerticalAlignment="Center"
-                    Background="Transparent">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Button
-                        Width="50"
-                        Height="50"
-                        Command="{Binding CloseWhenCompleteCommand}"
-                        Style="{StaticResource CircleButtonStyle}">
-                        <icon:PackIconMaterial
-                            Width="25"
-                            Height="25"
-                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
-                            Kind="Check" />
-                    </Button>
-                    <TextBlock
-                        Grid.Row="1"
-                        Margin="0,10,0,0"
-                        HorizontalAlignment="Center"
-                        Text="Close" />
-                </Grid>
+                    Text="Main Menu" />
             </Grid>
-        </local:AttentionBorder.DisplayContent>
+            <Grid
+                Grid.Row="1"
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                Visibility="{Binding InstallerSupportsAfterInstallNavigation, Converter={StaticResource bool2VisibilityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Button
+                    x:Name="GoToInstallButton"
+                    Width="50"
+                    Height="50"
+                    Style="{StaticResource CircleButtonStyle}">
+                    <icon:PackIconMaterial
+                        Width="23"
+                        Height="23"
+                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                        Kind="FolderMove" />
+                </Button>
+                <TextBlock
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Text="Install Folder" />
+            </Grid>
+            <Grid
+                Grid.Row="1"
+                Grid.Column="2"
+                VerticalAlignment="Center"
+                Background="Transparent">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Button
+                    x:Name="OpenReadmeButton"
+                    Width="50"
+                    Height="50"
+                    Style="{StaticResource CircleButtonStyle}">
+                    <icon:PackIconFontAwesome
+                        Width="25"
+                        Height="25"
+                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                        Kind="ReadmeBrands" />
+                </Button>
+                <TextBlock
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Text="Readme" />
+            </Grid>
+            <Grid
+                Grid.Row="1"
+                Grid.Column="3"
+                VerticalAlignment="Center"
+                Background="Transparent">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Button
+                    x:Name="CloseButton"
+                    Width="50"
+                    Height="50"
+                    Style="{StaticResource CircleButtonStyle}">
+                    <icon:PackIconMaterial
+                        Width="25"
+                        Height="25"
+                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
+                        Kind="Check" />
+                </Button>
+                <TextBlock
+                    Grid.Row="1"
+                    Margin="0,10,0,0"
+                    HorizontalAlignment="Center"
+                    Text="Close" />
+            </Grid>
+        </Grid>
     </local:AttentionBorder>
-</UserControl>
+</rxui:ReactiveUserControl>
