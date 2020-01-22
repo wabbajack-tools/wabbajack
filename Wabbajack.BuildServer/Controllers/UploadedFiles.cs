@@ -52,7 +52,7 @@ namespace Wabbajack.BuildServer.Controllers
             if (!Key.All(a => HexChars.Contains(a)))
                 return BadRequest("NOT A VALID FILENAME");
             Utils.Log($"Writing at position {Offset} in ingest file {Key}");
-            await using (var file = System.IO.File.Open(Path.Combine("public", "files", Key), FileMode.Open, FileAccess.Write))
+            await using (var file = System.IO.File.Open(Path.Combine("public", "files", Key), FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
             {
                 file.Position = Offset;
                 await Request.Body.CopyToAsync(file);
@@ -82,25 +82,15 @@ namespace Wabbajack.BuildServer.Controllers
                 Hash = hash, 
                 Name = original_name, 
                 Uploader = user, 
-                Size = new FileInfo(final_path).Length
+                Size = new FileInfo(final_path).Length,
+                CDNName = "wabbajackpush"
             };
             await Db.UploadedFiles.InsertOneAsync(record);
             await Db.Jobs.InsertOneAsync(new Job
             {
-                Payload = new IndexJob
-                {
-                    Archive = new Archive
-                    {
-                        Name = record.MungedName,
-                        Size = record.Size,
-                        Hash = record.Hash,
-                        State = new HTTPDownloader.State
-                        {
-                            Url = record.Uri
-                        }
-                    }
-                }
+                Priority = Job.JobPriority.High, Payload = new UploadToCDN {FileId = record.Id}
             });
+
             
             return Ok(record.Uri);
         }

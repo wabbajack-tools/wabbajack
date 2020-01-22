@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
+using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -338,9 +339,17 @@ namespace Wabbajack.Lib
 
         private async Task InferMetas()
         {
-            var to_find = Directory.EnumerateFiles(MO2DownloadsFolder)
+            async Task<bool> HasInvalidMeta(string filename)
+            {
+                string metaname = filename + ".meta";
+                if (!File.Exists(metaname)) return true;
+                return (AbstractDownloadState) await DownloadDispatcher.ResolveArchive(metaname.LoadIniFile()) == null;
+            }
+
+            var to_find = (await Directory.EnumerateFiles(MO2DownloadsFolder)
                 .Where(f => !f.EndsWith(".meta") && !f.EndsWith(Consts.HashFileExtension))
-                .Where(f => !File.Exists(f + ".meta"))
+                .PMap(Queue, async f => await HasInvalidMeta(f) ? f : null))
+                .Where(f => f != null)
                 .ToList();
 
             if (to_find.Count == 0) return;

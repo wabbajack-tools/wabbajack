@@ -17,7 +17,7 @@ namespace Wabbajack.BuildServer
         public bool RunFrontEndJobs { get; set; }
         public bool RunBackEndJobs { get; set; }
         
-        public string BunnyCDNZone { get; set; }
-        public string BunnyCDNApiKey { get; set; }
+        public string BunnyCDN_User { get; set; }
+        public string BunnyCDN_Password { get; set; }
     }
 }
