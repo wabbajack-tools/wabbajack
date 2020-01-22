@@ -33,9 +33,9 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     await client.UploadAsync(stream, file.MungedName, progress: new Progress(file.MungedName));
                 }
                 
-                /*
                 await db.Jobs.InsertOneAsync(new Job
                 {
+                    Priority = Job.JobPriority.High,
                     Payload = new IndexJob
                     {
                         Archive = new Archive
@@ -49,7 +49,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                             }
                         }
                     }
-                });*/
+                });
             }
             return JobResult.Success();
         }
