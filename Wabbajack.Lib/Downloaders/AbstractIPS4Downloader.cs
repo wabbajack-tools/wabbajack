@@ -21,6 +21,7 @@ namespace Wabbajack.Lib.Downloaders
     {
         public override string SiteName { get; }
         public override Uri SiteURL { get; }
+
         public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             Uri url = DownloaderUtils.GetDirectURL(archiveINI);
@@ -40,6 +41,9 @@ namespace Wabbajack.Lib.Downloaders
         {
             public string FileID { get; set; }
             public string FileName { get; set; }
+
+            private static bool IsHTTPS => Downloader.SiteURL.AbsolutePath.StartsWith("https://");
+            private static string URLPrefix => IsHTTPS ? "https://" : "http://";
 
             public override object[] PrimaryKey
             {
@@ -74,11 +78,11 @@ namespace Wabbajack.Lib.Downloaders
                 string csrfurl;
                 if (FileID == null)
                 {
-                    csrfurl = $"https://{downloader.SiteURL.Host}/files/file/{FileName}/?do=download";
+                    csrfurl = $"{URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}/?do=download";
                 }
                 else
                 {
-                    csrfurl = $"https://{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID}";
+                    csrfurl = $"{URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID}";
                 }
                 var html = await downloader.AuthedClient.GetStringAsync(csrfurl);
 
@@ -92,9 +96,9 @@ namespace Wabbajack.Lib.Downloaders
 
                 string url;
                 if (FileID == null)
-                    url = $"https://{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&confirm=1&t=1&csrfKey={csrfKey}";
+                    url = $"{URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&confirm=1&t=1&csrfKey={csrfKey}";
                 else
-                    url = $"https://{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
+                    url = $"{URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
                     
 
                 var streamResult = await downloader.AuthedClient.GetAsync(url);
@@ -150,7 +154,7 @@ namespace Wabbajack.Lib.Downloaders
             public override string GetReportEntry(Archive a)
             {
                 var downloader = (INeedsLogin)GetDownloader();
-                return $"* {((INeedsLogin)GetDownloader()).SiteName} - [{a.Name}](https://{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID})";
+                return $"* {((INeedsLogin)GetDownloader()).SiteName} - [{a.Name}]({URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID})";
             }
 
             public override string[] GetMetaIni()
@@ -161,12 +165,12 @@ namespace Wabbajack.Lib.Downloaders
                     return new[]
                     {
                         "[General]",
-                        $"directURL=https://{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1"
+                        $"directURL={URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1"
                     };
                 return new[]
                 {
                     "[General]",
-                    $"directURL=https://{downloader.SiteURL.Host}/files/file/{FileName}"
+                    $"directURL={URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}"
                 };
             }
 
