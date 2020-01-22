@@ -5,7 +5,7 @@ namespace Wabbajack.Lib.Downloaders
     public class TESAllianceDownloader : AbstractIPS4Downloader<TESAllianceDownloader, TESAllianceDownloader.State>
     {
         #region INeedsDownload
-        public override string SiteName => "Vector Plexus";
+        public override string SiteName => "TESAlliance";
         public override Uri SiteURL => new Uri("http://tesalliance.org");
         public override Uri IconUri => new Uri("http://tesalliance.org/favicon.ico");
         #endregion
