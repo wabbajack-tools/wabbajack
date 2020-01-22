@@ -46,7 +46,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
         {
             var existing = await db.ModListStatus.FindOneAsync(l => l.Id == list.Links.MachineURL);
             
-            var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + ExtensionManager.Extension);
+            var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + Consts.ModListExtension);
 
             if (list.NeedsDownload(modlist_path))
             {

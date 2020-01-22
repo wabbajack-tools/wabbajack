@@ -36,9 +36,9 @@ namespace Wabbajack
                 var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 try
                 {
-                    if (!ExtensionManager.IsAssociated() || ExtensionManager.NeedsUpdating(appPath))
+                    if (!ModListAssociationManager.IsAssociated() || ModListAssociationManager.NeedsUpdating(appPath))
                     {
-                        ExtensionManager.Associate(appPath);
+                        ModListAssociationManager.Associate(appPath);
                     }
                 }
                 catch (Exception e)

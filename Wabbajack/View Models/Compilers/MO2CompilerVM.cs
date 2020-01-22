@@ -168,11 +168,11 @@ namespace Wabbajack
             string outputFile;
             if (string.IsNullOrWhiteSpace(Parent.OutputLocation.TargetPath))
             {
-                outputFile = MOProfile + ExtensionManager.Extension;
+                outputFile = MOProfile + Consts.ModListExtension;
             }
             else
             {
-                outputFile = Path.Combine(Parent.OutputLocation.TargetPath, MOProfile + ExtensionManager.Extension);
+                outputFile = Path.Combine(Parent.OutputLocation.TargetPath, MOProfile + Consts.ModListExtension);
             }
 
             try

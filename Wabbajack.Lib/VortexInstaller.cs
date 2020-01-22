@@ -211,7 +211,7 @@ namespace Wabbajack.Lib
             await ModList.Directives.OfType<InlineFile>()
                 .PMap(Queue,directive =>
                 {
-                    if (directive.To.EndsWith(".meta"))
+                    if (directive.To.EndsWith(Consts.MetaFileExtension))
                         return;
 
                     Info($"Writing included file {directive.To}");
