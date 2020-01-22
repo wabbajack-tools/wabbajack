@@ -20,6 +20,7 @@ namespace Wabbajack.Lib.Downloaders
             new LoversLabDownloader(),
             new VectorPlexusDownloader(),
             new DeadlyStreamDownloader(),
+            new AFKModsDownloader(),
             new HTTPDownloader(),
             new ManualDownloader(),
         };
