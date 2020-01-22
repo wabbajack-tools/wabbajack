@@ -6,7 +6,7 @@ namespace Wabbajack.Lib.Downloaders
     {
         #region INeedsDownload
         public override string SiteName => "AFK Mods";
-        public override Uri SiteURL => new Uri("https://www.afkmods.com");
+        public override Uri SiteURL => new Uri("https://www.afkmods.com/index.php?/");
         public override Uri IconUri => new Uri("https://www.afkmods.com/favicon.ico");
         #endregion
 
