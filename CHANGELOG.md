@@ -1,6 +1,12 @@
 ### Changelog
 
 =======
+
+#### Version - 1.0 beta 17 - 1/22/2020
+* Build server now indexes CDN files after they are uploaded
+* Build server actively looks for DynDOLOD updates
+* Fix for the null key exception during compilation
+* Added support for tesalliance, and afkmods
 * Fix for queue size recommendation of 0GB RAM on low-end machines
 * Fix for website readme compilation
 * Fix for compiler downloads folder specification (was always standard path)
