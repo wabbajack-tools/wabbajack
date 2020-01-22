@@ -79,6 +79,7 @@ namespace Wabbajack.BuildServer
                 await ScheduledJob<EnqueueAllArchives>(TimeSpan.FromHours(2), Job.JobPriority.Low);
                 await ScheduledJob<EnqueueAllGameFiles>(TimeSpan.FromHours(24), Job.JobPriority.High);
                 await ScheduledJob<EnqueueRecentFiles>(TimeSpan.FromHours(6), Job.JobPriority.Low);
+                await ScheduledJob<IndexDynDOLOD>(TimeSpan.FromHours(1), Job.JobPriority.Normal);
                 await Task.Delay(10000);
             }
         }

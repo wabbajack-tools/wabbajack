@@ -35,6 +35,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 
                 await db.Jobs.InsertOneAsync(new Job
                 {
+                    Priority = Job.JobPriority.High,
                     Payload = new IndexJob
                     {
                         Archive = new Archive
