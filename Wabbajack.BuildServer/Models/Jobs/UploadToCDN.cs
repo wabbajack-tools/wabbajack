@@ -33,7 +33,6 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     await client.UploadAsync(stream, file.MungedName, progress: new Progress(file.MungedName));
                 }
                 
-                /*
                 await db.Jobs.InsertOneAsync(new Job
                 {
                     Payload = new IndexJob
@@ -49,7 +48,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                             }
                         }
                     }
-                });*/
+                });
             }
             return JobResult.Success();
         }
