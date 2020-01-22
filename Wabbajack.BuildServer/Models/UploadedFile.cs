@@ -16,10 +16,13 @@ namespace Wabbajack.BuildServer.Models
         public string Hash { get; set; }
         public string Uploader { get; set; }
         public DateTime UploadDate { get; set; } = DateTime.UtcNow;
+        
+        public string CDNName { get; set; }
 
         [BsonIgnore]
         public string MungedName => $"{Path.GetFileNameWithoutExtension(Name)}-{Id}{Path.GetExtension(Name)}";
 
-        [BsonIgnore] public object Uri => $"https://wabbajack.b-cdn.net/{MungedName}";
+        [BsonIgnore]
+        public string Uri => CDNName == null ? $"https://wabbajack.b-cdn.net/{MungedName}" : $"https://{CDNName}.b-cdn.net/{MungedName}";
     }
 }

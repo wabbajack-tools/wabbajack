@@ -15,16 +15,22 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Nettle;
 using Wabbajack.BuildServer.Models;
+using Wabbajack.BuildServer.Models.JobQueue;
+using Wabbajack.BuildServer.Models.Jobs;
 using Wabbajack.Common;
+using Wabbajack.Lib;
+using Wabbajack.Lib.Downloaders;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.BuildServer.Controllers
 {
     public class UploadedFiles : AControllerBase<UploadedFiles>
     {
-        public UploadedFiles(ILogger<UploadedFiles> logger, DBContext db) : base(logger, db)
+        private AppSettings _settings;
+
+        public UploadedFiles(ILogger<UploadedFiles> logger, DBContext db, AppSettings settings) : base(logger, db)
         {
-  
+            _settings = settings;
         }
 
         [HttpPut]
@@ -46,7 +52,7 @@ namespace Wabbajack.BuildServer.Controllers
             if (!Key.All(a => HexChars.Contains(a)))
                 return BadRequest("NOT A VALID FILENAME");
             Utils.Log($"Writing at position {Offset} in ingest file {Key}");
-            await using (var file = System.IO.File.Open(Path.Combine("public", "files", Key), FileMode.Open, FileAccess.Write))
+            await using (var file = System.IO.File.Open(Path.Combine("public", "files", Key), FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
             {
                 file.Position = Offset;
                 await Request.Body.CopyToAsync(file);
@@ -68,6 +74,7 @@ namespace Wabbajack.BuildServer.Controllers
             var final_path = Path.Combine("public", "files", final_name);
             System.IO.File.Move(Path.Combine("public", "files", Key), final_path);
             var hash = await final_path.FileHashAsync();
+            
 
             var record = new UploadedFile
             {
@@ -75,9 +82,16 @@ namespace Wabbajack.BuildServer.Controllers
                 Hash = hash, 
                 Name = original_name, 
                 Uploader = user, 
-                Size = new FileInfo(final_path).Length
+                Size = new FileInfo(final_path).Length,
+                CDNName = "wabbajackpush"
             };
             await Db.UploadedFiles.InsertOneAsync(record);
+            await Db.Jobs.InsertOneAsync(new Job
+            {
+                Priority = Job.JobPriority.High, Payload = new UploadToCDN {FileId = record.Id}
+            });
+
+            
             return Ok(record.Uri);
         }
 
@@ -91,6 +105,7 @@ namespace Wabbajack.BuildServer.Controllers
                 </table>
             </body></html>
         ");
+
 
         [HttpGet]
         [Route("uploaded_files")]

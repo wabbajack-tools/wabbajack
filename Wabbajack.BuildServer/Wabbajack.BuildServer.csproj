@@ -10,6 +10,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="BunnyCDN.Net.Storage" Version="1.0.2" />
+        <PackageReference Include="FluentFTP" Version="29.0.3" />
         <PackageReference Include="graphiql" Version="1.2.0" />
         <PackageReference Include="GraphQL" Version="3.0.0-preview-1352" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
