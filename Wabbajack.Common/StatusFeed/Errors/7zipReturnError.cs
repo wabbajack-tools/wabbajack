@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Wabbajack.Common.StatusFeed.Errors
 {
-    public class _7zipReturnError : AStatusMessage, IError
+    public class _7zipReturnError : AErrorMessage
     {
         public string Destination { get; }
         public string Filename;

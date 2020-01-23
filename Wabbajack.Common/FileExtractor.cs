@@ -207,7 +207,7 @@ namespace Wabbajack.Common
                 Utils.Status($"Extracting {name} - 100%", 100, alsoLog: true);
                 return;
             }
-            Utils.Log(new _7zipReturnError(p.ExitCode, source, dest, p.StandardOutput.ReadToEnd()));
+            Utils.Error(new _7zipReturnError(p.ExitCode, source, dest, p.StandardOutput.ReadToEnd()));
         }
 
         /// <summary>
