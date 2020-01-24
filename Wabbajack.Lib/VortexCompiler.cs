@@ -469,7 +469,7 @@ namespace Wabbajack.Lib
                 new IgnoreGameFiles(this),
 
                 new DirectMatch(this),
-                new IncludeTaggedMods(this, Consts.WABBAJACK_INCLUDE),
+                // new IncludeTaggedMods(this, Consts.WABBAJACK_INCLUDE), disabled until further refactoring
 
                 new IgnoreGameFiles(this),
 
