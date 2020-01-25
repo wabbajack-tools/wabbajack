@@ -10,7 +10,6 @@
     Height="450"
     Icon="../Resources/Icons/wabbajack.ico"
     Style="{StaticResource {x:Type Window}}"
-    WindowStyle="ToolWindow"
     mc:Ignorable="d">
     <Grid>
         <TextBlock

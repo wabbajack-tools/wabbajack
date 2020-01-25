@@ -1129,18 +1129,6 @@ namespace Wabbajack.Common
             return path.ToLower().TrimEnd('\\').StartsWith(parent.ToLower().TrimEnd('\\') + "\\");
         }
 
-        public static HashSet<T> ToHashSet<T>(this IEnumerable<T> coll)
-        {
-            return new HashSet<T>(coll);
-        }
-        
-        public static HashSet<T> ToHashSet<T>(this T[] coll)
-        {
-            var hs = new HashSet<T>();
-            coll.Do(v => hs.Add(v));
-            return hs;
-        }
-
         public class NexusErrorResponse
         {
             public int code;

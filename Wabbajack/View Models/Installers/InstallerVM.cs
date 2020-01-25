@@ -30,9 +30,6 @@ namespace Wabbajack
 
         public MainWindowVM MWVM { get; }
 
-        public static BitmapImage WabbajackLogo { get; } = UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/Resources/Wabba_Mouth_No_Text.png")).Stream);
-        public static BitmapImage WabbajackErrLogo { get; } = UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Wabbajack;component/Resources/Wabba_Ded.png")).Stream);
-
         private readonly ObservableAsPropertyHelper<ModListVM> _modList;
         public ModListVM ModList => _modList.Value;
 
@@ -273,7 +270,7 @@ namespace Wabbajack
                     {
                         if (err != null)
                         {
-                            return WabbajackErrLogo;
+                            return ResourceLinks.WabbajackErrLogo.Value;
                         }
                         if (loading) return default;
                         return installing ? slideshow : modList;
