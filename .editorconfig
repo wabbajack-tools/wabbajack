@@ -115,3 +115,10 @@ csharp_space_between_method_call_empty_parameter_list_parentheses = false
 # Wrapping preferences
 csharp_preserve_single_line_statements = true
 csharp_preserve_single_line_blocks = true
+###############################
+# C# Async Rules              #
+###############################
+# CS4014: Task not awaited
+dotnet_diagnostic.CS4014.severity = error
+# CS1998: Async function does not contain await
+dotnet_diagnostic.CS1998.severity = silent
