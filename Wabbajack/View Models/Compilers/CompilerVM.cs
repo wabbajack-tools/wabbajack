@@ -184,8 +184,16 @@ namespace Wabbajack
                 {
                     try
                     {
-                        var successful = await this.Compiler.Compile();
-                        Completed = ErrorResponse.Create(successful);
+                        var modList = await this.Compiler.Compile();
+                        Completed = ErrorResponse.Create(modList.Succeeded);
+                        try
+                        {
+                            ShowReport(modList.Value);
+                        }
+                        catch (Exception ex)
+                        {
+                            Utils.Error(ex, $"Error opening manifest report");
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -266,6 +274,13 @@ namespace Wabbajack
             _CurrentCpuCount = this.WhenAny(x => x.Compiler.ActiveCompilation.Queue.CurrentCpuCount)
                 .Switch()
                 .ToGuiProperty(this, nameof(CurrentCpuCount));
+        }
+
+        public void ShowReport(ModList modList)
+        {
+            var file = Path.GetTempFileName() + ".html";
+            File.WriteAllText(file, modList.ReportHTML);
+            Utils.StartProcessFromFile(file);
         }
     }
 }

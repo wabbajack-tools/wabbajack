@@ -291,8 +291,6 @@ namespace Wabbajack.Lib
 
             ResetMembers();
 
-            ShowReport();
-
             UpdateTracker.NextStep("Done Building Modlist");
 
             return true;

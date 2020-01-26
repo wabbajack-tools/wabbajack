@@ -1123,6 +1123,21 @@ namespace Wabbajack.Common
                 File.Delete(path);
         }
 
+        public static void StartProcessFromFile(string file)
+        {
+            Process.Start(new ProcessStartInfo("cmd.exe", $"/c {file}")
+            {
+                CreateNoWindow = true,
+            });
+        }
+
+        public static void OpenWebsite(string url)
+        {
+            Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
+            {
+                CreateNoWindow = true,
+            });
+        }
 
         public static bool IsInPath(this string path, string parent)
         {

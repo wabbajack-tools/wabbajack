@@ -40,8 +40,6 @@ namespace Wabbajack.Lib
         public abstract string ModListOutputFolder { get; }
         public abstract string ModListOutputFile { get; }
 
-        public bool ShowReportWhenFinished { get; set; } = true;
-
         public bool IgnoreMissingFiles { get; set; }
 
         public ICollection<Archive> SelectedArchives = new List<Archive>();
@@ -159,15 +157,6 @@ namespace Wabbajack.Lib
 
             Utils.Log("Removing ModList staging folder");
             Utils.DeleteDirectory(ModListOutputFolder);
-        }
-
-        public void ShowReport()
-        {
-            if (!ShowReportWhenFinished) return;
-
-            var file = Path.GetTempFileName() + ".html";
-            File.WriteAllText(file, ModList.ReportHTML);
-            Process.Start(file);
         }
 
         public void GenerateReport()

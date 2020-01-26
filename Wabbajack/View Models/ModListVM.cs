@@ -96,7 +96,7 @@ namespace Wabbajack
             if (string.IsNullOrEmpty(Readme)) return;
             if (SourceModList.ReadmeIsWebsite)
             {
-                Process.Start(Readme);
+                Utils.OpenWebsite(Readme);
             }
             else
             {

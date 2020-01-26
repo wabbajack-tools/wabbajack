@@ -323,7 +323,7 @@ namespace Wabbajack
             VisitModListWebsiteCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
-                    Process.Start(ModList.Website);
+                    Utils.OpenWebsite(ModList.Website);
                     return Unit.Default;
                 },
                 canExecute: this.WhenAny(x => x.ModList.Website)
@@ -443,7 +443,7 @@ namespace Wabbajack
         {
             var file = Path.GetTempFileName() + ".html";
             File.WriteAllText(file, HTMLReport);
-            Process.Start(file);
+            Utils.StartProcessFromFile(file);
         }
     }
 }
