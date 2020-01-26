@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Authentication;
 using MongoDB.Driver.Linq;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -21,7 +22,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
         {
             Game.Fallout3, Game.Fallout4, Game.Skyrim, Game.SkyrimSpecialEdition, Game.SkyrimVR, Game.FalloutNewVegas, Game.Oblivion
         };
-        public override async Task<JobResult> Execute(DBContext db, AppSettings settings)
+        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {
             using (var queue = new WorkQueue())
             {

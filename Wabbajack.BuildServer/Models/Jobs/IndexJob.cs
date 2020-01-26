@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
@@ -21,7 +22,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
         public Archive Archive { get; set; }
         public override string Description => $"Index ${Archive.State.PrimaryKeyString} and save the download/file state";
         public override bool UsesNexus { get => Archive.State is NexusDownloader.State; }
-        public override async Task<JobResult> Execute(DBContext db, AppSettings settings)
+        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {
             var pk = new List<object>();
             pk.Add(AbstractDownloadState.TypeToName[Archive.State.GetType()]);
@@ -42,26 +43,12 @@ namespace Wabbajack.BuildServer.Models.Jobs
             {
                 var vfs = new Context(queue, true);
                 await vfs.AddRoot(Path.Combine(settings.DownloadDir, folder));
-                var archive = vfs.Index.ByRootPath.First();
-                var converted = ConvertArchive(new List<IndexedFile>(), archive.Value);
-                try
-                {
-                    await db.IndexedFiles.InsertManyAsync(converted, new InsertManyOptions {IsOrdered = false});
-                }
-                catch (MongoBulkWriteException)
-                {
-                }
+                var archive = vfs.Index.ByRootPath.First().Value;
 
-                await db.DownloadStates.InsertOneAsync(new DownloadState
-                {
-                    Key = pk_str, 
-                    Hash = archive.Value.Hash, 
-                    State = Archive.State, 
-                    IsValid = true
-                });
-
+                await sql.MergeVirtualFile(archive);
+                
                 var to_path = Path.Combine(settings.ArchiveDir,
-                    $"{Path.GetFileName(fileName)}_{archive.Value.Hash.FromBase64().ToHex()}_{Path.GetExtension(fileName)}");
+                    $"{Path.GetFileName(fileName)}_{archive.Hash.FromBase64().ToHex()}_{Path.GetExtension(fileName)}");
                 if (File.Exists(to_path))
                     File.Delete(downloadDest);
                 else

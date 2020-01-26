@@ -158,7 +158,13 @@ namespace Wabbajack.Lib
 
             var mo2Files = Directory.EnumerateFiles(MO2Folder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists())
-                .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(MO2Folder)));
+                .Select(p =>
+                {
+                    if (!VFS.Index.ByFullPath.ContainsKey(p))
+                        Utils.Log($"WELL THERE'S YOUR PROBLEM: {p} {VFS.Index.ByRootPath.Count}");
+                    
+                    return new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(MO2Folder));
+                });
 
             // If Game Folder Files exists, ignore the game folder
             IEnumerable<RawSourceFile> gameFiles;

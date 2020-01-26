@@ -41,5 +41,6 @@ namespace Wabbajack.BuildServer.Models
         public string Host { get; set; }
         public string Database { get; set; }
         public Dictionary<string, string> Collections { get; set; }
+        public string SqlConnection { get; set; }
     }
 }
