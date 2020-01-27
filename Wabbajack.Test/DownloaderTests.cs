@@ -304,7 +304,7 @@ namespace Wabbajack.Test
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
+            await converted.Download(new Archive { Name = "LoversLab Test.txt" }, filename);
 
             Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
 
