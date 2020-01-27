@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Alphaleonis.Win32.Filesystem;
-using CefSharp;
-using CefSharp.OffScreen;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
@@ -14,7 +11,6 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
-using Wabbajack.Lib.WebAutomation;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
 
@@ -304,9 +300,9 @@ namespace Wabbajack.Test
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
+            await converted.Download(new Archive { Name = "LoversLab Test.txt" }, filename);
 
-            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+            Assert.AreEqual("eSIyd+KOG3s=", filename.FileHash());
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
@@ -334,10 +330,60 @@ namespace Wabbajack.Test
 
             await converted.Download(new Archive { Name = "Vector Plexus Test.zip" }, filename);
 
-            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+            Assert.AreEqual("eSIyd+KOG3s=", filename.FileHash());
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
+
+        
+        [TestMethod]
+        public async Task TESAllianceDownload()
+        {
+            await DownloadDispatcher.GetInstance<TESAllianceDownloader>().Prepare();
+            const string ini = "[General]\n" +
+                               "directURL=http://tesalliance.org/forums/index.php?/files/file/2035-wabbajack-test-file/";
+
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.IsNotNull(state);
+
+            var converted = await state.RoundTripState();
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
+            var filename = Guid.NewGuid().ToString();
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            await converted.Download(new Archive { Name = "TESAlliance Test.zip" }, filename);
+
+            Assert.AreEqual("eSIyd+KOG3s=", filename.FileHash());
+
+            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+        }
+
+        /* WAITING FOR APPROVAL BY MODERATOR
+         [TestMethod]
+        public async Task DeadlyStreamDownloader()
+        {
+            await DownloadDispatcher.GetInstance<DeadlyStreamDownloader>().Prepare();
+            const string ini = "[General]\n" +
+                               "directURL=https://deadlystream.com/files/file/1550-wabbajack-test-file/";
+
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.IsNotNull(state);
+
+            var converted = await state.RoundTripState();
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
+            var filename = Guid.NewGuid().ToString();
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            await converted.Download(new Archive { Name = "DeadlyStream Test.zip" }, filename);
+
+            Assert.AreEqual("eSIyd+KOG3s=", filename.FileHash());
+
+            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+        }*/
 
         [TestMethod]
         public async Task GameFileSourceDownload()
