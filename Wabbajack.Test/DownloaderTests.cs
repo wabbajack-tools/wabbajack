@@ -335,7 +335,7 @@ namespace Wabbajack.Test
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
 
-        /* WAITING FOR APPROVAL BY MODERATOR
+        
         [TestMethod]
         public async Task TESAllianceDownload()
         {
@@ -358,7 +358,7 @@ namespace Wabbajack.Test
             Assert.AreEqual("eSIyd+KOG3s=", filename.FileHash());
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
-        }*/
+        }
 
         /* WAITING FOR APPROVAL BY MODERATOR
          [TestMethod]
