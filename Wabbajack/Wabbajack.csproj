@@ -46,7 +46,7 @@
     <PackageReference Include="MahApps.Metro.IconPacks" Version="3.1.0" />
     <PackageReference Include="ReactiveUI" Version="11.1.12" />
     <PackageReference Include="ReactiveUI.Fody" Version="11.1.12" />
-    <PackageReference Include="ReactiveUI.WPF" Version="11.1.12" />
+    <PackageReference Include="ReactiveUI.WPF" Version="11.1.20" />
     <PackageReference Include="Syroot.Windows.IO.KnownFolders" Version="1.2.1" />
     <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
