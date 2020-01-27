@@ -173,6 +173,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Extensions\DynamicDataExt.cs" />
+    <Compile Include="UI\ReactiveMetro.cs" />
     <Compile Include="View Models\Settings\AuthorFilesVM.cs" />
     <Compile Include="View Models\UserIntervention\ConfirmUpdateOfExistingInstallVM.cs" />
     <Compile Include="Views\Common\AttentionBorder.cs" />
