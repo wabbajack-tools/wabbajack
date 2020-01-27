@@ -45,7 +45,7 @@
         <Version>2.10.1</Version>
       </PackageReference>
       <PackageReference Include="ReactiveUI">
-        <Version>11.1.12</Version>
+        <Version>11.1.20</Version>
       </PackageReference>
       <PackageReference Include="ReactiveUI.Fody">
         <Version>11.1.12</Version>
