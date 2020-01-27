@@ -25,10 +25,21 @@ namespace Wabbajack.Lib.Downloaders
         public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             Uri url = DownloaderUtils.GetDirectURL(archiveINI);
-            if (url == null || url.Host != SiteURL.Host || !url.AbsolutePath.StartsWith("/files/file/")) return null;
-            var id = HttpUtility.ParseQueryString(url.Query)["r"];
-            var file = url.AbsolutePath.Split('/').Last(s => s != "");
 
+            var absolute = true;
+            if (url == null || url.Host != SiteURL.Host) return null;
+            if (!url.PathAndQuery.StartsWith("/files/file/"))
+            {
+                if (string.IsNullOrWhiteSpace(url.Query)) return null;
+                if (!url.Query.Substring(1).StartsWith("/files/file/")) return null;
+                absolute = false;
+            }
+
+            var id = HttpUtility.ParseQueryString(url.Query)["r"];
+            var file = absolute
+                ? url.AbsolutePath.Split('/').Last(s => s != "")
+                : url.Query.Substring(1).Split('/').Last(s => s != "");
+            
             return new TState
             {
                 FileID = id,
@@ -45,13 +56,17 @@ namespace Wabbajack.Lib.Downloaders
             private static bool IsHTTPS => Downloader.SiteURL.AbsolutePath.StartsWith("https://");
             private static string URLPrefix => IsHTTPS ? "https://" : "http://";
 
+            private static string Site => string.IsNullOrWhiteSpace(Downloader.SiteURL.Query)
+                ? $"{URLPrefix}{Downloader.SiteURL.Host}"
+                : Downloader.SiteURL.ToString();
+
             public override object[] PrimaryKey
             {
                 get
                 {
-                    if (FileID == null) 
-                        return new object[] {Downloader.SiteURL, FileName};
-                    return new object[] {Downloader.SiteURL, FileName, FileID};
+                    return FileID == null
+                        ? new object[] {Downloader.SiteURL, FileName}
+                        : new object[] {Downloader.SiteURL, FileName, FileID};
                 }
             }
 
@@ -75,15 +90,9 @@ namespace Wabbajack.Lib.Downloaders
                 var downloader = (AbstractNeedsLoginDownloader)(object)DownloadDispatcher.GetInstance<TDownloader>();
 
                 TOP:
-                string csrfurl;
-                if (FileID == null)
-                {
-                    csrfurl = $"{URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}/?do=download";
-                }
-                else
-                {
-                    csrfurl = $"{URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID}";
-                }
+                var csrfurl = FileID == null
+                    ? $"{Site}/files/file/{FileName}/?do=download"
+                    : $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
                 var html = await downloader.AuthedClient.GetStringAsync(csrfurl);
 
                 var pattern = new Regex("(?<=csrfKey=).*(?=[&\"\'])|(?<=csrfKey: \").*(?=[&\"\'])");
@@ -94,11 +103,9 @@ namespace Wabbajack.Lib.Downloaders
                 if (csrfKey == null)
                     return null;
 
-                string url;
-                if (FileID == null)
-                    url = $"{URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&confirm=1&t=1&csrfKey={csrfKey}";
-                else
-                    url = $"{URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
+                var url = FileID == null
+                    ? $"{Site}/files/file/{FileName}/?do=download&confirm=1&t=1&csrfKey={csrfKey}"
+                    : $"{Site}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
                     
 
                 var streamResult = await downloader.AuthedClient.GetAsync(url);
@@ -107,23 +114,21 @@ namespace Wabbajack.Lib.Downloaders
                     Utils.Error(new InvalidOperationException(), $"{downloader.SiteName} servers reported an error for file: {FileID}");
                 }
 
-                var content_type = streamResult.Content.Headers.ContentType;
+                var contentType = streamResult.Content.Headers.ContentType;
 
-                if (content_type.MediaType == "application/json")
+                if (contentType.MediaType != "application/json")
+                    return await streamResult.Content.ReadAsStreamAsync();
+
+                // Sometimes LL hands back a json object telling us to wait until a certain time
+                var times = (await streamResult.Content.ReadAsStringAsync()).FromJSONString<WaitResponse>();
+                var secs = times.Download - times.CurrentTime;
+                for (int x = 0; x < secs; x++)
                 {
-                    // Sometimes LL hands back a json object telling us to wait until a certain time
-                    var times = (await streamResult.Content.ReadAsStringAsync()).FromJSONString<WaitResponse>();
-                    var secs = times.Download - times.CurrentTime;
-                    for (int x = 0; x < secs; x++)
-                    {
-                        Utils.Status($"Waiting for {secs} at the request of {downloader.SiteName}", x * 100 / secs);
-                        await Task.Delay(1000);
-                    }
-                    Utils.Status("Retrying download");
-                    goto TOP;
+                    Utils.Status($"Waiting for {secs} at the request of {downloader.SiteName}", x * 100 / secs);
+                    await Task.Delay(1000);
                 }
-
-                return await streamResult.Content.ReadAsStreamAsync();
+                Utils.Status("Retrying download");
+                goto TOP;
             }
 
             private class WaitResponse
@@ -138,9 +143,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var stream = await ResolveDownloadStream();
                 if (stream == null)
-                {
                     return false;
-                }
 
                 stream.Close();
                 return true;
@@ -153,24 +156,21 @@ namespace Wabbajack.Lib.Downloaders
 
             public override string GetReportEntry(Archive a)
             {
-                var downloader = (INeedsLogin)GetDownloader();
-                return $"* {((INeedsLogin)GetDownloader()).SiteName} - [{a.Name}]({URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID})";
+                return $"* {((INeedsLogin)GetDownloader()).SiteName} - [{a.Name}]({Site}/files/file/{FileName}/?do=download&r={FileID})";
             }
 
             public override string[] GetMetaIni()
             {
-                var downloader = Downloader;
-                
                 if (FileID != null)
                     return new[]
                     {
                         "[General]",
-                        $"directURL={URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1"
+                        $"directURL={Site}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1"
                     };
                 return new[]
                 {
                     "[General]",
-                    $"directURL={URLPrefix}{downloader.SiteURL.Host}/files/file/{FileName}"
+                    $"directURL={Site}/files/file/{FileName}"
                 };
             }
 
