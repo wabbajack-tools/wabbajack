@@ -4,6 +4,7 @@ using Alphaleonis.Win32.Filesystem;
 using System.Linq;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -15,7 +16,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
     public class EnqueueAllArchives : AJobPayload, IBackEndJob
     {
         public override string Description => "Add missing modlist archives to indexer";
-        public override async Task<JobResult> Execute(DBContext db, AppSettings settings)
+        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {
             Utils.Log("Starting ModList indexing");
             var modlists = await ModlistMetadata.LoadFromGithub();

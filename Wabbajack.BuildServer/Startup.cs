@@ -29,6 +29,7 @@ using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using Microsoft.AspNetCore.StaticFiles;
 using Wabbajack.BuildServer.Controllers;
 using Microsoft.Extensions.FileProviders;
+using Wabbajack.BuildServer.Model.Models;
 using Directory = System.IO.Directory;
 
 
@@ -67,6 +68,7 @@ namespace Wabbajack.BuildServer
             services.AddSingleton<DBContext>();
             services.AddSingleton<JobManager>();
             services.AddSingleton<AppSettings>();
+            services.AddSingleton<SqlService>();
             services.AddMvc();
             services.AddControllers()
                 .AddNewtonsoftJson(o =>

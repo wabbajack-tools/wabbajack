@@ -6,6 +6,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib.NexusApi;
 using MongoDB.Driver;
 using Newtonsoft.Json;
+using Wabbajack.BuildServer.Model.Models;
 
 
 namespace Wabbajack.BuildServer.Models.Jobs
@@ -14,7 +15,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
     {
         public override string Description => "Poll the Nexus for updated mods, and clean any references to those mods";
 
-        public override async Task<JobResult> Execute(DBContext db, AppSettings settings)
+        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {
             var api = await NexusApiClient.Get();
             

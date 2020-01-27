@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MongoDB.Bson.Serialization.Attributes;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.Jobs;
 
 namespace Wabbajack.BuildServer.Models.JobQueue
@@ -19,7 +20,8 @@ namespace Wabbajack.BuildServer.Models.JobQueue
             typeof(EnqueueAllGameFiles),
             typeof(EnqueueRecentFiles),
             typeof(UploadToCDN),
-            typeof(IndexDynDOLOD)
+            typeof(IndexDynDOLOD),
+            typeof(ReindexArchives)
         };
         public static Dictionary<Type, string> TypeToName { get; set; }
         public static Dictionary<string, Type> NameToType { get; set; }
@@ -30,7 +32,7 @@ namespace Wabbajack.BuildServer.Models.JobQueue
 
         public virtual bool UsesNexus { get; } = false;
 
-        public abstract Task<JobResult> Execute(DBContext db, AppSettings settings);
+        public abstract Task<JobResult> Execute(DBContext db, SqlService sql,AppSettings settings);
 
         static AJobPayload()
         {

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Nettle;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.BuildServer.Models.Jobs;
@@ -17,17 +18,20 @@ namespace Wabbajack.BuildServer
         protected readonly ILogger<JobManager> Logger;
         protected readonly DBContext Db;
         protected readonly AppSettings Settings;
+        protected SqlService Sql;
 
-        public JobManager(ILogger<JobManager> logger, DBContext db, AppSettings settings)
+        public JobManager(ILogger<JobManager> logger, DBContext db, SqlService sql, AppSettings settings)
         {
             Db = db;
             Logger = logger;
             Settings = settings;
+            Sql = sql;
         }
+
 
         public void StartJobRunners()
         {
-            if (Settings.MinimalMode) return;
+            if (!Settings.JobRunner) return;
             for (var idx = 0; idx < 2; idx++)
             {
                 Task.Run(async () =>
@@ -47,7 +51,7 @@ namespace Wabbajack.BuildServer
                             JobResult result;
                             try
                             {
-                                result = await job.Payload.Execute(Db, Settings);
+                                result = await job.Payload.Execute(Db, Sql, Settings);
                             }
                             catch (Exception ex)
                             {
@@ -69,8 +73,8 @@ namespace Wabbajack.BuildServer
         
         public async Task JobScheduler()
         {
-            if (Settings.MinimalMode) return;
             Utils.LogMessages.Subscribe(msg => Logger.Log(LogLevel.Information, msg.ToString()));
+            if (!Settings.JobScheduler) return;
             while (true)
             {
                 await KillOrphanedJobs();

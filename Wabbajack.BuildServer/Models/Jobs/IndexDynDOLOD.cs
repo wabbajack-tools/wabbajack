@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -19,7 +20,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
     public class IndexDynDOLOD : AJobPayload
     {
         public override string Description => "Queue MEGA URLs from the DynDOLOD Post";
-        public override async Task<JobResult> Execute(DBContext db, AppSettings settings)
+        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {
             var doc = new HtmlDocument();
             var body = await new HttpClient().GetStringAsync(new Uri(

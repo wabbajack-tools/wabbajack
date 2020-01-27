@@ -7,6 +7,7 @@ using CG.Web.MegaApiClient;
 using FluentFTP;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -21,7 +22,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
         
         public string FileId { get; set; }
         
-        public override async Task<JobResult> Execute(DBContext db, AppSettings settings)
+        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {
             var file = await db.UploadedFiles.AsQueryable().Where(f => f.Id == FileId).FirstOrDefaultAsync();
             using (var client = new FtpClient("storage.bunnycdn.com"))

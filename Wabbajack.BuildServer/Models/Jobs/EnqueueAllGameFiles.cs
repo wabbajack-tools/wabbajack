@@ -7,6 +7,7 @@ using Wabbajack.Lib.Downloaders;
 using System.IO;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Wabbajack.BuildServer.Model.Models;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -15,7 +16,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
     public class EnqueueAllGameFiles : AJobPayload, IBackEndJob
     {
         public override string Description { get => $"Enqueue all game files for indexing"; }
-        public override async Task<JobResult> Execute(DBContext db, AppSettings settings)
+        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {
             using (var queue = new WorkQueue(4))
             {

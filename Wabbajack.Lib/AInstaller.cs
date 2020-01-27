@@ -391,7 +391,7 @@ namespace Wabbajack.Lib
                 Directory.EnumerateDirectories(OutputFolder, DirectoryEnumerationOptions.Recursive)
                     .Where(p => !expectedFolders.Contains(p))
                     .OrderByDescending(p => p.Length)
-                    .Do(p => Directory.Delete(p));
+                    .Do(Utils.DeleteDirectory);
             }
             catch (Exception)
             {

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -15,7 +16,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
     public class UpdateModLists : AJobPayload, IFrontEndJob
     {
         public override string Description => "Validate curated modlists";
-        public override async Task<JobResult> Execute(DBContext db, AppSettings settings)
+        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {
             Utils.Log("Starting Modlist Validation");
             var modlists = await ModlistMetadata.LoadFromGithub();
