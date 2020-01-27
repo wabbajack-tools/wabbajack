@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Alphaleonis.Win32.Filesystem;
-using CefSharp;
-using CefSharp.OffScreen;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
@@ -14,7 +11,6 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
-using Wabbajack.Lib.WebAutomation;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
 
@@ -306,7 +302,7 @@ namespace Wabbajack.Test
 
             await converted.Download(new Archive { Name = "LoversLab Test.txt" }, filename);
 
-            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+            Assert.AreEqual("eSIyd+KOG3s=", filename.FileHash());
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
@@ -334,7 +330,7 @@ namespace Wabbajack.Test
 
             await converted.Download(new Archive { Name = "Vector Plexus Test.zip" }, filename);
 
-            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+            Assert.AreEqual("eSIyd+KOG3s=", filename.FileHash());
 
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
