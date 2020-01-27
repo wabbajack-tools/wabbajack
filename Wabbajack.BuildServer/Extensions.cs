@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
-using Wabbajack.Common;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.BuildServer
