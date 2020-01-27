@@ -54,7 +54,7 @@ namespace Wabbajack
             Metadata = metadata;
             Location = Path.Combine(Consts.ModListDownloadFolder, Metadata.Links.MachineURL + Consts.ModListExtension);
             IsBroken = metadata.ValidationSummary.HasFailures;
-            OpenWebsiteCommand = ReactiveCommand.Create(() => Process.Start($"https://www.wabbajack.org/modlist/{Metadata.Links.MachineURL}"));
+            OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite($"https://www.wabbajack.org/modlist/{Metadata.Links.MachineURL}"));
             ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, Unit>(
                 canExecute: this.WhenAny(x => x.IsBroken).Select(x => !x),
                 execute: (unit) => 

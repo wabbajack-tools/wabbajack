@@ -1123,22 +1123,25 @@ namespace Wabbajack.Common
                 File.Delete(path);
         }
 
+        public static void StartProcessFromFile(string file)
+        {
+            Process.Start(new ProcessStartInfo("cmd.exe", $"/c {file}")
+            {
+                CreateNoWindow = true,
+            });
+        }
+
+        public static void OpenWebsite(string url)
+        {
+            Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
+            {
+                CreateNoWindow = true,
+            });
+        }
 
         public static bool IsInPath(this string path, string parent)
         {
             return path.ToLower().TrimEnd('\\').StartsWith(parent.ToLower().TrimEnd('\\') + "\\");
-        }
-
-        public static HashSet<T> ToHashSet<T>(this IEnumerable<T> coll)
-        {
-            return new HashSet<T>(coll);
-        }
-        
-        public static HashSet<T> ToHashSet<T>(this T[] coll)
-        {
-            var hs = new HashSet<T>();
-            coll.Do(v => hs.Add(v));
-            return hs;
         }
 
         public class NexusErrorResponse

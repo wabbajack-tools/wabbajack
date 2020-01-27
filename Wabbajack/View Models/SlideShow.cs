@@ -121,7 +121,7 @@ namespace Wabbajack
             VisitNexusSiteCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
-                    Process.Start(TargetMod.ModURL);
+                    Utils.OpenWebsite(TargetMod.ModURL);
                     return Unit.Default;
                 },
                 canExecute: this.WhenAny(x => x.TargetMod.ModURL)

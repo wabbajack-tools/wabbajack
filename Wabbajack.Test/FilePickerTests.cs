@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using DynamicData;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
-using Wabbajack.Lib;
+using Wabbajack;
 
 namespace Wabbajack.Test
 {

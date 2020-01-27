@@ -163,7 +163,7 @@ namespace Wabbajack
             ModlistSettings?.Save();
         }
 
-        public async Task<bool> Compile()
+        public async Task<GetResponse<ModList>> Compile()
         {
             string outputFile;
             if (string.IsNullOrWhiteSpace(Parent.OutputLocation.TargetPath))
@@ -194,7 +194,8 @@ namespace Wabbajack
                 {
                     Parent.MWVM.Settings.Performance.AttachToBatchProcessor(ActiveCompilation);
 
-                    return await ActiveCompilation.Begin();
+                    var success = await ActiveCompilation.Begin();
+                    return GetResponse<ModList>.Create(success, ActiveCompilation.ModList);
                 }
             }
             finally

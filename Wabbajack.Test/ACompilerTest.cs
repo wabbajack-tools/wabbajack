@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -39,7 +38,6 @@ namespace Wabbajack.Test
                 mo2Folder: utils.MO2Folder,
                 mo2Profile: profile,
                 outputFile: profile + Consts.ModListExtension);
-            compiler.ShowReportWhenFinished = false;
             Assert.IsTrue(await compiler.Begin());
             return compiler;
         }

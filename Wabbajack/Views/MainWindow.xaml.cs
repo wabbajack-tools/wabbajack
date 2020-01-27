@@ -30,7 +30,7 @@ namespace Wabbajack
 
             Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
 
-            // Run some init tasks in background
+            // Run logic to associate wabbajack lists with this app in the background
             Task.Run(async () =>
             {
                 var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;

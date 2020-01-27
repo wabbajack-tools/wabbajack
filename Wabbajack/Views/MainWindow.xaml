@@ -16,9 +16,9 @@
     RenderOptions.BitmapScalingMode="HighQuality"
     ResizeMode="CanResize"
     Style="{StaticResource {x:Type Window}}"
-    TitlebarHeight="25"
+    TitleBarHeight="25"
     UseLayoutRounding="True"
-    WindowStyle="ToolWindow"
+    WindowTitleBrush="{StaticResource MahApps.Brushes.Accent}"
     mc:Ignorable="d">
     <ContentPresenter Content="{Binding ActivePane}">
         <ContentPresenter.Resources>

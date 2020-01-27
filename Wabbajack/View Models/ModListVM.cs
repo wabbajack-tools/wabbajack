@@ -85,7 +85,7 @@ namespace Wabbajack
                 // If ever would return null, show WJ logo instead
                 .Select(x =>
                 {
-                    return x ?? InstallerVM.WabbajackLogo;
+                    return x ?? ResourceLinks.WabbajackLogoNoText.Value;
                 })
                 .Replay(1)
                 .RefCount();
@@ -96,7 +96,7 @@ namespace Wabbajack
             if (string.IsNullOrEmpty(Readme)) return;
             if (SourceModList.ReadmeIsWebsite)
             {
-                Process.Start(Readme);
+                Utils.OpenWebsite(Readme);
             }
             else
             {

@@ -12,6 +12,6 @@ namespace Wabbajack
         ModlistSettingsEditorVM ModlistSettings { get; }
         void Unload();
         IObservable<bool> CanCompile { get; }
-        Task<bool> Compile();
+        Task<GetResponse<ModList>> Compile();
     }
 }

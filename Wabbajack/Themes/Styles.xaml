@@ -61,43 +61,39 @@
     <Color x:Key="Triadic2">#FCBB86</Color>
 
     <!--  Mahapps overrides  -->
-    <Color x:Key="AccentBaseColor">#FF3700B3</Color>
+    <Color x:Key="MahApps.Colors.AccentBase">#FF3700B3</Color>
     <!--  80%  -->
-    <Color x:Key="AccentColor">#CC868CFC</Color>
+    <Color x:Key="MahApps.Colors.Accent">#CC868CFC</Color>
     <!--  60%  -->
-    <Color x:Key="AccentColor2">#99868CFC</Color>
+    <Color x:Key="MahApps.Colors.Accent2">#99868CFC</Color>
     <!--  40%  -->
-    <Color x:Key="AccentColor3">#66868CFC</Color>
+    <Color x:Key="MahApps.Colors.Accent3">#66868CFC</Color>
     <!--  20%  -->
-    <Color x:Key="AccentColor4">#33868CFC</Color>
+    <Color x:Key="MahApps.Colors.Accent4">#33868CFC</Color>
     <SolidColorBrush
-        x:Key="HighlightBrush"
+        x:Key="MahApps.Brushes.Highlight"
         options:Freeze="True"
-        Color="{StaticResource HighlightColor}" />
+        Color="{StaticResource MahApps.Colors.Highlight}" />
     <SolidColorBrush
-        x:Key="AccentBaseColorBrush"
+        x:Key="MahApps.Brushes.AccentBase"
         options:Freeze="True"
-        Color="{StaticResource AccentBaseColor}" />
+        Color="{StaticResource MahApps.Colors.AccentBase}" />
     <SolidColorBrush
-        x:Key="AccentColorBrush"
+        x:Key="MahApps.Brushes.Accent"
         options:Freeze="True"
-        Color="{StaticResource AccentColor}" />
+        Color="{StaticResource MahApps.Colors.Accent}" />
     <SolidColorBrush
-        x:Key="AccentColorBrush2"
+        x:Key="MahApps.Brushes.Accent2"
         options:Freeze="True"
-        Color="{StaticResource AccentColor2}" />
+        Color="{StaticResource MahApps.Colors.Accent2}" />
     <SolidColorBrush
-        x:Key="AccentColorBrush3"
+        x:Key="MahApps.Brushes.Accent3"
         options:Freeze="True"
-        Color="{StaticResource AccentColor3}" />
+        Color="{StaticResource MahApps.Colors.Accent3}" />
     <SolidColorBrush
-        x:Key="AccentColorBrush4"
+        x:Key="MahApps.Brushes.Accent4"
         options:Freeze="True"
-        Color="{StaticResource AccentColor4}" />
-    <SolidColorBrush
-        x:Key="WindowTitleColorBrush"
-        options:Freeze="True"
-        Color="{StaticResource AccentColor}" />
+        Color="{StaticResource MahApps.Colors.Accent4}" />
 
     <!--  Brushes  -->
     <SolidColorBrush x:Key="YellowBrush" Color="{StaticResource Yellow}" />
@@ -1281,7 +1277,7 @@
 
     <Style
         x:Key="CircleButtonStyle"
-        BasedOn="{StaticResource MahApps.Metro.Styles.MetroCircleButtonStyle}"
+        BasedOn="{StaticResource MahApps.Styles.Button.Circle}"
         TargetType="ButtonBase">
         <Setter Property="Focusable" Value="False" />
         <Setter Property="Background" Value="#333333" />
@@ -1295,7 +1291,7 @@
 
     <Style
         x:Key="IconCircleButtonStyle"
-        BasedOn="{StaticResource MahApps.Metro.Styles.MetroCircleButtonStyle}"
+        BasedOn="{StaticResource MahApps.Styles.Button.Circle}"
         TargetType="ButtonBase">
         <Setter Property="Focusable" Value="False" />
         <Setter Property="BorderBrush" Value="Transparent" />
@@ -1307,7 +1303,7 @@
             </Trigger>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="#333333" />
-                <Setter Property="BorderBrush" Value="{StaticResource GrayBrush7}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Gray7}" />
                 <Setter Property="Foreground" Value="{StaticResource IntenseComplementaryBrush}" />
             </Trigger>
         </Style.Triggers>
@@ -1337,7 +1333,7 @@
                 <Setter Property="Background" Value="Transparent" />
             </Trigger>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="BorderBrush" Value="{StaticResource GrayBrush7}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MahApps.Brushes.Gray7}" />
                 <Setter Property="Foreground" Value="{StaticResource IntenseComplementaryBrush}" />
                 <Setter Property="Background" Value="Transparent" />
             </Trigger>
@@ -3509,9 +3505,7 @@
     </Style>
     <Style BasedOn="{StaticResource MainFilePickerStyle}" TargetType="{x:Type local:FilePicker}" />
 
-    <Style BasedOn="{StaticResource MetroTabControl}" TargetType="TabControl" />
-    <Style BasedOn="{StaticResource MetroTabItem}" TargetType="{x:Type TabItem}" />
-
-    <sys:Double x:Key="TabItemFontSize">18</sys:Double>
+    <Style BasedOn="{StaticResource MahApps.Styles.TabControl}" TargetType="TabControl" />
+    <Style BasedOn="{StaticResource MahApps.Styles.TabItem}" TargetType="{x:Type TabItem}" />
 
 </ResourceDictionary>
