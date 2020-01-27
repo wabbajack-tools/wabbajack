@@ -339,6 +339,31 @@ namespace Wabbajack.Test
             Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
         }
 
+        /* WAITING FOR APPROVAL BY MODERATOR (you need to have your submitted file approved before it goes live)
+         [TestMethod]
+        public async Task DeadlyStreamDownloader()
+        {
+            await DownloadDispatcher.GetInstance<DeadlyStreamDownloader>().Prepare();
+            const string ini = "[General]\n" +
+                               "directURL=https://deadlystream.com/files/file/1550-wabbajack-test-file/";
+
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.IsNotNull(state);
+
+            var converted = await state.RoundTripState();
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
+            var filename = Guid.NewGuid().ToString();
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            await converted.Download(new Archive { Name = "DeadlyStream Test.zip" }, filename);
+
+            Assert.AreEqual("eSIyd+KOG3s=", filename.FileHash());
+
+            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+        }*/
+
         [TestMethod]
         public async Task GameFileSourceDownload()
         {
