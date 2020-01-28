@@ -44,6 +44,9 @@ steps:
     testFiltercriteria: 'TestCategory!=ListValidation'
     runInParallel: true
     otherConsoleOptions: /Framework:netcoreapp3.1
+    testAssemblyVer2: |
+      **\*.Test.dll
+
 - task: DownloadSecureFile@1
   inputs:
     secureFile: 'CertFile.p12'
