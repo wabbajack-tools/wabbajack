@@ -53,7 +53,7 @@ steps:
   inputs:
     command: 'test'
     projects: '**/*.Test.csproj'
-    arguments: '-r win10-x64'
+    arguments: '/p:Platform=x64'
 
 - task: DownloadSecureFile@1
   inputs:
