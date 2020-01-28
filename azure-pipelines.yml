@@ -46,6 +46,8 @@ steps:
     otherConsoleOptions: /Framework:netcoreapp3.1
     testAssemblyVer2: |
       **\*.Test.dll
+    diagnosticsEnabled: true
+    collectDumpOn: 'always'      
 
 - task: DownloadSecureFile@1
   inputs:
