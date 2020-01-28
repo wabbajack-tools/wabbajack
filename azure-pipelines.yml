@@ -37,17 +37,22 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-- task: VSTest@2
+#- task: VSTest@2
+#  inputs:
+#    platform: '$(buildPlatform)'
+#    configuration: '$(buildConfiguration)'
+#    testFiltercriteria: 'TestCategory!=ListValidation'
+#    runInParallel: true
+#    otherConsoleOptions: /Framework:netcoreapp3.1
+#    testAssemblyVer2: |
+#      **\*.Test.dll
+#    diagnosticsEnabled: true
+#    collectDumpOn: 'always'      
+
+- task: DotNetCoreCLI@2
   inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-    testFiltercriteria: 'TestCategory!=ListValidation'
-    runInParallel: true
-    otherConsoleOptions: /Framework:netcoreapp3.1
-    testAssemblyVer2: |
-      **\*.Test.dll
-    diagnosticsEnabled: true
-    collectDumpOn: 'always'      
+    command: 'test'
+    projects: '**/*.Test.csproj'
 
 - task: DownloadSecureFile@1
   inputs:
