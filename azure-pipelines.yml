@@ -63,7 +63,7 @@ steps:
   inputs:
     secureFileId: 'CertFile.p12'
     signCertPassword: '$(CertPassword)'
-    files: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
+    files: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/netcoreapp3.1/Wabbajack.exe'
     timeServer: 'http://timestamp.digicert.com'
     hashingAlgorithm: 'SHA256'
     description: 'Wabbajack Modlist Installer'
@@ -88,9 +88,9 @@ steps:
 #      print(response.json())
 #    arguments: '$(VirusTotalAPIKey) $(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
 #
-- task: PublishBuildArtifacts@1
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
-  inputs:
-    PathtoPublish: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
-    ArtifactName: 'Wabbajack.exe'
-    publishLocation: 'Container'
+#- task: PublishBuildArtifacts@1
+#  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+#  inputs:
+#    PathtoPublish: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
+#    ArtifactName: 'Wabbajack.exe'
+#    publishLocation: 'Container'
