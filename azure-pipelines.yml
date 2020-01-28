@@ -88,9 +88,9 @@ steps:
 #      print(response.json())
 #    arguments: '$(VirusTotalAPIKey) $(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
 #
-#- task: PublishBuildArtifacts@1
-#  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
-#  inputs:
-#    PathtoPublish: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
-#    ArtifactName: 'Wabbajack.exe'
-#    publishLocation: 'Container'
+- task: PublishBuildArtifacts@1
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+  inputs:
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/netcoreapp3.1'
+    ArtifactName: 'Wabbajack.exe'
+    publishLocation: 'Container'
