@@ -18,22 +18,6 @@ namespace Wabbajack.Common
 {
     public class FileExtractor
     {
-        static FileExtractor()
-        {
-            ExtractResource("Wabbajack.Common.7z.dll.gz", "7z.dll");
-            ExtractResource("Wabbajack.Common.7z.exe.gz", "7z.exe");
-            ExtractResource("Wabbajack.Common.innounp.exe.gz", "innounp.exe");
-        }
-
-        private static void ExtractResource(string from, string to)
-        {
-            using (var ous = File.Open(to, System.IO.FileMode.Create))
-            using (var ins = new GZipInputStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(from)))
-            {
-                ins.CopyTo(ous);
-            }
-        }
-
 
         public static async Task ExtractAll(WorkQueue queue, string source, string dest)
         {
@@ -60,7 +44,7 @@ namespace Wabbajack.Common
 
             var info = new ProcessStartInfo
             {
-                FileName = "innounp.exe",
+                FileName = @"Extractors\innounp.exe",
                 Arguments = $"-x -y -b -d\"{dest}\" \"{source}\"",
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
@@ -160,7 +144,7 @@ namespace Wabbajack.Common
 
             var info = new ProcessStartInfo
             {
-                FileName = "7z.exe",
+                FileName = @"Extractors\7z.exe",
                 Arguments = $"x -bsp1 -y -o\"{dest}\" \"{source}\"",
                 RedirectStandardError = true,
                 RedirectStandardInput = true,

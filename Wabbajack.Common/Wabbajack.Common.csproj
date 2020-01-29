@@ -8,11 +8,21 @@
         <None Remove="7z.dll.gz" />
         <None Remove="7z.exe.gz" />
         <None Remove="innounp.exe.gz" />
-    </ItemGroup>
-    <ItemGroup>
-        <EmbeddedResource Include="7z.dll.gz" />
-        <EmbeddedResource Include="7z.exe.gz" />
-        <EmbeddedResource Include="innounp.exe.gz" />
+        <None Update="7Zip\7z.dll">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="7Zip\7z.exe">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Extractors\innounp.exe">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Extractors\7z.exe">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Extractors\7z.dll">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
     <ItemGroup>
         <Folder Include="KnownFolders\" />
@@ -24,7 +34,7 @@
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
         <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-        <PackageReference Include="ReactiveUI" Version="11.1.12" />
+        <PackageReference Include="ReactiveUI" Version="11.1.23" />
         <PackageReference Include="SharpZipLib" Version="1.2.0" />
         <PackageReference Include="System.Data.HashFunction.xxHash" Version="2.0.0" />
         <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.7.0" />
