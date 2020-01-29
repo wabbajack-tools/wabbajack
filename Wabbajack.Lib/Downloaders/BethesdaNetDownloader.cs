@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
@@ -26,21 +27,16 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class BethesdaNetDownloader : IUrlDownloader, INeedsLogin
     {
-        public const string DataName = "BethesdaNetData";
+        public const string DataName = "bethesda-net-data";
         public BethesdaNetDownloader()
         {
-            TriggerLogin = ReactiveCommand.Create(async () => await Utils.Log(new RequestBethesdaNetLogin()).Task, IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
+            TriggerLogin = ReactiveCommand.CreateFromTask(() => Utils.CatchAndLog(RequestLoginAndCache), IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
             ClearLogin = ReactiveCommand.Create(() => Utils.DeleteEncryptedJson(DataName), IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
+        }
 
-            if (File.Exists("bethnetlogin.exe")) return;
-
-            using (var os = File.OpenWrite("bethnetlogin.exe"))
-            using (var i = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.Lib.Downloaders.BethesdaNet.bethnetlogin.exe"))
-            {
-                i.CopyTo(os);
-            }
-
-
+        private static async Task RequestLoginAndCache()
+        {
+            var result = await Utils.Log(new RequestBethesdaNetLogin()).Task;
         }
 
         public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
@@ -66,14 +62,16 @@ namespace Wabbajack.Lib.Downloaders
         public static async Task<BethesdaNetData> Login()
         {
             var game = Path.Combine(Game.SkyrimSpecialEdition.MetaData().GameLocation(), "SkyrimSE.exe");
-            var info = new ProcessStartInfo();
-            info.FileName = "bethnetlogin.exe";
-            info.Arguments = $"\"{game}\" SkyrimSE.exe";
-            info.RedirectStandardError = true;
-            info.RedirectStandardInput = true;
-            info.RedirectStandardOutput = true;
-            info.UseShellExecute = false;
-            info.CreateNoWindow = true;
+            var info = new ProcessStartInfo
+            {
+                FileName = @"Downloaders\BethesdaNet\bethnetlogin.exe",
+                Arguments = $"\"{game}\" SkyrimSE.exe",
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
             var process = Process.Start(info);
             ChildProcessTracker.AddProcess(process);
             string last_line = "";
@@ -100,7 +98,7 @@ namespace Wabbajack.Lib.Downloaders
         public ReactiveCommand<Unit, Unit> ClearLogin { get; }
         public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable(DataName);
         public string SiteName => "Bethesda.NET";
-        public IObservable<string> MetaInfo => "Wabbajack will start the game, then exit once you enter the Mods page";
+        public IObservable<string> MetaInfo => Observable.Return(""); //"Wabbajack will start the game, then exit once you enter the Mods page";
         public Uri SiteURL => new Uri("https://bethesda.net");
         public Uri IconUri { get; }
 
@@ -108,7 +106,7 @@ namespace Wabbajack.Lib.Downloaders
         {
             public string GameName { get; set; }
             public string ContentId { get; set; }
-            public override object[] PrimaryKey { get; }
+            public override object[] PrimaryKey => new object[] {GameName, ContentId};
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -118,30 +116,65 @@ namespace Wabbajack.Lib.Downloaders
             public override async Task<bool> Download(Archive a, string destination)
             {
                 var (client, info, collected) = await ResolveDownloadInfo();
-                using (var file = File.OpenWrite(destination))
+                using var tf = new TempFile();
+                await using var file = tf.File.Create();
+                var max_chunks = info.depot_list[0].file_list[0].chunk_count;
+                foreach (var chunk in info.depot_list[0].file_list[0].chunk_list.OrderBy(c => c.index))
                 {
+                    Utils.Status($"Downloading {a.Name}", chunk.index * 100 / max_chunks);
+                    var got = await client.GetAsync(
+                        $"https://content.cdp.bethesda.net/{collected.CDPProductId}/{collected.CDPPropertiesId}/{chunk.sha}");
+                    var data = await got.Content.ReadAsByteArrayAsync();
+                    AESCTRDecrypt(collected.AESKey, collected.AESIV, data);
 
-                    var max_chunks = info.depot_list[0].file_list[0].chunk_count;
-                    foreach (var chunk in info.depot_list[0].file_list[0].chunk_list.OrderBy(c => c.index))
+                    if (chunk.uncompressed_size == chunk.chunk_size)
+                        await file.WriteAsync(data, 0, data.Length);
+                    else
                     {
-                        Utils.Status($"Downloading {a.Name}", chunk.index * 100 / max_chunks);
-                        var got = await client.GetAsync(
-                            $"https://content.cdp.bethesda.net/{collected.CDPProductId}/{collected.CDPPropertiesId}/{chunk.sha}");
-                        var data = await got.Content.ReadAsByteArrayAsync();
-                        AESCTRDecrypt(collected.AESKey, collected.AESIV, data);
-                        
-                        if (chunk.uncompressed_size == chunk.chunk_size)
-                            await file.WriteAsync(data, 0, data.Length);
-                        else
-                        {
-                            using (var ms = new MemoryStream(data))
-                            using (var zlibStream = new ICSharpCode.SharpZipLib.Zip.Compression.Streams.InflaterInputStream(ms))
-                                await zlibStream.CopyToAsync(file);
-                        }
+                        using (var ms = new MemoryStream(data))
+                        using (var zlibStream =
+                            new ICSharpCode.SharpZipLib.Zip.Compression.Streams.InflaterInputStream(ms))
+                            await zlibStream.CopyToAsync(file);
                     }
                 }
+                file.Close();
+                await ConvertCKMToZip(file.Name, destination);
 
                 return true;
+            }
+
+
+            private const uint CKM_Magic = 0x52415442; // BTAR
+            private async Task ConvertCKMToZip(string src, string dest)
+            {
+                using var reader = new BinaryReader(File.OpenRead(src));
+                var magic = reader.ReadUInt32();
+                if (magic != CKM_Magic)
+                    throw new InvalidDataException("Invalid magic format in CKM parsing");
+
+                ushort majorVersion = reader.ReadUInt16();
+                ushort minorVersion = reader.ReadUInt16();
+                if (majorVersion != 1)
+                    throw new InvalidDataException("Archive major version is unknown. Should be 1.");
+
+                if (minorVersion < 2 || minorVersion > 4)
+                    throw new InvalidDataException("Archive minor version is unknown. Should be 2, 3, or 4.");
+
+                await using var fos = File.Create(dest);
+                using var archive = new ZipArchive(fos, ZipArchiveMode.Create);
+                while (reader.PeekChar() != -1)
+                {
+                    ushort nameLength = reader.ReadUInt16();
+                    string name = Encoding.UTF8.GetString(reader.ReadBytes(nameLength));
+                    ulong dataLength = reader.ReadUInt64();
+
+                    if (dataLength > int.MaxValue)
+                        throw new Exception();
+
+                    var entry = archive.CreateEntry(name, CompressionLevel.NoCompression);
+                    await using var output = entry.Open();
+                    await reader.BaseStream.CopyToLimitAsync(output, (long)dataLength);
+                }
             }
 
             public override async Task<bool> Verify(Archive archive)
@@ -286,7 +319,7 @@ namespace Wabbajack.Lib.Downloaders
 
     public class RequestBethesdaNetLogin : AUserIntervention
     {
-        public override string ShortDescription => "Getting LoversLab information";
+        public override string ShortDescription => "Logging into Bethesda.NET";
         public override string ExtendedDescription { get; }
 
         private readonly TaskCompletionSource<BethesdaNetData> _source = new TaskCompletionSource<BethesdaNetData>();

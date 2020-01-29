@@ -66,6 +66,10 @@ namespace Wabbajack
                         c.Resume(key);
                     });
                     break;
+                case RequestBethesdaNetLogin c:
+                    var data = await BethesdaNetDownloader.Login();
+                    c.Resume(data);
+                    break;
                 case AbstractNeedsLoginDownloader.RequestSiteLogin c:
                     await WrapBrowserJob(msg, async (vm, cancel) =>
                     {

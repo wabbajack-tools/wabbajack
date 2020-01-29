@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Compression;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Reactive.Linq;
 using Alphaleonis.Win32.Filesystem;
@@ -420,11 +422,9 @@ namespace Wabbajack.Test
             Assert.IsTrue(await downloader.IsLoggedIn.FirstAsync());
 
             var ini = $@"[General]
-                              directURL=https://bethesda.net/en/mods/fallout4/mod-detail/4145641";
-            /*var ini = $@"[General]
-                                directURL=https://bethesda.net/en/mods/fallout4/mod-detail/3411824";*/
+                              directURL=https://bethesda.net/en/mods/skyrim/mod-detail/4145641";
 
-
+            var filename = Guid.NewGuid().ToString();
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
             Assert.IsNotNull(state);
 
@@ -433,7 +433,12 @@ namespace Wabbajack.Test
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = "mod.ckm" }, "c:\\tmp\\mod.ckm");
+            await converted.Download(new Archive { Name = "mod.zip" }, filename);
+
+            await using var fs = File.OpenRead(filename);
+            using var archive = new ZipArchive(fs);
+            var entries = archive.Entries.Select(e => e.FullName).ToList();
+            CollectionAssert.AreEqual(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});
         }
 
 

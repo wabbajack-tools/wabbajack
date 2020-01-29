@@ -25,7 +25,8 @@ namespace Wabbajack.Lib.Downloaders
             typeof(VectorPlexusDownloader.State),
             typeof(DeadlyStreamDownloader.State),
             typeof(AFKModsDownloader.State),
-            typeof(TESAllianceDownloader.State)
+            typeof(TESAllianceDownloader.State),
+            typeof(BethesdaNetDownloader.State)
         };
         public static Dictionary<string, Type> NameToType { get; set; }
         public static Dictionary<Type, string> TypeToName { get; set; }
