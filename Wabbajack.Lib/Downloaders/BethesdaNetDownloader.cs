@@ -42,6 +42,11 @@ namespace Wabbajack.Lib.Downloaders
         public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             var url = (Uri)DownloaderUtils.GetDirectURL(archiveINI);
+            return StateFromUrl(url);
+        }
+
+        private static AbstractDownloadState StateFromUrl(Uri url)
+        {
             if (url != null && url.Host == "bethesda.net" && url.AbsolutePath.StartsWith("/en/mods/"))
             {
                 var split = url.AbsolutePath.Split('/');
@@ -49,7 +54,6 @@ namespace Wabbajack.Lib.Downloaders
                 var modId = split[5];
                 return new State {GameName = game, ContentId = modId};
             }
-
             return null;
         }
 
@@ -90,7 +94,7 @@ namespace Wabbajack.Lib.Downloaders
 
         public AbstractDownloadState GetDownloaderState(string url)
         {
-            throw new NotImplementedException();
+            return StateFromUrl(new Uri(url));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
