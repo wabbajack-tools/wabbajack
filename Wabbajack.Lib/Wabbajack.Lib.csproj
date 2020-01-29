@@ -6,10 +6,10 @@
     </PropertyGroup>
     <ItemGroup>
       <PackageReference Include="CefSharp.Common">
-        <Version>75.1.143</Version>
+        <Version>79.1.350</Version>
       </PackageReference>
       <PackageReference Include="CefSharp.OffScreen">
-        <Version>75.1.143</Version>
+        <Version>79.1.350</Version>
       </PackageReference>
       <PackageReference Include="Ceras">
         <Version>4.1.7</Version>
@@ -45,10 +45,10 @@
         <Version>2.10.1</Version>
       </PackageReference>
       <PackageReference Include="ReactiveUI">
-        <Version>11.1.12</Version>
+        <Version>11.1.23</Version>
       </PackageReference>
       <PackageReference Include="ReactiveUI.Fody">
-        <Version>11.1.12</Version>
+        <Version>11.1.23</Version>
       </PackageReference>
       <PackageReference Include="SharpCompress">
         <Version>0.24.0</Version>
@@ -79,7 +79,6 @@
     </ItemGroup>
     <ItemGroup>
       <None Remove="LibCefHelpers\cefsharp.7z" />
-      <EmbeddedResource Include="LibCefHelpers\cefsharp.7z" />
       <None Remove="css-min.css" />
       <EmbeddedResource Include="css-min.css" />
       <None Update="Downloaders\BethesdaNet\bethnetlogin.exe">
