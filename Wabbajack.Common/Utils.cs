@@ -1143,6 +1143,20 @@ namespace Wabbajack.Common
         {
             return path.ToLower().TrimEnd('\\').StartsWith(parent.ToLower().TrimEnd('\\') + "\\");
         }
+        
+        public static async Task CopyToLimitAsync(this Stream frm, Stream tw, long limit)
+        {
+            var buff = new byte[1024];
+            while (limit > 0)
+            {
+                var to_read = Math.Min(buff.Length, limit);
+                var read = await frm.ReadAsync(buff, 0, (int)to_read);
+                await tw.WriteAsync(buff, 0, read);
+                limit -= read;
+            }
+
+            tw.Flush();
+        }
 
         public class NexusErrorResponse
         {
