@@ -5,6 +5,9 @@
         <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
     <ItemGroup>
+      <PackageReference Include="BouncyCastle.Crypto.dll">
+        <Version>1.8.1</Version>
+      </PackageReference>
       <PackageReference Include="CefSharp.Common">
         <Version>75.1.143</Version>
       </PackageReference>
@@ -79,5 +82,11 @@
       <EmbeddedResource Include="LibCefHelpers\cefsharp.7z" />
       <None Remove="css-min.css" />
       <EmbeddedResource Include="css-min.css" />
+      <None Update="Downloaders\BethesdaNet\bethnetlogin.exe">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Downloaders\BethesdaNet" />
     </ItemGroup>
 </Project>

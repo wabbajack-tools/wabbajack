@@ -411,6 +411,31 @@ namespace Wabbajack.Test
             CollectionAssert.AreEqual(File.ReadAllBytes(Path.Combine(Game.SkyrimSpecialEdition.MetaData().GameLocation(), "Data/Update.esm")), File.ReadAllBytes(filename));
             Consts.TestMode = true;
         }
+        
+        [TestMethod]
+        public async Task BethesdaNetDownload()
+        {
+
+            var downloader = DownloadDispatcher.GetInstance<BethesdaNetDownloader>();
+            Assert.IsTrue(await downloader.IsLoggedIn.FirstAsync());
+
+            var ini = $@"[General]
+                              directURL=https://bethesda.net/en/mods/fallout4/mod-detail/4145641";
+            /*var ini = $@"[General]
+                                directURL=https://bethesda.net/en/mods/fallout4/mod-detail/3411824";*/
+
+
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            Assert.IsNotNull(state);
+
+            var converted = state.ViaJSON();
+            Assert.IsTrue(await converted.Verify(new Archive {Name = "mod.ckm"}));
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            await converted.Download(new Archive { Name = "mod.ckm" }, "c:\\tmp\\mod.ckm");
+        }
+
 
     }
 
