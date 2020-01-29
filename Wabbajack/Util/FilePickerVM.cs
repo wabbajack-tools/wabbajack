@@ -245,7 +245,7 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(ErrorTooltip));
         }
 
-        public ICommand ConstructTypicalPickerCommand()
+        public ICommand ConstructTypicalPickerCommand(IObservable<bool> canExecute = null)
         {
             return ReactiveCommand.Create(
                 execute: () =>
@@ -280,7 +280,7 @@ namespace Wabbajack
                     }
                     if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
                     TargetPath = dlg.FileName;
-                });
+                }, canExecute: canExecute);
         }
     }
 }

@@ -16,15 +16,20 @@ namespace Wabbajack.BuildServer.Model.Models
     public class SqlService
     {
         private IConfiguration _configuration;
-        private IDbConnection _conn;
+        private AppSettings _settings;
 
-        public SqlService(AppSettings configuration)
+        public SqlService(AppSettings settings)
         {
-            _conn = new SqlConnection(configuration.SqlConnection);
-            _conn.Open();
+            _settings = settings;
+
         }
 
-        public IDbConnection Connection { get => _conn; }
+        private async Task<SqlConnection> Open()
+        {
+            var conn = new SqlConnection(_settings.SqlConnection);
+            await conn.OpenAsync();
+            return conn;
+        }
 
         public async Task MergeVirtualFile(VirtualFile vfile)
         {
@@ -36,7 +41,8 @@ namespace Wabbajack.BuildServer.Model.Models
             files = files.DistinctBy(f => f.Hash).ToList();
             contents = contents.DistinctBy(c => (c.Parent, c.Path)).ToList();
 
-            await Connection.ExecuteAsync("dbo.MergeIndexedFiles", new {Files = files.ToDataTable(), Contents = contents.ToDataTable()},
+            await using var conn = await Open();
+            await conn.ExecuteAsync("dbo.MergeIndexedFiles", new {Files = files.ToDataTable(), Contents = contents.ToDataTable()},
                 commandType: CommandType.StoredProcedure);
         }
         
@@ -72,7 +78,8 @@ namespace Wabbajack.BuildServer.Model.Models
 
         public async Task<bool> HaveIndexdFile(string hash)
         {
-            var row = await Connection.QueryAsync(@"SELECT * FROM IndexedFile WHERE Hash = @Hash",
+            await using var conn = await Open();
+            var row = await conn.QueryAsync(@"SELECT * FROM IndexedFile WHERE Hash = @Hash",
                 new {Hash = BitConverter.ToInt64(hash.FromBase64())});
             return row.Any();
         }
@@ -97,8 +104,8 @@ namespace Wabbajack.BuildServer.Model.Models
         /// <returns></returns>
         public async Task<IndexedVirtualFile> AllArchiveContents(long hash)
         {
-
-            var files = await Connection.QueryAsync<ArchiveContentsResult>(@"
+            await using var conn = await Open();
+            var files = await conn.QueryAsync<ArchiveContentsResult>(@"
               SELECT 0 as Parent, i.Hash, i.Size, null as Path FROM IndexedFile WHERE Hash = @Hash
               UNION ALL
               SELECT a.Parent, i.Hash, i.Size, a.Path FROM AllArchiveContent a 
