@@ -145,7 +145,7 @@ namespace Wabbajack.Common
             var info = new ProcessStartInfo
             {
                 FileName = @"Extractors\7z.exe",
-                Arguments = $"x -bsp1 -y -o\"{dest}\" \"{source}\"",
+                Arguments = $"x -bsp1 -y -o\"{dest}\" \"{source}\" -mmt=off",
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -243,7 +243,7 @@ namespace Wabbajack.Common
 
             var testInfo = new ProcessStartInfo
             {
-                FileName = "7z.exe",
+                FileName = @"Extractors\7z.exe",
                 Arguments = $"t \"{v}\"",
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
