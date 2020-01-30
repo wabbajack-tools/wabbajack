@@ -16,11 +16,11 @@ namespace Wabbajack.BuildServer.Models
     public class Metric
     {
         [BsonId]
-        public ObjectId Id;
-        public DateTime Timestamp;
-        public string Action;
-        public string Subject;
-        public string MetricsKey;
+        public ObjectId Id { get; set; }
+        public DateTime Timestamp { get; set; }
+        public string Action { get; set; }
+        public string Subject { get; set; }
+        public string MetricsKey { get; set; }
 
         
         public static async Task<IEnumerable<MetricResult>> Report(DBContext db, string grouping)

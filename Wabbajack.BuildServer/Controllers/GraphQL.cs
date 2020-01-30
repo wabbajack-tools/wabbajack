@@ -4,6 +4,7 @@ using GraphQL.Types;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer.GraphQL;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -12,15 +13,18 @@ namespace Wabbajack.BuildServer.Controllers
     [ApiController]
     public class GraphQL : AControllerBase<GraphQL>
     {
-        public GraphQL(ILogger<GraphQL> logger, DBContext db) : base(logger, db)
+        private SqlService _sql;
+
+        public GraphQL(ILogger<GraphQL> logger, DBContext db, SqlService sql) : base(logger, db)
         {
+            _sql = sql;
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] GraphQLQuery query)
         {
             var inputs = query.Variables.ToInputs();
-            var schema = new Schema {Query = new Query(Db), Mutation = new Mutation(Db)};
+            var schema = new Schema {Query = new Query(Db, _sql), Mutation = new Mutation(Db)};
 
             var result = await new DocumentExecuter().ExecuteAsync(_ =>
             {

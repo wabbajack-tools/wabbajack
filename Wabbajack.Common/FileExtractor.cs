@@ -209,7 +209,7 @@ namespace Wabbajack.Common
             {
                 var info = new ProcessStartInfo
                 {
-                    FileName = "innounp.exe",
+                    FileName = @"Extractors\innounp.exe",
                     Arguments = $"-t \"{v}\" ",
                     RedirectStandardError = true,
                     RedirectStandardInput = true,
