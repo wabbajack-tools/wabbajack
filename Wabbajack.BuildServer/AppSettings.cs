@@ -22,5 +22,7 @@ namespace Wabbajack.BuildServer
         public string BunnyCDN_Password { get; set; }
         
         public string SqlConnection { get; set; }
+
+        public int MaxJobs { get; set; } = 2;
     }
 }

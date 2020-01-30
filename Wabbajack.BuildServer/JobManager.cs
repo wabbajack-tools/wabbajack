@@ -32,7 +32,7 @@ namespace Wabbajack.BuildServer
         public void StartJobRunners()
         {
             if (!Settings.JobRunner) return;
-            for (var idx = 0; idx < 2; idx++)
+            for (var idx = 0; idx < Settings.MaxJobs; idx++)
             {
                 Task.Run(async () =>
                 {

@@ -107,7 +107,7 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             await using var conn = await Open();
             var files = await conn.QueryAsync<ArchiveContentsResult>(@"
-              SELECT 0 as Parent, i.Hash, i.Size, null as Path FROM IndexedFile WHERE Hash = @Hash
+              SELECT 0 as Parent, i.Hash, i.Size, null as Path FROM IndexedFile i WHERE Hash = @Hash
               UNION ALL
               SELECT a.Parent, i.Hash, i.Size, a.Path FROM AllArchiveContent a 
               LEFT JOIN IndexedFile i ON i.Hash = a.Child
@@ -118,13 +118,17 @@ namespace Wabbajack.BuildServer.Model.Models
 
             List<IndexedVirtualFile> Build(long parent)
             {
-                return grouped[parent].Select(f => new IndexedVirtualFile
+                if (grouped.TryGetValue(parent, out var children))
                 {
-                    Name = f.Path,
-                    Hash = BitConverter.GetBytes(f.Hash).ToBase64(),
-                    Size = f.Size,
-                    Children = Build(f.Hash)
-                }).ToList();
+                    return children.Select(f => new IndexedVirtualFile
+                    {
+                        Name = f.Path,
+                        Hash = BitConverter.GetBytes(f.Hash).ToBase64(),
+                        Size = f.Size,
+                        Children = Build(f.Hash)
+                    }).ToList();
+                }
+                return new List<IndexedVirtualFile>();
             }
             return Build(0).First();
         }
