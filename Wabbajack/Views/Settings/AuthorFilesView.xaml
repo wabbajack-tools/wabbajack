@@ -24,6 +24,7 @@
             <RowDefinition></RowDefinition> 
             <RowDefinition></RowDefinition> 
             <RowDefinition></RowDefinition> 
+            <RowDefinition></RowDefinition> 
         </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="300"></ColumnDefinition>
@@ -36,10 +37,15 @@
             FontSize="20"
             FontWeight="Bold"
             Text="File Uploader" />
-        <TextBlock Margin="5" Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding AuthorFile.SelectedFile}"></TextBlock>
+        <TextBlock Margin="5" Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding AuthorFile.Picker.TargetPath}"></TextBlock>
         <ProgressBar Margin="5" Grid.Row="2" Grid.ColumnSpan="2" Value="{Binding AuthorFile.UploadProgress, Mode=OneWay}" Minimum="0" Maximum="1"></ProgressBar>
-        <Button Margin="5" Grid.Row="3" Grid.Column="0" Command="{Binding AuthorFile.SelectFile, Mode=OneTime}">Select</Button>
-        <Button Margin="5" Grid.Row="3" Grid.Column="1" Command="{Binding AuthorFile.Upload}">Upload</Button>
+        <TextBlock Margin="5" Grid.Row="3" Grid.ColumnSpan="2">
+            <Hyperlink Command="{Binding AuthorFile.HyperlinkCommand}">
+                <TextBlock Text="{Binding AuthorFile.FinalUrl}"></TextBlock>
+            </Hyperlink>
+        </TextBlock>
+        <Button Margin="5" Grid.Row="4" Grid.Column="0" Command="{Binding AuthorFile.SelectFile, Mode=OneTime}">Select</Button>
+        <Button Margin="5" Grid.Row="4" Grid.Column="1" Command="{Binding AuthorFile.Upload}">Upload</Button>
     </Grid>
         </Border>
 </rxui:ReactiveUserControl>

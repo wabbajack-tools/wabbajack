@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using GraphQL;
 using GraphQL.Types;
 using GraphQLParser.AST;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.Common;
 
@@ -12,7 +15,7 @@ namespace Wabbajack.BuildServer.GraphQL
 {
     public class Query : ObjectGraphType
     {
-        public Query(DBContext db)
+        public Query(DBContext db, SqlService sql)
         {
             Field<ListGraphType<JobType>>("unfinishedJobs", resolve: context =>
             {
@@ -68,7 +71,15 @@ namespace Wabbajack.BuildServer.GraphQL
                 resolve: async context =>
                 {
                     var group = context.GetArgument<string>("metric_type");
-                    return await Metric.Report(db, group);
+                    var data = (await sql.MetricsReport(group))
+                                  .GroupBy(m => m.Subject)
+                                  .Select(g => new MetricResult
+                                  {
+                                      SeriesName = g.Key,
+                                      Labels = g.Select(m => m.Date.ToString()).ToList(),
+                                      Values = g.Select(m => m.Count).ToList()
+                                  });
+                    return data;
                 });
         }
     }
