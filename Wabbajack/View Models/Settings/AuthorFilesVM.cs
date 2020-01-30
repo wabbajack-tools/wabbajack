@@ -59,7 +59,12 @@ namespace Wabbajack
                 _isUploading.OnNext(true);
                 try
                 {
-                    FinalUrl = await AuthorAPI.UploadFile(Queue, Picker.TargetPath, progress => UploadProgress = progress );
+                    FinalUrl = await AuthorAPI.UploadFile(Queue, Picker.TargetPath,
+                        progress => UploadProgress = progress);
+                }
+                catch (Exception ex)
+                {
+                    FinalUrl = ex.ToString();
                 }
                 finally
                 {
