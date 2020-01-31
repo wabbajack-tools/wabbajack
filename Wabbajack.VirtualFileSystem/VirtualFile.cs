@@ -4,12 +4,10 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using K4os.Hash.Crc;
 using Wabbajack.Common;
-using Wabbajack.Common.CSP;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -182,19 +180,17 @@ namespace Wabbajack.VirtualFileSystem
             if (context.UseExtendedHashes)
                 self.ExtendedHashes = ExtendedHashes.FromFile(abs_path);
 
-            if (FileExtractor.CanExtract(abs_path))
+            if (!FileExtractor.CanExtract(abs_path))
+                return self;
+
+            using (var tempFolder = context.GetTemporaryFolder())
             {
+                await FileExtractor.ExtractAll(context.Queue, abs_path, tempFolder.FullName);
 
-                using (var tempFolder = context.GetTemporaryFolder())
-                {
-                    await FileExtractor.ExtractAll(context.Queue, abs_path, tempFolder.FullName);
+                var list = await Directory.EnumerateFiles(tempFolder.FullName, "*", SearchOption.AllDirectories)
+                    .PMap(context.Queue, abs_src => Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName), false));
 
-                    var list = await Directory.EnumerateFiles(tempFolder.FullName, "*", SearchOption.AllDirectories)
-                                        .PMap(context.Queue, abs_src => Analyze(context, self, abs_src, abs_src.RelativeTo(tempFolder.FullName), false));
-
-                    self.Children = list.ToImmutableList();
-                }
-
+                self.Children = list.ToImmutableList();
             }
 
             return self;
@@ -209,13 +205,10 @@ namespace Wabbajack.VirtualFileSystem
                 if (!response.IsSuccessStatusCode)
                     return null;
 
-                using (var stream = await response.Content.ReadAsStreamAsync())
-                {
-                    return stream.FromJSON<IndexedVirtualFile>();
-                }
-
+                using var stream = await response.Content.ReadAsStreamAsync();
+                return stream.FromJSON<IndexedVirtualFile>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }
@@ -224,10 +217,8 @@ namespace Wabbajack.VirtualFileSystem
 
         public void Write(MemoryStream ms)
         {
-            using (var bw = new BinaryWriter(ms, Encoding.UTF8, true))
-            {
-                Write(bw);
-            }
+            using var bw = new BinaryWriter(ms, Encoding.UTF8, true);
+            Write(bw);
         }
 
         private void Write(BinaryWriter bw)
@@ -244,11 +235,9 @@ namespace Wabbajack.VirtualFileSystem
 
         public static VirtualFile Read(Context context, byte[] data)
         {
-            using (var ms = new MemoryStream(data))
-            using (var br = new BinaryReader(ms))
-            {
-                return Read(context, null, br);
-            }
+            using var ms = new MemoryStream(data);
+            using var br = new BinaryReader(ms);
+            return Read(context, null, br);
         }
 
         private static VirtualFile Read(Context context, VirtualFile parent, BinaryReader br)

@@ -67,7 +67,7 @@ namespace Wabbajack.Lib
                 .DisposeWith(_subs);
             UpdateTracker.Progress.Subscribe(_percentCompleted);
             UpdateTracker.StepName.Subscribe(_textStatus);
-            VFS = new Context(Queue) { UpdateTracker = UpdateTracker };
+            VFS = new Context(Queue, "vfs_compile_cache.bin") { UpdateTracker = UpdateTracker };
         }
 
         /// <summary>

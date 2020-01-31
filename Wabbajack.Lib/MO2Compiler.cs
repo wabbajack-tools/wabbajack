@@ -113,8 +113,8 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Indexing folders");
 
             if (cancel.IsCancellationRequested) return false;
-            await VFS.AddRoots(roots, _vfsCacheName);
-            await VFS.WriteToFile(_vfsCacheName);
+            await VFS.AddRoots(roots);
+            //await VFS.WriteToFile(_vfsCacheName);
             
             if (Directory.Exists(lootPath))
             {
@@ -134,8 +134,8 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Reindexing downloads after meta inferring");
-            await VFS.AddRoot(MO2DownloadsFolder, _vfsCacheName);
-            await VFS.WriteToFile(_vfsCacheName);
+            await VFS.AddRoots(new List<string>{MO2DownloadsFolder});
+            //await VFS.WriteToFile(_vfsCacheName);
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Pre-validating Archives");

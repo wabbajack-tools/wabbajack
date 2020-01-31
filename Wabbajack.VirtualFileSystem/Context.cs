@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
-using Wabbajack.Common.CSP;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = System.IO.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -26,9 +26,8 @@ namespace Wabbajack.VirtualFileSystem
         }
         public const ulong FileVersion = 0x02;
         public const string Magic = "WABBAJACK VFS FILE";
-        public const int AutoSave = 10000;
-
         private const string StagingFolder = "vfs_staging";
+
         public IndexRoot Index { get; private set; } = IndexRoot.Empty;
 
         /// <summary>
@@ -40,70 +39,52 @@ namespace Wabbajack.VirtualFileSystem
 
         public StatusUpdateTracker UpdateTracker { get; set; } = new StatusUpdateTracker(1);
 
+        private readonly Subject<VirtualFile> _nextIndexedFile = new Subject<VirtualFile>();
+        public IObservable<VirtualFile> IndexingObservable => _nextIndexedFile;
+
+        private readonly FileStream _vfsFileStream;
+        private readonly BinaryWriter _vfsBinaryWriter;
+
         public WorkQueue  Queue { get; }
         public bool UseExtendedHashes { get; set; }
+        public string VFSFile { get; set; }
 
-        public Context(WorkQueue queue, bool extendedHashes = false)
+        public CompositeDisposable CompositeDisposable;
+
+        public Context(WorkQueue queue, string vfsCacheFile, bool extendedHashes = false)
         {
             Queue = queue;
             UseExtendedHashes = extendedHashes;
-        }
+            VFSFile = vfsCacheFile;
 
+            CompositeDisposable = new CompositeDisposable();
+
+            _vfsFileStream = File.Open(VFSFile, FileMode.Create);
+            _vfsBinaryWriter = new BinaryWriter(_vfsFileStream, Encoding.UTF8, true);
+
+            IndexingObservable.Subscribe(AppendToVFS, () =>
+            {
+                //TODO: onComplete
+            }).DisposeWith(CompositeDisposable);
+        }
 
         public TemporaryDirectory GetTemporaryFolder()
         {
             return new TemporaryDirectory(Path.Combine(StagingFolder, Guid.NewGuid().ToString()));
         }
 
-        public async Task<IndexRoot> AddRoot(string root, string filename = null)
+        public void AppendToVFS(VirtualFile file)
         {
-            if (!Path.IsPathRooted(root))
-                throw new InvalidDataException($"Path is not absolute: {root}");
+            var ms = new MemoryStream();
+            file.Write(ms);
 
-            var filtered = Index.AllFiles.Where(file => File.Exists(file.Name)).ToList();
-
-            var byPath = filtered.ToImmutableDictionary(f => f.Name);
-
-            var filesToIndex = Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive).Distinct().ToList();
-            
-            var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing {root}", filesToIndex.Count));
-
-            var count = 0;
-
-            var allFiles = await filesToIndex
-                .PMap(Queue, async f =>
-                {
-                    if (!File.Exists(f))
-                        return null;
-
-                    if(filesToIndex.Count >= AutoSave)
-                        count++;
-
-                    //TODO: possible that this never happens because another thread is incrementing count
-                    if (count != 0 && count % AutoSave == 1 && !string.IsNullOrWhiteSpace(filename))
-                        await WriteToFile(filename);
-
-                    if (!byPath.TryGetValue(f, out var found))
-                        return await VirtualFile.Analyze(this, null, f, f, true);
-
-                    var fi = new FileInfo(f);
-                    if (found.LastModified == fi.LastWriteTimeUtc.Ticks && found.Size == fi.Length)
-                        return found;
-
-                    return await VirtualFile.Analyze(this, null, f, f, true);
-                });
-
-            var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles.Where(f => f != null)).ToList());
-
-            lock (this)
-            {
-                Index = newIndex;
-            }
-
-            return newIndex;
+            var size = ms.Position;
+            ms.Position = 0;
+            _vfsBinaryWriter.Write((ulong) size);
+            ms.CopyTo(_vfsFileStream);
         }
 
-        public async Task<IndexRoot> AddRoots(List<string> roots, string filename = null)
+        public async Task<IndexRoot> AddRoots(List<string> roots)
         {
             if (!roots.All(Path.IsPathRooted))
                 throw new InvalidDataException($"Paths are not absolute");
@@ -112,36 +93,37 @@ namespace Wabbajack.VirtualFileSystem
 
             var byPath = filtered.ToImmutableDictionary(f => f.Name);
 
-            var filesToIndex = roots.SelectMany(root => Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive)).ToList();
+            var filesToIndex = roots
+                .SelectMany(root => Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive))
+                .ToList();
 
-            var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing roots", filesToIndex.Count));
+            var allFiles = await filesToIndex.PMap(Queue, async f =>
+            {
+                if (!File.Exists(f))
+                    return null;
 
-            var count = 0;
+                Utils.Status($"Indexing {Path.GetFileName(f)}");
 
-            var allFiles = await filesToIndex
-                .PMap(Queue, async f =>
+                VirtualFile vf;
+
+                if (!byPath.TryGetValue(f, out var found))
                 {
-                    if (!File.Exists(f))
-                        return null;
+                    vf = await VirtualFile.Analyze(this, null, f, f, true);
+                    _nextIndexedFile.OnNext(vf);
+                    return vf;
+                }
 
-                    if(filesToIndex.Count >= AutoSave)
-                        count++;
+                var fi = new FileInfo(f);
+                if (found.LastModified == fi.LastWriteTimeUtc.Ticks && found.Size == fi.Length)
+                {
+                    _nextIndexedFile.OnNext(found);
+                    return found;
+                }
 
-                    //TODO: possible that this never happens because another thread is incrementing count
-                    if (count != 0 && count % AutoSave == 1 && !string.IsNullOrWhiteSpace(filename))
-                            await WriteToFile(filename);
-
-                    Utils.Status($"Indexing {Path.GetFileName(f)}");
-
-                    if (!byPath.TryGetValue(f, out var found))
-                        return await VirtualFile.Analyze(this, null, f, f, true);
-
-                    var fi = new FileInfo(f);
-                    if (found.LastModified == fi.LastWriteTimeUtc.Ticks && found.Size == fi.Length)
-                        return found;
-
-                    return await VirtualFile.Analyze(this, null, f, f, true);
-                });
+                vf = await VirtualFile.Analyze(this, null, f, f, true);
+                _nextIndexedFile.OnNext(vf);
+                return vf;
+            });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles.Where(f => f != null)).ToList());
 
@@ -172,9 +154,9 @@ namespace Wabbajack.VirtualFileSystem
             });
         }
 
-        public async Task WriteToFile(string filename)
+        /*public async Task WriteToFile()
         {
-            using (var fs = File.Open(filename, FileMode.Create))
+            using (var fs = File.Open(VFSFile, FileMode.Create))
             using (var bw = new BinaryWriter(fs, Encoding.UTF8, true))
             {
                 fs.SetLength(0);
@@ -197,9 +179,9 @@ namespace Wabbajack.VirtualFileSystem
                         bw.Write((ulong) size);
                         ms.CopyTo(fs);
                     });
-                Utils.Log($"Wrote {fs.Position.ToFileSizeString()} file as vfs cache file {filename}");
+                Utils.Log($"Wrote {fs.Position.ToFileSizeString()} file as vfs cache file {VFSFile}");
             }
-        }
+        }*/
 
         public async Task IntegrateFromFile(string filename)
         {
