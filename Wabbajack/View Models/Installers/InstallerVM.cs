@@ -1,5 +1,4 @@
-﻿using Syroot.Windows.IO;
-using System;
+﻿using System;
 using ReactiveUI;
 using System.Diagnostics;
 using System.IO;
@@ -21,6 +20,7 @@ using Wabbajack.Common.StatusFeed;
 using System.Reactive;
 using System.Collections.Generic;
 using System.Windows.Input;
+using Wabbajack.Common.IO;
 
 namespace Wabbajack
 {
