@@ -55,7 +55,7 @@ namespace Wabbajack.VirtualFileSystem
             return new TemporaryDirectory(Path.Combine(StagingFolder, Guid.NewGuid().ToString()));
         }
 
-        public async Task<IndexRoot> AddRoot(string root, string filename)
+        public async Task<IndexRoot> AddRoot(string root, string filename = null)
         {
             if (!Path.IsPathRooted(root))
                 throw new InvalidDataException($"Path is not absolute: {root}");
@@ -80,7 +80,7 @@ namespace Wabbajack.VirtualFileSystem
                         count++;
 
                     //TODO: possible that this never happens because another thread is incrementing count
-                    if (count != 0 && count % AutoSave == 1)
+                    if (count != 0 && count % AutoSave == 1 && !string.IsNullOrWhiteSpace(filename))
                         await WriteToFile(filename);
 
                     if (!byPath.TryGetValue(f, out var found))
@@ -103,7 +103,7 @@ namespace Wabbajack.VirtualFileSystem
             return newIndex;
         }
 
-        public async Task<IndexRoot> AddRoots(List<string> roots, string filename)
+        public async Task<IndexRoot> AddRoots(List<string> roots, string filename = null)
         {
             if (!roots.All(Path.IsPathRooted))
                 throw new InvalidDataException($"Paths are not absolute");
@@ -128,7 +128,7 @@ namespace Wabbajack.VirtualFileSystem
                         count++;
 
                     //TODO: possible that this never happens because another thread is incrementing count
-                    if (count != 0 && count % AutoSave == 1)
+                    if (count != 0 && count % AutoSave == 1 && !string.IsNullOrWhiteSpace(filename))
                             await WriteToFile(filename);
 
                     Utils.Status($"Indexing {Path.GetFileName(f)}");
