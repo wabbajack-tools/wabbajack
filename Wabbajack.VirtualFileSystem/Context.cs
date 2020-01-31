@@ -26,7 +26,7 @@ namespace Wabbajack.VirtualFileSystem
         }
         public const ulong FileVersion = 0x02;
         public const string Magic = "WABBAJACK VFS FILE";
-        public const int AutoSave = 500;
+        public const int AutoSave = 10000;
 
         private const string StagingFolder = "vfs_staging";
         public IndexRoot Index { get; private set; } = IndexRoot.Empty;
