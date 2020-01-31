@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <AssemblyName>wabbajack-cli</AssemblyName>
+        <Company>Wabbajack</Company>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CommandLineParser" Version="2.7.82" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+      <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
+    </ItemGroup>
+
+</Project>

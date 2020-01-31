@@ -1082,6 +1082,18 @@ namespace Wabbajack.Common
         public static void ToEcryptedJson<T>(this T data, string key)
         {
             var bytes = Encoding.UTF8.GetBytes(data.ToJSON());
+            bytes.ToEcryptedData(key);
+        }
+
+        public static T FromEncryptedJson<T>(string key)
+        {
+            var decoded = FromEncryptedData(key);
+            return Encoding.UTF8.GetString(decoded).FromJSONString<T>();
+        }
+
+        
+        public static void ToEcryptedData(this byte[] bytes, string key)
+        {
             var encoded = ProtectedData.Protect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
             
             if (!Directory.Exists(Consts.LocalAppDataPath))
@@ -1090,13 +1102,11 @@ namespace Wabbajack.Common
             var path = Path.Combine(Consts.LocalAppDataPath, key);
             File.WriteAllBytes(path, encoded);
         }
-
-        public static T FromEncryptedJson<T>(string key)
+        public static byte[] FromEncryptedData(string key)
         {
             var path = Path.Combine(Consts.LocalAppDataPath, key);
             var bytes = File.ReadAllBytes(path);
-            var decoded = ProtectedData.Unprotect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
-            return Encoding.UTF8.GetString(decoded).FromJSONString<T>();
+            return ProtectedData.Unprotect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
         }
 
         public static bool HaveEncryptedJson(string key)

@@ -19,7 +19,7 @@ namespace Wabbajack.Common
         public static bool Help { get; set; }
     }
 
-    public static class CLI
+    public static class CLIOld
     {
         /// <summary>
         /// Parses the argument and sets the properties of <see cref="CLIArguments"/>
