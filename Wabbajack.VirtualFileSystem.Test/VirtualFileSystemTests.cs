@@ -27,7 +27,7 @@ namespace Wabbajack.VirtualFileSystem.Test
                 Utils.DeleteDirectory(VFS_TEST_DIR);
             Directory.CreateDirectory(VFS_TEST_DIR);
             Queue = new WorkQueue();
-            context = new Context(Queue);
+            context = new Context(Queue, Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
         }
 
         [TestMethod]
@@ -46,7 +46,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         private async Task AddTestRoot()
         {
             await context.AddRoot(VFS_TEST_DIR_FULL);
-            await context.WriteToFile(Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
+            context.WriteToFile();
             await context.IntegrateFromFile(Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
         }
 
@@ -178,7 +178,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             var state = context.GetPortableState(files);
 
-            var new_context = new Context(Queue);
+            var new_context = new Context(Queue, Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
 
             await new_context.IntegrateFromPortable(state,
                 new Dictionary<string, string> {{archive.Hash, archive.FullPath}});

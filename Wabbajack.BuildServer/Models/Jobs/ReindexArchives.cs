@@ -45,7 +45,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                             File.Copy(file, Path.Combine(folder, Path.GetFileName(file)));
 
                             Utils.Log($"({completed}/{total_count}) Analyzing {file}");
-                            var vfs = new Context(queue, true);
+                            var vfs = new Context(queue, "vfs_cache.bin", true);
                             await vfs.AddRoot(folder);
 
                             var root = vfs.Index.ByRootPath.First().Value;

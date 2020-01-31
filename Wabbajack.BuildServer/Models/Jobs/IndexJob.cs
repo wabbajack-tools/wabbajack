@@ -41,7 +41,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
             using (var queue = new WorkQueue())
             {
-                var vfs = new Context(queue, true);
+                var vfs = new Context(queue, "vfs_cache.bin", true);
                 await vfs.AddRoot(Path.Combine(settings.DownloadDir, folder));
                 var archive = vfs.Index.ByRootPath.First().Value;
 
