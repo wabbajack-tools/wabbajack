@@ -114,7 +114,7 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             await VFS.AddRoots(roots);
-            //await VFS.WriteToFile(_vfsCacheName);
+            VFS.WriteToFile();
             
             if (Directory.Exists(lootPath))
             {
@@ -135,7 +135,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Reindexing downloads after meta inferring");
             await VFS.AddRoot(MO2DownloadsFolder);
-            //await VFS.WriteToFile(_vfsCacheName);
+            VFS.WriteToFile();
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Pre-validating Archives");

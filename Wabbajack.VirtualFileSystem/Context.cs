@@ -160,34 +160,12 @@ namespace Wabbajack.VirtualFileSystem
             });
         }
 
-        /*public async Task WriteToFile()
+        public void WriteToFile()
         {
-            using (var fs = File.Open(VFSFile, FileMode.Create))
-            using (var bw = new BinaryWriter(fs, Encoding.UTF8, true))
-            {
-                fs.SetLength(0);
-
-                bw.Write(Encoding.ASCII.GetBytes(Magic));
-                bw.Write(FileVersion);
-                bw.Write((ulong) Index.AllFiles.Count);
-
-                (await Index.AllFiles
-                    .PMap(Queue, f =>
-                    {
-                        var ms = new MemoryStream();
-                        f.Write(ms);
-                        return ms;
-                    }))
-                    .Do(ms =>
-                    {
-                        var size = ms.Position;
-                        ms.Position = 0;
-                        bw.Write((ulong) size);
-                        ms.CopyTo(fs);
-                    });
-                Utils.Log($"Wrote {fs.Position.ToFileSizeString()} file as vfs cache file {VFSFile}");
-            }
-        }*/
+            CompositeDisposable.Dispose();
+            _vfsBinaryWriter.Close();
+            _vfsFileStream.Close();
+        }
 
         public async Task IntegrateFromFile(string filename)
         {
