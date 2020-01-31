@@ -92,6 +92,8 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<IActionResult> GetFile(string xxHashAsBase64)
         {
             var result = await _sql.AllArchiveContents(BitConverter.ToInt64(xxHashAsBase64.FromHex()));
+            if (result == null)
+                return NotFound();
             return Ok(result);
         }
 

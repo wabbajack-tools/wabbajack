@@ -130,7 +130,7 @@ namespace Wabbajack.BuildServer.Model.Models
                 }
                 return new List<IndexedVirtualFile>();
             }
-            return Build(0).First();
+            return Build(0).FirstOrDefault();
         }
 
         public async Task IngestAllMetrics(IEnumerable<Metric> allMetrics)
