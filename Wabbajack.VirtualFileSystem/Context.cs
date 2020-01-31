@@ -84,6 +84,12 @@ namespace Wabbajack.VirtualFileSystem
             ms.CopyTo(_vfsFileStream);
         }
 
+        public async Task<IndexRoot> AddRoot(string root)
+        {
+            // I am lazy
+            return await AddRoots(new List<string> {root});
+        }
+
         public async Task<IndexRoot> AddRoots(List<string> roots)
         {
             if (!roots.All(Path.IsPathRooted))

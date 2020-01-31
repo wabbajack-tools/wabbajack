@@ -134,7 +134,7 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Reindexing downloads after meta inferring");
-            await VFS.AddRoots(new List<string>{MO2DownloadsFolder});
+            await VFS.AddRoot(MO2DownloadsFolder);
             //await VFS.WriteToFile(_vfsCacheName);
 
             if (cancel.IsCancellationRequested) return false;
