@@ -88,9 +88,19 @@ steps:
 #      print(response.json())
 #    arguments: '$(VirusTotalAPIKey) $(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
 #
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/netcoreapp3.1'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    replaceExistingArchive: true
+    verbose: true
+
 - task: PublishBuildArtifacts@1
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
   inputs:
-    PathtoPublish: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/netcoreapp3.1'
-    ArtifactName: 'Wabbajack.exe'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    ArtifactName: 'Wabbajack.zip'
     publishLocation: 'Container'
