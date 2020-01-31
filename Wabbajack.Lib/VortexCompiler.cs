@@ -102,7 +102,7 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Indexing folders");
-            await VFS.AddRoots(roots);
+            await VFS.AddRoots(roots, _vfsCacheName);
             await VFS.WriteToFile(_vfsCacheName);
 
             if (cancel.IsCancellationRequested) return false;

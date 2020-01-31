@@ -22,12 +22,13 @@ namespace Wabbajack.VirtualFileSystem
         static Context()
         {
             Utils.Log("Cleaning VFS, this may take a bit of time");
-            Utils.DeleteDirectory(_stagingFolder);
+            Utils.DeleteDirectory(StagingFolder);
         }
         public const ulong FileVersion = 0x02;
         public const string Magic = "WABBAJACK VFS FILE";
+        public const int AutoSave = 500;
 
-        private static readonly string _stagingFolder = "vfs_staging";
+        private const string StagingFolder = "vfs_staging";
         public IndexRoot Index { get; private set; } = IndexRoot.Empty;
 
         /// <summary>
@@ -51,10 +52,10 @@ namespace Wabbajack.VirtualFileSystem
 
         public TemporaryDirectory GetTemporaryFolder()
         {
-            return new TemporaryDirectory(Path.Combine(_stagingFolder, Guid.NewGuid().ToString()));
+            return new TemporaryDirectory(Path.Combine(StagingFolder, Guid.NewGuid().ToString()));
         }
 
-        public async Task<IndexRoot> AddRoot(string root)
+        public async Task<IndexRoot> AddRoot(string root, string filename)
         {
             if (!Path.IsPathRooted(root))
                 throw new InvalidDataException($"Path is not absolute: {root}");
@@ -67,20 +68,32 @@ namespace Wabbajack.VirtualFileSystem
             
             var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing {root}", filesToIndex.Count));
 
+            var count = 0;
+
             var allFiles = await filesToIndex
-                            .PMap(Queue, async f =>
-                            {
-                                if (byPath.TryGetValue(f, out var found))
-                                {
-                                    var fi = new FileInfo(f);
-                                    if (found.LastModified == fi.LastWriteTimeUtc.Ticks && found.Size == fi.Length)
-                                        return found;
-                                }
+                .PMap(Queue, async f =>
+                {
+                    if (!File.Exists(f))
+                        return null;
 
-                                return await VirtualFile.Analyze(this, null, f, f, true);
-                            });
+                    if(filesToIndex.Count >= AutoSave)
+                        count++;
 
-            var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
+                    //TODO: possible that this never happens because another thread is incrementing count
+                    if (count != 0 && count % AutoSave == 1)
+                        await WriteToFile(filename);
+
+                    if (!byPath.TryGetValue(f, out var found))
+                        return await VirtualFile.Analyze(this, null, f, f, true);
+
+                    var fi = new FileInfo(f);
+                    if (found.LastModified == fi.LastWriteTimeUtc.Ticks && found.Size == fi.Length)
+                        return found;
+
+                    return await VirtualFile.Analyze(this, null, f, f, true);
+                });
+
+            var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles.Where(f => f != null)).ToList());
 
             lock (this)
             {
@@ -90,9 +103,9 @@ namespace Wabbajack.VirtualFileSystem
             return newIndex;
         }
 
-        public async Task<IndexRoot> AddRoots(List<string> roots)
+        public async Task<IndexRoot> AddRoots(List<string> roots, string filename)
         {
-            if (!roots.All(p => Path.IsPathRooted(p)))
+            if (!roots.All(Path.IsPathRooted))
                 throw new InvalidDataException($"Paths are not absolute");
 
             var filtered = Index.AllFiles.Where(file => File.Exists(file.Name)).ToList();
@@ -103,21 +116,34 @@ namespace Wabbajack.VirtualFileSystem
 
             var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing roots", filesToIndex.Count));
 
+            var count = 0;
+
             var allFiles = await filesToIndex
                 .PMap(Queue, async f =>
                 {
+                    if (!File.Exists(f))
+                        return null;
+
+                    if(filesToIndex.Count >= AutoSave)
+                        count++;
+
+                    //TODO: possible that this never happens because another thread is incrementing count
+                    if (count != 0 && count % AutoSave == 1)
+                            await WriteToFile(filename);
+
                     Utils.Status($"Indexing {Path.GetFileName(f)}");
-                    if (byPath.TryGetValue(f, out var found))
-                    {
-                        var fi = new FileInfo(f);
-                        if (found.LastModified == fi.LastWriteTimeUtc.Ticks && found.Size == fi.Length)
-                            return found;
-                    }
+
+                    if (!byPath.TryGetValue(f, out var found))
+                        return await VirtualFile.Analyze(this, null, f, f, true);
+
+                    var fi = new FileInfo(f);
+                    if (found.LastModified == fi.LastWriteTimeUtc.Ticks && found.Size == fi.Length)
+                        return found;
 
                     return await VirtualFile.Analyze(this, null, f, f, true);
                 });
 
-            var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
+            var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles.Where(f => f != null)).ToList());
 
             lock (this)
             {
@@ -127,7 +153,7 @@ namespace Wabbajack.VirtualFileSystem
             return newIndex;
         }
 
-        class Box<T>
+        private class Box<T>
         {
             public T Value { get; set; }
         }
@@ -224,7 +250,7 @@ namespace Wabbajack.VirtualFileSystem
 
             foreach (var group in grouped)
             {
-                var tmpPath = Path.Combine(_stagingFolder, Guid.NewGuid().ToString());
+                var tmpPath = Path.Combine(StagingFolder, Guid.NewGuid().ToString());
                 await FileExtractor.ExtractAll(Queue, group.Key.StagedPath, tmpPath);
                 paths.Add(tmpPath);
                 foreach (var file in group)
@@ -336,7 +362,7 @@ namespace Wabbajack.VirtualFileSystem
 
     public class DisposableList<T> : List<T>, IDisposable
     {
-        private Action _unstage;
+        private readonly Action _unstage;
 
         public DisposableList(Action unstage, IEnumerable<T> files) : base(files)
         {
