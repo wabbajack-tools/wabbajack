@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -38,6 +40,9 @@ namespace Wabbajack.Lib.FileUploader
                 var handler = new HttpClientHandler {MaxConnectionsPerServer = MAX_CONNECTIONS};
                 var client = new HttpClient(handler);
                 var fsize = new FileInfo(filename).Length;
+
+                var hash_task = filename.FileHashAsync();
+                
                 client.DefaultRequestHeaders.Add("X-API-KEY", AuthorAPI.GetAPIKey());
                 var response = await client.PutAsync(UploadURL+$"/{Path.GetFileName(filename)}/start", new StringContent(""));
                 if (!response.IsSuccessStatusCode)
@@ -46,12 +51,18 @@ namespace Wabbajack.Lib.FileUploader
                     return;
                 }
 
+                IEnumerable<long> Blocks(long fsize)
+                {
+                    for (long block = 0; block * BLOCK_SIZE < fsize; block ++)
+                        yield return block;
+                }
+
                 var key = await response.Content.ReadAsStringAsync();
                 long sent = 0;
                 using (var iqueue = new WorkQueue(MAX_CONNECTIONS))
                 {
                     iqueue.Report("Starting Upload", 1);
-                await Enumerable.Range(0, (int)(fsize / BLOCK_SIZE))
+                await Blocks(fsize)
                     .PMap(iqueue, async block_idx =>
                     {
                         if (tcs.Task.IsFaulted) return;
@@ -93,7 +104,8 @@ namespace Wabbajack.Lib.FileUploader
                 if (!tcs.Task.IsFaulted)
                 {
                     progressFn(1.0);
-                    response = await client.PutAsync(UploadURL + $"/{key}/finish", new StringContent(""));
+                    var hash = (await hash_task).FromBase64().ToHex();
+                    response = await client.PutAsync(UploadURL + $"/{key}/finish/{hash}", new StringContent(""));
                     if (response.IsSuccessStatusCode)
                         tcs.SetResult(await response.Content.ReadAsStringAsync());
                     else

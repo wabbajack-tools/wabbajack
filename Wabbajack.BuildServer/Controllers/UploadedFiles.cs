@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace Wabbajack.BuildServer.Controllers
 {
     public class UploadedFiles : AControllerBase<UploadedFiles>
     {
+        private static ConcurrentDictionary<string, AsyncLock> _writeLocks = new ConcurrentDictionary<string, AsyncLock>();
         private AppSettings _settings;
 
         public UploadedFiles(ILogger<UploadedFiles> logger, DBContext db, AppSettings settings) : base(logger, db)
@@ -39,6 +41,9 @@ namespace Wabbajack.BuildServer.Controllers
         {
             var guid = Guid.NewGuid();
             var key = Encoding.UTF8.GetBytes($"{Path.GetFileNameWithoutExtension(Name)}|{guid.ToString()}|{Path.GetExtension(Name)}").ToHex();
+            
+            _writeLocks.GetOrAdd(key, new AsyncLock());
+            
             System.IO.File.Create(Path.Combine("public", "files", key)).Close();
             Utils.Log($"Starting Ingest for {key}");
             return Ok(key);
@@ -52,18 +57,27 @@ namespace Wabbajack.BuildServer.Controllers
             if (!Key.All(a => HexChars.Contains(a)))
                 return BadRequest("NOT A VALID FILENAME");
             Utils.Log($"Writing at position {Offset} in ingest file {Key}");
+            
+            var ms = new MemoryStream();
+            await Request.Body.CopyToAsync(ms);
+            ms.Position = 0;
+            
+            long position;
+            using (var _ = await _writeLocks[Key].Wait())
             await using (var file = System.IO.File.Open(Path.Combine("public", "files", Key), FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
             {
                 file.Position = Offset;
-                await Request.Body.CopyToAsync(file);
-                return Ok(file.Position.ToString());
+                await ms.CopyToAsync(file);
+                position = file.Position;
             }
+            return Ok(position);
         }
 
         [HttpPut]
-        [Route("upload_file/{Key}/finish")]
-        public async Task<IActionResult> UploadFileFinish(string Key)
+        [Route("upload_file/{Key}/finish/{xxHashAsHex}")]
+        public async Task<IActionResult> UploadFileFinish(string Key, string xxHashAsHex)
         {
+            var expectedHash = xxHashAsHex.FromHex().ToBase64();
             var user = User.FindFirstValue(ClaimTypes.Name);
             if (!Key.All(a => HexChars.Contains(a)))
                 return BadRequest("NOT A VALID FILENAME");
@@ -74,8 +88,14 @@ namespace Wabbajack.BuildServer.Controllers
             var final_path = Path.Combine("public", "files", final_name);
             System.IO.File.Move(Path.Combine("public", "files", Key), final_path);
             var hash = await final_path.FileHashAsync();
-            
 
+            if (expectedHash != hash)
+            {
+                System.IO.File.Delete(final_path);
+                return BadRequest($"Bad Hash, Expected: {expectedHash} Got: {hash}");
+            }
+
+            _writeLocks.TryRemove(Key, out var _);
             var record = new UploadedFile
             {
                 Id = parts[1],
