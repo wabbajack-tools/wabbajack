@@ -55,6 +55,13 @@ steps:
     projects: '**/*.Test.csproj'
     arguments: '/p:Platform=x64'
 
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    projects: 'Wabbajack\Wabbajack.csproj'
+    arguments: '--runtime win10-x64 --configuration Release /p:Platform=x64 -o $(System.DefaultWorkingDirectory)/Publish --self-contained'
+
 - task: DownloadSecureFile@1
   inputs:
     secureFile: 'CertFile.p12'
@@ -63,10 +70,14 @@ steps:
   inputs:
     secureFileId: 'CertFile.p12'
     signCertPassword: '$(CertPassword)'
-    files: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/netcoreapp3.1/Wabbajack.exe'
-    timeServer: 'http://timestamp.digicert.com'
+    files: |
+      '$(System.DefaultWorkingDirectory)/Publish/Wabbajack.exe'
+      '$(System.DefaultWorkingDirectory)/Publish/wabbajack-cli.exe'
     hashingAlgorithm: 'SHA256'
     description: 'Wabbajack Modlist Installer'
+
+
+
 #- task: CmdLine@2
 #  inputs:
 #    script: 'pip install requests'
@@ -89,11 +100,7 @@ steps:
 #    arguments: '$(VirusTotalAPIKey) $(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
 #
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'publish'
-    projects: 'Wabbajack\Wabbajack.csproj'
-    arguments: '--runtime win10-x64 --configuration Release /p:Platform=x64 -o $(System.DefaultWorkingDirectory)/Publish --self-contained'
+
 
 - task: ArchiveFiles@2
   inputs:
