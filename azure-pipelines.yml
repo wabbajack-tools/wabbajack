@@ -94,7 +94,7 @@ steps:
     rootFolderOrFile: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/netcoreapp3.1'
     includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/Wabbajack.zip'
     replaceExistingArchive: true
     verbose: true
 
