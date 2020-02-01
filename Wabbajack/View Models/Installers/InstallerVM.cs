@@ -308,7 +308,10 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(ModListName));
 
             // Define commands
-            //ShowManifestCommand = ReactiveCommand.Create(ShowReport);
+            ShowManifestCommand = ReactiveCommand.Create(() =>
+            {
+                new ManifestWindow(ModList.SourceModList).Show();
+            });
             OpenReadmeCommand = ReactiveCommand.Create(
                 execute: () => this.ModList?.OpenReadmeWindow(),
                 canExecute: this.WhenAny(x => x.ModList)
