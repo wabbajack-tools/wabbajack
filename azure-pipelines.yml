@@ -31,25 +31,14 @@ steps:
   inputs:
     restoreSolution: '$(solution)'
 
-- task: VSBuild@1
-  inputs:
-    solution: '**\*.sln'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-
-#- task: VSTest@2
-#  inputs:
-#    platform: '$(buildPlatform)'
-#    configuration: '$(buildConfiguration)'
-#    testFiltercriteria: 'TestCategory!=ListValidation'
-#    runInParallel: true
-#    otherConsoleOptions: /Framework:netcoreapp3.1
-#    testAssemblyVer2: |
-#      **\*.Test.dll
-#    diagnosticsEnabled: true
-#    collectDumpOn: 'always'      
-
 - task: DotNetCoreCLI@2
+  displayName: "Build Release"
+  inputs:
+    command: 'build'
+    projects: 'Wabbajack\Wabbajack.csproj'
+    arguments: '--runtime win10-x64 --configuration Release /p:Platform=x64'
+- task: DotNetCoreCLI@2
+  displayName: "Test Release"
   inputs:
     command: 'test'
     projects: '**/*.Test.csproj'
@@ -57,6 +46,7 @@ steps:
 
 
 - task: DotNetCoreCLI@2
+  displayName: "Publish Release"
   inputs:
     command: 'publish'
     projects: 'Wabbajack\Wabbajack.csproj'
