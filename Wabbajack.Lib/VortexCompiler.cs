@@ -248,7 +248,7 @@ namespace Wabbajack.Lib
             await ValidateModlist.RunValidation(Queue, ModList);
 
             UpdateTracker.NextStep("Generating Report");
-            GenerateReport();
+            GenerateManifest();
 
             UpdateTracker.NextStep("Exporting ModList");
             ExportModList();

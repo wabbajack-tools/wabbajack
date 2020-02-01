@@ -80,8 +80,6 @@
     </ItemGroup>
     <ItemGroup>
       <None Remove="LibCefHelpers\cefsharp.7z" />
-      <None Remove="css-min.css" />
-      <EmbeddedResource Include="css-min.css" />
       <None Update="Downloaders\BethesdaNet\bethnetlogin.exe">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
