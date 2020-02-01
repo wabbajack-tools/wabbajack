@@ -5,6 +5,9 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <AssemblyName>wabbajack-cli</AssemblyName>
         <Company>Wabbajack</Company>
+        <Platforms>x64</Platforms>
+        <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+        <PublishReadyToRun>true</PublishReadyToRun>
     </PropertyGroup>
 
     <ItemGroup>
