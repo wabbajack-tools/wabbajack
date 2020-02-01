@@ -96,11 +96,6 @@ namespace Wabbajack.Lib
         public string Readme;
 
         /// <summary>
-        ///     Content Report in HTML form
-        /// </summary>
-        public string ReportHTML;
-
-        /// <summary>
         /// The size of all the archives once they're downloaded
         /// </summary>
         public long DownloadSize => Archives.Sum(a => a.Size);

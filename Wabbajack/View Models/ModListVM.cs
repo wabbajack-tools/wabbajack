@@ -17,7 +17,6 @@ namespace Wabbajack
         public Exception Error { get; }
         public string ModListPath { get; }
         public string Name => SourceModList?.Name;
-        public string ReportHTML => SourceModList?.ReportHTML;
         public string Readme => SourceModList?.Readme;
         public string Author => SourceModList?.Author;
         public string Description => SourceModList?.Description;
