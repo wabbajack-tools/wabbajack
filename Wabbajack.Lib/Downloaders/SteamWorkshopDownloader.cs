@@ -41,6 +41,8 @@ namespace Wabbajack.Lib.Downloaders
 
         public class State : AbstractDownloadState
         {
+            public override string URL { get; set; }
+
             public SteamWorkshopItem Item { get; set; }
             public override object[] PrimaryKey { get => new object[] {Item.Game, Item.ItemID}; }
 
@@ -90,11 +92,6 @@ namespace Wabbajack.Lib.Downloaders
             public override IDownloader GetDownloader()
             {
                 return DownloadDispatcher.GetInstance<SteamWorkshopDownloader>();
-            }
-
-            public override string GetReportEntry(Archive a)
-            {
-                return $"* Steam - [{Item.ItemID}]";
             }
 
             public override string[] GetMetaIni()

@@ -63,7 +63,7 @@ namespace Wabbajack.Lib.Downloaders
         public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
             var url = archiveINI?.General?.manualURL;
-            return url != null ? new State { Url = url} : null;
+            return url != null ? new State { URL = url} : null;
         }
 
         public async Task Prepare()
@@ -72,8 +72,9 @@ namespace Wabbajack.Lib.Downloaders
 
         public class State : AbstractDownloadState
         {
-            public string Url { get; set; }
-            public override object[] PrimaryKey { get => new object[] {Url}; }
+            public override string URL { get; set; }
+
+            public override object[] PrimaryKey { get => new object[] {URL}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -88,7 +89,7 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     try
                     {
-                        Utils.Log($"You must manually visit {Url} and download {a.Name} file by hand");
+                        Utils.Log($"You must manually visit {URL} and download {a.Name} file by hand");
                         Utils.Log($"Waiting for {a.Name}");
                         downloader._watcher.EnableRaisingEvents = true;
                         var watcher = downloader._fileEvents
@@ -97,7 +98,7 @@ namespace Wabbajack.Lib.Downloaders
                             .Buffer(new TimeSpan(0, 5, 0), 1)
                             .Select(x => x.FirstOrDefault())
                             .FirstOrDefaultAsync();
-                        Process.Start(Url);
+                        Process.Start(URL);
 
                         absPath = (await watcher)?.FullPath;
                         if (!File.Exists(absPath))
@@ -122,16 +123,11 @@ namespace Wabbajack.Lib.Downloaders
                 return DownloadDispatcher.GetInstance<ManualDownloader>();
             }
 
-            public override string GetReportEntry(Archive a)
-            {
-                return $"* Manual Download - [{a.Name} - {Url}]({Url})";
-            }
-
             public override string[] GetMetaIni()
             {
                 return new [] {
                     "[General]",
-                    $"manualURL={Url}"
+                    $"manualURL={URL}"
                     
                 };
             }

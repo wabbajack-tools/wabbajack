@@ -38,7 +38,9 @@ namespace Wabbajack.Lib.Downloaders
         }
 
         public abstract object[] PrimaryKey { get; }
-        
+
+        public abstract string URL { get; set; }
+
         public string PrimaryKeyString
         {
             get
@@ -82,7 +84,6 @@ namespace Wabbajack.Lib.Downloaders
 
         public abstract IDownloader GetDownloader();
 
-        public abstract string GetReportEntry(Archive a);
         public abstract string[] GetMetaIni();
     }
 }

@@ -24,7 +24,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 return new State
                 {
-                    Url = url
+                    URL = url
                 };
             }
 
@@ -37,8 +37,9 @@ namespace Wabbajack.Lib.Downloaders
 
         public class State : AbstractDownloadState
         {
-            public string Url { get; set; }
-            public override object[] PrimaryKey { get => new object[]{Url}; }
+            public override string URL { get; set; }
+
+            public override object[] PrimaryKey { get => new object[]{URL}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -54,7 +55,7 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     try
                     {
-                        await new HTTPDownloader.State {Url = url}.Download(a, destination);
+                        await new HTTPDownloader.State {URL = url}.Download(a, destination);
                         return true;
                     }
                     catch (Exception)
@@ -69,7 +70,7 @@ namespace Wabbajack.Lib.Downloaders
 
             private async Task<string[]> GetDownloadUrls()
             {
-                var uri = new Uri(Url);
+                var uri = new Uri(URL);
                 var modId = uri.AbsolutePath.Split('/').Reverse().First(f => int.TryParse(f, out int _));
                 var mirrorUrl = $"https://www.moddb.com/downloads/start/{modId}/all";
                 var doc = await new HtmlWeb().LoadFromWebAsync($"https://www.moddb.com/downloads/start/{modId}/all");
@@ -105,14 +106,9 @@ namespace Wabbajack.Lib.Downloaders
                 return DownloadDispatcher.GetInstance<ModDBDownloader>();
             }
 
-            public override string GetReportEntry(Archive a)
-            {
-                return $"* ModDB - [{a.Name}]({Url})";
-            }
-
             public override string[] GetMetaIni()
             {
-                return new[] {"[General]", $"directURL={Url}"};
+                return new[] {"[General]", $"directURL={URL}"};
             }
         }
     }

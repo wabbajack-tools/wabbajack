@@ -37,6 +37,9 @@ namespace Wabbajack.Lib.Downloaders
         public class State : AbstractDownloadState
         {
             public string Id { get; set; }
+
+            public override string URL { get; set; }
+
             public override object[] PrimaryKey { get => new object[] {Id}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
@@ -60,7 +63,7 @@ namespace Wabbajack.Lib.Downloaders
                 var regex = new Regex("(?<=/uc\\?export=download&amp;confirm=).*(?=;id=)");
                 var confirm = regex.Match(await response.Content.ReadAsStringAsync());
                 var url = $"https://drive.google.com/uc?export=download&confirm={confirm}&id={Id}";
-                var httpState = new HTTPDownloader.State {Url = url, Client = client};
+                var httpState = new HTTPDownloader.State {URL = url, Client = client};
                 return httpState;
             }
 
@@ -73,11 +76,6 @@ namespace Wabbajack.Lib.Downloaders
             public override IDownloader GetDownloader()
             {
                 return DownloadDispatcher.GetInstance<GoogleDriveDownloader>();
-            }
-
-            public override string GetReportEntry(Archive a)
-            {
-                return $"* GoogleDrive - [{a.Name}](https://drive.google.com/uc?id={Id}&export=download)";
             }
 
             public override string[] GetMetaIni()

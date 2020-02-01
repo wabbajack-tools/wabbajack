@@ -110,6 +110,9 @@ namespace Wabbajack.Lib.Downloaders
         {
             public string GameName { get; set; }
             public string ContentId { get; set; }
+
+            public override string URL { get; set; }
+
             public override object[] PrimaryKey => new object[] {GameName, ContentId};
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
@@ -251,11 +254,6 @@ namespace Wabbajack.Lib.Downloaders
             }
 
             public override IDownloader GetDownloader()
-            {
-                throw new NotImplementedException();
-            }
-
-            public override string GetReportEntry(Archive a)
             {
                 throw new NotImplementedException();
             }

@@ -53,6 +53,12 @@ namespace Wabbajack.Lib.Downloaders
             public string FileID { get; set; }
             public string FileName { get; set; }
 
+            public override string URL
+            {
+                get => Site;
+                set => throw new NotImplementedException();
+            }
+
             private static bool IsHTTPS => Downloader.SiteURL.AbsolutePath.StartsWith("https://");
             private static string URLPrefix => IsHTTPS ? "https://" : "http://";
 
@@ -152,11 +158,6 @@ namespace Wabbajack.Lib.Downloaders
             public override IDownloader GetDownloader()
             {
                 return DownloadDispatcher.GetInstance<TDownloader>();
-            }
-
-            public override string GetReportEntry(Archive a)
-            {
-                return $"* {((INeedsLogin)GetDownloader()).SiteName} - [{a.Name}]({Site}/files/file/{FileName}/?do=download&r={FileID})";
             }
 
             public override string[] GetMetaIni()
