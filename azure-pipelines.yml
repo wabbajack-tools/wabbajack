@@ -44,13 +44,14 @@ steps:
     projects: '**/*.Test.csproj'
     arguments: '/p:Platform=x64'
 
-
 - task: DotNetCoreCLI@2
-  displayName: "Publish Release"
   inputs:
     command: 'publish'
+    publishWebProjects: false
     projects: 'Wabbajack\Wabbajack.csproj'
-    arguments: '--runtime win10-x64 --configuration Release /p:Platform=x64 -o $(System.DefaultWorkingDirectory)/Publish --self-contained'
+    zipAfterPublish: false
+    modifyOutputPath: false
+    arguments: '--runtime win10-x64 --configuration Release /p:Platform=x64 -o $(System.DefaultWorkingDirectory)/Publish --self-contained'  
 
 - task: DownloadSecureFile@1
   inputs:
