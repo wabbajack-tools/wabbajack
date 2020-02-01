@@ -89,9 +89,15 @@ steps:
 #    arguments: '$(VirusTotalAPIKey) $(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/Wabbajack.exe'
 #
 
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    projects: 'Wabbajack\Wabbajack.csproj'
+    arguments: '--runtime win10-x64 --configuration Release /p:Platform=x64 -o $(System.DefaultWorkingDirectory)/Publish --self-contained'
+
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/Wabbajack/bin/x64/Debug/netcoreapp3.1'
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/Publish'
     includeRootFolder: false
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/Wabbajack.zip'

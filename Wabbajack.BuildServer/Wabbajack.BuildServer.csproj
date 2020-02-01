@@ -6,7 +6,8 @@
         <WebProject_DirectoryAccessLevelKey>0</WebProject_DirectoryAccessLevelKey>
         <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
         <Configurations>Debug;Release</Configurations>
-        <Platforms>AnyCPU;x64</Platforms>
+        <Platforms>x64</Platforms>
+        <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     </PropertyGroup>
 
     <ItemGroup>
