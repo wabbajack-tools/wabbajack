@@ -193,15 +193,9 @@ namespace Wabbajack.Lib.Downloaders
                 return DownloadDispatcher.GetInstance<NexusDownloader>();
             }
 
-            public override string GetReportEntry(Archive a)
+            public override string GetManifestURL(Archive a)
             {
-                var profile = UploaderProfile.Replace("/games/",
-                    "/" + NexusApiUtils.ConvertGameName(GameName).ToLower() + "/");
-
-                return string.Join("\n", 
-                    $"* [{a.Name}](http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID})", 
-                    $"    * Author : [{UploadedBy}]({profile})", 
-                    $"    * Version : {Version}");
+                return $"http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID}";
             }
 
             public override string[] GetMetaIni()

@@ -200,9 +200,9 @@ TOP:
                 return DownloadDispatcher.GetInstance<HTTPDownloader>();
             }
 
-            public override string GetReportEntry(Archive a)
+            public override string GetManifestURL(Archive a)
             {
-                return $"* [{a.Name} - {Url}]({Url})";
+                return Url;
             }
 
             public override string[] GetMetaIni()
