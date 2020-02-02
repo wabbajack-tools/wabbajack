@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using System.Threading;
-using CommonMark;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;

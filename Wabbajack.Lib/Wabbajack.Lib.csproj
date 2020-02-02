@@ -15,9 +15,6 @@
       <PackageReference Include="Ceras">
         <Version>4.1.7</Version>
       </PackageReference>
-      <PackageReference Include="CommonMark.NET">
-        <Version>0.15.1</Version>
-      </PackageReference>
       <PackageReference Include="Fody">
         <Version>6.0.8</Version>
       </PackageReference>

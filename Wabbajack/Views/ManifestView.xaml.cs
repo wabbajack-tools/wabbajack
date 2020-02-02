@@ -3,11 +3,8 @@ using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Windows.Documents;
 using System.Windows.Navigation;
-using Microsoft.VisualBasic.CompilerServices;
 using ReactiveUI;
 using Wabbajack.Lib;
-using Wabbajack.Lib.Downloaders;
-using Utils = Wabbajack.Common.Utils;
 
 namespace Wabbajack
 {
