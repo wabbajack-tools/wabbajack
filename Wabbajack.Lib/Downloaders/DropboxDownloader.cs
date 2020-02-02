@@ -28,7 +28,7 @@ namespace Wabbajack.Lib.Downloaders
 
             return new HTTPDownloader.State()
             {
-                URL = uri.ToString().Replace("dropbox.com:443/", "dropbox.com/")
+                Url = uri.ToString().Replace("dropbox.com:443/", "dropbox.com/")
             };
         }
 

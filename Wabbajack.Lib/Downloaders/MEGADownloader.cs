@@ -16,7 +16,7 @@ namespace Wabbajack.Lib.Downloaders
         public AbstractDownloadState GetDownloaderState(string url)
         {
             if (url != null && url.StartsWith(Consts.MegaPrefix))
-                return new State { URL = url };
+                return new State { Url = url };
             return null;
         }
 
@@ -31,7 +31,7 @@ namespace Wabbajack.Lib.Downloaders
                 var client = new MegaApiClient();
                 Utils.Status("Logging into MEGA (as anonymous)");
                 client.LoginAnonymous();
-                var fileLink = new Uri(URL);
+                var fileLink = new Uri(Url);
                 var node = client.GetNodeFromLink(fileLink);
                 Utils.Status($"Downloading MEGA file: {a.Name}");
                 client.DownloadFile(fileLink, destination);
@@ -43,7 +43,7 @@ namespace Wabbajack.Lib.Downloaders
                 var client = new MegaApiClient();
                 Utils.Status("Logging into MEGA (as anonymous)");
                 client.LoginAnonymous();
-                var fileLink = new Uri(URL);
+                var fileLink = new Uri(Url);
                 try
                 {
                     var node = client.GetNodeFromLink(fileLink);

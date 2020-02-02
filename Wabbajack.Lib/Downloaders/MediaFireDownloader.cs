@@ -16,19 +16,19 @@ namespace Wabbajack.Lib.Downloaders
 
             return new State
             {
-                URL = url.ToString()
+                Url = url.ToString()
             };
         }
 
         public class State : AbstractDownloadState
         {
-            public override string URL { get; set; }
+            public string Url { get; set; }
 
-            public override object[] PrimaryKey { get => new object[] {URL};}
+            public override object[] PrimaryKey { get => new object[] {Url};}
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
-                return whitelist.AllowedPrefixes.Any(p => URL.StartsWith(p));
+                return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
             }
 
             public override async Task<bool> Download(Archive a, string destination)
@@ -54,7 +54,7 @@ namespace Wabbajack.Lib.Downloaders
                     return new HTTPDownloader.State()
                     {
                         Client = new HttpClient(),
-                        URL = newURL
+                        Url = newURL
                     };
                 }
             }
@@ -64,12 +64,17 @@ namespace Wabbajack.Lib.Downloaders
                 return DownloadDispatcher.GetInstance<MediaFireDownloader>();
             }
 
+            public override string GetReportEntry(Archive a)
+            {
+                return $"* [{a.Name} - {Url}]({Url})";
+            }
+
             public override string[] GetMetaIni()
             {
                 return new []
                 {
                     "[General]",
-                    $"directURL={URL}"
+                    $"directURL={Url}"
                 };
             }
         }
@@ -85,7 +90,7 @@ namespace Wabbajack.Lib.Downloaders
 
             return new State
             {
-                URL = url.ToString()
+                Url = url.ToString()
             };
         }
     }

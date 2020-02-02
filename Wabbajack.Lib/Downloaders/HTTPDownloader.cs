@@ -36,7 +36,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var tmp = new State
                 {
-                    URL = url
+                    Url = url
                 };
                 if (archiveINI?.General?.directURLHeaders != null)
                 {
@@ -56,18 +56,18 @@ namespace Wabbajack.Lib.Downloaders
         [MemberConfig(TargetMember.All)]
         public class State : AbstractDownloadState
         {
-            public override string URL { get; set; }
+            public string Url { get; set; }
 
             public List<string> Headers { get; set; }
 
             [Exclude]
             public HttpClient Client { get; set; }
 
-            public override object[] PrimaryKey { get => new object[] {URL};}
+            public override object[] PrimaryKey { get => new object[] {Url};}
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
-                return whitelist.AllowedPrefixes.Any(p => URL.StartsWith(p));
+                return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
             }
 
             public override Task<bool> Download(Archive a, string destination)
@@ -101,8 +101,8 @@ namespace Wabbajack.Lib.Downloaders
                     long totalRead = 0;
                     var bufferSize = 1024 * 32;
 
-                    Utils.Status($"Starting Download {a?.Name ?? URL}", 0);
-                    var response = await client.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead);
+                    Utils.Status($"Starting Download {a?.Name ?? Url}", 0);
+                    var response = await client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
 TOP:
 
                     if (!response.IsSuccessStatusCode)
@@ -115,7 +115,7 @@ TOP:
                     }
                     catch (Exception ex)
                     {
-                        Utils.Error(ex, $"While downloading {URL}");
+                        Utils.Error(ex, $"While downloading {Url}");
                         return false;
                     }
 
@@ -162,9 +162,9 @@ TOP:
                                     if (supportsResume)
                                     {
                                         Utils.Log(
-                                            $"Abort during download, trying to resume {URL} from {totalRead.ToFileSizeString()}");
+                                            $"Abort during download, trying to resume {Url} from {totalRead.ToFileSizeString()}");
 
-                                        var msg = new HttpRequestMessage(HttpMethod.Get, URL);
+                                        var msg = new HttpRequestMessage(HttpMethod.Get, Url);
                                         msg.Headers.Range = new RangeHeaderValue(totalRead, null);
                                         response = await client.SendAsync(msg,
                                             HttpCompletionOption.ResponseHeadersRead);
@@ -200,14 +200,19 @@ TOP:
                 return DownloadDispatcher.GetInstance<HTTPDownloader>();
             }
 
+            public override string GetReportEntry(Archive a)
+            {
+                return $"* [{a.Name} - {Url}]({Url})";
+            }
+
             public override string[] GetMetaIni()
             {
                 if (Headers != null)
                     return new [] {"[General]",
-                          $"directURL={URL}",
+                          $"directURL={Url}",
                           $"directURLHeaders={string.Join("|", Headers)}"};
                 else
-                    return new [] {"[General]", $"directURL={URL}"};
+                    return new [] {"[General]", $"directURL={Url}"};
 
             }
         }

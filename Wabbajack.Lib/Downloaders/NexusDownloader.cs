@@ -128,12 +128,6 @@ namespace Wabbajack.Lib.Downloaders
             public string Summary { get; set; }
             public bool Adult { get; set; }
 
-            public override string URL
-            {
-                get => NexusURL;
-                set => NexusURL = value;
-            }
-
             public override object[] PrimaryKey { get => new object[]{GameName, ModID, FileID};}
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
@@ -160,7 +154,7 @@ namespace Wabbajack.Lib.Downloaders
 
                 return await new HTTPDownloader.State
                 {
-                    URL = url
+                    Url = url
                 }.Download(a, destination);
             }
 
@@ -197,6 +191,17 @@ namespace Wabbajack.Lib.Downloaders
             public override IDownloader GetDownloader()
             {
                 return DownloadDispatcher.GetInstance<NexusDownloader>();
+            }
+
+            public override string GetReportEntry(Archive a)
+            {
+                var profile = UploaderProfile.Replace("/games/",
+                    "/" + NexusApiUtils.ConvertGameName(GameName).ToLower() + "/");
+
+                return string.Join("\n", 
+                    $"* [{a.Name}](http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID})", 
+                    $"    * Author : [{UploadedBy}]({profile})", 
+                    $"    * Version : {Version}");
             }
 
             public override string[] GetMetaIni()
