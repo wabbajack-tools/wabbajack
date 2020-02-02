@@ -50,6 +50,9 @@ namespace Wabbajack
             var url = archive.State.GetManifestURL(archive);
             if (string.IsNullOrWhiteSpace(url)) return;
 
+            if (url.StartsWith("https://github.com/"))
+                url = url.Substring(0, url.IndexOf("release", StringComparison.Ordinal));
+
             //url = url.Replace("&", "^&");
             Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") {CreateNoWindow = true});
 
