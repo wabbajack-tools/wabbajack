@@ -1,4 +1,5 @@
-﻿using DynamicData;
+﻿using AutoUpdaterDotNET;
+using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -6,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -46,6 +48,9 @@ namespace Wabbajack
 
         public string VersionDisplay { get; }
 
+        [Reactive]
+        public bool UpdateAvailable { get; private set; }
+
         public MainWindowVM(MainWindow mainWindow, MainSettings settings)
         {
             ConverterRegistration.Register();
@@ -79,7 +84,7 @@ namespace Wabbajack
                     {
                         await UserInterventionHandlers.Handle(msg);
                     }
-                    catch (Exception ex) 
+                    catch (Exception ex)
                     when (ex.GetType() != typeof(TaskCanceledException))
                     {
                         Utils.Error(ex, $"Error while handling user intervention of type {msg?.GetType()}");
@@ -129,6 +134,21 @@ namespace Wabbajack
                 canExecute: this.WhenAny(x => x.ActivePane)
                     .Select(active => !SettingsPane.IsValueCreated || !object.ReferenceEquals(active, SettingsPane.Value)),
                 execute: () => NavigateTo(SettingsPane.Value));
+
+            // Latch onto update events and update GUI
+            AutoUpdater.CheckForUpdateEvent += (args) =>
+            {
+                UpdateAvailable = args.IsUpdateAvailable;
+            };
+
+            // Trigger a query for updates soon after starting
+            Observable.Return(Unit.Default)
+                .Delay(TimeSpan.FromSeconds(3))
+                .ObserveOnGuiThread()
+                .Subscribe(_ =>
+                {
+                    AutoUpdater.Start(@"https://www.wabbajack.org/current-version.xml");
+                });
         }
 
         private static bool IsStartingFromModlist(out string modlistPath)

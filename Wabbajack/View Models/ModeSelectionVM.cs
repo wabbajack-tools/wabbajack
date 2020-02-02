@@ -1,7 +1,10 @@
-﻿using ReactiveUI;
+﻿using AutoUpdaterDotNET;
+using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using System;
 using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Wabbajack.Common;
@@ -15,6 +18,7 @@ namespace Wabbajack
         public ICommand BrowseCommand { get; }
         public ICommand InstallCommand { get; }
         public ICommand CompileCommand { get; }
+        public ReactiveCommand<Unit, Unit> UpdateCommand { get; }
 
         public ModeSelectionVM(MainWindowVM mainVM)
         {
@@ -34,6 +38,24 @@ namespace Wabbajack
 
             CompileCommand = ReactiveCommand.Create(() => mainVM.NavigateTo(mainVM.Compiler.Value));
             BrowseCommand = ReactiveCommand.Create(() => mainVM.NavigateTo(mainVM.Gallery.Value));
+
+            UpdateCommand = ReactiveCommand.Create(
+                canExecute: mainVM.WhenAny(x => x.UpdateAvailable)
+                    .ObserveOnGuiThread(),
+                execute: () =>
+                {
+                    try
+                    {
+                        if (AutoUpdater.DownloadUpdate())
+                        {
+                            mainVM.ShutdownApplication();
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        Utils.Error(exception, "Could not download update.");
+                    }
+                });
         }
     }
 }
