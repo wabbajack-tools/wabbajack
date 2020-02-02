@@ -1,14 +1,24 @@
-﻿using Wabbajack.Lib;
+﻿using System.Collections.Generic;
+using Wabbajack.Common;
+using Wabbajack.Lib;
 
-namespace Wabbajack.View_Models
+namespace Wabbajack
 {
     public class ManifestVM : ViewModel
-    {
-        public readonly Manifest Manifest;
+    { 
+        public Manifest Manifest { get; set; }
 
-        public ManifestVM(ModList modlist)
+        public string Name => !string.IsNullOrWhiteSpace(Manifest.Name) ? Manifest.Name : "Wabbajack Modlist";
+        public string Author => !string.IsNullOrWhiteSpace(Manifest.Author) ? $"Created by {Manifest.Author}" : "Created by Jyggalag";
+        public string Description => !string.IsNullOrWhiteSpace(Manifest.Description) ? Manifest.Description : "";
+        public string InstallSize => $"Install Size: {Manifest.InstallSize.ToFileSizeString()}";
+        public string DownloadSize => $"Download Size: {Manifest.DownloadSize.ToFileSizeString()}";
+
+        public IEnumerable<Archive> Archives => Manifest.Archives;
+
+        public ManifestVM(Manifest manifest)
         {
-            Manifest = new Manifest(modlist);
+            Manifest = manifest;
         }
     }
 }

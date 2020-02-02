@@ -9,8 +9,14 @@ namespace Wabbajack
         public ManifestWindow(ModList modlist)
         {
             Modlist = modlist;
+
             InitializeComponent();
-            Grid.Children.Add(new ManifestView(Modlist));
+
+            var manifestView = new ManifestView(Modlist);
+
+            Grid.Children.Add(manifestView);
+
+            Title = $"{Modlist.Name} by {Modlist.Author}";
         }
     }
 }
