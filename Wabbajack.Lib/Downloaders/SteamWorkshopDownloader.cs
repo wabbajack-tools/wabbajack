@@ -92,9 +92,9 @@ namespace Wabbajack.Lib.Downloaders
                 return DownloadDispatcher.GetInstance<SteamWorkshopDownloader>();
             }
 
-            public override string GetReportEntry(Archive a)
+            public override string GetManifestURL(Archive a)
             {
-                return $"* Steam - [{Item.ItemID}]";
+                return $"https://steamcommunity.com/sharedfiles/filedetails/?id={Item.ItemID}";
             }
 
             public override string[] GetMetaIni()

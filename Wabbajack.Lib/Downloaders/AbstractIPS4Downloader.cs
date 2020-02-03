@@ -154,9 +154,9 @@ namespace Wabbajack.Lib.Downloaders
                 return DownloadDispatcher.GetInstance<TDownloader>();
             }
 
-            public override string GetReportEntry(Archive a)
+            public override string GetManifestURL(Archive a)
             {
-                return $"* {((INeedsLogin)GetDownloader()).SiteName} - [{a.Name}]({Site}/files/file/{FileName}/?do=download&r={FileID})";
+                return $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
             }
 
             public override string[] GetMetaIni()

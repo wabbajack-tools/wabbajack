@@ -41,9 +41,6 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<ISubInstallerVM> _installer;
         public ISubInstallerVM Installer => _installer.Value;
 
-        private readonly ObservableAsPropertyHelper<string> _htmlReport;
-        public string HTMLReport => _htmlReport.Value;
-
         private readonly ObservableAsPropertyHelper<bool> _installing;
         public bool Installing => _installing.Value;
 
@@ -203,9 +200,6 @@ namespace Wabbajack
                     this.WhenAny(x => x.ModList)
                         .Select(_ => false))
                 .ToGuiProperty(this, nameof(LoadingModlist));
-            _htmlReport = this.WhenAny(x => x.ModList)
-                .Select(modList => modList?.ReportHTML)
-                .ToGuiProperty(this, nameof(HTMLReport));
             _installing = this.WhenAny(x => x.Installer.ActiveInstallation)
                 .Select(i => i != null)
                 .ToGuiProperty(this, nameof(Installing));
@@ -314,7 +308,10 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(ModListName));
 
             // Define commands
-            ShowManifestCommand = ReactiveCommand.Create(ShowReport);
+            ShowManifestCommand = ReactiveCommand.Create(() =>
+            {
+                new ManifestWindow(ModList.SourceModList).Show();
+            });
             OpenReadmeCommand = ReactiveCommand.Create(
                 execute: () => this.ModList?.OpenReadmeWindow(),
                 canExecute: this.WhenAny(x => x.ModList)
@@ -437,13 +434,6 @@ namespace Wabbajack
             _CurrentCpuCount = this.WhenAny(x => x.Installer.ActiveInstallation.Queue.CurrentCpuCount)
                 .Switch()
                 .ToGuiProperty(this, nameof(CurrentCpuCount));
-        }
-
-        private void ShowReport()
-        {
-            var file = Path.GetTempFileName() + ".html";
-            File.WriteAllText(file, HTMLReport);
-            Utils.StartProcessFromFile(file);
         }
     }
 }

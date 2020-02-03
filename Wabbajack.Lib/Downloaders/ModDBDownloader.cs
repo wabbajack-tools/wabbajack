@@ -105,9 +105,9 @@ namespace Wabbajack.Lib.Downloaders
                 return DownloadDispatcher.GetInstance<ModDBDownloader>();
             }
 
-            public override string GetReportEntry(Archive a)
+            public override string GetManifestURL(Archive a)
             {
-                return $"* ModDB - [{a.Name}]({Url})";
+                return Url;
             }
 
             public override string[] GetMetaIni()

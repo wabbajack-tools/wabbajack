@@ -83,9 +83,9 @@ namespace Wabbajack.Lib.Downloaders
                 return DownloadDispatcher.GetInstance<GameFileSourceDownloader>();
             }
 
-            public override string GetReportEntry(Archive a)
+            public override string GetManifestURL(Archive a)
             {
-                return $"* Game File {Game} - {GameFile}";
+                return null;
             }
 
             public override string[] GetMetaIni()

@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using System.Threading;
-using CommonMark;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
@@ -159,28 +156,10 @@ namespace Wabbajack.Lib
             Utils.DeleteDirectory(ModListOutputFolder);
         }
 
-        public void GenerateReport()
+        public void GenerateManifest()
         {
-            string css;
-            using (var cssStream = Utils.GetEmbeddedResourceStream("Wabbajack.Lib.css-min.css"))
-            {
-                using (var reader = new StreamReader(cssStream))
-                {
-                    css = reader.ReadToEnd();
-                }
-            }
-
-            using (var fs = File.Open($"{ModList.Name}.md", System.IO.FileMode.Create))
-            {
-                fs.SetLength(0);
-                using (var reporter = new ReportBuilder(fs, ModListOutputFolder))
-                {
-                    reporter.Build(this, ModList);
-                }
-            }
-
-            ModList.ReportHTML = "<style>" + css + "</style>"
-                + CommonMarkConverter.Convert(File.ReadAllText($"{ModList.Name}.md"));
+            var manifest = new Manifest(ModList);
+            manifest.ToJSON(ModListOutputFile + ".manifest.json");
         }
 
         public async Task GatherArchives()

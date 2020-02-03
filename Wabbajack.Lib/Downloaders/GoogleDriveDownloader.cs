@@ -75,9 +75,9 @@ namespace Wabbajack.Lib.Downloaders
                 return DownloadDispatcher.GetInstance<GoogleDriveDownloader>();
             }
 
-            public override string GetReportEntry(Archive a)
+            public override string GetManifestURL(Archive a)
             {
-                return $"* GoogleDrive - [{a.Name}](https://drive.google.com/uc?id={Id}&export=download)";
+                return $"https://drive.google.com/uc?id={Id}&export=download";
             }
 
             public override string[] GetMetaIni()

@@ -122,9 +122,9 @@ namespace Wabbajack.Lib.Downloaders
                 return DownloadDispatcher.GetInstance<ManualDownloader>();
             }
 
-            public override string GetReportEntry(Archive a)
+            public override string GetManifestURL(Archive a)
             {
-                return $"* Manual Download - [{a.Name} - {Url}]({Url})";
+                return Url;
             }
 
             public override string[] GetMetaIni()

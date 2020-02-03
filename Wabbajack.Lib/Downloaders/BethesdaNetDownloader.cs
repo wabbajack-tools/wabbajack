@@ -255,7 +255,7 @@ namespace Wabbajack.Lib.Downloaders
                 throw new NotImplementedException();
             }
 
-            public override string GetReportEntry(Archive a)
+            public override string GetManifestURL(Archive a)
             {
                 throw new NotImplementedException();
             }
