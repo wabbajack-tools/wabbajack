@@ -29,7 +29,7 @@
                 <local:InstallationView ViewModel="{Binding}" />
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:ModeSelectionVM}">
-                <local:ModeSelectionView />
+                <local:ModeSelectionView ViewModel="{Binding}" />
             </DataTemplate>
             <DataTemplate DataType="{x:Type local:ModListGalleryVM}">
                 <local:ModListGalleryView ViewModel="{Binding}" />
