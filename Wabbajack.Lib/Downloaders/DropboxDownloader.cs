@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Web;
+using Wabbajack.Common;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -14,22 +15,30 @@ namespace Wabbajack.Lib.Downloaders
 
         public AbstractDownloadState GetDownloaderState(string url)
         {
-            if (url == null) return null;
-            var uri = new UriBuilder(url);
-            if (uri.Host != "www.dropbox.com") return null;
-            var query = HttpUtility.ParseQueryString(uri.Query);
-
-            if (query.GetValues("dl")?.Length > 0)
-                query.Remove("dl");
-
-            query.Set("dl", "1");
-
-            uri.Query = query.ToString();
-
-            return new HTTPDownloader.State()
+            try
             {
-                Url = uri.ToString().Replace("dropbox.com:443/", "dropbox.com/")
-            };
+                if (url == null) return null;
+                var uri = new UriBuilder(url);
+                if (uri.Host != "www.dropbox.com") return null;
+                var query = HttpUtility.ParseQueryString(uri.Query);
+
+                if (query.GetValues("dl")?.Length > 0)
+                    query.Remove("dl");
+
+                query.Set("dl", "1");
+
+                uri.Query = query.ToString();
+
+                return new HTTPDownloader.State()
+                {
+                    Url = uri.ToString().Replace("dropbox.com:443/", "dropbox.com/")
+                };
+            }
+            catch (Exception)
+            {
+                Utils.Error($"Error downloading Dropbox link: {url}");
+                throw;
+            }
         }
 
         public async Task Prepare()
