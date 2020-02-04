@@ -215,6 +215,19 @@ namespace Wabbajack.Common
             File.WriteAllText(hashPath, hash);
             return hash;
         }
+        
+        public static async Task<string> FileHashCachedAsync(this string file, bool nullOnIOError = false)
+        {
+            var hashPath = file + Consts.HashFileExtension;
+            if (File.Exists(hashPath) && File.GetLastWriteTime(file) <= File.GetLastWriteTime(hashPath))
+            {
+                return File.ReadAllText(hashPath);
+            }
+
+            var hash = await file.FileHashAsync(nullOnIOError);
+            File.WriteAllText(hashPath, hash);
+            return hash;
+        }
 
         public static async Task<string> FileHashAsync(this string file, bool nullOnIOError = false)
         {

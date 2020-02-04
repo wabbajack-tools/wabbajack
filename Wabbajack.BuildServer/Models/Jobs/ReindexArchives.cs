@@ -18,18 +18,20 @@ namespace Wabbajack.BuildServer.Models.Jobs
         {
             using (var queue = new WorkQueue())
             {
-                var total_count = Directory.EnumerateFiles(settings.ArchiveDir).Count();
+                var files = Directory.EnumerateFiles(settings.ArchiveDir)
+                    .Where(f => !f.EndsWith(Consts.HashFileExtension))
+                    .ToList();
+                var total_count = files.Count;
                 int completed = 0;
 
                 
-                await Directory.EnumerateFiles(settings.ArchiveDir)
-                    .PMap(queue, async file =>
+                await files.PMap(queue, async file =>
                     {
                         try
                         {
                             Interlocked.Increment(ref completed);
 
-                            if (await sql.HaveIndexdFile(await file.FileHashAsync()))
+                            if (await sql.HaveIndexdFile(await file.FileHashCachedAsync()))
                             {
                                 Utils.Log($"({completed}/{total_count}) Skipping {Path.GetFileName(file)}, it's already indexed");
                                 return;
