@@ -62,6 +62,7 @@ namespace Wabbajack.Test
                 });
 
             await DownloadAndInstall(Game.SkyrimSpecialEdition, 12604, "SkyUI");
+            await DownloadAndInstall(Game.Fallout4, 11925, "Anti-Tank Rifle");
 
             utils.Configure();
 
