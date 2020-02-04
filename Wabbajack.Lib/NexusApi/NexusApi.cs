@@ -249,7 +249,7 @@ namespace Wabbajack.Lib.NexusApi
                 var builder = new UriBuilder(url) { Host = Consts.WabbajackCacheHostname, Port = Consts.WabbajackCachePort, Scheme = "http" };
                 return await Get<T>(builder.ToString());
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return await Get<T>(url);
             }

@@ -59,7 +59,16 @@ namespace Wabbajack.Lib.Downloaders
                 var gameMeta = GameRegistry.GetByMO2ArchiveName(name);
                 var game = gameMeta != null ? GameRegistry.GetByMO2ArchiveName(name).Game : GameRegistry.GetByNexusName(name).Game;
                 var client = await NexusApiClient.Get();
-                var info = await client.GetModInfo(game, general.modID);
+                dynamic info;
+                try
+                {
+                    info = await client.GetModInfo(game, general.modID);
+                }
+                catch (Exception)
+                {
+                    Utils.Error($"Error getting mod info for Nexus mod with {general.modID}");
+                    throw;
+                }
                 return new State
                 {
                     GameName = general.gameName,
