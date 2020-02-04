@@ -362,6 +362,7 @@ namespace Wabbajack
                 {
                     try
                     {
+                        Utils.Log($"Starting to install {ModList.Name}");
                         var success = await this.Installer.Install();
                         Completed = ErrorResponse.Create(success);
                         try

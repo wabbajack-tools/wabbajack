@@ -33,10 +33,12 @@ namespace Wabbajack
                             return !hasContent && succeeded;
                         })
                     .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
+                    .StartWith(Visibility.Collapsed)
                     .BindToStrict(this, x => x.LoadingRing.Visibility)
                     .DisposeWith(dispose);
                 this.WhenAny(x => x.ViewModel.Error)
                     .Select(e => (e?.Succeeded ?? true) ? Visibility.Collapsed : Visibility.Visible)
+                    .StartWith(Visibility.Collapsed)
                     .BindToStrict(this, x => x.ErrorIcon.Visibility)
                     .DisposeWith(dispose);
             });

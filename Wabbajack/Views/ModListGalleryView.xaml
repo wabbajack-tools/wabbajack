@@ -51,7 +51,7 @@
                 </ItemsControl>
             </ScrollViewer>
         </Border>
-        <mahapps:ProgressRing x:Name="LoadingRing" Grid.Row="1" />
+        <mahapps:ProgressRing x:Name="LoadingRing" Grid.Row="1" Visibility="Collapsed" />
         <iconPacks:PackIconControl
             x:Name="ErrorIcon"
             Grid.Row="1"
@@ -61,7 +61,8 @@
             VerticalAlignment="Center"
             Foreground="{StaticResource ErrorBrush}"
             Kind="{x:Static iconPacks:PackIconMaterialKind.AlertCircle}"
-            ToolTip="Error loading modlist gallery" />
+            ToolTip="Error loading modlist gallery"
+            Visibility="Collapsed" />
         <local:TopProgressView
             Title="Browsing Modlists"
             Grid.Row="0"
