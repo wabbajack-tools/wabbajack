@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -19,7 +19,7 @@ namespace Wabbajack.Lib.Downloaders
             if (uri.Host != "www.dropbox.com") return null;
             var query = HttpUtility.ParseQueryString(uri.Query);
 
-            if (query.GetValues("dl").Length > 0)
+            if (query.GetValues("dl")?.Length > 0)
                 query.Remove("dl");
 
             query.Set("dl", "1");
