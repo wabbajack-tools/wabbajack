@@ -56,15 +56,17 @@ namespace Wabbajack
                                 .Select(_ => Observable.Interval(TimeSpan.FromSeconds(intervalSeconds))))
                         // When a new timer comes in, swap to it
                         .Switch()
-                        .Unit())
+                        .Unit()
+                        // Only subscribe to timer if enabled and installing
+                        .FlowSwitch(
+                            Observable.CombineLatest(
+                                this.WhenAny(x => x.Enable),
+                                this.WhenAny(x => x.Installer.Installing),
+                                resultSelector: (enabled, installing) => enabled && installing)))
                 // When filter switch enabled, fire an initial signal
                 .StartWith(Unit.Default)
-                // Only subscribe to slideshow triggers if enabled and installing
-                .FlowSwitch(
-                    Observable.CombineLatest(
-                        this.WhenAny(x => x.Enable),
-                        this.WhenAny(x => x.Installer.Installing),
-                        resultSelector: (enabled, installing) => enabled && installing))
+                // Only subscribe to slideshow triggers if started
+                .FlowSwitch(this.WhenAny(x => x.Installer.StartedInstallation))
                 // Block spam
                 .Debounce(TimeSpan.FromMilliseconds(250), RxApp.MainThreadScheduler)
                 .Scan(
