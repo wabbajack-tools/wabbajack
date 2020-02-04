@@ -138,7 +138,7 @@ namespace Wabbajack
             // Latch onto update events and update GUI
             AutoUpdater.CheckForUpdateEvent += (args) =>
             {
-                UpdateAvailable = args.IsUpdateAvailable;
+                UpdateAvailable = args?.IsUpdateAvailable ?? false;
             };
 
             // Trigger a query for updates soon after starting
