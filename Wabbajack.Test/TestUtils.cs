@@ -32,7 +32,7 @@ namespace Wabbajack.Test
         public string GameFolder => Path.Combine(WorkingDirectory, ID, "game_folder");
 
         public string MO2Folder => Path.Combine(WorkingDirectory, ID, "mo2_folder");
-        public string ModsFolder => Path.Combine(MO2Folder, "mods");
+        public string ModsFolder => Path.Combine(MO2Folder, Consts.MO2ModFolderName);
         public string DownloadsFolder => Path.Combine(MO2Folder, "downloads");
 
         public string InstallFolder => Path.Combine(TestFolder, "installed");
@@ -71,12 +71,15 @@ namespace Wabbajack.Test
 
         public string AddMod(string name = null)
         {
-            string mod_name = name ?? RandomName();
-            var mod_folder = Path.Combine(MO2Folder, "mods", mod_name);
-            Directory.CreateDirectory(mod_folder);
-            File.WriteAllText(Path.Combine(mod_folder, "meta.ini"), "[General]");
-            Mods.Add(mod_name);
-            return mod_name;
+            lock (this)
+            {
+                string mod_name = name ?? RandomName();
+                var mod_folder = Path.Combine(MO2Folder, Consts.MO2ModFolderName, mod_name);
+                Directory.CreateDirectory(mod_folder);
+                File.WriteAllText(Path.Combine(mod_folder, "meta.ini"), "[General]");
+                Mods.Add(mod_name);
+                return mod_name;
+            }
         }
 
         /// <summary>
@@ -160,10 +163,10 @@ namespace Wabbajack.Test
 
         public void VerifyInstalledFile(string mod, string file)
         {
-            var src = Path.Combine(MO2Folder, "mods", mod, file);
+            var src = Path.Combine(MO2Folder, Consts.MO2ModFolderName, mod, file);
             Assert.IsTrue(File.Exists(src), src);
 
-            var dest = Path.Combine(InstallFolder, "mods", mod, file);
+            var dest = Path.Combine(InstallFolder, Consts.MO2ModFolderName, mod, file);
             Assert.IsTrue(File.Exists(dest), dest);
 
             var src_data = File.ReadAllBytes(src);
@@ -199,7 +202,7 @@ namespace Wabbajack.Test
         }
         public string PathOfInstalledFile(string mod, string file)
         {
-            return Path.Combine(InstallFolder, "mods", mod, file);
+            return Path.Combine(InstallFolder, Consts.MO2ModFolderName, mod, file);
         }
 
         public void VerifyAllFiles()

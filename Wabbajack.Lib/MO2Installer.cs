@@ -73,7 +73,7 @@ namespace Wabbajack.Lib
             Directory.CreateDirectory(OutputFolder);
             Directory.CreateDirectory(DownloadFolder);
 
-            if (Directory.Exists(Path.Combine(OutputFolder, "mods")) && WarnOnOverwrite)
+            if (Directory.Exists(Path.Combine(OutputFolder, Consts.MO2ModFolderName)) && WarnOnOverwrite)
             {
                 if ((await Utils.Log(new ConfirmUpdateOfExistingInstall { ModListName = ModList.Name, OutputFolder = OutputFolder }).Task) == ConfirmUpdateOfExistingInstall.Choice.Abort)
                 {
@@ -175,7 +175,7 @@ namespace Wabbajack.Lib
                     data.Coll.Do(keyData =>
                     {
                         var v = keyData.Value;
-                        var mod = Path.Combine(OutputFolder, "mods", v);
+                        var mod = Path.Combine(OutputFolder, Consts.MO2ModFolderName, v);
 
                         if (!Directory.Exists(mod))
                             Directory.CreateDirectory(mod);

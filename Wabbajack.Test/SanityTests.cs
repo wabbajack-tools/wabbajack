@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Compression.BSA;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -254,6 +255,5 @@ namespace Wabbajack.Test
             Assert.IsNotNull(directive);
             Assert.IsInstanceOfType(directive, typeof(PatchedFromArchive));
         }
-
     }
 }

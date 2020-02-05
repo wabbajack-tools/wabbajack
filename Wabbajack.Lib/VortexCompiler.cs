@@ -492,7 +492,7 @@ namespace Wabbajack.Lib
         {
             vortexFolderPath = vortexFolderPath ?? TypicalVortexFolder();
             var gameName = game.MetaData().NexusName;
-            return Path.Combine(vortexFolderPath, gameName, "mods");
+            return Path.Combine(vortexFolderPath, gameName, Consts.MO2ModFolderName);
         }
 
         public static IErrorResponse IsValidBaseDownloadsFolder(string path)

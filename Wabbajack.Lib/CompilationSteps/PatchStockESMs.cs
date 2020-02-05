@@ -29,9 +29,9 @@ namespace Wabbajack.Lib.CompilationSteps
             result.SourceESMHash = _compiler.VFS.Index.ByRootPath[gameFile].Hash;
 
             Utils.Status($"Generating patch of {filename}");
-            using (var ms = new MemoryStream())
+            await using (var ms = new MemoryStream())
             {
-                Utils.CreatePatch(File.ReadAllBytes(gameFile), File.ReadAllBytes(source.AbsolutePath), ms);
+                await Utils.CreatePatch(File.ReadAllBytes(gameFile), File.ReadAllBytes(source.AbsolutePath), ms);
                 var data = ms.ToArray();
                 result.SourceDataID = _compiler.IncludeFile(data);
                 Utils.Log($"Generated a {data.Length} byte patch for {filename}");

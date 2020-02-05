@@ -820,7 +820,7 @@ namespace Wabbajack.Common
             return ToFileSizeString((long)byteCount);
         }
 
-        public static void CreatePatch(byte[] a, byte[] b, Stream output)
+        public static async Task CreatePatch(byte[] a, byte[] b, Stream output)
         {
             var dataA = a.xxHash().FromBase64().ToHex();
             var dataB = b.xxHash().FromBase64().ToHex();
@@ -832,22 +832,32 @@ namespace Wabbajack.Common
             {
                 if (File.Exists(cacheFile))
                 {
-                    using (var f = File.OpenRead(cacheFile))
-                    {
-                        f.CopyTo(output);
-                    }
+                    await using var f = File.OpenRead(cacheFile);
+                    await f.CopyToAsync(output);
                 }
                 else
                 {
                     var tmpName = Path.Combine("patch_cache", Guid.NewGuid() + ".tmp");
 
-                    using (var f = File.Open(tmpName, System.IO.FileMode.Create))
+                    await using (var f = File.Open(tmpName, System.IO.FileMode.Create))
                     {
                         Status("Creating Patch");
                         BSDiff.Create(a, b, f);
                     }
 
-                    File.Move(tmpName, cacheFile, MoveOptions.ReplaceExisting);
+                    RETRY:
+                    try
+                    {
+                        File.Move(tmpName, cacheFile, MoveOptions.ReplaceExisting);
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        if (File.Exists(cacheFile))
+                            continue;
+                        await Task.Delay(1000);
+                        goto RETRY;
+                    }
+
                     continue;
                 }
 
@@ -1223,6 +1233,13 @@ namespace Wabbajack.Common
             byte[] bytes = new byte[32];
             random.NextBytes(bytes);
             return bytes.ToHex();
+        }
+
+        public static async Task CopyFileAsync(string src, string dest)
+        {
+            await using var s = File.OpenRead(src);
+            await using var d = File.Create(dest);
+            await s.CopyToAsync(d);
         }
     }
 }

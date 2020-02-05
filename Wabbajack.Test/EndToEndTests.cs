@@ -61,10 +61,23 @@ namespace Wabbajack.Test
                     "directURL=https://github.com/ModOrganizer2/modorganizer/releases/download/v2.2.1/Mod.Organizer.2.2.1.7z"
                 });
 
-            await DownloadAndInstall(Game.SkyrimSpecialEdition, 12604, "SkyUI");
-            await DownloadAndInstall(Game.Fallout4, 11925, "Anti-Tank Rifle");
+            var modfiles = await Task.WhenAll(
+                DownloadAndInstall(Game.SkyrimSpecialEdition, 12604, "SkyUI"), 
+                DownloadAndInstall(Game.Fallout4, 11925, "Anti-Tank Rifle"), 
+                DownloadAndInstall(Game.SkyrimSpecialEdition, 4783, "Frost Armor UNP"), 
+                DownloadAndInstall(Game.SkyrimSpecialEdition, 32359, "Frost Armor HDT"));
+            
+            // We're going to fully patch this mod from another source.
+            File.Delete(modfiles[3].Download);
 
             utils.Configure();
+            
+            File.WriteAllLines(Path.Combine(modfiles[3].ModFolder, "meta.ini"), new []
+            {
+                "[General]",
+                $"matchAll= {Path.GetFileName(modfiles[2].Download)}"
+            });
+
 
             var modlist = await CompileAndInstall(profile);
 
@@ -97,18 +110,19 @@ namespace Wabbajack.Test
                 Directory.CreateDirectory(utils.DownloadsFolder);
             }
 
-            File.Copy(src, Path.Combine(utils.DownloadsFolder, filename));
+            await Utils.CopyFileAsync(src, Path.Combine(utils.DownloadsFolder, filename));
 
             await FileExtractor.ExtractAll(Queue, src,
                 mod_name == null ? utils.MO2Folder : Path.Combine(utils.ModsFolder, mod_name));
         }
 
-        private async Task DownloadAndInstall(Game game, int modid, string mod_name)
+        private async Task<(string Download, string ModFolder)> DownloadAndInstall(Game game, int modid, string mod_name)
         {
             utils.AddMod(mod_name);
             var client = await NexusApiClient.Get();
             var resp = await client.GetModFiles(game, modid);
-            var file = resp.files.First(f => f.is_primary);
+            var file = resp.files.FirstOrDefault(f => f.is_primary) ?? resp.files.FirstOrDefault(f => !string.IsNullOrEmpty(f.category_name));
+
             var src = Path.Combine(DOWNLOAD_FOLDER, file.file_name);
 
             var ini = string.Join("\n",
@@ -133,11 +147,13 @@ namespace Wabbajack.Test
             }
 
             var dest = Path.Combine(utils.DownloadsFolder, file.file_name);
-            File.Copy(src, dest);
+            await Utils.CopyFileAsync(src, dest);
 
-            await FileExtractor.ExtractAll(Queue, src, Path.Combine(utils.ModsFolder, mod_name));
+            var modFolder = Path.Combine(utils.ModsFolder, mod_name);
+            await FileExtractor.ExtractAll(Queue, src, modFolder);
 
             File.WriteAllText(dest + Consts.MetaFileExtension, ini);
+            return (dest, modFolder);
         }
 
         private async Task<ModList> CompileAndInstall(string profile)
