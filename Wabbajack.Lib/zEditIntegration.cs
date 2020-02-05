@@ -67,7 +67,7 @@ namespace Wabbajack.Lib
 
                 _mergesIndexed =
                     merges.ToDictionary(
-                        m => Path.Combine(_mo2Compiler.MO2Folder, "mods", m.Key.name, m.Key.filename),
+                        m => Path.Combine(_mo2Compiler.MO2Folder, Consts.MO2ModFolderName, m.Key.name, m.Key.filename),
                         m => m.First());
             }
 
@@ -103,9 +103,9 @@ namespace Wabbajack.Lib
 
                 var dst_data = File.ReadAllBytes(source.AbsolutePath);
 
-                using (var ms = new MemoryStream())
+                await using (var ms = new MemoryStream())
                 {
-                    Utils.CreatePatch(src_data, dst_data, ms);
+                    await Utils.CreatePatch(src_data, dst_data, ms);
                     result.PatchID = _compiler.IncludeFile(ms.ToArray());
                 }
 

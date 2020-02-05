@@ -22,13 +22,13 @@ namespace Wabbajack.Lib.CompilationSteps
                 .Where(line => line.StartsWith("+") || line.EndsWith("_separator"))
                 .Select(line => line.Substring(1))
                 .Concat(alwaysEnabled)
-                .Select(line => Path.Combine("mods", line) + "\\")
+                .Select(line => Path.Combine(Consts.MO2ModFolderName, line) + "\\")
                 .ToList();
         }
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!source.Path.StartsWith("mods") || _allEnabledMods.Any(mod => source.Path.StartsWith(mod)))
+            if (!source.Path.StartsWith(Consts.MO2ModFolderName) || _allEnabledMods.Any(mod => source.Path.StartsWith(mod)))
                 return null;
             var r = source.EvolveTo<IgnoredDirectly>();
             r.Reason = "Disabled Mod";
@@ -50,7 +50,7 @@ namespace Wabbajack.Lib.CompilationSteps
                     Consts.WABBAJACK_ALWAYS_ENABLE))
                 return true;
             if (data.General != null && data.General.comments != null &&
-                data.General.notes.Contains(Consts.WABBAJACK_ALWAYS_ENABLE))
+                data.General.comments.Contains(Consts.WABBAJACK_ALWAYS_ENABLE))
                 return true;
             return false;
         }

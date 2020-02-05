@@ -7,14 +7,15 @@ using Compression.BSA;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed.Errors;
+using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
     public class DeconstructBSAs : ACompilationStep
     {
         private readonly IEnumerable<string> _includeDirectly;
-        private readonly List<ICompilationStep> _microstack;
-        private readonly List<ICompilationStep> _microstackWithInclude;
+        private readonly Func<VirtualFile, List<ICompilationStep>> _microstack;
+        private readonly Func<VirtualFile, List<ICompilationStep>> _microstackWithInclude;
         private readonly MO2Compiler _mo2Compiler;
 
         public DeconstructBSAs(ACompiler compiler) : base(compiler)
@@ -30,17 +31,17 @@ namespace Wabbajack.Lib.CompilationSteps
                 .Select(kv => $"mods\\{kv.Key}\\")
                 .ToList();
 
-            _microstack = new List<ICompilationStep>
+            _microstack = bsa => new List<ICompilationStep>
             {
                 new DirectMatch(_mo2Compiler),
-                new IncludePatches(_mo2Compiler),
+                new IncludePatches(_mo2Compiler, bsa),
                 new DropAll(_mo2Compiler)
             };
 
-            _microstackWithInclude = new List<ICompilationStep>
+            _microstackWithInclude = bsa => new List<ICompilationStep>
             {
                 new DirectMatch(_mo2Compiler),
-                new IncludePatches(_mo2Compiler),
+                new IncludePatches(_mo2Compiler, bsa),
                 new IncludeAll(_mo2Compiler)
             };
         }
@@ -55,13 +56,13 @@ namespace Wabbajack.Lib.CompilationSteps
             if (!Consts.SupportedBSAs.Contains(Path.GetExtension(source.Path).ToLower())) return null;
 
             var defaultInclude = false;
-            if (source.Path.StartsWith("mods"))
+            if (source.Path.StartsWith(Consts.MO2ModFolderName))
                 if (_includeDirectly.Any(path => source.Path.StartsWith(path)))
                     defaultInclude = true;
 
             var sourceFiles = source.File.Children;
 
-            var stack = defaultInclude ? _microstackWithInclude : _microstack;
+            var stack = defaultInclude ? _microstackWithInclude(source.File) : _microstack(source.File);
 
             var id = Guid.NewGuid().ToString();
 

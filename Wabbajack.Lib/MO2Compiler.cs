@@ -181,7 +181,7 @@ namespace Wabbajack.Lib
             }
 
 
-            ModMetas = Directory.EnumerateDirectories(Path.Combine(MO2Folder, "mods"))
+            ModMetas = Directory.EnumerateDirectories(Path.Combine(MO2Folder, Consts.MO2ModFolderName))
                 .Keep(f =>
                 {
                     var path = Path.Combine(f, "meta.ini");
@@ -222,7 +222,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Loading INIs");
 
-            ModInis = Directory.EnumerateDirectories(Path.Combine(MO2Folder, "mods"))
+            ModInis = Directory.EnumerateDirectories(Path.Combine(MO2Folder, Consts.MO2ModFolderName))
                 .Select(f =>
                 {
                     var modName = Path.GetFileName(f);
@@ -427,20 +427,18 @@ namespace Wabbajack.Lib
                 var byPath = files.GroupBy(f => string.Join("|", f.FilesInFullPath.Skip(1).Select(i => i.Name)))
                     .ToDictionary(f => f.Key, f => f.First());
                 // Now Create the patches
-                await group.PMap(Queue, entry =>
+                await group.PMap(Queue, async entry =>
                 {
                     Info($"Patching {entry.To}");
                     Status($"Patching {entry.To}");
-                    using (var origin = byPath[string.Join("|", entry.ArchiveHashPath.Skip(1))].OpenRead())
-                    using (var output = new MemoryStream())
-                    {
-                        var a = origin.ReadAll();
-                        var b = LoadDataForTo(entry.To, absolutePaths);
-                        Utils.CreatePatch(a, b, output);
-                        entry.PatchID = IncludeFile(output.ToArray());
-                        var fileSize = File.GetSize(Path.Combine(ModListOutputFolder, entry.PatchID));
-                        Info($"Patch size {fileSize} for {entry.To}");
-                    }
+                    await using var origin = byPath[string.Join("|", entry.ArchiveHashPath.Skip(1))].OpenRead();
+                    await using var output = new MemoryStream();
+                    var a = origin.ReadAll();
+                    var b = LoadDataForTo(entry.To, absolutePaths);
+                    await Utils.CreatePatch(a, b, output);
+                    entry.PatchID = IncludeFile(output.ToArray());
+                    var fileSize = File.GetSize(Path.Combine(ModListOutputFolder, entry.PatchID));
+                    Info($"Patch size {fileSize} for {entry.To}");
                 });
             }
         }

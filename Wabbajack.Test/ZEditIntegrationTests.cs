@@ -38,17 +38,17 @@ namespace Wabbajack.Test
                         new zEditIntegration.zEditMergePlugin()
                         {
                             filename = "srca.esp",
-                            dataFolder = Path.Combine(utils.MO2Folder, "mods", moda)
+                            dataFolder = Path.Combine(utils.MO2Folder, Consts.MO2ModFolderName, moda)
                         },
                         new zEditIntegration.zEditMergePlugin()
                         {
                             filename = "srcb.esp",
-                            dataFolder = Path.Combine(utils.MO2Folder, "mods", moda),
+                            dataFolder = Path.Combine(utils.MO2Folder, Consts.MO2ModFolderName, moda),
                         },
                         new zEditIntegration.zEditMergePlugin()
                         {
                             filename = "srcc.esp",
-                            dataFolder = Path.Combine(utils.MO2Folder, "mods", modb),
+                            dataFolder = Path.Combine(utils.MO2Folder, Consts.MO2ModFolderName, modb),
                         }
                     }
                 }
