@@ -3,6 +3,8 @@
 * Auto update functionality added client-side.
 * Slideshow now moves to next slide when users clicks, even if paused
 * Installer now prints to log what modlist it is installing
+* Adding `matchAll=<archive-name>` to a *mods's* `meta.ini` file will result in unconditional patching for all unmatching files or BSAs in
+that mod (issue #465)
 
 =======
 
