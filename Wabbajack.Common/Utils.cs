@@ -832,10 +832,8 @@ namespace Wabbajack.Common
             {
                 if (File.Exists(cacheFile))
                 {
-                    using (var f = File.OpenRead(cacheFile))
-                    {
-                        await f.CopyToAsync(output);
-                    }
+                    await using var f = File.OpenRead(cacheFile);
+                    await f.CopyToAsync(output);
                 }
                 else
                 {
@@ -854,6 +852,8 @@ namespace Wabbajack.Common
                     }
                     catch (UnauthorizedAccessException)
                     {
+                        if (File.Exists(cacheFile))
+                            continue;
                         await Task.Delay(1000);
                         goto RETRY;
                     }
