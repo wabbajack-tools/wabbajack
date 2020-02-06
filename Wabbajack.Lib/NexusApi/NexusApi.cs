@@ -14,6 +14,7 @@ using Wabbajack.Lib.Downloaders;
 using WebSocketSharp;
 using static Wabbajack.Lib.NexusApi.NexusApiUtils;
 using System.Threading;
+using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.NexusApi
@@ -261,7 +262,24 @@ namespace Wabbajack.Lib.NexusApi
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(archive.GameName)}/mods/{archive.ModID}/files/{archive.FileID}/download_link.json";
-            return (await Get<List<DownloadLink>>(url)).First().URI;
+            try
+            {
+                return (await Get<List<DownloadLink>>(url)).First().URI;
+            }
+            catch (HttpRequestException)
+            {
+            }
+
+            try
+            {
+                Utils.Log($"Requesting manual download for {archive.ModName}");
+                return (await Utils.Log(await ManuallyDownloadNexusFile.Create(archive)).Task).ToString();
+            }
+            catch (TaskCanceledException ex)
+            {
+                Utils.Error(ex, "Manual cancellation of download");
+                throw;
+            }
         }
 
         public async Task<NexusFileInfo> GetFileInfo(NexusDownloader.State mod)
@@ -327,6 +345,11 @@ namespace Wabbajack.Lib.NexusApi
                 return _localCacheDir;
             }
             set => _localCacheDir = value;
+        }
+
+        public static Uri ManualDownloadUrl(NexusDownloader.State state)
+        {
+            return new Uri($"https://www.nexusmods.com/{GameRegistry.GetByMO2ArchiveName(state.GameName).NexusName}/mods/{state.ModID}?tab=files");
         }
     }
 }

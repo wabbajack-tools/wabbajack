@@ -17,7 +17,7 @@ namespace Wabbajack.Lib.Downloaders
     public class NexusDownloader : IDownloader, INeedsLogin
     {
         private bool _prepared;
-        private SemaphoreSlim _lock = new SemaphoreSlim(1);
+        private AsyncLock _lock = new AsyncLock();
         private UserStatus _status;
         private NexusApiClient _client;
 
@@ -94,32 +94,33 @@ namespace Wabbajack.Lib.Downloaders
         {
             if (!_prepared)
             {
-                await _lock.WaitAsync();
-                try
+                using var _ = await _lock.Wait();
+                // Could have become prepared while we waited for the lock
+                if (!_prepared)
                 {
-                    // Could have become prepared while we waited for the lock
-                    if (!_prepared)
+                    _client = await NexusApiClient.Get();
+                    _status = await _client.GetUserStatus();
+                    if (!_client.IsAuthenticated)
                     {
-                        _client = await NexusApiClient.Get();
-                        _status = await _client.GetUserStatus();
-                        if (!_client.IsAuthenticated)
+                        Utils.ErrorThrow(new UnconvertedError(
+                            $"Authenticating for the Nexus failed. A nexus account is required to automatically download mods."));
+                        return;
+                    }
+                    
+
+                    if (!await _client.IsPremium())
+                    {
+                        var result = await Utils.Log(new YesNoIntervention(
+                            "Wabbajack can operate without a premium account, but downloads will be slower and the install process will require more user interactions (you will have to start each download by hand). Are you sure you wish to continue?",
+                            "Continue without Premium?")).Task;
+                        if (result == ConfirmationIntervention.Choice.Abort)
                         {
-                            Utils.ErrorThrow(new UnconvertedError(
-                                $"Authenticating for the Nexus failed. A nexus account is required to automatically download mods."));
-                            return;
+                            Utils.ErrorThrow(new UnconvertedError($"Aborting at the request of the user"));
                         }
+                        _prepared = true;
                     }
                 }
-                finally
-                {
-                    _lock.Release();
-                }
             }
-
-            _prepared = true;
-
-            if (_status.is_premium) return;
-            Utils.ErrorThrow(new UnconvertedError($"Automated installs with Wabbajack requires a premium nexus account. {await _client.Username()} is not a premium account."));
         }
 
         public class State : AbstractDownloadState

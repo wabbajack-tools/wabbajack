@@ -37,7 +37,7 @@ namespace Wabbajack.Lib.LibCefHelpers
             return container;
         }
 
-        public static async Task<Cookie[]> GetCookies(string domainEnding)
+        public static async Task<Cookie[]> GetCookies(string domainEnding = "")
         {
             var manager = Cef.GetGlobalCookieManager();
             var visitor = new CookieVisitor();
@@ -85,8 +85,14 @@ namespace Wabbajack.Lib.LibCefHelpers
 
         public static void Init()
         {
-            // does nothing, but kicks off the static constructor
+            if (Inited) return;
+            Inited = true;
+            CefSettings settings = new CefSettings();
+            settings.CachePath = Path.Combine(Directory.GetCurrentDirectory() + @"\CEF");
+            Cef.Initialize(settings);
         }
+
+        public static bool Inited { get; set; }
     }
 
     public static class ModuleInitializer
