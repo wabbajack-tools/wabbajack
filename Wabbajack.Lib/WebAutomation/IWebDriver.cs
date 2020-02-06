@@ -12,5 +12,6 @@ namespace Wabbajack.Lib.WebAutomation
         Task NavigateTo(Uri uri);
         Task<string> EvaluateJavaScript(string text);
         Task<Helpers.Cookie[]> GetCookies(string domainPrefix);
+        public Action<Uri> DownloadHandler { get; set; } 
     }
 }

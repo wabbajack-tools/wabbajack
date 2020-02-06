@@ -60,6 +60,8 @@ namespace Wabbajack.Common
         public string MO2ArchiveName { get; internal set; }
         public Game Game { get; internal set; }
         public string NexusName { get; internal set; }
+        // Nexus DB id for the game, used in some specific situations
+        public long NexusGameId { get; internal set; }
         public string MO2Name { get; internal set; }
         public string GameLocationRegistryKey { get; internal set; }
         // to get steam ids: https://steamdb.info
@@ -211,6 +213,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.MO2,
                     Game = Game.SkyrimSpecialEdition,
                     NexusName = "skyrimspecialedition",
+                    NexusGameId = 1704,
                     MO2Name = "Skyrim Special Edition",
                     MO2ArchiveName = "skyrimse",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Skyrim Special Edition",

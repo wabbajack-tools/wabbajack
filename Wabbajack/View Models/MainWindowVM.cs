@@ -74,18 +74,21 @@ namespace Wabbajack
                 .Bind(Log)
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
+            
+            var singleton_lock = new AsyncLock();
 
             Utils.LogMessages
                 .OfType<IUserIntervention>()
                 .ObserveOnGuiThread()
                 .SelectTask(async msg =>
                 {
+                    using var _ = await singleton_lock.Wait();
                     try
                     {
                         await UserInterventionHandlers.Handle(msg);
                     }
                     catch (Exception ex)
-                    when (ex.GetType() != typeof(TaskCanceledException))
+                        when (ex.GetType() != typeof(TaskCanceledException))
                     {
                         Utils.Error(ex, $"Error while handling user intervention of type {msg?.GetType()}");
                         try
