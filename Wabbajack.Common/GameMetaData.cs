@@ -131,6 +131,7 @@ namespace Wabbajack.Common
                     Disabled = true,
                     SteamIDs = new List<int>{0},
                     NexusName = "morrowind",
+                    NexusGameId = 100,
                     MO2Name = "Morrowind",
                     MO2ArchiveName = "morrowind"
                 }
@@ -141,6 +142,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.MO2,
                     Game = Game.Oblivion,
                     NexusName = "oblivion",
+                    NexusGameId = 101,
                     MO2Name = "Oblivion",
                     MO2ArchiveName = "oblivion",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Oblivion",
@@ -160,6 +162,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.MO2,
                     Game = Game.Fallout3,
                     NexusName = "fallout3",
+                    NexusGameId = 120,
                     MO2Name = "fallout3",
                     MO2ArchiveName = "fallout3",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Fallout3",
@@ -178,6 +181,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.MO2,
                     Game = Game.FalloutNewVegas,
                     NexusName = "newvegas",
+                    NexusGameId = 130,
                     MO2Name = "New Vegas",
                     MO2ArchiveName = "falloutnv",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\falloutnv",
@@ -196,6 +200,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.MO2,
                     Game = Game.Skyrim,
                     NexusName = "skyrim",
+                    NexusGameId = 110,
                     MO2Name = "Skyrim",
                     MO2ArchiveName = "skyrim",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\skyrim",
@@ -231,6 +236,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.MO2,
                     Game = Game.Fallout4,
                     NexusName = "fallout4",
+                    NexusGameId = 1151,
                     MO2Name = "Fallout 4",
                     MO2ArchiveName = "fallout4",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Fallout4",
@@ -259,6 +265,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.MO2,
                     Game = Game.SkyrimVR,
                     NexusName = "skyrimspecialedition",
+                    NexusGameId = 1704,
                     MO2Name = "Skyrim VR",
                     MO2ArchiveName = "skyrimse",
                     GameLocationRegistryKey = @"HKEY_LOCAL_MACHINE\SOFTWARE\Bethesda Softworks\Skyrim VR",
@@ -275,6 +282,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.DarkestDungeon,
                     NexusName = "darkestdungeon",
+                    NexusGameId = 804,
                     SteamIDs = new List<int> {262060},
                     GOGIDs = new List<int>{1450711444},
                     RequiredFiles = new List<string>
@@ -289,6 +297,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.DivinityOriginalSin2DE,
                     NexusName = "divinityoriginalsin2definitiveedition",
+                    NexusGameId = 2569,
                     SteamIDs = new List<int> {435150},
                     GOGIDs = new List<int>{1584823040},
                     AdditionalFolders = new List<string>
@@ -307,6 +316,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.DivinityOriginalSin2,
                     NexusName = "divinityoriginalsin2",
+                    NexusGameId = 1661,
                     SteamIDs = new List<int> {435150},
                     GOGIDs = new List<int>{1584823040},
                     AdditionalFolders = new List<string>
@@ -325,6 +335,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.Starbound,
                     NexusName = "starbound",
+                    NexusGameId = 242,
                     SteamIDs = new List<int>{211820},
                     GOGIDs = new List<int>{1452598881},
                     RequiredFiles = new List<string>
@@ -339,6 +350,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.SWKOTOR,
                     NexusName = "kotor",
+                    NexusGameId = 234,
                     SteamIDs = new List<int>{32370},
                     GOGIDs = new List<int>{1207666283},
                     RequiredFiles = new List<string>
@@ -353,6 +365,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.SWKOTOR2,
                     NexusName = "kotor2",
+                    NexusGameId = 198,
                     SteamIDs = new List<int>{208580},
                     GOGIDs = new List<int>{1421404581},
                     RequiredFiles = new List<string>
@@ -367,6 +380,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.Witcher,
                     NexusName = "witcher",
+                    NexusGameId = 150,
                     SteamIDs = new List<int>{20900},
                     GOGIDs = new List<int>{1207658924},
                     RequiredFiles = new List<string>
@@ -381,6 +395,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.Witcher2,
                     NexusName = "witcher2",
+                    NexusGameId = 153,
                     SteamIDs = new List<int>{20920},
                     GOGIDs = new List<int>{1207658930},
                     RequiredFiles = new List<string>
@@ -396,6 +411,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.Witcher3,
                     NexusName = "witcher3",
+                    NexusGameId = 952,
                     SteamIDs = new List<int>{292030, 499450}, // normal and GotY
                     GOGIDs = new List<int>{1207664643, 1495134320, 1207664663, 1640424747}, // normal, GotY and both in packages
                     RequiredFiles = new List<string>
@@ -410,6 +426,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.Vortex,
                     Game = Game.StardewValley,
                     NexusName = "stardewvalley",
+                    NexusGameId = 1303,
                     SteamIDs = new List<int>{413150},
                     GOGIDs = new List<int>{1453375253},
                     RequiredFiles = new List<string>
