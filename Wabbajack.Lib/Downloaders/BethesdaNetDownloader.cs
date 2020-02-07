@@ -63,13 +63,14 @@ namespace Wabbajack.Lib.Downloaders
             await Utils.Log(new RequestBethesdaNetLogin()).Task;
         }
 
-        public static async Task<BethesdaNetData> Login()
+        public static async Task<BethesdaNetData> Login(Game game)
         {
-            var game = Path.Combine(Game.SkyrimSpecialEdition.MetaData().GameLocation(), "SkyrimSE.exe");
+            var metadata = game.MetaData();
+            var gamePath = Path.Combine(metadata.GameLocation(), metadata.MainExecutable);
             var info = new ProcessStartInfo
             {
                 FileName = @"Downloaders\BethesdaNet\bethnetlogin.exe",
-                Arguments = $"\"{game}\" SkyrimSE.exe",
+                Arguments = $"\"{gamePath}\" {metadata.MainExecutable}",
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -87,9 +88,16 @@ namespace Wabbajack.Lib.Downloaders
                 last_line = line;
             }
 
-            var result =  last_line.FromJSONString<BethesdaNetData>();
-            result.ToEcryptedJson(DataName);
-            return result;
+            try
+            {
+                var result = last_line.FromJSONString<BethesdaNetData>();
+                result.ToEcryptedJson(DataName);
+                return result;
+            }
+            catch (Exception _)
+            {
+                return null;
+            }
         }
 
         public AbstractDownloadState GetDownloaderState(string url)

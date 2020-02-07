@@ -86,7 +86,9 @@ namespace Wabbajack.Common
                 return FileVersionInfo.GetVersionInfo(Path.Combine(GameLocation(), MainExecutable)).ProductVersion;
             }
         }
-        
+
+        public bool IsInstalled => GameLocation() != null;
+
         public string MainExecutable { get; internal set; }
 
         public string GameLocation()

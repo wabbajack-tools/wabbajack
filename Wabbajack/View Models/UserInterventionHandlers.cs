@@ -55,6 +55,21 @@ namespace Wabbajack
             MainWindow.NavigateTo(oldPane);
         }
 
+        private async Task WrapBethesdaNetLogin(IUserIntervention intervention)
+        {
+            CancellationTokenSource cancel = new CancellationTokenSource();
+            var oldPane = MainWindow.ActivePane;
+            var vm = await BethesdaNetLoginVM.GetNew();
+            MainWindow.NavigateTo(vm);
+            vm.BackCommand = ReactiveCommand.Create(() =>
+            {
+                cancel.Cancel();
+                MainWindow.NavigateTo(oldPane);
+                intervention.Cancel();
+            });
+           
+        }
+
         public async Task Handle(IUserIntervention msg)
         {
             switch (msg)
@@ -71,8 +86,7 @@ namespace Wabbajack
                     await WrapBrowserJob(msg, (vm, cancel) => HandleManualNexusDownload(vm, cancel, c));
                     break;
                 case RequestBethesdaNetLogin c:
-                    var data = await BethesdaNetDownloader.Login();
-                    c.Resume(data);
+                    await WrapBethesdaNetLogin(c);
                     break;
                 case AbstractNeedsLoginDownloader.RequestSiteLogin c:
                     await WrapBrowserJob(msg, async (vm, cancel) =>
