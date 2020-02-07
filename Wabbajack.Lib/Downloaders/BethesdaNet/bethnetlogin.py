@@ -7,16 +7,18 @@ import frida
 import sys
 from subprocess import Popen, PIPE
 import psutil, time, json
+from pathlib import Path
 
 known_headers = {}
 shutdown = False
 
+
 def on_message(message, data):
     msg_type, msg_data = message["payload"]
     if msg_type == "header":
-        header, value = msg_data.split(": ");
+        header, value = msg_data.split(": ")
         if header not in known_headers:
-            known_headers[header] = value;
+            known_headers[header] = value
     if msg_type == "data":
         try:
             data = json.loads(msg_data)
@@ -24,6 +26,7 @@ def on_message(message, data):
                 shutdown_and_print(data)
         except:
             return
+
 
 def main(target_process):
     session = frida.attach(target_process)
@@ -64,40 +67,57 @@ def main(target_process):
 """)
     script.on('message', on_message)
     script.load()
-    
-    while not shutdown:
-        time.sleep(0.5);
-        
+
+    while not shutdown and psutil.pid_exists(target_process):
+        time.sleep(0.5)
+
     session.detach()
-    
-def wait_for_game(name):
+    sys.exit(1)
+
+
+def wait_for_game(started, name):
+    no_exe = 0
+    parent_path = Path(started).parent
     while True:
-        time.sleep(1);
+        found = False
+        time.sleep(1)
         for proc in psutil.process_iter():
+            try:
+                if Path(proc.exe()).parent == parent_path:
+                    no_exe = 0
+                    found = True
+            except:
+                pass
             if proc.name() == name:
-                return proc.pid;
-                
+                return proc.pid
+
+        if not found:
+            print("Not Found " + str(no_exe))
+            no_exe += 1
+        if no_exe == 3:
+            sys.exit(1)
+
+
 def shutdown_and_print(data):
     global shutdown
     output = {"body": json.dumps(data), "headers": known_headers}
-    
+
     print(json.dumps(output))
-    
+
     for proc in psutil.process_iter():
         if proc.pid == pid:
-            proc.kill();
+            proc.kill()
             break
-            
-    shutdown = True;
-    
-    
+
+    shutdown = True
+
 
 if __name__ == '__main__':
     start = """C:\Steam\steamapps\common\Skyrim Special Edition\SkyrimSE.exe"""
     wait_for = "SkyrimSE.exe"
     if len(sys.argv) == 3:
-        start = sys.argv[1];
+        start = sys.argv[1]
         wait_for = sys.argv[2]
     target_process = Popen([start])
-    pid = wait_for_game(wait_for);
+    pid = wait_for_game(start, wait_for)
     main(pid)
