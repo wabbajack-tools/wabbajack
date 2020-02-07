@@ -6,6 +6,7 @@
 * Adding `matchAll=<archive-name>` to a *mods's* `meta.ini` file will result in unconditional patching for all unmatching files or BSAs in
 that mod (issue #465)
 * Added support for non-premium Nexus downloads via manual downloading through the in-app browser.
+* Downloads from Bethesda.NET are now supported. Can login via SkyrimSE or Fallout 4.
 
 =======
 
