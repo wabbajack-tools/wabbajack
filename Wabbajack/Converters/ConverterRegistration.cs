@@ -20,6 +20,10 @@ namespace Wabbajack
                 new IntDownCastConverter(),
                 typeof(IBindingTypeConverter)
             );
+            Locator.CurrentMutable.RegisterConstant(
+                new PercentToDoubleConverter(),
+                typeof(IBindingTypeConverter)
+            );
         }
     }
 }

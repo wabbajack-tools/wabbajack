@@ -124,7 +124,7 @@ namespace Wabbajack.Lib.Downloaders
                 var secs = times.Download - times.CurrentTime;
                 for (int x = 0; x < secs; x++)
                 {
-                    Utils.Status($"Waiting for {secs} at the request of {downloader.SiteName}", x * 100 / secs);
+                    Utils.Status($"Waiting for {secs} at the request of {downloader.SiteName}", Percent.FactoryPutInRange(x, secs));
                     await Task.Delay(1000);
                 }
                 Utils.Status("Retrying download");

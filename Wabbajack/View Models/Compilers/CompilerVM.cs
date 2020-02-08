@@ -40,8 +40,8 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<bool> _compiling;
         public bool Compiling => _compiling.Value;
 
-        private readonly ObservableAsPropertyHelper<float> _percentCompleted;
-        public float PercentCompleted => _percentCompleted.Value;
+        private readonly ObservableAsPropertyHelper<Percent> _percentCompleted;
+        public Percent PercentCompleted => _percentCompleted.Value;
 
         public ObservableCollectionExtended<CPUDisplayVM> StatusList { get; } = new ObservableCollectionExtended<CPUDisplayVM>();
 
@@ -169,9 +169,9 @@ namespace Wabbajack
                     {
                         if (compiler == null)
                         {
-                            return Observable.Return<float>(completed != null ? 1f : 0f);
+                            return Observable.Return<Percent>(completed != null ? Percent.One : Percent.Zero);
                         }
-                        return compiler.PercentCompleted.StartWith(0);
+                        return compiler.PercentCompleted.StartWith(Percent.Zero);
                     })
                 .Switch()
                 .Debounce(TimeSpan.FromMilliseconds(25), RxApp.MainThreadScheduler)

@@ -82,8 +82,8 @@ namespace Wabbajack
         private byte _MaxCores = byte.MaxValue;
         public byte MaxCores { get => _MaxCores; set => this.RaiseAndSetIfChanged(ref _MaxCores, value); }
 
-        private double _TargetUsage = 1.0d;
-        public double TargetUsage { get => _TargetUsage; set => this.RaiseAndSetIfChanged(ref _TargetUsage, value); }
+        private Percent _TargetUsage = Percent.One;
+        public Percent TargetUsage { get => _TargetUsage; set => this.RaiseAndSetIfChanged(ref _TargetUsage, value); }
 
         public void AttachToBatchProcessor(ABatchProcessor processor)
         {

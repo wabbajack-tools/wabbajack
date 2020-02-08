@@ -101,7 +101,7 @@ namespace Wabbajack.Lib.Downloaders
                     long totalRead = 0;
                     var bufferSize = 1024 * 32;
 
-                    Utils.Status($"Starting Download {a?.Name ?? Url}", 0);
+                    Utils.Status($"Starting Download {a?.Name ?? Url}", Percent.Zero);
                     var response = await client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
 TOP:
 
@@ -179,7 +179,7 @@ TOP:
                             read_this_cycle += read;
 
                             if (read == 0) break;
-                            Utils.Status($"Downloading {a.Name}", (int)(totalRead * 100 / contentSize));
+                            Utils.Status($"Downloading {a.Name}", Percent.FactoryPutInRange(totalRead, contentSize));
 
                             fs.Write(buffer, 0, read);
                             totalRead += read;

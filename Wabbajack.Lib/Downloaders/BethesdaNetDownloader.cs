@@ -133,7 +133,7 @@ namespace Wabbajack.Lib.Downloaders
                 var max_chunks = info.depot_list[0].file_list[0].chunk_count;
                 foreach (var chunk in info.depot_list[0].file_list[0].chunk_list.OrderBy(c => c.index))
                 {
-                    Utils.Status($"Downloading {a.Name}", chunk.index * 100 / max_chunks);
+                    Utils.Status($"Downloading {a.Name}", Percent.FactoryPutInRange(chunk.index, max_chunks));
                     var got = await client.GetAsync(
                         $"https://content.cdp.bethesda.net/{collected.CDPProductId}/{collected.CDPPropertiesId}/{chunk.sha}");
                     var data = await got.Content.ReadAsByteArrayAsync();

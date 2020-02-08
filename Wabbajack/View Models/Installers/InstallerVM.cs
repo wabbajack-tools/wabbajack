@@ -68,8 +68,8 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<string> _modListName;
         public string ModListName => _modListName.Value;
 
-        private readonly ObservableAsPropertyHelper<float> _percentCompleted;
-        public float PercentCompleted => _percentCompleted.Value;
+        private readonly ObservableAsPropertyHelper<Percent> _percentCompleted;
+        public Percent PercentCompleted => _percentCompleted.Value;
 
         public ObservableCollectionExtended<CPUDisplayVM> StatusList { get; } = new ObservableCollectionExtended<CPUDisplayVM>();
         public ObservableCollectionExtended<IStatusMessage> Log => MWVM.Log;
@@ -238,9 +238,9 @@ namespace Wabbajack
                     {
                         if (installer == null)
                         {
-                            return Observable.Return<float>(completed != null ? 1f : 0f);
+                            return Observable.Return<Percent>(completed != null ? Percent.One : Percent.Zero);
                         }
-                        return installer.PercentCompleted.StartWith(0f);
+                        return installer.PercentCompleted.StartWith(Percent.Zero);
                     })
                 .Switch()
                 .Debounce(TimeSpan.FromMilliseconds(25), RxApp.MainThreadScheduler)

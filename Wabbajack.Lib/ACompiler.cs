@@ -54,7 +54,7 @@ namespace Wabbajack.Lib
 
         public void Status(string msg)
         {
-            Queue.Report(msg, 0);
+            Queue.Report(msg, Percent.Zero);
         }
 
         public static void Error(string msg)

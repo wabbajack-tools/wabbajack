@@ -19,12 +19,12 @@ namespace Wabbajack.Lib
 
         protected StatusUpdateTracker UpdateTracker { get; private set; }
 
-        private Subject<float> _percentCompleted { get; } = new Subject<float>();
+        private Subject<Percent> _percentCompleted { get; } = new Subject<Percent>();
 
         /// <summary>
         /// The current progress of the entire processing system on a scale of 0.0 to 1.0
         /// </summary>
-        public IObservable<float> PercentCompleted => _percentCompleted;
+        public IObservable<Percent> PercentCompleted => _percentCompleted;
 
         private Subject<string> _textStatus { get; } = new Subject<string>();
 
@@ -51,7 +51,7 @@ namespace Wabbajack.Lib
         // WorkQueue settings
         public BehaviorSubject<bool> ManualCoreLimit = new BehaviorSubject<bool>(true);
         public BehaviorSubject<byte> MaxCores = new BehaviorSubject<byte>(byte.MaxValue);
-        public BehaviorSubject<double> TargetUsagePercent = new BehaviorSubject<double>(1.0d);
+        public BehaviorSubject<Percent> TargetUsagePercent = new BehaviorSubject<Percent>(Percent.One);
 
         protected void ConfigureProcessor(int steps, IObservable<int> numThreads = null)
         {

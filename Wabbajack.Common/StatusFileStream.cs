@@ -44,9 +44,9 @@ namespace Wabbajack.Common
             }
 
             if (_queue != null)
-                _queue.Report(_message, (int) (_inner.Position * 100 / _inner.Length));
+                _queue.Report(_message, Percent.FactoryPutInRange(_inner.Position, _inner.Length));
             else
-                Utils.Status(_message, (int) (_inner.Position * 100 / _inner.Length));
+                Utils.Status(_message, Percent.FactoryPutInRange(_inner.Position, _inner.Length));
         }
 
         public override void Write(byte[] buffer, int offset, int count)
