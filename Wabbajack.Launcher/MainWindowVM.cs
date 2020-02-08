@@ -16,7 +16,7 @@ namespace Wabbajack.Launcher
     {
         public event PropertyChangedEventHandler PropertyChanged;
         private WebClient _client = new WebClient();
-        public Uri GITHUB_REPO = new Uri("https://api.github.com/repos/wabbajack-tools/temp-releases/releases");
+        public Uri GITHUB_REPO = new Uri("https://api.github.com/repos/wabbajack-tools/wabbajack/releases");
 
 
         [NotifyPropertyChangedInvocator]
