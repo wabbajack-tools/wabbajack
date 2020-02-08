@@ -56,12 +56,12 @@ namespace Wabbajack.Launcher
                 var releases = await GetReleases();
                 _version = releases.OrderByDescending(r =>
                 {
-                    if (Version.TryParse(r.Tag, out var v))
+                    if (r.Tag.Split(".").Length == 4 && Version.TryParse(r.Tag, out var v))
                         return v;
                     return new Version(0, 0, 0, 0);
                 }).FirstOrDefault();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 FinishAndExit();
             }
