@@ -88,7 +88,7 @@ namespace Wabbajack.Lib.LibCefHelpers
             if (Inited) return;
             Inited = true;
             CefSettings settings = new CefSettings();
-            settings.CachePath = Path.Combine(Directory.GetCurrentDirectory() + @"\CEF");
+            settings.CachePath = Path.Combine(Consts.LocalAppDataPath  + @"\CEF");
             Cef.Initialize(settings);
         }
 

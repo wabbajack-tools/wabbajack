@@ -100,5 +100,7 @@ namespace Wabbajack.Common
         public static int WabbajackCachePort = 80;
         public static int MaxHTTPRetries = 4;
         public const string MO2ModFolderName = "mods";
+
+        public static string PatchCacheFolder => Path.Combine(LocalAppDataPath, "patch_cache");
     }
 }
