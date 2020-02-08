@@ -150,9 +150,23 @@ Our testers and Discord members who encourage development and help test the buil
 - Kristina Poňuchálková
 - metherul
 - Decopauge123
+- ButteredMolerat
+- Phillip Zolla
+- Shawn Merrill
+- Steven Kimsey
+- NexVotum
+- Randall Johnson
+- Isaac Testerman
+- Bryan Karsh
+- Coyney
+- Roy Martinez
+- Bob Bob
+- yreeFJ
+
 
 #### Chicken and Mudcrab level Supporters
 
+- SirLach
 - Druwski
 - Soothsayre
 - krageon
