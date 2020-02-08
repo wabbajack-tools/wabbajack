@@ -80,7 +80,7 @@ namespace Wabbajack.Lib.ModListRegistry
             {
             }
 
-            return metadata;
+            return metadata.OrderBy(m => (m.ValidationSummary?.HasFailures ?? false ? 1 : 0, m.Title)).ToList();
         }
 
         public bool NeedsDownload(string modlistPath)
