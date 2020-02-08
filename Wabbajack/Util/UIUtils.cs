@@ -65,6 +65,7 @@ namespace Wabbajack
                 .ToObservableChangeSet(x => x.ID)
                 .Batch(TimeSpan.FromMilliseconds(50), RxApp.TaskpoolScheduler)
                 .EnsureUniqueChanges()
+                .ObserveOnGuiThread()
                 .TransformAndCache(
                     onAdded: (key, cpu) => new CPUDisplayVM(cpu),
                     onUpdated: (change, vm) => vm.AbsorbStatus(change.Current))
@@ -72,7 +73,6 @@ namespace Wabbajack
                 .AutoRefresh(x => x.StartTime)
                 .Filter(i => i.IsWorking && i.ID != WorkQueue.UnassignedCpuId)
                 .Sort(SortExpressionComparer<CPUDisplayVM>.Ascending(s => s.StartTime))
-                .ObserveOnGuiThread()
                 .Bind(list)
                 .Subscribe();
         }

@@ -34,7 +34,7 @@ namespace Wabbajack
         public string Location { get; }
 
         [Reactive]
-        public double ProgressPercent { get; private set; }
+        public Percent ProgressPercent { get; private set; }
 
         [Reactive]
         public bool IsBroken { get; private set; }
@@ -144,7 +144,7 @@ namespace Wabbajack
 
         private async Task<bool> Download()
         {
-            ProgressPercent = 0d;
+            ProgressPercent = Percent.Zero;
             using (var queue = new WorkQueue(1))
             using (queue.Status.Select(i => i.ProgressPercent)
                 .Subscribe(percent => ProgressPercent = percent))

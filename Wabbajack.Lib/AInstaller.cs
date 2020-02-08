@@ -47,7 +47,7 @@ namespace Wabbajack.Lib
 
         public void Status(string msg)
         {
-            Queue.Report(msg, 0);
+            Queue.Report(msg, Percent.Zero);
         }
 
         public void Error(string msg)
@@ -183,7 +183,7 @@ namespace Wabbajack.Lib
             await vFiles.GroupBy(f => f.FromFile)
                   .PDoIndexed(queue, (idx, group) =>
             {
-                Utils.Status("Installing files", idx * 100 / vFiles.Count);
+                Utils.Status("Installing files", Percent.FactoryPutInRange(idx, vFiles.Count));
                 var firstDest = Path.Combine(OutputFolder, group.First().To);
                 CopyFile(group.Key.StagedPath, firstDest, true);
                 

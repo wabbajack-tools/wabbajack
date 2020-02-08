@@ -116,7 +116,7 @@ namespace Wabbajack.Common
             {
                 while (true)
                 {
-                    Report("Waiting", 0, false);
+                    Report("Waiting", Percent.Zero, false);
                     if (_shutdown.IsCancellationRequested) return;
 
 
@@ -150,7 +150,7 @@ namespace Wabbajack.Common
                         {
                             Utils.Error($"Could not remove thread from workpool with CPU ID {cpuID}");
                         }
-                        Report("Shutting down", 0, false);
+                        Report("Shutting down", Percent.Zero, false);
                         _cpuCountSubj.OnNext((_tasks.Count, DesiredNumWorkers));
                         return;
                     }
@@ -165,13 +165,12 @@ namespace Wabbajack.Common
             }
         }
 
-        public void Report(string msg, int progress, bool isWorking = true)
+        public void Report(string msg, Percent progress, bool isWorking = true)
         {
             _Status.OnNext(
                 new CPUStatus
                 {
-                    Progress = progress,
-                    ProgressPercent = progress / 100f,
+                    ProgressPercent = progress,
                     Msg = msg,
                     ID = _cpuId.Value,
                     IsWorking = isWorking
@@ -193,8 +192,7 @@ namespace Wabbajack.Common
 
     public class CPUStatus
     {
-        public int Progress { get; internal set; }
-        public float ProgressPercent { get; internal set; }
+        public Percent ProgressPercent { get; internal set; }
         public string Msg { get; internal set; }
         public int ID { get; internal set; }
         public bool IsWorking { get; internal set; }

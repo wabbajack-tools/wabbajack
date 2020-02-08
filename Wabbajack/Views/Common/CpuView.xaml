@@ -4,14 +4,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Wabbajack"
-    xmlns:mahapps="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="450"
     d:DesignWidth="800"
     x:TypeArguments="local:ICpuStatusVM"
     mc:Ignorable="d">
     <Grid x:Name="ControlGrid" Background="Transparent">
-        <Rectangle Fill="{StaticResource HeatedBorderBrush}" Opacity="{Binding ProgressPercent, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
+        <Rectangle x:Name="HeatedBorderRect" Fill="{StaticResource HeatedBorderBrush}" />
         <Border BorderBrush="Transparent" BorderThickness="1" />
         <Grid Margin="1" Background="{StaticResource DarkBackgroundBrush}">
             <Grid.RowDefinitions>
@@ -25,29 +24,7 @@
                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Grid Background="{StaticResource WindowBackgroundBrush}">
-                            <mahapps:MetroProgressBar
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Foreground="{StaticResource DarkPrimaryVariantBrush}"
-                                Maximum="1"
-                                Opacity="{Binding ProgressPercent, Mode=OneWay}"
-                                Value="{Binding ProgressPercent, Mode=OneWay}" />
-                            <Grid Height="1" VerticalAlignment="Bottom">
-                                <mahapps:MetroProgressBar
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Foreground="{StaticResource DarkSecondaryBrush}"
-                                    Maximum="1"
-                                    Value="{Binding ProgressPercent, Mode=OneWay}" />
-                            </Grid>
-                            <TextBlock
-                                Margin="0,0,0,2"
-                                Text="{Binding Msg, Mode=OneWay}"
-                                TextTrimming="CharacterEllipsis"
-                                TextWrapping="NoWrap"
-                                ToolTip="{Binding Msg, Mode=OneWay}" />
-                        </Grid>
+                        <local:CpuLineView ViewModel="{Binding}" />
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>

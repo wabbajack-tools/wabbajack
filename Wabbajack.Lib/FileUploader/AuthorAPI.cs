@@ -61,7 +61,7 @@ namespace Wabbajack.Lib.FileUploader
                 long sent = 0;
                 using (var iqueue = new WorkQueue(MAX_CONNECTIONS))
                 {
-                    iqueue.Report("Starting Upload", 1);
+                    iqueue.Report("Starting Upload", Percent.One);
                 await Blocks(fsize)
                     .PMap(iqueue, async block_idx =>
                     {
