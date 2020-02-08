@@ -824,9 +824,9 @@ namespace Wabbajack.Common
         {
             var dataA = a.xxHash().FromBase64().ToHex();
             var dataB = b.xxHash().FromBase64().ToHex();
-            var cacheFile = Path.Combine("patch_cache", $"{dataA}_{dataB}.patch");
-            if (!Directory.Exists("patch_cache"))
-                Directory.CreateDirectory("patch_cache");
+            var cacheFile = Path.Combine(Consts.PatchCacheFolder, $"{dataA}_{dataB}.patch");
+            if (!Directory.Exists(Consts.PatchCacheFolder))
+                Directory.CreateDirectory(Consts.PatchCacheFolder);
 
             while (true)
             {
@@ -837,7 +837,7 @@ namespace Wabbajack.Common
                 }
                 else
                 {
-                    var tmpName = Path.Combine("patch_cache", Guid.NewGuid() + ".tmp");
+                    var tmpName = Path.Combine(Consts.PatchCacheFolder, Guid.NewGuid() + ".tmp");
 
                     await using (var f = File.Open(tmpName, System.IO.FileMode.Create))
                     {
@@ -867,7 +867,7 @@ namespace Wabbajack.Common
 
         public static bool TryGetPatch(string foundHash, string fileHash, out byte[] ePatch)
         {
-            var patchName = Path.Combine("patch_cache",
+            var patchName = Path.Combine(Consts.PatchCacheFolder,
                 $"{foundHash.FromBase64().ToHex()}_{fileHash.FromBase64().ToHex()}.patch");
             if (File.Exists(patchName))
             {
