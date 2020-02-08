@@ -1,0 +1,78 @@
+﻿using System;
+using System.Reactive.Linq;
+using CommandLine;
+using Wabbajack.Common;
+using Wabbajack.Lib;
+using Wabbajack.Lib.Validation;
+using File = Alphaleonis.Win32.Filesystem.File;
+
+namespace Wabbajack.CLI.Verbs
+{
+    [Verb("validate", HelpText = @"Validates a Modlist")]
+    public class Validate
+    {
+        [Option('i', "input", Required = true, HelpText = @"Modlist file")]
+        public string Input { get; set; }
+
+        /// <summary>
+        /// Runs the Validation of a Modlist
+        /// </summary>
+        /// <param name="opts"></param>
+        /// <returns>
+        /// <para>
+        /// <c>-1</c> bad Input
+        /// <c>0</c> valid modlist
+        /// <c>1</c> broken modlist
+        /// </para>
+        /// </returns>
+        public static int Run(Validate opts)
+        {
+            if (!File.Exists(opts.Input))
+            {
+                Console.WriteLine($"The file {opts.Input} does not exist!");
+                return -1;
+            }
+
+
+            if (!opts.Input.EndsWith(Consts.ModListExtension))
+            {
+                Console.WriteLine($"The file {opts.Input} does not end with {Consts.ModListExtension}!");
+                return -1;
+            }
+            
+            ModList modlist;
+
+            try
+            {
+                modlist = AInstaller.LoadFromFile(opts.Input);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error while loading the Modlist!\n{e}");
+                return 1;
+            }
+
+            if (modlist == null)
+            {
+                Console.WriteLine($"The Modlist could not be loaded!");
+                return 1;
+            }
+                
+
+            var queue = new WorkQueue();
+
+            try
+            {
+                ValidateModlist.RunValidation(queue, modlist).RunSynchronously();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Error during Validation!\n{e}");
+                return 1;
+            }
+
+            Console.WriteLine("The Modlist passed the Validation");
+            return 0;
+        }
+    }
+}
