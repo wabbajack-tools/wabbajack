@@ -354,6 +354,34 @@ namespace Wabbajack.Lib
                     File.Delete(f);
                 });
 
+            Utils.Log("Cleaning empty folders");
+            var expectedFolders = indexed.Keys
+                // We ignore the last part of the path, so we need a dummy file name
+                .Append(Path.Combine(DownloadFolder, "_"))
+                .SelectMany(path =>
+                {
+                    // Get all the folders and all the folder parents
+                    // so for foo\bar\baz\qux.txt this emits ["foo", "foo\\bar", "foo\\bar\\baz"]
+                    var split = path.Split('\\');
+                    return Enumerable.Range(1, split.Length - 1).Select(t => string.Join("\\", split.Take(t)));
+                })
+               .Distinct()
+               .Select(p => Path.Combine(OutputFolder, p))
+               .ToHashSet();
+
+            try
+            {
+                Directory.EnumerateDirectories(OutputFolder, DirectoryEnumerationOptions.Recursive)
+                    .Where(p => !expectedFolders.Contains(p))
+                    .OrderByDescending(p => p.Length)
+                    .Do(Utils.DeleteDirectory);
+            }
+            catch (Exception)
+            {
+                // ignored because it's not worth throwing a fit over
+                Utils.Log("Error when trying to clean empty folders. This doesn't really matter.");
+            }
+
             UpdateTracker.NextStep("Looking for unmodified files");
             (await indexed.Values.PMap(Queue, UpdateTracker, d =>
             {
@@ -371,33 +399,6 @@ namespace Wabbajack.Lib
             }))
               .Where(d => d != null)
               .Do(d => indexed.Remove(d.To));
-
-            Utils.Log("Cleaning empty folders");
-            var expectedFolders = indexed.Keys
-                // We ignore the last part of the path, so we need a dummy file name
-                .Append(Path.Combine(DownloadFolder, "_"))
-                .SelectMany(path =>
-            {
-                // Get all the folders and all the folder parents
-                // so for foo\bar\baz\qux.txt this emits ["foo", "foo\\bar", "foo\\bar\\baz"]
-                var split = path.Split('\\');
-                return Enumerable.Range(1, split.Length - 1).Select(t => string.Join("\\", split.Take(t)));
-            }).Distinct()
-              .Select(p => Path.Combine(OutputFolder, p))
-              .ToHashSet();
-
-            try
-            {
-                Directory.EnumerateDirectories(OutputFolder, DirectoryEnumerationOptions.Recursive)
-                    .Where(p => !expectedFolders.Contains(p))
-                    .OrderByDescending(p => p.Length)
-                    .Do(Utils.DeleteDirectory);
-            }
-            catch (Exception)
-            {
-                // ignored because it's not worth throwing a fit over
-                Utils.Log("Error when trying to clean empty folders. This doesn't really matter.");
-            }
 
             UpdateTracker.NextStep("Updating ModList");
             Utils.Log($"Optimized {ModList.Directives.Count} directives to {indexed.Count} required");
