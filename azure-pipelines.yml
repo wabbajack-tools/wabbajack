@@ -51,7 +51,16 @@ steps:
     projects: 'Wabbajack\Wabbajack.csproj'
     zipAfterPublish: false
     modifyOutputPath: false
-    arguments: '--runtime win10-x64 --configuration Release /p:Platform=x64 -o $(System.DefaultWorkingDirectory)/Publish --self-contained'  
+    arguments: '--runtime win10-x64 --configuration Release /p:Platform=x64 -o $(System.DefaultWorkingDirectory)/PublishApp --self-contained'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: 'Wabbajack.Launcher\Wabbajack.Launcher.csproj'
+    zipAfterPublish: false
+    modifyOutputPath: false
+    arguments: '--runtime win10-x64 --configuration Release /p:Platform=x64 -o $(System.DefaultWorkingDirectory)/PublishLauncher --self-contained'  
 
 - task: DownloadSecureFile@1
   inputs:
@@ -61,7 +70,10 @@ steps:
   inputs:
     secureFileId: 'CertFile.p12'
     signCertPassword: '$(CertPassword)'
-    files: '$(System.DefaultWorkingDirectory)/Publish/*abbajack*.exe'
+    files: |
+      '$(System.DefaultWorkingDirectory)/PublishApp/*abbajack*.exe'
+      '$(System.DefaultWorkingDirectory)/PublishLauncher/*abbajack*.exe'
+
     hashingAlgorithm: 'SHA256'
     description: 'Wabbajack Modlist Installer'
 
@@ -93,7 +105,7 @@ steps:
 
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/Publish'
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/PublishApp'
     includeRootFolder: false
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/Wabbajack.zip'
@@ -106,3 +118,10 @@ steps:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)/Wabbajack.zip'
     ArtifactName: 'Wabbajack.zip'
     publishLocation: 'Container'
+
+- task: PublishBuildArtifacts@1
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/PublishLauncher/Wabbajack.exe'
+    ArtifactName: 'Wabbajack.exe'
+    publishLocation: 'Container'    
