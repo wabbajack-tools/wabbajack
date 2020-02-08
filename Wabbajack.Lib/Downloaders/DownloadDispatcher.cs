@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Lib.Downloaders.UrlDownloaders;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -27,11 +28,21 @@ namespace Wabbajack.Lib.Downloaders
             new ManualDownloader(),
         };
 
+        public static readonly List<IUrlInferencer> Inferencers = new List<IUrlInferencer>()
+        {
+            new BethesdaNetInferencer()
+        };
+
         private static readonly Dictionary<Type, IDownloader> IndexedDownloaders;
 
         static DownloadDispatcher()
         {
             IndexedDownloaders = Downloaders.ToDictionary(d => d.GetType());
+        }
+
+        public static AbstractDownloadState Infer(Uri uri)
+        {
+            return Inferencers.Select(infer => infer.Infer(uri)).FirstOrDefault(result => result != null);
         }
 
         public static T GetInstance<T>() where T : IDownloader

@@ -12,6 +12,7 @@ namespace Wabbajack.CLI
                     (Encrypt opts) => Encrypt.Run(opts),
                     (Decrypt opts) => Decrypt.Run(opts),
                     (Validate opts) => Validate.Run(opts),
+                    (DownloadUrl opts) => DownloadUrl.Run(opts),
                     errs => 1);
         }
     }

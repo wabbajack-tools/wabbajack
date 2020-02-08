@@ -45,7 +45,7 @@ namespace Wabbajack.Lib.Downloaders
             return StateFromUrl(url);
         }
 
-        private static AbstractDownloadState StateFromUrl(Uri url)
+        internal static AbstractDownloadState StateFromUrl(Uri url)
         {
             if (url != null && url.Host == "bethesda.net" && url.AbsolutePath.StartsWith("/en/mods/"))
             {
@@ -137,7 +137,8 @@ namespace Wabbajack.Lib.Downloaders
                     var got = await client.GetAsync(
                         $"https://content.cdp.bethesda.net/{collected.CDPProductId}/{collected.CDPPropertiesId}/{chunk.sha}");
                     var data = await got.Content.ReadAsByteArrayAsync();
-                    AESCTRDecrypt(collected.AESKey, collected.AESIV, data);
+                    if (collected.AESKey != null) 
+                        AESCTRDecrypt(collected.AESKey, collected.AESIV, data);
 
                     if (chunk.uncompressed_size == chunk.chunk_size)
                         await file.WriteAsync(data, 0, data.Length);
@@ -233,20 +234,24 @@ namespace Wabbajack.Lib.Downloaders
                 info.CDPProductId = (int)content["cdp_product_id"];
 
                 client.DefaultRequestHeaders.Add("Authorization", $"Token {info.CDPToken}");
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
 
                 got = await client.GetAsync(
                     $"/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/tree/.json");
 
                 var tree = (await got.Content.ReadAsStringAsync()).FromJSONString<CDPTree>();
+                
+                got = await client.PostAsync($"/mods/ugc-content/add-subscription", new StringContent($"{{\"content_id\": \"{ContentId}\"}}", Encoding.UTF8, "application/json"));
 
                 got = await client.GetAsync(
                     $"/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/depots/.json");
 
                 var props_obj = JObject.Parse(await got.Content.ReadAsStringAsync()).Properties().First();
                 info.CDPPropertiesId = (int)props_obj.Value["properties_id"];
+                
                 info.AESKey = props_obj.Value["ex_info_A"].Select(e => (byte)e).ToArray();
                 info.AESIV = props_obj.Value["ex_info_B"].Select(e => (byte)e).Take(16).ToArray();
-                
+
                 return (client, tree, info);
             }
             
@@ -260,17 +265,17 @@ namespace Wabbajack.Lib.Downloaders
 
             public override IDownloader GetDownloader()
             {
-                throw new NotImplementedException();
+                return DownloadDispatcher.GetInstance<BethesdaNetDownloader>();
             }
 
             public override string GetManifestURL(Archive a)
             {
-                throw new NotImplementedException();
+                return $"https://bethesda.net/en/mods/{GameName}/mod-detail/{ContentId}";
             }
 
             public override string[] GetMetaIni()
             {
-                throw new NotImplementedException();
+                return new[] {"[General]", $"directURL=https://bethesda.net/en/mods/{GameName}/mod-detail/{ContentId}"};
             }
 
 

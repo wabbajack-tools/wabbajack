@@ -88,7 +88,7 @@ namespace Wabbajack
         /// Inspiration:
         /// http://reactivex.io/documentation/operators/debounce.html
         /// https://stackoverflow.com/questions/20034476/how-can-i-use-reactive-extensions-to-throttle-events-using-a-max-window-size
-        public static IObservable<T> Debounce<T>(this IObservable<T> source, TimeSpan interval, IScheduler scheduler)
+        public static IObservable<T> Debounce<T>(this IObservable<T> source, TimeSpan interval, IScheduler scheduler = null)
         {
             scheduler = scheduler ?? Scheduler.Default;
             return Observable.Create<T>(o =>
