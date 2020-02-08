@@ -130,6 +130,6 @@ steps:
 - task: PublishBuildArtifacts@1
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/PublishLauncher/Wabbajack.exe'
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/PublishLauncher/Wabbajack.exe'
     ArtifactName: 'Wabbajack.exe'
     publishLocation: 'Container'    
