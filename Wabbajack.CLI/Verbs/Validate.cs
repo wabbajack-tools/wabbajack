@@ -28,24 +28,36 @@ namespace Wabbajack.CLI.Verbs
         public static int Run(Validate opts)
         {
             if (!File.Exists(opts.Input))
+            {
+                Console.WriteLine($"The file {opts.Input} does not exist!");
                 return -1;
+            }
 
-            if (!opts.Input.EndsWith(Common.Consts.ModListExtension))
+
+            if (!opts.Input.EndsWith(Consts.ModListExtension))
+            {
+                Console.WriteLine($"The file {opts.Input} does not end with {Consts.ModListExtension}!");
                 return -1;
-
+            }
+            
             ModList modlist;
 
             try
             {
                 modlist = AInstaller.LoadFromFile(opts.Input);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine($"Error while loading the Modlist!\n{e}");
                 return 1;
             }
 
             if (modlist == null)
+            {
+                Console.WriteLine($"The Modlist could not be loaded!");
                 return 1;
+            }
+                
 
             var queue = new WorkQueue();
 
@@ -53,11 +65,13 @@ namespace Wabbajack.CLI.Verbs
             {
                 ValidateModlist.RunValidation(queue, modlist).RunSynchronously();
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine($"Error during Validation!\n{e}");
                 return 1;
             }
 
+            Console.WriteLine("The Modlist passed the Validation");
             return 0;
         }
     }
