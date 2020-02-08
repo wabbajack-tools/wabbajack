@@ -66,16 +66,28 @@ steps:
   inputs:
     secureFile: 'CertFile.p12'
 - task: codesigning@2
+  displayName: "Sign main app"
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
   inputs:
     secureFileId: 'CertFile.p12'
     signCertPassword: '$(CertPassword)'
     files: |
       '$(System.DefaultWorkingDirectory)/PublishApp/*abbajack*.exe'
-      '$(System.DefaultWorkingDirectory)/PublishLauncher/*abbajack*.exe'
 
     hashingAlgorithm: 'SHA256'
     description: 'Wabbajack Modlist Installer'
+
+- task: codesigning@2
+  displayName: "Sign launcher"
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+  inputs:
+    secureFileId: 'CertFile.p12'
+    signCertPassword: '$(CertPassword)'
+    files: |
+      '$(System.DefaultWorkingDirectory)/PublishLauncher/*abbajack*.exe'
+
+    hashingAlgorithm: 'SHA256'
+    description: 'Wabbajack Modlist Installer'    
 
 
 
