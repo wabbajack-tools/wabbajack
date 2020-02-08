@@ -4,9 +4,11 @@
         <OutputType>WinExe</OutputType>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <UseWPF>true</UseWPF>
-        <PublishTrimmed>true</PublishTrimmed>
+
         <PublishSingleFile>true</PublishSingleFile>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <AssemblyName>Wabbajack</AssemblyName>
+        <RootNamespace>Wabbajack</RootNamespace>
     </PropertyGroup>
 
     <PropertyGroup>
