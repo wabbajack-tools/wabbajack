@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ReactiveUI;
+using Wabbajack.Common;
 
 namespace Wabbajack
 {
@@ -65,7 +66,7 @@ namespace Wabbajack
                     .DisposeWith(disposable);
                 this.BindStrict(this.ViewModel, x => x.TargetUsage, x => x.TargetUsageSpinner.Value)
                     .DisposeWith(disposable);
-                this.BindStrict(this.ViewModel, x => x.TargetUsage, x => x.TargetUsageSlider.Value)
+                this.Bind(this.ViewModel, x => x.TargetUsage, x => x.TargetUsageSlider.Value)
                     .DisposeWith(disposable);
             });
         }

@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows;
 using MahApps.Metro.Controls;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.LibCefHelpers;
 using Application = System.Windows.Application;
@@ -48,6 +50,13 @@ namespace Wabbajack
             }).FireAndForget();
 
             // Load settings
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+            {
+                Converters = new List<JsonConverter>
+                {
+                    new PercentJsonConverter()
+                }
+            };
             if (CLIArguments.NoSettings || !MainSettings.TryLoadTypicalSettings(out var settings))
             {
                 _settings = new MainSettings();

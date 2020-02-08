@@ -126,13 +126,18 @@ namespace Wabbajack.Common
             }
         }
 
-        public static void Status(string msg, int progress = 0, bool alsoLog = false)
+        public static void Status(string msg, Percent progress, bool alsoLog = false)
         {
             WorkQueue.AsyncLocalCurrentQueue.Value?.Report(msg, progress);
             if (alsoLog)
             {
                 Utils.Log(msg);
             }
+        }
+
+        public static void Status(string msg, bool alsoLog = false)
+        {
+            Status(msg, Percent.Zero, alsoLog: alsoLog);
         }
 
         public static void CatchAndLog(Action a)
@@ -262,7 +267,7 @@ namespace Wabbajack.Common
                 if (read == 0) break;
                 totalRead += read;
                 ostream.Write(buffer, 0, read);
-                Status(status, (int) (totalRead * 100 / maxSize));
+                Status(status, Percent.FactoryPutInRange(totalRead, maxSize));
             }
         }
         public static string xxHash(this byte[] data, bool nullOnIOError = false)
@@ -764,7 +769,7 @@ namespace Wabbajack.Common
             var lst = coll.ToList();
             lst.DoIndexed((idx, i) =>
             {
-                Status(msg, idx * 100 / lst.Count);
+                Status(msg, Percent.FactoryPutInRange(idx, lst.Count));
                 f(i);
             });
         }

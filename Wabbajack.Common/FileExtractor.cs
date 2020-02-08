@@ -79,8 +79,8 @@ namespace Wabbajack.Common
                     if (line.Length <= 4 || line[3] != '%')
                         continue;
 
-                    int.TryParse(line.Substring(0, 3), out var percent);
-                    Utils.Status($"Extracting {name} - {line.Trim()}", percent);
+                    int.TryParse(line.Substring(0, 3), out var percentInt);
+                    Utils.Status($"Extracting {name} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
                 }
             }
             catch (Exception e)
@@ -176,8 +176,8 @@ namespace Wabbajack.Common
 
                     if (line.Length <= 4 || line[3] != '%') continue;
 
-                    int.TryParse(line.Substring(0, 3), out var percent);
-                    Utils.Status($"Extracting {name} - {line.Trim()}", percent);
+                    int.TryParse(line.Substring(0, 3), out var percentInt);
+                    Utils.Status($"Extracting {name} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
                 }
             }
             catch (Exception)
@@ -188,7 +188,7 @@ namespace Wabbajack.Common
 
             if (p.ExitCode == 0)
             {
-                Utils.Status($"Extracting {name} - 100%", 100, alsoLog: true);
+                Utils.Status($"Extracting {name} - 100%", Percent.One, alsoLog: true);
                 return;
             }
             Utils.Error(new _7zipReturnError(p.ExitCode, source, dest, p.StandardOutput.ReadToEnd()));

@@ -18,6 +18,7 @@ using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
 using System.Windows.Controls.Primitives;
 using System.Reactive.Linq;
+using Wabbajack.Common;
 
 namespace Wabbajack
 {
@@ -26,13 +27,13 @@ namespace Wabbajack
     /// </summary>
     public partial class CpuView : UserControlRx<ICpuStatusVM>
     {
-        public double ProgressPercent
+        public Percent ProgressPercent
         {
-            get => (double)GetValue(ProgressPercentProperty);
+            get => (Percent)GetValue(ProgressPercentProperty);
             set => SetValue(ProgressPercentProperty, value);
         }
-        public static readonly DependencyProperty ProgressPercentProperty = DependencyProperty.Register(nameof(ProgressPercent), typeof(double), typeof(CpuView),
-             new FrameworkPropertyMetadata(default(double)));
+        public static readonly DependencyProperty ProgressPercentProperty = DependencyProperty.Register(nameof(ProgressPercent), typeof(Percent), typeof(CpuView),
+             new FrameworkPropertyMetadata(default(Percent), WireNotifyPropertyChanged));
 
         public MainSettings SettingsHook
         {
@@ -55,28 +56,32 @@ namespace Wabbajack
                         this.WhenAny(x => x.SettingsHook.Performance.Manual)
                             .StartWith(true),
                         resultSelector: (over, manual) => over && !manual)
-                    .Subscribe(showing =>
-                    {
-                        SettingsBar.Visibility = showing ? Visibility.Visible : Visibility.Collapsed;
-                    })
+                    .Select(showing => showing ? Visibility.Visible : Visibility.Collapsed)
+                    .BindToStrict(this, x => x.SettingsBar.Visibility)
+                    .DisposeWith(disposable);
+                
+                this.WhenAny(x => x.ViewModel.StatusList)
+                    .BindToStrict(this, x => x.CpuListControl.ItemsSource)
                     .DisposeWith(disposable);
 
-                this.OneWayBindStrict(this.ViewModel, x => x.StatusList, x => x.CpuListControl.ItemsSource)
+                this.Bind(this.ViewModel, x => x.MWVM.Settings.Performance.TargetUsage, x => x.TargetPercentageSlider.Value)
                     .DisposeWith(disposable);
 
-                this.BindStrict(this.ViewModel, x => x.MWVM.Settings.Performance.TargetUsage, x => x.TargetPercentageSlider.Value)
-                    .DisposeWith(disposable);
-
-                this.OneWayBindStrict(this.ViewModel, x => x.MWVM.Settings.Performance.TargetUsage, x => x.PercentageText.Text, x => $"{x.ToString("f2")}%")
+                this.WhenAny(x => x.ViewModel.MWVM.Settings.Performance.TargetUsage)
+                    .Select(p => p.ToString(0))
+                    .BindToStrict(this, x => x.PercentageText.Text)
                     .DisposeWith(disposable);
 
                 this.WhenAny(x => x.ViewModel.CurrentCpuCount)
                     .DistinctUntilChanged()
-                    .ObserveOnGuiThread()
-                    .Subscribe(x =>
-                    {
-                        this.CpuCountText.Text = $"{x.CurrentCPUs} / {x.DesiredCPUs}";
-                    })
+                    .Select(x => $"{x.CurrentCPUs} / {x.DesiredCPUs}")
+                    .BindToStrict(this, x => x.CpuCountText.Text)
+                    .DisposeWith(disposable);
+
+                // Progress
+                this.WhenAny(x => x.ProgressPercent)
+                    .Select(p => p.Value)
+                    .BindToStrict(this, x => x.HeatedBorderRect.Opacity)
                     .DisposeWith(disposable);
             });
         }

@@ -18,7 +18,7 @@ namespace Wabbajack.Lib
         /// <summary>
         /// The current progress of the entire processing system on a scale of 0.0 to 1.0
         /// </summary>
-        IObservable<float> PercentCompleted { get; }
+        IObservable<Percent> PercentCompleted { get; }
 
         /// <summary>
         /// The current status of the processor as a text string

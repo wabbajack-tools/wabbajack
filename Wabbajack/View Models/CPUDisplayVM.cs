@@ -20,7 +20,7 @@ namespace Wabbajack
         [Reactive]
         public string Msg { get; set; }
         [Reactive]
-        public float ProgressPercent { get; set; }
+        public Percent ProgressPercent { get; set; }
 
         public CPUDisplayVM()
         {
