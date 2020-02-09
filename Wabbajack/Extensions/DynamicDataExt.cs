@@ -10,6 +10,32 @@ namespace Wabbajack
 {
     public static class DynamicDataExt
     {
+        public static IObservable<int> CollectionCount<TObject>(this IObservable<IChangeSet<TObject>> source)
+        {
+            int count = 0;
+            return source
+                .Select(changeSet =>
+                {
+                    count += changeSet.Adds;
+                    count -= changeSet.Removes;
+                    return count;
+                })
+                .StartWith(0);
+        }
+
+        public static IObservable<int> CollectionCount<TObject, TKey>(this IObservable<IChangeSet<TObject, TKey>> source)
+        {
+            int count = 0;
+            return source
+                .Select(changeSet =>
+                {
+                    count += changeSet.Adds;
+                    count -= changeSet.Removes;
+                    return count;
+                })
+                .StartWith(0);
+        }
+
         public static IObservable<IChangeSet<TCache, TKey>> TransformAndCache<TObject, TKey, TCache>(
             this IObservable<IChangeSet<TObject, TKey>> obs,
             Func<TKey, TObject, TCache> onAdded,

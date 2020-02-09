@@ -31,12 +31,20 @@ namespace Wabbajack
         public BackNavigatingVM(MainWindowVM mainWindowVM)
         {
             BackCommand = ReactiveCommand.Create(
-                execute: () => Utils.CatchAndLog(() => mainWindowVM.NavigateTo(NavigateBackTarget)),
+                execute: () => Utils.CatchAndLog(() =>
+                {
+                    mainWindowVM.NavigateTo(NavigateBackTarget);
+                    Unload();
+                }),
                 canExecute: this.ConstructCanNavigateBack()
                     .ObserveOnGuiThread());
 
             _IsActive = this.ConstructIsActive(mainWindowVM)
                 .ToGuiProperty(this, nameof(IsActive));
+        }
+
+        public virtual void Unload()
+        {
         }
     }
 

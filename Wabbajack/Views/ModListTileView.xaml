@@ -152,7 +152,8 @@
                 x:Name="Overlay"
                 Grid.Row="0"
                 Grid.Column="0"
-                Grid.ColumnSpan="2" />
+                Grid.ColumnSpan="2"
+                Visibility="Collapsed" />
             <TextBlock
                 x:Name="DescriptionTextShadow"
                 Grid.Row="0"
