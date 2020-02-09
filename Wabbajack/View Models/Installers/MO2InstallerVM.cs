@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
+using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
 using Wabbajack.Util;
 
@@ -105,7 +106,8 @@ namespace Wabbajack
                 .DisposeWith(CompositeDisposable);
 
             // Hook onto user interventions, and intercept MO2 specific ones for customization
-            this.WhenAny(x => x.ActiveInstallation.LogMessages)
+            this.WhenAny(x => x.ActiveInstallation)
+                .Select(x => x?.LogMessages ?? Observable.Empty<IStatusMessage>())
                 .Switch()
                 .Subscribe(x =>
                 {
