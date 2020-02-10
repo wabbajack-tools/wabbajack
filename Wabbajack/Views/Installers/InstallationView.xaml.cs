@@ -134,7 +134,6 @@ namespace Wabbajack
                     .BindToStrict(this, x => x.LogView.ProgressPercent)
                     .DisposeWith(dispose);
                 this.WhenAny(x => x.ViewModel.PercentCompleted)
-                    .Select(f => (double)f)
                     .BindToStrict(this, x => x.CpuView.ProgressPercent)
                     .DisposeWith(dispose);
                 this.WhenAny(x => x.ViewModel.MWVM.Settings)

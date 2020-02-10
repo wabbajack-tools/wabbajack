@@ -44,7 +44,7 @@ namespace Wabbajack.Common
         {
             var per_step = 1.0f / _internalMaxStep;
             var macro = _internalCurrentStep * per_step;
-            return Percent.FactoryPutInRange(macro + (per_step * sub_status));
+            return Percent.FactoryPutInRange(macro + (per_step * sub_status.Value));
         }
 
         public void MakeUpdate(Percent progress)
