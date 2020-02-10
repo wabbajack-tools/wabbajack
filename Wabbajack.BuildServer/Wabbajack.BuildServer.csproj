@@ -13,7 +13,7 @@
     <ItemGroup>
         <PackageReference Include="BunnyCDN.Net.Storage" Version="1.0.2" />
         <PackageReference Include="Dapper" Version="2.0.30" />
-        <PackageReference Include="FluentFTP" Version="30.0.0" />
+        <PackageReference Include="FluentFTP" Version="30.2.0" />
         <PackageReference Include="graphiql" Version="1.2.0" />
         <PackageReference Include="GraphQL" Version="3.0.0-preview-1352" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
