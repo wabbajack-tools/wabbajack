@@ -37,7 +37,8 @@
                 <ItemsControl
                     x:Name="ModListGalleryControl"
                     Margin="0,10,0,0"
-                    HorizontalAlignment="Center">
+                    HorizontalAlignment="Center"
+                    ScrollViewer.VerticalScrollBarVisibility="Visible">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel />
@@ -51,7 +52,29 @@
                 </ItemsControl>
             </ScrollViewer>
         </Border>
-        <mahapps:ProgressRing x:Name="LoadingRing" Grid.Row="1" Visibility="Collapsed" />
+        <mahapps:ProgressRing
+            x:Name="LoadingRing"
+            Grid.Row="1"
+            Visibility="Collapsed" />
+        <StackPanel
+            x:Name="NoneFound"
+            Grid.Row="1"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Orientation="Vertical"
+            Visibility="Collapsed">
+            <iconPacks:PackIconControl
+                Width="50"
+                Height="50"
+                Margin="0,0,0,10"
+                HorizontalAlignment="Center"
+                Foreground="{StaticResource Triadic2Brush}"
+                Kind="{x:Static iconPacks:PackIconMaterialKind.Cancel}" />
+            <TextBlock
+                FontSize="14"
+                Foreground="{StaticResource ForegroundBrush}"
+                Text="No Matches" />
+        </StackPanel>
         <iconPacks:PackIconControl
             x:Name="ErrorIcon"
             Grid.Row="1"
@@ -68,6 +91,35 @@
             Grid.Row="0"
             Grid.RowSpan="2"
             ShadowMargin="False" />
+        <WrapPanel
+            Grid.Row="0"
+            Height="25"
+            Margin="5,5,5,10"
+            HorizontalAlignment="Right"
+            Orientation="Horizontal">
+            <TextBlock
+                Margin="0,0,5,0"
+                VerticalAlignment="Center"
+                Foreground="{StaticResource ForegroundBrush}"
+                Text="Search" />
+            <TextBox
+                x:Name="SearchBox"
+                Width="160"
+                VerticalContentAlignment="Center" />
+            <CheckBox
+                x:Name="OnlyInstalledCheckbox"
+                Margin="20,0,10,0"
+                VerticalAlignment="Center"
+                Content="Only Installed"
+                Foreground="{StaticResource ForegroundBrush}" />
+            <Button
+                x:Name="ClearFiltersButton"
+                Margin="0,0,10,0"
+                Style="{StaticResource IconBareButtonStyle}"
+                ToolTip="Clear All Filters">
+                <iconPacks:Material Kind="FilterRemove" />
+            </Button>
+        </WrapPanel>
         <Button
             x:Name="BackButton"
             Grid.Row="0"

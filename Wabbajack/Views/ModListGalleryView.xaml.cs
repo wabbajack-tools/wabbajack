@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows;
@@ -24,22 +25,45 @@ namespace Wabbajack
                     .BindToStrict(this, x => x.ModListGalleryControl.ItemsSource)
                     .DisposeWith(dispose);
                 Observable.CombineLatest(
-                        this.WhenAny(x => x.ViewModel.ModLists.Count)
-                            .Select(x => x > 0),
-                        this.WhenAny(x => x.ViewModel.Error)
-                            .Select(e => e?.Succeeded ?? true),
-                        resultSelector: (hasContent, succeeded) =>
+                        this.WhenAny(x => x.ViewModel.Error),
+                        this.WhenAny(x => x.ViewModel.Loaded),
+                        resultSelector: (err, loaded) =>
                         {
-                            return !hasContent && succeeded;
+                            if (!err?.Succeeded ?? false) return true;
+                            return !loaded;
                         })
+                    .DistinctUntilChanged()
                     .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
                     .StartWith(Visibility.Collapsed)
                     .BindToStrict(this, x => x.LoadingRing.Visibility)
+                    .DisposeWith(dispose);
+                Observable.CombineLatest(
+                        this.WhenAny(x => x.ViewModel.ModLists.Count)
+                            .Select(x => x > 0),
+                        this.WhenAny(x => x.ViewModel.Loaded),
+                        resultSelector: (hasContent, loaded) =>
+                        {
+                            return !hasContent && loaded;
+                        })
+                    .DistinctUntilChanged()
+                    .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
+                    .StartWith(Visibility.Collapsed)
+                    .BindToStrict(this, x => x.NoneFound.Visibility)
                     .DisposeWith(dispose);
                 this.WhenAny(x => x.ViewModel.Error)
                     .Select(e => (e?.Succeeded ?? true) ? Visibility.Collapsed : Visibility.Visible)
                     .StartWith(Visibility.Collapsed)
                     .BindToStrict(this, x => x.ErrorIcon.Visibility)
+                    .DisposeWith(dispose);
+
+                this.BindStrict(this.ViewModel, vm => vm.Search, x => x.SearchBox.Text)
+                    .DisposeWith(dispose);
+
+                this.BindStrict(this.ViewModel, vm => vm.OnlyInstalled, x => x.OnlyInstalledCheckbox.IsChecked)
+                    .DisposeWith(dispose);
+
+                this.WhenAny(x => x.ViewModel.ClearFiltersCommand)
+                    .BindToStrict(this, x => x.ClearFiltersButton.Command)
                     .DisposeWith(dispose);
             });
         }
