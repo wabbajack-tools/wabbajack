@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using CefSharp;
@@ -60,6 +61,8 @@ namespace Wabbajack.Lib.WebAutomation
             while (!_browser.IsBrowserInitialized)
                 await Task.Delay(100);
         }
+
+        public string Location => _browser.Address;
     }
 
     public class DownloadHandler : IDownloadHandler

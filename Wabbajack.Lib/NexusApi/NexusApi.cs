@@ -349,7 +349,7 @@ namespace Wabbajack.Lib.NexusApi
 
         public static Uri ManualDownloadUrl(NexusDownloader.State state)
         {
-            return new Uri($"https://www.nexusmods.com/{GameRegistry.GetByMO2ArchiveName(state.GameName).NexusName}/mods/{state.ModID}?tab=files");
+            return new Uri($"https://www.nexusmods.com/{GameRegistry.GetByFuzzyName(state.GameName).NexusName}/mods/{state.ModID}?tab=files");
         }
     }
 }

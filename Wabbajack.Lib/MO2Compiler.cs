@@ -252,16 +252,8 @@ namespace Wabbajack.Lib
 
             Info("Getting Nexus api_key, please click authorize if a browser window appears");
 
-            if (IndexedArchives.Any(a => a.IniData?.General?.gameName != null))
-            {
-                var nexusClient = await NexusApiClient.Get();
-                if (!(await nexusClient.IsPremium())) Error($"User {(await nexusClient.Username())} is not a premium Nexus user, so we cannot access the necessary API calls, cannot continue");
-
-            }
-
             UpdateTracker.NextStep("Verifying Files");
             zEditIntegration.VerifyMerges(this);
-
 
             UpdateTracker.NextStep("Gathering Archives");
             await GatherArchives();

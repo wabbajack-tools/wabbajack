@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.WebAutomation;
 
@@ -27,7 +29,7 @@ namespace Wabbajack
 
         private async Task WrapBrowserJob(IUserIntervention intervention, Func<WebBrowserVM, CancellationTokenSource, Task> toDo)
         {
-            CancellationTokenSource cancel = new CancellationTokenSource();
+            var cancel = new CancellationTokenSource();
             var oldPane = MainWindow.ActivePane;
             var vm = await WebBrowserVM.GetNew();
             MainWindow.NavigateTo(vm);
@@ -85,6 +87,9 @@ namespace Wabbajack
                 case ManuallyDownloadNexusFile c:
                     await WrapBrowserJob(msg, (vm, cancel) => HandleManualNexusDownload(vm, cancel, c));
                     break;
+                case ManuallyDownloadFile c:
+                    await WrapBrowserJob(msg, (vm, cancel) => HandleManualDownload(vm, cancel, c));
+                    break;
                 case RequestBethesdaNetLogin c:
                     await WrapBethesdaNetLogin(c);
                     break;
@@ -108,10 +113,42 @@ namespace Wabbajack
             }
         }
 
+        private async Task HandleManualDownload(WebBrowserVM vm, CancellationTokenSource cancel, ManuallyDownloadFile manuallyDownloadFile)
+        {
+            var browser = new CefSharpWrapper(vm.Browser);
+            vm.Instructions = $"Please locate and download {manuallyDownloadFile.State.Url}";
+
+            var result = new TaskCompletionSource<Uri>();
+
+            browser.DownloadHandler = uri =>
+            {
+                //var client = Helpers.GetClient(browser.GetCookies("").Result, browser.Location);
+                result.SetResult(uri);
+            };
+            
+            await vm.Driver.WaitForInitialized();
+
+            await browser.NavigateTo(new Uri(manuallyDownloadFile.State.Url));
+
+            while (!cancel.IsCancellationRequested)
+            {
+                if (result.Task.IsCompleted)
+                {
+                    var cookies = await Helpers.GetCookies();
+                    var referer = browser.Location;
+                    var client = Helpers.GetClient(cookies, referer);
+                    manuallyDownloadFile.Resume(result.Task.Result, client);
+                    break;
+                }
+                await Task.Delay(100);
+            }
+
+        }
+
         private async Task HandleManualNexusDownload(WebBrowserVM vm, CancellationTokenSource cancel, ManuallyDownloadNexusFile manuallyDownloadNexusFile)
         {
             var state = manuallyDownloadNexusFile.State;
-            var game = GameRegistry.GetByMO2ArchiveName(state.GameName);
+            var game = GameRegistry.GetByFuzzyName(state.GameName);
             var hrefs = new[]
             {
                 $"/Core/Libs/Common/Widgets/DownloadPopUp?id={state.FileID}&game_id={game.NexusGameId}",
@@ -124,6 +161,7 @@ namespace Wabbajack
             browser.DownloadHandler = uri =>
             {
                 manuallyDownloadNexusFile.Resume(uri);
+                browser.DownloadHandler = null;
             };
             await browser.NavigateTo(NexusApiClient.ManualDownloadUrl(manuallyDownloadNexusFile.State));
 

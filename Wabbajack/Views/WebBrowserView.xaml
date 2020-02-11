@@ -41,15 +41,16 @@
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
-    <Grid>
+    <Grid Background="White">
         <Grid.RowDefinitions>
             <RowDefinition Height="47" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <wabbajack:TopProgressView
+            Background="#92000000"
             Title="{Binding Instructions}"
             Grid.Row="0"
-            Grid.RowSpan="2"
+            Grid.RowSpan="1"
             ShadowMargin="False" />
         <Button
             x:Name="BackButton"

@@ -82,34 +82,9 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, string destination)
             {
-                var downloader = (ManualDownloader)GetDownloader();
-                var absPath = Path.Combine(downloader._downloadfolder.Path, a.Name);
-                using (await downloader.Lock.Wait())
-                {
-                    try
-                    {
-                        Utils.Log($"You must manually visit {Url} and download {a.Name} file by hand");
-                        Utils.Log($"Waiting for {a.Name}");
-                        downloader._watcher.EnableRaisingEvents = true;
-                        var watcher = downloader._fileEvents
-                            .Where(f => f.Size == a.Size)
-                            .Where(f => f.FullPath.FileHash(true) == a.Hash)
-                            .Buffer(new TimeSpan(0, 5, 0), 1)
-                            .Select(x => x.FirstOrDefault())
-                            .FirstOrDefaultAsync();
-                        Process.Start(Url);
-
-                        absPath = (await watcher)?.FullPath;
-                        if (!File.Exists(absPath))
-                            throw new InvalidDataException($"File not found after manual download operation");
-                        File.Move(absPath, destination);
-                    }
-                    finally
-                    {
-                        downloader._watcher.EnableRaisingEvents = false;
-                    }
-                }
-                return true;
+                var (uri, client) = await Utils.Log(await ManuallyDownloadFile.Create(this)).Task;
+                var state = new HTTPDownloader.State {Url = uri.ToString(), Client = client};
+                return await state.Download(a, destination);
             }
 
             public override async Task<bool> Verify(Archive a)
