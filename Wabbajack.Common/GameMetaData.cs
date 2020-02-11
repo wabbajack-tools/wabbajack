@@ -123,6 +123,26 @@ namespace Wabbajack.Common
                 .FirstOrDefault(g => g.SteamIDs != null && g.SteamIDs.Count > 0 && g.SteamIDs.Any(i => i == id));
         }
 
+        /// <summary>
+        /// Tries to parse game data from an arbitrary string. Tries first via parsing as a game Enum, then by Nexus name,
+        /// <param nambe="someName"></param>
+        /// <returns></returns>
+        public static GameMetaData GetByFuzzyName(string someName)
+        {
+
+            if (Enum.TryParse(typeof(Game), someName, true, out var metadata)) return ((Game)metadata).MetaData();
+
+            GameMetaData result = null;
+
+            result = GetByNexusName(someName);
+            if (result != null) return result;
+
+            result = GetByMO2ArchiveName(someName);
+            if (result != null) return result;
+
+            return int.TryParse(someName, out int id) ? GetBySteamID(id) : null;
+        }
+
         public static IReadOnlyDictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>
         {
             {
@@ -438,5 +458,6 @@ namespace Wabbajack.Common
                 }
             }
         };
+
     }
 }
