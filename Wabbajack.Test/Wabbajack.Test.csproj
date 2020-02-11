@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="CefSharp.Common" Version="79.1.350" />
-    <PackageReference Include="CefSharp.OffScreen" Version="79.1.350" />
+    <PackageReference Include="CefSharp.OffScreen" Version="79.1.360" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.0" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.0" />
