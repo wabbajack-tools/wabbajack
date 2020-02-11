@@ -5,8 +5,14 @@ namespace Wabbajack.CLI
 {
     public class OptionsDefinition
     {
-        public static Type[] AllOptions = {
-            typeof(OptionsDefinition), typeof(Encrypt), typeof(Decrypt), typeof(Validate), typeof(DownloadUrl)
+        public static readonly Type[] AllOptions = {
+            typeof(OptionsDefinition), 
+            typeof(Encrypt), 
+            typeof(Decrypt), 
+            typeof(Validate), 
+            typeof(DownloadUrl), 
+            typeof(UpdateModlists), 
+            typeof(UpdateNexusCache)
         };
     }
 }

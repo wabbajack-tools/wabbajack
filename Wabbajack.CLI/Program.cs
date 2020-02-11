@@ -9,10 +9,12 @@ namespace Wabbajack.CLI
         {
             return Parser.Default.ParseArguments(args, OptionsDefinition.AllOptions)
                 .MapResult(
-                    (Encrypt opts) => Encrypt.Run(opts),
-                    (Decrypt opts) => Decrypt.Run(opts),
-                    (Validate opts) => Validate.Run(opts),
-                    (DownloadUrl opts) => DownloadUrl.Run(opts),
+                    (Encrypt opts) => opts.Execute(),
+                    (Decrypt opts) => opts.Execute(),
+                    (Validate opts) => opts.Execute(),
+                    (DownloadUrl opts) => opts.Execute(),
+                    (UpdateModlists opts) => opts.Execute(),
+                    (UpdateNexusCache opts) => opts.Execute(),
                     errs => 1);
         }
     }

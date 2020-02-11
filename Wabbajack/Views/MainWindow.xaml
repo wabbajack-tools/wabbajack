@@ -70,6 +70,15 @@
                     Height="17"
                     Kind="Settings" />
             </Button>
+            <Button
+                Grid.Column="1"
+                Margin="5,0"
+                Command="{Binding OpenTerminalCommand}">
+                <icon:PackIconMaterial
+                    Width="17"
+                    Height="17"
+                    Kind="Console" />
+            </Button>
         </mahapps:WindowCommands>
     </mahapps:MetroWindow.RightWindowCommands>
 </mahapps:MetroWindow>
