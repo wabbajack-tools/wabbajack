@@ -11,7 +11,7 @@ using Wabbajack.Lib.Downloaders;
 namespace Wabbajack.CLI.Verbs
 {
     [Verb("download-url", HelpText = "Infer a download state from a URL and download it")]
-    public class DownloadUrl
+    public class DownloadUrl : AVerb
     {
         [Option('u', "url", Required = true, HelpText = "Url to download")]
         public Uri Url { get; set; }
@@ -19,12 +19,12 @@ namespace Wabbajack.CLI.Verbs
         [Option('o', "output", Required = true, HelpText = "Output file name")]
         public string Output { get; set; }
 
-        public static int Run(DownloadUrl opts)
+        protected override async Task<int> Run()
         {
-            var state = DownloadDispatcher.Infer(opts.Url);
+            var state = DownloadDispatcher.Infer(Url);
             if (state == null)
             {
-                Console.WriteLine($"Could not find download source for URL {opts.Url}");
+                Console.WriteLine($"Could not find download source for URL {Url}");
                 return 1;
             }
             
@@ -39,10 +39,10 @@ namespace Wabbajack.CLI.Verbs
                 new[] {state}
                 .PMap(queue, async s =>
                 {
-                    await s.Download(new Archive {Name = Path.GetFileName(opts.Output)}, opts.Output);
+                    await s.Download(new Archive {Name = Path.GetFileName(Output)}, Output);
                 }).Wait();
 
-            File.WriteAllLines(opts.Output + ".meta", state.GetMetaIni());
+            File.WriteAllLines(Output + ".meta", state.GetMetaIni());
             return 0;
         }
 

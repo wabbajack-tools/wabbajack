@@ -10,10 +10,12 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
@@ -45,6 +47,7 @@ namespace Wabbajack
         public ICommand CopyVersionCommand { get; }
         public ICommand ShowLoginManagerVM { get; }
         public ICommand OpenSettingsCommand { get; }
+        public ICommand OpenTerminalCommand { get; }
 
         public string VersionDisplay { get; }
 
@@ -138,6 +141,8 @@ namespace Wabbajack
                     .Select(active => !SettingsPane.IsValueCreated || !object.ReferenceEquals(active, SettingsPane.Value)),
                 execute: () => NavigateTo(SettingsPane.Value));
 
+            OpenTerminalCommand = ReactiveCommand.Create(() => OpenTerminal());
+
             // Latch onto update events and update GUI
             AutoUpdater.CheckForUpdateEvent += (args) =>
             {
@@ -152,6 +157,16 @@ namespace Wabbajack
                 {
                     AutoUpdater.Start(@"https://www.wabbajack.org/current-version.xml");
                 });
+        }
+
+        private void OpenTerminal()
+        {
+            var process = new ProcessStartInfo
+            {
+                FileName = "cmd.exe", 
+                WorkingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)
+            };
+            Process.Start(process);
         }
 
         private static bool IsStartingFromModlist(out string modlistPath)

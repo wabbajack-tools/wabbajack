@@ -37,13 +37,11 @@ namespace Wabbajack.Lib.FileUploader
             var tcs = new TaskCompletionSource<string>();
             Task.Run(async () =>
             {
-                var handler = new HttpClientHandler {MaxConnectionsPerServer = MAX_CONNECTIONS};
-                var client = new HttpClient(handler);
-                var fsize = new FileInfo(filename).Length;
+                var client = GetAuthorizedClient();
 
+                var fsize = new FileInfo(filename).Length;
                 var hash_task = filename.FileHashAsync();
-                
-                client.DefaultRequestHeaders.Add("X-API-KEY", AuthorAPI.GetAPIKey());
+
                 var response = await client.PutAsync(UploadURL+$"/{Path.GetFileName(filename)}/start", new StringContent(""));
                 if (!response.IsSuccessStatusCode)
                 {
@@ -118,5 +116,29 @@ namespace Wabbajack.Lib.FileUploader
             return tcs.Task;
         }
 
+        public static HttpClient GetAuthorizedClient()
+        {
+            var handler = new HttpClientHandler {MaxConnectionsPerServer = MAX_CONNECTIONS};
+            var client = new HttpClient(handler);
+            client.DefaultRequestHeaders.Add("X-API-KEY", AuthorAPI.GetAPIKey());
+            return client;
+        }
+        
+        public static async Task<string> RunJob(string jobtype)
+        {
+            var client = GetAuthorizedClient();
+            return await client.GetStringAsync($"https://{Consts.WabbajackCacheHostname}/jobs/enqueue_job/{jobtype}");
+            
+        }
+
+        public static async Task<string> UpdateNexusCache()
+        {
+            return await RunJob("GetNexusUpdatesJob");
+        }
+
+        public static async Task<string> UpdateServerModLists()
+        {
+            return await RunJob("UpdateModLists");
+        }
     }
 }
