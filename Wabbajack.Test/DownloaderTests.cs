@@ -413,6 +413,29 @@ namespace Wabbajack.Test
             CollectionAssert.AreEqual(File.ReadAllBytes(Path.Combine(Game.SkyrimSpecialEdition.MetaData().GameLocation(), "Data/Update.esm")), File.ReadAllBytes(filename));
             Consts.TestMode = true;
         }
+
+        [TestMethod]
+        public async Task AFKModsDownloadTest()
+        {
+            await DownloadDispatcher.GetInstance<AFKModsDownloader>().Prepare();
+            const string ini = "[General]\n" +
+                               "directURL=https://www.afkmods.com/index.php?/files/file/2120-skyrim-save-system-overhaul/&do=download&r=20112&confirm=1&t=1&csrfKey=840a4a373144097693171a79df77d521";
+
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.IsNotNull(state);
+
+            var converted = await state.RoundTripState();
+            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
+            var filename = Guid.NewGuid().ToString();
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            await converted.Download(new Archive { Name = "AFKMods Test.zip" }, filename);
+
+            Assert.AreEqual("GtjxHazwZ6s=", filename.FileHash());
+
+        }
         
         [TestMethod]
         public async Task BethesdaNetDownload()
