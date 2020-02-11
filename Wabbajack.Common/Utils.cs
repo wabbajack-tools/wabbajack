@@ -54,7 +54,7 @@ namespace Wabbajack.Common
                 Directory.CreateDirectory(Consts.LocalAppDataPath);
 
             var programName = Assembly.GetEntryAssembly()?.Location ?? "Wabbajack";
-            LogFile = programName + ".log";
+            LogFile = Path.GetFileNameWithoutExtension(programName) + DateTime.Now.ToString(" yyyy-MM-dd HH_mm_ss") + ".log";
             _startTime = DateTime.Now;
 
             if (LogFile.FileExists())
