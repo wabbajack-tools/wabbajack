@@ -1,5 +1,4 @@
-﻿using AutoUpdaterDotNET;
-using DynamicData;
+﻿using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -142,21 +141,6 @@ namespace Wabbajack
                 execute: () => NavigateTo(SettingsPane.Value));
 
             OpenTerminalCommand = ReactiveCommand.Create(() => OpenTerminal());
-
-            // Latch onto update events and update GUI
-            AutoUpdater.CheckForUpdateEvent += (args) =>
-            {
-                UpdateAvailable = args?.IsUpdateAvailable ?? false;
-            };
-
-            // Trigger a query for updates soon after starting
-            Observable.Return(Unit.Default)
-                .Delay(TimeSpan.FromSeconds(3))
-                .ObserveOnGuiThread()
-                .Subscribe(_ =>
-                {
-                    AutoUpdater.Start(@"https://www.wabbajack.org/current-version.xml");
-                });
         }
 
         private void OpenTerminal()

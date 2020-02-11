@@ -37,15 +37,6 @@ namespace Wabbajack
                 this.WhenAny(x => x.ViewModel.CompileCommand)
                     .BindToStrict(this, x => x.CompileButton.Command)
                     .DisposeWith(dispose);
-
-                this.WhenAny(x => x.ViewModel.UpdateCommand)
-                    .BindToStrict(this, x => x.UpdateAvailableButton.Command)
-                    .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.UpdateCommand.CanExecute)
-                    .Switch()
-                    .Select(x => x ? Visibility.Visible : Visibility.Collapsed)
-                    .BindToStrict(this, x => x.UpdateAvailableButton.Visibility)
-                    .DisposeWith(dispose);
             });
         }
     }

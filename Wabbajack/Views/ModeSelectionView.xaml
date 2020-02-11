@@ -34,25 +34,6 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
-        <Button
-            x:Name="UpdateAvailableButton"
-            Margin="6"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Style="{StaticResource TransparentBackgroundButtonStyle}">
-            <StackPanel Margin="5" Orientation="Horizontal">
-                <icon:PackIconMaterial
-                    VerticalAlignment="Center"
-                    Foreground="{StaticResource ComplementaryBrush}"
-                    Kind="Download" />
-                <TextBlock
-                    Margin="5,0,0,0"
-                    VerticalAlignment="Center"
-                    FontSize="14"
-                    Foreground="{StaticResource ComplementaryBrush}"
-                    Text="Update Available" />
-            </StackPanel>
-        </Button>
         <Grid Grid.Row="1" Margin="5,15">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />

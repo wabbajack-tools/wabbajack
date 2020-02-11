@@ -1,5 +1,4 @@
-﻿using AutoUpdaterDotNET;
-using ReactiveUI;
+﻿using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using System;
 using System.IO;
@@ -38,24 +37,6 @@ namespace Wabbajack
 
             CompileCommand = ReactiveCommand.Create(() => mainVM.NavigateTo(mainVM.Compiler.Value));
             BrowseCommand = ReactiveCommand.Create(() => mainVM.NavigateTo(mainVM.Gallery.Value));
-
-            UpdateCommand = ReactiveCommand.Create(
-                canExecute: mainVM.WhenAny(x => x.UpdateAvailable)
-                    .ObserveOnGuiThread(),
-                execute: () =>
-                {
-                    try
-                    {
-                        if (AutoUpdater.DownloadUpdate())
-                        {
-                            mainVM.ShutdownApplication();
-                        }
-                    }
-                    catch (Exception exception)
-                    {
-                        Utils.Error(exception, "Could not download update.");
-                    }
-                });
         }
     }
 }
