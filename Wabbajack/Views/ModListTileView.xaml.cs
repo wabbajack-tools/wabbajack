@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ReactiveUI;
+using Wabbajack.Common;
 
 namespace Wabbajack
 {
@@ -28,7 +29,7 @@ namespace Wabbajack
             InitializeComponent();
             this.WhenActivated(dispose =>
             {
-                this.MarkAsNeeded<ModListTileView, ModListMetadataVM, double>(this.ViewModel, x => x.ProgressPercent);
+                this.MarkAsNeeded<ModListTileView, ModListMetadataVM, Percent>(this.ViewModel, x => x.ProgressPercent);
                 this.MarkAsNeeded<ModListTileView, ModListMetadataVM, bool>(this.ViewModel, x => x.IsBroken);
                 this.MarkAsNeeded<ModListTileView, ModListMetadataVM, bool>(this.ViewModel, x => x.Exists);
                 this.MarkAsNeeded<ModListTileView, ModListMetadataVM, string>(this.ViewModel, x => x.Metadata.Links.ImageUri);

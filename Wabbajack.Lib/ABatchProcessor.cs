@@ -128,7 +128,7 @@ namespace Wabbajack.Lib
                 ManualCoreLimit,
                 MaxCores,
                 TargetUsagePercent,
-                (manual, max, target) => CalculateThreadsToUse(recommendedCount, manual, max, target));
+                (manual, max, target) => CalculateThreadsToUse(recommendedCount, manual, max, target.Value));
         }
 
         /// <summary>

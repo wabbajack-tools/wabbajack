@@ -70,7 +70,37 @@ namespace Wabbajack.Common
             return new Percent(c1.Value / c2.Value);
         }
 
-        public static implicit operator double(Percent c1)
+        public static bool operator ==(Percent c1, Percent c2)
+        {
+            return c1.Value == c2.Value;
+        }
+
+        public static bool operator !=(Percent c1, Percent c2)
+        {
+            return c1.Value != c2.Value;
+        }
+
+        public static bool operator >(Percent c1, Percent c2)
+        {
+            return c1.Value > c2.Value;
+        }
+
+        public static bool operator <(Percent c1, Percent c2)
+        {
+            return c1.Value < c2.Value;
+        }
+
+        public static bool operator >=(Percent c1, Percent c2)
+        {
+            return c1.Value >= c2.Value;
+        }
+
+        public static bool operator <=(Percent c1, Percent c2)
+        {
+            return c1.Value <= c2.Value;
+        }
+
+        public static explicit operator double(Percent c1)
         {
             return c1.Value;
         }

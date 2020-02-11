@@ -64,7 +64,7 @@ namespace Wabbajack
                         vmToViewConverter: x => x,
                         viewToVmConverter: x => (byte)(x ?? 0))
                     .DisposeWith(disposable);
-                this.BindStrict(this.ViewModel, x => x.TargetUsage, x => x.TargetUsageSpinner.Value)
+                this.Bind(this.ViewModel, x => x.TargetUsage, x => x.TargetUsageSpinner.Value)
                     .DisposeWith(disposable);
                 this.Bind(this.ViewModel, x => x.TargetUsage, x => x.TargetUsageSlider.Value)
                     .DisposeWith(disposable);
