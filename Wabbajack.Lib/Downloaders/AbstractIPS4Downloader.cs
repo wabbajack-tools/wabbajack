@@ -28,6 +28,19 @@ namespace Wabbajack.Lib.Downloaders
 
             var absolute = true;
             if (url == null || url.Host != SiteURL.Host) return null;
+            
+            if (url.PathAndQuery.StartsWith("/index.php?"))
+            {
+                var id2 = HttpUtility.ParseQueryString(url.Query)["r"];
+                var parsed = HttpUtility.ParseQueryString(url.Query);
+                var name = parsed[null].Split("/", StringSplitOptions.RemoveEmptyEntries).Last();
+                return new TState
+                {
+                    FileID = id2,
+                    FileName = name
+                };
+            }
+           
             if (!url.PathAndQuery.StartsWith("/files/file/"))
             {
                 if (string.IsNullOrWhiteSpace(url.Query)) return null;
@@ -103,9 +116,10 @@ namespace Wabbajack.Lib.Downloaders
                 if (csrfKey == null)
                     return null;
 
+                var sep = Site.EndsWith("?") ? "&" : "?";
                 var url = FileID == null
-                    ? $"{Site}/files/file/{FileName}/?do=download&confirm=1&t=1&csrfKey={csrfKey}"
-                    : $"{Site}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
+                    ? $"{Site}/files/file/{FileName}/{sep}do=download&confirm=1&t=1&csrfKey={csrfKey}"
+                    : $"{Site}/files/file/{FileName}/{sep}do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
                     
 
                 var streamResult = await downloader.AuthedClient.GetAsync(url);
@@ -162,11 +176,22 @@ namespace Wabbajack.Lib.Downloaders
             public override string[] GetMetaIni()
             {
                 if (FileID != null)
+                {
+                    if (Site.EndsWith("?"))
+                    {
+                        return new[]
+                        {
+                            "[General]", $"directURL={Site}/files/file/{FileName}&do=download&r={FileID}&confirm=1&t=1"
+                        };
+                        
+                    }
+
                     return new[]
                     {
-                        "[General]",
-                        $"directURL={Site}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1"
+                        "[General]", $"directURL={Site}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1"
                     };
+                }
+
                 return new[]
                 {
                     "[General]",
