@@ -1,5 +1,6 @@
 ### Changelog
 
+#### Version - 0.9.18.0 - 1/22/2020
 * Auto update functionality added client-side.
 * Slideshow now moves to next slide when users clicks, even if paused
 * Installer now prints to log what modlist it is installing
@@ -7,8 +8,8 @@
 that mod (issue #465)
 * Added support for non-premium Nexus downloads via manual downloading through the in-app browser.
 * Downloads from Bethesda.NET are now supported. Can login via SkyrimSE or Fallout 4.
-
-=======
+* Manual URL downloads are streamlined
+* AFKMods.com download support is improved
 
 #### Version - 1.0 beta 17 - 1/22/2020
 * Build server now indexes CDN files after they are uploaded
