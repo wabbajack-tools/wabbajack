@@ -240,7 +240,7 @@ namespace Wabbajack.Lib
             await DownloadMissingArchives(missing);
         }
 
-        private async Task DownloadMissingArchives(List<Archive> missing, bool download = true)
+        public async Task DownloadMissingArchives(List<Archive> missing, bool download = true)
         {
             if (download)
             {
@@ -270,7 +270,7 @@ namespace Wabbajack.Lib
                         }
                     }
 
-                    return await DownloadArchive(archive, download);
+                    return await DownloadArchive(archive, download, outputPath);
                 });
         }
 
