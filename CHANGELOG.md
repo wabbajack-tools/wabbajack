@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 0.9.18.0 - 1/22/2020
+#### Version - 0.9.18.0 - 2/11/2020
 * Auto update functionality added client-side.
 * Slideshow now moves to next slide when users clicks, even if paused
 * Installer now prints to log what modlist it is installing
