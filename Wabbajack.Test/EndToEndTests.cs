@@ -80,7 +80,6 @@ namespace Wabbajack.Test
 
 
             var modlist = await CompileAndInstall(profile);
-
             utils.VerifyAllFiles();
 
             var loot_folder = Path.Combine(utils.InstallFolder, "LOOT Config Files");

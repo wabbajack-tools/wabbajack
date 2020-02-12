@@ -4,6 +4,8 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Threading;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
@@ -13,6 +15,7 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
+using Directory = System.IO.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
 
@@ -463,8 +466,6 @@ namespace Wabbajack.Test
             var entries = archive.Entries.Select(e => e.FullName).ToList();
             CollectionAssert.AreEqual(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});
         }
-
-
     }
 
 
