@@ -240,7 +240,7 @@ namespace Wabbajack.Lib
             await DownloadMissingArchives(missing);
         }
 
-        private async Task DownloadMissingArchives(List<Archive> missing, bool download = true)
+        public async Task DownloadMissingArchives(List<Archive> missing, bool download = true)
         {
             if (download)
             {
@@ -258,20 +258,30 @@ namespace Wabbajack.Lib
                     var outputPath = Path.Combine(DownloadFolder, archive.Name);
 
                     if (download)
+                    {
                         if (outputPath.FileExists())
-                            File.Delete(outputPath);
+                        {
+                            var orig_name = Path.GetFileNameWithoutExtension(archive.Name);
+                            var ext = Path.GetExtension(archive.Name);
+                            var unique_key = archive.State.PrimaryKeyString.StringSHA256Hex();
+                            outputPath = Path.Combine(DownloadFolder, orig_name + "_" + unique_key + "_" + ext);
+                            if (outputPath.FileExists())
+                                File.Delete(outputPath);
+                        }
+                    }
 
-                    return await DownloadArchive(archive, download);
+                    return await DownloadArchive(archive, download, outputPath);
                 });
         }
 
-        public async Task<bool> DownloadArchive(Archive archive, bool download)
+        public async Task<bool> DownloadArchive(Archive archive, bool download, string destination = null)
         {
             try
             {
-                var path = Path.Combine(DownloadFolder, archive.Name);
-                await archive.State.Download(archive, path);
-                path.FileHashCached();
+                if (destination == null) 
+                    destination = Path.Combine(DownloadFolder, archive.Name);
+                await archive.State.Download(archive, destination);
+                destination.FileHashCached();
 
             }
             catch (Exception ex)

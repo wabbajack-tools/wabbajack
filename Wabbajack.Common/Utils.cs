@@ -54,11 +54,15 @@ namespace Wabbajack.Common
                 Directory.CreateDirectory(Consts.LocalAppDataPath);
 
             var programName = Assembly.GetEntryAssembly()?.Location ?? "Wabbajack";
-            LogFile = Path.GetFileNameWithoutExtension(programName) + DateTime.Now.ToString(" yyyy-MM-dd HH_mm_ss") + ".log";
+            LogFile = Path.GetFileNameWithoutExtension(programName) + ".current.log";
             _startTime = DateTime.Now;
 
+            
             if (LogFile.FileExists())
-                File.Delete(LogFile);
+            {
+                var new_path = Path.GetFileNameWithoutExtension(programName) + (new FileInfo(LogFile)).LastWriteTime.ToString(" yyyy-MM-dd HH_mm_ss") + ".log";
+                File.Move(LogFile, new_path, MoveOptions.ReplaceExisting);
+            }
 
             var watcher = new FileSystemWatcher(Consts.LocalAppDataPath);
             AppLocalEvents = Observable.Merge(Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Changed += h, h => watcher.Changed -= h).Select(e => (FileEventType.Changed, e.EventArgs)),
@@ -181,6 +185,18 @@ namespace Wabbajack.Common
             }
 
             return sha.Hash.ToBase64();
+        }
+        
+        public static string StringSHA256Hex(this string s)
+        {
+            var sha = new SHA256Managed();
+            using (var o = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write))
+            {
+                using var i = new MemoryStream(Encoding.UTF8.GetBytes(s));
+                i.CopyTo(o);
+            }
+
+            return sha.Hash.ToHex();
         }
 
         public static string FileHash(this string file, bool nullOnIOError = false)

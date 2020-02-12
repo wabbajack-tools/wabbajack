@@ -4,6 +4,8 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Threading;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
@@ -13,6 +15,7 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
+using Directory = System.IO.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
 
@@ -462,6 +465,76 @@ namespace Wabbajack.Test
             using var archive = new ZipArchive(fs);
             var entries = archive.Entries.Select(e => e.FullName).ToList();
             CollectionAssert.AreEqual(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});
+        }
+        
+        
+        /// <summary>
+        /// Tests that files from different sources don't overwrite eachother when downloaded by AInstaller
+        /// </summary>
+        /// <returns></returns>
+        [TestMethod]
+        public async Task DownloadRenamingTests()
+        {
+            // Test mode off for this test
+            Consts.TestMode = false;
+
+            
+            var inia = $@"[General]
+                        gameName={Game.SkyrimSpecialEdition.MetaData().MO2ArchiveName}
+                        gameFile=Data/Update.esm";
+
+            var statea = (GameFileSourceDownloader.State)await DownloadDispatcher.ResolveArchive(inia.LoadIniString());
+
+            var inib = $@"[General]
+                        gameName={Game.SkyrimSpecialEdition.MetaData().MO2ArchiveName}
+                        gameFile=Data/Skyrim.esm";
+            var stateb = (GameFileSourceDownloader.State)await DownloadDispatcher.ResolveArchive(inib.LoadIniString());
+
+            var archivesa = new List<Archive>()
+            {
+                new Archive {Hash = statea.Hash, Name = "Download.esm", State = statea}
+            };
+
+            var archivesb = new List<Archive>()
+            {
+                new Archive {Hash = stateb.Hash, Name = "Download.esm", State = stateb}
+            };
+            
+            if (Directory.Exists("DownloadTests"))
+                Utils.DeleteDirectory("DownloadTests");
+            Directory.CreateDirectory("DownloadTests");
+            
+            var inst = new TestInstaller(null, null, null, "DownloadTests", null);
+
+            await inst.DownloadMissingArchives(archivesa, true);
+            await inst.DownloadMissingArchives(archivesb, true);
+
+            CollectionAssert.AreEqual(Directory.EnumerateFiles("DownloadTests").Select(Path.GetFileName).OrderBy(a => a).ToArray(), 
+                new string[]
+                {
+                    @"Download.esm",
+                    @"Download.esm.xxHash",
+                    @"Download_f80ee6d109516018308f62e2c862b7f061987ac4a8c2327a101ac6b8f80ec4ae_.esm",
+                    @"Download_f80ee6d109516018308f62e2c862b7f061987ac4a8c2327a101ac6b8f80ec4ae_.esm.xxHash"
+                }.OrderBy(a => a).ToArray());
+           
+            Consts.TestMode = true;
+            
+        }
+
+        class TestInstaller : AInstaller
+        {
+            public TestInstaller(string archive, ModList modList, string outputFolder, string downloadFolder, SystemParameters parameters) : base(archive, modList, outputFolder, downloadFolder, parameters)
+            {
+                ConfigureProcessor(1, new Subject<int>().StartWith(1));
+            }
+
+            protected override Task<bool> _Begin(CancellationToken cancel)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override ModManager ModManager { get => ModManager.MO2; }
         }
 
 
