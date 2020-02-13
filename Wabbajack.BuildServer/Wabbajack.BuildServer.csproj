@@ -4,10 +4,11 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <UserSecretsId>aspnet-Wabbajack.BuildServer-6E798B30-DB04-4436-BE65-F043AF37B314</UserSecretsId>
         <WebProject_DirectoryAccessLevelKey>0</WebProject_DirectoryAccessLevelKey>
+        <PublishReadyToRun>true</PublishReadyToRun>
+        <PublishSingleFile>true</PublishSingleFile>
         <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-        <Configurations>Debug;Release</Configurations>
-        <Platforms>x64</Platforms>
-        <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+        <AssemblyName>Wabbajack</AssemblyName>
+        <RootNamespace>Wabbajack</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

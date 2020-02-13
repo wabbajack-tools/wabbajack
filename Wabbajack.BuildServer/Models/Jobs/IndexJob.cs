@@ -32,7 +32,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             var found = await db.DownloadStates.AsQueryable().Where(f => f.Key == pk_str).Take(1).ToListAsync();
             if (found.Count > 0)
                 return JobResult.Success();
-
+            
             string fileName = Archive.Name;
             string folder = Guid.NewGuid().ToString();
             Utils.Log($"Indexer is downloading {fileName}");
@@ -46,6 +46,11 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 var archive = vfs.Index.ByRootPath.First().Value;
 
                 await sql.MergeVirtualFile(archive);
+
+                await db.DownloadStates.InsertOneAsync(new DownloadState
+                {
+                    Key = pk_str, Hash = archive.Hash, State = Archive.State, IsValid = true
+                });
                 
                 var to_path = Path.Combine(settings.ArchiveDir,
                     $"{Path.GetFileName(fileName)}_{archive.Hash.FromBase64().ToHex()}_{Path.GetExtension(fileName)}");
@@ -54,7 +59,10 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 else
                     File.Move(downloadDest, to_path);
                 Utils.DeleteDirectory(Path.Combine(settings.DownloadDir, folder));
+                
             }
+            
+
 
             return JobResult.Success();
         }

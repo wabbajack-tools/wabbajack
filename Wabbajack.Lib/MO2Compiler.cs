@@ -12,6 +12,7 @@ using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.FileUploader;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
@@ -150,6 +151,9 @@ namespace Wabbajack.Lib
                     Meta = File.ReadAllText(f + Consts.MetaFileExtension)
                 })
                 .ToList();
+            
+            // Don't await this because we don't care if it fails.
+            var _ = AuthorAPI.UploadPackagedInis(IndexedArchives);
 
             await CleanInvalidArchives();
 

@@ -2,13 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reactive.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Lib.Downloaders;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -139,6 +142,34 @@ namespace Wabbajack.Lib.FileUploader
         public static async Task<string> UpdateServerModLists()
         {
             return await RunJob("UpdateModLists");
+        }
+
+        public static async Task UploadPackagedInis(IEnumerable<IndexedArchive> archives)
+        {
+            archives = archives.ToArray(); // defensive copy
+            Utils.Log($"Packaging {archives.Count()} inis");
+            try
+            {
+                await using var ms = new MemoryStream();
+                using (var z = new ZipArchive(ms, ZipArchiveMode.Create, true))
+                {
+                    foreach (var archive in archives)
+                    {
+                        var state = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(archive.IniData));
+                        var entry = z.CreateEntry(Path.GetFileName(archive.Name));
+                        await using var os = entry.Open();
+                        await os.WriteAsync(Encoding.UTF8.GetBytes(string.Join("\n", state.GetMetaIni())));
+                    }
+                }
+
+                var webClient = new WebClient();
+                await webClient.UploadDataTaskAsync($"https://{Consts.WabbajackCacheHostname}/indexed_files/notify",
+                    "POST", ms.ToArray());
+            }
+            catch (Exception ex)
+            {
+                Utils.Log(ex.ToString());
+            }
         }
     }
 }

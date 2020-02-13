@@ -173,15 +173,20 @@ namespace Wabbajack.Lib.NexusApi
         {
             try
             {
+                var oldDaily = _dailyRemaining;
+                var oldHourly = _hourlyRemaining;
                 var dailyRemaining = int.Parse(response.Headers.GetValues("x-rl-daily-remaining").First());
                 var hourlyRemaining = int.Parse(response.Headers.GetValues("x-rl-hourly-remaining").First());
-                Utils.Log($"Nexus requests remaining: {dailyRemaining} daily - {hourlyRemaining} hourly");
 
                 lock (RemainingLock)
                 {
                     _dailyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
                     _hourlyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
                 }
+                
+                if (oldDaily != _dailyRemaining || oldHourly != _hourlyRemaining) 
+                    Utils.Log($"Nexus requests remaining: {dailyRemaining} daily - {hourlyRemaining} hourly");
+
                 this.RaisePropertyChanged(nameof(DailyRemaining));
                 this.RaisePropertyChanged(nameof(HourlyRemaining));
             }
