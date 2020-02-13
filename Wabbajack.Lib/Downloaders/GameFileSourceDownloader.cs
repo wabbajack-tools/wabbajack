@@ -21,7 +21,7 @@ namespace Wabbajack.Lib.Downloaders
             if (gameFile == null || gameFile == null)
                 return null;
 
-            var game = GameRegistry.GetByMO2ArchiveName(gameName);
+            var game = GameRegistry.GetByFuzzyName(gameName);
             if (game == null) return null;
 
             var path = game.GameLocation();
@@ -34,10 +34,10 @@ namespace Wabbajack.Lib.Downloaders
 
             return new State
             {
-                Game = GameRegistry.GetByMO2ArchiveName(gameName).Game, 
+                Game = game.Game, 
                 GameFile = gameFile,
                 Hash = hash,
-                GameVersion = GameRegistry.GetByMO2ArchiveName(gameName).InstalledVersion
+                GameVersion = game.InstalledVersion
             };
         }
 

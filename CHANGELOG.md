@@ -1,5 +1,12 @@
 ### Changelog
 
+#### Version - 0.9.19.0
+* Disable server-side indexing of all mods from the Nexus
+* Accept download states from clients and index the mods we haven't seen
+* Fixes for Skyrin VR USSEP patch
+* Remember the download states that we index on the server
+* Only print remaining nexus quotas when they change
+
 #### Version - 0.9.18.0 - 2/11/2020
 * Auto update functionality added client-side.
 * Slideshow now moves to next slide when users clicks, even if paused

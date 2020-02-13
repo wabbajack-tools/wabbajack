@@ -601,6 +601,13 @@ namespace Wabbajack.Common
             }
         }
 
+        public static async Task<byte[]> ReadAllAsync(this Stream ins)
+        {
+            await using var ms = new MemoryStream();
+            await ins.CopyToAsync(ms);
+            return ms.ToArray();
+        }
+
         public static async Task<TR[]> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
             Func<TI, TR> f)
         {

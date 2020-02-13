@@ -295,7 +295,8 @@ namespace Wabbajack.Common
                     RequiredFiles = new List<string>
                     {
                         "SkyrimVR.exe"
-                    }
+                    },
+                    MainExecutable = "SkyrimVR.exe"
                 }
             },
             {
