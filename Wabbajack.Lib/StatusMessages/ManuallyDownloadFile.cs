@@ -12,8 +12,8 @@ namespace Wabbajack.Lib
         public override string ShortDescription { get; }
         public override string ExtendedDescription { get; }
         
-        private TaskCompletionSource<(Uri, HttpClient)> _tcs = new TaskCompletionSource<(Uri, HttpClient)>();
-        public Task<(Uri, HttpClient)> Task => _tcs.Task;
+        private TaskCompletionSource<(Uri, Common.Http.Client)> _tcs = new TaskCompletionSource<(Uri, Common.Http.Client)>();
+        public Task<(Uri, Common.Http.Client)> Task => _tcs.Task;
 
         private ManuallyDownloadFile(ManualDownloader.State state)
         {
@@ -30,7 +30,7 @@ namespace Wabbajack.Lib
             _tcs.SetCanceled();
         }
 
-        public void Resume(Uri s, HttpClient client)
+        public void Resume(Uri s, Common.Http.Client client)
         {
             _tcs.SetResult((s, client));
         }

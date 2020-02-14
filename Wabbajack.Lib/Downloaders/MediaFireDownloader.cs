@@ -53,7 +53,7 @@ namespace Wabbajack.Lib.Downloaders
                     if (newURL == null || !newURL.StartsWith("http")) return null;
                     return new HTTPDownloader.State()
                     {
-                        Client = new HttpClient(),
+                        Client = new Common.Http.Client(),
                         Url = newURL
                     };
                 }

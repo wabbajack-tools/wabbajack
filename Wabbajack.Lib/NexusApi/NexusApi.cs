@@ -23,10 +23,8 @@ namespace Wabbajack.Lib.NexusApi
     {
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
         private static string _additionalEntropy = "vtP2HF6ezg";
-
-        private static object _diskLock = new object();
-
-        public HttpClient HttpClient { get; } = new HttpClient();
+       
+        public Common.Http.Client HttpClient { get; } = new Common.Http.Client();
 
         #region Authentication
 
@@ -202,14 +200,13 @@ namespace Wabbajack.Lib.NexusApi
         {
             ApiKey = apiKey;
 
-            HttpClient.BaseAddress = new Uri("https://api.nexusmods.com");
             // set default headers for all requests to the Nexus API
-            var headers = HttpClient.DefaultRequestHeaders;
-            headers.Add("User-Agent", Consts.UserAgent);
-            headers.Add("apikey", ApiKey);
-            headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            headers.Add("Application-Name", Consts.AppName);
-            headers.Add("Application-Version", $"{Assembly.GetEntryAssembly()?.GetName()?.Version ?? new Version(0, 1)}");
+            var headers = HttpClient.Headers;
+            headers.Add(("User-Agent", Consts.UserAgent));
+            headers.Add(("apikey", ApiKey));
+            headers.Add(("Accept", "application/json"));
+            headers.Add(("Application-Name", Consts.AppName));
+            headers.Add(("Application-Version", $"{Assembly.GetEntryAssembly()?.GetName()?.Version ?? new Version(0, 1)}"));
 
             if (!Directory.Exists(Consts.NexusCacheDirectory))
                 Directory.CreateDirectory(Consts.NexusCacheDirectory);
@@ -227,16 +224,17 @@ namespace Wabbajack.Lib.NexusApi
             TOP:
             try
             {
-                var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseContentRead);
                 UpdateRemaining(response);
                 if (!response.IsSuccessStatusCode)
-                    throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
-
-
-                using (var stream = await response.Content.ReadAsStreamAsync())
                 {
-                    return stream.FromJSON<T>();
+                    Utils.Log($"Nexus call failed: {response.RequestMessage}");
+                    throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
                 }
+
+
+                await using var stream = await response.Content.ReadAsStreamAsync();
+                return stream.FromJSON<T>();
             }
             catch (TimeoutException)
             {
@@ -246,13 +244,18 @@ namespace Wabbajack.Lib.NexusApi
                 retries++;
                 goto TOP;
             }
+            catch (Exception e)
+            {
+                Utils.Log(e.ToString());
+                throw;
+            }
         }
 
         private async Task<T> GetCached<T>(string url)
         {
             try
             {
-                var builder = new UriBuilder(url) { Host = Consts.WabbajackCacheHostname, Port = Consts.WabbajackCachePort, Scheme = "http" };
+                var builder = new UriBuilder(url) { Host = Consts.WabbajackCacheHostname, Scheme = "https" };
                 return await Get<T>(builder.ToString());
             }
             catch (Exception)
@@ -273,6 +276,10 @@ namespace Wabbajack.Lib.NexusApi
             }
             catch (HttpRequestException)
             {
+                if (await IsPremium())
+                {
+                    throw;
+                }
             }
 
             try
@@ -317,19 +324,6 @@ namespace Wabbajack.Lib.NexusApi
         {
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modId}.json";
             return await GetCached<ModInfo>(url);
-        }
-
-        public async Task<EndorsementResponse> EndorseMod(NexusDownloader.State mod)
-        {
-            Utils.Status($"Endorsing ${mod.GameName} - ${mod.ModID}");
-            var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/endorse.json";
-
-            var content = new FormUrlEncodedContent(new Dictionary<string, string> { { "version", mod.Version } });
-
-            using (var stream = await HttpClient.PostStream(url, content))
-            {
-                return stream.FromJSON<EndorsementResponse>();
-            }
         }
 
         private class DownloadLink

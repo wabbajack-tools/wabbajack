@@ -123,12 +123,13 @@ namespace Wabbajack.Lib
                     .Where(p => p.FileExists())
                     .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(lootPath))));
             }
-
+            
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Cleaning output folder");
             if (Directory.Exists(ModListOutputFolder))
                 Utils.DeleteDirectory(ModListOutputFolder);
 
+            /*
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Inferring metas for game file downloads");
             await InferMetas();
@@ -137,9 +138,11 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Reindexing downloads after meta inferring");
             await VFS.AddRoot(MO2DownloadsFolder);
             await VFS.WriteToFile(_vfsCacheName);
+            */
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Pre-validating Archives");
+            
 
             IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
                 .Where(f => File.Exists(f + Consts.MetaFileExtension))
@@ -152,8 +155,7 @@ namespace Wabbajack.Lib
                 })
                 .ToList();
             
-            // Don't await this because we don't care if it fails.
-            var _ = AuthorAPI.UploadPackagedInis(IndexedArchives);
+
 
             await CleanInvalidArchives();
 
@@ -261,6 +263,11 @@ namespace Wabbajack.Lib
 
             UpdateTracker.NextStep("Gathering Archives");
             await GatherArchives();
+            
+            // Don't await this because we don't care if it fails.
+            Utils.Log("Finding States to package");
+            await AuthorAPI.UploadPackagedInis(Queue, SelectedArchives.ToArray());
+            
             UpdateTracker.NextStep("Including Archive Metadata");
             await IncludeArchiveMetadata();
             UpdateTracker.NextStep("Building Patches");
@@ -348,8 +355,16 @@ namespace Wabbajack.Lib
                 var response =
                     await client.GetAsync(
                         $"http://build.wabbajack.org/indexed_files/{vf.Hash.FromBase64().ToHex()}/meta.ini");
-                
-                if (!response.IsSuccessStatusCode) return;
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    File.WriteAllLines(vf.FullPath + Consts.MetaFileExtension, new []
+                    {
+                        "[General]",
+                        "unknownArchive=true"
+                    });
+                    return;
+                }
 
                 var ini_data = await response.Content.ReadAsStringAsync();
                 Utils.Log($"Inferred .meta for {Path.GetFileName(vf.FullPath)}, writing to disk");

@@ -24,6 +24,9 @@ namespace Wabbajack.BuildServer.Models.Jobs
         public override bool UsesNexus { get => Archive.State is NexusDownloader.State; }
         public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {
+            if (Archive.State is ManualDownloader.State)
+                return JobResult.Success();
+            
             var pk = new List<object>();
             pk.Add(AbstractDownloadState.TypeToName[Archive.State.GetType()]);
             pk.AddRange(Archive.State.PrimaryKey);

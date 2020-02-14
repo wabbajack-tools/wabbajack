@@ -22,7 +22,7 @@ namespace Wabbajack.Lib
         public bool ReadmeIsWebsite;
         public string WabbajackVersion;
 
-        protected static string _vfsCacheName => Path.Combine(Consts.LocalAppDataPath, "vfs_compile_cache.bin");
+        protected string _vfsCacheName => Path.Combine(Consts.LocalAppDataPath, $"vfs_compile_cache_{ModListName?.StringSHA256Hex() ?? "_Unknown_"}.bin");
         /// <summary>
         /// A stream of tuples of ("Update Title", 0.25) which represent the name of the current task
         /// and the current progress.
