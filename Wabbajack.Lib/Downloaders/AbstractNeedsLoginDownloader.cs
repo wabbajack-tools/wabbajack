@@ -21,7 +21,7 @@ namespace Wabbajack.Lib.Downloaders
         private readonly string _encryptedKeyName;
         private readonly string _cookieDomain;
         private readonly string _cookieName;
-        internal HttpClient AuthedClient;
+        internal Common.Http.Client AuthedClient;
 
         /// <summary>
         /// Sets up all the login facilites needed for a INeedsLogin downloader based on having the user log
@@ -81,7 +81,7 @@ namespace Wabbajack.Lib.Downloaders
             return cookies;
         }
         
-        public async Task<HttpClient> GetAuthedClient()
+        public async Task<Common.Http.Client> GetAuthedClient()
         {
             Helpers.Cookie[] cookies;
             try

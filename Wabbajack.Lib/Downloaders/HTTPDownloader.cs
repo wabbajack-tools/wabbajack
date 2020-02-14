@@ -61,7 +61,7 @@ namespace Wabbajack.Lib.Downloaders
             public List<string> Headers { get; set; }
 
             [Exclude]
-            public HttpClient Client { get; set; }
+            public Common.Http.Client Client { get; set; }
 
             public override object[] PrimaryKey { get => new object[] {Url};}
 
@@ -86,8 +86,8 @@ namespace Wabbajack.Lib.Downloaders
 
                 using (var fs = download ? File.Open(destination, FileMode.Create) : null)
                 {
-                    var client = Client ?? new HttpClient();
-                    client.DefaultRequestHeaders.Add("User-Agent", Consts.UserAgent);
+                    var client = Client ?? new Common.Http.Client();
+                    client.Headers.Add(("User-Agent", Consts.UserAgent));
 
                     if (Headers != null)
                         foreach (var header in Headers)
@@ -95,7 +95,7 @@ namespace Wabbajack.Lib.Downloaders
                             var idx = header.IndexOf(':');
                             var k = header.Substring(0, idx);
                             var v = header.Substring(idx + 1);
-                            client.DefaultRequestHeaders.Add(k, v);
+                            client.Headers.Add((k, v));
                         }
 
                     long totalRead = 0;

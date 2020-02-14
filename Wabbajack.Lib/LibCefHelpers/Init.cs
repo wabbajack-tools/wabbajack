@@ -16,13 +16,15 @@ namespace Wabbajack.Lib.LibCefHelpers
 {
     public static class Helpers
     {
-        public static HttpClient GetClient(IEnumerable<Cookie> cookies, string referer)
+        public static Common.Http.Client GetClient(IEnumerable<Cookie> cookies, string referer)
         {
+            throw new NotImplementedException("tt");
+            /*
             var container = ToCookieContainer(cookies);
             var handler = new HttpClientHandler { CookieContainer = container };
             var client = new HttpClient(handler);
             client.DefaultRequestHeaders.Referrer = new Uri(referer);
-            return client;
+            return client;*/
         }
 
         private static CookieContainer ToCookieContainer(IEnumerable<Cookie> cookies)
