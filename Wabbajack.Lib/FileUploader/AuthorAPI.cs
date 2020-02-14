@@ -121,7 +121,7 @@ namespace Wabbajack.Lib.FileUploader
 
         public static HttpClient GetAuthorizedClient()
         {
-            var handler = new HttpClientHandler {MaxConnectionsPerServer = MAX_CONNECTIONS};
+            var handler = new HttpClientHandler {MaxConnectionsPerServer = Consts.MaxConnectionsPerServer};
             var client = new HttpClient(handler);
             client.DefaultRequestHeaders.Add("X-API-KEY", AuthorAPI.GetAPIKey());
             return client;
@@ -144,7 +144,7 @@ namespace Wabbajack.Lib.FileUploader
             return await RunJob("UpdateModLists");
         }
 
-        public static async Task UploadPackagedInis(IEnumerable<IndexedArchive> archives)
+        public static async Task UploadPackagedInis(WorkQueue queue, IEnumerable<Archive> archives)
         {
             archives = archives.ToArray(); // defensive copy
             Utils.Log($"Packaging {archives.Count()} inis");
@@ -153,12 +153,12 @@ namespace Wabbajack.Lib.FileUploader
                 await using var ms = new MemoryStream();
                 using (var z = new ZipArchive(ms, ZipArchiveMode.Create, true))
                 {
-                    foreach (var archive in archives)
+                    foreach (var e in archives)
                     {
-                        var state = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(archive.IniData));
-                        var entry = z.CreateEntry(Path.GetFileName(archive.Name));
+                        if (e.State == null) continue;
+                        var entry = z.CreateEntry(Path.GetFileName(e.Name));
                         await using var os = entry.Open();
-                        await os.WriteAsync(Encoding.UTF8.GetBytes(string.Join("\n", state.GetMetaIni())));
+                        await os.WriteAsync(Encoding.UTF8.GetBytes(string.Join("\n", e.State.GetMetaIni())));
                     }
                 }
 

@@ -112,6 +112,9 @@ namespace Wabbajack.BuildServer.Controllers
                     Utils.Log("No valid INI parser for: \n" + iniString);
                     continue;
                 }
+                
+                if (data is ManualDownloader.State)
+                    continue;
 
                 var key = data.PrimaryKeyString;
                 var found = await Db.DownloadStates.AsQueryable().Where(f => f.Key == key).Take(1).ToListAsync();

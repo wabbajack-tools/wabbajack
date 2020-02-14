@@ -102,5 +102,6 @@ namespace Wabbajack.Common
         public const string MO2ModFolderName = "mods";
 
         public static string PatchCacheFolder => Path.Combine(LocalAppDataPath, "patch_cache");
+        public static int MaxConnectionsPerServer = 4;
     }
 }
