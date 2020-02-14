@@ -53,15 +53,18 @@ namespace Wabbajack.Common
             if (!Directory.Exists(Consts.LocalAppDataPath))
                 Directory.CreateDirectory(Consts.LocalAppDataPath);
 
+            if (!Directory.Exists("logs"))
+                Directory.CreateDirectory("logs");
+
             var programName = Assembly.GetEntryAssembly()?.Location ?? "Wabbajack";
-            LogFile = Path.GetFileNameWithoutExtension(programName) + ".current.log";
+            LogFile = Path.Combine("logs", Path.GetFileNameWithoutExtension(programName) + ".current.log");
             _startTime = DateTime.Now;
 
             
             if (LogFile.FileExists())
             {
-                var new_path = Path.GetFileNameWithoutExtension(programName) + (new FileInfo(LogFile)).LastWriteTime.ToString(" yyyy-MM-dd HH_mm_ss") + ".log";
-                File.Move(LogFile, new_path, MoveOptions.ReplaceExisting);
+                var newPath = Path.Combine("logs", Path.GetFileNameWithoutExtension(programName) + (new FileInfo(LogFile)).LastWriteTime.ToString(" yyyy-MM-dd HH_mm_ss") + ".log");
+                File.Move(LogFile, newPath, MoveOptions.ReplaceExisting);
             }
 
             var watcher = new FileSystemWatcher(Consts.LocalAppDataPath);
