@@ -24,7 +24,7 @@ namespace Wabbajack.VirtualFileSystem
             Utils.Log("Cleaning VFS, this may take a bit of time");
             Utils.DeleteDirectory(_stagingFolder);
         }
-        public const ulong FileVersion = 0x02;
+        public const ulong FileVersion = 0x03;
         public const string Magic = "WABBAJACK VFS FILE";
 
         private static readonly string _stagingFolder = "vfs_staging";
@@ -420,13 +420,16 @@ namespace Wabbajack.VirtualFileSystem
         public TemporaryDirectory(string name)
         {
             FullName = name;
+            if (!Directory.Exists(FullName))
+                Directory.CreateDirectory(FullName);
         }
 
         public string FullName { get; }
 
         public void Dispose()
         {
-            Utils.DeleteDirectory(FullName);
+            if (Directory.Exists(FullName)) 
+                Utils.DeleteDirectory(FullName);
         }
     }
 }

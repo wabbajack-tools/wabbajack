@@ -112,6 +112,20 @@ namespace Wabbajack.VirtualFileSystem
                 return _thisAndAllChildren;
             }
         }
+        
+        
+        public T ThisAndAllChildrenReduced<T>(T acc, Func<T, VirtualFile, T> fn)
+        {
+            acc = fn(acc, this);
+            return this.Children.Aggregate(acc, (current, itm) => itm.ThisAndAllChildrenReduced<T>(current, fn));
+        }
+        
+        public void ThisAndAllChildrenReduced(Action<VirtualFile> fn)
+        {
+            fn(this);
+            foreach (var itm in Children)
+                itm.ThisAndAllChildrenReduced(fn);
+        }
 
 
         /// <summary>
@@ -233,6 +247,7 @@ namespace Wabbajack.VirtualFileSystem
         private void Write(BinaryWriter bw)
         {
             bw.Write(Name);
+            bw.Write(FullPath);
             bw.Write(Hash);
             bw.Write(Size);
             bw.Write(LastModified);
@@ -258,6 +273,7 @@ namespace Wabbajack.VirtualFileSystem
                 Context = context,
                 Parent = parent,
                 Name = br.ReadString(),
+                _fullPath = br.ReadString(),
                 Hash = br.ReadString(),
                 Size = br.ReadInt64(),
                 LastModified = br.ReadInt64(),

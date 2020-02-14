@@ -25,8 +25,8 @@ namespace Wabbajack.Lib.NexusApi
         private static string _additionalEntropy = "vtP2HF6ezg";
 
         private static object _diskLock = new object();
-
-        public HttpClient HttpClient { get; } = new HttpClient();
+        
+        public HttpClient HttpClient { get; } = new HttpClient(new HttpClientHandler {MaxConnectionsPerServer = Consts.MaxConnectionsPerServer}) {Timeout = TimeSpan.FromMinutes(1), DefaultRequestHeaders = {ConnectionClose = true}};
 
         #region Authentication
 
@@ -227,16 +227,17 @@ namespace Wabbajack.Lib.NexusApi
             TOP:
             try
             {
-                var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseContentRead);
                 UpdateRemaining(response);
                 if (!response.IsSuccessStatusCode)
-                    throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
-
-
-                using (var stream = await response.Content.ReadAsStreamAsync())
                 {
-                    return stream.FromJSON<T>();
+                    Utils.Log($"Nexus call failed: {response.RequestMessage}");
+                    throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
                 }
+
+
+                await using var stream = await response.Content.ReadAsStreamAsync();
+                return stream.FromJSON<T>();
             }
             catch (TimeoutException)
             {
@@ -246,13 +247,18 @@ namespace Wabbajack.Lib.NexusApi
                 retries++;
                 goto TOP;
             }
+            catch (Exception e)
+            {
+                Utils.Log(e.ToString());
+                throw;
+            }
         }
 
         private async Task<T> GetCached<T>(string url)
         {
             try
             {
-                var builder = new UriBuilder(url) { Host = Consts.WabbajackCacheHostname, Port = Consts.WabbajackCachePort, Scheme = "http" };
+                var builder = new UriBuilder(url) { Host = Consts.WabbajackCacheHostname, Scheme = "https" };
                 return await Get<T>(builder.ToString());
             }
             catch (Exception)
@@ -273,6 +279,10 @@ namespace Wabbajack.Lib.NexusApi
             }
             catch (HttpRequestException)
             {
+                if (await IsPremium())
+                {
+                    throw;
+                }
             }
 
             try
