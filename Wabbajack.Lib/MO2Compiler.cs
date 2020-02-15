@@ -94,8 +94,10 @@ namespace Wabbajack.Lib
 
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
 
+            Utils.Log($"VFS File Location: {VFSCacheName}");
+
             if (cancel.IsCancellationRequested) return false;
-            await VFS.IntegrateFromFile(_vfsCacheName);
+            await VFS.IntegrateFromFile(VFSCacheName);
 
             var roots = new List<string>()
             {
@@ -115,7 +117,7 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             await VFS.AddRoots(roots);
-            await VFS.WriteToFile(_vfsCacheName);
+            await VFS.WriteToFile(VFSCacheName);
             
             if (Directory.Exists(lootPath))
             {
