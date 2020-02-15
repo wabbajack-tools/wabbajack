@@ -52,6 +52,9 @@ namespace Wabbajack.Lib
             CompilingGame = GameRegistry.Games.First(g => g.Value.MO2Name == mo2game).Value;
             GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
             ModListOutputFile = outputFile;
+
+            if(!string.IsNullOrWhiteSpace(CompilingGame.NexusName))
+                VFSCacheName = Path.Combine(Consts.LocalAppDataPath, $"vfs_compile_cache-{CompilingGame.NexusName}.bin");
         }
 
         public dynamic MO2Ini { get; }
@@ -94,8 +97,9 @@ namespace Wabbajack.Lib
 
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
 
+            Utils.Log($"VFS File location: {VFSCacheName}");
             if (cancel.IsCancellationRequested) return false;
-            await VFS.IntegrateFromFile(_vfsCacheName);
+            await VFS.IntegrateFromFile(VFSCacheName);
 
             var roots = new List<string>()
             {
@@ -115,7 +119,7 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             await VFS.AddRoots(roots);
-            await VFS.WriteToFile(_vfsCacheName);
+            await VFS.WriteToFile(VFSCacheName);
             
             if (Directory.Exists(lootPath))
             {

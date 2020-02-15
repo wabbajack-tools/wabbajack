@@ -75,6 +75,9 @@ namespace Wabbajack.Lib
                 _steamGame = (SteamGame)g;
                 _hasSteamWorkshopItems = _steamGame.WorkshopItems.Count > 0;
             });
+
+            if(!string.IsNullOrWhiteSpace(Game.MetaData().NexusName))
+                VFSCacheName = Path.Combine(Consts.LocalAppDataPath, $"vfs_compile_cache-{Game.MetaData().NexusName}.bin");
         }
         
         protected override async Task<bool> _Begin(CancellationToken cancel)
@@ -94,8 +97,10 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Creating metas for archives");
             await CreateMetaFiles();
 
+            Utils.Log($"VFS File location: {VFSCacheName}");
+
             if (cancel.IsCancellationRequested) return false;
-            await VFS.IntegrateFromFile(_vfsCacheName);
+            await VFS.IntegrateFromFile(VFSCacheName);
 
             var roots = new List<string> {StagingFolder, GamePath, DownloadsFolder};
             AddExternalFolder(ref roots);
@@ -103,7 +108,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Indexing folders");
             await VFS.AddRoots(roots);
-            await VFS.WriteToFile(_vfsCacheName);
+            await VFS.WriteToFile(VFSCacheName);
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Cleaning output folder");
