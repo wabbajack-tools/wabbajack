@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
@@ -18,5 +16,7 @@ namespace Wabbajack
             UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Resources/MO2Button.png")).Stream));
         public static Lazy<BitmapImage> VortexButton { get; } = new Lazy<BitmapImage>(() =>
             UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Resources/VortexButton.png")).Stream));
+        public static Lazy<BitmapImage> MiddleMouseButton { get; } = new Lazy<BitmapImage>(() =>
+            UIUtils.BitmapImageFromStream(Application.GetResourceStream(new Uri("pack://application:,,,/Resources/middle_mouse_button.png")).Stream));
     }
 }
