@@ -16,18 +16,18 @@
             <Style x:Key="HyperlinkStyle" TargetType="{x:Type Hyperlink}">
                 <Setter Property="Foreground" Value="#BB76FC"/>
             </Style>
-            <Style x:Key="ModTitleStyle" TargetType="{x:Type TextBlock}">
+            <Style x:Key="ModTitleStyle" TargetType="{x:Type TextBox}">
                 <Setter Property="Foreground" Value="#C7FC86"/>
+                <Setter Property="Background" Value="Transparent"/>
             </Style>
         </ScrollViewer.Resources>
         <StackPanel Margin="8" x:Name="DynamicStackPanel">
             <TextBlock x:Name="Name" FontSize="32" HorizontalAlignment="Center" Style="{StaticResource HeaderStyle}"/>
-            <TextBlock x:Name="Author" FontSize="14" Padding="0 3 0 3"/>
-            <TextBlock x:Name="Description" FontSize="14" TextWrapping="Wrap"/>
+            <TextBlock x:Name="Author" FontSize="14" Padding="0 12 0 3"/>
+            <TextBlock x:Name="Description" FontSize="18" TextWrapping="Wrap"/>
 
-            <TextBlock FontSize="26" Padding="0 6 0 0" Text="Mods"/>
-            <TextBlock x:Name="InstallSize" FontSize="20"/>
-            <TextBlock x:Name="DownloadSize" FontSize="20" Padding="0 0 0 3"/>
+            <TextBlock x:Name="InstallSize" Padding="0 24 0 0" FontSize="24"/>
+            <TextBlock x:Name="DownloadSize" FontSize="24" Padding="0 0 0 12"/>
 
             <ItemsControl Padding="0 3 0 6" x:Name="ModsList">
                 <ItemsControl.ItemsPanel>
@@ -38,7 +38,7 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Grid Margin="0 3 0 3">
+                        <Grid Margin="0 6 0 6">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -47,11 +47,11 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Padding="6 0 0 0" Grid.Column="0" Grid.Row="0" FontSize="16" Text="{Binding Path=Name}" Style="{StaticResource ModTitleStyle}"/>
-                            <TextBlock Padding="3 0 0 0" Grid.Column="1" Grid.Row="0" FontSize="16">
+                            <TextBox Padding="6 0 0 0" Grid.Column="0" Grid.Row="0" FontSize="18" Text="{Binding Path=Name}" Style="{StaticResource ModTitleStyle}" IsReadOnly="True" BorderThickness="0"/>
+                            <TextBlock Padding="3 0 0 0" Grid.Column="1" Grid.Row="0" FontSize="18">
                                 <Hyperlink NavigateUri="{Binding Path=Name}" Style="{StaticResource HyperlinkStyle}" RequestNavigate="Hyperlink_OnRequestNavigate">Link</Hyperlink>
                             </TextBlock>
-                            <TextBlock Padding="6 0 0 0" Grid.Column="0" Grid.Row="1" FontSize="12" Text="{Binding Path=Hash}"/>
+                            <TextBox Padding="6 0 0 0" Grid.Column="0" Grid.Row="1" FontSize="15" Text="{Binding Path=Hash}" IsReadOnly="True"/>
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
