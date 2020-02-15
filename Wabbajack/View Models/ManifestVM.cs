@@ -38,9 +38,15 @@ namespace Wabbajack
                     .DistinctUntilChanged()
                     .Select(term =>
                     {
-                        return string.IsNullOrWhiteSpace(term)
-                            ? Archives
-                            : Archives.Where(x => x.Name.StartsWith(term));
+                        if (string.IsNullOrWhiteSpace(term))
+                            return Archives;
+
+                        return Archives.Where(x =>
+                        {
+                            if (term.StartsWith("hash:"))
+                                return x.Hash.StartsWith(term.Replace("hash:", ""));
+                            return x.Name.StartsWith(term);
+                        });
                     })
                     .ToGuiProperty(this, nameof(SearchResults), Archives);
         }
