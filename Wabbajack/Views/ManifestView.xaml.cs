@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ReactiveUI;
+using Wabbajack.Common;
 using Wabbajack.Lib;
 
 namespace Wabbajack
@@ -120,7 +121,9 @@ namespace Wabbajack
         private void AddScrollSign(double x, double y)
         {
             const double size = 50.0;
-            var icon = new Ellipse { Stroke = Brushes.Red, StrokeThickness = 2.0, Width = 20, Height = 20 };
+            var img = ResourceLinks.MiddleMouseButton.Value;
+            var icon = new Image {Source = img, Width = size, Height = size};
+            //var icon = new Ellipse { Stroke = Brushes.Red, StrokeThickness = 2.0, Width = 20, Height = 20 };
 
             TopLayer.Children.Add(icon);
             Canvas.SetLeft(icon, x - size / 2);

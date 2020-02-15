@@ -41,6 +41,7 @@
     <None Remove="Readme.md" />
     <None Remove="Resources\GameGridIcons\Fallout4.png" />
     <None Remove="Resources\GameGridIcons\SkyrimSpecialEdition.png" />
+    <None Remove="Resources\Icons\middle_mouse_button.png" />
     <None Remove="Resources\MO2Button.png" />
     <None Remove="Resources\VortexButton.png" />
     <None Remove="Resources\Wabba_Ded.png" />
@@ -81,6 +82,7 @@
   <ItemGroup>
     <Resource Include="Resources\GameGridIcons\Fallout4.png" />
     <Resource Include="Resources\GameGridIcons\SkyrimSpecialEdition.png" />
+    <Resource Include="Resources\middle_mouse_button.png" />
     <Resource Include="Resources\MO2Button.png" />
     <Resource Include="Resources\VortexButton.png" />
     <Resource Include="Resources\Wabba_Ded.png" />
