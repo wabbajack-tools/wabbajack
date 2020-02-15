@@ -36,11 +36,13 @@ namespace Wabbajack
                     .DisposeWith(disposable);
                 this.OneWayBind(ViewModel, x => x.Description, x => x.Description.Text)
                     .DisposeWith(disposable);
-                this.OneWayBind(ViewModel, x => x.Archives, x => x.ModsList.ItemsSource)
+                this.OneWayBind(ViewModel, x => x.SearchResults, x => x.ModsList.ItemsSource)
                     .DisposeWith(disposable);
                 this.OneWayBind(ViewModel, x => x.InstallSize, x => x.InstallSize.Text)
                     .DisposeWith(disposable);
                 this.OneWayBind(ViewModel, x => x.DownloadSize, x => x.DownloadSize.Text)
+                    .DisposeWith(disposable);
+                this.Bind(ViewModel, x => x.SearchTerm, x => x.SearchBar.Text)
                     .DisposeWith(disposable);
             });
         }
