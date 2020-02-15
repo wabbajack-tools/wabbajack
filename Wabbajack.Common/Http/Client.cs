@@ -53,9 +53,20 @@ namespace Wabbajack.Common.Http
                 retries++;
                 Utils.Log($"Http Connect error to {msg.RequestUri} retry {retries}");
                 await Task.Delay(100 * retries);
+                msg = CloneMessage(msg);
                 goto TOP;
 
             }
+
+        }
+
+        private HttpRequestMessage CloneMessage(HttpRequestMessage msg)
+        {
+            var new_message = new HttpRequestMessage(msg.Method, msg.RequestUri);
+            foreach (var header in msg.Headers)
+                new_message.Headers.Add(header.Key, header.Value);
+            new_message.Content = msg.Content;
+            return new_message;
 
         }
     }
