@@ -94,8 +94,10 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Creating metas for archives");
             await CreateMetaFiles();
 
+            Utils.Log($"VFS File Location: {VFSCacheName}");
+
             if (cancel.IsCancellationRequested) return false;
-            await VFS.IntegrateFromFile(_vfsCacheName);
+            await VFS.IntegrateFromFile(VFSCacheName);
 
             var roots = new List<string> {StagingFolder, GamePath, DownloadsFolder};
             AddExternalFolder(ref roots);
@@ -103,7 +105,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Indexing folders");
             await VFS.AddRoots(roots);
-            await VFS.WriteToFile(_vfsCacheName);
+            await VFS.WriteToFile(VFSCacheName);
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Cleaning output folder");
