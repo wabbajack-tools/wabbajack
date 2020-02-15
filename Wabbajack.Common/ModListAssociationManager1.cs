@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
@@ -17,7 +18,7 @@ namespace Wabbajack.Common
         {
             {"", "Wabbajack"},
             {"FriendlyTypeName", "Wabbajack"},
-            {"shell\\open\\command",  "\"{appPath}\" -i=\"%1\""},
+            {"shell\\open\\command",  "\"{execPath}\" -i=\"%1\""},
         };
 
         private static readonly Dictionary<string, string> ExtList = new Dictionary<string, string>
@@ -26,13 +27,19 @@ namespace Wabbajack.Common
             {"PerceivedType", "Compressed"}
         };
 
+        private static string ResolveExecutablePath(string appPath)
+        {
+            return Path.GetDirectoryName(appPath) + "\\Wabbajack.exe";
+        }
+
         public static bool NeedsUpdating(string appPath)
         {
+            var execPath = ResolveExecutablePath(appPath);
             var progIDKey = Registry.CurrentUser.OpenSubKey(ProgIDPath);
             var tempKey = progIDKey?.OpenSubKey("shell\\open\\command");
             if (progIDKey == null || tempKey == null) return true;
             var value = tempKey.GetValue("");
-            return value == null || !value.ToString().Equals($"\"{appPath}\" -i=\"%1\"");
+            return value == null || !value.ToString().Equals($"\"{execPath}\" -i=\"%1\"");
         }
 
         public static bool IsAssociated()
@@ -44,17 +51,18 @@ namespace Wabbajack.Common
 
         public static void Associate(string appPath)
         {
+            var execPath = ResolveExecutablePath(appPath);
             var progIDKey = Registry.CurrentUser.CreateSubKey(ProgIDPath, RegistryKeyPermissionCheck.ReadWriteSubTree);
             foreach (var entry in ProgIDList)
             {
                 if (entry.Key.Contains("\\"))
                 {
                     var tempKey = progIDKey?.CreateSubKey(entry.Key);
-                    tempKey?.SetValue("", entry.Value.Replace("{appPath}", appPath));
+                    tempKey?.SetValue("", entry.Value.Replace("{execPath}", execPath));
                 }
                 else
                 {
-                    progIDKey?.SetValue(entry.Key, entry.Value.Replace("{appPath}", appPath));
+                    progIDKey?.SetValue(entry.Key, entry.Value.Replace("{execPath}", execPath));
                 }
             }
 
