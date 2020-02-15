@@ -6,6 +6,9 @@
 * Fixes for Skyrin VR USSEP patch
 * Remember the download states that we index on the server
 * Only print remaining nexus quotas when they change
+* Reworked the HTTP backend for Nexus/Http downloads performance and stability is much improved
+* Fixed key errors with compilation and installation
+* Improvements to the new manifest report
 
 #### Version - 0.9.18.0 - 2/11/2020
 * Auto update functionality added client-side.
