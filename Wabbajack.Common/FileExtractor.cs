@@ -10,7 +10,7 @@ using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.GZip;
 using Newtonsoft.Json;
-using OMODExtraction;
+using OMODFramework;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Common.StatusFeed.Errors;
 
@@ -96,13 +96,36 @@ namespace Wabbajack.Common
             Utils.Log($"Extraction error extracting {source}");
         }
 
-        private static string ExtractAllWithOMOD(string source, string dest)
+        private class OMODProgress : ICodeProgress
+        {
+            private long _total;
+
+            public void SetProgress(long inSize, long outSize)
+            {
+                Utils.Status("Extracting OMOD", Percent.FactoryPutInRange(inSize, _total));
+            }
+
+            public void Init(long totalSize, bool compressing)
+            {
+                _total = totalSize;
+            }
+
+            public void Dispose()
+            {
+                //
+            }
+        }
+
+        private static void ExtractAllWithOMOD(string source, string dest)
         {
             Utils.Log($"Extracting {Path.GetFileName(source)}");
+
+            Framework.Settings.TempPath = dest;
+            Framework.Settings.CodeProgress = new OMODProgress();
+
             var omod = new OMOD(source);
-            omod.ExtractDataFiles();
-            omod.ExtractPlugins();
-            return dest;
+            omod.GetDataFiles();
+            omod.GetPlugins();
         }
 
 

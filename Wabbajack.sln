@@ -24,8 +24,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Common.CSP", "Wab
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.VirtualFileSystem", "Wabbajack.VirtualFileSystem\Wabbajack.VirtualFileSystem.csproj", "{5D6A2EAF-6604-4C51-8AE2-A746B4BC5E3E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OMODExtractor", "OMODExtractor\OMODExtractor.csproj", "{37E4D421-8FD3-4D57-8F3A-7A511D6ED5C5}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.BuildServer", "Wabbajack.BuildServer\Wabbajack.BuildServer.csproj", "{DE18D89E-39C5-48FD-8E42-16235E3C4593}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack", "Wabbajack\Wabbajack.csproj", "{6ED08CFB-B879-4B55-8741-663A4A3491CE}"
