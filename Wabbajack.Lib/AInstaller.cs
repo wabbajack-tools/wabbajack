@@ -102,7 +102,7 @@ namespace Wabbajack.Lib
             VFS.AddKnown(
                 ModList.Directives
                     .OfType<FromArchive>()
-                    .Select(f => new KnownFile { Paths = f.ArchiveHashPath}));
+                    .Select(f => new KnownFile { Paths = f.ArchiveHashPath, Hash = f.Hash}));
 
             await VFS.BackfillMissing();
         }
