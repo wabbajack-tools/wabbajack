@@ -7,7 +7,8 @@
              xmlns:reactiveUi="http://reactiveui.net"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <ScrollViewer>
+    <Grid>
+    <ScrollViewer MouseDown="ScrollViewer_MouseDown" MouseUp="ScrollViewer_MouseUp" MouseMove="ScrollViewer_MouseMove">
         <ScrollViewer.Resources>
             <Style x:Key="HeaderStyle" TargetType="{x:Type TextBlock}">
                 <Setter Property="Foreground" Value="#03DAC6"/>
@@ -19,7 +20,7 @@
                 <Setter Property="Foreground" Value="#C7FC86"/>
             </Style>
         </ScrollViewer.Resources>
-        <StackPanel Margin="8">
+        <StackPanel Margin="8" x:Name="DynamicStackPanel">
             <TextBlock x:Name="Name" FontSize="32" HorizontalAlignment="Center" Style="{StaticResource HeaderStyle}"/>
             <TextBlock x:Name="Author" FontSize="14" Padding="0 3 0 3"/>
             <TextBlock x:Name="Description" FontSize="14" TextWrapping="Wrap"/>
@@ -57,4 +58,6 @@
             </ItemsControl>
         </StackPanel>
     </ScrollViewer>
+    <Canvas x:Name="TopLayer" IsHitTestVisible="False"/>
+    </Grid>
 </reactiveUi:ReactiveUserControl>
