@@ -1,5 +1,12 @@
 ### Changelog
 
+#### Version - 0.9.20.0
+* Don't reuse HTTP request objects (#532)
+* Block popups in the in-app browser (#535)
+* Don't print API keys in logs (#533)
+* Store xxHash caches in binary format (#530)
+
+
 #### Version - 0.9.19.0
 * Disable server-side indexing of all mods from the Nexus
 * Accept download states from clients and index the mods we haven't seen

@@ -37,6 +37,7 @@ namespace Wabbajack.Lib.WebAutomation
             _browser.LoadingStateChanged += handler;
             _browser.Load(uri.ToString());
             _browser.DownloadHandler = new DownloadHandler(this);
+            _browser.LifeSpanHandler = new PopupBlocker(this);
             return tcs.Task;
         }
 
@@ -63,6 +64,40 @@ namespace Wabbajack.Lib.WebAutomation
         }
 
         public string Location => _browser.Address;
+    }
+
+    public class PopupBlocker : ILifeSpanHandler
+    {
+        private CefSharpWrapper _wrapper;
+
+        public PopupBlocker(CefSharpWrapper cefSharpWrapper)
+        {
+            _wrapper = cefSharpWrapper;
+        }
+
+        public bool OnBeforePopup(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl,
+            string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures,
+            IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
+        {
+            // Block popups
+            newBrowser = null;
+            return true;
+        }
+
+        public void OnAfterCreated(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            
+        }
+
+        public bool DoClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            return true;
+        }
+
+        public void OnBeforeClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
+        {
+            
+        }
     }
 
     public class DownloadHandler : IDownloadHandler
