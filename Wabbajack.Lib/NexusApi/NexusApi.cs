@@ -228,7 +228,7 @@ namespace Wabbajack.Lib.NexusApi
                 UpdateRemaining(response);
                 if (!response.IsSuccessStatusCode)
                 {
-                    Utils.Log($"Nexus call failed: {response.RequestMessage}");
+                    Utils.Log($"Nexus call failed: {response.RequestMessage.RequestUri}");
                     throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
                 }
 

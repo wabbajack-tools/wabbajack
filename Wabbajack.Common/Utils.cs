@@ -229,27 +229,53 @@ namespace Wabbajack.Common
         
         public static string FileHashCached(this string file, bool nullOnIOError = false)
         {
-            var hashPath = file + Consts.HashFileExtension;
-            if (File.Exists(hashPath) && File.GetLastWriteTime(file) <= File.GetLastWriteTime(hashPath))
-            {
-                return File.ReadAllText(hashPath);
-            }
+            if (TryGetHashCache(file, out var foundHash)) return foundHash;
 
             var hash = file.FileHash(nullOnIOError);
-            File.WriteAllText(hashPath, hash);
+            if (hash != null) 
+                WriteHashCache(file, hash);
             return hash;
         }
-        
+
+        public static bool TryGetHashCache(string file, out string hash)
+        {
+            var hashFile = file + Consts.HashFileExtension;
+            hash = null; 
+            if (!File.Exists(hashFile)) return false;
+            
+            var fi = new FileInfo(hashFile);
+            if (fi.Length != 20) return false;
+
+            using var fs = File.OpenRead(hashFile);
+            using var br = new BinaryReader(fs);
+            var version = br.ReadUInt32();
+            if (version != HashCacheVersion) return false;
+
+            var lastModified = br.ReadUInt64();
+            if (lastModified != fi.LastWriteTimeUtc.AsUnixTime()) return false;
+            hash = BitConverter.GetBytes(br.ReadUInt64()).ToBase64();
+            return true;
+        }
+
+
+        private const uint HashCacheVersion = 0x01;
+        private static void WriteHashCache(string file, string hash)
+        {
+            using var fs = File.Create(file + Consts.HashFileExtension);
+            using var bw = new BinaryWriter(fs);
+            bw.Write(HashCacheVersion);
+            var lastModified = File.GetLastWriteTimeUtc(file).AsUnixTime();
+            bw.Write(lastModified);
+            bw.Write(BitConverter.ToUInt64(hash.FromBase64()));
+        }
+
         public static async Task<string> FileHashCachedAsync(this string file, bool nullOnIOError = false)
         {
-            var hashPath = file + Consts.HashFileExtension;
-            if (File.Exists(hashPath) && File.GetLastWriteTime(file) <= File.GetLastWriteTime(hashPath))
-            {
-                return File.ReadAllText(hashPath);
-            }
+            if (TryGetHashCache(file, out var foundHash)) return foundHash;
 
             var hash = await file.FileHashAsync(nullOnIOError);
-            File.WriteAllText(hashPath, hash);
+            if (hash != null) 
+                WriteHashCache(file, hash);
             return hash;
         }
 
@@ -344,6 +370,12 @@ namespace Wabbajack.Common
             DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             dtDateTime = dtDateTime.AddSeconds(timestamp);
             return dtDateTime;
+        }
+        
+        public static ulong AsUnixTime(this DateTime timestamp)
+        {
+            var diff = timestamp - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc); 
+            return (ulong)diff.TotalSeconds;
         }
 
         /// <summary>
