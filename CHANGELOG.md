@@ -3,7 +3,7 @@
 #### Version - 0.9.20.0
 * Don't reuse HTTP request objects (#532)
 * Block popups in the in-app browser (#535)
-* Don't print API keys in logs (#532)
+* Don't print API keys in logs (#533)
 * Store xxHash caches in binary format (#530)
 
 
