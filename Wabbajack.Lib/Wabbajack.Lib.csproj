@@ -37,10 +37,10 @@
         <Version>2.1.0</Version>
       </PackageReference>
       <PackageReference Include="MongoDB.Bson">
-        <Version>2.10.1</Version>
+        <Version>2.10.2</Version>
       </PackageReference>
       <PackageReference Include="MongoDB.Bson">
-        <Version>2.10.1</Version>
+        <Version>2.10.2</Version>
       </PackageReference>
       <PackageReference Include="ReactiveUI">
         <Version>11.1.23</Version>
