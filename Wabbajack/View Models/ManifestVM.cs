@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using CefSharp;
+using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
@@ -44,26 +45,20 @@ namespace Wabbajack
         {
             if (SortAscending)
             {
-                return list.OrderBy(x =>
-                {
-                    return SortEnum switch
-                    {
-                        SortBy.Name => x.Name,
-                        SortBy.Size => x.Name,
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
-                });
-            }
-
-            return list.OrderByDescending(x =>
-            {
                 return SortEnum switch
                 {
-                    SortBy.Name => x.Name,
-                    SortBy.Size => x.Name,
+                    SortBy.Name => list.OrderBy(x => x.Name),
+                    SortBy.Size => list.OrderBy(x => x.Size),
                     _ => throw new ArgumentOutOfRangeException()
                 };
-            });
+            }
+
+            return SortEnum switch
+            {
+                SortBy.Name => list.OrderByDescending(x => x.Name),
+                SortBy.Size => list.OrderByDescending(x => x.Size),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         public ManifestVM(Manifest manifest)
@@ -73,7 +68,10 @@ namespace Wabbajack
             SortByNameCommand = ReactiveCommand.Create(() =>
             {
                 if (SortEnum != SortBy.Name)
+                {
                     SortEnum = SortBy.Name;
+                    SortAscending = true;
+                }
                 else
                     SortAscending = !SortAscending;
             });
@@ -81,20 +79,23 @@ namespace Wabbajack
             SortBySizeCommand = ReactiveCommand.Create(() =>
             {
                 if (SortEnum != SortBy.Size)
+                {
                     SortEnum = SortBy.Size;
+                    SortAscending = true;
+                }
                 else
                     SortAscending = !SortAscending;
             });
 
             _searchResults =
                 this.WhenAnyValue(x => x.SearchTerm)
-                    /*.CombineLatest(
+                    .CombineLatest(
                         this.WhenAnyValue(x => x.SortAscending),
                         this.WhenAnyValue(x => x.SortEnum), 
-                        (term, ascending, sort) => term)*/
+                        (term, ascending, sort) => term)
                     .Throttle(TimeSpan.FromMilliseconds(800))
                     .Select(term => term?.Trim())
-                    .DistinctUntilChanged()
+                    //.DistinctUntilChanged()
                     .Select(term =>
                     {
                         if (string.IsNullOrWhiteSpace(term))
