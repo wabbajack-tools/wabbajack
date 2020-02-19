@@ -131,7 +131,7 @@ namespace Wabbajack.Lib
             if (Directory.Exists(ModListOutputFolder))
                 Utils.DeleteDirectory(ModListOutputFolder);
 
-            /*
+            
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Inferring metas for game file downloads");
             await InferMetas();
@@ -139,8 +139,8 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Reindexing downloads after meta inferring");
             await VFS.AddRoot(MO2DownloadsFolder);
-            await VFS.WriteToFile(_vfsCacheName);
-            */
+            await VFS.WriteToFile(VFSCacheName);
+            
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Pre-validating Archives");
