@@ -17,10 +17,10 @@ namespace Wabbajack.CLI.Verbs
     [Verb("change-download", HelpText = "Move or Copy all used Downloads from a Modlist to another directory")]
     public class ChangeDownload : AVerb
     {
-        [Option('i', "input", Required = true, HelpText = "Input folder containing the downloads you want to move")]
+        [Option("input", Required = true, HelpText = "Input folder containing the downloads you want to move")]
         public string Input { get; set; }
 
-        [Option('o', "output", Required = true, HelpText = "Output folder the downloads should be transferred to")]
+        [Option("output", Required = true, HelpText = "Output folder the downloads should be transferred to")]
         public string Output { get; set; }
 
         [Option("modlist", Required = true, HelpText = "The Modlist, can either be a .wabbajack or a modlist.txt file")]
@@ -80,7 +80,7 @@ namespace Wabbajack.CLI.Verbs
                 Directory.CreateDirectory(Output);
             }
 
-            if (!Modlist.EndsWith(Consts.ModListExtension) || !Modlist.EndsWith("modlist.txt"))
+            if (!Modlist.EndsWith(Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt"))
             {
                 Log($"The file {Modlist} is not a valid modlist file!");
                 return -1;
@@ -171,7 +171,7 @@ namespace Wabbajack.CLI.Verbs
             }
             else
             {
-                if (Directory.Exists(Mods))
+                if (!Directory.Exists(Mods))
                 {
                     Log($"Mods directory {Mods} does not exist!");
                     return -1;
@@ -313,7 +313,7 @@ namespace Wabbajack.CLI.Verbs
                         Log($"Copying file {f.Input} to {f.Output}");
                         try
                         {
-                            File.Copy(f.Input, f.Output, Overwrite);
+                            File.Copy(f.Input, f.Output, Overwrite ? CopyOptions.None : CopyOptions.FailIfExists, CopyMoveProgressHandler, null);
                             success++;
                         }
                         catch (Exception e)
@@ -327,7 +327,7 @@ namespace Wabbajack.CLI.Verbs
                         Log($"Moving file {f.Input} to {f.Output}");
                         try
                         {
-                            File.Move(f.Input, f.Output, Overwrite ? MoveOptions.ReplaceExisting : MoveOptions.None);
+                            File.Move(f.Input, f.Output, Overwrite ? MoveOptions.ReplaceExisting : MoveOptions.None, CopyMoveProgressHandler, null);
                             success++;
                         }
                         catch (Exception e)
@@ -344,6 +344,16 @@ namespace Wabbajack.CLI.Verbs
             Log($"Successful transfers: {success}");
 
             return 0;
+        }
+
+        private static CopyMoveProgressResult CopyMoveProgressHandler(long totalfilesize, long totalbytestransferred, long streamsize, long streambytestransferred, int streamnumber, CopyMoveProgressCallbackReason callbackreason, object userdata)
+        {
+            Console.Write($"\r{' ', 100}");
+
+            Console.Write(totalfilesize == totalbytestransferred
+                ? "\rTransfer complete!\n"
+                : $"\rTotal Size: {totalfilesize}, Transferred: {totalbytestransferred}");
+            return CopyMoveProgressResult.Continue;
         }
     }
 }
