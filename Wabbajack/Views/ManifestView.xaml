@@ -33,6 +33,16 @@
             <TextBlock Padding="6 0 0 0" FontSize="20" Text="Search:"/>
             <TextBox x:Name="SearchBar" BorderThickness="2" BorderBrush="{StaticResource SearchBarBrush}" FontSize="16" MaxLength="100"/>
 
+            <StackPanel Margin="6 6 0 0" Orientation="Horizontal">
+                <TextBlock Padding="0 1 0 0" FontSize="14">Order by: </TextBlock>
+                <Button x:Name="OrderByNameButton" Padding="4 0 4 0">
+                    <TextBlock FontSize="14">Name</TextBlock>
+                </Button>
+                <Button x:Name="OrderBySizeButton">
+                    <TextBlock FontSize="14">Size</TextBlock>
+                </Button>
+            </StackPanel>
+
             <ItemsControl Padding="0 3 0 6" x:Name="ModsList">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
