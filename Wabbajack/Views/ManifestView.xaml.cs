@@ -41,6 +41,10 @@ namespace Wabbajack
                     .DisposeWith(disposable);
                 this.Bind(ViewModel, x => x.SearchTerm, x => x.SearchBar.Text)
                     .DisposeWith(disposable);
+                this.BindCommand(ViewModel, x => x.SortByNameCommand, x => x.OrderByNameButton)
+                    .DisposeWith(disposable);
+                this.BindCommand(ViewModel, x => x.SortBySizeCommand, x => x.OrderBySizeButton)
+                    .DisposeWith(disposable);
             });
         }
 
