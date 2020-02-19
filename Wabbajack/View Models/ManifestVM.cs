@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using CefSharp;
-using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
@@ -61,31 +59,21 @@ namespace Wabbajack
             };
         }
 
+        private void Swap(SortBy to)
+        {
+            if (SortEnum != to)
+                SortEnum = to;
+            else
+                SortAscending = !SortAscending;
+        }
+
         public ManifestVM(Manifest manifest)
         {
             Manifest = manifest;
 
-            SortByNameCommand = ReactiveCommand.Create(() =>
-            {
-                if (SortEnum != SortBy.Name)
-                {
-                    SortEnum = SortBy.Name;
-                    SortAscending = true;
-                }
-                else
-                    SortAscending = !SortAscending;
-            });
+            SortByNameCommand = ReactiveCommand.Create(() => Swap(SortBy.Name));
 
-            SortBySizeCommand = ReactiveCommand.Create(() =>
-            {
-                if (SortEnum != SortBy.Size)
-                {
-                    SortEnum = SortBy.Size;
-                    SortAscending = true;
-                }
-                else
-                    SortAscending = !SortAscending;
-            });
+            SortBySizeCommand = ReactiveCommand.Create(() => Swap(SortBy.Size));
 
             _searchResults =
                 this.WhenAnyValue(x => x.SearchTerm)
