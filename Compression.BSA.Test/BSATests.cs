@@ -45,7 +45,8 @@ namespace Compression.BSA.Test
                 (Game.Skyrim, 3863), // SkyUI
                 (Game.Skyrim, 51473), // iNeed
                 //(Game.Fallout4, 22223) // 10mm SMG
-                (Game.Fallout4, 4472) // True Storms
+                (Game.Fallout4, 4472), // True Storms
+                (Game.Morrowind, 44537) // Morrowind TAMRIEL_DATA
             };
 
             await Task.WhenAll(modIDs.Select(async (info) =>
