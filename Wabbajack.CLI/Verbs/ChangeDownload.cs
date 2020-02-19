@@ -86,6 +86,12 @@ namespace Wabbajack.CLI.Verbs
                 return -1;
             }
 
+            if (Copy && Move)
+            {
+                Log("You can't set both copy and move flags!");
+                return -1;
+            }
+
             var isModlist = Modlist.EndsWith(Consts.ModListExtension);
 
             var list = new List<TransferFile>();
