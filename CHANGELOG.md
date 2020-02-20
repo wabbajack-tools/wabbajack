@@ -6,6 +6,7 @@
 * Don't print API keys in logs (#533)
 * Store xxHash caches in binary format (#530)
 * Added support for Morrowind BSA creation/unpacking
+* Calculate screen size using DPI aware routines (#545)
 
 
 #### Version - 0.9.19.0
