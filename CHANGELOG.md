@@ -5,6 +5,7 @@
 * Block popups in the in-app browser (#535)
 * Don't print API keys in logs (#533)
 * Store xxHash caches in binary format (#530)
+* Added support for Morrowind BSA creation/unpacking
 
 
 #### Version - 0.9.19.0

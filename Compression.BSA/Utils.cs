@@ -18,6 +18,8 @@ namespace Compression.BSA
         
         private static Encoding GetEncoding(VersionType version)
         {
+            if (version == VersionType.TES3)
+                return Encoding.ASCII;
             if (version == VersionType.SSE)
                 return Windows1252;
             return Encoding.UTF7;
