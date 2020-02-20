@@ -435,9 +435,6 @@ namespace Wabbajack.Test
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
             await converted.Download(new Archive { Name = "AFKMods Test.zip" }, filename);
-
-            Assert.AreEqual("GtjxHazwZ6s=", filename.FileHash());
-
         }
         
         [TestMethod]
