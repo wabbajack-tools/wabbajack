@@ -103,5 +103,8 @@ namespace Wabbajack.Common
 
         public static string PatchCacheFolder => Path.Combine(LocalAppDataPath, "patch_cache");
         public static int MaxConnectionsPerServer = 4;
+
+        public static string LogsFolder = "logs";
+        public static int MaxOldLogs = 50;
     }
 }
