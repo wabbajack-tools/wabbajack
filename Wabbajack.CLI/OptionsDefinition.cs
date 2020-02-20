@@ -12,7 +12,8 @@ namespace Wabbajack.CLI
             typeof(Validate), 
             typeof(DownloadUrl), 
             typeof(UpdateModlists), 
-            typeof(UpdateNexusCache)
+            typeof(UpdateNexusCache),
+            typeof(ChangeDownload)
         };
     }
 }
