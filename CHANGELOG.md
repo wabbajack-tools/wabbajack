@@ -7,6 +7,7 @@
 * Store xxHash caches in binary format (#530)
 * Added support for Morrowind BSA creation/unpacking
 * Calculate screen size using DPI aware routines (#545)
+* Only retain the most recent 50 log files
 
 
 #### Version - 0.9.19.0

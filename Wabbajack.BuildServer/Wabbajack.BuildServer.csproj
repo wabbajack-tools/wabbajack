@@ -14,7 +14,7 @@
     <ItemGroup>
         <PackageReference Include="BunnyCDN.Net.Storage" Version="1.0.2" />
         <PackageReference Include="Dapper" Version="2.0.30" />
-        <PackageReference Include="FluentFTP" Version="31.0.0" />
+        <PackageReference Include="FluentFTP" Version="31.3.0" />
         <PackageReference Include="graphiql" Version="1.2.0" />
         <PackageReference Include="GraphQL" Version="3.0.0-preview-1352" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
@@ -23,11 +23,11 @@
         <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
         <PackageReference Include="Microsoft.OpenApi" Version="1.1.4" />
-        <PackageReference Include="MongoDB.Driver" Version="2.10.1" />
-        <PackageReference Include="MongoDB.Driver.Core" Version="2.10.1" />
+        <PackageReference Include="MongoDB.Driver" Version="2.10.2" />
+        <PackageReference Include="MongoDB.Driver.Core" Version="2.10.2" />
         <PackageReference Include="Nettle" Version="1.3.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0" />
-        <PackageReference Include="System.Data.SqlClient" Version="4.8.0" />
+        <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
     </ItemGroup>
 
     <ItemGroup>
