@@ -29,10 +29,10 @@ namespace Wabbajack.CLI.Verbs
         [Option("mods", Required = false, HelpText = "Mods folder location if the provided modlist file is an MO2 modlist.txt")]
         public string Mods { get; set; }
 
-        [Option("copy", Default = true, HelpText = "Whether to copy the files")]
+        [Option("copy", Default = true, HelpText = "Whether to copy the files", SetName = "copy")]
         public bool Copy { get; set; }
 
-        [Option("move", Default = false, HelpText = "Whether to move the files")]
+        [Option("move", Default = false, HelpText = "Whether to move the files", SetName = "move")]
         public bool Move { get; set; }
 
         [Option("overwrite", Default = false, HelpText = "Whether to overwrite the file if it already exists")]
@@ -102,7 +102,7 @@ namespace Wabbajack.CLI.Verbs
 
                 try
                 {
-                    modlist = AInstaller.LoadFromFile(Input);
+                    modlist = AInstaller.LoadFromFile(Modlist);
                 }
                 catch (Exception e)
                 {
