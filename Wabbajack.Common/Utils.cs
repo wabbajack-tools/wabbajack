@@ -53,18 +53,50 @@ namespace Wabbajack.Common
             if (!Directory.Exists(Consts.LocalAppDataPath))
                 Directory.CreateDirectory(Consts.LocalAppDataPath);
 
-            if (!Directory.Exists("logs"))
-                Directory.CreateDirectory("logs");
+            if (!Directory.Exists(Consts.LogsFolder))
+                Directory.CreateDirectory(Consts.LogsFolder);
 
             var programName = Assembly.GetEntryAssembly()?.Location ?? "Wabbajack";
-            LogFile = Path.Combine("logs", Path.GetFileNameWithoutExtension(programName) + ".current.log");
+            LogFile = Path.Combine(Consts.LogsFolder, Path.GetFileNameWithoutExtension(programName) + ".current.log");
             _startTime = DateTime.Now;
 
-            
             if (LogFile.FileExists())
             {
-                var newPath = Path.Combine("logs", Path.GetFileNameWithoutExtension(programName) + (new FileInfo(LogFile)).LastWriteTime.ToString(" yyyy-MM-dd HH_mm_ss") + ".log");
+                var newPath = Path.Combine(Consts.LogsFolder, Path.GetFileNameWithoutExtension(programName) + new FileInfo(LogFile).LastWriteTime.ToString(" yyyy-MM-dd HH_mm_ss") + ".log");
                 File.Move(LogFile, newPath, MoveOptions.ReplaceExisting);
+            }
+
+            var logFiles = Directory.GetFiles(Consts.LogsFolder);
+            if (logFiles.Length >= Consts.MaxOldLogs)
+            {
+                Log($"Maximum amount of old logs reached ({logFiles.Length} >= {Consts.MaxOldLogs})");
+                var filesToDelete = logFiles
+                    .Where(File.Exists)
+                    .OrderBy(f =>
+                    {
+                        var fi = new FileInfo(f);
+                        return fi.LastWriteTime;
+                    }).Take(logFiles.Length - Consts.MaxOldLogs).ToList();
+
+                Log($"Found {filesToDelete.Count} old log files to delete");
+
+                var success = 0;
+                var failed = 0;
+                filesToDelete.Do(f =>
+                {
+                    try
+                    {
+                        File.Delete(f);
+                        success++;
+                    }
+                    catch (Exception e)
+                    {
+                        failed++;
+                        Log($"Could not delete log at {f}!\n{e}");
+                    }
+                });
+
+                Log($"Deleted {success} log files, failed to delete {failed} logs");
             }
 
             var watcher = new FileSystemWatcher(Consts.LocalAppDataPath);
