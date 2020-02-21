@@ -12,6 +12,7 @@
     <Description>An automated ModList installer</Description>
     <PublishReadyToRun>true</PublishReadyToRun>
     <StartupObject></StartupObject>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
     <PropertyGroup>
@@ -65,6 +66,8 @@
     </PackageReference>
     <PackageReference Include="MahApps.Metro" Version="2.0.0-alpha0660" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="3.2.0" />
+    <PackageReference Include="PInvoke.Gdi32" Version="0.6.6" />
+    <PackageReference Include="PInvoke.User32" Version="0.6.6" />
     <PackageReference Include="ReactiveUI" Version="11.1.23" />
     <PackageReference Include="ReactiveUI.Fody" Version="11.1.23" />
     <PackageReference Include="ReactiveUI.WPF" Version="11.1.23" />
