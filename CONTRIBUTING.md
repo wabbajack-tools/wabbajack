@@ -45,7 +45,7 @@ The installer may have selected other options as well but these are the most imp
 2) **Open Wabbajack.sln** in Visual Studio 2019.
 3) **Download NuGet Packages** by selecting the solution and *Right Click* -> *Restore NuGet Packages*.
 
-It may take a while for Visual Studio to download all packages and update all References so be patience. Once all packages are downloaded go and try building Wabbajack. If the build is successful than good job, if not head over to the *#wabbajack-development* channel on the discord and talk about your build error.
+It may take a while for Visual Studio to download all packages and update all References so be patience. Once all packages are downloaded go and try building Wabbajack. If the build is successful then good job. If not, head over to the *#wabbajack-development* channel on the discord and talk about your build error.
 
 #### Coding Style
 
