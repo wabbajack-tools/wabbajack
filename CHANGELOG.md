@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 0.9.21.0
+* Fix never ending hash issue
+
 #### Version - 0.9.20.0
 * Don't reuse HTTP request objects (#532)
 * Block popups in the in-app browser (#535)

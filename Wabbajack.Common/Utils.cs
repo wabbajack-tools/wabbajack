@@ -275,8 +275,7 @@ namespace Wabbajack.Common
             hash = null; 
             if (!File.Exists(hashFile)) return false;
             
-            var fi = new FileInfo(hashFile);
-            if (fi.Length != 20) return false;
+            if (File.GetSize(hashFile) != 20) return false;
 
             using var fs = File.OpenRead(hashFile);
             using var br = new BinaryReader(fs);
@@ -284,7 +283,7 @@ namespace Wabbajack.Common
             if (version != HashCacheVersion) return false;
 
             var lastModified = br.ReadUInt64();
-            if (lastModified != fi.LastWriteTimeUtc.AsUnixTime()) return false;
+            if (lastModified != File.GetLastWriteTimeUtc(file).AsUnixTime()) return false;
             hash = BitConverter.GetBytes(br.ReadUInt64()).ToBase64();
             return true;
         }
