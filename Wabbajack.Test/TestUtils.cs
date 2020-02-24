@@ -15,16 +15,16 @@ namespace Wabbajack.Test
 {
     public class TestUtils : IDisposable
     {
+        private static Random _rng = new Random();
         public TestUtils()
         {
-            RNG = new Random();
             ID = RandomName();
             WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "tmp_data");
         }
 
         public string WorkingDirectory { get;}
         public string ID { get; }
-        public Random RNG { get; }
+        public Random RNG => _rng;
 
         public Game Game { get; set; }
 
@@ -111,6 +111,15 @@ namespace Wabbajack.Test
             }
 
             File.WriteAllBytes(full_path, bytes);
+        }
+
+        public static byte[] RandomData(int? size = null, int maxSize = 1024)
+        {
+            if (size == null)
+                size = _rng.Next(1, maxSize);
+            var arr = new byte[(int) size];
+            _rng.NextBytes(arr);
+            return arr;
         }
 
         public void Dispose()
@@ -249,6 +258,11 @@ namespace Wabbajack.Test
                 Directory.CreateDirectory(dir);
             GenerateRandomFileData(full_path, i);
             return full_path;
+        }
+
+        public static object RandomeOne(params object[] opts)
+        {
+            return opts[_rng.Next(0, opts.Length)];
         }
     }
 }
