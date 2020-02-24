@@ -41,11 +41,6 @@ namespace Wabbajack.CLI.Verbs
         [Option("meta", Default = true, HelpText = "Whether to also transfer the meta file for the archive")]
         public bool IncludeMeta { get; set; }
 
-        private static void Log(string msg)
-        {
-            Console.WriteLine(msg);
-        }
-
         private struct TransferFile
         {
             public readonly string Input;
@@ -64,31 +59,31 @@ namespace Wabbajack.CLI.Verbs
         {
             if (!File.Exists(Modlist))
             {
-                Log($"The file {Modlist} does not exist!");
+                CLIUtils.Log($"The file {Modlist} does not exist!");
                 return -1;
             }
 
             if (!Directory.Exists(Input))
             {
-                Log($"The input directory {Input} does not exist!");
+                CLIUtils.Log($"The input directory {Input} does not exist!");
                 return -1;
             }
 
             if (!Directory.Exists(Output))
             {
-                Log($"The output directory {Output} does not exist, it will be created.");
+                CLIUtils.Log($"The output directory {Output} does not exist, it will be created.");
                 Directory.CreateDirectory(Output);
             }
 
             if (!Modlist.EndsWith(Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt"))
             {
-                Log($"The file {Modlist} is not a valid modlist file!");
+                CLIUtils.Log($"The file {Modlist} is not a valid modlist file!");
                 return -1;
             }
 
             if (Copy && Move)
             {
-                Log("You can't set both copy and move flags!");
+                CLIUtils.Log("You can't set both copy and move flags!");
                 return -1;
             }
 
@@ -106,17 +101,17 @@ namespace Wabbajack.CLI.Verbs
                 }
                 catch (Exception e)
                 {
-                    Log($"Error while loading the Modlist!\n{e}");
+                    CLIUtils.Log($"Error while loading the Modlist!\n{e}");
                     return 1;
                 }
 
                 if (modlist == null)
                 {
-                    Log("The Modlist could not be loaded!");
+                    CLIUtils.Log("The Modlist could not be loaded!");
                     return 1;
                 }
 
-                Log($"Modlist contains {modlist.Archives.Count} archives.");
+                CLIUtils.Log($"Modlist contains {modlist.Archives.Count} archives.");
 
                 modlist.Archives.Do(a =>
                 {
@@ -125,11 +120,11 @@ namespace Wabbajack.CLI.Verbs
 
                     if (!File.Exists(inputPath))
                     {
-                        Log($"File {inputPath} does not exist, skipping.");
+                        CLIUtils.Log($"File {inputPath} does not exist, skipping.");
                         return;
                     }
 
-                    Log($"Adding {inputPath} to the transfer list.");
+                    CLIUtils.Log($"Adding {inputPath} to the transfer list.");
                     list.Add(new TransferFile(inputPath, outputPath));
 
                     var metaInputPath = Path.Combine(inputPath, ".meta");
@@ -137,34 +132,34 @@ namespace Wabbajack.CLI.Verbs
 
                     if (File.Exists(metaInputPath))
                     {
-                        Log($"Found meta file {metaInputPath}");
+                        CLIUtils.Log($"Found meta file {metaInputPath}");
                         if (IncludeMeta)
                         {
-                            Log($"Adding {metaInputPath} to the transfer list.");
+                            CLIUtils.Log($"Adding {metaInputPath} to the transfer list.");
                             list.Add(new TransferFile(metaInputPath, metaOutputPath));
                         }
                         else
                         {
-                            Log($"Meta file {metaInputPath} will be ignored.");
+                            CLIUtils.Log($"Meta file {metaInputPath} will be ignored.");
                         }
                     }
                     else
                     {
-                        Log($"Found no meta file for {inputPath}");
+                        CLIUtils.Log($"Found no meta file for {inputPath}");
                         if (IncludeMeta)
                         {
                             if (string.IsNullOrWhiteSpace(a.Meta))
                             {
-                                Log($"Meta for {a.Name} is empty, this should not be possible but whatever.");
+                                CLIUtils.Log($"Meta for {a.Name} is empty, this should not be possible but whatever.");
                                 return;
                             }
 
-                            Log("Adding meta from archive info the transfer list");
+                            CLIUtils.Log("Adding meta from archive info the transfer list");
                             list.Add(new TransferFile(a.Meta, metaOutputPath, true));
                         }
                         else
                         {
-                            Log($"Meta will be ignored for {a.Name}");
+                            CLIUtils.Log($"Meta will be ignored for {a.Name}");
                         }
                     }
                 });
@@ -173,27 +168,27 @@ namespace Wabbajack.CLI.Verbs
             {
                 if (!Directory.Exists(Mods))
                 {
-                    Log($"Mods directory {Mods} does not exist!");
+                    CLIUtils.Log($"Mods directory {Mods} does not exist!");
                     return -1;
                 }
 
-                Log($"Reading modlist.txt from {Modlist}");
+                CLIUtils.Log($"Reading modlist.txt from {Modlist}");
                 string[] modlist = File.ReadAllLines(Modlist);
 
                 if (modlist == null || modlist.Length == 0)
                 {
-                    Log($"Provided modlist.txt file at {Modlist} is empty or could not be read!");
+                    CLIUtils.Log($"Provided modlist.txt file at {Modlist} is empty or could not be read!");
                     return -1;
                 }
 
                 var mods = modlist.Where(s => s.StartsWith("+")).Select(s => s.Substring(1)).ToHashSet();
                 if (mods.Count == 0)
                 {
-                    Log("Counted mods from modlist.txt are 0!");
+                    CLIUtils.Log("Counted mods from modlist.txt are 0!");
                     return -1;
                 }
 
-                Log($"Found {mods.Count} mods in modlist.txt");
+                CLIUtils.Log($"Found {mods.Count} mods in modlist.txt");
 
                 var downloads = new HashSet<string>();
 
@@ -204,14 +199,14 @@ namespace Wabbajack.CLI.Verbs
                         var meta = Path.Combine(d, "meta.ini");
                         if (!File.Exists(meta))
                         {
-                            Log($"Mod meta file {meta} does not exist, skipping");
+                            CLIUtils.Log($"Mod meta file {meta} does not exist, skipping");
                             return;
                         }
 
                         string[] ini = File.ReadAllLines(meta);
                         if (ini == null || ini.Length == 0)
                         {
-                            Log($"Mod meta file {meta} could not be read or is empty!");
+                            CLIUtils.Log($"Mod meta file {meta} could not be read or is empty!");
                             return;
                         }
 
@@ -219,47 +214,47 @@ namespace Wabbajack.CLI.Verbs
                             .Select(i => i.Replace("installationFile=", ""))
                             .Do(i =>
                             {
-                                Log($"Found installationFile {i}");
+                                CLIUtils.Log($"Found installationFile {i}");
                                 downloads.Add(i);
                             });
                     });
 
-                Log($"Found {downloads.Count} installationFiles from mod metas.");
+                CLIUtils.Log($"Found {downloads.Count} installationFiles from mod metas.");
 
                 Directory.EnumerateFiles(Input, "*", SearchOption.TopDirectoryOnly)
                     .Where(f => downloads.Contains(Path.GetFileNameWithoutExtension(f)))
                     .Do(f =>
                     {
-                        Log($"Found archive {f}");
+                        CLIUtils.Log($"Found archive {f}");
 
                         var outputPath = Path.Combine(Output, Path.GetFileName(f));
 
-                        Log($"Adding {f} to the transfer list");
+                        CLIUtils.Log($"Adding {f} to the transfer list");
                         list.Add(new TransferFile(f, outputPath));
 
                         var metaInputPath = Path.Combine(f, ".meta");
                         if (File.Exists(metaInputPath))
                         {
-                            Log($"Found meta file for {f} at {metaInputPath}");
+                            CLIUtils.Log($"Found meta file for {f} at {metaInputPath}");
                             if (IncludeMeta)
                             {
                                 var metaOutputPath = Path.Combine(outputPath, ".meta");
-                                Log($"Adding {metaInputPath} to the transfer list.");
+                                CLIUtils.Log($"Adding {metaInputPath} to the transfer list.");
                                 list.Add(new TransferFile(metaInputPath, metaOutputPath));
                             }
                             else
                             {
-                                Log("Meta file will be ignored");
+                                CLIUtils.Log("Meta file will be ignored");
                             }
                         }
                         else
                         {
-                            Log($"Found no meta file for {f}");
+                            CLIUtils.Log($"Found no meta file for {f}");
                         }
                     });
             }
 
-            Log($"Transfer list contains {list.Count} items");
+            CLIUtils.Log($"Transfer list contains {list.Count} items");
             var success = 0;
             var failed = 0;
             var skipped = 0;
@@ -269,24 +264,24 @@ namespace Wabbajack.CLI.Verbs
                 {
                     if (Overwrite)
                     {
-                        Log($"Output file {f.Output} already exists, it will be overwritten");
+                        CLIUtils.Log($"Output file {f.Output} already exists, it will be overwritten");
                         if (f.IsMeta || Move)
                         {
-                            Log($"Deleting file at {f.Output}");
+                            CLIUtils.Log($"Deleting file at {f.Output}");
                             try
                             {
                                 File.Delete(f.Output);
                             }
                             catch (Exception e)
                             {
-                                Log($"Could not delete file {f.Output}!\n{e}");
+                                CLIUtils.Log($"Could not delete file {f.Output}!\n{e}");
                                 failed++;
                             }
                         }
                     }
                     else
                     {
-                        Log($"Output file {f.Output} already exists, skipping");
+                        CLIUtils.Log($"Output file {f.Output} already exists, skipping");
                         skipped++;
                         return;
                     }
@@ -294,7 +289,7 @@ namespace Wabbajack.CLI.Verbs
 
                 if (f.IsMeta)
                 {
-                    Log($"Writing meta data to {f.Output}");
+                    CLIUtils.Log($"Writing meta data to {f.Output}");
                     try
                     {
                         File.WriteAllText(f.Output, f.Input, Encoding.UTF8);
@@ -302,7 +297,7 @@ namespace Wabbajack.CLI.Verbs
                     }
                     catch (Exception e)
                     {
-                        Log($"Error while writing meta data to {f.Output}!\n{e}");
+                        CLIUtils.Log($"Error while writing meta data to {f.Output}!\n{e}");
                         failed++;
                     }
                 }
@@ -310,7 +305,7 @@ namespace Wabbajack.CLI.Verbs
                 {
                     if (Copy)
                     {
-                        Log($"Copying file {f.Input} to {f.Output}");
+                        CLIUtils.Log($"Copying file {f.Input} to {f.Output}");
                         try
                         {
                             File.Copy(f.Input, f.Output, Overwrite ? CopyOptions.None : CopyOptions.FailIfExists, CopyMoveProgressHandler, null);
@@ -318,13 +313,13 @@ namespace Wabbajack.CLI.Verbs
                         }
                         catch (Exception e)
                         {
-                            Log($"Error while copying file {f.Input} to {f.Output}!\n{e}");
+                            CLIUtils.Log($"Error while copying file {f.Input} to {f.Output}!\n{e}");
                             failed++;
                         }
                     }
                     else if(Move)
                     {
-                        Log($"Moving file {f.Input} to {f.Output}");
+                        CLIUtils.Log($"Moving file {f.Input} to {f.Output}");
                         try
                         {
                             File.Move(f.Input, f.Output, Overwrite ? MoveOptions.ReplaceExisting : MoveOptions.None, CopyMoveProgressHandler, null);
@@ -332,16 +327,16 @@ namespace Wabbajack.CLI.Verbs
                         }
                         catch (Exception e)
                         {
-                            Log($"Error while moving file {f.Input} to {f.Output}!\n{e}");
+                            CLIUtils.Log($"Error while moving file {f.Input} to {f.Output}!\n{e}");
                             failed++;
                         }
                     }
                 }
             });
 
-            Log($"Skipped transfers: {skipped}");
-            Log($"Failed transfers: {failed}");
-            Log($"Successful transfers: {success}");
+            CLIUtils.Log($"Skipped transfers: {skipped}");
+            CLIUtils.Log($"Failed transfers: {failed}");
+            CLIUtils.Log($"Successful transfers: {success}");
 
             return 0;
         }

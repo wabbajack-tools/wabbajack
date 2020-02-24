@@ -24,7 +24,7 @@ namespace Wabbajack.CLI.Verbs
             var state = DownloadDispatcher.Infer(Url);
             if (state == null)
             {
-                Console.WriteLine($"Could not find download source for URL {Url}");
+                CLIUtils.Log($"Could not find download source for URL {Url}");
                 return 1;
             }
             

@@ -10,7 +10,7 @@ namespace Wabbajack.CLI.Verbs
     {
         protected override async Task<int> Run()
         {
-            Console.WriteLine($"Job ID: {await AuthorAPI.UpdateServerModLists()}");
+            CLIUtils.Log($"Job ID: {await AuthorAPI.UpdateServerModLists()}");
             return 0;
         }
     }

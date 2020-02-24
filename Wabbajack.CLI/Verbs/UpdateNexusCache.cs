@@ -11,7 +11,7 @@ namespace Wabbajack.CLI.Verbs
     {
         protected override async Task<int> Run()
         {
-            Console.WriteLine($"Job ID: {await AuthorAPI.UpdateNexusCache()}");
+            CLIUtils.Log($"Job ID: {await AuthorAPI.UpdateNexusCache()}");
             return 0;
         }
     }
