@@ -98,7 +98,9 @@ namespace Wabbajack.Lib.LibCefHelpers
     {
         public static void Initialize()
         {
-            Helpers.Init();
+            var es = Assembly.GetEntryAssembly();
+            if (es != null && es.Location != null && Path.GetFileNameWithoutExtension(es.Location) == "Wabbajack") 
+                Helpers.Init();
         }
     }
 }

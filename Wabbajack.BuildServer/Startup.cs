@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
@@ -111,6 +112,27 @@ namespace Wabbajack.BuildServer
             app.UseJobManager();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.Use(next =>
+            {
+                return async context =>
+                {
+                    var stopWatch = new Stopwatch();
+                    stopWatch.Start();
+                    context.Response.OnStarting(() =>
+                    {
+                        stopWatch.Stop();
+                        var headers = context.Response.Headers;
+                        headers.Add("Access-Control-Allow-Origin", "*");
+                        headers.Add("Access-Control-Allow-Methods", "POST, GET");
+                        headers.Add("Access-Control-Allow-Headers", "Accept, Origin, Content-type");
+                        headers.Add("X-ResponseTime-Ms", stopWatch.ElapsedMilliseconds.ToString());
+                        return Task.CompletedTask;
+                    });
+                    await next(context);
+                };
+            });
+            
             app.UseFileServer(new FileServerOptions
             {
                 FileProvider = new PhysicalFileProvider(

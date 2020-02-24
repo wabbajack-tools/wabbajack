@@ -1,9 +1,12 @@
 ### Changelog
 
-#### Version - 0.9.21.0
+#### Version - 0.9.22.0
+* Server side fixes for CORS support and FTP uploads
+
+#### Version - 0.9.21.0 - 2/23/2020
 * Fix never ending hash issue
 
-#### Version - 0.9.20.0
+#### Version - 0.9.20.0 - 2/21/2020
 * Don't reuse HTTP request objects (#532)
 * Block popups in the in-app browser (#535)
 * Don't print API keys in logs (#533)
@@ -13,7 +16,7 @@
 * Only retain the most recent 50 log files
 
 
-#### Version - 0.9.19.0
+#### Version - 0.9.19.0 - 2/14/2020
 * Disable server-side indexing of all mods from the Nexus
 * Accept download states from clients and index the mods we haven't seen
 * Fixes for Skyrin VR USSEP patch
