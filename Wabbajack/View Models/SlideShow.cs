@@ -82,15 +82,15 @@ namespace Wabbajack
                 {
                     if (modList?.SourceModList?.Archives == null)
                     {
-                        return Observable.Empty<NexusDownloader.State>()
-                            .ToObservableChangeSet(x => x.ModID);
+                        return Observable.Empty<IMetaState>()
+                            .ToObservableChangeSet(x => x.Name);
                     }
                     return modList.SourceModList.Archives
                         .Select(m => m.State)
-                        .OfType<NexusDownloader.State>()
+                        .OfType<IMetaState>()
                         // Shuffle it
                         .Shuffle(_random)
-                        .AsObservableChangeSet(x => x.ModID);
+                        .AsObservableChangeSet(x => x.Name);
                 })
                 // Switch to the new list after every ModList change
                 .Switch()
