@@ -140,13 +140,31 @@ namespace Wabbajack.Lib.Downloaders
 
             //from IMetaState
             public string URL { get; set; }
-            public string Name { get; set; }
-            public string Author { get; set; }
             public string Version { get; set; }
             public string ImageURL { get; set; }
             public bool IsNSFW { get; set; }
-            public string Description { get; set; }
 
+            public string Name
+            {
+                get => NexusApiUtils.FixupSummary(ModName); 
+                set => ModName = value;
+            }
+
+            public string Author
+            {
+                get => NexusApiUtils.FixupSummary(ModAuthor);
+                set => ModAuthor = value;
+            }
+
+            public string Description
+            {
+                get => NexusApiUtils.FixupSummary(Summary);
+                set => Summary = value;
+            }
+
+            public string ModName { get; set; }
+            public string ModAuthor { get; set; }
+            public string Summary { get; set; }
             public string GameName { get; set; }
             public string ModID { get; set; }
             public string FileID { get; set; }

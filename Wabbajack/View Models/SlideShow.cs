@@ -98,7 +98,7 @@ namespace Wabbajack
                 .DisposeMany()
                 // Filter out any NSFW slides if we don't want them
                 .AutoRefreshOnObservable(slide => this.WhenAny(x => x.ShowNSFW))
-                .Filter(slide => !slide.IsNSFW || ShowNSFW)
+                .Filter(slide => !slide.State.IsNSFW || ShowNSFW)
                 .RefCount();
 
             // Find target mod to display by combining dynamic list with currently desired index
@@ -123,10 +123,10 @@ namespace Wabbajack
             VisitNexusSiteCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
-                    Utils.OpenWebsite(TargetMod.URL);
+                    Utils.OpenWebsite(TargetMod.State.URL);
                     return Unit.Default;
                 },
-                canExecute: this.WhenAny(x => x.TargetMod.URL)
+                canExecute: this.WhenAny(x => x.TargetMod.State.URL)
                     .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());
 
