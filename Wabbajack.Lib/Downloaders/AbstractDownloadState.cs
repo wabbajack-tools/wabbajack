@@ -7,6 +7,17 @@ using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
+    public interface IMetaState
+    {
+        string URL { get; set; }
+        string Name { get; set; }
+        string Author { get; set; }
+        string Version { get;set; }
+        string ImageURL { get; set; }
+        bool IsNSFW { get; set; }
+        string Description { get; set; }
+    }
+
     public abstract class AbstractDownloadState
     {
 

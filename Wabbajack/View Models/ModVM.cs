@@ -13,7 +13,7 @@ namespace Wabbajack
 {
     public class ModVM : ViewModel
     {
-        public IAbstractMetaState State { get; }
+        public IMetaState State { get; }
 
         public string URL { get; }
         public string Name { get; }
@@ -28,7 +28,7 @@ namespace Wabbajack
         // and the cached image will automatically be released when the last interested party is gone.
         public IObservable<BitmapImage> ImageObservable { get; }
 
-        public ModVM(IAbstractMetaState state)
+        public ModVM(IMetaState state)
         {
             State = state;
 

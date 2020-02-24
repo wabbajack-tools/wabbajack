@@ -123,7 +123,7 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        public class State : AbstractDownloadState, IAbstractMetaState
+        public class State : AbstractDownloadState, IMetaState
         {
             /*public string Author { get; set; }
             public string FileID { get; set; }
@@ -138,7 +138,7 @@ namespace Wabbajack.Lib.Downloaders
             public string Summary { get; set; }
             public bool Adult { get; set; }*/
 
-            //from IAbstractMetaState
+            //from IMetaState
             public string URL { get; set; }
             public string Name { get; set; }
             public string Author { get; set; }
