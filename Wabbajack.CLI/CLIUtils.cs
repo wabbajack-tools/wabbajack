@@ -13,6 +13,12 @@ namespace Wabbajack.CLI
                 Console.Write(msg);
         }
 
+        internal static int Exit(string msg, int code)
+        {
+            Log(msg);
+            return code;
+        }
+
         internal static void LogException(Exception e, string msg)
         {
             Console.WriteLine($"{msg}\n{e}");

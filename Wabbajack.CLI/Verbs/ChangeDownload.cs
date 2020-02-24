@@ -58,16 +58,10 @@ namespace Wabbajack.CLI.Verbs
         protected override async Task<int> Run()
         {
             if (!File.Exists(Modlist))
-            {
-                CLIUtils.Log($"The file {Modlist} does not exist!");
-                return -1;
-            }
+                return CLIUtils.Exit($"The file {Modlist} does not exist!", -1);
 
             if (!Directory.Exists(Input))
-            {
-                CLIUtils.Log($"The input directory {Input} does not exist!");
-                return -1;
-            }
+                return CLIUtils.Exit($"The input directory {Input} does not exist!", -1);
 
             if (!Directory.Exists(Output))
             {
@@ -76,16 +70,10 @@ namespace Wabbajack.CLI.Verbs
             }
 
             if (!Modlist.EndsWith(Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt"))
-            {
-                CLIUtils.Log($"The file {Modlist} is not a valid modlist file!");
-                return -1;
-            }
+                return CLIUtils.Exit($"The file {Modlist} is not a valid modlist file!", -1);
 
             if (Copy && Move)
-            {
-                CLIUtils.Log("You can't set both copy and move flags!");
-                return -1;
-            }
+                return CLIUtils.Exit("You can't set both copy and move flags!", -1);
 
             var isModlist = Modlist.EndsWith(Consts.ModListExtension);
 
@@ -101,14 +89,12 @@ namespace Wabbajack.CLI.Verbs
                 }
                 catch (Exception e)
                 {
-                    CLIUtils.Log($"Error while loading the Modlist!\n{e}");
-                    return 1;
+                    return CLIUtils.Exit($"Error while loading the Modlist!\n{e}", 1);
                 }
 
                 if (modlist == null)
                 {
-                    CLIUtils.Log("The Modlist could not be loaded!");
-                    return 1;
+                    return CLIUtils.Exit("The Modlist could not be loaded!", 1);
                 }
 
                 CLIUtils.Log($"Modlist contains {modlist.Archives.Count} archives.");
@@ -167,26 +153,18 @@ namespace Wabbajack.CLI.Verbs
             else
             {
                 if (!Directory.Exists(Mods))
-                {
-                    CLIUtils.Log($"Mods directory {Mods} does not exist!");
-                    return -1;
-                }
+                    return CLIUtils.Exit($"Mods directory {Mods} does not exist!", -1);
 
                 CLIUtils.Log($"Reading modlist.txt from {Modlist}");
                 string[] modlist = File.ReadAllLines(Modlist);
 
                 if (modlist == null || modlist.Length == 0)
-                {
-                    CLIUtils.Log($"Provided modlist.txt file at {Modlist} is empty or could not be read!");
-                    return -1;
-                }
+                    return CLIUtils.Exit($"Provided modlist.txt file at {Modlist} is empty or could not be read!", -1);
 
                 var mods = modlist.Where(s => s.StartsWith("+")).Select(s => s.Substring(1)).ToHashSet();
+
                 if (mods.Count == 0)
-                {
-                    CLIUtils.Log("Counted mods from modlist.txt are 0!");
-                    return -1;
-                }
+                    return CLIUtils.Exit("Counted mods from modlist.txt are 0!", -1);
 
                 CLIUtils.Log($"Found {mods.Count} mods in modlist.txt");
 

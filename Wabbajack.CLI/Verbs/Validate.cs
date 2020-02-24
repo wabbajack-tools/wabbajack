@@ -30,18 +30,12 @@ namespace Wabbajack.CLI.Verbs
         protected override async Task<int> Run()
         {
             if (!File.Exists(Input))
-            {
-                CLIUtils.Log($"The file {Input} does not exist!");
-                return -1;
-            }
+                return CLIUtils.Exit($"The file {Input} does not exist!", -1);
 
 
             if (!Input.EndsWith(Consts.ModListExtension))
-            {
-                CLIUtils.Log($"The file {Input} does not end with {Consts.ModListExtension}!");
-                return -1;
-            }
-            
+                return CLIUtils.Exit($"The file {Input} does not end with {Consts.ModListExtension}!", -1);
+
             ModList modlist;
 
             try
@@ -50,14 +44,12 @@ namespace Wabbajack.CLI.Verbs
             }
             catch (Exception e)
             {
-                CLIUtils.Log($"Error while loading the Modlist!\n{e}");
-                return 1;
+                return CLIUtils.Exit($"Error while loading the Modlist!\n{e}", 1);
             }
 
             if (modlist == null)
             {
-                CLIUtils.Log($"The Modlist could not be loaded!");
-                return 1;
+                return CLIUtils.Exit($"The Modlist could not be loaded!", 1);
             }
                 
 
@@ -69,12 +61,10 @@ namespace Wabbajack.CLI.Verbs
             }
             catch (Exception e)
             {
-                CLIUtils.Log($"Error during Validation!\n{e}");
-                return 1;
+                return CLIUtils.Exit($"Error during Validation!\n{e}", 1);
             }
 
-            CLIUtils.Log("The Modlist passed the Validation");
-            return 0;
+            return CLIUtils.Exit("The Modlist passed the Validation", 0);
         }
     }
 }
