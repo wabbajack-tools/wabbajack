@@ -47,6 +47,10 @@ namespace Wabbajack.Lib
         private SteamGame _steamGame;
         private bool _hasSteamWorkshopItems;
 
+        public override string VFSCacheName => Path.Combine(
+            Consts.LocalAppDataPath, 
+            $"vfs_compile_cache-{StagingFolder?.StringSHA256Hex() ?? "Unknown"}.bin");
+
         public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder, string outputFile)
         {
             Game = game;
