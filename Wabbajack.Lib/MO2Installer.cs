@@ -298,7 +298,7 @@ namespace Wabbajack.Lib
             using (var output = File.Open(toFile, FileMode.Create))
             using (var input = File.OpenRead(gameFile))
             {
-                BSDiff.Apply(input, () => new MemoryStream(patchData), output);
+                Utils.ApplyPatch(input, () => new MemoryStream(patchData), output);
             }
         }
 

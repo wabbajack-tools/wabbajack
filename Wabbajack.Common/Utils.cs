@@ -926,8 +926,19 @@ namespace Wabbajack.Common
             {
                 if (File.Exists(cacheFile))
                 {
-                    await using var f = File.OpenRead(cacheFile);
-                    await f.CopyToAsync(output);
+                    RETRY_OPEN:
+                    try
+                    {
+                        await using var f = File.OpenRead(cacheFile);
+                        await f.CopyToAsync(output);
+                    }
+                    catch (IOException)
+                    {
+                        // Race condition with patch caching
+                        await Task.Delay(100);
+                        goto RETRY_OPEN;
+                    }
+
                 }
                 else
                 {
@@ -936,7 +947,7 @@ namespace Wabbajack.Common
                     await using (var f = File.Open(tmpName, System.IO.FileMode.Create))
                     {
                         Status("Creating Patch");
-                        BSDiff.Create(a, b, f);
+                        OctoDiff.Create(a, b, f);
                     }
 
                     RETRY:
@@ -971,6 +982,26 @@ namespace Wabbajack.Common
 
             ePatch = null;
             return false;
+        }
+
+        public static void ApplyPatch(Stream input, Func<Stream> openPatchStream, Stream output)
+        {
+            using var ps = openPatchStream();
+            using var br = new BinaryReader(ps);
+            var bytes = br.ReadBytes(8);
+            var str = Encoding.ASCII.GetString(bytes);
+            switch (str)
+            {
+                case "BSDIFF40":
+                    BSDiff.Apply(input, openPatchStream, output);
+                    return;
+                case "OCTODELT":
+                    OctoDiff.Apply(input, openPatchStream, output);
+                    return;
+                default:
+                    throw new Exception($"No diff dispatch for: {str}");
+            }
+
         }
 
         /*

@@ -24,6 +24,11 @@ namespace Wabbajack.Common
             }
         }
 
+        public Percent(long max, long current) : this((double)current / max)
+        {
+            
+        }
+
         public Percent(double d)
             : this(d, check: true)
         {

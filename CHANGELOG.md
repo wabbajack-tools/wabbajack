@@ -2,6 +2,7 @@
 
 #### Version - 0.9.22.0
 * Server side fixes for CORS support and FTP uploads
+* Use OctoDiff instead of BSDiff for better performance during diff generation 
 
 #### Version - 0.9.21.0 - 2/23/2020
 * Fix never ending hash issue

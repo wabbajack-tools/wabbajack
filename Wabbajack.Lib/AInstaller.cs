@@ -199,9 +199,10 @@ namespace Wabbajack.Lib
             onFinish();
 
             // Now patch all the files from this archive
-            foreach (var toPatch in grouping.OfType<PatchedFromArchive>())
-                using (var patchStream = new MemoryStream())
+            await grouping.OfType<PatchedFromArchive>()
+                .PMap(queue, async toPatch =>
                 {
+                    await using var patchStream = new MemoryStream();
                     Status($"Patching {Path.GetFileName(toPatch.To)}");
                     // Read in the patch data
 
@@ -214,16 +215,16 @@ namespace Wabbajack.Lib
                     File.Delete(toFile);
 
                     // Patch it
-                    using (var outStream = File.Open(toFile, FileMode.Create))
+                    await using (var outStream = File.Open(toFile, FileMode.Create))
                     {
-                        BSDiff.Apply(oldData, () => new MemoryStream(patchData), outStream);
+                        Utils.ApplyPatch(oldData, () => new MemoryStream(patchData), outStream);
                     }
 
                     Status($"Verifying Patch {Path.GetFileName(toPatch.To)}");
                     var resultSha = toFile.FileHash();
                     if (resultSha != toPatch.Hash)
                         throw new InvalidDataException($"Invalid Hash for {toPatch.To} after patching");
-                }
+                });
         }
 
         public async Task DownloadArchives()
