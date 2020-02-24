@@ -76,13 +76,13 @@ namespace Wabbajack.Lib.Downloaders
                     ModID = general.modID,
                     Version = general.version ?? "0.0.0.0",
                     Author = info.author,
-                    UploadedBy = info.uploaded_by,
-                    UploaderProfile = info.uploaded_users_profile_url,
-                    ModName = info.name,
-                    SlideShowPic = info.picture_url,
-                    NexusURL = NexusApiUtils.GetModURL(game, info.mod_id),
-                    Summary = info.summary,
-                    Adult = info.contains_adult_content
+                    //UploadedBy = info.uploaded_by,
+                    //UploaderProfile = info.uploaded_users_profile_url,
+                    Name = info.name,
+                    ImageURL = info.picture_url,
+                    URL = NexusApiUtils.GetModURL(game, info.mod_id),
+                    Description = info.summary,
+                    IsNSFW = info.contains_adult_content
 
                 };
             }
@@ -123,9 +123,9 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        public class State : AbstractDownloadState
+        public class State : AbstractDownloadState, IAbstractMetaState
         {
-            public string Author { get; set; }
+            /*public string Author { get; set; }
             public string FileID { get; set; }
             public string GameName { get; set; }
             public string ModID { get; set; }
@@ -136,7 +136,20 @@ namespace Wabbajack.Lib.Downloaders
             public string ModName { get; set; }
             public string NexusURL { get; set; }
             public string Summary { get; set; }
-            public bool Adult { get; set; }
+            public bool Adult { get; set; }*/
+
+            //from IAbstractMetaState
+            public string URL { get; set; }
+            public string Name { get; set; }
+            public string Author { get; set; }
+            public string Version { get; set; }
+            public string ImageURL { get; set; }
+            public bool IsNSFW { get; set; }
+            public string Description { get; set; }
+
+            public string GameName { get; set; }
+            public string ModID { get; set; }
+            public string FileID { get; set; }
 
             public override object[] PrimaryKey { get => new object[]{GameName, ModID, FileID};}
 
@@ -192,7 +205,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log($"{ModName} - {GameName} - {ModID} - {FileID} - Error getting Nexus download URL - {ex}");
+                    Utils.Log($"{Name} - {GameName} - {ModID} - {FileID} - Error getting Nexus download URL - {ex}");
                     return false;
                 }
 

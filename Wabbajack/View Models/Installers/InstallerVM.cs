@@ -274,7 +274,7 @@ namespace Wabbajack
             _titleText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList)
                         .Select(modList => modList?.Name ?? string.Empty),
-                    this.WhenAny(x => x.Slideshow.TargetMod.ModName)
+                    this.WhenAny(x => x.Slideshow.TargetMod.Name)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
@@ -282,7 +282,7 @@ namespace Wabbajack
             _authorText = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList)
                         .Select(modList => modList?.Author ?? string.Empty),
-                    this.WhenAny(x => x.Slideshow.TargetMod.ModAuthor)
+                    this.WhenAny(x => x.Slideshow.TargetMod.Author)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)
@@ -290,7 +290,7 @@ namespace Wabbajack
             _description = Observable.CombineLatest(
                     this.WhenAny(x => x.ModList)
                         .Select(modList => modList?.Description ?? string.Empty),
-                    this.WhenAny(x => x.Slideshow.TargetMod.ModDescription)
+                    this.WhenAny(x => x.Slideshow.TargetMod.Description)
                         .StartWith(default(string)),
                     this.WhenAny(x => x.Installing),
                     resultSelector: (modList, mod, installing) => installing ? mod : modList)

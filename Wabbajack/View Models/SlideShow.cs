@@ -123,10 +123,10 @@ namespace Wabbajack
             VisitNexusSiteCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
-                    Utils.OpenWebsite(TargetMod.ModURL);
+                    Utils.OpenWebsite(TargetMod.URL);
                     return Unit.Default;
                 },
-                canExecute: this.WhenAny(x => x.TargetMod.ModURL)
+                canExecute: this.WhenAny(x => x.TargetMod.URL)
                     .Select(x => x?.StartsWith("https://") ?? false)
                     .ObserveOnGuiThread());
 

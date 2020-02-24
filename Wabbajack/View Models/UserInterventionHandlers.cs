@@ -157,7 +157,7 @@ namespace Wabbajack
             };
             await vm.Driver.WaitForInitialized();
             IWebDriver browser = new CefSharpWrapper(vm.Browser);
-            vm.Instructions = $"Please Download {state.ModName} - {state.ModID} - {state.FileID}";
+            vm.Instructions = $"Please Download {state.Name} - {state.ModID} - {state.FileID}";
             browser.DownloadHandler = uri =>
             {
                 manuallyDownloadNexusFile.Resume(uri);

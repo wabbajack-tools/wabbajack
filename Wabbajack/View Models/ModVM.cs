@@ -13,37 +13,39 @@ namespace Wabbajack
 {
     public class ModVM : ViewModel
     {
-        public string ModName { get; }
+        public IAbstractMetaState State { get; }
 
-        public string ModID { get; }
-
-        public string ModDescription { get; }
-
-        public string ModAuthor { get; }
-
-        public bool IsNSFW { get; }
-
-        public string ModURL { get; }
-        
+        public string URL { get; }
+        public string Name { get; }
+        public string Author { get; }
+        public string Version { get; }
         public string ImageURL { get; }
+        public bool IsNSFW { get; }
+        public string Description { get; }
 
         // Image isn't exposed as a direct property, but as an observable.
         // This acts as a caching mechanism, as interested parties will trigger it to be created,
         // and the cached image will automatically be released when the last interested party is gone.
         public IObservable<BitmapImage> ImageObservable { get; }
 
-        public ModVM(NexusDownloader.State m)
+        public ModVM(IAbstractMetaState state)
         {
-            ModName = NexusApiUtils.FixupSummary(m.ModName);
-            ModID = m.ModID;
-            ModDescription = NexusApiUtils.FixupSummary(m.Summary);
-            ModAuthor = NexusApiUtils.FixupSummary(m.Author);
-            IsNSFW = m.Adult;
-            ModURL = m.NexusURL;
-            ImageURL = m.SlideShowPic;
+            State = state;
+
+            URL = state.URL;
+            ImageURL = state.ImageURL;
+            IsNSFW = state.IsNSFW;
+            Version = state.Version;
+
+            var isNexus = state.GetType() == typeof(NexusDownloader.State);
+            
+            Name = isNexus ? NexusApiUtils.FixupSummary(state.Name) : state.Name;
+            Author = isNexus ? NexusApiUtils.FixupSummary(state.Author) : state.Author;
+            Description = isNexus ? NexusApiUtils.FixupSummary(state.Description) : state.Description;
+
             ImageObservable = Observable.Return(ImageURL)
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .DownloadBitmapImage((ex) => Utils.Log($"Skipping slide for mod {ModName} ({ModID})"))
+                .DownloadBitmapImage((ex) => Utils.Log($"Skipping slide for mod {Name}"))
                 .Replay(1)
                 .RefCount(TimeSpan.FromMilliseconds(5000));
         }
