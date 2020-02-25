@@ -5,6 +5,7 @@
 * Use OctoDiff instead of BSDiff for better performance during diff generation
 * Print the assembly version in the log (#565)
 * Don't thrash the VFS cache name quite so much
+* Use OctoDiff instead of BSDiff for better performance during diff generation 
 
 #### Version - 0.9.21.0 - 2/23/2020
 * Fix never ending hash issue

@@ -176,7 +176,7 @@ namespace Wabbajack.Lib
                     var patch_data = installer.LoadBytesFromPath(m.PatchID);
 
                     using (var fs = File.Open(Path.Combine(installer.OutputFolder, m.To), FileMode.Create)) 
-                        BSDiff.Apply(new MemoryStream(src_data), () => new MemoryStream(patch_data), fs);
+                        Utils.ApplyPatch(new MemoryStream(src_data), () => new MemoryStream(patch_data), fs);
                 });
         }
     }

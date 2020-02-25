@@ -122,9 +122,10 @@ namespace Wabbajack
 
             try
             {
-                System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-                FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+                var assembly = Assembly.GetExecutingAssembly();
+                var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
                 VersionDisplay = $"v{fvi.FileVersion}";
+                Utils.Log($"Wabbajack Version: {fvi.FileVersion}");
             }
             catch (Exception ex)
             {

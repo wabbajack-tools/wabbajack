@@ -23,11 +23,8 @@ namespace Wabbajack.CLI.Verbs
         {
             var state = DownloadDispatcher.Infer(Url);
             if (state == null)
-            {
-                Console.WriteLine($"Could not find download source for URL {Url}");
-                return 1;
-            }
-            
+                return CLIUtils.Exit($"Could not find download source for URL {Url}", 1);
+
             DownloadDispatcher.PrepareAll(new []{state});
 
             using var queue = new WorkQueue();

@@ -43,6 +43,10 @@ namespace Wabbajack.Lib
 
         public override string ModListOutputFile { get; }
 
+        public override string VFSCacheName => Path.Combine(
+            Consts.LocalAppDataPath, 
+            $"vfs_compile_cache-{Path.Combine(MO2Folder ?? "Unknown", "ModOrganizer.exe").StringSHA256Hex()}.bin");
+
         public MO2Compiler(string mo2Folder, string mo2Profile, string outputFile)
         {
             MO2Folder = mo2Folder;
