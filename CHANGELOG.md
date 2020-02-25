@@ -1,8 +1,10 @@
 ### Changelog
 
+#### Version - 0.9.21.1 - 2/24/2020
+* Fix NaN error during installation 
+
 #### Version - 0.9.22.0 - 2/24/2020
 * Server side fixes for CORS support and FTP uploads
-* Use OctoDiff instead of BSDiff for better performance during diff generation
 * Print the assembly version in the log (#565)
 * Don't thrash the VFS cache name quite so much
 * Use OctoDiff instead of BSDiff for better performance during diff generation 
