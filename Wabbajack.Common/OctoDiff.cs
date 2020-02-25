@@ -32,6 +32,8 @@ namespace Wabbajack.Common
         {
             public void ReportProgress(string operation, long currentPosition, long total)
             {
+                if (currentPosition >= total || total < 1 || currentPosition < 0)
+                    return;
                 Utils.Status(operation, new Percent(total, currentPosition));
             }
         }
