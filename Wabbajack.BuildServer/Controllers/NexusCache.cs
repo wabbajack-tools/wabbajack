@@ -35,7 +35,7 @@ namespace Wabbajack.BuildServer.Controllers
             if (result == null)
             {
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-                var path = $"/v1/games/{GameName}/mods/{ModId}.json";
+                var path = $"https://api.nexusmods.com/v1/games/{GameName}/mods/{ModId}.json";
                 var body = await api.Get<ModInfo>(path);
                 result = new NexusCacheData<ModInfo> {Data = body, Path = path, Game = GameName, ModId = ModId};
                 try
@@ -63,7 +63,7 @@ namespace Wabbajack.BuildServer.Controllers
             if (result == null)
             {
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-                var path = $"/v1/games/{GameName}/mods/{ModId}/files.json";
+                var path = $"https://api.nexusmods.com/v1/games/{GameName}/mods/{ModId}/files.json";
                 var body = await api.Get<NexusApiClient.GetModFilesResponse>(path);
                 result = new NexusCacheData<NexusApiClient.GetModFilesResponse>
                 {
@@ -95,7 +95,7 @@ namespace Wabbajack.BuildServer.Controllers
             if (result == null)
             {
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-                var path = $"/v1/games/{GameName}/mods/{ModId}/files/{FileId}.json";
+                var path = $"https://api.nexusmods.com/v1/games/{GameName}/mods/{ModId}/files/{FileId}.json";
                 var body = await api.Get<NexusFileInfo>(path);
                 result = new NexusCacheData<NexusFileInfo>
                 {

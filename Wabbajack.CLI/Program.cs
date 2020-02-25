@@ -16,6 +16,7 @@ namespace Wabbajack.CLI
                     (UpdateModlists opts) => opts.Execute(),
                     (UpdateNexusCache opts) => opts.Execute(),
                     (ChangeDownload opts) => opts.Execute(),
+                    (ServerLog opts) => opts.Execute(),
                     errs => 1);
         }
     }

@@ -178,12 +178,12 @@ namespace Wabbajack.Lib.NexusApi
 
                 lock (RemainingLock)
                 {
-                    _dailyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
-                    _hourlyRemaining = Math.Min(dailyRemaining, hourlyRemaining);
+                    _dailyRemaining = Math.Min(_dailyRemaining, dailyRemaining);
+                    _hourlyRemaining = Math.Min(_hourlyRemaining, hourlyRemaining);
                 }
                 
                 if (oldDaily != _dailyRemaining || oldHourly != _hourlyRemaining) 
-                    Utils.Log($"Nexus requests remaining: {dailyRemaining} daily - {hourlyRemaining} hourly");
+                    Utils.Log($"Nexus requests remaining: {_dailyRemaining} daily - {_hourlyRemaining} hourly");
 
                 this.RaisePropertyChanged(nameof(DailyRemaining));
                 this.RaisePropertyChanged(nameof(HourlyRemaining));

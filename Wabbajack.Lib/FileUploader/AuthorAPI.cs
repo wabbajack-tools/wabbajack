@@ -171,5 +171,10 @@ namespace Wabbajack.Lib.FileUploader
                 Utils.Log(ex.ToString());
             }
         }
+
+        public static async Task<string> GetServerLog()
+        {
+            return await GetAuthorizedClient().GetStringAsync($"https://{Consts.WabbajackCacheHostname}/heartbeat/logs");
+        }
     }
 }

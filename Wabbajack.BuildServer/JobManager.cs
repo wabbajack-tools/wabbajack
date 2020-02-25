@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Nettle;
+using Wabbajack.BuildServer.Controllers;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
@@ -74,6 +76,8 @@ namespace Wabbajack.BuildServer
         public async Task JobScheduler()
         {
             Utils.LogMessages.Subscribe(msg => Logger.Log(LogLevel.Information, msg.ToString()));
+            Utils.LogMessages.Subscribe(Heartbeat.AddToLog);
+            Utils.LogMessages.OfType<IUserIntervention>().Subscribe(u => u.Cancel());
             if (!Settings.JobScheduler) return;
             while (true)
             {

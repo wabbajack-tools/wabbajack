@@ -13,7 +13,8 @@ namespace Wabbajack.CLI
             typeof(DownloadUrl), 
             typeof(UpdateModlists), 
             typeof(UpdateNexusCache),
-            typeof(ChangeDownload)
+            typeof(ChangeDownload),
+            typeof(ServerLog)
         };
     }
 }

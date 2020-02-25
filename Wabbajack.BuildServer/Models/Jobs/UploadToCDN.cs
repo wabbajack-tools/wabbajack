@@ -24,14 +24,28 @@ namespace Wabbajack.BuildServer.Models.Jobs
         
         public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {
+            int retries = 0;
+            TOP:
             var file = await db.UploadedFiles.AsQueryable().Where(f => f.Id == FileId).FirstOrDefaultAsync();
+            
             using (var client = new FtpClient("storage.bunnycdn.com"))
             {
                 client.Credentials = new NetworkCredential(settings.BunnyCDN_User, settings.BunnyCDN_Password);
                 await client.ConnectAsync();
                 using (var stream = File.OpenRead(Path.Combine("public", "files", file.MungedName)))
                 {
-                    await client.UploadAsync(stream, file.MungedName, progress: new Progress(file.MungedName));
+                    try
+                    {
+                        await client.UploadAsync(stream, file.MungedName, progress: new Progress(file.MungedName));
+                    }
+                    catch (Exception ex)
+                    {
+                        if (retries > 10) throw;
+                        Utils.Log(ex.ToString());
+                        Utils.Log("Retrying FTP Upload");
+                        retries++;
+                        goto TOP;
+                    }
                 }
                 
                 await db.Jobs.InsertOneAsync(new Job

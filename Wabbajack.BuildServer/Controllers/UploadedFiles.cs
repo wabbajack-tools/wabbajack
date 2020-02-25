@@ -29,7 +29,7 @@ namespace Wabbajack.BuildServer.Controllers
     {
         private static ConcurrentDictionary<string, AsyncLock> _writeLocks = new ConcurrentDictionary<string, AsyncLock>();
         private AppSettings _settings;
-
+        
         public UploadedFiles(ILogger<UploadedFiles> logger, DBContext db, AppSettings settings) : base(logger, db)
         {
             _settings = settings;
@@ -44,7 +44,7 @@ namespace Wabbajack.BuildServer.Controllers
             
             _writeLocks.GetOrAdd(key, new AsyncLock());
             
-            System.IO.File.Create(Path.Combine("public", "files", key)).Close();
+            System.IO.File.Create(Path.Combine("public", "tmp_files", key)).Close();
             Utils.Log($"Starting Ingest for {key}");
             return Ok(key);
         }
@@ -64,7 +64,7 @@ namespace Wabbajack.BuildServer.Controllers
             
             long position;
             using (var _ = await _writeLocks[Key].Wait())
-            await using (var file = System.IO.File.Open(Path.Combine("public", "files", Key), FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
+            await using (var file = System.IO.File.Open(Path.Combine("public", "tmp_files", Key), FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
             {
                 file.Position = Offset;
                 await ms.CopyToAsync(file);
@@ -86,7 +86,7 @@ namespace Wabbajack.BuildServer.Controllers
             var original_name = $"{parts[0]}{parts[2]}";
 
             var final_path = Path.Combine("public", "files", final_name);
-            System.IO.File.Move(Path.Combine("public", "files", Key), final_path);
+            System.IO.File.Move(Path.Combine("public", "tmp_files", Key), final_path);
             var hash = await final_path.FileHashAsync();
 
             if (expectedHash != hash)
