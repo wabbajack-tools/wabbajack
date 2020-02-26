@@ -125,7 +125,6 @@ namespace Wabbajack.Lib.Downloaders
                 var streamResult = await downloader.AuthedClient.GetAsync(url);
                 if (streamResult.StatusCode != HttpStatusCode.OK)
                 {
-                    streamResult.Dispose();
                     Utils.ErrorThrow(new InvalidOperationException(), $"{downloader.SiteName} servers reported an error for file: {FileID}");
                 }
 
