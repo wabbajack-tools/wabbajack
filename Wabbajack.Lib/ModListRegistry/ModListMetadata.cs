@@ -62,7 +62,7 @@ namespace Wabbajack.Lib.ModListRegistry
 
         public static async Task<List<ModlistMetadata>> LoadFromGithub()
         {
-            var client = new HttpClient();
+            var client = new Common.Http.Client();
             Utils.Log("Loading ModLists from GitHub");
             var metadataResult = client.GetStringAsync(Consts.ModlistMetadataURL);
             var summaryResult = client.GetStringAsync(Consts.ModlistSummaryURL);

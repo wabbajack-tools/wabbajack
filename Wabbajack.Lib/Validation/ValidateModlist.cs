@@ -38,7 +38,7 @@ namespace Wabbajack.Lib.Validation
 
         public async Task LoadListsFromGithub()
         {
-            var client = new HttpClient();
+            var client = new Common.Http.Client();
             Utils.Log("Loading Nexus mod permissions");
             using (var result = await client.GetStreamAsync(Consts.ModPermissionsURL))
             {
