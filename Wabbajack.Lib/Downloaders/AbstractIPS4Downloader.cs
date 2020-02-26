@@ -126,7 +126,7 @@ namespace Wabbajack.Lib.Downloaders
                 if (streamResult.StatusCode != HttpStatusCode.OK)
                 {
                     streamResult.Dispose();
-                    Utils.Error(new InvalidOperationException(), $"{downloader.SiteName} servers reported an error for file: {FileID}");
+                    Utils.ErrorThrow(new InvalidOperationException(), $"{downloader.SiteName} servers reported an error for file: {FileID}");
                 }
 
                 var contentType = streamResult.Content.Headers.ContentType;
