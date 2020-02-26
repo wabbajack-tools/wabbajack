@@ -358,7 +358,7 @@ namespace Wabbajack.Lib
             {
                 var vf = VFS.Index.ByFullPath[f];
                 var client = new Common.Http.Client();
-                var response =
+                using var response =
                     await client.GetAsync(
                         $"http://build.wabbajack.org/indexed_files/{vf.Hash.FromBase64().ToHex()}/meta.ini");
 

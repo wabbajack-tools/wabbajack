@@ -134,7 +134,7 @@ namespace Wabbajack.Lib.Downloaders
                 foreach (var chunk in info.depot_list[0].file_list[0].chunk_list.OrderBy(c => c.index))
                 {
                     Utils.Status($"Downloading {a.Name}", Percent.FactoryPutInRange(chunk.index, max_chunks));
-                    var got = await client.GetAsync(
+                    using var got = await client.GetAsync(
                         $"https://content.cdp.bethesda.net/{collected.CDPProductId}/{collected.CDPPropertiesId}/{chunk.sha}");
                     var data = await got.Content.ReadAsByteArrayAsync();
                     if (collected.AESKey != null) 
@@ -224,7 +224,7 @@ namespace Wabbajack.Lib.Downloaders
                 info.CDPToken = (await posted.Content.ReadAsStringAsync()).FromJSONString<CDPLoginResponse>().token;
 
                 client.Headers.Add(("X-Access-Token", info.AccessToken));
-                var got = await client.GetAsync($"mods/ugc-workshop/content/get?content_id={ContentId}");
+                var got = await client.GetAsync($"https://api.bethesda.net/mods/ugc-workshop/content/get?content_id={ContentId}");
                 JObject data = JObject.Parse(await got.Content.ReadAsStringAsync());
 
                 var content = data["platform"]["response"]["content"];
@@ -235,15 +235,18 @@ namespace Wabbajack.Lib.Downloaders
                 client.Headers.Add(("Authorization", $"Token {info.CDPToken}"));
                 client.Headers.Add(("Accept", "application/json"));
 
+                got.Dispose();
                 got = await client.GetAsync(
-                    $"/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/tree/.json");
+                    $"https://api.bethesda.net/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/tree/.json");
 
                 var tree = (await got.Content.ReadAsStringAsync()).FromJSONString<CDPTree>();
                 
+                got.Dispose();
                 got = await client.PostAsync($"https://api.bethesda.net/mods/ugc-content/add-subscription", new StringContent($"{{\"content_id\": \"{ContentId}\"}}", Encoding.UTF8, "application/json"));
 
+                got.Dispose();
                 got = await client.GetAsync(
-                    $"/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/depots/.json");
+                    $"https://api.bethesda.net/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/depots/.json");
 
                 var props_obj = JObject.Parse(await got.Content.ReadAsStringAsync()).Properties().First();
                 info.CDPPropertiesId = (int)props_obj.Value["properties_id"];

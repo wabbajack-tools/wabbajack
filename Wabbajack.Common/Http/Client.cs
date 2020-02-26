@@ -47,30 +47,12 @@ namespace Wabbajack.Common.Http
                 
             return await SendStringAsync(request);
         }
-        
-        public async Task<Stream> GetStreamAsync(string url)
-        {
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
-            foreach (var (k, v) in Headers) 
-                request.Headers.Add(k, v);
-            if (Cookies.Count > 0)
-                Cookies.ForEach(c => ClientFactory.Cookies.Add(c));
-                
-            return await SendStreamAsync(request);
-        }
 
         private async Task<string> SendStringAsync(HttpRequestMessage request)
         {
-            var result = await SendAsync(request);
+            using var result = await SendAsync(request);
             return await result.Content.ReadAsStringAsync();
         }
-        
-        private async Task<Stream> SendStreamAsync(HttpRequestMessage request)
-        {
-            var result = await SendAsync(request);
-            return await result.Content.ReadAsStreamAsync();
-        }
-
 
         public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage msg, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
         {

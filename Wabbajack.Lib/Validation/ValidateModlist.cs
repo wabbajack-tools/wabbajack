@@ -39,15 +39,10 @@ namespace Wabbajack.Lib.Validation
         public async Task LoadListsFromGithub()
         {
             var client = new Common.Http.Client();
-            Utils.Log("Loading Nexus mod permissions");
-            using (var result = await client.GetStreamAsync(Consts.ModPermissionsURL))
-            {
-                AuthorPermissions = result.FromYaml<Dictionary<string, Author>>();
-                Utils.Log($"Loaded permissions for {AuthorPermissions.Count} authors");
-            }
 
             Utils.Log("Loading server whitelist");
-            using (var result = await client.GetStreamAsync(Consts.ServerWhitelistURL))
+            using (var response = await client.GetAsync(Consts.ServerWhitelistURL))
+            using (var result = await response.Content.ReadAsStreamAsync())
             {
                 ServerWhitelist = result.FromYaml<ServerWhitelist>();
                 Utils.Log($"Loaded permissions for {ServerWhitelist.AllowedPrefixes.Count} servers and {ServerWhitelist.GoogleIDs.Count} Google Drive files");

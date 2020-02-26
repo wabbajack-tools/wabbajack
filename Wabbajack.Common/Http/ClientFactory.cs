@@ -15,9 +15,9 @@ namespace Wabbajack.Common.Http
             _socketsHandler = new SysHttp.SocketsHttpHandler
             {
                 CookieContainer = Cookies,
-                MaxConnectionsPerServer = 8,
-                PooledConnectionLifetime = TimeSpan.FromSeconds(2),
-                PooledConnectionIdleTimeout = TimeSpan.FromSeconds(2)
+                MaxConnectionsPerServer = 20,
+                PooledConnectionLifetime = TimeSpan.FromMilliseconds(100),
+                PooledConnectionIdleTimeout = TimeSpan.FromMilliseconds(100)
             };
             Client = new SysHttp.HttpClient(_socketsHandler);
         }
