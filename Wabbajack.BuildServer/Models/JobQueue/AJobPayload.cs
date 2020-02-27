@@ -21,7 +21,8 @@ namespace Wabbajack.BuildServer.Models.JobQueue
             typeof(EnqueueRecentFiles),
             typeof(UploadToCDN),
             typeof(IndexDynDOLOD),
-            typeof(ReindexArchives)
+            typeof(ReindexArchives),
+            typeof(PatchArchive)
         };
         public static Dictionary<Type, string> TypeToName { get; set; }
         public static Dictionary<string, Type> NameToType { get; set; }

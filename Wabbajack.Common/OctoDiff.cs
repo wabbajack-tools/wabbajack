@@ -27,6 +27,21 @@ namespace Wabbajack.Common
             sigStream.Position = 0;
             return sigStream;
         }
+        
+        private static void CreateSignature(FileStream oldData, FileStream sigStream)
+        {
+            Utils.Status("Creating Patch Signature");
+            var signatureBuilder = new SignatureBuilder();
+            signatureBuilder.Build(oldData, new SignatureWriter(sigStream));
+            sigStream.Position = 0;
+        }
+        
+        public static void Create(FileStream oldData, FileStream newData, FileStream signature, FileStream output)
+        {
+            CreateSignature(oldData, signature);
+            var db = new DeltaBuilder {ProgressReporter = reporter};
+            db.BuildDelta(newData, new SignatureReader(signature, reporter), new AggregateCopyOperationsDecorator(new BinaryDeltaWriter(output)));
+        }
 
         private class ProgressReporter : IProgressReporter
         {
@@ -43,6 +58,12 @@ namespace Wabbajack.Common
             using var deltaStream = openPatchStream();
             var deltaApplier = new DeltaApplier();
             deltaApplier.Apply(input, new BinaryDeltaReader(deltaStream, reporter), output);
+        }
+        
+        public static void Apply(FileStream input, FileStream patchStream, FileStream output)
+        {
+            var deltaApplier = new DeltaApplier();
+            deltaApplier.Apply(input, new BinaryDeltaReader(patchStream, reporter), output);
         }
     }
 }

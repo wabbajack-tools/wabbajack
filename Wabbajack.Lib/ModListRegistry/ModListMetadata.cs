@@ -110,6 +110,10 @@ namespace Wabbajack.Lib.ModListRegistry
     {
         [JsonProperty("name")]
         public string Name { get; set; }
+        
+        [JsonProperty("machineURL")]
+        public string MachineURL { get; set; }
+        
         [JsonProperty("checked")]
         public DateTime Checked { get; set; }
         [JsonProperty("failed")]
@@ -117,9 +121,9 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonProperty("passed")]
         public int Passed { get; set; }
         [JsonProperty("link")]
-        public string Link => $"/lists/status/{Name}.json";
+        public string Link => $"/lists/status/{MachineURL}.json";
         [JsonProperty("report")]
-        public string Report => $"/lists/status/{Name}.html";
+        public string Report => $"/lists/status/{MachineURL}.html";
         [JsonProperty("has_failures")]
         public bool HasFailures => Failed > 0;
     }
