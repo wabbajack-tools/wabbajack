@@ -1,6 +1,10 @@
 ### Changelog
 
-#### Version - 0.9.21.1 - 2/25/2020
+#### Version - 0.9.23.0 - 2/27/2020
+* Several bugfixes and tweaks
+* This is most likely the last version before the  1.0 release
+
+#### Version - 0.9.22.1 - 2/25/2020
 * Fix NaN error during installation 
 
 #### Version - 0.9.22.0 - 2/24/2020
