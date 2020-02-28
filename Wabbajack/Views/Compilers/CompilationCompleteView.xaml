@@ -85,7 +85,7 @@
                     Grid.Row="1"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
-                    Text="Go To Modlist" />
+                    x:Name="ActionText" />
             </Grid>
             <Grid
                 Grid.Row="1"

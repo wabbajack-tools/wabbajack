@@ -39,7 +39,8 @@ namespace Wabbajack.Common
             return processList.Where(process => process.ProcessName == "ModOrganizer").Any(process => Path.GetDirectoryName(process.MainModule?.FileName) == mo2Path);
         }
 
-        public static string LogFile { get; private set; }
+        public static string LogFile { get; }
+        public static string LogFolder { get; }
 
         public enum FileEventType
         {
@@ -57,6 +58,7 @@ namespace Wabbajack.Common
                 Directory.CreateDirectory(Consts.LogsFolder);
 
             var programName = Assembly.GetEntryAssembly()?.Location ?? "Wabbajack";
+            LogFolder = Path.Combine(Path.GetDirectoryName(programName), Consts.LogsFolder);
             LogFile = Path.Combine(Consts.LogsFolder, Path.GetFileNameWithoutExtension(programName) + ".current.log");
             _startTime = DateTime.Now;
 

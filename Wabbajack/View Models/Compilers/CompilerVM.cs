@@ -48,7 +48,7 @@ namespace Wabbajack
         public ObservableCollectionExtended<IStatusMessage> Log => MWVM.Log;
 
         public ReactiveCommand<Unit, Unit> BackCommand { get; }
-        public ReactiveCommand<Unit, Unit> GoToModlistCommand { get; }
+        public ReactiveCommand<Unit, Unit> GoToCommand { get; }
         public ReactiveCommand<Unit, Unit> CloseWhenCompleteCommand { get; }
         public ReactiveCommand<Unit, Unit> BeginCommand { get; }
 
@@ -226,18 +226,21 @@ namespace Wabbajack
                     MWVM.ShutdownApplication();
                 });
 
-            GoToModlistCommand = ReactiveCommand.Create(
+            GoToCommand = ReactiveCommand.Create(
                 canExecute: this.WhenAny(x => x.Completed)
                     .Select(x => x != null),
                 execute: () =>
                 {
-                    if (string.IsNullOrWhiteSpace(OutputLocation.TargetPath))
+                    if (Completed?.Failed ?? false)
                     {
-                        Process.Start("explorer.exe", Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location));
+                        Process.Start("explorer.exe", Utils.LogFolder);
                     }
                     else
                     {
-                        Process.Start("explorer.exe", OutputLocation.TargetPath);
+                        Process.Start("explorer.exe",
+                            string.IsNullOrWhiteSpace(OutputLocation.TargetPath)
+                                ? Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location)
+                                : OutputLocation.TargetPath);
                     }
                 });
 
