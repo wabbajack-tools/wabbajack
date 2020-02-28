@@ -22,16 +22,12 @@ namespace Wabbajack.Common.Http
         public async Task<HttpResponseMessage> PostAsync(string url, HttpContent content, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, url) {Content = content};
-            foreach (var (k, v) in Headers) 
-                request.Headers.Add(k, v);
             return await SendAsync(request, responseHeadersRead);
         }
         
         public async Task<HttpResponseMessage> PutAsync(string url, HttpContent content, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
         {
             var request = new HttpRequestMessage(HttpMethod.Put, url) {Content = content};
-            foreach (var (k, v) in Headers) 
-                request.Headers.Add(k, v);
             return await SendAsync(request, responseHeadersRead);
         }
         
