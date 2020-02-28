@@ -90,8 +90,8 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, string destination)
             {
-                var stream = await ResolveDownloadStream();
-                using (var file = File.Open(destination, FileMode.Create))
+                await using var stream = await ResolveDownloadStream();
+                await using (var file = File.Open(destination, FileMode.Create))
                 {
                     stream.CopyTo(file);
                 }
@@ -125,7 +125,7 @@ namespace Wabbajack.Lib.Downloaders
                 var streamResult = await downloader.AuthedClient.GetAsync(url);
                 if (streamResult.StatusCode != HttpStatusCode.OK)
                 {
-                    Utils.Error(new InvalidOperationException(), $"{downloader.SiteName} servers reported an error for file: {FileID}");
+                    Utils.ErrorThrow(new InvalidOperationException(), $"{downloader.SiteName} servers reported an error for file: {FileID}");
                 }
 
                 var contentType = streamResult.Content.Headers.ContentType;
@@ -141,6 +141,7 @@ namespace Wabbajack.Lib.Downloaders
                     Utils.Status($"Waiting for {secs} at the request of {downloader.SiteName}", Percent.FactoryPutInRange(x, secs));
                     await Task.Delay(1000);
                 }
+                streamResult.Dispose();
                 Utils.Status("Retrying download");
                 goto TOP;
             }

@@ -117,8 +117,8 @@ namespace Wabbajack.Lib.Downloaders
                         {
                             Utils.ErrorThrow(new UnconvertedError($"Aborting at the request of the user"));
                         }
-                        _prepared = true;
                     }
+                    _prepared = true;
                 }
             }
         }

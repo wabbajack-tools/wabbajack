@@ -11,6 +11,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Nettle;
 using Wabbajack.BuildServer.Models;
+using Wabbajack.Common;
 using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -39,7 +40,7 @@ namespace Wabbajack.BuildServer.Controllers
     <description>These are mods that are broken and need updating</description>
     {{ each $.failed }}
     <item>
-       <title>{{$.Archive.Name}}</title>
+       <title>{{$.Archive.Name}} {{$.Archive.Hash}} {{$.Archive.State.PrimaryKeyString}}</title>
        <link>{{$.Archive.Name}}</link>
     </item>
     {{/each}}
@@ -102,6 +103,21 @@ namespace Wabbajack.BuildServer.Controllers
                 ContentType = "text/html",
                 StatusCode = (int) HttpStatusCode.OK,
                 Content = response
+            };
+        }
+        
+        [HttpGet]
+        [Route("status/{Name}.json")]
+        public async Task<ContentResult> HandleGetListJson(string Name)
+        {
+
+            var lst = (await ModListStatus.ByName(Db, Name)).DetailedStatus;
+            lst.Archives.Do(a => a.Archive.Meta = null);
+            return new ContentResult
+            {
+                ContentType = "application/json",
+                StatusCode = (int) HttpStatusCode.OK,
+                Content = lst.ToJSON()
             };
         }
 

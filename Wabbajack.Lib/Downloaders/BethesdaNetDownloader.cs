@@ -134,7 +134,7 @@ namespace Wabbajack.Lib.Downloaders
                 foreach (var chunk in info.depot_list[0].file_list[0].chunk_list.OrderBy(c => c.index))
                 {
                     Utils.Status($"Downloading {a.Name}", Percent.FactoryPutInRange(chunk.index, max_chunks));
-                    var got = await client.GetAsync(
+                    using var got = await client.GetAsync(
                         $"https://content.cdp.bethesda.net/{collected.CDPProductId}/{collected.CDPPropertiesId}/{chunk.sha}");
                     var data = await got.Content.ReadAsByteArrayAsync();
                     if (collected.AESKey != null) 
@@ -196,36 +196,35 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            private async Task<(HttpClient, CDPTree, CollectedBNetInfo)> ResolveDownloadInfo()
+            private async Task<(Common.Http.Client, CDPTree, CollectedBNetInfo)> ResolveDownloadInfo()
             {
                 var info = new CollectedBNetInfo();
 
                 var login_info = Utils.FromEncryptedJson<BethesdaNetData>(DataName);
 
-                var client = new HttpClient();
+                var client = new Common.Http.Client();
 
-                client.BaseAddress = new Uri("https://api.bethesda.net");
-                client.DefaultRequestHeaders.Add("User-Agent", "bnet");
+                client.Headers.Add(("User-Agent", "bnet"));
                 foreach (var header in login_info.headers.Where(h => h.Key.ToLower().StartsWith("x-")))
-                    client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    client.Headers.Add((header.Key, header.Value));
 
-                var posted = await client.PostAsync("/beam/accounts/external_login",
+                var posted = await client.PostAsync("https://api.bethesda.net/beam/accounts/external_login",
                     new StringContent(login_info.body, Encoding.UTF8, "application/json"));
 
                 info.AccessToken = (await posted.Content.ReadAsStringAsync()).FromJSONString<BeamLoginResponse>().access_token;
 
-                client.DefaultRequestHeaders.Add("x-cdp-app", "UGC SDK");
-                client.DefaultRequestHeaders.Add("x-cdp-app-ver", "0.9.11314/debug");
-                client.DefaultRequestHeaders.Add("x-cdp-lib-ver", "0.9.11314/debug");
-                client.DefaultRequestHeaders.Add("x-cdp-platform","Win/32");
+                client.Headers.Add(("x-cdp-app", "UGC SDK"));
+                client.Headers.Add(("x-cdp-app-ver", "0.9.11314/debug"));
+                client.Headers.Add(("x-cdp-lib-ver", "0.9.11314/debug"));
+                client.Headers.Add(("x-cdp-platform","Win/32"));
 
-                posted = await client.PostAsync("cdp-user/auth",
+                posted = await client.PostAsync("https://api.bethesda.net/cdp-user/auth",
                     new StringContent("{\"access_token\": \"" + info.AccessToken + "\"}", Encoding.UTF8,
                         "application/json"));
                 info.CDPToken = (await posted.Content.ReadAsStringAsync()).FromJSONString<CDPLoginResponse>().token;
 
-                client.DefaultRequestHeaders.Add("X-Access-Token", info.AccessToken);
-                var got = await client.GetAsync($"mods/ugc-workshop/content/get?content_id={ContentId}");
+                client.Headers.Add(("X-Access-Token", info.AccessToken));
+                var got = await client.GetAsync($"https://api.bethesda.net/mods/ugc-workshop/content/get?content_id={ContentId}");
                 JObject data = JObject.Parse(await got.Content.ReadAsStringAsync());
 
                 var content = data["platform"]["response"]["content"];
@@ -233,18 +232,21 @@ namespace Wabbajack.Lib.Downloaders
                 info.CDPBranchId = (int)content["cdp_branch_id"];
                 info.CDPProductId = (int)content["cdp_product_id"];
 
-                client.DefaultRequestHeaders.Add("Authorization", $"Token {info.CDPToken}");
-                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.Headers.Add(("Authorization", $"Token {info.CDPToken}"));
+                client.Headers.Add(("Accept", "application/json"));
 
+                got.Dispose();
                 got = await client.GetAsync(
-                    $"/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/tree/.json");
+                    $"https://api.bethesda.net/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/tree/.json");
 
                 var tree = (await got.Content.ReadAsStringAsync()).FromJSONString<CDPTree>();
                 
-                got = await client.PostAsync($"/mods/ugc-content/add-subscription", new StringContent($"{{\"content_id\": \"{ContentId}\"}}", Encoding.UTF8, "application/json"));
+                got.Dispose();
+                got = await client.PostAsync($"https://api.bethesda.net/mods/ugc-content/add-subscription", new StringContent($"{{\"content_id\": \"{ContentId}\"}}", Encoding.UTF8, "application/json"));
 
+                got.Dispose();
                 got = await client.GetAsync(
-                    $"/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/depots/.json");
+                    $"https://api.bethesda.net/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/depots/.json");
 
                 var props_obj = JObject.Parse(await got.Content.ReadAsStringAsync()).Properties().First();
                 info.CDPPropertiesId = (int)props_obj.Value["properties_id"];

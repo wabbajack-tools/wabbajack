@@ -224,7 +224,7 @@ namespace Wabbajack.Lib.NexusApi
             TOP:
             try
             {
-                using var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseContentRead);
+                using var response = await HttpClient.GetAsync(url);
                 UpdateRemaining(response);
                 if (!response.IsSuccessStatusCode)
                 {

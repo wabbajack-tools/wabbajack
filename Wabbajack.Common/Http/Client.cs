@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -11,9 +12,26 @@ namespace Wabbajack.Common.Http
     {
         public List<(string, string)> Headers = new List<(string, string)>();
         public List<Cookie> Cookies = new List<Cookie>();
-        public async Task<HttpResponseMessage> GetAsync(string url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseContentRead)
+        public async Task<HttpResponseMessage> GetAsync(string url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
+            foreach (var (k, v) in Headers) 
+                request.Headers.Add(k, v);
+            return await SendAsync(request, responseHeadersRead);
+        }
+        
+        
+        public async Task<HttpResponseMessage> PostAsync(string url, HttpContent content, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, url) {Content = content};
+            foreach (var (k, v) in Headers) 
+                request.Headers.Add(k, v);
+            return await SendAsync(request, responseHeadersRead);
+        }
+        
+        public async Task<HttpResponseMessage> PutAsync(string url, HttpContent content, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, url) {Content = content};
             foreach (var (k, v) in Headers) 
                 request.Headers.Add(k, v);
             return await SendAsync(request, responseHeadersRead);
@@ -32,12 +50,11 @@ namespace Wabbajack.Common.Http
 
         private async Task<string> SendStringAsync(HttpRequestMessage request)
         {
-            var result = await SendAsync(request);
+            using var result = await SendAsync(request);
             return await result.Content.ReadAsStringAsync();
         }
 
-
-        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage msg, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseContentRead)
+        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage msg, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
         {
             int retries = 0;
             TOP:

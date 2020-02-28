@@ -281,9 +281,7 @@ namespace Wabbajack.Lib
             {
                 if (destination == null) 
                     destination = Path.Combine(DownloadFolder, archive.Name);
-                await archive.State.Download(archive, destination);
-                destination.FileHashCached();
-
+                await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, destination);
             }
             catch (Exception ex)
             {
