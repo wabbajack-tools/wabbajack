@@ -28,6 +28,8 @@ namespace Wabbajack.BuildServer.Models.JobQueue
         public JobResult Result { get; set; }
         public bool RequiresNexus { get; set; } = true;
         public AJobPayload Payload { get; set; }
+        
+        public Job OnSuccess { get; set; }
 
         public static async Task<String> Enqueue(DBContext db, Job job)
         {
@@ -52,6 +54,11 @@ namespace Wabbajack.BuildServer.Models.JobQueue
 
         public static async Task<Job> Finish(DBContext db, Job job, JobResult jobResult)
         {
+            if (jobResult.ResultType == JobResultType.Success && job.OnSuccess != null)
+            {
+                await db.Jobs.InsertOneAsync(job.OnSuccess);
+            }
+
             var filter = new BsonDocument
             {
                 {"_id", job.Id},

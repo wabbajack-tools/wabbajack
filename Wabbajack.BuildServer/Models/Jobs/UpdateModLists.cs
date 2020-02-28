@@ -2,12 +2,15 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
 
@@ -43,10 +46,8 @@ namespace Wabbajack.BuildServer.Models.Jobs
             return JobResult.Success();
         }
         
-         private static async Task ValidateList(DBContext db, ModlistMetadata list, WorkQueue queue, ValidateModlist whitelists)
+         private async Task ValidateList(DBContext db, ModlistMetadata list, WorkQueue queue, ValidateModlist whitelists)
         {
-            var existing = await db.ModListStatus.FindOneAsync(l => l.Id == list.Links.MachineURL);
-            
             var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + Consts.ModListExtension);
 
             if (list.NeedsDownload(modlist_path))
@@ -76,17 +77,9 @@ namespace Wabbajack.BuildServer.Models.Jobs
             var validated = (await installer.Archives
                     .PMap(queue, async archive =>
                     {
-                        bool is_failed;
-                        try
-                        {
-                            is_failed = !(await archive.State.Verify(archive)) || !archive.State.IsWhitelisted(whitelists.ServerWhitelist);
-                        }
-                        catch (Exception)
-                        {
-                            is_failed = false;
-                        }
+                        var isValid = await IsValid(db, whitelists, archive);
 
-                        return new DetailedStatusItem {IsFailing = is_failed, Archive = archive};
+                        return new DetailedStatusItem {IsFailing = !isValid, Archive = archive};
                     }))
                 .ToList();
 
@@ -105,6 +98,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 Summary = new ModlistSummary
                 {
                     Name = status.Name,
+                    MachineURL = list.Links?.MachineURL ?? status.Name,
                     Checked = status.Checked,
                     Failed = status.Archives.Count(a => a.IsFailing),
                     Passed = status.Archives.Count(a => !a.IsFailing),
@@ -119,5 +113,79 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 $"Done updating {dto.Summary.Name}");
 
         }
+
+         private async Task<bool> IsValid(DBContext db, ValidateModlist whitelists, Archive archive)
+         {
+             try
+             {
+                 if (!archive.State.IsWhitelisted(whitelists.ServerWhitelist)) return false;
+
+                 try
+                 {
+                     if (archive.State is NexusDownloader.State state)
+                     {
+                         if (await ValidateNexusFast(db, state)) return true;
+
+                     }
+                     else if (archive.State is HTTPDownloader.State hstate &&
+                              hstate.Url.StartsWith("https://wabbajack"))
+                     {
+                         return true;
+                     }
+                     else
+                     {
+                         if (await archive.State.Verify(archive)) return true;
+                     }
+                 }
+                 catch (Exception)
+                 {
+                     // ignored
+                 }
+
+                 var result = await ClientAPI.GetModUpgrade(archive.Hash);
+                 if (result != null) return true;
+
+             }
+             catch (Exception)
+             {
+                 return true;
+             }
+
+             return false;
+         }
+
+         private async Task<bool> ValidateNexusFast(DBContext db, NexusDownloader.State state)
+         {
+             try
+             {
+                 var gameMeta = GameRegistry.GetByFuzzyName(state.GameName);
+                 if (gameMeta == null)
+                     return false;
+
+                 var game = gameMeta.Game;
+                 if (!int.TryParse(state.ModID, out var modID))
+                     return false;
+
+                 var modFiles = (await db.NexusModFiles.AsQueryable().Where(g => g.Game == gameMeta.NexusName && g.ModId == state.ModID).FirstOrDefaultAsync())?.Data;
+
+                 if (modFiles == null)
+                 {
+                     Utils.Log($"No Cache for {state.PrimaryKeyString} falling back to HTTP");
+                     var nexusApi = await NexusApiClient.Get();
+                     modFiles = await nexusApi.GetModFiles(game, modID);
+                 }
+
+                 if (!ulong.TryParse(state.FileID, out var fileID))
+                     return false;
+
+                 var found = modFiles.files
+                     .FirstOrDefault(file => file.file_id == fileID && file.category_name != null);
+                 return found != null;
+             }
+             catch (Exception ex)
+             {
+                 return false;
+             }
+         }
     }
 }

@@ -54,7 +54,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var initialURL = $"https://drive.google.com/uc?id={Id}&export=download";
                 var client = new Common.Http.Client();
-                var response = await client.GetAsync(initialURL);
+                using var response = await client.GetAsync(initialURL);
                 if (!response.IsSuccessStatusCode)
                     throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
                 var regex = new Regex("(?<=/uc\\?export=download&amp;confirm=).*(?=;id=)");

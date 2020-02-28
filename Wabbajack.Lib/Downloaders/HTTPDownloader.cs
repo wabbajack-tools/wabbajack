@@ -102,7 +102,7 @@ namespace Wabbajack.Lib.Downloaders
                     var bufferSize = 1024 * 32;
 
                     Utils.Status($"Starting Download {a?.Name ?? Url}", Percent.Zero);
-                    var response = await client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
+                    var response = await client.GetAsync(Url);
 TOP:
 
                     if (!response.IsSuccessStatusCode)
@@ -166,8 +166,8 @@ TOP:
 
                                         var msg = new HttpRequestMessage(HttpMethod.Get, Url);
                                         msg.Headers.Range = new RangeHeaderValue(totalRead, null);
-                                        response = await client.SendAsync(msg,
-                                            HttpCompletionOption.ResponseHeadersRead);
+                                        response.Dispose();
+                                        response = await client.SendAsync(msg);
                                         goto TOP;
                                     }
                                     throw ex;
@@ -185,7 +185,7 @@ TOP:
                             totalRead += read;
                         }
                     }
-
+                    response.Dispose();
                     return true;
                 }
             }

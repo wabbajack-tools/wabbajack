@@ -357,8 +357,8 @@ namespace Wabbajack.Lib
             await to_find.PMap(Queue, async f =>
             {
                 var vf = VFS.Index.ByFullPath[f];
-                var client = new HttpClient();
-                var response =
+                var client = new Common.Http.Client();
+                using var response =
                     await client.GetAsync(
                         $"http://build.wabbajack.org/indexed_files/{vf.Hash.FromBase64().ToHex()}/meta.ini");
 

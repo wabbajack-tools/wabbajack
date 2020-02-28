@@ -119,11 +119,10 @@ namespace Wabbajack.Lib.FileUploader
             return tcs.Task;
         }
 
-        public static HttpClient GetAuthorizedClient()
+        public static Common.Http.Client GetAuthorizedClient()
         {
-            var handler = new HttpClientHandler {MaxConnectionsPerServer = Consts.MaxConnectionsPerServer};
-            var client = new HttpClient(handler);
-            client.DefaultRequestHeaders.Add("X-API-KEY", AuthorAPI.GetAPIKey());
+            var client = new Common.Http.Client();
+            client.Headers.Add(("X-API-KEY", GetAPIKey()));
             return client;
         }
         

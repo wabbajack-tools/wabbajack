@@ -69,7 +69,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             return JobResult.Success();
         }
 
-        private class Progress : IProgress<FluentFTP.FtpProgress>
+        public class Progress : IProgress<FluentFTP.FtpProgress>
         {
             private string _name;
             private DateTime LastUpdate = DateTime.UnixEpoch;
