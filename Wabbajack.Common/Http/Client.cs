@@ -14,19 +14,12 @@ namespace Wabbajack.Common.Http
         public async Task<HttpResponseMessage> GetAsync(string url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseContentRead)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            foreach (var (k, v) in Headers) 
-                request.Headers.Add(k, v);
             return await SendAsync(request, responseHeadersRead);
         }
         
         public async Task<string> GetStringAsync(string url)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            foreach (var (k, v) in Headers) 
-                request.Headers.Add(k, v);
-            if (Cookies.Count > 0)
-                Cookies.ForEach(c => ClientFactory.Cookies.Add(c));
-                
             return await SendStringAsync(request);
         }
 
@@ -39,6 +32,10 @@ namespace Wabbajack.Common.Http
 
         public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage msg, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseContentRead)
         {
+            foreach (var (k, v) in Headers) 
+                msg.Headers.Add(k, v);
+            if (Cookies.Count > 0)
+                Cookies.ForEach(c => ClientFactory.Cookies.Add(c));   
             int retries = 0;
             TOP:
             try
