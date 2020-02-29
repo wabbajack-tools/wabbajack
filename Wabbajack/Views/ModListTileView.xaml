@@ -197,8 +197,7 @@
                 Background="{StaticResource BackgroundBrush}"
                 Foreground="{StaticResource SecondaryBrush}"
                 Maximum="1"
-                Visibility="{Binding IsEnabled, ElementName=ExecuteButton, Converter={StaticResource bool2VisibilityHiddenConverter}, ConverterParameter=False}"
-                Value="{Binding ProgressPercent, Mode=OneWay}" />
+                Visibility="{Binding IsEnabled, ElementName=ExecuteButton, Converter={StaticResource bool2VisibilityHiddenConverter}, ConverterParameter=False}" />
             <TextBlock
                 x:Name="MetadataDescription"
                 Grid.Row="1"

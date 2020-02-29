@@ -143,7 +143,7 @@ TOP:
                     using (var webs = stream)
                     {
                         var buffer = new byte[bufferSize];
-                        int read_this_cycle = 0;
+                        int readThisCycle = 0;
 
                         while (true)
                         {
@@ -154,7 +154,7 @@ TOP:
                             }
                             catch (Exception ex)
                             {
-                                if (read_this_cycle == 0)
+                                if (readThisCycle == 0)
                                     throw ex;
 
                                 if (totalRead < contentSize)
@@ -176,7 +176,7 @@ TOP:
                                 break;
                             }
 
-                            read_this_cycle += read;
+                            readThisCycle += read;
 
                             if (read == 0) break;
                             Utils.Status($"Downloading {a.Name}", Percent.FactoryPutInRange(totalRead, contentSize));

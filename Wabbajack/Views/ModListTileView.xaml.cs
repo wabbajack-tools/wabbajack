@@ -29,10 +29,13 @@ namespace Wabbajack
             InitializeComponent();
             this.WhenActivated(dispose =>
             {
-                this.MarkAsNeeded<ModListTileView, ModListMetadataVM, Percent>(this.ViewModel, x => x.ProgressPercent);
                 this.MarkAsNeeded<ModListTileView, ModListMetadataVM, bool>(this.ViewModel, x => x.IsBroken);
                 this.MarkAsNeeded<ModListTileView, ModListMetadataVM, bool>(this.ViewModel, x => x.Exists);
                 this.MarkAsNeeded<ModListTileView, ModListMetadataVM, string>(this.ViewModel, x => x.Metadata.Links.ImageUri);
+                this.WhenAny(x => x.ViewModel.ProgressPercent)
+                    .Select(p => p.Value)
+                    .BindToStrict(this, x => x.DownloadProgressBar.Value)
+                    .DisposeWith(dispose);
                 this.WhenAny(x => x.ViewModel.Metadata.Title)
                     .BindToStrict(this, x => x.DescriptionTextShadow.Text)
                     .DisposeWith(dispose);
