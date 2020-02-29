@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Verison - 1.0.0.0 - 2/29/2020
+* 1.0, first non-beta release
+
 #### Version - 0.9.23.0 - 2/27/2020
 * Several bugfixes and tweaks
 * This is most likely the last version before the  1.0 release
