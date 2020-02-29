@@ -444,6 +444,35 @@ namespace Wabbajack.Test
             CollectionAssert.AreEqual(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});
         }
         
+        [TestMethod]
+        public async Task YoutubeDownloader()
+        {
+
+            var downloader = DownloadDispatcher.GetInstance<BethesdaNetDownloader>();
+            Assert.IsTrue(await downloader.IsLoggedIn.FirstAsync());
+
+            var ini = $@"[General]
+                              directURL=https://www.youtube.com/watch?v=OFCgEQkVxf4";
+
+            var filename = Guid.NewGuid() + ".wma";
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            Assert.IsNotNull(state);
+
+            var converted = state.ViaJSON();
+            Assert.IsTrue(await converted.Verify(new Archive {Name = filename}));
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            await converted.Download(new Archive { Name = filename }, filename);
+
+            /*
+            await using var fs = File.OpenRead(filename);
+            using var archive = new ZipArchive(fs);
+            var entries = archive.Entries.Select(e => e.FullName).ToList();
+            CollectionAssert.AreEqual(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});
+            */
+        }
+        
         
         /// <summary>
         /// Tests that files from different sources don't overwrite eachother when downloaded by AInstaller

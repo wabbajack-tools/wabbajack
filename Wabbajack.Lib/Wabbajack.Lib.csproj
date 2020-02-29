@@ -69,6 +69,9 @@
       <PackageReference Include="YamlDotNet.NetCore">
         <Version>1.0.0</Version>
       </PackageReference>
+      <PackageReference Include="YoutubeExplode">
+        <Version>4.7.13</Version>
+      </PackageReference>
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />

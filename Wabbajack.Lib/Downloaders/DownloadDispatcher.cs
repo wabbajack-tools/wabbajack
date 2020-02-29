@@ -25,6 +25,7 @@ namespace Wabbajack.Lib.Downloaders
             new BethesdaNetDownloader(),
             new AFKModsDownloader(),
             new TESAllianceDownloader(),
+            new YouTubeDownloader(),
             new HTTPDownloader(),
             new ManualDownloader(),
         };

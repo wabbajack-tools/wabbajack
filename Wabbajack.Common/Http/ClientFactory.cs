@@ -6,7 +6,7 @@ namespace Wabbajack.Common.Http
     public static class ClientFactory
     {
         private static SysHttp.SocketsHttpHandler _socketsHandler { get; }
-        internal static SysHttp.HttpClient Client { get; }
+        public static SysHttp.HttpClient Client { get; }
         internal static CookieContainer Cookies { get; }
 
         static ClientFactory()
