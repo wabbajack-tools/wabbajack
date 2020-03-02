@@ -127,6 +127,11 @@ namespace Wabbajack.BuildServer.Models.Jobs
                          if (await ValidateNexusFast(db, state)) return true;
 
                      }
+                     else if (archive.State is GoogleDriveDownloader.State)
+                     {
+                         // Disabled for now
+                         return true;
+                     }
                      else if (archive.State is HTTPDownloader.State hstate &&
                               hstate.Url.StartsWith("https://wabbajack"))
                      {
@@ -148,7 +153,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
              }
              catch (Exception)
              {
-                 return true;
+                 return false;
              }
 
              return false;

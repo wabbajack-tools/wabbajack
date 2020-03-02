@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Wabbajack.Lib.Downloaders.UrlDownloaders
 {
     public interface IUrlInferencer
     {
-        AbstractDownloadState Infer(Uri uri);
+        Task<AbstractDownloadState> Infer(Uri uri);
     }
 }

@@ -448,22 +448,24 @@ namespace Wabbajack.Test
         public async Task YoutubeDownloader()
         {
 
-            var downloader = DownloadDispatcher.GetInstance<BethesdaNetDownloader>();
-            Assert.IsTrue(await downloader.IsLoggedIn.FirstAsync());
-
-            var ini = $@"[General]
-                              directURL=https://www.youtube.com/watch?v=OFCgEQkVxf4";
-
-            var filename = Guid.NewGuid() + ".wma";
-            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var infered_ini = await DownloadDispatcher.Infer(new Uri("https://www.youtube.com/watch?v=4ceowgHn8BE"));
+            Assert.IsInstanceOfType(infered_ini, typeof(YouTubeDownloader.State));
+            Assert.AreEqual(15, ((YouTubeDownloader.State)infered_ini).Tracks.Count);
+            
+            var ini = string.Join("\n", infered_ini.GetMetaIni());
+            
+            var state = (YouTubeDownloader.State)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            Assert.AreEqual(15, state.Tracks.Count);
             Assert.IsNotNull(state);
 
+            
+            
             var converted = state.ViaJSON();
-            Assert.IsTrue(await converted.Verify(new Archive {Name = filename}));
+            Assert.IsTrue(await converted.Verify(new Archive {Name = "yt_test.zip"}));
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = filename }, filename);
+            await converted.Download(new Archive { Name = "yt_test.zip" }, "yt_test.zip");
 
             /*
             await using var fs = File.OpenRead(filename);

@@ -34,6 +34,18 @@ namespace Wabbajack.Common
             result = new SectionData(_value[binder.Name]);
             return true;
         }
+        
+        public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object result)
+        {
+            if (indexes.Length > 1)
+            {
+                result = null;
+                return false;
+            }
+
+            result = new SectionData(_value[(string) indexes[0]]);
+            return true;
+        }
     }
 
     public class SectionData : DynamicObject
