@@ -25,6 +25,9 @@ namespace Wabbajack.BuildServer.Models
             var srcPath = settings.PathForArchive(Src);
             var destHash = (await db.DownloadStates.AsQueryable().Where(s => s.Key == DestPK).FirstOrDefaultAsync()).Hash;
             var destPath = settings.PathForArchive(destHash);
+            
+            if (Src == destHash)
+                return JobResult.Success();
 
             Utils.Log($"Creating Patch ({Src} -> {DestPK})");
             var cdnPath = CdnPath(Src, destHash);

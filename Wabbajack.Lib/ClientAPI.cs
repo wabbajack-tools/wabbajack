@@ -8,7 +8,8 @@ namespace Wabbajack.Lib
         public static Common.Http.Client GetClient()
         {
             var client = new Common.Http.Client();
-            client.Headers.Add((Consts.MetricsKeyHeader, Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader)));
+            if (Utils.HaveEncryptedJson(Consts.MetricsKeyHeader)) 
+                client.Headers.Add((Consts.MetricsKeyHeader, Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader)));
             return client;
         }
 

@@ -175,5 +175,17 @@ namespace Wabbajack.Lib.FileUploader
         {
             return await GetAuthorizedClient().GetStringAsync($"https://{Consts.WabbajackCacheHostname}/heartbeat/logs");
         }
+
+        public static async Task<IEnumerable<string>> GetMyFiles()
+        {
+            return (await GetAuthorizedClient().GetStringAsync($"https://{Consts.WabbajackCacheHostname}/uploaded_files/list")).FromJSONString<string[]>();
+        }
+
+        public static async Task<string> DeleteFile(string name)
+        {
+            var result = await GetAuthorizedClient()
+                .DeleteStringAsync($"https://{Consts.WabbajackCacheHostname}/uploaded_files/{name}");
+            return result;
+        }
     }
 }
