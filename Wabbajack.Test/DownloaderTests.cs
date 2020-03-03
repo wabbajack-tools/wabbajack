@@ -465,14 +465,12 @@ namespace Wabbajack.Test
 
             Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = "yt_test.zip" }, "yt_test.zip");
+            using var tempFile = new TempFile();
+            await converted.Download(new Archive {Name = "yt_test.zip"}, tempFile.File.FullName);
+            
+            Assert.AreEqual("H4IixOdrSj4=", await tempFile.File.FullName.FileHashAsync());
+            
 
-            /*
-            await using var fs = File.OpenRead(filename);
-            using var archive = new ZipArchive(fs);
-            var entries = archive.Entries.Select(e => e.FullName).ToList();
-            CollectionAssert.AreEqual(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});
-            */
         }
         
         

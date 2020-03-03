@@ -89,6 +89,7 @@ namespace Wabbajack.Lib.Downloaders
                     using var folder = new TempFolder();
                     Directory.CreateDirectory(Path.Combine(folder.Dir.FullName, "tracks"));
                     var client = new YoutubeClient(Common.Http.ClientFactory.Client);
+                    var meta = await client.GetVideoAsync(Key);
                     var video = await client.GetVideoMediaStreamInfosAsync(Key);
                     var stream = video.GetAll().OfType<AudioStreamInfo>().OrderByDescending(a => a.Bitrate)
                         .ToArray().First();
@@ -115,6 +116,7 @@ namespace Wabbajack.Lib.Downloaders
                     foreach (var track in Directory.EnumerateFiles(trackFolder))
                     {
                         var entry = ar.CreateEntry(Path.Combine("Data", "tracks", track.RelativeTo(trackFolder)));
+                        entry.LastWriteTime = meta.UploadDate;
                         await using var es = entry.Open();
                         await using var ins = File.OpenRead(track);
                         await ins.CopyToAsync(es);
@@ -228,12 +230,12 @@ namespace Wabbajack.Lib.Downloaders
 
             public override IDownloader GetDownloader()
             {
-                throw new NotImplementedException();
+                return DownloadDispatcher.GetInstance<YouTubeDownloader>();
             }
 
             public override string GetManifestURL(Archive a)
             {
-                throw new NotImplementedException();
+                return $"https://www.youtube.com/watch?v={Key}";
             }
 
             public override string[] GetMetaIni()
