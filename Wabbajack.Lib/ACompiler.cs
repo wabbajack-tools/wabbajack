@@ -78,6 +78,27 @@ namespace Wabbajack.Lib
             return id;
         }
 
+        public async Task<bool> GatherMetaData()
+        {
+            Utils.Log($"Getting meta data for {SelectedArchives.Count} archives");
+            await SelectedArchives.PMap(Queue, async a =>
+            {
+                if (a.State is AbstractMetaState metaState)
+                {
+                    var b = await metaState.LoadMetaData();
+                    Utils.Log(b
+                        ? $"Getting meta data for {a.Name} was successful!"
+                        : $"Getting meta data for {a.Name} failed!");
+                }
+                else
+                {
+                    Utils.Log($"Archive {a.Name} is not an AbstractMetaState!");
+                }
+            });
+
+            return true;
+        }
+
         public void ExportModList()
         {
             Utils.Log($"Exporting ModList to {ModListOutputFile}");
