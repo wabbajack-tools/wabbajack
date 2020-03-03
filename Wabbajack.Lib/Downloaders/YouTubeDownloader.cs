@@ -86,6 +86,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 try
                 {
+                    using var queue = new WorkQueue();
                     using var folder = new TempFolder();
                     Directory.CreateDirectory(Path.Combine(folder.Dir.FullName, "tracks"));
                     var client = new YoutubeClient(Common.Http.ClientFactory.Client);
@@ -104,17 +105,17 @@ namespace Wabbajack.Lib.Downloaders
                             CancellationToken.None);
                     }
 
-                    foreach (var track in Tracks)
+                    await Tracks.PMap(queue, async track =>
                     {
                         Utils.Status($"Extracting track {track.Name}");
                         await ExtractTrack(initialDownload, trackFolder, track);
-
-                    }
+                    });
 
                     await using var dest = File.Create(destination);
                     using var ar = new ZipArchive(dest, ZipArchiveMode.Create);
                     foreach (var track in Directory.EnumerateFiles(trackFolder))
                     {
+                        Utils.Status($"Adding {Path.GetFileName(track)} to archive");
                         var entry = ar.CreateEntry(Path.Combine("Data", "tracks", track.RelativeTo(trackFolder)));
                         entry.LastWriteTime = meta.UploadDate;
                         await using var es = entry.Open();
