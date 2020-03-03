@@ -127,6 +127,11 @@ namespace Wabbajack.BuildServer.Models.Jobs
                          if (await ValidateNexusFast(db, state)) return true;
 
                      }
+                     else if (archive.State is GoogleDriveDownloader.State)
+                     {
+                         // Disabled for now
+                         return true;
+                     }
                      else if (archive.State is HTTPDownloader.State hstate &&
                               hstate.Url.StartsWith("https://wabbajack"))
                      {
@@ -142,16 +147,27 @@ namespace Wabbajack.BuildServer.Models.Jobs
                      // ignored
                  }
 
+                 Utils.Log($"{archive.State.PrimaryKeyString} is broken, looking for upgrade: {archive.Name}");
                  var result = await ClientAPI.GetModUpgrade(archive.Hash);
-                 if (result != null) return true;
+
+                 if (result != null)
+                 {
+                     Utils.Log($"{archive.State.PrimaryKeyString} is broken, upgraded to {result.State.PrimaryKeyString} {result.Name}");
+                     return true;
+                 }
+
+                 Utils.Log($"{archive.State.PrimaryKeyString} is broken, no alternative found");
+                 return false;
 
              }
-             catch (Exception)
+             catch (Exception ex)
              {
-                 return true;
+                 Utils.Log(ex.ToString());
+                 return false;
              }
 
              return false;
+
          }
 
          private async Task<bool> ValidateNexusFast(DBContext db, NexusDownloader.State state)

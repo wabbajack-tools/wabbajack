@@ -7,6 +7,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using FluentFTP;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Nettle;
+using Org.BouncyCastle.Crypto.Engines;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.BuildServer.Models.Jobs;
@@ -22,6 +24,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+using AlphaFile = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.BuildServer.Controllers
 {
@@ -72,6 +75,46 @@ namespace Wabbajack.BuildServer.Controllers
             }
             return Ok(position);
         }
+
+        [Authorize]
+        [HttpGet]
+        [Route("clean_http_uploads")]
+        public async Task<IActionResult> CleanUploads()
+        {
+            var files = await Db.UploadedFiles.AsQueryable().OrderByDescending(f => f.UploadDate).ToListAsync();
+            var seen = new HashSet<string>();
+            var duplicate = new List<UploadedFile>();
+
+            foreach (var file in files)
+            {
+                if (seen.Contains(file.Name))
+                    duplicate.Add(file);
+                else
+                    seen.Add(file.Name);
+            }
+
+            using (var client = new FtpClient("storage.bunnycdn.com"))
+            {
+                client.Credentials = new NetworkCredential(_settings.BunnyCDN_User, _settings.BunnyCDN_Password);
+                await client.ConnectAsync();
+
+                foreach (var dup in duplicate)
+                {
+                    var final_path = Path.Combine("public", "files", dup.MungedName);
+                    Utils.Log($"Cleaning upload {final_path}");
+                    
+                    if (AlphaFile.Exists(final_path))
+                        AlphaFile.Delete(final_path);
+
+                    if (await client.FileExistsAsync(dup.MungedName))
+                        await client.DeleteFileAsync(dup.MungedName);
+                    await Db.UploadedFiles.DeleteOneAsync(f => f.Id == dup.Id);
+                }
+            }
+
+            return Ok(new {Remain = seen.ToArray(), Deleted = duplicate.ToArray()}.ToJSON(prettyPrint:true));
+        }
+        
 
         [HttpPut]
         [Route("upload_file/{Key}/finish/{xxHashAsHex}")]
@@ -151,6 +194,47 @@ namespace Wabbajack.BuildServer.Controllers
                 Content = response
             };
         }
+
+        [HttpGet]
+        [Route("uploaded_files/list")]
+        [Authorize]
+        public async Task<IActionResult> ListMyFiles()
+        {
+            var user = User.FindFirstValue(ClaimTypes.Name);
+            Utils.Log($"List Uploaded Files {user}");
+            var files = await Db.UploadedFiles.AsQueryable().Where(f => f.Uploader == user).ToListAsync();
+            return Ok(files.OrderBy(f => f.UploadDate).Select(f => f.MungedName).ToArray().ToJSON(prettyPrint:true));
+        }
+
+        [HttpDelete]
+        [Route("uploaded_files/{name}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteMyFile(string name)
+        {
+            var user = User.FindFirstValue(ClaimTypes.Name);
+            Utils.Log($"Delete Uploaded File {user} {name}");
+            var files = await Db.UploadedFiles.AsQueryable().Where(f => f.Uploader == user).ToListAsync();
+            
+            var to_delete = files.First(f => f.MungedName == name);
+            
+            if (AlphaFile.Exists(Path.Combine("public", "files", to_delete.MungedName)))
+                AlphaFile.Delete(Path.Combine("public", "files", to_delete.MungedName));
+
+            using (var client = new FtpClient("storage.bunnycdn.com"))
+            {
+                client.Credentials = new NetworkCredential(_settings.BunnyCDN_User, _settings.BunnyCDN_Password);
+                await client.ConnectAsync();
+                if (await client.FileExistsAsync(to_delete.MungedName))
+                    await client.DeleteFileAsync(to_delete.MungedName);
+
+            }
+
+            var result = await Db.UploadedFiles.DeleteOneAsync(f => f.Id == to_delete.Id);
+            if (result.DeletedCount == 1)
+                return Ok($"Deleted {name}");
+            return NotFound(name);
+        }
+        
         
         
     }
