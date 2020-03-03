@@ -69,6 +69,9 @@
       <PackageReference Include="YamlDotNet.NetCore">
         <Version>1.0.0</Version>
       </PackageReference>
+      <PackageReference Include="YoutubeExplode">
+        <Version>4.7.13</Version>
+      </PackageReference>
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />
@@ -80,8 +83,15 @@
       <None Update="Downloaders\BethesdaNet\bethnetlogin.exe">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="Downloaders\Converters\ffmpeg.exe">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Downloaders\Converters\xWMAEncode.exe">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Downloaders\BethesdaNet" />
+      <Folder Include="Downloaders\Converters" />
     </ItemGroup>
 </Project>

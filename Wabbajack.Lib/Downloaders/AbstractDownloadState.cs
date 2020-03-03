@@ -39,7 +39,8 @@ namespace Wabbajack.Lib.Downloaders
             typeof(DeadlyStreamDownloader.State),
             typeof(AFKModsDownloader.State),
             typeof(TESAllianceDownloader.State),
-            typeof(BethesdaNetDownloader.State)
+            typeof(BethesdaNetDownloader.State),
+            typeof(YouTubeDownloader.State)
         };
         public static Dictionary<string, Type> NameToType { get; set; }
         public static Dictionary<Type, string> TypeToName { get; set; }
