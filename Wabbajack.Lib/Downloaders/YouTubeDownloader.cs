@@ -113,7 +113,7 @@ namespace Wabbajack.Lib.Downloaders
 
                     await using var dest = File.Create(destination);
                     using var ar = new ZipArchive(dest, ZipArchiveMode.Create);
-                    foreach (var track in Directory.EnumerateFiles(trackFolder))
+                    foreach (var track in Directory.EnumerateFiles(trackFolder).OrderBy(e => e))
                     {
                         Utils.Status($"Adding {Path.GetFileName(track)} to archive");
                         var entry = ar.CreateEntry(Path.Combine("Data", "tracks", track.RelativeTo(trackFolder)), CompressionLevel.NoCompression);
