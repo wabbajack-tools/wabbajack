@@ -5,6 +5,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
+using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
@@ -15,14 +16,12 @@ namespace Wabbajack.Lib.Downloaders
     // IPS4 is the site used by LoversLab, VectorPlexus, etc. the general mechanics of each site are the 
     // same, so we can fairly easily abstract the state.
     // Pass in the state type via TState
-    public abstract class AbstractIPS4Downloader<TDownloader, TState> : AbstractNeedsLoginDownloader, IDownloader 
-        where TState : AbstractIPS4Downloader<TDownloader, TState>.State<TDownloader>, IMetaState, new() 
+    public abstract class AbstractIPS4Downloader<TDownloader, TState> : AbstractNeedsLoginDownloader, IDownloader
+        where TState : AbstractIPS4Downloader<TDownloader, TState>.State<TDownloader>, new()
         where TDownloader : IDownloader
     {
         public override string SiteName { get; }
         public override Uri SiteURL { get; }
-
-        public abstract string ModNameRegex { get; }
 
         public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
@@ -63,7 +62,7 @@ namespace Wabbajack.Lib.Downloaders
         }
 
 
-        public class State<TDownloader> : AbstractDownloadState where TDownloader : IDownloader
+        public class State<TDownloader> : AbstractMetaState where TDownloader : IDownloader
         {
             public string FileID { get; set; }
             public string FileName { get; set; }
@@ -75,7 +74,7 @@ namespace Wabbajack.Lib.Downloaders
                 ? $"{URLPrefix}{Downloader.SiteURL.Host}"
                 : Downloader.SiteURL.ToString();
 
-            private static AbstractNeedsLoginDownloader _downloader => (AbstractNeedsLoginDownloader)(object)DownloadDispatcher.GetInstance<TDownloader>();
+            public static AbstractNeedsLoginDownloader Downloader => (AbstractNeedsLoginDownloader)(object)DownloadDispatcher.GetInstance<TDownloader>();
 
             public override object[] PrimaryKey
             {
@@ -110,7 +109,7 @@ namespace Wabbajack.Lib.Downloaders
                 var csrfurl = FileID == null
                     ? $"{Site}/files/file/{FileName}/?do=download"
                     : $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
-                var html = await _downloader.AuthedClient.GetStringAsync(csrfurl);
+                var html = await Downloader.AuthedClient.GetStringAsync(csrfurl);
 
                 var pattern = new Regex("(?<=csrfKey=).*(?=[&\"\'])|(?<=csrfKey: \").*(?=[&\"\'])");
                 var matches = pattern.Matches(html).Cast<Match>();
@@ -126,10 +125,10 @@ namespace Wabbajack.Lib.Downloaders
                     : $"{Site}/files/file/{FileName}/{sep}do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
                     
 
-                var streamResult = await _downloader.AuthedClient.GetAsync(url);
+                var streamResult = await Downloader.AuthedClient.GetAsync(url);
                 if (streamResult.StatusCode != HttpStatusCode.OK)
                 {
-                    Utils.ErrorThrow(new InvalidOperationException(), $"{_downloader.SiteName} servers reported an error for file: {FileID}");
+                    Utils.ErrorThrow(new InvalidOperationException(), $"{Downloader.SiteName} servers reported an error for file: {FileID}");
                 }
 
                 var contentType = streamResult.Content.Headers.ContentType;
@@ -142,7 +141,7 @@ namespace Wabbajack.Lib.Downloaders
                 var secs = times.Download - times.CurrentTime;
                 for (int x = 0; x < secs; x++)
                 {
-                    Utils.Status($"Waiting for {secs} at the request of {_downloader.SiteName}", Percent.FactoryPutInRange(x, secs));
+                    Utils.Status($"Waiting for {secs} at the request of {Downloader.SiteName}", Percent.FactoryPutInRange(x, secs));
                     await Task.Delay(1000);
                 }
                 streamResult.Dispose();
@@ -204,7 +203,19 @@ namespace Wabbajack.Lib.Downloaders
                 };
             }
 
-            private static AbstractNeedsLoginDownloader Downloader => (AbstractNeedsLoginDownloader)(object)DownloadDispatcher.GetInstance<TDownloader>();
+            // from AbstractMetaState
+            public override string URL => $"{Site}/files/file/{FileName}";
+            public override string Name { get; set; }
+            public override string Author { get; set; }
+            public override string Version { get; set; }
+            public override string ImageURL { get; set; }
+            public override bool IsNSFW { get; set; }
+            public override string Description { get; set; }
+
+            public override async Task<bool> LoadMetaData()
+            {
+                return false;
+            }
         }
 
         protected AbstractIPS4Downloader(Uri loginUri, string encryptedKeyName, string cookieDomain) : 
