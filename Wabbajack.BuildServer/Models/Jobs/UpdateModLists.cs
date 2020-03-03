@@ -147,16 +147,27 @@ namespace Wabbajack.BuildServer.Models.Jobs
                      // ignored
                  }
 
+                 Utils.Log($"{archive.State.PrimaryKeyString} is broken, looking for upgrade: {archive.Name}");
                  var result = await ClientAPI.GetModUpgrade(archive.Hash);
-                 if (result != null) return true;
+
+                 if (result != null)
+                 {
+                     Utils.Log($"{archive.State.PrimaryKeyString} is broken, upgraded to {result.State.PrimaryKeyString} {result.Name}");
+                     return true;
+                 }
+
+                 Utils.Log($"{archive.State.PrimaryKeyString} is broken, no alternative found");
+                 return false;
 
              }
-             catch (Exception)
+             catch (Exception ex)
              {
+                 Utils.Log(ex.ToString());
                  return false;
              }
 
              return false;
+
          }
 
          private async Task<bool> ValidateNexusFast(DBContext db, NexusDownloader.State state)
