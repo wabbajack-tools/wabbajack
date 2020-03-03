@@ -1,24 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
-using System.Windows.Input;
-using CefSharp;
-using ReactiveUI;
 using Wabbajack.Common;
-using Wabbajack.Lib.LibCefHelpers;
-using Wabbajack.Lib.NexusApi;
-using Wabbajack.Lib.Validation;
 using Wabbajack.Lib.WebAutomation;
-using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -29,6 +12,8 @@ namespace Wabbajack.Lib.Downloaders
         public override Uri SiteURL => new Uri("https://www.loverslab.com");
         public override Uri IconUri => new Uri("https://www.loverslab.com/favicon.ico");
         #endregion
+
+        public override string ModNameRegex => "";
 
         public LoversLabDownloader() : base(new Uri("https://www.loverslab.com/login"), 
             "loverslabcookies", "loverslab.com")
@@ -46,8 +31,15 @@ namespace Wabbajack.Lib.Downloaders
                 Utils.Error(ex);
             }
         }
-        public class State : State<LoversLabDownloader>
+        public class State : State<LoversLabDownloader>, IMetaState
         {
+            public string URL => $"{Site}/files/file/{FileName}";
+            public string Name { get; }
+            public string Author { get; }
+            public string Version { get; }
+            public string ImageURL { get; }
+            public bool IsNSFW => true;
+            public string Description { get; }
         }
     }
 }

@@ -16,11 +16,13 @@ namespace Wabbajack.Lib.Downloaders
     // same, so we can fairly easily abstract the state.
     // Pass in the state type via TState
     public abstract class AbstractIPS4Downloader<TDownloader, TState> : AbstractNeedsLoginDownloader, IDownloader 
-        where TState : AbstractIPS4Downloader<TDownloader, TState>.State<TDownloader>, new() 
+        where TState : AbstractIPS4Downloader<TDownloader, TState>.State<TDownloader>, IMetaState, new() 
         where TDownloader : IDownloader
     {
         public override string SiteName { get; }
         public override Uri SiteURL { get; }
+
+        public abstract string ModNameRegex { get; }
 
         public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
         {
@@ -69,9 +71,11 @@ namespace Wabbajack.Lib.Downloaders
             private static bool IsHTTPS => Downloader.SiteURL.AbsolutePath.StartsWith("https://");
             private static string URLPrefix => IsHTTPS ? "https://" : "http://";
 
-            private static string Site => string.IsNullOrWhiteSpace(Downloader.SiteURL.Query)
+            public static string Site => string.IsNullOrWhiteSpace(Downloader.SiteURL.Query)
                 ? $"{URLPrefix}{Downloader.SiteURL.Host}"
                 : Downloader.SiteURL.ToString();
+
+            private static AbstractNeedsLoginDownloader _downloader => (AbstractNeedsLoginDownloader)(object)DownloadDispatcher.GetInstance<TDownloader>();
 
             public override object[] PrimaryKey
             {
@@ -100,13 +104,13 @@ namespace Wabbajack.Lib.Downloaders
 
             private async Task<Stream> ResolveDownloadStream()
             {
-                var downloader = (AbstractNeedsLoginDownloader)(object)DownloadDispatcher.GetInstance<TDownloader>();
+                //var downloader = (AbstractNeedsLoginDownloader)(object)DownloadDispatcher.GetInstance<TDownloader>();
 
                 TOP:
                 var csrfurl = FileID == null
                     ? $"{Site}/files/file/{FileName}/?do=download"
                     : $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
-                var html = await downloader.AuthedClient.GetStringAsync(csrfurl);
+                var html = await _downloader.AuthedClient.GetStringAsync(csrfurl);
 
                 var pattern = new Regex("(?<=csrfKey=).*(?=[&\"\'])|(?<=csrfKey: \").*(?=[&\"\'])");
                 var matches = pattern.Matches(html).Cast<Match>();
@@ -122,10 +126,10 @@ namespace Wabbajack.Lib.Downloaders
                     : $"{Site}/files/file/{FileName}/{sep}do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
                     
 
-                var streamResult = await downloader.AuthedClient.GetAsync(url);
+                var streamResult = await _downloader.AuthedClient.GetAsync(url);
                 if (streamResult.StatusCode != HttpStatusCode.OK)
                 {
-                    Utils.ErrorThrow(new InvalidOperationException(), $"{downloader.SiteName} servers reported an error for file: {FileID}");
+                    Utils.ErrorThrow(new InvalidOperationException(), $"{_downloader.SiteName} servers reported an error for file: {FileID}");
                 }
 
                 var contentType = streamResult.Content.Headers.ContentType;
@@ -138,7 +142,7 @@ namespace Wabbajack.Lib.Downloaders
                 var secs = times.Download - times.CurrentTime;
                 for (int x = 0; x < secs; x++)
                 {
-                    Utils.Status($"Waiting for {secs} at the request of {downloader.SiteName}", Percent.FactoryPutInRange(x, secs));
+                    Utils.Status($"Waiting for {secs} at the request of {_downloader.SiteName}", Percent.FactoryPutInRange(x, secs));
                     await Task.Delay(1000);
                 }
                 streamResult.Dispose();

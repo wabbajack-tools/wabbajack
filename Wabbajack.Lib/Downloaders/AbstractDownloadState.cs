@@ -9,13 +9,13 @@ namespace Wabbajack.Lib.Downloaders
 {
     public interface IMetaState
     {
-        string URL { get; set; }
-        string Name { get; set; }
-        string Author { get; set; }
-        string Version { get;set; }
-        string ImageURL { get; set; }
-        bool IsNSFW { get; set; }
-        string Description { get; set; }
+        string URL { get; }
+        string Name { get; }
+        string Author { get; }
+        string Version { get;}
+        string ImageURL { get; }
+        bool IsNSFW { get; }
+        string Description { get; }
     }
 
     public abstract class AbstractDownloadState
