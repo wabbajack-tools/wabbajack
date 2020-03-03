@@ -93,7 +93,7 @@ namespace Wabbajack.Lib.Downloaders
                     var meta = await client.GetVideoAsync(Key);
                     var video = await client.GetVideoMediaStreamInfosAsync(Key);
                     var all = video.GetAll();
-                    var stream = video.GetAll().OfType<AudioStreamInfo>().Where(f => f.AudioEncoding == AudioEncoding.Opus).OrderByDescending(a => a.Bitrate)
+                    var stream = video.GetAll().OfType<AudioStreamInfo>().Where(f => f.AudioEncoding == AudioEncoding.Aac).OrderByDescending(a => a.Bitrate)
                         .ToArray().First();
 
                     var initialDownload = Path.Combine(folder.Dir.FullName, "initial_download");
