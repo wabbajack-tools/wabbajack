@@ -38,6 +38,7 @@ namespace Wabbajack
             catch (Exception ex)
             {
                 Error = ex;
+                Utils.Log($"Error while loading the modlist:\n{ex}");
             }
 
             ImageObservable = Observable.Return(Unit.Default)
