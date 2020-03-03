@@ -40,7 +40,7 @@ namespace Wabbajack.Lib.Downloaders.UrlDownloaders
                 Name = Sanitize(line.Item2),
                 Start = line.Item1,
                 End = idx < lines.Count - 1 ? lines[idx + 1].Item1 : video.Duration,
-                Format = YouTubeDownloader.State.Track.FormatEnum.WAV
+                Format = YouTubeDownloader.State.Track.FormatEnum.XWM
             }).ToList();
 
             state.Tracks = tracks;
