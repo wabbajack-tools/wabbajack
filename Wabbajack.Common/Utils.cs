@@ -536,10 +536,13 @@ namespace Wabbajack.Common
 
         public static string ToJSON<T>(this T obj, 
             TypeNameHandling handling = TypeNameHandling.All,
-            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
+            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full,
+            bool prettyPrint = false)
         {
             return JsonConvert.SerializeObject(obj, Formatting.Indented,
-                new JsonSerializerSettings {TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format});
+                new JsonSerializerSettings {TypeNameHandling = handling, 
+                    TypeNameAssemblyFormatHandling = format, 
+                    Formatting = prettyPrint ? Formatting.Indented : Formatting.None});
         }
         
         public static T FromJSON<T>(this string filename, 

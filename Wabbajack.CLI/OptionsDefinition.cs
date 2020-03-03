@@ -14,7 +14,9 @@ namespace Wabbajack.CLI
             typeof(UpdateModlists), 
             typeof(UpdateNexusCache),
             typeof(ChangeDownload),
-            typeof(ServerLog)
+            typeof(ServerLog),
+            typeof(MyFiles),
+            typeof(DeleteFile)
         };
     }
 }

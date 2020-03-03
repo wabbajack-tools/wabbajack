@@ -36,6 +36,12 @@ namespace Wabbajack.Common.Http
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             return await SendStringAsync(request);
         }
+        
+        public async Task<string> DeleteStringAsync(string url)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Delete, url);
+            return await SendStringAsync(request);
+        }
 
         private async Task<string> SendStringAsync(HttpRequestMessage request)
         {

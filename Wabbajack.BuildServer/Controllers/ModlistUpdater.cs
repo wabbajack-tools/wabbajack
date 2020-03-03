@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using FluentFTP;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
@@ -15,6 +19,7 @@ using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using AlphaFile = Alphaleonis.Win32.Filesystem.File;
+using Directory = System.IO.Directory;
 
 namespace Wabbajack.BuildServer.Controllers
 {
@@ -29,6 +34,55 @@ namespace Wabbajack.BuildServer.Controllers
         {
             _settings = settings;
             _sql = sql;
+        }
+
+        [HttpGet]
+        [Authorize]
+        [Route("/delete_updates")]
+        public async Task<IActionResult> DeleteUpdates()
+        {
+            var lists = await Db.ModListStatus.AsQueryable().ToListAsync();
+            var archives = lists.SelectMany(list => list.DetailedStatus.Archives)
+                .Select(a => a.Archive.Hash.FromBase64().ToHex())
+                .ToHashSet();
+
+            var toDelete = new List<string>();
+            var toSave = new List<string>();
+            using (var client = new FtpClient("storage.bunnycdn.com"))
+            {
+                client.Credentials = new NetworkCredential(_settings.BunnyCDN_User, _settings.BunnyCDN_Password);
+                await client.ConnectAsync();
+                
+                foreach (var file in Directory.GetFiles("updates"))
+                {
+                    var relativeName = Path.GetFileName(file);
+                    var parts = Path.GetFileName(file).Split('_', StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length != 2) continue;
+
+                    if (parts[0] == parts[1])
+                    {
+                        toDelete.Add(relativeName);
+                        continue;
+                    }
+
+                    if (!archives.Contains(parts[0]))
+                        toDelete.Add(relativeName);
+                    else
+                        toSave.Add(relativeName);
+                }
+
+                foreach (var delete in toDelete)
+                {
+                    Utils.Log($"Deleting update {delete}");
+                    if (await client.FileExistsAsync($"updates/{delete}"))
+                        await client.DeleteFileAsync($"updates/{delete}");
+                    if (AlphaFile.Exists($"updates\\{delete}"))
+                        AlphaFile.Delete($"updates\\{delete}");
+
+                }
+            }
+
+            return Ok(new {Save = toSave.ToArray(), Delete = toDelete.ToArray()}.ToJSON(prettyPrint:true));
         }
 
         [HttpGet]
@@ -55,7 +109,7 @@ namespace Wabbajack.BuildServer.Controllers
                 return NotFound("No alternative available");
             }
 
-            Utils.Log($"Found {newArchive.State.PrimaryKeyString} as an alternative to {startingHash}");
+            Utils.Log($"Found {newArchive.State.PrimaryKeyString} {newArchive.Name} as an alternative to {startingHash}");
             if (newArchive.Hash == null)
             {
                 Db.Jobs.InsertOne(new Job
@@ -75,6 +129,9 @@ namespace Wabbajack.BuildServer.Controllers
                 });
                 return Accepted("Enqueued for Processing");
             }
+
+            if (startingHash == newArchive.Hash)
+                return NotFound("End hash same as old hash");
 
             if (!AlphaFile.Exists(PatchArchive.CdnPath(startingHash, newArchive.Hash)))
             {
