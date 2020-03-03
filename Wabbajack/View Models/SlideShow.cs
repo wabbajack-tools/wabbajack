@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -33,7 +34,7 @@ namespace Wabbajack
         public ModVM TargetMod => _targetMod.Value;
 
         public ReactiveCommand<Unit, Unit> SlideShowNextItemCommand { get; } = ReactiveCommand.Create(() => { });
-        public ReactiveCommand<Unit, Unit> VisitNexusSiteCommand { get; }
+        public ReactiveCommand<Unit, Unit> VisitURLCommand { get; }
 
         public const int PreloadAmount = 4;
 
@@ -83,18 +84,19 @@ namespace Wabbajack
                     if (modList?.SourceModList?.Archives == null)
                     {
                         return Observable.Empty<AbstractMetaState>()
-                            .ToObservableChangeSet(x => x.Name);
+                            .ToObservableChangeSet(x => x.URL);
                     }
                     return modList.SourceModList.Archives
                         .Select(m => m.State)
                         .OfType<AbstractMetaState>()
+                        .DistinctBy(x => x.URL)
                         // Shuffle it
                         .Shuffle(_random)
-                        .AsObservableChangeSet(x => x.Name);
+                        .AsObservableChangeSet(x => x.URL);
                 })
                 // Switch to the new list after every ModList change
                 .Switch()
-                .Transform(nexus => new ModVM(nexus))
+                .Transform(mod => new ModVM(mod))
                 .DisposeMany()
                 // Filter out any NSFW slides if we don't want them
                 .AutoRefreshOnObservable(slide => this.WhenAny(x => x.ShowNSFW))
@@ -120,14 +122,18 @@ namespace Wabbajack
                 .Switch()
                 .ToGuiProperty(this, nameof(Image));
 
-            VisitNexusSiteCommand = ReactiveCommand.Create(
+            VisitURLCommand = ReactiveCommand.Create(
                 execute: () =>
                 {
                     Utils.OpenWebsite(TargetMod.State.URL);
                     return Unit.Default;
                 },
                 canExecute: this.WhenAny(x => x.TargetMod.State.URL)
-                    .Select(x => x?.StartsWith("https://") ?? false)
+                    .Select(x =>
+                    {
+                        var regex = new Regex("^(http|https):\\/\\/");
+                        return x != null && regex.Match(x).Success;
+                    })
                     .ObserveOnGuiThread());
 
             // Preload upcoming images

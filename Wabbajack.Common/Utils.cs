@@ -223,7 +223,7 @@ namespace Wabbajack.Common
 
             return sha.Hash.ToBase64();
         }
-        
+
         public static string StringSHA256Hex(this string s)
         {
             var sha = new SHA256Managed();
