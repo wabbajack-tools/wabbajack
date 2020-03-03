@@ -116,7 +116,7 @@ namespace Wabbajack.Lib.Downloaders
                     foreach (var track in Directory.EnumerateFiles(trackFolder))
                     {
                         Utils.Status($"Adding {Path.GetFileName(track)} to archive");
-                        var entry = ar.CreateEntry(Path.Combine("Data", "tracks", track.RelativeTo(trackFolder)));
+                        var entry = ar.CreateEntry(Path.Combine("Data", "tracks", track.RelativeTo(trackFolder)), CompressionLevel.NoCompression);
                         entry.LastWriteTime = meta.UploadDate;
                         await using var es = entry.Open();
                         await using var ins = File.OpenRead(track);
