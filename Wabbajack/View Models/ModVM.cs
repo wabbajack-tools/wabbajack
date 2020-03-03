@@ -13,14 +13,14 @@ namespace Wabbajack
 {
     public class ModVM : ViewModel
     {
-        public IMetaState State { get; }
+        public AbstractMetaState State { get; }
 
         // Image isn't exposed as a direct property, but as an observable.
         // This acts as a caching mechanism, as interested parties will trigger it to be created,
         // and the cached image will automatically be released when the last interested party is gone.
         public IObservable<BitmapImage> ImageObservable { get; }
 
-        public ModVM(IMetaState state)
+        public ModVM(AbstractMetaState state)
         {
             State = state;
 

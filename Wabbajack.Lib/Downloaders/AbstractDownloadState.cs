@@ -7,21 +7,23 @@ using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public interface IMetaState
+    public abstract class AbstractMetaState : AbstractDownloadState
     {
-        string URL { get; }
-        string Name { get; }
-        string Author { get; }
-        string Version { get;}
-        string ImageURL { get; }
-        bool IsNSFW { get; }
-        string Description { get; }
+        public abstract string URL { get; }
+        public abstract string Name { get; set; }
+        public abstract string Author { get; set; }
+        public abstract string Version { get; set; }
+        public abstract string ImageURL { get; set; }
+        public abstract bool IsNSFW { get; set; }
+        public abstract string Description { get; set; }
+
+        public abstract Task<bool> LoadMetaData();
     }
 
     public abstract class AbstractDownloadState
     {
 
-        public static List<Type> KnownSubTypes = new List<Type>()
+        public static List<Type> KnownSubTypes = new List<Type>
         {
             typeof(HTTPDownloader.State),
             typeof(GameFileSourceDownloader.State),
