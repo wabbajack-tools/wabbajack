@@ -83,12 +83,12 @@ namespace Wabbajack
                 {
                     if (modList?.SourceModList?.Archives == null)
                     {
-                        return Observable.Empty<AbstractMetaState>()
+                        return Observable.Empty<IMetaState>()
                             .ToObservableChangeSet(x => x.URL);
                     }
                     return modList.SourceModList.Archives
                         .Select(m => m.State)
-                        .OfType<AbstractMetaState>()
+                        .OfType<IMetaState>()
                         .DistinctBy(x => x.URL)
                         // Shuffle it
                         .Shuffle(_random)

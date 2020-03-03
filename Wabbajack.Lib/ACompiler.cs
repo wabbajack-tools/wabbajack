@@ -83,7 +83,7 @@ namespace Wabbajack.Lib
             Utils.Log($"Getting meta data for {SelectedArchives.Count} archives");
             await SelectedArchives.PMap(Queue, async a =>
             {
-                if (a.State is AbstractMetaState metaState)
+                if (a.State is IMetaState metaState)
                 {
                     var b = await metaState.LoadMetaData();
                     Utils.Log(b

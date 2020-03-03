@@ -7,17 +7,17 @@ using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public abstract class AbstractMetaState : AbstractDownloadState
+    public interface IMetaState
     {
-        public abstract string URL { get; }
-        public abstract string Name { get; set; }
-        public abstract string Author { get; set; }
-        public abstract string Version { get; set; }
-        public abstract string ImageURL { get; set; }
-        public abstract bool IsNSFW { get; set; }
-        public abstract string Description { get; set; }
+        string URL { get; }
+        string Name { get; set; }
+        string Author { get; set; }
+        string Version { get; set; }
+        string ImageURL { get; set; }
+        bool IsNSFW { get; set; }
+        string Description { get; set; }
 
-        public abstract Task<bool> LoadMetaData();
+        Task<bool> LoadMetaData();
     }
 
     public abstract class AbstractDownloadState

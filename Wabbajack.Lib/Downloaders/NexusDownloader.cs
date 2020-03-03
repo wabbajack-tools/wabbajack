@@ -122,23 +122,23 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        public class State : AbstractMetaState
+        public class State : AbstractDownloadState, IMetaState
         {
-            public override string URL => $"http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID}";
+            public string URL => $"http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID}";
 
-            public override string Name { get; set; }
+            public string Name { get; set; }
 
-            public override string Author { get; set; }
+            public string Author { get; set; }
 
-            public override string Version { get; set; }
+            public string Version { get; set; }
             
-            public override string ImageURL { get; set; }
+            public string ImageURL { get; set; }
             
-            public override bool IsNSFW { get; set; }
+            public bool IsNSFW { get; set; }
 
-            public override string Description { get; set; }
+            public string Description { get; set; }
 
-            public override async Task<bool> LoadMetaData()
+            public async Task<bool> LoadMetaData()
             {
                 return true;
             }

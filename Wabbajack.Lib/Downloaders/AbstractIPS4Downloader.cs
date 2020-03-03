@@ -62,7 +62,7 @@ namespace Wabbajack.Lib.Downloaders
         }
 
 
-        public class State<TDownloader> : AbstractMetaState where TDownloader : IDownloader
+        public class State<TDownloader> : AbstractDownloadState, IMetaState where TDownloader : IDownloader
         {
             public string FileID { get; set; }
             public string FileName { get; set; }
@@ -203,16 +203,16 @@ namespace Wabbajack.Lib.Downloaders
                 };
             }
 
-            // from AbstractMetaState
-            public override string URL => $"{Site}/files/file/{FileName}";
-            public override string Name { get; set; }
-            public override string Author { get; set; }
-            public override string Version { get; set; }
-            public override string ImageURL { get; set; }
-            public override bool IsNSFW { get; set; }
-            public override string Description { get; set; }
+            // from IMetaState
+            public string URL => $"{Site}/files/file/{FileName}";
+            public string Name { get; set; }
+            public string Author { get; set; }
+            public string Version { get; set; }
+            public string ImageURL { get; set; }
+            public virtual bool IsNSFW { get; set; }
+            public string Description { get; set; }
 
-            public override async Task<bool> LoadMetaData()
+            public virtual async Task<bool> LoadMetaData()
             {
                 return false;
             }
