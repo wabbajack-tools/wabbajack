@@ -92,7 +92,8 @@ namespace Wabbajack.Lib.Downloaders
                     var client = new YoutubeClient(Common.Http.ClientFactory.Client);
                     var meta = await client.GetVideoAsync(Key);
                     var video = await client.GetVideoMediaStreamInfosAsync(Key);
-                    var stream = video.GetAll().OfType<AudioStreamInfo>().OrderByDescending(a => a.Bitrate)
+                    var all = video.GetAll();
+                    var stream = video.GetAll().OfType<AudioStreamInfo>().Where(f => f.AudioEncoding == AudioEncoding.Opus).OrderByDescending(a => a.Bitrate)
                         .ToArray().First();
 
                     var initialDownload = Path.Combine(folder.Dir.FullName, "initial_download");
@@ -105,6 +106,8 @@ namespace Wabbajack.Lib.Downloaders
                             CancellationToken.None);
                     }
 
+                    File.Copy(initialDownload, @$"c:\tmp\{Path.GetFileName(destination)}.dest_stream");
+                    
                     await Tracks.PMap(queue, async track =>
                     {
                         Utils.Status($"Extracting track {track.Name}");
@@ -140,7 +143,7 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     FileName = FFMpegPath,
                     Arguments =
-                        $"-i \"{source}\" -ss {track.Start} -t {track.End - track.Start} \"{dest_folder}\\{track.Name}.wav\"",
+                        $"-threads 1 -i \"{source}\" -ss {track.Start} -t {track.End - track.Start} \"{dest_folder}\\{track.Name}.wav\"",
                     RedirectStandardError = true,
                     RedirectStandardInput = true,
                     RedirectStandardOutput = true,
