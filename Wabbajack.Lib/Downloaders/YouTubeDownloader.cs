@@ -45,7 +45,7 @@ namespace Wabbajack.Lib.Downloaders
 
         internal static AbstractDownloadState UriToState(Uri directURL)
         {
-            if (!directURL.Host.EndsWith("youtube.com"))
+            if (directURL == null || !directURL.Host.EndsWith("youtube.com"))
             {
                 return null;
             }
