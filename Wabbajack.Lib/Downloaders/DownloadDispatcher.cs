@@ -25,13 +25,15 @@ namespace Wabbajack.Lib.Downloaders
             new BethesdaNetDownloader(),
             new AFKModsDownloader(),
             new TESAllianceDownloader(),
+            new YouTubeDownloader(),
             new HTTPDownloader(),
             new ManualDownloader(),
         };
 
         public static readonly List<IUrlInferencer> Inferencers = new List<IUrlInferencer>()
         {
-            new BethesdaNetInferencer()
+            new BethesdaNetInferencer(),
+            new YoutubeInferencer()
         };
 
         private static readonly Dictionary<Type, IDownloader> IndexedDownloaders;
@@ -41,9 +43,16 @@ namespace Wabbajack.Lib.Downloaders
             IndexedDownloaders = Downloaders.ToDictionary(d => d.GetType());
         }
 
-        public static AbstractDownloadState Infer(Uri uri)
+        public static async Task<AbstractDownloadState> Infer(Uri uri)
         {
-            return Inferencers.Select(infer => infer.Infer(uri)).FirstOrDefault(result => result != null);
+            foreach (var inf in Inferencers)
+            {
+                var state = await inf.Infer(uri);
+                if (state != null)
+                    return state;
+            }
+            return null;
+
         }
 
         public static T GetInstance<T>() where T : IDownloader

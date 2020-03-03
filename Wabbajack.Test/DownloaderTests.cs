@@ -444,6 +444,33 @@ namespace Wabbajack.Test
             CollectionAssert.AreEqual(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});
         }
         
+        [TestMethod]
+        public async Task YoutubeDownloader()
+        {
+
+            var infered_ini = await DownloadDispatcher.Infer(new Uri("https://www.youtube.com/watch?v=4ceowgHn8BE"));
+            Assert.IsInstanceOfType(infered_ini, typeof(YouTubeDownloader.State));
+            Assert.AreEqual(15, ((YouTubeDownloader.State)infered_ini).Tracks.Count);
+            
+            var ini = string.Join("\n", infered_ini.GetMetaIni());
+            
+            var state = (YouTubeDownloader.State)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            Assert.AreEqual(15, state.Tracks.Count);
+            Assert.IsNotNull(state);
+
+            
+            
+            var converted = state.ViaJSON();
+            Assert.IsTrue(await converted.Verify(new Archive {Name = "yt_test.zip"}));
+
+            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            using var tempFile = new TempFile();
+            await converted.Download(new Archive {Name = "yt_test.zip"}, tempFile.File.FullName);
+            File.Copy(tempFile.File.FullName, "c:\\tmp\\" + Path.GetFileName(tempFile.File.FullName) + ".zip");
+            Assert.AreEqual("kD36zbA2X9Q=", await tempFile.File.FullName.FileHashAsync());
+        }
+        
         
         /// <summary>
         /// Tests that files from different sources don't overwrite eachother when downloaded by AInstaller

@@ -21,7 +21,7 @@ namespace Wabbajack.CLI.Verbs
 
         protected override async Task<int> Run()
         {
-            var state = DownloadDispatcher.Infer(Url);
+            var state = await DownloadDispatcher.Infer(Url);
             if (state == null)
                 return CLIUtils.Exit($"Could not find download source for URL {Url}", 1);
 
