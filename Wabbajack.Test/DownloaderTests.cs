@@ -467,9 +467,7 @@ namespace Wabbajack.Test
 
             using var tempFile = new TempFile();
             await converted.Download(new Archive {Name = "yt_test.zip"}, tempFile.File.FullName);
-            File.Copy(tempFile.File.FullName, @"c:\tmp\test.zip");
-            
-            Assert.AreEqual("st2QLxOiv8M=", await tempFile.File.FullName.FileHashAsync());
+            Assert.AreEqual("+zUUyo3ROFg=", await tempFile.File.FullName.FileHashAsync());
         }
         
         
