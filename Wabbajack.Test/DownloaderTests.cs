@@ -470,6 +470,8 @@ namespace Wabbajack.Test
             
             Assert.AreEqual("st2QLxOiv8M=", await tempFile.File.FullName.FileHashAsync());
             
+            File.Copy(tempFile.File.FullName, @"c:\tmp");
+
 
         }
         
