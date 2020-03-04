@@ -71,6 +71,12 @@ namespace Wabbajack.Lib
             return id;
         }
 
+        internal FileStream IncludeFile(out string id)
+        {
+            id = Guid.NewGuid().ToString();
+            return File.Create(Path.Combine(ModListOutputFolder, id));
+        }
+
         internal string IncludeFile(string data)
         {
             var id = Guid.NewGuid().ToString();

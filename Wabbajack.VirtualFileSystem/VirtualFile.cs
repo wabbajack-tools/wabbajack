@@ -335,7 +335,7 @@ namespace Wabbajack.VirtualFileSystem
             return path;
         }
 
-        public Stream OpenRead()
+        public FileStream OpenRead()
         {
             return File.OpenRead(StagedPath);
         }

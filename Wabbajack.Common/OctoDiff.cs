@@ -45,8 +45,12 @@ namespace Wabbajack.Common
 
         private class ProgressReporter : IProgressReporter
         {
+            private DateTime _lastUpdate = DateTime.UnixEpoch;
+            private readonly TimeSpan _updateInterval = TimeSpan.FromMilliseconds(100);
             public void ReportProgress(string operation, long currentPosition, long total)
             {
+                if (DateTime.Now - _lastUpdate < _updateInterval) return;
+                _lastUpdate = DateTime.Now;
                 if (currentPosition >= total || total < 1 || currentPosition < 0)
                     return;
                 Utils.Status(operation, new Percent(total, currentPosition));

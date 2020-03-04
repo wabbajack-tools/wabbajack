@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
@@ -958,6 +959,7 @@ namespace Wabbajack.Common
                     RETRY:
                     try
                     {
+                        
                         File.Move(tmpName, cacheFile, MoveOptions.ReplaceExisting);
                     }
                     catch (UnauthorizedAccessException)
@@ -972,6 +974,35 @@ namespace Wabbajack.Common
                 }
 
                 break;
+            }
+        }
+
+        public static async Task CreatePatch(FileStream srcStream, string srcHash, FileStream destStream, string destHash,
+            FileStream patchStream)
+        {
+            await using var sigFile = new TempStream();
+            OctoDiff.Create(srcStream, destStream, sigFile, patchStream);
+            patchStream.Position = 0;
+            var tmpName = Path.Combine(Consts.PatchCacheFolder, Guid.NewGuid() + ".tmp");
+
+            await using (var f = File.Create(tmpName))
+            {
+                await patchStream.CopyToAsync(f);
+                patchStream.Position = 0;
+            }
+            
+            try
+            {
+                var cacheFile = Path.Combine(Consts.PatchCacheFolder, $"{srcHash.FromBase64().ToHex()}_{srcHash.FromBase64().ToHex()}.patch");
+                if (!Directory.Exists(Consts.PatchCacheFolder))
+                    Directory.CreateDirectory(Consts.PatchCacheFolder);
+
+                File.Move(tmpName, cacheFile, MoveOptions.ReplaceExisting);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                if (File.Exists(tmpName)) 
+                    File.Delete(tmpName);
             }
         }
 
