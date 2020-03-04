@@ -14,8 +14,6 @@ namespace Wabbajack
     [JsonObject(MemberSerialization.OptOut)]
     public class MainSettings
     {
-        private static string _filename = "settings.json";
-
         public double PosX { get; set; }
         public double PosY { get; set; }
         public double Height { get; set; }
@@ -30,12 +28,13 @@ namespace Wabbajack
 
         public static bool TryLoadTypicalSettings(out MainSettings settings)
         {
-            if (!File.Exists(_filename))
+            if (!File.Exists(Consts.SettingsFile))
             {
                 settings = default;
                 return false;
             }
-            settings = JsonConvert.DeserializeObject<MainSettings>(File.ReadAllText(_filename));
+
+            settings = JsonConvert.DeserializeObject<MainSettings>(File.ReadAllText(Consts.SettingsFile));
             return true;
         }
 
@@ -48,7 +47,7 @@ namespace Wabbajack
             //settings._saveSignal.OnCompleted();
             //await settings._saveSignal;
 
-            File.WriteAllText(_filename, JsonConvert.SerializeObject(settings, Formatting.Indented));
+            File.WriteAllText(Consts.SettingsFile, JsonConvert.SerializeObject(settings, Formatting.Indented));
         }
     }
 

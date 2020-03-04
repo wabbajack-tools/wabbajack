@@ -106,5 +106,7 @@ namespace Wabbajack.Common
 
         public static string LogsFolder = "logs";
         public static int MaxOldLogs = 50;
+
+        public static string SettingsFile => Path.Combine(LocalAppDataPath, "settings.json");
     }
 }
