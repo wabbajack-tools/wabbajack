@@ -76,7 +76,9 @@ namespace Wabbajack.Common
 
         private static string UnescapeString(string s)
         {
-            return Regex.Unescape(s.Trim('"'));
+            if (s.Trim().StartsWith("\"") || s.Contains("\\\\")) 
+                return Regex.Unescape(s.Trim('"'));
+            return s;
         }
 
         private static string UnescapeUTF8(string s)
@@ -121,7 +123,8 @@ namespace Wabbajack.Common
             }
 
             result = Coll[(string) indexes[0]];
-            if (result is string s) result = Regex.Unescape(s.Trim('"'));
+            if (result is string s && s.Trim().StartsWith("\"")) 
+                result = Regex.Unescape(s.Trim('"'));
             return true;
         }
     }

@@ -184,6 +184,7 @@ namespace Wabbajack.Lib
             {
                 gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
                     .Where(p => p.FileExists())
+                    .Where(p => Path.GetExtension(p) != Consts.HashFileExtension)
                     .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p],
                         Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))));
             }
@@ -448,22 +449,20 @@ namespace Wabbajack.Lib
                 {
                     Info($"Patching {entry.To}");
                     Status($"Patching {entry.To}");
-                    await using var origin = byPath[string.Join("|", entry.ArchiveHashPath.Skip(1))].OpenRead();
-                    await using var output = new MemoryStream();
-                    var a = origin.ReadAll();
-                    var b = LoadDataForTo(entry.To, absolutePaths);
-                    await Utils.CreatePatch(a, b, output);
-                    entry.PatchID = IncludeFile(output.ToArray());
-                    var fileSize = File.GetSize(Path.Combine(ModListOutputFolder, entry.PatchID));
-                    Info($"Patch size {fileSize} for {entry.To}");
+                    var srcFile = byPath[string.Join("|", entry.ArchiveHashPath.Skip(1))];
+                    await using var srcStream = srcFile.OpenRead();
+                    await using var outputStream = IncludeFile(out entry.PatchID);
+                    await using var destStream = LoadDataForTo(entry.To, absolutePaths);
+                    await Utils.CreatePatch(srcStream, srcFile.Hash, destStream, entry.Hash, outputStream);
+                    Info($"Patch size {outputStream.Length} for {entry.To}");
                 });
             }
         }
 
-        private byte[] LoadDataForTo(string to, Dictionary<string, string> absolutePaths)
+        private FileStream LoadDataForTo(string to, Dictionary<string, string> absolutePaths)
         {
             if (absolutePaths.TryGetValue(to, out var absolute))
-                return File.ReadAllBytes(absolute);
+                return File.OpenRead(absolute);
 
             if (to.StartsWith(Consts.BSACreationDir))
             {
@@ -474,11 +473,10 @@ namespace Wabbajack.Lib
                 {
                     var find = Path.Combine(to.Split('\\').Skip(2).ToArray());
                     var file = a.Files.First(e => e.Path.Replace('/', '\\') == find);
-                    using (var ms = new MemoryStream())
-                    {
-                        file.CopyDataTo(ms);
-                        return ms.ToArray();
-                    }
+                    var returnStream = new TempStream();
+                    file.CopyDataTo(returnStream);
+                    returnStream.Position = 0;
+                    return returnStream;
                 }
             }
 
@@ -518,6 +516,7 @@ namespace Wabbajack.Lib
                 new IgnoreStartsWith(this, "downloads\\"),
                 new IgnoreStartsWith(this,"webcache\\"),
                 new IgnoreStartsWith(this, "overwrite\\"),
+                new IgnoreStartsWith(this, "crashDumps\\"),
                 new IgnorePathContains(this,"temporary_logs"),
                 new IgnorePathContains(this, "GPUCache"),
                 new IgnorePathContains(this, "SSEEdit Cache"),
