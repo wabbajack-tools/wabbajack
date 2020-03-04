@@ -1,10 +1,8 @@
 ﻿using Newtonsoft.Json;
-using ReactiveUI.Fody.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
-using System.Reactive.Disposables;
 using System.Reactive.Subjects;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -14,6 +12,8 @@ namespace Wabbajack
     [JsonObject(MemberSerialization.OptOut)]
     public class MainSettings
     {
+        public byte Version { get; set; }
+
         public double PosX { get; set; }
         public double PosY { get; set; }
         public double Height { get; set; }
@@ -34,8 +34,20 @@ namespace Wabbajack
                 return false;
             }
 
+            // Version check
             settings = JsonConvert.DeserializeObject<MainSettings>(File.ReadAllText(Consts.SettingsFile));
-            return true;
+            if (settings.Version == Consts.SettingsVersion)
+                return true;
+
+            var backup = Consts.SettingsFile + "-backup.json";
+            if(File.Exists(backup))
+                File.Delete(backup);
+            
+            File.Copy(Consts.SettingsFile, backup);
+            File.Delete(Consts.SettingsFile);
+
+            settings = default;
+            return false;
         }
 
         public static void SaveSettings(MainSettings settings)
@@ -75,14 +87,14 @@ namespace Wabbajack
     [JsonObject(MemberSerialization.OptOut)]
     public class PerformanceSettings : ViewModel
     {
-        private bool _Manual = false;
-        public bool Manual { get => _Manual; set => this.RaiseAndSetIfChanged(ref _Manual, value); }
+        private bool _manual;
+        public bool Manual { get => _manual; set => RaiseAndSetIfChanged(ref _manual, value); }
 
-        private byte _MaxCores = byte.MaxValue;
-        public byte MaxCores { get => _MaxCores; set => this.RaiseAndSetIfChanged(ref _MaxCores, value); }
+        private byte _maxCores = byte.MaxValue;
+        public byte MaxCores { get => _maxCores; set => RaiseAndSetIfChanged(ref _maxCores, value); }
 
-        private Percent _TargetUsage = Percent.One;
-        public Percent TargetUsage { get => _TargetUsage; set => this.RaiseAndSetIfChanged(ref _TargetUsage, value); }
+        private Percent _targetUsage = Percent.One;
+        public Percent TargetUsage { get => _targetUsage; set => RaiseAndSetIfChanged(ref _targetUsage, value); }
 
         public void AttachToBatchProcessor(ABatchProcessor processor)
         {

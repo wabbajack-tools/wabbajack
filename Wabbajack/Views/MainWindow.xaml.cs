@@ -59,7 +59,10 @@ namespace Wabbajack
             };
             if (CLIArguments.NoSettings || !MainSettings.TryLoadTypicalSettings(out var settings))
             {
-                _settings = new MainSettings();
+                _settings = new MainSettings
+                {
+                    Version = Consts.SettingsVersion
+                };
                 RunWhenLoaded(DefaultSettings);
             }
             else
