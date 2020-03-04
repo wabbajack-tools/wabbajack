@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 1.0.1.0 - 3/xx/2020
+* Added download support for YouTube
+* Slideshow can now display mods from non-Nexus sites
+
 #### Verison - 1.0.0.0 - 2/29/2020
 * 1.0, first non-beta release
 

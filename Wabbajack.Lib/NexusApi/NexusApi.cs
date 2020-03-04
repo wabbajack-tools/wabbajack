@@ -284,7 +284,7 @@ namespace Wabbajack.Lib.NexusApi
 
             try
             {
-                Utils.Log($"Requesting manual download for {archive.ModName}");
+                Utils.Log($"Requesting manual download for {archive.Name}");
                 return (await Utils.Log(await ManuallyDownloadNexusFile.Create(archive)).Task).ToString();
             }
             catch (TaskCanceledException ex)

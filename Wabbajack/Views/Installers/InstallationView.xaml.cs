@@ -73,7 +73,7 @@ namespace Wabbajack
                     })
                     .BindToStrict(this, x => x.PlayPauseButton.ToolTip)
                     .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.Slideshow.VisitNexusSiteCommand)
+                this.WhenAny(x => x.ViewModel.Slideshow.VisitURLCommand)
                     .BindToStrict(this, x => x.OpenWebsite.Command)
                     .DisposeWith(dispose);
                 this.BindStrict(this.ViewModel, x => x.Slideshow.ShowNSFW, x => x.ShowNSFWButton.IsChecked,

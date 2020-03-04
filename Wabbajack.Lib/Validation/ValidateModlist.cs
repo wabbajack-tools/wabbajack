@@ -113,7 +113,7 @@ namespace Wabbajack.Lib.Validation
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {
                         var ext = Path.GetExtension(p.ArchiveHashPath.Last());
-                        var url = (archive.archive.State as NexusDownloader.State).NexusURL;
+                        var url = (archive.archive.State as NexusDownloader.State).URL;
                         if (Consts.AssetFileExtensions.Contains(ext) && !(archive.permissions.CanModifyAssets ?? true))
                         {
                             ValidationErrors.Push($"{p.To} from {url} is set to disallow asset modification");
@@ -131,7 +131,7 @@ namespace Wabbajack.Lib.Validation
                 {
                     if (nexus_mod_permissions.TryGetValue(p.ArchiveHashPath[0], out var archive))
                     {
-                        var url = (archive.archive.State as NexusDownloader.State).NexusURL;
+                        var url = (archive.archive.State as NexusDownloader.State).URL;
                         if (!(archive.permissions.CanExtractBSAs ?? true) &&
                             p.ArchiveHashPath.Skip(1).ButLast().Any(a => Consts.SupportedBSAs.Contains(Path.GetExtension(a).ToLower())))
                         {
