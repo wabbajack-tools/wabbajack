@@ -87,7 +87,7 @@ namespace Wabbajack.Lib
         protected override async Task<bool> _Begin(CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested) return false;
-            ConfigureProcessor(19, ConstructDynamicNumThreads(await RecommendQueueSize()));
+            ConfigureProcessor(20, ConstructDynamicNumThreads(await RecommendQueueSize()));
             UpdateTracker.Reset();
             UpdateTracker.NextStep("Gathering information");
             Info("Looking for other profiles");
@@ -279,6 +279,9 @@ namespace Wabbajack.Lib
             await IncludeArchiveMetadata();
             UpdateTracker.NextStep("Building Patches");
             await BuildPatches();
+
+            UpdateTracker.NextStep("Gathering Metadata");
+            await GatherMetaData();
 
             ModList = new ModList
             {

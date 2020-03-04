@@ -6,11 +6,13 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Ceras;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
+using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -69,21 +71,18 @@ namespace Wabbajack.Lib.Downloaders
                     Utils.Error($"Error getting mod info for Nexus mod with {general.modID}");
                     throw;
                 }
+
                 return new State
                 {
-                    GameName = general.gameName,
-                    FileID = general.fileID,
-                    ModID = general.modID,
+                    Name = NexusApiUtils.FixupSummary(info.name),
+                    Author = NexusApiUtils.FixupSummary(info.author),
                     Version = general.version ?? "0.0.0.0",
-                    Author = info.author,
-                    UploadedBy = info.uploaded_by,
-                    UploaderProfile = info.uploaded_users_profile_url,
-                    ModName = info.name,
-                    SlideShowPic = info.picture_url,
-                    NexusURL = NexusApiUtils.GetModURL(game, info.mod_id),
-                    Summary = info.summary,
-                    Adult = info.contains_adult_content
-
+                    ImageURL = info.picture_url,
+                    IsNSFW = info.contains_adult_content,
+                    Description = NexusApiUtils.FixupSummary(info.summary),
+                    GameName = general.gameName,
+                    ModID = general.modID,
+                    FileID = general.fileID
                 };
             }
 
@@ -123,20 +122,30 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        public class State : AbstractDownloadState
+        public class State : AbstractDownloadState, IMetaState
         {
+            public string URL => $"http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID}";
+
+            public string Name { get; set; }
+
             public string Author { get; set; }
-            public string FileID { get; set; }
+
+            public string Version { get; set; }
+            
+            public string ImageURL { get; set; }
+            
+            public bool IsNSFW { get; set; }
+
+            public string Description { get; set; }
+
+            public async Task<bool> LoadMetaData()
+            {
+                return true;
+            }
+
             public string GameName { get; set; }
             public string ModID { get; set; }
-            public string UploadedBy { get; set; }
-            public string UploaderProfile { get; set; }
-            public string Version { get; set; }
-            public string SlideShowPic { get; set; }
-            public string ModName { get; set; }
-            public string NexusURL { get; set; }
-            public string Summary { get; set; }
-            public bool Adult { get; set; }
+            public string FileID { get; set; }
 
             public override object[] PrimaryKey { get => new object[]{GameName, ModID, FileID};}
 
@@ -192,7 +201,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log($"{ModName} - {GameName} - {ModID} - {FileID} - Error getting Nexus download URL - {ex}");
+                    Utils.Log($"{Name} - {GameName} - {ModID} - {FileID} - Error getting Nexus download URL - {ex}");
                     return false;
                 }
 

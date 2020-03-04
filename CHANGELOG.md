@@ -1,9 +1,11 @@
 ### Changelog
 
-#### Version - 1.1.0.0 - 
+#### Version - Next
 * Binary Patching stores temporary and patch data on disk instead of memory (reducing memory usage)
 * Fix a memory leak with diffing progress reporting
 * Fix a bug with bad data in inferred game INI files. 
+* Added download support for YouTube
+* Slideshow can now display mods from non-Nexus sites
 
 #### Verison - 1.0.0.0 - 2/29/2020
 * 1.0, first non-beta release
