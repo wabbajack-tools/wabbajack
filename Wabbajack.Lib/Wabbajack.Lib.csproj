@@ -16,7 +16,7 @@
         <Version>4.1.7</Version>
       </PackageReference>
       <PackageReference Include="Fody">
-        <Version>6.1.0</Version>
+        <Version>6.1.1</Version>
       </PackageReference>
       <PackageReference Include="Genbox.AlphaFS">
         <Version>2.2.2.1</Version>
@@ -25,7 +25,7 @@
         <Version>2.0.0-alpha.3</Version>
       </PackageReference>
       <PackageReference Include="HtmlAgilityPack">
-        <Version>1.11.20</Version>
+        <Version>1.11.21</Version>
       </PackageReference>
       <PackageReference Include="MegaApiClient">
         <Version>1.7.1</Version>
