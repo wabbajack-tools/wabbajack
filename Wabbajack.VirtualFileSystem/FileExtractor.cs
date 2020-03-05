@@ -1,20 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
-using System.Reflection;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
-using ICSharpCode.SharpZipLib.GZip;
-using Newtonsoft.Json;
 using OMODFramework;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Common.StatusFeed.Errors;
+using Wabbajack.Common;
+using Utils = Wabbajack.Common.Utils;
 
-namespace Wabbajack.Common
+
+namespace Wabbajack.VirtualFileSystem
 {
     public class FileExtractor
     {
