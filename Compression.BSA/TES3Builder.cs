@@ -66,6 +66,7 @@ namespace Compression.BSA
             {
                 bw.BaseStream.Position = _state.DataOffset + state.Offset;
                 data.CopyTo(bw.BaseStream);
+                data.Dispose();
             }
         }
 

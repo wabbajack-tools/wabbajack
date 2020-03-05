@@ -172,6 +172,7 @@ namespace Compression.BSA
                 using var ms = new MemoryStream();
                 using (var ds = new DeflaterOutputStream(ms))
                 {
+                    ds.IsStreamOwner = false;
                     src.CopyToLimit(ds, (int)chunk.FullSz);
                 }
 
@@ -204,6 +205,7 @@ namespace Compression.BSA
             bw.Write((ulong)pos);
             bw.BaseStream.Position = pos;
             _dataSlab.CopyToLimit(bw.BaseStream, (int)_dataSlab.Length);
+            _dataSlab.Dispose();
         }
     }
 
@@ -230,6 +232,7 @@ namespace Compression.BSA
             {
                 using (var ds = new DeflaterOutputStream(ms))
                 {
+                    ds.IsStreamOwner = false;
                     builder._dataSrc.CopyTo(ds);
                 }
 
@@ -268,6 +271,7 @@ namespace Compression.BSA
             wtr.BaseStream.Position = pos;
             _dataSrc.Position = 0;
             _dataSrc.CopyToLimit(wtr.BaseStream, (int)_dataSrc.Length);
+            _dataSrc.Dispose();
         }
     }
 }

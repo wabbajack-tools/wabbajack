@@ -298,6 +298,7 @@ namespace Compression.BSA
                     var r = new MemoryStream();
                     using (var w = new DeflaterOutputStream(r))
                     {
+                        w.IsStreamOwner = false;
                         _srcData.CopyTo(w);
                     }
                     _srcData = _bsa._slab.Allocate(r.Length);
@@ -341,11 +342,13 @@ namespace Compression.BSA
                 wtr.Write((uint) _originalSize);
                 _srcData.Position = 0;
                 _srcData.CopyToLimit(wtr.BaseStream, (int)_srcData.Length);
+                _srcData.Dispose();
             }
             else
             {
                 _srcData.Position = 0;
                 _srcData.CopyToLimit(wtr.BaseStream, (int)_srcData.Length);
+                _srcData.Dispose();
             }
         }
     }

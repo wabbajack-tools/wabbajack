@@ -18,7 +18,7 @@ namespace Wabbajack.Common
         public DiskSlabAllocator()
         {
             _name = Guid.NewGuid().ToString();
-            _mmap = MemoryMappedFile.CreateNew(_name, (long)1 << 34);
+            _mmap = MemoryMappedFile.CreateNew(null, (long)1 << 34);
         }
 
         public Stream Allocate(long size)
