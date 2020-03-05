@@ -203,7 +203,7 @@ namespace Compression.BSA
             bw.BaseStream.Position = _offsetOffset;
             bw.Write((ulong)pos);
             bw.BaseStream.Position = pos;
-            _dataSlab.CopyTo(bw.BaseStream);
+            _dataSlab.CopyToLimit(bw.BaseStream, (int)_dataSlab.Length);
         }
     }
 
@@ -267,7 +267,7 @@ namespace Compression.BSA
             wtr.Write((ulong)pos);
             wtr.BaseStream.Position = pos;
             _dataSrc.Position = 0;
-            _dataSrc.CopyTo(wtr.BaseStream);
+            _dataSrc.CopyToLimit(wtr.BaseStream, (int)_dataSrc.Length);
         }
     }
 }
