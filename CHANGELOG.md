@@ -3,7 +3,8 @@
 #### Version - 1.1.0.0 - 
 * Binary Patching stores temporary and patch data on disk instead of memory (reducing memory usage)
 * Fix a memory leak with diffing progress reporting
-* Fix a bug with bad data in inferred game INI files. 
+* Fix a bug with bad data in inferred game INI files.
+* Building BSAs now leverage Virtual Memory resulting in a 32x reduction in memory usage during installation
 
 #### Verison - 1.0.0.0 - 2/29/2020
 * 1.0, first non-beta release
