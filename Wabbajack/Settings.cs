@@ -67,6 +67,11 @@ namespace Wabbajack
     {
         public string LastInstalledListLocation { get; set; }
         public Dictionary<string, Mo2ModlistInstallationSettings> Mo2ModlistSettings { get; } = new Dictionary<string, Mo2ModlistInstallationSettings>();
+        public SlideShowSettings SlideShowSettings { get; } = new SlideShowSettings
+        {
+            AllowNSFW = false,
+            OnlyNSFW = false
+        };
     }
 
     public class Mo2ModlistInstallationSettings
@@ -140,5 +145,15 @@ namespace Wabbajack
         public string DownloadLocation { get; set; }
         public string StagingLocation { get; set; }
         public CompilationModlistSettings ModlistSettings { get; } = new CompilationModlistSettings();
+    }
+
+    [JsonObject(MemberSerialization.OptOut)]
+    public class SlideShowSettings : ViewModel
+    {
+        private bool _allowNSFW;
+        public bool AllowNSFW { get => _allowNSFW; set => RaiseAndSetIfChanged(ref _allowNSFW, value); }
+
+        private bool _onlyNSFW;
+        public bool OnlyNSFW { get => _onlyNSFW; set => RaiseAndSetIfChanged(ref _onlyNSFW, value); }
     }
 }

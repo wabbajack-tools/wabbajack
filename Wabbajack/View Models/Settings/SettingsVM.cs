@@ -13,6 +13,7 @@ namespace Wabbajack
         public MainWindowVM MWVM { get; }
         public LoginManagerVM Login { get; }
         public PerformanceSettings Performance { get; }
+        public SlideShowSettings SlideShowSettings { get; }
 
         public AuthorFilesVM AuthorFile { get; }
         
@@ -23,6 +24,7 @@ namespace Wabbajack
             Login = new LoginManagerVM(this);
             Performance = mainWindowVM.Settings.Performance;
             AuthorFile = new AuthorFilesVM(this);
+            SlideShowSettings = mainWindowVM.Settings.Installer.SlideShowSettings;
         }
 
     }

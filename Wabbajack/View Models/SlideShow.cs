@@ -100,7 +100,17 @@ namespace Wabbajack
                 .DisposeMany()
                 // Filter out any NSFW slides if we don't want them
                 .AutoRefreshOnObservable(slide => this.WhenAny(x => x.ShowNSFW))
-                .Filter(slide => !slide.State.IsNSFW || ShowNSFW)
+                .Filter(slide =>
+                {
+                    var settings = Installer.MWVM.Settings.Installer.SlideShowSettings;
+                    // overrides the show NSFW button
+                    if (!settings.OnlyNSFW)
+                        return settings.AllowNSFW && ShowNSFW || !slide.State.IsNSFW;
+
+                    ShowNSFW = true;
+                    return slide.State.IsNSFW;
+
+                })
                 .RefCount();
 
             // Find target mod to display by combining dynamic list with currently desired index

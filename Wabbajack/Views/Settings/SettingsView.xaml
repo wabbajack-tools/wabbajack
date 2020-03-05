@@ -47,7 +47,8 @@
             <WrapPanel>
                 <local:LoginSettingsView x:Name="LoginView" />
                 <local:PerformanceSettingsView x:Name="PerformanceView" />
-                <local:AuthorFilesView x:Name="AuthorFilesView"></local:AuthorFilesView>
+                <local:AuthorFilesView x:Name="AuthorFilesView" />
+                <local:SlideShowSettingsView x:Name="SlideShowSettingsView"/>
             </WrapPanel>
         </ScrollViewer>
     </Grid>
