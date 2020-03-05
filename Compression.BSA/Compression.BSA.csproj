@@ -15,4 +15,7 @@
     <ItemGroup>
       <Folder Include="Properties\" />
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+    </ItemGroup>
 </Project>

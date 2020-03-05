@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
+using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -61,24 +62,22 @@ namespace Compression.BSA.Test
 
         private static async Task<string> DownloadMod((Game, int) info)
         {
-            using (var client = await NexusApiClient.Get())
+            using var client = await NexusApiClient.Get();
+            var results = await client.GetModFiles(info.Item1, info.Item2);
+            var file = results.files.FirstOrDefault(f => f.is_primary) ??
+                       results.files.OrderByDescending(f => f.uploaded_timestamp).First();
+            var src = Path.Combine(_stagingFolder, file.file_name);
+
+            if (File.Exists(src)) return src;
+
+            var state = new NexusDownloader.State
             {
-                var results = await client.GetModFiles(info.Item1, info.Item2);
-                var file = results.files.FirstOrDefault(f => f.is_primary) ??
-                           results.files.OrderByDescending(f => f.uploaded_timestamp).First();
-                var src = Path.Combine(_stagingFolder, file.file_name);
-
-                if (File.Exists(src)) return src;
-
-                var state = new NexusDownloader.State
-                {
-                    ModID = info.Item2.ToString(),
-                    GameName = info.Item1.MetaData().NexusName,
-                    FileID = file.file_id.ToString()
-                };
-                await state.Download(src);
-                return src;
-            }
+                ModID = info.Item2.ToString(),
+                GameName = info.Item1.MetaData().NexusName,
+                FileID = file.file_id.ToString()
+            };
+            await state.Download(src);
+            return src;
         }
 
         public static IEnumerable<object[]> BSAs()
@@ -123,15 +122,15 @@ namespace Compression.BSA.Test
 
                 using (var w = ViaJson(a.State).MakeBuilder())
                 {
-                    await a.Files.PMap(Queue, file =>
+                    var streams = await a.Files.PMap(Queue, file =>
                     {
                         var absPath = Path.Combine(_tempDir, file.Path);
-                        using (var str = File.OpenRead(absPath))
-                        {
-                            w.AddFile(ViaJson(file.State), str);
-                        }
+                        var str = File.OpenRead(absPath);
+                        w.AddFile(ViaJson(file.State), str);
+                        return str;
                     });
                     w.Build(tempFile);
+                    streams.Do(s => s.Dispose());
                 }
 
                 Console.WriteLine($"Verifying {bsa}");
@@ -155,7 +154,7 @@ namespace Compression.BSA.Test
                                     Assert.AreEqual(pair.ai.Path, pair.bi.Path);
                                     //Equal(pair.ai.Compressed, pair.bi.Compressed);
                                     Assert.AreEqual(pair.ai.Size, pair.bi.Size);
-                                    CollectionAssert.AreEqual(GetData(pair.ai), GetData(pair.bi));
+                                    CollectionAssert.AreEqual(GetData(pair.ai), GetData(pair.bi), $"{pair.ai.Path} {JsonConvert.SerializeObject(pair.ai.State)}");
                                 });
                 }
             }

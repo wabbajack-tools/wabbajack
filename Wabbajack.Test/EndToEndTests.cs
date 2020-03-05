@@ -9,6 +9,7 @@ using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Util;
+using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.Test
 {

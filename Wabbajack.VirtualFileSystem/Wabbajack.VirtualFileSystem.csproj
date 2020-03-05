@@ -6,11 +6,24 @@
         <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     </PropertyGroup>
     <ItemGroup>
+      <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />
       <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
     </ItemGroup>
     <ItemGroup>
       <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
       <PackageReference Include="K4os.Hash.Crc" Version="1.1.4" />
+      <PackageReference Include="OMODFramework" Version="2.0.0" />
       <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Update="Extractors\7z.dll">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Extractors\7z.exe">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Extractors\innounp.exe">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 </Project>

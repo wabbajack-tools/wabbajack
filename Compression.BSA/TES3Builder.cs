@@ -8,19 +8,18 @@ namespace Compression.BSA
     public class TES3Builder : IBSABuilder
     {
         private TES3ArchiveState _state;
-        private (TES3FileState state, byte[] data)[] _files;
+        private (TES3FileState state, Stream data)[] _files;
 
         public TES3Builder(TES3ArchiveState state)
         {
             _state = state;
-            _files = new (TES3FileState state, byte[] data)[_state.FileCount];
+            _files = new (TES3FileState state, Stream data)[_state.FileCount];
         }
 
         public void AddFile(FileStateObject state, Stream src)
         {
-            using var br = new BinaryReader(src);
             var cstate = (TES3FileState)state;
-            _files[state.Index] = (cstate, br.ReadBytes((int)cstate.Size));
+            _files[state.Index] = (cstate, src);
         }
 
         public void Build(string filename)
@@ -66,7 +65,8 @@ namespace Compression.BSA
             foreach (var (state, data) in _files)
             {
                 bw.BaseStream.Position = _state.DataOffset + state.Offset;
-                bw.Write(data);
+                data.CopyTo(bw.BaseStream);
+                data.Dispose();
             }
         }
 

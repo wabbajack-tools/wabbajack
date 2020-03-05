@@ -239,17 +239,17 @@ namespace Wabbajack.Lib
 
                 using (var a = bsa.State.MakeBuilder())
                 {
-                    await bsa.FileStates.PMap(Queue, state =>
+                    var streams = await bsa.FileStates.PMap(Queue, state =>
                     {
                         Status($"Adding {state.Path} to BSA");
-                        using (var fs = File.OpenRead(Path.Combine(sourceDir, state.Path)))
-                        {
-                            a.AddFile(state, fs);
-                        }
+                        var fs = File.OpenRead(Path.Combine(sourceDir, state.Path));
+                        a.AddFile(state, fs);
+                        return fs;
                     });
 
                     Info($"Writing {bsa.To}");
                     a.Build(Path.Combine(OutputFolder, bsa.To));
+                    streams.Do(s => s.Dispose());
                 }
             }
 

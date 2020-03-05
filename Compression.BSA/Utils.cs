@@ -156,6 +156,8 @@ namespace Compression.BSA
             {
                 var to_read = Math.Min(buff.Length, limit);
                 var read = frm.Read(buff, 0, to_read);
+                if (read == 0)
+                    throw new Exception("End of stream before end of limit");
                 tw.Write(buff, 0, read);
                 limit -= read;
             }

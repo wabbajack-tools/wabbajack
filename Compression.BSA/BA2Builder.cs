@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Text;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using Wabbajack.Common;
 
 namespace Compression.BSA
 {
@@ -23,14 +25,17 @@ namespace Compression.BSA
     {
         private BA2StateObject _state;
         private List<IFileBuilder> _entries = new List<IFileBuilder>();
+        private DiskSlabAllocator _slab;
 
         public BA2Builder(BA2StateObject state)
         {
             _state = state;
+            _slab = new DiskSlabAllocator();
         }
         
         public void Dispose()
         {
+            _slab.Dispose();
         }
 
         public void AddFile(FileStateObject state, Stream src)
@@ -38,11 +43,11 @@ namespace Compression.BSA
             switch (_state.Type)
             {
                 case EntryType.GNRL:
-                    var result = BA2FileEntryBuilder.Create((BA2FileEntryState)state, src);
+                    var result = BA2FileEntryBuilder.Create((BA2FileEntryState)state, src, _slab);
                     lock(_entries) _entries.Add(result);
                     break;
                 case EntryType.DX10:
-                    var resultdx10 = BA2DX10FileEntryBuilder.Create((BA2DX10EntryState)state, src);
+                    var resultdx10 = BA2DX10FileEntryBuilder.Create((BA2DX10EntryState)state, src, _slab);
                     lock(_entries) _entries.Add(resultdx10);
                     break;
             }
@@ -99,7 +104,7 @@ namespace Compression.BSA
         private BA2DX10EntryState _state;
         private List<ChunkBuilder> _chunks;
 
-        public static BA2DX10FileEntryBuilder Create(BA2DX10EntryState state, Stream src)
+        public static BA2DX10FileEntryBuilder Create(BA2DX10EntryState state, Stream src, DiskSlabAllocator slab)
         {
             var builder = new BA2DX10FileEntryBuilder {_state = state};
 
@@ -110,7 +115,7 @@ namespace Compression.BSA
             builder._chunks = new List<ChunkBuilder>();
 
             foreach (var chunk in state.Chunks)
-                builder._chunks.Add(ChunkBuilder.Create(state, chunk, src));
+                builder._chunks.Add(ChunkBuilder.Create(state, chunk, src, slab));
 
             return builder;
         }
@@ -149,33 +154,34 @@ namespace Compression.BSA
     public class ChunkBuilder
     {
         private ChunkState _chunk;
-        private byte[] _data;
         private uint _packSize;
         private long _offsetOffset;
+        private Stream _dataSlab;
 
-        public static ChunkBuilder Create(BA2DX10EntryState state, ChunkState chunk, Stream src)
+        public static ChunkBuilder Create(BA2DX10EntryState state, ChunkState chunk, Stream src, DiskSlabAllocator slab)
         {
             var builder = new ChunkBuilder {_chunk = chunk};
 
-            using (var ms = new MemoryStream())
-            {
-                src.CopyToLimit(ms, (int)chunk.FullSz);
-                builder._data = ms.ToArray();
+            if (!chunk.Compressed)
+            { 
+                builder._dataSlab = slab.Allocate(chunk.FullSz);
+                src.CopyToLimit(builder._dataSlab, (int)chunk.FullSz);
             }
-
-            if (!chunk.Compressed) return builder;
-            
-            using (var ms = new MemoryStream())
+            else
             {
+                using var ms = new MemoryStream();
                 using (var ds = new DeflaterOutputStream(ms))
                 {
-                    ds.Write(builder._data, 0, builder._data.Length);
+                    ds.IsStreamOwner = false;
+                    src.CopyToLimit(ds, (int)chunk.FullSz);
                 }
 
-                builder._data = ms.ToArray();
+                builder._dataSlab = slab.Allocate(ms.Length);
+                ms.Position = 0;
+                ms.CopyTo(builder._dataSlab);
+                builder._packSize = (uint)ms.Length;
             }
-
-            builder._packSize = (uint) builder._data.Length;
+            builder._dataSlab.Position = 0;
 
             return builder;
         }
@@ -198,40 +204,43 @@ namespace Compression.BSA
             bw.BaseStream.Position = _offsetOffset;
             bw.Write((ulong)pos);
             bw.BaseStream.Position = pos;
-            bw.BaseStream.Write(_data, 0, _data.Length);
+            _dataSlab.CopyToLimit(bw.BaseStream, (int)_dataSlab.Length);
+            _dataSlab.Dispose();
         }
     }
 
     public class BA2FileEntryBuilder : IFileBuilder
     {
-        private byte[] _data;
         private int _rawSize;
         private int _size;
         private BA2FileEntryState _state;
         private long _offsetOffset;
+        private Stream _dataSrc;
 
-        public static BA2FileEntryBuilder Create(BA2FileEntryState state, Stream src)
+        public static BA2FileEntryBuilder Create(BA2FileEntryState state, Stream src, DiskSlabAllocator slab)
         {
-            var builder = new BA2FileEntryBuilder {_state = state};
+            var builder = new BA2FileEntryBuilder
+            {
+                _state = state, 
+                _rawSize = (int)src.Length,
+                _dataSrc = src
+            };
+            if (!state.Compressed)
+                return builder;
 
             using (var ms = new MemoryStream())
             {
-                src.CopyTo(ms);
-                builder._data = ms.ToArray();
-            }
-            builder._rawSize = builder._data.Length;
-
-            if (state.Compressed)
-            {
-                using (var ms = new MemoryStream())
+                using (var ds = new DeflaterOutputStream(ms))
                 {
-                    using (var ds = new DeflaterOutputStream(ms))
-                    {
-                        ds.Write(builder._data, 0, builder._data.Length);
-                    }
-                    builder._data = ms.ToArray();
+                    ds.IsStreamOwner = false;
+                    builder._dataSrc.CopyTo(ds);
                 }
-                builder._size = builder._data.Length;
+
+                builder._dataSrc = slab.Allocate(ms.Length);
+                ms.Position = 0;
+                ms.CopyTo(builder._dataSrc);
+                builder._dataSrc.Position = 0;
+                builder._size = (int)ms.Length;
             }
             return builder;
         }
@@ -257,10 +266,12 @@ namespace Compression.BSA
         public void WriteData(BinaryWriter wtr)
         {
             var pos = wtr.BaseStream.Position;
-            wtr.BaseStream.Seek(_offsetOffset, SeekOrigin.Begin);
+            wtr.BaseStream.Position = _offsetOffset;
             wtr.Write((ulong)pos);
             wtr.BaseStream.Position = pos;
-            wtr.BaseStream.Write(_data, 0, _data.Length);
+            _dataSrc.Position = 0;
+            _dataSrc.CopyToLimit(wtr.BaseStream, (int)_dataSrc.Length);
+            _dataSrc.Dispose();
         }
     }
 }
