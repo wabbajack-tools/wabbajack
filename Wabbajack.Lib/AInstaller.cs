@@ -383,7 +383,7 @@ namespace Wabbajack.Lib
                 Directory.EnumerateDirectories(OutputFolder, DirectoryEnumerationOptions.Recursive)
                     .Where(p => !expectedFolders.Contains(p))
                     .OrderByDescending(p => p.Length)
-                    .Do(Utils.DeleteDirectory);
+                    .Do(s => Utils.DeleteDirectory((AbsolutePath)s).Wait());
             }
             catch (Exception)
             {

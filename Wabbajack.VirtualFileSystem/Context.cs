@@ -22,7 +22,7 @@ namespace Wabbajack.VirtualFileSystem
         static Context()
         {
             Utils.Log("Cleaning VFS, this may take a bit of time");
-            Utils.DeleteDirectory(_stagingFolder);
+            Utils.DeleteDirectory((AbsolutePath)_stagingFolder).Wait();
         }
         public const ulong FileVersion = 0x03;
         public const string Magic = "WABBAJACK VFS FILE";
@@ -236,7 +236,7 @@ namespace Wabbajack.VirtualFileSystem
                 paths.Do(p =>
                 {
                     if (Directory.Exists(p))
-                        Utils.DeleteDirectory(p);
+                        Utils.DeleteDirectory((AbsolutePath)p).Wait();
                 });
             };
         }
@@ -429,7 +429,7 @@ namespace Wabbajack.VirtualFileSystem
         public void Dispose()
         {
             if (Directory.Exists(FullName)) 
-                Utils.DeleteDirectory(FullName);
+                Utils.DeleteDirectory((AbsolutePath)FullName);
         }
     }
 }

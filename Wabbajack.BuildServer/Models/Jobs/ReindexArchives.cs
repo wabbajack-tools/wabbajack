@@ -56,7 +56,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
                             await sql.MergeVirtualFile(root);
                             Utils.Log($"({completed}/{total_count}) Cleaning up {file}");
-                            Utils.DeleteDirectory(folder);
+                            await Utils.DeleteDirectory((AbsolutePath)folder);
                         }
                         catch (Exception ex)
                         {

@@ -181,7 +181,7 @@ namespace Wabbajack.Lib
 
 
             Utils.Log("Removing ModList staging folder");
-            Utils.DeleteDirectory(ModListOutputFolder);
+            Utils.DeleteDirectory((AbsolutePath)ModListOutputFolder).Wait();
         }
 
         public void GenerateManifest()

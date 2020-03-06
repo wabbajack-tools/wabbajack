@@ -505,7 +505,7 @@ namespace Wabbajack.Test
             };
             
             if (Directory.Exists("DownloadTests"))
-                Utils.DeleteDirectory("DownloadTests");
+                await Utils.DeleteDirectory((AbsolutePath)"DownloadTests");
             Directory.CreateDirectory("DownloadTests");
             
             var inst = new TestInstaller(null, null, null, "DownloadTests", null);

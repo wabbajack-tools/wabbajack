@@ -133,7 +133,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Cleaning output folder");
             if (Directory.Exists(ModListOutputFolder))
-                Utils.DeleteDirectory(ModListOutputFolder);
+                await Utils.DeleteDirectory((AbsolutePath)ModListOutputFolder);
 
             
             if (cancel.IsCancellationRequested) return false;

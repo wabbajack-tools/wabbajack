@@ -18,7 +18,13 @@ namespace Wabbajack.Common.Http
             return await SendAsync(request, responseHeadersRead);
         }
         
-        
+        public async Task GetStreamAsync(string url, Stream ret)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using var response = await SendAsync(request);
+            await response.Content.CopyToAsync(ret);
+        }
+       
         public async Task<HttpResponseMessage> PostAsync(string url, HttpContent content, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, url) {Content = content};
@@ -62,12 +68,13 @@ namespace Wabbajack.Common.Http
                 var response = await ClientFactory.Client.SendAsync(msg, responseHeadersRead);
                 return response;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 if (retries > Consts.MaxHTTPRetries) throw;
 
                 retries++;
                 Utils.Log($"Http Connect error to {msg.RequestUri} retry {retries}");
+                Utils.Log(ex.ToString());
                 await Task.Delay(100 * retries);
                 msg = CloneMessage(msg);
                 goto TOP;
@@ -85,5 +92,6 @@ namespace Wabbajack.Common.Http
             return new_message;
 
         }
+
     }
 }

@@ -23,8 +23,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
         public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {
             var doc = new HtmlDocument();
-            var body = await new HttpClient().GetStringAsync(new Uri(
-                "https://forum.step-project.com/topic/13894-dyndolod-beta-for-skyrim-special-edition-and-skyrim-vr-279/"));
+            var body = await new Common.Http.Client().GetStringAsync("https://forum.step-project.com/topic/13894-dyndolod-beta-for-skyrim-special-edition-and-skyrim-vr-279/");
             doc.LoadHtml(body);
 
             var matches =

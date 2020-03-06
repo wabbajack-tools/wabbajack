@@ -28,11 +28,11 @@ namespace Wabbajack.Common
         /// <param name="value"></param>
         public static async Task Send(string action, string value)
         {
-            var client = new HttpClient();
+            var client = new Http.Client();
             try
             {
-                client.DefaultRequestHeaders.Add(Consts.MetricsKeyHeader,
-                    Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader));
+                client.Headers.Add((Consts.MetricsKeyHeader,
+                    Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader)));
                 await client.GetAsync($"http://build.wabbajack.org/metrics/{action}/{value}");
             }
             catch (Exception ex)

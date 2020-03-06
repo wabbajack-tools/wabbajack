@@ -43,6 +43,7 @@ namespace Compression.BSA.Test
             var modIDs = new[]
             {
                 (Game.SkyrimSpecialEdition, 12604), // SkyUI
+                (Game.SkyrimSpecialEdition, 695),
                 (Game.Skyrim, 3863), // SkyUI
                 (Game.Skyrim, 51473), // iNeed
                 //(Game.Fallout4, 22223) // 10mm SMG
@@ -94,7 +95,7 @@ namespace Compression.BSA.Test
         {
             TestContext.WriteLine($"From {bsa}");
             TestContext.WriteLine("Cleaning Output Dir");
-            if (Directory.Exists(_tempDir)) Utils.DeleteDirectory(_tempDir);
+            if (Directory.Exists(_tempDir)) await Utils.DeleteDirectory((AbsolutePath)_tempDir);
             Directory.CreateDirectory(_tempDir);
 
             TestContext.WriteLine($"Reading {bsa}");

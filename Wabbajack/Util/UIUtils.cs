@@ -86,13 +86,9 @@ namespace Wabbajack
                     try
                     {
                         var ret = new MemoryStream();
-                        using (var client = new HttpClient())
-                        using (var stream = await client.GetStreamAsync(url))
-                        {
-                            stream.CopyTo(ret);
-                        }
-
-                        ret.Seek(0, SeekOrigin.Begin);
+                        var client = new Common.Http.Client();
+                        await client.GetStreamAsync(url, ret);
+                        ret.Position = 0;
                         return ret;
                     }
                     catch (Exception ex)

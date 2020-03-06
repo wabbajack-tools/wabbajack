@@ -8,26 +8,18 @@ namespace Wabbajack.Common.StatusFeed.Errors
 {
     public class _7zipReturnError : AErrorMessage
     {
-        public string Destination { get; }
-        public string Filename;
+        public AbsolutePath Destination { get; }
+        public AbsolutePath Filename { get; }
         public int Code;
-        public string _7zip_output;
         public override string ShortDescription => $"7Zip returned an error while executing";
 
-        public override string ExtendedDescription =>
-            $@"7Zip.exe should always return 0 when it finishes executing. While extracting {Filename} 7Zip encountered some error and
-instead returned {Code} which indicates there was an error. The archive might be corrupt or in a format that 7Zip cannot handle. Please verify the file is valid and that you
-haven't run out of disk space in the {Destination} folder.
+        public override string ExtendedDescription => $@"Error extracting data from {(string)Filename} to {(string)Destination} via 7zip, error code {Code}, full error output is in the log";
 
-7Zip Output:
-{_7zip_output}";
-
-        public _7zipReturnError(int code, string filename, string destination, string output)
+        public _7zipReturnError(int code, AbsolutePath filename, AbsolutePath destination)
         {
             Code = code;
             Filename = filename;
             Destination = destination;
-            _7zip_output = output;
         }
     }
 }

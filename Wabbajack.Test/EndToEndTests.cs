@@ -85,7 +85,7 @@ namespace Wabbajack.Test
 
             var loot_folder = Path.Combine(utils.InstallFolder, "LOOT Config Files");
             if (Directory.Exists(loot_folder))
-                Utils.DeleteDirectory(loot_folder);
+                await Utils.DeleteDirectory((AbsolutePath)loot_folder);
 
             var compiler = new MO2Compiler(
                 mo2Folder: utils.InstallFolder,

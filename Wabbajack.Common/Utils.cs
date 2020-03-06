@@ -874,12 +874,6 @@ namespace Wabbajack.Common
             new List<bool>().Do(_ => f());
         }
 
-        public static async Task<Stream> PostStream(this HttpClient client, string url, HttpContent content)
-        {
-            var result = await client.PostAsync(url, content);
-            return await result.Content.ReadAsStreamAsync();
-        }
-
         public static IEnumerable<T> DistinctBy<T, V>(this IEnumerable<T> vs, Func<T, V> select)
         {
             var set = new HashSet<V>();
@@ -1214,41 +1208,21 @@ namespace Wabbajack.Common
         /// delete a folder. If you don't like this code, it's unlikely to change without a ton of testing.
         /// </summary>
         /// <param name="path"></param>
-        public static void DeleteDirectory(string path)
+        public static async Task DeleteDirectory(AbsolutePath path)
         {
-            var info = new ProcessStartInfo
+            var process = new ProcessHelper
             {
-                FileName = "cmd.exe",
-                Arguments = $"/c del /f /q /s \"{path}\" && rmdir /q /s \"{path}\" ",
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
+                Path = ((RelativePath)"cmd.exe").RelativeToSystemDirectory(),
+                Arguments = new object[] {"/c", "del", "/f", "/q", "/s", path, "&&", "rmdir", "/q", "/s", path},
             };
+            var result = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
+                .ForEachAsync(p =>
+                {
+                    Status($"Deleting: {p.Line}");
+                });
 
-            var p = new Process
-            {
-                StartInfo = info
-            };
-
-            p.Start();
-            ChildProcessTracker.AddProcess(p);
-            try
-            {
-                p.PriorityClass = ProcessPriorityClass.BelowNormal;
-            }
-            catch (Exception)
-            {
-            }
-
-            while (!p.HasExited)
-            {
-                var line = p.StandardOutput.ReadLine();
-                if (line == null) break;
-                Status(line);
-            }
-            p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Deletion process of {path}");
+            var exit = await process.Start();
+            await result;
         }
 
         public static bool IsUnderneathDirectory(string path, string dirPath)

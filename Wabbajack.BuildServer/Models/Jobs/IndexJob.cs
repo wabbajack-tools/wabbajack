@@ -61,7 +61,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     File.Delete(downloadDest);
                 else
                     File.Move(downloadDest, to_path);
-                Utils.DeleteDirectory(Path.Combine(settings.DownloadDir, folder));
+                await Utils.DeleteDirectory((AbsolutePath)Path.Combine(settings.DownloadDir, folder));
                 
             }
             

@@ -218,16 +218,13 @@ namespace Wabbajack.VirtualFileSystem
         {
             try
             {
-                var client = new HttpClient();
-                var response = await client.GetAsync($"http://{Consts.WabbajackCacheHostname}/indexed_files/{hash.FromBase64().ToHex()}");
+                var client = new Common.Http.Client();
+                using var response = await client.GetAsync($"http://{Consts.WabbajackCacheHostname}/indexed_files/{hash.FromBase64().ToHex()}");
                 if (!response.IsSuccessStatusCode)
                     return null;
 
-                using (var stream = await response.Content.ReadAsStreamAsync())
-                {
-                    return stream.FromJSON<IndexedVirtualFile>();
-                }
-
+                await using var stream = await response.Content.ReadAsStreamAsync();
+                return stream.FromJSON<IndexedVirtualFile>();
             }
             catch (Exception ex)
             {
@@ -238,10 +235,8 @@ namespace Wabbajack.VirtualFileSystem
 
         public void Write(MemoryStream ms)
         {
-            using (var bw = new BinaryWriter(ms, Encoding.UTF8, true))
-            {
-                Write(bw);
-            }
+            using var bw = new BinaryWriter(ms, Encoding.UTF8, true);
+            Write(bw);
         }
 
         private void Write(BinaryWriter bw)

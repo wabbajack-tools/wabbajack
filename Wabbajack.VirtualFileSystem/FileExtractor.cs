@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
@@ -27,7 +28,7 @@ namespace Wabbajack.VirtualFileSystem
                 else if (source.EndsWith(".exe"))
                     ExtractAllWithInno(source, dest);
                 else
-                    ExtractAllWith7Zip(source, dest);
+                    await ExtractAllWith7Zip((AbsolutePath)source, (AbsolutePath)dest);
             }
             catch (Exception ex)
             {
@@ -158,60 +159,34 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        private static void ExtractAllWith7Zip(string source, string dest)
-        {
-            Utils.Log(new GenericInfo($"Extracting {Path.GetFileName(source)}", $"The contents of {source} are being extracted to {dest} using 7zip.exe"));
 
-            var info = new ProcessStartInfo
+        private static AbsolutePath SevenZipExe = ((RelativePath)@"Extractors\7z").RelativeToEntryPoint();
+        private static async Task ExtractAllWith7Zip(AbsolutePath source, AbsolutePath dest)
+        {
+            Utils.Log(new GenericInfo($"Extracting {(string)source.FileName}", $"The contents of {(string)source} are being extracted to {(string)dest} using 7zip.exe"));
+
+            var process = new ProcessHelper
             {
-                FileName = @"Extractors\7z.exe",
-                Arguments = $"x -bsp1 -y -o\"{dest}\" \"{source}\" -mmt=off",
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
+                Path = SevenZipExe,
+                Arguments = new object[] {"x", "-bsp1", "-y", "-o\"" + (string)dest+"\"", source, "-mmt=off"}
             };
 
-            var p = new Process {StartInfo = info};
-
-            p.Start();
-            ChildProcessTracker.AddProcess(p);
-            try
-            {
-                p.PriorityClass = ProcessPriorityClass.BelowNormal;
-            }
-            catch (Exception)
-            {
-            }
-
-            var name = Path.GetFileName(source);
-            try
-            {
-                while (!p.HasExited)
+            var fileName = source.FileName;
+            var result = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
+                .ForEachAsync(p =>
                 {
-                    var line = p.StandardOutput.ReadLine();
-                    if (line == null)
-                        break;
+                    var line = p.Line;
+                    if (line.Length <= 4 || line[3] != '%') return; 
+                    int.TryParse(line.Substring(0, 3), out var percentInt); 
+                    Utils.Status($"Extracting {(string)fileName} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
+                });
 
-                    if (line.Length <= 4 || line[3] != '%') continue;
-
-                    int.TryParse(line.Substring(0, 3), out var percentInt);
-                    Utils.Status($"Extracting {name} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
-                }
-            }
-            catch (Exception)
+            var code = await process.Start();
+            await result;
+            if (code != 0)
             {
+                Utils.Error(new _7zipReturnError(code, source, dest));
             }
-
-            p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Extracting {name}");
-
-            if (p.ExitCode == 0)
-            {
-                Utils.Status($"Extracting {name} - 100%", Percent.One, alsoLog: true);
-                return;
-            }
-            Utils.Error(new _7zipReturnError(p.ExitCode, source, dest, p.StandardOutput.ReadToEnd()));
         }
 
         /// <summary>
