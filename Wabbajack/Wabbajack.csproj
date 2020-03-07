@@ -69,7 +69,7 @@
     <PackageReference Include="PInvoke.Gdi32" Version="0.6.6" />
     <PackageReference Include="PInvoke.User32" Version="0.6.6" />
     <PackageReference Include="ReactiveUI" Version="11.2.3" />
-    <PackageReference Include="ReactiveUI.Fody" Version="11.1.23" />
+    <PackageReference Include="ReactiveUI.Fody" Version="11.2.3" />
     <PackageReference Include="ReactiveUI.WPF" Version="11.1.23" />
     <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
