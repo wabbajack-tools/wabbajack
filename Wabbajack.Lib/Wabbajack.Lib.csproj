@@ -46,7 +46,7 @@
         <Version>11.2.3</Version>
       </PackageReference>
       <PackageReference Include="ReactiveUI.Fody">
-        <Version>11.1.23</Version>
+        <Version>11.2.3</Version>
       </PackageReference>
       <PackageReference Include="SharpCompress">
         <Version>0.24.0</Version>
