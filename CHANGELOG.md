@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 1.1.1.0 - 3/9/2020
+* Hotfix for Virtual Memory errors while creating BSAs
+
 #### Version - 1.1.0.0 - 3/5/2020
 * Binary Patching stores temporary and patch data on disk instead of memory (reducing memory usage)
 * Fix a memory leak with diffing progress reporting
