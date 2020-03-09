@@ -163,9 +163,9 @@ namespace Compression.BSA
 
         }
 
-        public override IBSABuilder MakeBuilder()
+        public override IBSABuilder MakeBuilder(long size)
         {
-            return new BSABuilder(this);
+            return new BSABuilder(this, size);
         }
 
         public string Magic { get; set; }

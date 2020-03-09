@@ -237,7 +237,7 @@ namespace Wabbajack.Lib
                 Status($"Building {bsa.To}");
                 var sourceDir = Path.Combine(OutputFolder, Consts.BSACreationDir, bsa.TempID);
 
-                using (var a = bsa.State.MakeBuilder())
+                using (var a = bsa.State.MakeBuilder(bsa.Size))
                 {
                     var streams = await bsa.FileStates.PMap(Queue, state =>
                     {

@@ -22,7 +22,7 @@ namespace Compression.BSA
 
     public class ArchiveStateObject
     {
-        public virtual IBSABuilder MakeBuilder()
+        public virtual IBSABuilder MakeBuilder(long size)
         {
             throw new NotImplementedException();
         }

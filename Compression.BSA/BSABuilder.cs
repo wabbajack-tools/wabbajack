@@ -25,14 +25,14 @@ namespace Compression.BSA
         internal uint _version;
         internal DiskSlabAllocator _slab;
 
-        public BSABuilder()
+        public BSABuilder(long size)
         {
             _fileId = Encoding.ASCII.GetBytes("BSA\0");
             _offset = 0x24;
-            _slab = new DiskSlabAllocator();
+            _slab = new DiskSlabAllocator(size);
         }
 
-        public BSABuilder(BSAStateObject bsaStateObject) : this()
+        public BSABuilder(BSAStateObject bsaStateObject, long size) : this(size)
         {
             _version = bsaStateObject.Version;
             _fileFlags = bsaStateObject.FileFlags;
