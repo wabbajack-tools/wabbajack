@@ -27,10 +27,10 @@ namespace Compression.BSA
         private List<IFileBuilder> _entries = new List<IFileBuilder>();
         private DiskSlabAllocator _slab;
 
-        public BA2Builder(BA2StateObject state)
+        public BA2Builder(BA2StateObject state, long size)
         {
             _state = state;
-            _slab = new DiskSlabAllocator();
+            _slab = new DiskSlabAllocator(size);
         }
         
         public void Dispose()

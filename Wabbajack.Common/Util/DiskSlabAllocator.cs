@@ -14,11 +14,13 @@ namespace Wabbajack.Common
         private MemoryMappedFile _mmap;
         private long _head = 0;
         private string _name;
+        private FileStream _fileStream;
 
-        public DiskSlabAllocator()
+        public DiskSlabAllocator(long size)
         {
-            _name = Guid.NewGuid().ToString();
-            _mmap = MemoryMappedFile.CreateNew(null, (long)1 << 34);
+            _file = new TempFile();
+            _fileStream = _file.File.Open(FileMode.Create, FileAccess.ReadWrite);
+            _mmap = MemoryMappedFile.CreateFromFile(_fileStream, null, size, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
         }
 
         public Stream Allocate(long size)
@@ -34,6 +36,8 @@ namespace Wabbajack.Common
         public void Dispose()
         {
             _mmap?.Dispose();
+            _fileStream?.Dispose();
+            _file?.Dispose();
         }
     }
 }

@@ -99,6 +99,7 @@ namespace Compression.BSA.Test
 
             TestContext.WriteLine($"Reading {bsa}");
             string tempFile = Path.Combine("tmp.bsa");
+            var size = File.GetSize(bsa);
             using (var a = BSADispatch.OpenRead(bsa))
             {
                 await a.Files.PMap(Queue, file =>
@@ -120,7 +121,7 @@ namespace Compression.BSA.Test
 
                 Console.WriteLine($"Building {bsa}");
 
-                using (var w = ViaJson(a.State).MakeBuilder())
+                using (var w = ViaJson(a.State).MakeBuilder(size))
                 {
                     var streams = await a.Files.PMap(Queue, file =>
                     {

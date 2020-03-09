@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -237,7 +238,9 @@ namespace Wabbajack.Lib
                 Status($"Building {bsa.To}");
                 var sourceDir = Path.Combine(OutputFolder, Consts.BSACreationDir, bsa.TempID);
 
-                using (var a = bsa.State.MakeBuilder())
+                var bsaSize = bsa.FileStates.Select(state => File.GetSize(Path.Combine(sourceDir, state.Path))).Sum();
+
+                using (var a = bsa.State.MakeBuilder(bsaSize))
                 {
                     var streams = await bsa.FileStates.PMap(Queue, state =>
                     {
