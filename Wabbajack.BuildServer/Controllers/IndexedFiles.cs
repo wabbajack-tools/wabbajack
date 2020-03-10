@@ -29,7 +29,7 @@ namespace Wabbajack.BuildServer.Controllers
     {
         private SqlService _sql;
 
-        public IndexedFiles(ILogger<IndexedFiles> logger, DBContext db, SqlService sql) : base(logger, db)
+        public IndexedFiles(ILogger<IndexedFiles> logger, DBContext db, SqlService sql) : base(logger, db, sql)
         {
             _sql = sql;
         }

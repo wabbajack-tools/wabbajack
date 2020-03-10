@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 
@@ -16,7 +17,7 @@ namespace Wabbajack.BuildServer.Controllers
     [Route("/jobs")]
     public class Jobs : AControllerBase<Jobs>
     {
-        public Jobs(ILogger<Jobs> logger, DBContext db) : base(logger, db)
+        public Jobs(ILogger<Jobs> logger, DBContext db, SqlService sql) : base(logger, db, sql)
         {
         }
 

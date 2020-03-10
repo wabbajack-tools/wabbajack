@@ -17,6 +17,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Nettle;
 using Org.BouncyCastle.Crypto.Engines;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.BuildServer.Models.Jobs;
@@ -33,7 +34,7 @@ namespace Wabbajack.BuildServer.Controllers
         private static ConcurrentDictionary<string, AsyncLock> _writeLocks = new ConcurrentDictionary<string, AsyncLock>();
         private AppSettings _settings;
         
-        public UploadedFiles(ILogger<UploadedFiles> logger, DBContext db, AppSettings settings) : base(logger, db)
+        public UploadedFiles(ILogger<UploadedFiles> logger, DBContext db, AppSettings settings, SqlService sql) : base(logger, db, sql)
         {
             _settings = settings;
         }

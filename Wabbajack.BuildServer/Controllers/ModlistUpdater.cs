@@ -30,7 +30,7 @@ namespace Wabbajack.BuildServer.Controllers
         private AppSettings _settings;
         private SqlService _sql;
 
-        public ModlistUpdater(ILogger<ModlistUpdater> logger, DBContext db, SqlService sql, AppSettings settings) : base(logger, db)
+        public ModlistUpdater(ILogger<ModlistUpdater> logger, DBContext db, SqlService sql, AppSettings settings) : base(logger, db, sql)
         {
             _settings = settings;
             _sql = sql;
@@ -91,6 +91,7 @@ namespace Wabbajack.BuildServer.Controllers
         {
             var startingHash = xxHash.FromHex().ToBase64();
             Utils.Log($"Alternative requested for {startingHash}");
+            await Metric("requested_upgrade", startingHash);
 
             var state = await Db.DownloadStates.AsQueryable()
                 .Where(s => s.Hash == startingHash)
@@ -101,6 +102,17 @@ namespace Wabbajack.BuildServer.Controllers
                 return NotFound("Original state not found");
 
             var nexusState = state.State as NexusDownloader.State;
+            var nexusGame = GameRegistry.GetByFuzzyName(nexusState.GameName).NexusName;
+            var mod_files = await Db.NexusModFiles.AsQueryable()
+                .Where(f => f.Game == nexusGame && f.ModId == nexusState.ModID)
+                .ToListAsync();
+
+            if (mod_files.SelectMany(f => f.Data.files)
+                .Any(f => f.category_name != null && f.file_id.ToString() == nexusState.FileID))
+            {
+                await Metric("not_required_upgrade", startingHash);
+                return BadRequest("Upgrade Not Required");
+            }
 
             Utils.Log($"Found original, looking for alternatives to {startingHash}");
             var newArchive = await FindAlternatives(nexusState, startingHash);

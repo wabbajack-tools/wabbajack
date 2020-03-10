@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.Lib.NexusApi;
 
@@ -13,7 +14,7 @@ namespace Wabbajack.BuildServer.Controllers
     [Route("/v1/games/")]
     public class NexusCache : AControllerBase<NexusCache>
     {
-        public NexusCache(ILogger<NexusCache> logger, DBContext db) : base(logger, db)
+        public NexusCache(ILogger<NexusCache> logger, DBContext db, SqlService sql) : base(logger, db, sql)
         {
         }
 

@@ -21,7 +21,7 @@ namespace Wabbajack.BuildServer.Controllers
     {
         private SqlService _sql;
 
-        public MetricsController(ILogger<MetricsController> logger, DBContext db, SqlService sql) : base(logger, db)
+        public MetricsController(ILogger<MetricsController> logger, DBContext db, SqlService sql) : base(logger, db, sql)
         {
             _sql = sql;
         }

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Ceras;
+using MongoDB.Bson.Serialization.Attributes;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed.Errors;
@@ -122,6 +123,7 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
+        [BsonIgnoreExtraElements]
         public class State : AbstractDownloadState, IMetaState
         {
             public string URL => $"http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID}";

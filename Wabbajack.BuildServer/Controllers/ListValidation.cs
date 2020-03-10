@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Nettle;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.Common;
 using Wabbajack.Lib.ModListRegistry;
@@ -20,7 +21,7 @@ namespace Wabbajack.BuildServer.Controllers
     [Route("/lists")]
     public class ListValidation : AControllerBase<ListValidation>
     {
-        public ListValidation(ILogger<ListValidation> logger, DBContext db) : base(logger, db)
+        public ListValidation(ILogger<ListValidation> logger, DBContext db, SqlService sql) : base(logger, db, sql)
         {
         }
         

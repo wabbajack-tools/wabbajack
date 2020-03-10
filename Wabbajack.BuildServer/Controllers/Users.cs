@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.Common;
 
@@ -15,7 +16,7 @@ namespace Wabbajack.BuildServer.Controllers
     [Route("/users")]
     public class Users : AControllerBase<Users>
     {
-        public Users(ILogger<Users> logger, DBContext db) : base(logger, db)
+        public Users(ILogger<Users> logger, DBContext db, SqlService sql) : base(logger, db, sql)
         {
         }
         

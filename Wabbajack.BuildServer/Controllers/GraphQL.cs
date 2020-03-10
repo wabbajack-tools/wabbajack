@@ -15,7 +15,7 @@ namespace Wabbajack.BuildServer.Controllers
     {
         private SqlService _sql;
 
-        public GraphQL(ILogger<GraphQL> logger, DBContext db, SqlService sql) : base(logger, db)
+        public GraphQL(ILogger<GraphQL> logger, DBContext db, SqlService sql) : base(logger, db, sql)
         {
             _sql = sql;
         }
