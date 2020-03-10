@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.CompilationSteps.CompilationErrors;
+using Wabbajack.Util;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -197,15 +198,20 @@ namespace Wabbajack.Test
                     "iSize H=3", 
                     "iSize W=-200",
                     "[Display]",
-                    "foo=4"
+                    "foo=4",
+                    "[MEMORY]",
+                    "VideoMemorySizeMb=22"
                 });
 
             var modlist = await CompileAndInstall(profile);
 
             var ini = Path.Combine(utils.InstallFolder, "profiles", profile, "somegameprefs.ini").LoadIniFile();
 
+            var sysinfo = SystemParametersConstructor.Create();
+
             Assert.AreEqual(System.Windows.SystemParameters.PrimaryScreenHeight.ToString(), ini?.Display?["iSize H"]);
             Assert.AreEqual(System.Windows.SystemParameters.PrimaryScreenWidth.ToString(), ini?.Display?["iSize W"]);
+            Assert.AreEqual(sysinfo.EnbLEVRAMSize.ToString(), ini?.MEMORY?["VideoMemorySizeMb"]);
         }
 
         [TestMethod]
