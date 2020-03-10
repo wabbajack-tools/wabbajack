@@ -78,6 +78,11 @@ namespace Wabbajack.Test
                 "[General]",
                 $"matchAll= {Path.GetFileName(modfiles[2].Download)}"
             });
+            
+            File.WriteAllLines(Path.Combine(utils.MO2Folder, "startup.bat"), new []
+            {
+                "ModOrganizer2.exe SKSE"
+            });
 
 
             var modlist = await CompileAndInstall(profile);

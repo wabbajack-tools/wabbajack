@@ -315,16 +315,32 @@ namespace Wabbajack.Lib
                 {
                     var parser = new FileIniDataParser(new IniDataParser(config));
                     var data = parser.ReadFile(file);
-                    if (data.Sections["Display"] == null)
-                        return;
-
-                    if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
+                    bool modified = false;
+                    if (data.Sections["Display"] != null)
                     {
-                        data.Sections["Display"]["iSize W"] = SystemParameters.ScreenWidth.ToString(CultureInfo.CurrentCulture);
-                        data.Sections["Display"]["iSize H"] = SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture);
+
+                        if (data.Sections["Display"]["iSize W"] != null && data.Sections["Display"]["iSize H"] != null)
+                        {
+                            data.Sections["Display"]["iSize W"] =
+                                SystemParameters.ScreenWidth.ToString(CultureInfo.CurrentCulture);
+                            data.Sections["Display"]["iSize H"] =
+                                SystemParameters.ScreenHeight.ToString(CultureInfo.CurrentCulture);
+                            modified = true;
+                        }
+
+                    }
+                    if (data.Sections["MEMORY"] != null)
+                    {
+                        if (data.Sections["MEMORY"]["VideoMemorySizeMb"] != null)
+                        {
+                            data.Sections["MEMORY"]["VideoMemorySizeMb"] =
+                                SystemParameters.EnbLEVRAMSize.ToString(CultureInfo.CurrentCulture);
+                            modified = true;
+                        }
                     }
 
-                    parser.WriteFile(file, data);
+                    if (modified) 
+                        parser.WriteFile(file, data);
                 }
                 catch (Exception ex)
                 {

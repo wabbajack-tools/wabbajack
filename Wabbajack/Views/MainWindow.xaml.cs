@@ -7,6 +7,7 @@ using MahApps.Metro.Controls;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.LibCefHelpers;
+using Wabbajack.Util;
 using Application = System.Windows.Application;
 using Utils = Wabbajack.Common.Utils;
 
@@ -31,6 +32,9 @@ namespace Wabbajack
             };
 
             Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
+            var p = SystemParametersConstructor.Create();
+            Utils.Log(
+                $"System settings - ({p.SystemMemorySize.ToFileSizeString()} RAM), Display: {p.ScreenWidth} x {p.ScreenHeight} ({p.VideoMemorySize.ToFileSizeString()} VRAM - VideoMemorySizeMb={p.EnbLEVRAMSize})");
 
             // Run logic to associate wabbajack lists with this app in the background
             Task.Run(async () =>

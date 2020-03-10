@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using MahApps.Metro.Controls;
 using Microsoft.VisualBasic;
 using PInvoke;
+using SharpDX.DXGI;
 using Wabbajack.Lib;
 using static PInvoke.User32;
 using static PInvoke.Gdi32;
@@ -44,10 +45,17 @@ namespace Wabbajack.Util
         public static SystemParameters Create()
         {
             var (width, height, _) = GetDisplays().First(d => d.IsPrimary);
+            
+            using var f = new Factory1();
+            var video_memory = f.Adapters1.Select(a =>
+                Math.Max(a.Description.DedicatedSystemMemory, (long)a.Description.DedicatedVideoMemory)).Max();
+            var memory = Common.Utils.GetMemoryStatus();
             return new SystemParameters
             {
                 ScreenWidth = width,
-                ScreenHeight = height
+                ScreenHeight = height,
+                VideoMemorySize = video_memory,
+                SystemMemorySize = (long)memory.ullTotalPhys
             };
         }
     }
