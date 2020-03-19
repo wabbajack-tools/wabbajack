@@ -59,7 +59,7 @@ namespace Wabbajack.Lib
                 if (otherGame != null)
                 {
                     await Utils.Log(new CriticalFailureIntervention(
-                            $"In order to do a proper install Wabbajack needs to know where your {game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed, we did however find a installed" +
+                            $"In order to do a proper install Wabbajack needs to know where your {game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed, we did however find a installed " +
                             $"copy of {otherGame.HumanFriendlyGameName}, did you install the wrong game?",
                             $"Could not locate {game.HumanFriendlyGameName}"))
                         .Task;

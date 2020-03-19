@@ -334,7 +334,8 @@ namespace Wabbajack.Common
                     {
                         "SkyrimVR.exe"
                     },
-                    MainExecutable = "SkyrimVR.exe"
+                    MainExecutable = "SkyrimVR.exe",
+                    CommonlyConfusedWith = new []{Game.Skyrim, Game.SkyrimSpecialEdition}
                 }
             },
             {
