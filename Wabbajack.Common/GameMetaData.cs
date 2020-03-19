@@ -18,6 +18,7 @@ namespace Wabbajack.Common
         Fallout3,
         [Description("Fallout New Vegas")]
         FalloutNewVegas,
+        [Description("Skyrim Legendary Edition")]
         Skyrim,
         [Description("Skyrim Special Edition")]
         SkyrimSpecialEdition,
@@ -63,6 +64,9 @@ namespace Wabbajack.Common
         // Nexus DB id for the game, used in some specific situations
         public long NexusGameId { get; internal set; }
         public string MO2Name { get; internal set; }
+
+        public string HumanFriendlyGameName => Game.GetDescription();
+        
         public string GameLocationRegistryKey { get; internal set; }
         // to get steam ids: https://steamdb.info
         public List<int> SteamIDs { get; internal set; }
@@ -73,6 +77,9 @@ namespace Wabbajack.Common
         // file to check if the game is present, useful when steamIds and gogIds dont help
         public List<string> RequiredFiles { get; internal set; }
         public bool Disabled { get; internal set; }
+        
+        // Games that this game are commonly confused with, for example Skyrim SE vs Skyrim LE
+        public Game[] CommonlyConfusedWith { get; set; }
         
         public string InstalledVersion
         {
@@ -101,6 +108,30 @@ namespace Wabbajack.Common
     {
         public GameNotInstalledException(GameMetaData gameMetaData) : base($"Game {gameMetaData.Game} does not appear to be installed.")
         {
+        }
+    }
+    
+    public static class EnumExtensions
+    {
+        public static string GetDescription<T>(this T enumerationValue)
+            where T : struct
+        {
+            var type = enumerationValue.GetType();
+            if(!type.IsEnum)
+            {
+                throw new ArgumentException($"{nameof(enumerationValue)} must be of Enum type", nameof(enumerationValue));
+            }
+            var memberInfo = type.GetMember(enumerationValue.ToString());
+            if(memberInfo.Length > 0)
+            {
+                var attrs = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
+
+                if(attrs.Length > 0)
+                {
+                    return ((DescriptionAttribute)attrs[0]).Description;
+                }
+            }
+            return enumerationValue.ToString();
         }
     }
 
@@ -150,12 +181,17 @@ namespace Wabbajack.Common
                 {
                     SupportedModManager = ModManager.MO2,
                     Game = Game.Morrowind,
-                    Disabled = true,
-                    SteamIDs = new List<int>{0},
+                    Disabled = false,
+                    SteamIDs = new List<int>{22320},
                     NexusName = "morrowind",
                     NexusGameId = 100,
                     MO2Name = "Morrowind",
-                    MO2ArchiveName = "morrowind"
+                    MO2ArchiveName = "morrowind",
+                    RequiredFiles = new List<string>
+                    {
+                        "Morrowind.exe"
+                    },
+                    MainExecutable = "Morrowind.exe"
                 }
             },
             {
@@ -231,7 +267,8 @@ namespace Wabbajack.Common
                     {
                         "tesv.exe"
                     },
-                    MainExecutable = "TESV.exe"
+                    MainExecutable = "TESV.exe",
+                    CommonlyConfusedWith = new [] {Game.SkyrimSpecialEdition, Game.SkyrimVR}
                 }
             },
             {
@@ -249,7 +286,8 @@ namespace Wabbajack.Common
                     {
                         "SkyrimSE.exe"
                     },
-                    MainExecutable = "SkyrimSE.exe"
+                    MainExecutable = "SkyrimSE.exe",
+                    CommonlyConfusedWith = new []{Game.Skyrim, Game.SkyrimVR}
                 }
             },
             {

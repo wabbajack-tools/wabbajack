@@ -55,7 +55,8 @@ namespace Wabbajack.Util
                 ScreenWidth = width,
                 ScreenHeight = height,
                 VideoMemorySize = video_memory,
-                SystemMemorySize = (long)memory.ullTotalPhys
+                SystemMemorySize = (long)memory.ullTotalPhys,
+                WindowsVersion = Environment.OSVersion.Version
             };
         }
     }
