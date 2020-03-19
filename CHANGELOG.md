@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 1.1.2.0 -
+* We now set VRAM settings for Skyrim LE ENBs
+* Fixes for Morrowind Game metadata
+* We now provide suggestions for users who try to install modlists for games they don't have installed
+* We now warn users if they aren't running a modern version of Windows
+
 #### Version - 1.1.1.0 - 3/9/2020
 * Hotfix for Virtual Memory errors while creating BSAs
 
