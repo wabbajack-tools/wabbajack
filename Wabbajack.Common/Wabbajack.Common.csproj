@@ -16,6 +16,10 @@
         <None Update="7Zip\7z.exe">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="Serialization\PrimitiveHandlers.tt">
+          <Generator>TextTemplatingFileGenerator</Generator>
+          <LastGenOutput>PrimitiveHandlers.cs</LastGenOutput>
+        </None>
     </ItemGroup>
     <ItemGroup>
         <Folder Include="KnownFolders\" />
@@ -38,5 +42,10 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Update="Serialization\PrimitiveHandlers.cs">
+        <DependentUpon>PrimitiveHandlers.tt</DependentUpon>
+      </Compile>
     </ItemGroup>
 </Project>
