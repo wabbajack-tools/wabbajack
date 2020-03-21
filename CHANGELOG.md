@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 1.1.2.0 -
+#### Version - 1.1.2.0 - 3/20/2020
 * We now set VRAM settings for Skyrim LE ENBs
 * Fixes for Morrowind Game metadata
 * We now provide suggestions for users who try to install modlists for games they don't have installed
