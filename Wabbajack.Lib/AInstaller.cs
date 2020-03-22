@@ -82,7 +82,7 @@ namespace Wabbajack.Lib
                         return e.FromJSON<ModList>();
                 }
                 using (var e = entry.Open())
-                    return e.FromCERAS<ModList>(CerasConfig.Config);
+                    return e.ReadAsMessagePack<ModList>();
             }
         }
 

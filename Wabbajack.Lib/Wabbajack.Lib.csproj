@@ -12,9 +12,6 @@
       <PackageReference Include="CefSharp.OffScreen">
         <Version>79.1.350</Version>
       </PackageReference>
-      <PackageReference Include="Ceras">
-        <Version>4.1.7</Version>
-      </PackageReference>
       <PackageReference Include="Fody">
         <Version>6.1.1</Version>
       </PackageReference>
@@ -29,6 +26,9 @@
       </PackageReference>
       <PackageReference Include="MegaApiClient">
         <Version>1.7.1</Version>
+      </PackageReference>
+      <PackageReference Include="MessagePackAnalyzer">
+        <Version>2.1.90</Version>
       </PackageReference>
       <PackageReference Include="Microsoft.CSharp">
         <Version>4.7.0</Version>

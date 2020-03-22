@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
+using MessagePack;
 using Wabbajack.Common;
 using Wabbajack.Common.IO;
 using Wabbajack.Lib.Validation;
@@ -69,10 +70,14 @@ namespace Wabbajack.Lib.Downloaders
         public async Task Prepare()
         {
         }
-
+        
+        [MessagePackObject]
         public class State : AbstractDownloadState
         {
+            [Key(0)]
             public string Url { get; set; }
+            
+            [IgnoreMember]
             public override object[] PrimaryKey { get => new object[] {Url}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)

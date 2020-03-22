@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
@@ -16,7 +15,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
-using Ceras;
 using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
 using Newtonsoft.Json;
@@ -52,6 +50,8 @@ namespace Wabbajack.Common
 
         static Utils()
         {
+            MessagePackInit();
+            
             if (!Directory.Exists(Consts.LocalAppDataPath))
                 Directory.CreateDirectory(Consts.LocalAppDataPath);
 
@@ -343,43 +343,6 @@ namespace Wabbajack.Common
             return new DynamicIniData(new FileIniDataParser().ReadData(new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(file)))));
         }
 
-        public static void ToCERAS<T>(this T obj, string filename, SerializerConfig config)
-        {
-            byte[] final;
-            final = ToCERAS(obj, config);
-            File.WriteAllBytes(filename, final);
-        }
-
-        public static byte[] ToCERAS<T>(this T obj, SerializerConfig config)
-        {
-            byte[] final;
-            var ceras = new CerasSerializer(config);
-            byte[] buffer = null;
-            ceras.Serialize(obj, ref buffer);
-
-            using (var m1 = new MemoryStream(buffer))
-            using (var m2 = new MemoryStream())
-            {
-                BZip2.Compress(m1, m2, false, 9);
-                m2.Seek(0, SeekOrigin.Begin);
-                final = m2.ToArray();
-            }
-            return final;
-        }
-
-        public static T FromCERAS<T>(this Stream data, SerializerConfig config)
-        {
-            var ceras = new CerasSerializer(config);
-            byte[] bytes = data.ReadAll();
-            using (var m1 = new MemoryStream(bytes))
-            using (var m2 = new MemoryStream())
-            {
-                BZip2.Decompress(m1, m2, false);
-                m2.Seek(0, SeekOrigin.Begin);
-                return ceras.Deserialize<T>(m2.ToArray());
-            }
-        }
-
         public static void ToJSON<T>(this T obj, string filename)
         {
             if (File.Exists(filename))
@@ -388,18 +351,6 @@ namespace Wabbajack.Common
                 JsonConvert.SerializeObject(obj, Formatting.Indented,
                     new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto}));
         }
-        /*
-        public static void ToBSON<T>(this T obj, string filename)
-        {
-            using (var fo = File.Open(filename, System.IO.FileMode.Create))
-            using (var br = new BsonDataWriter(fo))
-            {
-                fo.SetLength(0);
-                var serializer = JsonSerializer.Create(new JsonSerializerSettings
-                    {TypeNameHandling = TypeNameHandling.Auto});
-                serializer.Serialize(br, obj);
-            }
-        }*/
 
         public static ulong ToMilliseconds(this DateTime date)
         {
@@ -1176,7 +1127,7 @@ namespace Wabbajack.Common
             });
         }
 
-        public static void OpenWebsite(string url)
+        public static void OpenWebsite(Uri url)
         {
             Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
             {

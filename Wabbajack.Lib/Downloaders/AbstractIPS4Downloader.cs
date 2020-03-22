@@ -204,7 +204,7 @@ namespace Wabbajack.Lib.Downloaders
             }
 
             // from IMetaState
-            public string URL => $"{Site}/files/file/{FileName}";
+            public Uri URL => new Uri($"{Site}/files/file/{FileName}");
             public string Name { get; set; }
             public string Author { get; set; }
             public string Version { get; set; }

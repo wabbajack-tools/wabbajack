@@ -1,19 +1,14 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
-using Ceras;
 using MongoDB.Bson.Serialization.Attributes;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
-using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -126,7 +121,7 @@ namespace Wabbajack.Lib.Downloaders
         [BsonIgnoreExtraElements]
         public class State : AbstractDownloadState, IMetaState
         {
-            public string URL => $"http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID}";
+            public Uri URL => new Uri($"http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID}");
 
             public string Name { get; set; }
 

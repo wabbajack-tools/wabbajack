@@ -9,6 +9,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Lib.Validation;
 using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -20,7 +21,7 @@ namespace Wabbajack.Lib
     {
         public string ModListName, ModListAuthor, ModListDescription, ModListImage, ModListWebsite, ModListReadme;
         public bool ReadmeIsWebsite;
-        public string WabbajackVersion;
+        protected Version WabbajackVersion;
 
         public abstract string VFSCacheName { get; }
         //protected string VFSCacheName => Path.Combine(Consts.LocalAppDataPath, $"vfs_compile_cache.bin");
@@ -122,7 +123,8 @@ namespace Wabbajack.Lib
 
             ModList.ReadmeIsWebsite = ReadmeIsWebsite;
 
-            ModList.ToCERAS(Path.Combine(ModListOutputFolder, "modlist"), CerasConfig.Config);
+            using (var of = File.Create(Path.Combine(ModListOutputFolder, "modlist"))) 
+                of.WriteAsMessagePack(ModList);
 
             if (File.Exists(ModListOutputFile))
                 File.Delete(ModListOutputFile);

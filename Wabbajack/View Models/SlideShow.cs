@@ -132,7 +132,7 @@ namespace Wabbajack
                     .Select(x =>
                     {
                         var regex = new Regex("^(http|https):\\/\\/");
-                        return x != null && regex.Match(x).Success;
+                        return x != null && regex.Match(x.ToString()).Success;
                     })
                     .ObserveOnGuiThread());
 

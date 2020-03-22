@@ -324,7 +324,7 @@ namespace Wabbajack
                     return Unit.Default;
                 },
                 canExecute: this.WhenAny(x => x.ModList.Website)
-                    .Select(x => x?.StartsWith("https://") ?? false)
+                    .Select(x => x != null)
                     .ObserveOnGuiThread());
 
             _progressTitle = this.WhenAnyValue(
