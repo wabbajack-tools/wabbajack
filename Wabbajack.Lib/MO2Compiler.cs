@@ -45,7 +45,7 @@ namespace Wabbajack.Lib
 
         public override string VFSCacheName => Path.Combine(
             Consts.LocalAppDataPath, 
-            $"vfs_compile_cache-{Path.Combine(MO2Folder ?? "Unknown", "ModOrganizer.exe").StringSHA256Hex()}.bin");
+            $"vfs_compile_cache-{Path.Combine(MO2Folder ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
 
         public MO2Compiler(string mo2Folder, string mo2Profile, string outputFile)
         {
@@ -318,7 +318,7 @@ namespace Wabbajack.Lib
 
             UpdateTracker.NextStep("Running Validation");
 
-            await ValidateModlist.RunValidation(Queue, ModList);
+            await ValidateModlist.RunValidation(ModList);
             UpdateTracker.NextStep("Generating Report");
 
             GenerateManifest();
@@ -382,7 +382,7 @@ namespace Wabbajack.Lib
                 var client = new Common.Http.Client();
                 using var response =
                     await client.GetAsync(
-                        $"http://build.wabbajack.org/indexed_files/{vf.Hash.FromBase64().ToHex()}/meta.ini");
+                        $"http://build.wabbajack.org/indexed_files/{vf.Hash.ToHex()}/meta.ini");
 
                 if (!response.IsSuccessStatusCode)
                 {

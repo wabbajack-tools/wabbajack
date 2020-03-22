@@ -92,7 +92,7 @@ namespace Wabbajack
                         return Order(Archives.Where(x =>
                         {
                             if (term.StartsWith("hash:"))
-                                return x.Hash.StartsWith(term.Replace("hash:", ""));
+                                return x.Hash.ToString().StartsWith(term.Replace("hash:", ""));
                             return x.Name.StartsWith(term);
                         }));
                     })

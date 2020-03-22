@@ -105,7 +105,7 @@ namespace Wabbajack.Lib.FileUploader
                 if (!tcs.Task.IsFaulted)
                 {
                     progressFn(1.0);
-                    var hash = (await hash_task).FromBase64().ToHex();
+                    var hash = (await hash_task).ToHex();
                     response = await client.PutAsync(UploadURL + $"/{key}/finish/{hash}", new StringContent(""));
                     if (response.IsSuccessStatusCode)
                         tcs.SetResult(await response.Content.ReadAsStringAsync());

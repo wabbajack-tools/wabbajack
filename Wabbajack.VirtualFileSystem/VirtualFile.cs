@@ -42,7 +42,7 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        public string Hash { get; internal set; }
+        public Hash Hash { get; internal set; }
         public ExtendedHashes ExtendedHashes { get; set; }
         public long Size { get; internal set; }
 
@@ -214,12 +214,12 @@ namespace Wabbajack.VirtualFileSystem
             return self;
         }
 
-        private static async Task<IndexedVirtualFile> TryGetContentsFromServer(string hash)
+        private static async Task<IndexedVirtualFile> TryGetContentsFromServer(Hash hash)
         {
             try
             {
                 var client = new HttpClient();
-                var response = await client.GetAsync($"http://{Consts.WabbajackCacheHostname}/indexed_files/{hash.FromBase64().ToHex()}");
+                var response = await client.GetAsync($"http://{Consts.WabbajackCacheHostname}/indexed_files/{hash.ToHex()}");
                 if (!response.IsSuccessStatusCode)
                     return null;
 
@@ -274,7 +274,7 @@ namespace Wabbajack.VirtualFileSystem
                 Parent = parent,
                 Name = br.ReadString(),
                 _fullPath = br.ReadString(),
-                Hash = br.ReadString(),
+                Hash = br.ReadHash(),
                 Size = br.ReadInt64(),
                 LastModified = br.ReadInt64(),
                 LastAnalyzed = br.ReadInt64(),
@@ -288,7 +288,7 @@ namespace Wabbajack.VirtualFileSystem
         }
 
         public static VirtualFile CreateFromPortable(Context context,
-            Dictionary<string, IEnumerable<PortableFile>> state, Dictionary<string, string> links,
+            Dictionary<Hash, IEnumerable<PortableFile>> state, Dictionary<Hash, string> links,
             PortableFile portableFile)
         {
             var vf = new VirtualFile
@@ -305,7 +305,7 @@ namespace Wabbajack.VirtualFileSystem
         }
 
         public static VirtualFile CreateFromPortable(Context context, VirtualFile parent,
-            Dictionary<string, IEnumerable<PortableFile>> state, PortableFile portableFile)
+            Dictionary<Hash, IEnumerable<PortableFile>> state, PortableFile portableFile)
         {
             var vf = new VirtualFile
             {
@@ -323,7 +323,7 @@ namespace Wabbajack.VirtualFileSystem
         public string[] MakeRelativePaths()
         {
             var path = new string[NestingFactor];
-            path[0] = FilesInFullPath.First().Hash;
+            path[0] = FilesInFullPath.First().Hash.ToBase64();
             
             var idx = 1;
 

@@ -49,10 +49,9 @@ namespace Wabbajack.BuildServer.Model.Models
         
         private static void IngestFile(VirtualFile root, ICollection<IndexedFile> files, ICollection<ArchiveContent> contents)
         {
-            var hash = BitConverter.ToInt64(root.Hash.FromBase64());
             files.Add(new IndexedFile
             {
-                Hash = hash,
+                Hash = (long)root.Hash,
                 Sha256 = root.ExtendedHashes.SHA256.FromHex(),
                 Sha1 = root.ExtendedHashes.SHA1.FromHex(),
                 Md5 = root.ExtendedHashes.MD5.FromHex(),
@@ -66,22 +65,21 @@ namespace Wabbajack.BuildServer.Model.Models
             {
                 IngestFile(child, files, contents);
 
-                var child_hash = BitConverter.ToInt64(child.Hash.FromBase64());
                 contents.Add(new ArchiveContent
                 {
-                    Parent = hash,
-                    Child = child_hash,
+                    Parent = (long)root.Hash,
+                    Child = (long)child.Hash,
                     Path = child.Name
                 });
             }
 
         }
 
-        public async Task<bool> HaveIndexdFile(string hash)
+        public async Task<bool> HaveIndexdFile(Hash hash)
         {
             await using var conn = await Open();
             var row = await conn.QueryAsync(@"SELECT * FROM IndexedFile WHERE Hash = @Hash",
-                new {Hash = BitConverter.ToInt64(hash.FromBase64())});
+                new {Hash = (long)hash});
             return row.Any();
         }
         
@@ -123,7 +121,7 @@ namespace Wabbajack.BuildServer.Model.Models
                     return children.Select(f => new IndexedVirtualFile
                     {
                         Name = f.Path,
-                        Hash = BitConverter.GetBytes(f.Hash).ToBase64(),
+                        Hash = Hash.FromLong(f.Hash),
                         Size = f.Size,
                         Children = Build(f.Hash)
                     }).ToList();

@@ -82,7 +82,7 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Validating Modlist");
-            await ValidateModlist.RunValidation(Queue, ModList);
+            await ValidateModlist.RunValidation(ModList);
 
             Directory.CreateDirectory(OutputFolder);
             Directory.CreateDirectory(DownloadFolder);

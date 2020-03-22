@@ -96,7 +96,7 @@ namespace Wabbajack.Lib.ModListRegistry
 
     public class DownloadMetadata
     {
-        public string Hash { get; set; }
+        public Hash Hash { get; set; }
         public long Size { get; set; }
 
         public long NumberOfArchives { get; set; }

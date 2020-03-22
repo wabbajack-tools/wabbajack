@@ -121,7 +121,7 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("upload_file/{Key}/finish/{xxHashAsHex}")]
         public async Task<IActionResult> UploadFileFinish(string Key, string xxHashAsHex)
         {
-            var expectedHash = xxHashAsHex.FromHex().ToBase64();
+            var expectedHash = Hash.FromHex(xxHashAsHex);
             var user = User.FindFirstValue(ClaimTypes.Name);
             if (!Key.All(a => HexChars.Contains(a)))
                 return BadRequest("NOT A VALID FILENAME");

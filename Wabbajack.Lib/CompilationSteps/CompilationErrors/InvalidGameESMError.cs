@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 
 namespace Wabbajack.Lib.CompilationSteps.CompilationErrors
 {
     public class InvalidGameESMError : AErrorMessage
     {
-        public string Hash { get; }
+        public Hash Hash { get; }
         public string PathToFile { get; }
         private readonly CleanedESM _esm;
         public string GameFileName => Path.GetFileName(_esm.To);
@@ -29,7 +30,7 @@ the modlist expecting a different of the game than you currently have installed,
 the game, and then attempting to re-install this modlist. Also verify that the version of the game you have installed matches the version expected by this modlist.";
         }
 
-        public InvalidGameESMError(CleanedESM esm, string hash, string path)
+        public InvalidGameESMError(CleanedESM esm, Hash hash, string path)
         {
             Hash = hash;
             PathToFile = path;

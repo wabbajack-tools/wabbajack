@@ -56,7 +56,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 });
                 
                 var to_path = Path.Combine(settings.ArchiveDir,
-                    $"{Path.GetFileName(fileName)}_{archive.Hash.FromBase64().ToHex()}_{Path.GetExtension(fileName)}");
+                    $"{Path.GetFileName(fileName)}_{archive.Hash.ToHex()}_{Path.GetExtension(fileName)}");
                 if (File.Exists(to_path))
                     File.Delete(downloadDest);
                 else

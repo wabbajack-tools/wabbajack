@@ -27,7 +27,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             using (var queue = new WorkQueue())
             {
                             
-                var whitelists = new ValidateModlist(queue);
+                var whitelists = new ValidateModlist();
                 await whitelists.LoadListsFromGithub();
                 
                 foreach (var list in modlists)

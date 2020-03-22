@@ -49,7 +49,7 @@ namespace Wabbajack.Lib
 
         public override string VFSCacheName => Path.Combine(
             Consts.LocalAppDataPath, 
-            $"vfs_compile_cache-{StagingFolder?.StringSHA256Hex() ?? "Unknown"}.bin");
+            $"vfs_compile_cache-{StagingFolder?.StringSha256Hex() ?? "Unknown"}.bin");
 
         public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder, string outputFile)
         {
@@ -245,7 +245,7 @@ namespace Wabbajack.Lib
             };
             
             UpdateTracker.NextStep("Running Validation");
-            await ValidateModlist.RunValidation(Queue, ModList);
+            await ValidateModlist.RunValidation(ModList);
 
             UpdateTracker.NextStep("Generating Report");
             GenerateManifest();

@@ -18,7 +18,7 @@ namespace Wabbajack.BuildServer.Models
     public class PatchArchive : AJobPayload
     {
         public override string Description => "Create a archive update patch";
-        public string Src { get; set; }
+        public Hash Src { get; set; }
         public string DestPK { get; set; }
         public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {
@@ -56,7 +56,7 @@ namespace Wabbajack.BuildServer.Models
                 await client.ConnectAsync();
                 try
                 {
-                    await client.UploadAsync(fs, $"updates/{Src.FromBase64().ToHex()}_{destHash.FromBase64().ToHex()}", progress: new UploadToCDN.Progress(cdnPath));
+                    await client.UploadAsync(fs, $"updates/{Src.ToHex()}_{destHash.ToHex()}", progress: new UploadToCDN.Progress(cdnPath));
                 }
                 catch (Exception ex)
                 {
@@ -72,9 +72,9 @@ namespace Wabbajack.BuildServer.Models
             
         }
 
-        public static string CdnPath(string srcHash, string destHash)
+        public static string CdnPath(Hash srcHash, Hash destHash)
         {
-            return $"updates/{srcHash.FromBase64().ToHex()}_{destHash.FromBase64().ToHex()}";
+            return $"updates/{srcHash.ToHex()}_{destHash.ToHex()}";
         }
     }
 }

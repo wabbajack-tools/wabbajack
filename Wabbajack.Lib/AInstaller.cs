@@ -27,7 +27,7 @@ namespace Wabbajack.Lib
 
         public string ModListArchive { get; private set; }
         public ModList ModList { get; private set; }
-        public Dictionary<string, string> HashedArchives { get; set; }
+        public Dictionary<Hash, string> HashedArchives { get; set; }
         
         public SystemParameters SystemParameters { get; set; }
 
@@ -127,7 +127,7 @@ namespace Wabbajack.Lib
             var grouped = ModList.Directives
                 .OfType<FromArchive>()
                 .GroupBy(e => e.ArchiveHashPath[0])
-                .ToDictionary(k => k.Key);
+                .ToDictionary(k => Hash.FromBase64(k.Key));
             var archives = ModList.Archives
                 .Select(a => new { Archive = a, AbsolutePath = HashedArchives.GetOrDefault(a.Hash) })
                 .Where(a => a.AbsolutePath != null)
@@ -264,7 +264,7 @@ namespace Wabbajack.Lib
                         {
                             var orig_name = Path.GetFileNameWithoutExtension(archive.Name);
                             var ext = Path.GetExtension(archive.Name);
-                            var unique_key = archive.State.PrimaryKeyString.StringSHA256Hex();
+                            var unique_key = archive.State.PrimaryKeyString.StringSha256Hex();
                             outputPath = Path.Combine(DownloadFolder, orig_name + "_" + unique_key + "_" + ext);
                             if (outputPath.FileExists())
                                 File.Delete(outputPath);
@@ -413,7 +413,7 @@ namespace Wabbajack.Lib
             Utils.Log($"Optimized {ModList.Directives.Count} directives to {indexed.Count} required");
             var requiredArchives = indexed.Values.OfType<FromArchive>()
                 .GroupBy(d => d.ArchiveHashPath[0])
-                .Select(d => d.Key)
+                .Select(d => Hash.FromBase64(d.Key))
                 .ToHashSet();
             
             ModList.Archives = ModList.Archives.Where(a => requiredArchives.Contains(a.Hash)).ToList();

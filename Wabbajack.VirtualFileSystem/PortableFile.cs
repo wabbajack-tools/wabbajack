@@ -1,10 +1,12 @@
-﻿namespace Wabbajack.VirtualFileSystem
+﻿using Wabbajack.Common;
+
+namespace Wabbajack.VirtualFileSystem
 {
     public class PortableFile
     {
         public string Name { get; set; }
-        public string Hash { get; set; }
-        public string ParentHash { get; set; }
+        public Hash Hash { get; set; }
+        public Hash ParentHash { get; set; }
         public long Size { get; set; }
     }
 }
