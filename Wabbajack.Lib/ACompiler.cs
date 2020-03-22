@@ -46,7 +46,7 @@ namespace Wabbajack.Lib
         public ModList ModList = new ModList();
 
         public List<IndexedArchive> IndexedArchives = new List<IndexedArchive>();
-        public Dictionary<string, IEnumerable<VirtualFile>> IndexedFiles = new Dictionary<string, IEnumerable<VirtualFile>>();
+        public Dictionary<Hash, IEnumerable<VirtualFile>> IndexedFiles = new Dictionary<Hash, IEnumerable<VirtualFile>>();
 
         public static void Info(string msg)
         {
@@ -194,25 +194,25 @@ namespace Wabbajack.Lib
         {
             Info("Building a list of archives based on the files required");
 
-            var shas = InstallDirectives.OfType<FromArchive>()
-                .Select(a => a.ArchiveHashPath[0])
+            var hashes = InstallDirectives.OfType<FromArchive>()
+                .Select(a => Hash.FromBase64(a.ArchiveHashPath[0]))
                 .Distinct();
 
             var archives = IndexedArchives.OrderByDescending(f => f.File.LastModified)
                 .GroupBy(f => f.File.Hash)
                 .ToDictionary(f => f.Key, f => f.First());
 
-            SelectedArchives = await shas.PMap(Queue, sha => ResolveArchive(sha, archives));
+            SelectedArchives = await hashes.PMap(Queue, hash => ResolveArchive(hash, archives));
         }
 
-        public async Task<Archive> ResolveArchive(string sha, IDictionary<string, IndexedArchive> archives)
+        public async Task<Archive> ResolveArchive(Hash hash, IDictionary<Hash, IndexedArchive> archives)
         {
-            if (archives.TryGetValue(sha, out var found))
+            if (archives.TryGetValue(hash, out var found))
             {
                 return await ResolveArchive(found);
             }
 
-            Error($"No match found for Archive sha: {sha} this shouldn't happen");
+            Error($"No match found for Archive sha: {hash.ToBase64()} this shouldn't happen");
             return null;
         }
 

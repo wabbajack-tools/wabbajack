@@ -57,7 +57,7 @@ namespace Wabbajack.CLI.Verbs
 
             try
             {
-                ValidateModlist.RunValidation(queue, modlist).RunSynchronously();
+                ValidateModlist.RunValidation(modlist).RunSynchronously();
             }
             catch (Exception e)
             {

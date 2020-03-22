@@ -49,7 +49,7 @@ namespace Wabbajack.Lib.Downloaders
         {
             public Game Game { get; set; }
             public string GameFile { get; set; }
-            public string Hash { get; set; }
+            public Hash Hash { get; set; }
             
             public string GameVersion { get; set; }
 

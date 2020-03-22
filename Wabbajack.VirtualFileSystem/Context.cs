@@ -249,16 +249,16 @@ namespace Wabbajack.VirtualFileSystem
                 {
                     Name = f.Parent != null ? f.Name : null,
                     Hash = f.Hash,
-                    ParentHash = f.Parent?.Hash,
+                    ParentHash = f.Parent?.Hash ?? Hash.Empty,
                     Size = f.Size
                 }).ToList();
         }
 
-        public async Task IntegrateFromPortable(List<PortableFile> state, Dictionary<string, string> links)
+        public async Task IntegrateFromPortable(List<PortableFile> state, Dictionary<Hash, string> links)
         {
             var indexedState = state.GroupBy(f => f.ParentHash)
-                .ToDictionary(f => f.Key ?? "", f => (IEnumerable<PortableFile>) f);
-            var parents = await indexedState[""]
+                .ToDictionary(f => f.Key, f => (IEnumerable<PortableFile>) f);
+            var parents = await indexedState[Hash.Empty]
                 .PMap(Queue,f => VirtualFile.CreateFromPortable(this, indexedState, links, f));
 
             var newIndex = await Index.Integrate(parents);
@@ -297,7 +297,7 @@ namespace Wabbajack.VirtualFileSystem
 
             void BackFillOne(KnownFile file)
             {
-                var parent = newFiles[file.Paths[0]];
+                var parent = newFiles[Hash.FromBase64(file.Paths[0])];
                 foreach (var path in file.Paths.Skip(1))
                 {
                     if (parentchild.TryGetValue((parent, path), out var foundParent))
@@ -331,7 +331,7 @@ namespace Wabbajack.VirtualFileSystem
     public class KnownFile
     {
         public string[] Paths { get; set; }
-        public string Hash { get; set; }
+        public Hash Hash { get; set; }
     }
 
     public class DisposableList<T> : List<T>, IDisposable
@@ -355,7 +355,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public IndexRoot(ImmutableList<VirtualFile> aFiles,
             ImmutableDictionary<string, VirtualFile> byFullPath,
-            ImmutableDictionary<string, ImmutableStack<VirtualFile>> byHash,
+            ImmutableDictionary<Hash, ImmutableStack<VirtualFile>> byHash,
             ImmutableDictionary<string, VirtualFile> byRoot,
             ImmutableDictionary<string, ImmutableStack<VirtualFile>> byName)
         {
@@ -370,7 +370,7 @@ namespace Wabbajack.VirtualFileSystem
         {
             AllFiles = ImmutableList<VirtualFile>.Empty;
             ByFullPath = ImmutableDictionary<string, VirtualFile>.Empty;
-            ByHash = ImmutableDictionary<string, ImmutableStack<VirtualFile>>.Empty;
+            ByHash = ImmutableDictionary<Hash, ImmutableStack<VirtualFile>>.Empty;
             ByRootPath = ImmutableDictionary<string, VirtualFile>.Empty;
             ByName = ImmutableDictionary<string, ImmutableStack<VirtualFile>>.Empty;
         }
@@ -378,7 +378,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public ImmutableList<VirtualFile> AllFiles { get; }
         public ImmutableDictionary<string, VirtualFile> ByFullPath { get; }
-        public ImmutableDictionary<string, ImmutableStack<VirtualFile>> ByHash { get; }
+        public ImmutableDictionary<Hash, ImmutableStack<VirtualFile>> ByHash { get; }
         public ImmutableDictionary<string, ImmutableStack<VirtualFile>> ByName { get; set; }
         public ImmutableDictionary<string, VirtualFile> ByRootPath { get; }
 
@@ -391,7 +391,7 @@ namespace Wabbajack.VirtualFileSystem
                                      .ToImmutableDictionary(f => f.FullPath));
 
             var byHash = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
-                                 .Where(f => f.Hash != null)
+                                 .Where(f => f.Hash != Hash.Empty)
                                  .ToGroupedImmutableDictionary(f => f.Hash));
 
             var byName = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
@@ -410,7 +410,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public VirtualFile FileForArchiveHashPath(string[] argArchiveHashPath)
         {
-            var cur = ByHash[argArchiveHashPath[0]].First(f => f.Parent == null);
+            var cur = ByHash[Hash.FromBase64(argArchiveHashPath[0])].First(f => f.Parent == null);
             return argArchiveHashPath.Skip(1).Aggregate(cur, (current, itm) => ByName[itm].First(f => f.Parent == current));
         }
     }

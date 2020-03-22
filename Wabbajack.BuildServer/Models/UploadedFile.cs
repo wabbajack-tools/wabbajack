@@ -13,7 +13,7 @@ namespace Wabbajack.BuildServer.Models
         public string Id { get; set; }
         public string Name { get; set; }
         public long Size { get; set; }
-        public string Hash { get; set; }
+        public Hash Hash { get; set; }
         public string Uploader { get; set; }
         public DateTime UploadDate { get; set; } = DateTime.UtcNow;
         

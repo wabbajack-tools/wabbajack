@@ -32,7 +32,7 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Common
 {
-    public static class Utils
+    public static partial class Utils
     {
         public static bool IsMO2Running(string mo2Path)
         {
@@ -203,135 +203,6 @@ namespace Wabbajack.Common
             catch (Exception ex)
             {
                 Utils.Error(ex);
-            }
-        }
-
-        /// <summary>
-        ///     MurMur3 hashes the file pointed to by this string
-        /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        public static string FileSHA256(this string file)
-        {
-            var sha = new SHA256Managed();
-            using (var o = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write))
-            {
-                using (var i = File.OpenRead(file))
-                {
-                    i.CopyToWithStatus(new FileInfo(file).Length, o, $"Hashing {Path.GetFileName(file)}");
-                }
-            }
-
-            return sha.Hash.ToBase64();
-        }
-
-        public static string StringSHA256Hex(this string s)
-        {
-            var sha = new SHA256Managed();
-            using (var o = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write))
-            {
-                using var i = new MemoryStream(Encoding.UTF8.GetBytes(s));
-                i.CopyTo(o);
-            }
-
-            return sha.Hash.ToHex();
-        }
-
-        public static string FileHash(this string file, bool nullOnIOError = false)
-        {
-            try
-            {
-                var hash = new xxHashConfig();
-                hash.HashSizeInBits = 64;
-                hash.Seed = 0x42;
-                using (var fs = File.OpenRead(file))
-                {
-                    var config = new xxHashConfig();
-                    config.HashSizeInBits = 64;
-                    using (var f = new StatusFileStream(fs, $"Hashing {Path.GetFileName(file)}"))    
-                    {
-                        var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
-                        return value.AsBase64String();
-                    }
-                }
-            }
-            catch (IOException ex)
-            {
-                if (nullOnIOError) return null;
-                throw ex;
-            }
-        }
-        
-        public static string FileHashCached(this string file, bool nullOnIOError = false)
-        {
-            if (TryGetHashCache(file, out var foundHash)) return foundHash;
-
-            var hash = file.FileHash(nullOnIOError);
-            if (hash != null) 
-                WriteHashCache(file, hash);
-            return hash;
-        }
-
-        public static bool TryGetHashCache(string file, out string hash)
-        {
-            var hashFile = file + Consts.HashFileExtension;
-            hash = null; 
-            if (!File.Exists(hashFile)) return false;
-            
-            if (File.GetSize(hashFile) != 20) return false;
-
-            using var fs = File.OpenRead(hashFile);
-            using var br = new BinaryReader(fs);
-            var version = br.ReadUInt32();
-            if (version != HashCacheVersion) return false;
-
-            var lastModified = br.ReadUInt64();
-            if (lastModified != File.GetLastWriteTimeUtc(file).AsUnixTime()) return false;
-            hash = BitConverter.GetBytes(br.ReadUInt64()).ToBase64();
-            return true;
-        }
-
-
-        private const uint HashCacheVersion = 0x01;
-        private static void WriteHashCache(string file, string hash)
-        {
-            using var fs = File.Create(file + Consts.HashFileExtension);
-            using var bw = new BinaryWriter(fs);
-            bw.Write(HashCacheVersion);
-            var lastModified = File.GetLastWriteTimeUtc(file).AsUnixTime();
-            bw.Write(lastModified);
-            bw.Write(BitConverter.ToUInt64(hash.FromBase64()));
-        }
-
-        public static async Task<string> FileHashCachedAsync(this string file, bool nullOnIOError = false)
-        {
-            if (TryGetHashCache(file, out var foundHash)) return foundHash;
-
-            var hash = await file.FileHashAsync(nullOnIOError);
-            if (hash != null) 
-                WriteHashCache(file, hash);
-            return hash;
-        }
-
-        public static async Task<string> FileHashAsync(this string file, bool nullOnIOError = false)
-        {
-            try
-            {
-                var hash = new xxHashConfig();
-                hash.HashSizeInBits = 64;
-                hash.Seed = 0x42;
-                using (var fs = File.OpenRead(file))
-                {
-                    var config = new xxHashConfig();
-                    config.HashSizeInBits = 64;
-                    var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(fs);
-                    return value.AsBase64String();
-                }
-            }
-            catch (IOException ex)
-            {
-                if (nullOnIOError) return null;
-                throw ex;
             }
         }
 
@@ -977,7 +848,7 @@ namespace Wabbajack.Common
             }
         }
 
-        public static async Task CreatePatch(FileStream srcStream, string srcHash, FileStream destStream, string destHash,
+        public static async Task CreatePatch(FileStream srcStream, Hash srcHash, FileStream destStream, Hash destHash,
             FileStream patchStream)
         {
             await using var sigFile = new TempStream();
@@ -993,7 +864,7 @@ namespace Wabbajack.Common
             
             try
             {
-                var cacheFile = Path.Combine(Consts.PatchCacheFolder, $"{srcHash.FromBase64().ToHex()}_{srcHash.FromBase64().ToHex()}.patch");
+                var cacheFile = Path.Combine(Consts.PatchCacheFolder, $"{srcHash.ToHex()}_{destHash.ToHex()}.patch");
                 if (!Directory.Exists(Consts.PatchCacheFolder))
                     Directory.CreateDirectory(Consts.PatchCacheFolder);
 
@@ -1006,10 +877,10 @@ namespace Wabbajack.Common
             }
         }
 
-        public static bool TryGetPatch(string foundHash, string fileHash, out byte[] ePatch)
+        public static bool TryGetPatch(Hash foundHash, Hash fileHash, out byte[] ePatch)
         {
             var patchName = Path.Combine(Consts.PatchCacheFolder,
-                $"{foundHash.FromBase64().ToHex()}_{fileHash.FromBase64().ToHex()}.patch");
+                $"{foundHash.ToHex()}_{fileHash.ToHex()}.patch");
             if (File.Exists(patchName))
             {
                 ePatch = File.ReadAllBytes(patchName);

@@ -108,7 +108,7 @@ namespace Wabbajack.Lib.Downloaders
             var upgradeResult = await Download(upgrade, upgradePath);
             if (!upgradeResult) return false;
 
-            var patchName = $"{archive.Hash.FromBase64().ToHex()}_{upgrade.Hash.FromBase64().ToHex()}";
+            var patchName = $"{archive.Hash.ToHex()}_{upgrade.Hash.ToHex()}";
             var patchPath = Path.Combine(Path.GetDirectoryName(destination), "_Patch_" + patchName);
 
             var patchState = new Archive

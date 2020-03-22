@@ -534,7 +534,7 @@ namespace Wabbajack.Test
             var archive = new Archive
             {
                 Name = "Cori.7z",
-                Hash = "gCRVrvzDNH0=",
+                Hash = Hash.FromBase64("gCRVrvzDNH0="),
                 State = new NexusDownloader.State
                 {
                     GameName = Game.SkyrimSpecialEdition.MetaData().NexusName,

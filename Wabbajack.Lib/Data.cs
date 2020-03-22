@@ -26,7 +26,7 @@ namespace Wabbajack.Lib
 
         public VirtualFile File { get; }
 
-        public string Hash => File.Hash;
+        public Hash Hash => File.Hash;
 
         public T EvolveTo<T>() where T : Directive, new()
         {
@@ -130,7 +130,7 @@ namespace Wabbajack.Lib
         /// </summary>
         public string To;
         public long Size;
-        public string Hash;
+        public Hash Hash;
     }
 
     public class IgnoredDirectly : Directive
@@ -167,7 +167,7 @@ namespace Wabbajack.Lib
 
     public class CleanedESM : InlineFile
     {
-        public string SourceESMHash;
+        public Hash SourceESMHash;
     }
 
     /// <summary>
@@ -191,23 +191,13 @@ namespace Wabbajack.Lib
     {
         private string _fullPath;
 
-        /// <summary>
-        ///     MurMur3 hash of the archive this file comes from
-        /// </summary>
         public string[] ArchiveHashPath;
 
         [Exclude]
         public VirtualFile FromFile;
 
         [Exclude]
-        public string FullPath
-        {
-            get
-            {
-                if (_fullPath == null) _fullPath = string.Join("|", ArchiveHashPath);
-                return _fullPath;
-            }
-        }
+        public string FullPath => _fullPath ??= string.Join("|", ArchiveHashPath);
     }
 
     public class CreateBSA : Directive
@@ -226,13 +216,13 @@ namespace Wabbajack.Lib
         public string PatchID;
 
         [Exclude]
-        public string FromHash;
+        public Hash FromHash;
     }
 
     public class SourcePatch
     {
         public string RelativePath;
-        public string Hash;
+        public Hash Hash;
     }
 
     public class MergedPatch : Directive
@@ -246,7 +236,7 @@ namespace Wabbajack.Lib
         /// <summary>
         ///     MurMur3 Hash of the archive
         /// </summary>
-        public string Hash { get; set; }
+        public Hash Hash { get; set; }
 
         /// <summary>
         /// Meta INI for the downloaded archive

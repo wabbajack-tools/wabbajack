@@ -13,10 +13,10 @@ namespace Wabbajack.Lib
             return client;
         }
 
-        public static async Task<Archive> GetModUpgrade(string hash)
+        public static async Task<Archive> GetModUpgrade(Hash hash)
         {
             using var response = await GetClient()
-                .GetAsync($"https://{Consts.WabbajackCacheHostname}/alternative/{hash.FromBase64().ToHex()}");
+                .GetAsync($"https://{Consts.WabbajackCacheHostname}/alternative/{hash.ToHex()}");
             return !response.IsSuccessStatusCode ? null : (await response.Content.ReadAsStringAsync()).FromJSONString<Archive>();
         }
     }

@@ -82,7 +82,7 @@ namespace Wabbajack.VirtualFileSystem.Test
             await AddTestRoot();
 
 
-            var files = context.Index.ByHash["qX0GZvIaTKM="];
+            var files = context.Index.ByHash[Hash.FromBase64("qX0GZvIaTKM=")];
             Assert.AreEqual(files.Count(), 2);
         }
 
@@ -150,7 +150,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             await AddTestRoot();
 
-            var files = context.Index.ByHash["qX0GZvIaTKM="];
+            var files = context.Index.ByHash[Hash.FromBase64("qX0GZvIaTKM=")];
 
             var cleanup = await context.Stage(files);
 
@@ -173,7 +173,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             await AddTestRoot();
 
-            var files = context.Index.ByHash["qX0GZvIaTKM="];
+            var files = context.Index.ByHash[Hash.FromBase64("qX0GZvIaTKM=")];
             var archive = context.Index.ByRootPath[Path.Combine(VFS_TEST_DIR_FULL, "test.zip")];
 
             var state = context.GetPortableState(files);
@@ -181,9 +181,9 @@ namespace Wabbajack.VirtualFileSystem.Test
             var new_context = new Context(Queue);
 
             await new_context.IntegrateFromPortable(state,
-                new Dictionary<string, string> {{archive.Hash, archive.FullPath}});
+                new Dictionary<Hash, string> {{archive.Hash, archive.FullPath}});
 
-            var new_files = new_context.Index.ByHash["qX0GZvIaTKM="];
+            var new_files = new_context.Index.ByHash[Hash.FromBase64("qX0GZvIaTKM=")];
 
             var close = await new_context.Stage(new_files);
 
