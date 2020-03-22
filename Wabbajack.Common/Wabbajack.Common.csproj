@@ -26,7 +26,6 @@
         <Folder Include="Properties\" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Ceras" Version="4.1.7" />
         <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
         <PackageReference Include="MessagePack" Version="2.1.90" />

@@ -237,7 +237,7 @@ namespace Wabbajack.Lib
                 Description = ModListDescription ?? "",
                 Readme = ModListReadme ?? "",
                 Image = ModListImage ?? "",
-                Website = ModListWebsite ?? "",
+                Website = ModListWebsite != null ? new Uri(ModListWebsite) : null,
                 Archives = SelectedArchives.ToList(),
                 ModManager = ModManager.Vortex,
                 Directives = InstallDirectives,

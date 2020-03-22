@@ -20,7 +20,7 @@ namespace Wabbajack
         public string Readme => SourceModList?.Readme;
         public string Author => SourceModList?.Author;
         public string Description => SourceModList?.Description;
-        public string Website => SourceModList?.Website;
+        public Uri Website => SourceModList?.Website;
         public ModManager ModManager => SourceModList?.ModManager ?? ModManager.MO2;
 
         // Image isn't exposed as a direct property, but as an observable.
@@ -96,7 +96,7 @@ namespace Wabbajack
             if (string.IsNullOrEmpty(Readme)) return;
             if (SourceModList.ReadmeIsWebsite)
             {
-                Utils.OpenWebsite(Readme);
+                Utils.OpenWebsite(new Uri(Readme));
             }
             else
             {

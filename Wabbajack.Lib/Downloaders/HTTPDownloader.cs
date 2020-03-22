@@ -2,13 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection.Emit;
 using System.Threading.Tasks;
-using Ceras;
-using SharpCompress.Common;
 using Wabbajack.Common;
 using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.Validation;
@@ -53,14 +49,12 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-        [MemberConfig(TargetMember.All)]
         public class State : AbstractDownloadState
         {
             public string Url { get; set; }
 
             public List<string> Headers { get; set; }
 
-            [Exclude]
             public Common.Http.Client Client { get; set; }
 
             public override object[] PrimaryKey { get => new object[] {Url};}

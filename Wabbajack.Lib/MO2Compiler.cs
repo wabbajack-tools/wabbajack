@@ -313,7 +313,7 @@ namespace Wabbajack.Lib
                 Description = ModListDescription ?? "",
                 Readme = ModListReadme ?? "",
                 Image = ModListImage ?? "",
-                Website = ModListWebsite ?? ""
+                Website = ModListWebsite != null ? new Uri(ModListWebsite) : null
             };
 
             UpdateTracker.NextStep("Running Validation");
@@ -472,7 +472,8 @@ namespace Wabbajack.Lib
                     Status($"Patching {entry.To}");
                     var srcFile = byPath[string.Join("|", entry.ArchiveHashPath.Skip(1))];
                     await using var srcStream = srcFile.OpenRead();
-                    await using var outputStream = IncludeFile(out entry.PatchID);
+                    await using var outputStream = IncludeFile(out var id);
+                    entry.PatchID = id;
                     await using var destStream = LoadDataForTo(entry.To, absolutePaths);
                     await Utils.CreatePatch(srcStream, srcFile.Hash, destStream, entry.Hash, outputStream);
                     Info($"Patch size {outputStream.Length} for {entry.To}");
