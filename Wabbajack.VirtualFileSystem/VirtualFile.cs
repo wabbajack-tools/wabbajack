@@ -22,6 +22,9 @@ namespace Wabbajack.VirtualFileSystem
 
         private AbsolutePath _stagedPath;
         public AbstractPath Name { get; internal set; }
+        
+        public RelativePath RelativeName => Name as RelativePath;
+        public AbsolutePath AbsoluteName => Name as AbsolutePath;
 
         public FullPath FullPath
         {
@@ -235,7 +238,7 @@ namespace Wabbajack.VirtualFileSystem
         }
 
 
-        private void Write(Stream stream)
+        public void Write(Stream stream)
         {
             stream.WriteAsMessagePack(this);
         }
@@ -289,16 +292,16 @@ namespace Wabbajack.VirtualFileSystem
             return vf;
         }
 
-        public string[] MakeRelativePaths()
+        public HashRelativePath MakeRelativePaths()
         {
-            var path = new string[NestingFactor];
-            path[0] = FilesInFullPath.First().Hash.ToBase64();
-            
-            var idx = 1;
+            var path = new HashRelativePath();
+            path.BaseHash = FilesInFullPath.First().Hash;
+            path.Paths = new RelativePath[FilesInFullPath.Count() - 1];
 
+            var idx = 0;
             foreach (var itm in FilesInFullPath.Skip(1))
             {
-                path[idx] = itm.Name;
+                path.Paths[idx] = itm.Name as RelativePath;
                 idx += 1;
             }
             return path;

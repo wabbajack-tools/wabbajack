@@ -134,6 +134,12 @@ namespace Wabbajack.Common
         public bool Exists => File.Exists(_path) || Directory.Exists(_path);
         public bool IsFile => File.Exists(_path);
         public bool IsDirectory => Directory.Exists(_path);
+
+        public void DeleteDirectory()
+        {
+            if (IsDirectory) 
+                Utils.DeleteDirectory(this);   
+        }
         
         public long Size => (new FileInfo(_path)).Length;
 
@@ -203,6 +209,12 @@ namespace Wabbajack.Common
         {
             Directory.CreateDirectory(_path);
         }
+
+        public void Delete()
+        {
+            if (IsFile)
+                File.Delete(_path);
+        }
     }
 
     public class RelativePath : AbstractPath
@@ -258,6 +270,19 @@ namespace Wabbajack.Common
         }
         
         public RelativePath Parent => (RelativePath)Path.GetDirectoryName(_path);
+    }
+
+    public static partial class Utils
+    {
+        public static RelativePath ToPath(this string str)
+        {
+            return (RelativePath)str;
+        }
+        
+        public static AbsolutePath RelativeTo(this string str, AbsolutePath path)
+        {
+            return ((RelativePath)str).RelativeTo(path);
+        }
     }
 
     public class Extension
@@ -331,8 +356,8 @@ namespace Wabbajack.Common
 
     public class HashRelativePath
     {
-        public Hash BaseHash { get; }
-        public RelativePath[] Paths { get; }
+        public Hash BaseHash { get; set; }
+        public RelativePath[] Paths { get; set; } = new RelativePath[0];
 
         public string ToString()
         {

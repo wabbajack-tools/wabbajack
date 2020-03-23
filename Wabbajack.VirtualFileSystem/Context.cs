@@ -134,68 +134,63 @@ namespace Wabbajack.VirtualFileSystem
             });
         }
 
-        public async Task WriteToFile(string filename)
+        public async Task WriteToFile(AbsolutePath filename)
         {
-            using (var fs = File.Open(filename, FileMode.Create))
-            using (var bw = new BinaryWriter(fs, Encoding.UTF8, true))
-            {
-                fs.SetLength(0);
+            await using var fs = filename.Create();
+            await using var bw = new BinaryWriter(fs, Encoding.UTF8, true);
+            fs.SetLength(0);
 
-                bw.Write(Encoding.ASCII.GetBytes(Magic));
-                bw.Write(FileVersion);
-                bw.Write((ulong) Index.AllFiles.Count);
+            bw.Write(Encoding.ASCII.GetBytes(Magic));
+            bw.Write(FileVersion);
+            bw.Write((ulong) Index.AllFiles.Count);
 
-                (await Index.AllFiles
+            (await Index.AllFiles
                     .PMap(Queue, f =>
                     {
                         var ms = new MemoryStream();
                         f.Write(ms);
                         return ms;
                     }))
-                    .Do(ms =>
-                    {
-                        var size = ms.Position;
-                        ms.Position = 0;
-                        bw.Write((ulong) size);
-                        ms.CopyTo(fs);
-                    });
-                Utils.Log($"Wrote {fs.Position.ToFileSizeString()} file as vfs cache file {filename}");
-            }
+                .Do(ms =>
+                {
+                    var size = ms.Position;
+                    ms.Position = 0;
+                    bw.Write((ulong) size);
+                    ms.CopyTo(fs);
+                });
+            Utils.Log($"Wrote {fs.Position.ToFileSizeString()} file as vfs cache file {filename}");
         }
 
-        public async Task IntegrateFromFile(string filename)
+        public async Task IntegrateFromFile(AbsolutePath filename)
         {
             try
             {
-                using (var fs = File.OpenRead(filename))
-                using (var br = new BinaryReader(fs, Encoding.UTF8, true))
-                {
-                    var magic = Encoding.ASCII.GetString(br.ReadBytes(Encoding.ASCII.GetBytes(Magic).Length));
-                    var fileVersion = br.ReadUInt64();
-                    if (fileVersion != FileVersion || magic != Magic)
-                        throw new InvalidDataException("Bad Data Format");
+                await using var fs = filename.OpenRead();
+                using var br = new BinaryReader(fs, Encoding.UTF8, true);
+                var magic = Encoding.ASCII.GetString(br.ReadBytes(Encoding.ASCII.GetBytes(Magic).Length));
+                var fileVersion = br.ReadUInt64();
+                if (fileVersion != FileVersion || magic != Magic)
+                    throw new InvalidDataException("Bad Data Format");
 
-                    var numFiles = br.ReadUInt64();
+                var numFiles = br.ReadUInt64();
 
-                    var files = Enumerable.Range(0, (int) numFiles)
-                        .Select(idx =>
-                        {
-                            var size = br.ReadUInt64();
-                            var bytes = new byte[size];
-                            br.BaseStream.Read(bytes, 0, (int) size);
-                            return VirtualFile.Read(this, bytes);
-                        }).ToList();
-                    var newIndex = await Index.Integrate(files);
-                    lock (this)
+                var files = Enumerable.Range(0, (int) numFiles)
+                    .Select(idx =>
                     {
-                        Index = newIndex;
-                    }
+                        var size = br.ReadUInt64();
+                        var bytes = new byte[size];
+                        br.BaseStream.Read(bytes, 0, (int) size);
+                        return VirtualFile.Read(this, bytes);
+                    }).ToList();
+                var newIndex = await Index.Integrate(files);
+                lock (this)
+                {
+                    Index = newIndex;
                 }
             }
             catch (IOException)
             {
-                if (File.Exists(filename))
-                    File.Delete(filename);
+                filename.Delete();
             }
         }
 
@@ -208,23 +203,22 @@ namespace Wabbajack.VirtualFileSystem
                 .OrderBy(f => f.Key?.NestingFactor ?? 0)
                 .ToList();
 
-            var paths = new List<string>();
+            var paths = new List<AbsolutePath>();
 
             foreach (var group in grouped)
             {
-                var tmpPath = Path.Combine(StagingFolder, Guid.NewGuid().ToString());
+                var tmpPath = ((RelativePath)Guid.NewGuid().ToString()).RelativeTo(StagingFolder);
                 await FileExtractor.ExtractAll(Queue, group.Key.StagedPath, tmpPath);
                 paths.Add(tmpPath);
                 foreach (var file in group)
-                    file.StagedPath = Path.Combine(tmpPath, file.Name);
+                    file.StagedPath = file.RelativeName.RelativeTo(tmpPath);
             }
 
             return () =>
             {
                 paths.Do(p =>
                 {
-                    if (Directory.Exists(p))
-                        Utils.DeleteDirectory(p);
+                    p.DeleteDirectory();
                 });
             };
         }
@@ -242,7 +236,7 @@ namespace Wabbajack.VirtualFileSystem
                 }).ToList();
         }
 
-        public async Task IntegrateFromPortable(List<PortableFile> state, Dictionary<Hash, string> links)
+        public async Task IntegrateFromPortable(List<PortableFile> state, Dictionary<Hash, AbsolutePath> links)
         {
             var indexedState = state.GroupBy(f => f.ParentHash)
                 .ToDictionary(f => f.Key, f => (IEnumerable<PortableFile>) f);
@@ -264,28 +258,28 @@ namespace Wabbajack.VirtualFileSystem
 
         #region KnownFiles
 
-        private List<KnownFile> _knownFiles = new List<KnownFile>();
-        public void AddKnown(IEnumerable<KnownFile> known)
+        private List<HashRelativePath> _knownFiles = new List<HashRelativePath>();
+        public void AddKnown(IEnumerable<HashRelativePath> known)
         {
             _knownFiles.AddRange(known);
         }
 
         public async Task BackfillMissing()
         {
-            var newFiles = _knownFiles.Where(f => f.Paths.Length == 1)
-                                       .GroupBy(f => f.Hash)
+            var newFiles = _knownFiles.Where(f => f.Paths.Length == 0)
+                                       .GroupBy(f => f.BaseHash)
                                        .ToDictionary(f => f.Key, s => new VirtualFile()
                                        {
                                            Name = s.First().Paths[0],
-                                           Hash = s.First().Hash,
+                                           Hash = s.First().BaseHash,
                                            Context = this
                                        });
 
-            var parentchild = new Dictionary<(VirtualFile, string), VirtualFile>();
+            var parentchild = new Dictionary<(VirtualFile, RelativePath), VirtualFile>();
 
-            void BackFillOne(KnownFile file)
+            void BackFillOne(HashRelativePath file)
             {
-                var parent = newFiles[Hash.FromBase64(file.Paths[0])];
+                var parent = newFiles[file.BaseHash];
                 foreach (var path in file.Paths.Skip(1))
                 {
                     if (parentchild.TryGetValue((parent, path), out var foundParent))
@@ -294,9 +288,7 @@ namespace Wabbajack.VirtualFileSystem
                         continue;
                     }
 
-                    var nf = new VirtualFile();
-                    nf.Name = path;
-                    nf.Parent = parent;
+                    var nf = new VirtualFile {Name = path, Parent = parent};
                     parent.Children = parent.Children.Add(nf);
                     parentchild.Add((parent, path), nf);
                     parent = nf;
@@ -309,17 +301,11 @@ namespace Wabbajack.VirtualFileSystem
             lock (this)
                 Index = newIndex;
 
-            _knownFiles = new List<KnownFile>();
+            _knownFiles = new List<HashRelativePath>();
 
         }
         
         #endregion
-    }
-
-    public class KnownFile
-    {
-        public string[] Paths { get; set; }
-        public Hash Hash { get; set; }
     }
 
     public class DisposableList<T> : List<T>, IDisposable
