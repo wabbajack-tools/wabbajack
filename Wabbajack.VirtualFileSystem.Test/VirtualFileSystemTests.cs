@@ -12,8 +12,7 @@ namespace Wabbajack.VirtualFileSystem.Test
     [TestClass]
     public class VFSTests
     {
-        private const string VFS_TEST_DIR = "vfs_test_dir";
-        private static readonly string VFS_TEST_DIR_FULL = Path.Combine(Directory.GetCurrentDirectory(), VFS_TEST_DIR);
+        private readonly AbsolutePath VFS_TEST_DIR = "vfs_test_dir".ToPath().RelativeToEntryPoint();
         private Context context;
 
         public TestContext TestContext { get; set; }
@@ -23,9 +22,8 @@ namespace Wabbajack.VirtualFileSystem.Test
         public void Setup()
         {
             Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f.ShortDescription));
-            if (Directory.Exists(VFS_TEST_DIR))
-                Utils.DeleteDirectory(VFS_TEST_DIR);
-            Directory.CreateDirectory(VFS_TEST_DIR);
+            VFS_TEST_DIR.DeleteDirectory();
+            VFS_TEST_DIR.CreateDirectory();
             Queue = new WorkQueue();
             context = new Context(Queue);
         }
@@ -36,7 +34,7 @@ namespace Wabbajack.VirtualFileSystem.Test
             AddFile("test.txt", "This is a test");
             await AddTestRoot();
 
-            var file = context.Index.ByFullPath[Path.Combine(VFS_TEST_DIR_FULL, "test.txt")];
+            var file = context.Index.ByRootPath["test.txt".ToPath().RelativeTo(VFS_TEST_DIR)];
             Assert.IsNotNull(file);
 
             Assert.AreEqual(file.Size, 14);
@@ -45,9 +43,9 @@ namespace Wabbajack.VirtualFileSystem.Test
 
         private async Task AddTestRoot()
         {
-            await context.AddRoot(VFS_TEST_DIR_FULL);
-            await context.WriteToFile(Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
-            await context.IntegrateFromFile(Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
+            await context.AddRoot(VFS_TEST_DIR);
+            await context.WriteToFile("vfs_cache.bin".RelativeTo(VFS_TEST_DIR));
+            await context.IntegrateFromFile( "vfs_cache.bin".RelativeTo(VFS_TEST_DIR));
         }
 
 
@@ -58,17 +56,17 @@ namespace Wabbajack.VirtualFileSystem.Test
             ZipUpFolder("archive", "test.zip");
             await AddTestRoot();
 
-            var abs_path = Path.Combine(VFS_TEST_DIR_FULL, "test.zip");
-            var file = context.Index.ByFullPath[abs_path];
+            var abs_path = "test.zip".RelativeTo(VFS_TEST_DIR);
+            var file = context.Index.ByRootPath[abs_path];
             Assert.IsNotNull(file);
 
             Assert.AreEqual(128, file.Size);
             Assert.AreEqual(abs_path.FileHash(), file.Hash);
 
             Assert.IsTrue(file.IsArchive);
-            var inner_file = file.Children.First();
-            Assert.AreEqual(14, inner_file.Size);
-            Assert.AreEqual("qX0GZvIaTKM=", inner_file.Hash);
+            var innerFile = file.Children.First();
+            Assert.AreEqual(14, innerFile.Size);
+            Assert.AreEqual("qX0GZvIaTKM=", innerFile.Hash);
             Assert.AreSame(file, file.Children.First().Parent);
         }
 

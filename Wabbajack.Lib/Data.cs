@@ -22,7 +22,7 @@ namespace Wabbajack.Lib
             Path = path;
         }
 
-        public string AbsolutePath => File.StagedPath;
+        public AbsolutePath AbsolutePath => File.StagedPath;
 
         public VirtualFile File { get; }
 
