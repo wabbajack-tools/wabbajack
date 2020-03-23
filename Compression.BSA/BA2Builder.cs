@@ -122,7 +122,7 @@ namespace Compression.BSA
 
         public uint FileHash => _state.NameHash;
         public uint DirHash => _state.DirHash;
-        public string FullName => _state.Path;
+        public string FullName => (string)_state.Path;
         public int Index => _state.Index;
 
         public void WriteHeader(BinaryWriter bw)
@@ -247,7 +247,7 @@ namespace Compression.BSA
 
         public uint FileHash => _state.NameHash;
         public uint DirHash => _state.DirHash;
-        public string FullName => _state.Path;
+        public string FullName => (string)_state.Path;
         public int Index => _state.Index;
 
         public void WriteHeader(BinaryWriter wtr)

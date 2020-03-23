@@ -1039,12 +1039,12 @@ namespace Wabbajack.Common
         /// delete a folder. If you don't like this code, it's unlikely to change without a ton of testing.
         /// </summary>
         /// <param name="path"></param>
-        public static async void DeleteDirectory(string path)
+        public static async void DeleteDirectory(AbsolutePath path)
         {
             var process = new ProcessHelper
             {
                 Path = "cmd.exe",
-                Arguments = new object[] {"/c", "del", "/f", "/q", "/s", $"\"{path}\"", "&&", "rmdir", "/q", "/s", $"\"{path}\""},
+                Arguments = new object[] {"/c", "del", "/f", "/q", "/s", $"\"{(string)path}\"", "&&", "rmdir", "/q", "/s", $"\"{(string)path}\""},
             };
             var result = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
                 .ForEachAsync(p =>

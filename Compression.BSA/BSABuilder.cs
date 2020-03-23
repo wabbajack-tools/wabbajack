@@ -59,11 +59,11 @@ namespace Compression.BSA
             set => _version = (uint) value;
         }
 
-        public IEnumerable<string> FolderNames
+        public IEnumerable<RelativePath> FolderNames
         {
             get
             {
-                return _files.Select(f => Path.GetDirectoryName(f.Path)).Distinct();
+                return _files.Select(f => f.Path.Parent).Distinct();
             }
         }
 
@@ -128,12 +128,10 @@ namespace Compression.BSA
 
         public void RegenFolderRecords()
         {
-            _folders = _files.GroupBy(f => Path.GetDirectoryName(f.Path.ToLowerInvariant()))
+            _folders = _files.GroupBy(f => f.Path.Parent)
                 .Select(f => new FolderRecordBuilder(this, f.Key, f.ToList()))
                 .OrderBy(f => f._hash)
                 .ToList();
-
-            var lnk = _files.Where(f => f.Path.EndsWith(".lnk")).FirstOrDefault();
 
             foreach (var folder in _folders)
             foreach (var file in folder._files)
@@ -156,13 +154,13 @@ namespace Compression.BSA
         internal ulong _offset;
         internal uint _recordSize;
 
-        public FolderRecordBuilder(BSABuilder bsa, string folderName, IEnumerable<FileEntry> files)
+        public FolderRecordBuilder(BSABuilder bsa, RelativePath folderName, IEnumerable<FileEntry> files)
         {
             _files = files.OrderBy(f => f._hash);
-            Name = folderName.ToLowerInvariant();
+            Name = folderName;
             _bsa = bsa;
             // Folders don't have extensions, so let's make sure we cut it out
-            _hash = Name.GetBSAHash("");
+            _hash = Name.GetBSAHash();
             _fileCount = (uint) files.Count();
             _nameBytes = folderName.ToBZString(_bsa.HeaderType);
             _recordSize = sizeof(ulong) + sizeof(uint) + sizeof(uint);
@@ -170,7 +168,7 @@ namespace Compression.BSA
 
         public ulong Hash => _hash;
 
-        public string Name { get; }
+        public RelativePath Name { get; }
 
         public ulong SelfSize
         {
@@ -232,17 +230,17 @@ namespace Compression.BSA
         internal byte[] _nameBytes;
         private long _offsetOffset;
         internal int _originalSize;
-        internal string _path;
+        internal RelativePath _path;
         private byte[] _pathBSBytes;
         internal byte[] _pathBytes;
         private Stream _srcData;
 
-        public static FileEntry Create(BSABuilder bsa, string path, Stream src, bool flipCompression)
+        public static FileEntry Create(BSABuilder bsa, RelativePath path, Stream src, bool flipCompression)
         {
             var entry = new FileEntry();
             entry._bsa = bsa;
-            entry._path = path.ToLowerInvariant();
-            entry._name = System.IO.Path.GetFileName(entry._path);
+            entry._path = path;
+            entry._name = (string)entry._path.FileName;
             entry._hash = entry._name.GetBSAHash();
             entry._nameBytes = entry._name.ToTermString(bsa.HeaderType);
             entry._pathBytes = entry._path.ToTermString(bsa.HeaderType);
@@ -267,7 +265,7 @@ namespace Compression.BSA
             }
         }
 
-        public string Path => _path;
+        public RelativePath Path => _path;
 
         public bool FlipCompression => _flipCompression;
 

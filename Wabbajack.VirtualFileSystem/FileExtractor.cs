@@ -16,15 +16,15 @@ namespace Wabbajack.VirtualFileSystem
     public class FileExtractor
     {
 
-        public static async Task ExtractAll(WorkQueue queue, string source, string dest)
+        public static async Task ExtractAll(WorkQueue queue, AbsolutePath source, AbsolutePath dest)
         {
             try
             {
-                if (Consts.SupportedBSAs.Any(b => source.ToLower().EndsWith(b)))
+                if (Consts.SupportedBSAs.Contains(source.Extension))
                     await ExtractAllWithBSA(queue, source, dest);
-                else if (source.EndsWith(".omod"))
+                else if (source.Extension == Consts.OMOD)
                     ExtractAllWithOMOD(source, dest);
-                else if (source.EndsWith(".exe"))
+                else if (source.Extension == Consts.EXE)
                     ExtractAllWithInno(source, dest);
                 else
                     ExtractAllWith7Zip(source, dest);
@@ -35,14 +35,14 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        private static void ExtractAllWithInno(string source, string dest)
+        private static void ExtractAllWithInno(AbsolutePath source, AbsolutePath dest)
         {
-            Utils.Log($"Extracting {Path.GetFileName(source)}");
+            Utils.Log($"Extracting {(string)source.FileName}");
 
             var info = new ProcessStartInfo
             {
                 FileName = @"Extractors\innounp.exe",
-                Arguments = $"-x -y -b -d\"{dest}\" \"{source}\"",
+                Arguments = $"-x -y -b -d\"{(string)dest}\" \"{(string)source}\"",
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -64,7 +64,7 @@ namespace Wabbajack.VirtualFileSystem
                 Utils.Error(e, "Error while setting process priority level for innounp.exe");
             }
 
-            var name = Path.GetFileName(source);
+            var name = source.FileName;
             try
             {
                 while (!p.HasExited)
@@ -77,7 +77,7 @@ namespace Wabbajack.VirtualFileSystem
                         continue;
 
                     int.TryParse(line.Substring(0, 3), out var percentInt);
-                    Utils.Status($"Extracting {name} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
+                    Utils.Status($"Extracting {(string)name} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
                 }
             }
             catch (Exception e)
@@ -85,7 +85,7 @@ namespace Wabbajack.VirtualFileSystem
                 Utils.Error(e, "Error while reading StandardOutput for innounp.exe");
             }
 
-            p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Extracting {name}");
+            p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Extracting {(string)name}");
             if (p.ExitCode == 0)
                 return;
 
@@ -113,44 +113,37 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        private static void ExtractAllWithOMOD(string source, string dest)
+        private static void ExtractAllWithOMOD(AbsolutePath source, AbsolutePath dest)
         {
-            Utils.Log($"Extracting {Path.GetFileName(source)}");
+            Utils.Log($"Extracting {(string)source.FileName}");
 
-            Framework.Settings.TempPath = dest;
+            Framework.Settings.TempPath = (string)dest;
             Framework.Settings.CodeProgress = new OMODProgress();
 
-            var omod = new OMOD(source);
+            var omod = new OMOD((string)source);
             omod.GetDataFiles();
             omod.GetPlugins();
         }
 
 
-        private static async Task ExtractAllWithBSA(WorkQueue queue, string source, string dest)
+        private static async Task ExtractAllWithBSA(WorkQueue queue, AbsolutePath source, AbsolutePath dest)
         {
             try
             {
-                using (var arch = BSADispatch.OpenRead(source))
-                {
-                    await arch.Files
-                        .PMap(queue, f =>
-                        {
-                            var path = f.Path;
-                            if (f.Path.StartsWith("\\"))
-                                path = f.Path.Substring(1);
-                            Utils.Status($"Extracting {path}");
-                            var outPath = Path.Combine(dest, path);
-                            var parent = Path.GetDirectoryName(outPath);
+                using var arch = BSADispatch.OpenRead(source);
+                await arch.Files
+                    .PMap(queue, f =>
+                    {
+                        Utils.Status($"Extracting {(string)f.Path}");
+                        var outPath = f.Path.RelativeTo(dest);
+                        var parent = outPath.Parent;
 
-                            if (!Directory.Exists(parent))
-                                Directory.CreateDirectory(parent);
+                        if (!parent.IsDirectory)
+                            parent.CreateDirectory();
 
-                            using (var fs = File.Open(outPath, System.IO.FileMode.Create))
-                            {
-                                f.CopyDataTo(fs);
-                            }
-                        });
-                }
+                        using var fs = outPath.Create();
+                        f.CopyDataTo(fs);
+                    });
             }
             catch (Exception ex)
             {
@@ -158,14 +151,14 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        private static void ExtractAllWith7Zip(string source, string dest)
+        private static void ExtractAllWith7Zip(AbsolutePath source, AbsolutePath dest)
         {
-            Utils.Log(new GenericInfo($"Extracting {Path.GetFileName(source)}", $"The contents of {source} are being extracted to {dest} using 7zip.exe"));
+            Utils.Log(new GenericInfo($"Extracting {(string)source.FileName}", $"The contents of {(string)source.FileName} are being extracted to {(string)source.FileName} using 7zip.exe"));
 
             var info = new ProcessStartInfo
             {
                 FileName = @"Extractors\7z.exe",
-                Arguments = $"x -bsp1 -y -o\"{dest}\" \"{source}\" -mmt=off",
+                Arguments = $"x -bsp1 -y -o\"{(string)dest}\" \"{(string)source}\" -mmt=off",
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -185,7 +178,7 @@ namespace Wabbajack.VirtualFileSystem
             {
             }
 
-            var name = Path.GetFileName(source);
+            var name = source.FileName;
             try
             {
                 while (!p.HasExited)
@@ -197,7 +190,7 @@ namespace Wabbajack.VirtualFileSystem
                     if (line.Length <= 4 || line[3] != '%') continue;
 
                     int.TryParse(line.Substring(0, 3), out var percentInt);
-                    Utils.Status($"Extracting {name} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
+                    Utils.Status($"Extracting {(string)name} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
                 }
             }
             catch (Exception)
@@ -219,13 +212,13 @@ namespace Wabbajack.VirtualFileSystem
         /// </summary>
         /// <param name="v"></param>
         /// <returns></returns>
-        public static bool CanExtract(string v)
+        public static bool CanExtract(AbsolutePath v)
         {
-            var ext = Path.GetExtension(v.ToLower());
-            if(ext != ".exe" && !Consts.TestArchivesBeforeExtraction.Contains(ext))
+            var ext = v.Extension;
+            if(ext != _exeExtension && !Consts.TestArchivesBeforeExtraction.Contains(ext))
                 return Consts.SupportedArchives.Contains(ext) || Consts.SupportedBSAs.Contains(ext);
 
-            if (ext == ".exe")
+            if (ext == _exeExtension)
             {
                 var info = new ProcessStartInfo
                 {
@@ -243,7 +236,7 @@ namespace Wabbajack.VirtualFileSystem
                 p.Start();
                 ChildProcessTracker.AddProcess(p);
 
-                var name = Path.GetFileName(v);
+                var name = v.FileName;
                 while (!p.HasExited)
                 {
                     var line = p.StandardOutput.ReadLine();
@@ -253,7 +246,7 @@ namespace Wabbajack.VirtualFileSystem
                     if (line[0] != '#')
                         continue;
 
-                    Utils.Status($"Testing {name} - {line.Trim()}");
+                    Utils.Status($"Testing {(string)name} - {line.Trim()}");
                 }
 
                 p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Testing {name}");
@@ -299,10 +292,12 @@ namespace Wabbajack.VirtualFileSystem
         }
         
         
-        public static bool MightBeArchive(string path)
+        private static Extension _exeExtension = new Extension(".exe");
+        
+        public static bool MightBeArchive(AbsolutePath path)
         {
-            var ext = Path.GetExtension(path.ToLower());
-            return ext == ".exe" || Consts.SupportedArchives.Contains(ext) || Consts.SupportedBSAs.Contains(ext);
+            var ext = path.Extension;
+            return ext == _exeExtension || Consts.SupportedArchives.Contains(ext) || Consts.SupportedBSAs.Contains(ext);
         }
     }
 }

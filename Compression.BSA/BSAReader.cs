@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Compression.LZ4.Streams;
+using Wabbajack.Common;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
@@ -52,7 +53,7 @@ namespace Compression.BSA
         internal uint _archiveFlags;
         internal uint _fileCount;
         internal uint _fileFlags;
-        internal string _fileName;
+        internal AbsolutePath _fileName;
         internal uint _folderCount;
         internal uint _folderRecordOffset;
         private List<FolderRecord> _folders;
@@ -63,7 +64,7 @@ namespace Compression.BSA
         internal uint _totalFolderNameLength;
         internal uint _version;
 
-        public BSAReader(string filename) : this(File.OpenRead(filename))
+        public BSAReader(AbsolutePath filename) : this(filename.OpenRead())
         {
             _fileName = filename;
         }
@@ -270,12 +271,11 @@ namespace Compression.BSA
             src.BaseStream.Position = old_pos;
         }
 
-        public string Path
+        public RelativePath Path
         {
             get
             {
-                if (string.IsNullOrEmpty(Folder.Name)) return _name;
-                return Folder.Name + "\\" + _name;
+                return string.IsNullOrEmpty(Folder.Name) ? new RelativePath(_name) : new RelativePath(Folder.Name + "\\" + _name);
             }
         }
 
@@ -304,7 +304,7 @@ namespace Compression.BSA
 
         public void CopyDataTo(Stream output)
         {
-            using (var in_file = File.OpenRead(_bsa._fileName))
+            using (var in_file = _bsa._fileName.OpenRead())
             using (var rdr = new BinaryReader(in_file))
             {
                 rdr.BaseStream.Position = _dataOffset;
