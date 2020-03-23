@@ -22,12 +22,12 @@ namespace Wabbajack.VirtualFileSystem
         static Context()
         {
             Utils.Log("Cleaning VFS, this may take a bit of time");
-            Utils.DeleteDirectory(_stagingFolder);
+            Utils.DeleteDirectory(StagingFolder);
         }
         public const ulong FileVersion = 0x03;
         public const string Magic = "WABBAJACK VFS FILE";
 
-        private static readonly string _stagingFolder = "vfs_staging";
+        private static readonly AbsolutePath StagingFolder = ((RelativePath)"vfs_staging").RelativeToWorkingDirectory();
         public IndexRoot Index { get; private set; } = IndexRoot.Empty;
 
         /// <summary>
@@ -47,23 +47,18 @@ namespace Wabbajack.VirtualFileSystem
             Queue = queue;
             UseExtendedHashes = extendedHashes;
         }
-
-
-        public TemporaryDirectory GetTemporaryFolder()
+        public static TemporaryDirectory GetTemporaryFolder()
         {
-            return new TemporaryDirectory(Path.Combine(_stagingFolder, Guid.NewGuid().ToString()));
+            return new TemporaryDirectory(((RelativePath)Guid.NewGuid().ToString()).RelativeTo(StagingFolder));
         }
 
-        public async Task<IndexRoot> AddRoot(string root)
+        public async Task<IndexRoot> AddRoot(AbsolutePath root)
         {
-            if (!Path.IsPathRooted(root))
-                throw new InvalidDataException($"Path is not absolute: {root}");
-
-            var filtered = Index.AllFiles.Where(file => File.Exists(file.Name)).ToList();
+            var filtered = Index.AllFiles.Where(file => file.IsNative && ((AbsolutePath) file.Name).Exists).ToList();
 
             var byPath = filtered.ToImmutableDictionary(f => f.Name);
 
-            var filesToIndex = Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive).Distinct().ToList();
+            var filesToIndex = root.EnumerateFiles().Distinct().ToList();
             
             var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing {root}", filesToIndex.Count));
 
@@ -72,8 +67,7 @@ namespace Wabbajack.VirtualFileSystem
                             {
                                 if (byPath.TryGetValue(f, out var found))
                                 {
-                                    var fi = new FileInfo(f);
-                                    if (found.LastModified == fi.LastWriteTimeUtc.Ticks && found.Size == fi.Length)
+                                    if (found.LastModified == f.LastModifiedUtc.AsUnixTime() && found.Size == f.Size)
                                         return found;
                                 }
 
@@ -90,27 +84,21 @@ namespace Wabbajack.VirtualFileSystem
             return newIndex;
         }
 
-        public async Task<IndexRoot> AddRoots(List<string> roots)
+        public async Task<IndexRoot> AddRoots(List<AbsolutePath> roots)
         {
-            if (!roots.All(p => Path.IsPathRooted(p)))
-                throw new InvalidDataException($"Paths are not absolute");
+            var native = Index.AllFiles.Where(file => file.IsNative).ToDictionary(file => file.StagedPath);
 
-            var filtered = Index.AllFiles.Where(file => File.Exists(file.Name)).ToList();
+            var filtered = Index.AllFiles.Where(file => ((AbsolutePath)file.Name).Exists).ToList();
 
-            var byPath = filtered.ToImmutableDictionary(f => f.Name);
-
-            var filesToIndex = roots.SelectMany(root => Directory.EnumerateFiles(root, "*", DirectoryEnumerationOptions.Recursive)).ToList();
-
-            var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing roots", filesToIndex.Count));
+            var filesToIndex = roots.SelectMany(root => root.EnumerateFiles()).ToList();
 
             var allFiles = await filesToIndex
                 .PMap(Queue, async f =>
                 {
-                    Utils.Status($"Indexing {Path.GetFileName(f)}");
-                    if (byPath.TryGetValue(f, out var found))
+                    Utils.Status($"Indexing {Path.GetFileName((string)f)}");
+                    if (native.TryGetValue(f, out var found))
                     {
-                        var fi = new FileInfo(f);
-                        if (found.LastModified == fi.LastWriteTimeUtc.Ticks && found.Size == fi.Length)
+                        if (found.LastModified == f.LastModifiedUtc.AsUnixTime() && found.Size == f.Size)
                             return found;
                     }
 
@@ -224,7 +212,7 @@ namespace Wabbajack.VirtualFileSystem
 
             foreach (var group in grouped)
             {
-                var tmpPath = Path.Combine(_stagingFolder, Guid.NewGuid().ToString());
+                var tmpPath = Path.Combine(StagingFolder, Guid.NewGuid().ToString());
                 await FileExtractor.ExtractAll(Queue, group.Key.StagedPath, tmpPath);
                 paths.Add(tmpPath);
                 foreach (var file in group)
@@ -354,10 +342,10 @@ namespace Wabbajack.VirtualFileSystem
         public static IndexRoot Empty = new IndexRoot();
 
         public IndexRoot(ImmutableList<VirtualFile> aFiles,
-            ImmutableDictionary<string, VirtualFile> byFullPath,
+            ImmutableDictionary<FullPath, VirtualFile> byFullPath,
             ImmutableDictionary<Hash, ImmutableStack<VirtualFile>> byHash,
-            ImmutableDictionary<string, VirtualFile> byRoot,
-            ImmutableDictionary<string, ImmutableStack<VirtualFile>> byName)
+            ImmutableDictionary<AbsolutePath, VirtualFile> byRoot,
+            ImmutableDictionary<AbstractPath, ImmutableStack<VirtualFile>> byName)
         {
             AllFiles = aFiles;
             ByFullPath = byFullPath;
@@ -369,18 +357,18 @@ namespace Wabbajack.VirtualFileSystem
         public IndexRoot()
         {
             AllFiles = ImmutableList<VirtualFile>.Empty;
-            ByFullPath = ImmutableDictionary<string, VirtualFile>.Empty;
+            ByFullPath = ImmutableDictionary<FullPath, VirtualFile>.Empty;
             ByHash = ImmutableDictionary<Hash, ImmutableStack<VirtualFile>>.Empty;
-            ByRootPath = ImmutableDictionary<string, VirtualFile>.Empty;
-            ByName = ImmutableDictionary<string, ImmutableStack<VirtualFile>>.Empty;
+            ByRootPath = ImmutableDictionary<AbsolutePath, VirtualFile>.Empty;
+            ByName = ImmutableDictionary<AbstractPath, ImmutableStack<VirtualFile>>.Empty;
         }
 
 
         public ImmutableList<VirtualFile> AllFiles { get; }
-        public ImmutableDictionary<string, VirtualFile> ByFullPath { get; }
+        public ImmutableDictionary<FullPath, VirtualFile> ByFullPath { get; }
         public ImmutableDictionary<Hash, ImmutableStack<VirtualFile>> ByHash { get; }
-        public ImmutableDictionary<string, ImmutableStack<VirtualFile>> ByName { get; set; }
-        public ImmutableDictionary<string, VirtualFile> ByRootPath { get; }
+        public ImmutableDictionary<AbstractPath, ImmutableStack<VirtualFile>> ByName { get; set; }
+        public ImmutableDictionary<AbsolutePath, VirtualFile> ByRootPath { get; }
 
         public async Task<IndexRoot> Integrate(ICollection<VirtualFile> files)
         {
@@ -397,7 +385,7 @@ namespace Wabbajack.VirtualFileSystem
             var byName = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
                                  .ToGroupedImmutableDictionary(f => f.Name));
 
-            var byRootPath = Task.Run(() => allFiles.ToImmutableDictionary(f => f.Name));
+            var byRootPath = Task.Run(() => allFiles.ToImmutableDictionary(f => f.Name as AbsolutePath));
 
             var result = new IndexRoot(allFiles,
                 await byFullPath,
@@ -408,27 +396,27 @@ namespace Wabbajack.VirtualFileSystem
             return result;
         }
 
-        public VirtualFile FileForArchiveHashPath(string[] argArchiveHashPath)
+        public VirtualFile FileForArchiveHashPath(HashRelativePath argArchiveHashPath)
         {
-            var cur = ByHash[Hash.FromBase64(argArchiveHashPath[0])].First(f => f.Parent == null);
-            return argArchiveHashPath.Skip(1).Aggregate(cur, (current, itm) => ByName[itm].First(f => f.Parent == current));
+            var cur = ByHash[argArchiveHashPath.BaseHash].First(f => f.Parent == null);
+            return argArchiveHashPath.Paths.Aggregate(cur, (current, itm) => ByName[itm].First(f => f.Parent == current));
         }
     }
 
     public class TemporaryDirectory : IDisposable
     {
-        public TemporaryDirectory(string name)
+        public TemporaryDirectory(AbsolutePath name)
         {
             FullName = name;
-            if (!Directory.Exists(FullName))
-                Directory.CreateDirectory(FullName);
+            if (!FullName.Exists)
+                FullName.CreateDirectory();
         }
 
-        public string FullName { get; }
+        public AbsolutePath FullName { get; }
 
         public void Dispose()
         {
-            if (Directory.Exists(FullName)) 
+            if (FullName.Exists) 
                 Utils.DeleteDirectory(FullName);
         }
     }

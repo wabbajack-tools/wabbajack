@@ -111,13 +111,13 @@ namespace Wabbajack.Common
             return sha.Hash.ToHex();
         }
 
-        public static Hash FileHash(this string file, bool nullOnIoError = false)
+        public static Hash FileHash(this AbsolutePath file, bool nullOnIoError = false)
         {
             try
             {
-                using var fs = File.OpenRead(file);
+                using var fs = file.OpenRead();
                 var config = new xxHashConfig {HashSizeInBits = 64};
-                using var f = new StatusFileStream(fs, $"Hashing {Path.GetFileName(file)}");
+                using var f = new StatusFileStream(fs, $"Hashing {(string)file.FileName}");
                 return new Hash(BitConverter.ToUInt64(xxHashFactory.Instance.Create(config).ComputeHash(f).Hash));
             }
             catch (IOException)
@@ -127,7 +127,7 @@ namespace Wabbajack.Common
             }
         }
         
-        public static Hash FileHashCached(this string file, bool nullOnIoError = false)
+        public static Hash FileHashCached(this AbsolutePath file, bool nullOnIoError = false)
         {
             if (TryGetHashCache(file, out var foundHash)) return foundHash;
 
@@ -137,7 +137,7 @@ namespace Wabbajack.Common
             return hash;
         }
 
-        public static bool TryGetHashCache(string file, out Hash hash)
+        public static bool TryGetHashCache(AbsolutePath file, out Hash hash)
         {
             var hashFile = file + Consts.HashFileExtension;
             hash = Hash.Empty; 
@@ -151,24 +151,24 @@ namespace Wabbajack.Common
             if (version != HashCacheVersion) return false;
 
             var lastModified = br.ReadUInt64();
-            if (lastModified != File.GetLastWriteTimeUtc(file).AsUnixTime()) return false;
+            if (lastModified != file.LastModifiedUtc.AsUnixTime()) return false;
             hash = new Hash(br.ReadUInt64());
             return true;
         }
 
 
         private const uint HashCacheVersion = 0x01;
-        private static void WriteHashCache(string file, Hash hash)
+        private static void WriteHashCache(AbsolutePath file, Hash hash)
         {
             using var fs = File.Create(file + Consts.HashFileExtension);
             using var bw = new BinaryWriter(fs);
             bw.Write(HashCacheVersion);
-            var lastModified = File.GetLastWriteTimeUtc(file).AsUnixTime();
+            var lastModified = file.LastModifiedUtc.AsUnixTime();
             bw.Write(lastModified);
             bw.Write((ulong)hash);
         }
 
-        public static async Task<Hash> FileHashCachedAsync(this string file, bool nullOnIOError = false)
+        public static async Task<Hash> FileHashCachedAsync(this AbsolutePath file, bool nullOnIOError = false)
         {
             if (TryGetHashCache(file, out var foundHash)) return foundHash;
 
@@ -178,11 +178,11 @@ namespace Wabbajack.Common
             return hash;
         }
 
-        public static async Task<Hash> FileHashAsync(this string file, bool nullOnIOError = false)
+        public static async Task<Hash> FileHashAsync(this AbsolutePath file, bool nullOnIOError = false)
         {
             try
             {
-                await using var fs = File.OpenRead(file);
+                await using var fs = file.OpenRead();
                 var config = new xxHashConfig {HashSizeInBits = 64};
                 var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(fs);
                 return new Hash(BitConverter.ToUInt64(value.Hash));

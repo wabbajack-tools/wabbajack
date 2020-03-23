@@ -48,7 +48,7 @@ namespace Compression.BSA
             {
                 if (bw.BaseStream.Position != orgPos + state.NameOffset)
                     throw new InvalidDataException("Offsets don't match when writing TES3 BSA");
-                bw.Write(Encoding.ASCII.GetBytes(state.Path));
+                bw.Write(Encoding.ASCII.GetBytes((string)state.Path));
                 bw.Write((byte)0);
             }
 

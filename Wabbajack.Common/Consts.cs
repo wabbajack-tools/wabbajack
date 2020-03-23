@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Alphaleonis.Win32.Filesystem;
@@ -20,16 +21,21 @@ namespace Wabbajack.Common
 
         public static string MegaPrefix = "https://mega.nz/#!";
 
-        public static HashSet<string> SupportedArchives = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod", ".exe", ".dat"};
+        public static readonly HashSet<Extension> SupportedArchives = new[]{".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod", ".exe", ".dat"}
+            .Select(s => new Extension(s)).ToHashSet();
 
         // HashSet with archive extensions that need to be tested before extraction
-        public static HashSet<string> TestArchivesBeforeExtraction = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".dat"};
+        public static HashSet<Extension> TestArchivesBeforeExtraction = new []{".dat"}.Select(s => new Extension(s)).ToHashSet();
 
-        public static HashSet<string> SupportedBSAs = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".bsa", ".ba2"};
+        public static readonly HashSet<Extension> SupportedBSAs = new[] {".bsa", ".ba2"}
+            .Select(s => new Extension(s)).ToHashSet();
 
         public static HashSet<string> ConfigFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".json", ".ini", ".yml", ".xml"};
         public static HashSet<string> ESPFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".esp", ".esm", ".esl"};
         public static HashSet<string> AssetFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".dds", ".tga", ".nif", ".psc", ".pex"};
+        
+        public static readonly Extension EXE = new Extension(".exe");
+        public static readonly Extension OMOD = new Extension(".omod");
 
         public static string NexusCacheDirectory = "nexus_link_cache";
 

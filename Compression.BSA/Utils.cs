@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Wabbajack.Common;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Compression.BSA
@@ -64,9 +65,9 @@ namespace Compression.BSA
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
-        public static byte[] ToBZString(this string val, VersionType version)
+        public static byte[] ToBZString(this RelativePath val, VersionType version)
         {
-            var b = GetEncoding(version).GetBytes(val);
+            var b = GetEncoding(version).GetBytes((string)val);
             var b2 = new byte[b.Length + 2];
             b.CopyTo(b2, 1);
             b2[0] = (byte) (b.Length + 1);
@@ -78,9 +79,9 @@ namespace Compression.BSA
         /// </summary>
         /// <param name="val"></param>
         /// <returns></returns>
-        public static byte[] ToBSString(this string val)
+        public static byte[] ToBSString(this RelativePath val)
         {
-            var b = Encoding.ASCII.GetBytes(val);
+            var b = Encoding.ASCII.GetBytes((string)val);
             var b2 = new byte[b.Length + 1];
             b.CopyTo(b2, 1);
             b2[0] = (byte) b.Length;
@@ -101,11 +102,21 @@ namespace Compression.BSA
             b[0] = (byte) b.Length;
             return b2;
         }
+        
+        public static byte[] ToTermString(this RelativePath val, VersionType version)
+        {
+            return ((string)val).ToTermString(version);
+        }
 
         public static ulong GetBSAHash(this string name)
         {
             name = name.Replace('/', '\\');
             return GetBSAHash(Path.ChangeExtension(name, null), Path.GetExtension(name));
+        }
+        
+        public static ulong GetBSAHash(this RelativePath name)
+        {
+            return ((string)name).GetBSAHash();
         }
 
         public static ulong GetBSAHash(this string name, string ext)

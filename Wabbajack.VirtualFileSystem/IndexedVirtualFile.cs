@@ -8,7 +8,7 @@ namespace Wabbajack.VirtualFileSystem
     /// </summary>
     public class IndexedVirtualFile
     {
-        public string Name { get; set; }
+        public AbstractPath Name { get; set; }
         public Hash Hash { get; set; }
         public long Size { get; set; }
         public List<IndexedVirtualFile> Children { get; set; } = new List<IndexedVirtualFile>();
