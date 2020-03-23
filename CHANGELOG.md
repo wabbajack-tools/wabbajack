@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 1.1.3.0 - 3/23/2020
+* Fix for a lack of VC++ Redist dlls on newly installed Windows machines.
+
 #### Version - 1.1.2.0 - 3/20/2020
 * We now set VRAM settings for Skyrim LE ENBs
 * Fixes for Morrowind Game metadata

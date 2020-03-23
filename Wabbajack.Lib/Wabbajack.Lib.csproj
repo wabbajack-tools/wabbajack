@@ -89,6 +89,18 @@
       <None Update="Downloaders\Converters\xWMAEncode.exe">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="vcruntime140.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="vccorlib140.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="msvcp140.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="concrt140.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Downloaders\BethesdaNet" />
