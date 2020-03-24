@@ -350,12 +350,14 @@ namespace Wabbajack.Common
         public static bool operator ==(Extension a, Extension b)
         {
             // Super fast comparison because extensions are interned
+            if (a == null && b == null) return true;
+            if (a == null || b == null) return false;
             return ReferenceEquals(a._extension, b._extension);
         }
         
         public static bool operator !=(Extension a, Extension b)
         {
-            return !ReferenceEquals(a._extension, b._extension);
+            return !(a == b);
         }
     }
 
