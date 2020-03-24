@@ -177,16 +177,16 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             var state = context.GetPortableState(files);
 
-            var new_context = new Context(Queue);
+            var newContext = new Context(Queue);
 
-            await new_context.IntegrateFromPortable(state,
+            await newContext.IntegrateFromPortable(state,
                 new Dictionary<Hash, AbsolutePath> {{archive.Hash, archive.FullPath.Base}});
 
-            var new_files = new_context.Index.ByHash[Hash.FromBase64("qX0GZvIaTKM=")];
+            var newFiles = newContext.Index.ByHash[Hash.FromBase64("qX0GZvIaTKM=")];
 
-            var close = await new_context.Stage(new_files);
+            var close = await newContext.Stage(newFiles);
 
-            foreach (var file in new_files)
+            foreach (var file in newFiles)
                 Assert.AreEqual("This is a test", await file.StagedPath.ReadAllTextAsync());
 
             close();
