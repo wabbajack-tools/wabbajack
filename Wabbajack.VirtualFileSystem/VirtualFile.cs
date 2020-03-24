@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using K4os.Hash.Crc;
 using MessagePack;
 using Wabbajack.Common;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.VirtualFileSystem
 {
@@ -132,7 +133,7 @@ namespace Wabbajack.VirtualFileSystem
         }
 
         public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, AbsolutePath absPath,
-            IPath relPath, bool topLevel)
+            IPath relPath, int depth = 0)
         {
             var hash = absPath.FileHash();
 
@@ -176,6 +177,9 @@ namespace Wabbajack.VirtualFileSystem
                 LastAnalyzed = DateTime.Now.AsUnixTime(),
                 Hash = hash
             };
+
+            self.FillFullPath(depth);
+            
             if (context.UseExtendedHashes)
                 self.ExtendedHashes = ExtendedHashes.FromFile(absPath);
 
@@ -187,13 +191,33 @@ namespace Wabbajack.VirtualFileSystem
 
                     var list = await tempFolder.FullName.EnumerateFiles()
                         .PMap(context.Queue,
-                            absSrc => Analyze(context, self, absSrc, absSrc.RelativeTo(tempFolder.FullName), false));
+                            absSrc => Analyze(context, self, absSrc, absSrc.RelativeTo(tempFolder.FullName), depth + 1));
 
                     self.Children = list.ToImmutableList();
                 }
             }
 
             return self;
+        }
+
+        private void FillFullPath(in int depth)
+        {
+            if (depth == 0)
+            {
+                FullPath = new FullPath((AbsolutePath)Name, new RelativePath[0]);
+            }
+            else
+            {
+                var paths = new RelativePath[depth];
+                var self = this;
+                for (var idx = depth; idx != 0; idx -= 1)
+                {
+                    paths[idx - 1] = self.RelativeName;
+                    self = self.Parent;
+                }
+                FullPath = new FullPath(self.AbsoluteName, paths);
+            }
+            
         }
 
         private static async Task<IndexedVirtualFile> TryGetContentsFromServer(Hash hash)
@@ -250,7 +274,7 @@ namespace Wabbajack.VirtualFileSystem
                 Parent = parent,
                 Children = ImmutableList<VirtualFile>.Empty
             };
-
+            vf.FullPath = new FullPath(vf.AbsoluteName, new RelativePath[0]);
             var children = br.ReadInt32();
             for (var i = 0; i < children; i++)
             {
@@ -283,39 +307,6 @@ namespace Wabbajack.VirtualFileSystem
                 var child = Read(context, vf, br,top, subpaths);
                 vf.Children = vf.Children.Add(child);
             }
-            return vf;
-        }
-
-        public static VirtualFile CreateFromPortable(Context context,
-            Dictionary<Hash, IEnumerable<PortableFile>> state, Dictionary<Hash, AbsolutePath> links,
-            PortableFile portableFile)
-        {
-            var vf = new VirtualFile
-            {
-                Parent = null,
-                Context = context,
-                Name = links[portableFile.Hash],
-                Hash = portableFile.Hash,
-                Size = portableFile.Size
-            };
-            if (state.TryGetValue(portableFile.Hash, out var children))
-                vf.Children = children.Select(child => CreateFromPortable(context, vf, state, child)).ToImmutableList();
-            return vf;
-        }
-
-        public static VirtualFile CreateFromPortable(Context context, VirtualFile parent,
-            Dictionary<Hash, IEnumerable<PortableFile>> state, PortableFile portableFile)
-        {
-            var vf = new VirtualFile
-            {
-                Parent = parent,
-                Context = context,
-                Name = portableFile.Name,
-                Hash = portableFile.Hash,
-                Size = portableFile.Size
-            };
-            if (state.TryGetValue(portableFile.Hash, out var children))
-                vf.Children = children.Select(child => CreateFromPortable(context, vf, state, child)).ToImmutableList();
             return vf;
         }
 
