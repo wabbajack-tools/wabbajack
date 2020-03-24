@@ -152,7 +152,12 @@ namespace Wabbajack.Common
             File.Copy(_path, otherPath._path);
         }
 
-        public void Move(AbsolutePath otherPath, bool overwrite = false)
+        /// <summary>
+        /// Moves this file to the specified location
+        /// </summary>
+        /// <param name="otherPath"></param>
+        /// <param name="overwrite">Replace the destination file if it exists</param>
+        public void MoveTo(AbsolutePath otherPath, bool overwrite = false)
         {
             File.Move(_path, otherPath._path, overwrite ? MoveOptions.ReplaceExisting : MoveOptions.None);
         }
