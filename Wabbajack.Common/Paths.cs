@@ -14,32 +14,15 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Common
 {
-    public class AbstractPath
+    public interface IPath
     {
-
-        public RelativePath FileName
-        {
-            get
-            {
-                switch (this)
-                {
-                    case AbsolutePath abs:
-                        return abs.FileName;
-                    case RelativePath rel:
-                        return rel.FileName;
-                }
-
-                return null;
-            }
-        }
-        
     }
     
-    public class AbsolutePath : AbstractPath
+    public struct AbsolutePath : IPath
     {
 
         #region ObjectEquality
-        protected bool Equals(AbsolutePath other)
+        bool Equals(AbsolutePath other)
         {
             return _path == other._path;
         }
@@ -76,12 +59,14 @@ namespace Wabbajack.Common
         public AbsolutePath(string path)
         {
             _path = path.ToLowerInvariant().Replace("/", "\\").TrimEnd('\\');
+            _extension = new Extension(Path.GetExtension(_path));
             ValidateAbsolutePath();
         }
 
         public AbsolutePath(string path, bool skipValidation)
         {
             _path = path.ToLowerInvariant().Replace("/", "\\").TrimEnd('\\');
+            _extension = Extension.FromPath(path);
             if (!skipValidation) 
                 ValidateAbsolutePath();
         }
@@ -89,6 +74,7 @@ namespace Wabbajack.Common
         public AbsolutePath(AbsolutePath path)
         {
             _path = path._path;
+            _extension = path._extension;
         }
 
         private void ValidateAbsolutePath()
@@ -96,19 +82,8 @@ namespace Wabbajack.Common
             if (Path.IsPathRooted(_path)) return;
             throw new InvalidDataException($"Absolute path must be absolute");
         }
-        
-        public Extension Extension 
-        {
-            get
-            {
-                if (_extension != null) return _extension;
-                var extension = Path.GetExtension(_path);
-                if (string.IsNullOrEmpty(extension))
-                    return null;
-                _extension = (Extension)extension;
-                return _extension;
-            }
-        }
+
+        public Extension Extension => _extension;
 
         public FileStream OpenRead()
         {
@@ -222,7 +197,7 @@ namespace Wabbajack.Common
         }
     }
 
-    public class RelativePath : AbstractPath
+    public class RelativePath : IPath
     {
         private readonly string _path;
         private Extension _extension;
@@ -275,6 +250,8 @@ namespace Wabbajack.Common
         }
         
         public RelativePath Parent => (RelativePath)Path.GetDirectoryName(_path);
+        
+        public RelativePath FileName => new RelativePath(Path.GetFileName(_path));
     }
 
     public static partial class Utils
@@ -288,12 +265,58 @@ namespace Wabbajack.Common
         {
             return ((RelativePath)str).RelativeTo(path);
         }
+
+        public static void Write(this BinaryWriter wtr, IPath path)
+        {
+            wtr.Write(path is AbsolutePath);
+            if (path is AbsolutePath)
+                wtr.Write((AbsolutePath)path);
+            else
+                wtr.Write((RelativePath)path);
+        }
+
+        public static void Write(this BinaryWriter wtr, AbsolutePath path)
+        {
+            wtr.Write((string)path);
+        }
+        public static void Write(this BinaryWriter wtr, RelativePath path)
+        {
+            wtr.Write((string)path);
+        }
+
+        public static IPath ReadIPath(this BinaryReader rdr)
+        {
+            if (rdr.ReadBoolean())
+                return rdr.ReadAbsolutePath();
+            return rdr.ReadRelativePath();
+        }
+
+        public static AbsolutePath ReadAbsolutePath(this BinaryReader rdr)
+        {
+            return new AbsolutePath(rdr.ReadString());
+        }
+
+        public static RelativePath ReadRelativePath(this BinaryReader rdr)
+        {
+            return new RelativePath(rdr.ReadString());
+        }
+
+        public static T[] Add<T>(this T[] arr, T itm)
+        {
+            var newArr = new T[arr.Length + 1];
+            Array.Copy(arr, 0, newArr, 0, arr.Length);
+            newArr[arr.Length] = itm;
+            return newArr;
+        }
+
     }
 
-    public class Extension
+    public struct Extension
     {
+        public static Extension None = new Extension("", false); 
+        
         #region ObjectEquality
-        protected bool Equals(Extension other)
+        bool Equals(Extension other)
         {
             return _extension == other._extension;
         }
@@ -328,9 +351,28 @@ namespace Wabbajack.Common
 
         public Extension(string extension)
         {
+            if (string.IsNullOrWhiteSpace(extension))
+            {
+                _extension = None._extension;
+                return;
+            }
+
             _extension = string.Intern(extension);
             Validate();
         }
+
+        private Extension(string extension, bool validate)
+        {
+            _extension = string.Intern(extension);
+            if (validate) Validate();
+            
+        }
+
+        public Extension(Extension other)
+        {
+            _extension = other._extension;
+        }
+        
         private void Validate()
         {
             if (!_extension.StartsWith("."))
@@ -350,8 +392,8 @@ namespace Wabbajack.Common
         public static bool operator ==(Extension a, Extension b)
         {
             // Super fast comparison because extensions are interned
-            if (a == null && b == null) return true;
-            if (a == null || b == null) return false;
+            if ((object)a == null && (object)b == null) return true;
+            if ((object)a == null || (object)b == null) return false;
             return ReferenceEquals(a._extension, b._extension);
         }
         
@@ -359,12 +401,30 @@ namespace Wabbajack.Common
         {
             return !(a == b);
         }
+
+        public static Extension FromPath(string path)
+        {
+            var ext = Path.GetExtension(path);
+            return !string.IsNullOrWhiteSpace(ext) ? new Extension(ext) : None;
+        }
     }
 
-    public class HashRelativePath
+    public struct HashRelativePath
     {
-        public Hash BaseHash { get; set; }
-        public RelativePath[] Paths { get; set; } = new RelativePath[0];
+        private static RelativePath[] EMPTY_PATH;
+        public Hash BaseHash { get; }
+        public RelativePath[] Paths { get; }
+
+        static HashRelativePath()
+        {
+            EMPTY_PATH = new RelativePath[0];
+        }
+        
+        public HashRelativePath(Hash baseHash, params RelativePath[] paths)
+        {
+            BaseHash = baseHash;
+            Paths = paths;
+        }
 
         public string ToString()
         {
@@ -389,7 +449,7 @@ namespace Wabbajack.Common
         }
     }
     
-    public class FullPath
+    public struct FullPath
     {
         public AbsolutePath Base { get; }
         public RelativePath[] Paths { get; }
@@ -397,7 +457,7 @@ namespace Wabbajack.Common
         public FullPath(AbsolutePath basePath, RelativePath[] paths)
         {
             Base = basePath;
-            Paths = Paths;
+            Paths = paths;
         }
 
         public string ToString()

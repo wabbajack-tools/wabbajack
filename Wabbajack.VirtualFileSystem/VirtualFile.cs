@@ -4,48 +4,31 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Security.Cryptography;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using K4os.Hash.Crc;
+using MessagePack;
 using Wabbajack.Common;
-using Wabbajack.Common.CSP;
-using Directory = Alphaleonis.Win32.Filesystem.Directory;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
-using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.VirtualFileSystem
 {
     public class VirtualFile
     {
-        private FullPath _fullPath;
-
         private AbsolutePath _stagedPath;
-        public AbstractPath Name { get; internal set; }
-        
-        public RelativePath RelativeName => Name as RelativePath;
-        public AbsolutePath AbsoluteName => Name as AbsolutePath;
 
-        public FullPath FullPath
-        {
-            get
-            {
-                if (_fullPath != null) return _fullPath;
+        private IEnumerable<VirtualFile> _thisAndAllChildren;
 
-                var cur = this;
-                var acc = new LinkedList<AbstractPath>();
-                while (cur != null)
-                {
-                    acc.AddFirst(cur.Name);
-                    cur = cur.Parent;
-                }
+        public IPath Name { get; internal set; }
 
-                _fullPath = new FullPath(acc.First() as AbsolutePath, acc.Skip(1).OfType<RelativePath>().ToArray());
-                return _fullPath;
-            }
-        }
+        public RelativePath RelativeName => (RelativePath)Name;
+
+        public AbsolutePath AbsoluteName => (AbsolutePath)Name;
+
+
+        public FullPath FullPath { get; private set; }
 
         public Hash Hash { get; internal set; }
+        
         public ExtendedHashes ExtendedHashes { get; set; }
         public long Size { get; internal set; }
 
@@ -62,7 +45,7 @@ namespace Wabbajack.VirtualFileSystem
             get
             {
                 if (IsNative)
-                    return Name as AbsolutePath;
+                    return (AbsolutePath)Name;
                 if (_stagedPath == null)
                     throw new UnstagedFileException(FullPath);
                 return _stagedPath;
@@ -101,8 +84,6 @@ namespace Wabbajack.VirtualFileSystem
 
         public bool IsNative => Parent == null;
 
-        private IEnumerable<VirtualFile> _thisAndAllChildren = null;
-
         public IEnumerable<VirtualFile> ThisAndAllChildren
         {
             get
@@ -114,20 +95,6 @@ namespace Wabbajack.VirtualFileSystem
 
                 return _thisAndAllChildren;
             }
-        }
-        
-        
-        public T ThisAndAllChildrenReduced<T>(T acc, Func<T, VirtualFile, T> fn)
-        {
-            acc = fn(acc, this);
-            return this.Children.Aggregate(acc, (current, itm) => itm.ThisAndAllChildrenReduced<T>(current, fn));
-        }
-        
-        public void ThisAndAllChildrenReduced(Action<VirtualFile> fn)
-        {
-            fn(this);
-            foreach (var itm in Children)
-                itm.ThisAndAllChildrenReduced(fn);
         }
 
 
@@ -150,8 +117,22 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
+
+        public T ThisAndAllChildrenReduced<T>(T acc, Func<T, VirtualFile, T> fn)
+        {
+            acc = fn(acc, this);
+            return Children.Aggregate(acc, (current, itm) => itm.ThisAndAllChildrenReduced(current, fn));
+        }
+
+        public void ThisAndAllChildrenReduced(Action<VirtualFile> fn)
+        {
+            fn(this);
+            foreach (var itm in Children)
+                itm.ThisAndAllChildrenReduced(fn);
+        }
+
         public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, AbsolutePath absPath,
-            AbstractPath relPath, bool topLevel)
+            IPath relPath, bool topLevel)
         {
             var hash = absPath.FileHash();
 
@@ -162,7 +143,8 @@ namespace Wabbajack.VirtualFileSystem
                 if (result != null)
                 {
                     Utils.Log($"Downloaded VFS data for {(string)absPath}");
-                    VirtualFile Convert(IndexedVirtualFile file, AbstractPath path, VirtualFile vparent)
+
+                    VirtualFile Convert(IndexedVirtualFile file, IPath path, VirtualFile vparent)
                     {
                         var vself = new VirtualFile
                         {
@@ -172,8 +154,7 @@ namespace Wabbajack.VirtualFileSystem
                             Size = file.Size,
                             LastModified = absPath.LastModifiedUtc.AsUnixTime(),
                             LastAnalyzed = DateTime.Now.AsUnixTime(),
-                            Hash = file.Hash,
-
+                            Hash = file.Hash
                         };
 
                         vself.Children = file.Children.Select(f => Convert(f, f.Name, vself)).ToImmutableList();
@@ -200,17 +181,16 @@ namespace Wabbajack.VirtualFileSystem
 
             if (FileExtractor.CanExtract(absPath))
             {
-
                 using (var tempFolder = Context.GetTemporaryFolder())
                 {
                     await FileExtractor.ExtractAll(context.Queue, absPath, tempFolder.FullName);
 
                     var list = await tempFolder.FullName.EnumerateFiles()
-                                        .PMap(context.Queue, absSrc => Analyze(context, self, absSrc, absSrc.RelativeTo(tempFolder.FullName), false));
+                        .PMap(context.Queue,
+                            absSrc => Analyze(context, self, absSrc, absSrc.RelativeTo(tempFolder.FullName), false));
 
                     self.Children = list.ToImmutableList();
                 }
-
             }
 
             return self;
@@ -221,7 +201,8 @@ namespace Wabbajack.VirtualFileSystem
             try
             {
                 var client = new HttpClient();
-                var response = await client.GetAsync($"http://{Consts.WabbajackCacheHostname}/indexed_files/{hash.ToHex()}");
+                var response =
+                    await client.GetAsync($"http://{Consts.WabbajackCacheHostname}/indexed_files/{hash.ToHex()}");
                 if (!response.IsSuccessStatusCode)
                     return null;
 
@@ -229,7 +210,6 @@ namespace Wabbajack.VirtualFileSystem
                 {
                     return stream.FromJSON<IndexedVirtualFile>();
                 }
-
             }
             catch (Exception ex)
             {
@@ -238,24 +218,71 @@ namespace Wabbajack.VirtualFileSystem
         }
 
 
-        public void Write(Stream stream)
+        public void Write(BinaryWriter bw)
         {
-            stream.WriteAsMessagePack(this);
+            bw.Write(Name);
+            bw.Write(Size);
+            bw.Write(LastModified);
+            bw.Write(LastModified);
+            bw.Write(Hash);
+            bw.Write(Children.Count);
+            foreach (var child in Children)
+                child.Write(bw);
         }
 
         public static VirtualFile Read(Context context, byte[] data)
         {
             using var ms = new MemoryStream(data);
-            return Read(context, null, ms);
+            using var br = new BinaryReader(ms);
+            return Read(context, null, br);
         }
 
-        private static VirtualFile Read(Context context, VirtualFile parent, Stream br)
+        private static VirtualFile Read(Context context, VirtualFile parent, BinaryReader br)
         {
-            var vf = br.ReadAsMessagePack<VirtualFile>();
-            vf.Parent = parent;
-            vf.Context = context;
-            vf.Children ??= ImmutableList<VirtualFile>.Empty;
+            var vf = new VirtualFile
+            {
+                Name = br.ReadIPath(),
+                Size = br.ReadInt64(),
+                LastModified = br.ReadUInt64(),
+                LastAnalyzed = br.ReadUInt64(),
+                Hash = br.ReadHash(),
+                Context = context,
+                Parent = parent,
+                Children = ImmutableList<VirtualFile>.Empty
+            };
 
+            var children = br.ReadInt32();
+            for (var i = 0; i < children; i++)
+            {
+                var child = Read(context, vf, br, (AbsolutePath)vf.Name, new RelativePath[0]);
+                vf.Children = vf.Children.Add(child);
+            }
+            return vf;
+        }
+        
+        private static VirtualFile Read(Context context, VirtualFile parent, BinaryReader br, AbsolutePath top, RelativePath[] subpaths)
+        {
+            var name = (RelativePath)br.ReadIPath();
+            subpaths = subpaths.Add(name);
+            var vf = new VirtualFile
+            {
+                Name = name,
+                Size = br.ReadInt64(),
+                LastModified = br.ReadUInt64(),
+                LastAnalyzed = br.ReadUInt64(),
+                Hash = br.ReadHash(),
+                Context = context,
+                Parent = parent,
+                Children = ImmutableList<VirtualFile>.Empty,
+                FullPath = new FullPath(top, subpaths)
+            };
+
+            var children = br.ReadInt32();
+            for (var i = 0; i < children; i++)
+            {
+                var child = Read(context, vf, br,top, subpaths);
+                vf.Children = vf.Children.Add(child);
+            }
             return vf;
         }
 
@@ -294,16 +321,16 @@ namespace Wabbajack.VirtualFileSystem
 
         public HashRelativePath MakeRelativePaths()
         {
-            var path = new HashRelativePath();
-            path.BaseHash = FilesInFullPath.First().Hash;
-            path.Paths = new RelativePath[FilesInFullPath.Count() - 1];
+            var paths = new RelativePath[FilesInFullPath.Count() - 1];
 
             var idx = 0;
             foreach (var itm in FilesInFullPath.Skip(1))
             {
-                path.Paths[idx] = itm.Name as RelativePath;
+                paths[idx] = (RelativePath)itm.Name;
                 idx += 1;
             }
+
+            var path = new HashRelativePath(FilesInFullPath.First().Hash, paths);
             return path;
         }
 
@@ -315,6 +342,11 @@ namespace Wabbajack.VirtualFileSystem
 
     public class ExtendedHashes
     {
+        public string SHA256 { get; set; }
+        public string SHA1 { get; set; }
+        public string MD5 { get; set; }
+        public string CRC { get; set; }
+
         public static ExtendedHashes FromFile(AbsolutePath file)
         {
             var hashes = new ExtendedHashes();
@@ -341,11 +373,6 @@ namespace Wabbajack.VirtualFileSystem
 
             return hashes;
         }
-
-        public string SHA256 { get; set; }
-        public string SHA1 { get; set; }
-        public string MD5 { get; set; }
-        public string CRC { get; set; }
     }
 
 

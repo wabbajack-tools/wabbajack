@@ -148,7 +148,8 @@ namespace Wabbajack.VirtualFileSystem
                     .PMap(Queue, f =>
                     {
                         var ms = new MemoryStream();
-                        f.Write(ms);
+                        using var ibw = new BinaryWriter(ms, Encoding.UTF8, true);
+                        f.Write(ibw);
                         return ms;
                     }))
                 .Do(ms =>
@@ -331,7 +332,7 @@ namespace Wabbajack.VirtualFileSystem
             ImmutableDictionary<FullPath, VirtualFile> byFullPath,
             ImmutableDictionary<Hash, ImmutableStack<VirtualFile>> byHash,
             ImmutableDictionary<AbsolutePath, VirtualFile> byRoot,
-            ImmutableDictionary<AbstractPath, ImmutableStack<VirtualFile>> byName)
+            ImmutableDictionary<IPath, ImmutableStack<VirtualFile>> byName)
         {
             AllFiles = aFiles;
             ByFullPath = byFullPath;
@@ -346,14 +347,14 @@ namespace Wabbajack.VirtualFileSystem
             ByFullPath = ImmutableDictionary<FullPath, VirtualFile>.Empty;
             ByHash = ImmutableDictionary<Hash, ImmutableStack<VirtualFile>>.Empty;
             ByRootPath = ImmutableDictionary<AbsolutePath, VirtualFile>.Empty;
-            ByName = ImmutableDictionary<AbstractPath, ImmutableStack<VirtualFile>>.Empty;
+            ByName = ImmutableDictionary<IPath, ImmutableStack<VirtualFile>>.Empty;
         }
 
 
         public ImmutableList<VirtualFile> AllFiles { get; }
         public ImmutableDictionary<FullPath, VirtualFile> ByFullPath { get; }
         public ImmutableDictionary<Hash, ImmutableStack<VirtualFile>> ByHash { get; }
-        public ImmutableDictionary<AbstractPath, ImmutableStack<VirtualFile>> ByName { get; set; }
+        public ImmutableDictionary<IPath, ImmutableStack<VirtualFile>> ByName { get; set; }
         public ImmutableDictionary<AbsolutePath, VirtualFile> ByRootPath { get; }
 
         public async Task<IndexRoot> Integrate(ICollection<VirtualFile> files)
@@ -371,7 +372,7 @@ namespace Wabbajack.VirtualFileSystem
             var byName = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
                                  .ToGroupedImmutableDictionary(f => f.Name));
 
-            var byRootPath = Task.Run(() => allFiles.ToImmutableDictionary(f => f.Name as AbsolutePath));
+            var byRootPath = Task.Run(() => allFiles.ToImmutableDictionary(f => f.AbsoluteName));
 
             var result = new IndexRoot(allFiles,
                 await byFullPath,
