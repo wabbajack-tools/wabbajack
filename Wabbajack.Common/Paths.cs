@@ -197,7 +197,7 @@ namespace Wabbajack.Common
         }
     }
 
-    public class RelativePath : IPath
+    public struct RelativePath : IPath, IEquatable<RelativePath>
     {
         private readonly string _path;
         private Extension _extension;
@@ -205,7 +205,13 @@ namespace Wabbajack.Common
         public RelativePath(string path)
         {
             _path = path.ToLowerInvariant().Replace("/", "\\").Trim('\\');
+            _extension = new Extension(Path.GetExtension(path));
             Validate();
+        }
+
+        public override int GetHashCode()
+        {
+            return (_path != null ? _path.GetHashCode() : 0);
         }
 
         public static RelativePath RandomFileName()
@@ -252,6 +258,26 @@ namespace Wabbajack.Common
         public RelativePath Parent => (RelativePath)Path.GetDirectoryName(_path);
         
         public RelativePath FileName => new RelativePath(Path.GetFileName(_path));
+
+        public bool Equals(RelativePath other)
+        {
+            return _path == other._path;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is RelativePath other && Equals(other);
+        }
+        
+        public static bool operator ==(RelativePath a, RelativePath b)
+        {
+            return a._path == b._path;
+        }
+        
+        public static bool operator !=(RelativePath a, RelativePath b)
+        {
+            return !(a == b);
+        }
     }
 
     public static partial class Utils
@@ -449,25 +475,35 @@ namespace Wabbajack.Common
         }
     }
     
-    public struct FullPath
+    public struct FullPath : IEquatable<FullPath>
     {
         public AbsolutePath Base { get; }
         public RelativePath[] Paths { get; }
+
+        private readonly int _hash;
 
         public FullPath(AbsolutePath basePath, RelativePath[] paths)
         {
             Base = basePath;
             Paths = paths;
+            _hash = Base.GetHashCode();
+            foreach (var itm in Paths)
+                _hash ^= itm.GetHashCode();
         }
 
-        public string ToString()
+        public override string ToString()
         {
-            return string.Join("|", Paths.Select(t => t.ToString()).Cons(Base.ToString()));
+            return string.Join("|", Paths.Select(t => (string)t).Cons((string)Base));
         }
-        
+
+        public override int GetHashCode()
+        {
+            return _hash;
+        }
+
         public static bool operator ==(FullPath a, FullPath b)
         {
-            if (a.Base != b.Base || a.Paths.Length == b.Paths.Length)
+            if (a.Base != b.Base || a.Paths.Length != b.Paths.Length)
                 return false;
             
             for (int idx = 0; idx < a.Paths.Length; idx += 1)
@@ -480,6 +516,16 @@ namespace Wabbajack.Common
         public static bool operator !=(FullPath a, FullPath b)
         {
             return !(a == b);
+        }
+
+        public bool Equals(FullPath other)
+        {
+            return this == other;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is FullPath other && Equals(other);
         }
     }
 }

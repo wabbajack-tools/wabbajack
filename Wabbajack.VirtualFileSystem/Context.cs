@@ -71,7 +71,7 @@ namespace Wabbajack.VirtualFileSystem
                                         return found;
                                 }
 
-                                return await VirtualFile.Analyze(this, null, f, f, true);
+                                return await VirtualFile.Analyze(this, null, f, f, 0);
                             });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
@@ -102,7 +102,7 @@ namespace Wabbajack.VirtualFileSystem
                             return found;
                     }
 
-                    return await VirtualFile.Analyze(this, null, f, f, true);
+                    return await VirtualFile.Analyze(this, null, f, f, 0);
                 });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
@@ -224,33 +224,6 @@ namespace Wabbajack.VirtualFileSystem
             };
         }
 
-        public List<PortableFile> GetPortableState(IEnumerable<VirtualFile> files)
-        {
-            return files.SelectMany(f => f.FilesInFullPath)
-                .Distinct()
-                .Select(f => new PortableFile
-                {
-                    Name = f.Parent != null ? f.Name : null,
-                    Hash = f.Hash,
-                    ParentHash = f.Parent?.Hash ?? Hash.Empty,
-                    Size = f.Size
-                }).ToList();
-        }
-
-        public async Task IntegrateFromPortable(List<PortableFile> state, Dictionary<Hash, AbsolutePath> links)
-        {
-            var indexedState = state.GroupBy(f => f.ParentHash)
-                .ToDictionary(f => f.Key, f => (IEnumerable<PortableFile>) f);
-            var parents = await indexedState[Hash.Empty]
-                .PMap(Queue,f => VirtualFile.CreateFromPortable(this, indexedState, links, f));
-
-            var newIndex = await Index.Integrate(parents);
-            lock (this)
-            {
-                Index = newIndex;
-            }
-        }
-
         public async Task<DisposableList<VirtualFile>> StageWith(IEnumerable<VirtualFile> files)
         {
             return new DisposableList<VirtualFile>(await Stage(files), files);
@@ -329,7 +302,7 @@ namespace Wabbajack.VirtualFileSystem
         public static IndexRoot Empty = new IndexRoot();
 
         public IndexRoot(ImmutableList<VirtualFile> aFiles,
-            ImmutableDictionary<FullPath, VirtualFile> byFullPath,
+            Dictionary<FullPath, VirtualFile> byFullPath,
             ImmutableDictionary<Hash, ImmutableStack<VirtualFile>> byHash,
             ImmutableDictionary<AbsolutePath, VirtualFile> byRoot,
             ImmutableDictionary<IPath, ImmutableStack<VirtualFile>> byName)
@@ -344,7 +317,7 @@ namespace Wabbajack.VirtualFileSystem
         public IndexRoot()
         {
             AllFiles = ImmutableList<VirtualFile>.Empty;
-            ByFullPath = ImmutableDictionary<FullPath, VirtualFile>.Empty;
+            ByFullPath = new Dictionary<FullPath, VirtualFile>();
             ByHash = ImmutableDictionary<Hash, ImmutableStack<VirtualFile>>.Empty;
             ByRootPath = ImmutableDictionary<AbsolutePath, VirtualFile>.Empty;
             ByName = ImmutableDictionary<IPath, ImmutableStack<VirtualFile>>.Empty;
@@ -352,7 +325,7 @@ namespace Wabbajack.VirtualFileSystem
 
 
         public ImmutableList<VirtualFile> AllFiles { get; }
-        public ImmutableDictionary<FullPath, VirtualFile> ByFullPath { get; }
+        public Dictionary<FullPath, VirtualFile> ByFullPath { get; }
         public ImmutableDictionary<Hash, ImmutableStack<VirtualFile>> ByHash { get; }
         public ImmutableDictionary<IPath, ImmutableStack<VirtualFile>> ByName { get; set; }
         public ImmutableDictionary<AbsolutePath, VirtualFile> ByRootPath { get; }
@@ -363,7 +336,7 @@ namespace Wabbajack.VirtualFileSystem
             var allFiles = AllFiles.Concat(files).GroupBy(f => f.Name).Select(g => g.Last()).ToImmutableList();
 
             var byFullPath = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
-                                     .ToImmutableDictionary(f => f.FullPath));
+                                     .ToDictionary(f => f.FullPath));
 
             var byHash = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
                                  .Where(f => f.Hash != Hash.Empty)
