@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
+using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -12,19 +13,16 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (Path.GetExtension(source.AbsolutePath) != ".esp" &&
-                Path.GetExtension(source.AbsolutePath) != ".esm") return null;
+            if (source.AbsolutePath.Extension != Consts.ESP &&
+                source.AbsolutePath.Extension != Consts.ESM) return null;
 
-            var bsa = Path.Combine(Path.GetDirectoryName(source.AbsolutePath),
-                Path.GetFileNameWithoutExtension(source.AbsolutePath) + ".bsa");
-            var bsaTextures = Path.Combine(Path.GetDirectoryName(source.AbsolutePath),
-                Path.GetFileNameWithoutExtension(source.AbsolutePath) + " - Textures.bsa");
-            var espSize = new FileInfo(source.AbsolutePath).Length;
+            var bsa = source.AbsolutePath.ReplaceExtension(Consts.BSA);
+            var bsaTextures = source.AbsolutePath.AppendToName(bsa, " - Textures");
 
-            if (espSize > 250 || !File.Exists(bsa) && !File.Exists(bsaTextures)) return null;
+            if (source.AbsolutePath.Size > 250 || !bsa.IsFile && !bsaTextures.IsFile) return null;
 
             var inline = source.EvolveTo<InlineFile>();
-            inline.SourceDataID = _compiler.IncludeFile(File.ReadAllBytes(source.AbsolutePath));
+            inline.SourceDataID = await _compiler.IncludeFile(await source.AbsolutePath.ReadAllBytesAsync());
             return inline;
         }
 

@@ -17,7 +17,7 @@ namespace Wabbajack.Lib.CompilationSteps
             var b = false;
             _vortexCompiler.ActiveArchives.Do(a =>
             {
-                if (source.Path.Contains(a)) b = true;
+                if (((string)source.Path).Contains(a)) b = true;
             });
             if (b) return null;
             var r = source.EvolveTo<IgnoredDirectly>();

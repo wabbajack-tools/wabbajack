@@ -38,8 +38,8 @@ namespace Wabbajack.Common
             return processList.Where(process => process.ProcessName == "ModOrganizer").Any(process => Path.GetDirectoryName(process.MainModule?.FileName) == mo2Path);
         }
 
-        public static string LogFile { get; }
-        public static string LogFolder { get; }
+        public static AbsolutePath LogFile { get; }
+        public static AbsolutePath LogFolder { get; }
 
         public enum FileEventType
         {
@@ -52,34 +52,28 @@ namespace Wabbajack.Common
         {
             MessagePackInit();
             
-            if (!Directory.Exists(Consts.LocalAppDataPath))
-                Directory.CreateDirectory(Consts.LocalAppDataPath);
+            Consts.LocalAppDataPath.CreateDirectory();
+            Consts.LogsFolder.CreateDirectory();
 
-            if (!Directory.Exists(Consts.LogsFolder))
-                Directory.CreateDirectory(Consts.LogsFolder);
-
-            var programName = Assembly.GetEntryAssembly()?.Location ?? "Wabbajack";
-            LogFolder = Path.Combine(Path.GetDirectoryName(programName), Consts.LogsFolder);
-            LogFile = Path.Combine(Consts.LogsFolder, Path.GetFileNameWithoutExtension(programName) + ".current.log");
+            LogFolder = Consts.LogsFolder;
+            LogFile = Consts.LogFile;
             _startTime = DateTime.Now;
 
-            if (LogFile.FileExists())
+            if (LogFile.Exists)
             {
-                var newPath = Path.Combine(Consts.LogsFolder, Path.GetFileNameWithoutExtension(programName) + new FileInfo(LogFile).LastWriteTime.ToString(" yyyy-MM-dd HH_mm_ss") + ".log");
-                File.Move(LogFile, newPath, MoveOptions.ReplaceExisting);
+                var newPath = Consts.LogsFolder.Combine(Consts.EntryPoint.FileNameWithoutExtension + LogFile.LastModified.ToString(" yyyy-MM-dd HH_mm_ss") + ".log");
+                LogFile.MoveTo(newPath, true);
             }
 
-            var logFiles = Directory.GetFiles(Consts.LogsFolder);
-            if (logFiles.Length >= Consts.MaxOldLogs)
+            var logFiles = Consts.LogsFolder.EnumerateFiles(false).ToList();
+            if (logFiles.Count >= Consts.MaxOldLogs)
             {
-                Log($"Maximum amount of old logs reached ({logFiles.Length} >= {Consts.MaxOldLogs})");
+                Log($"Maximum amount of old logs reached ({logFiles.Count} >= {Consts.MaxOldLogs})");
                 var filesToDelete = logFiles
-                    .Where(File.Exists)
-                    .OrderBy(f =>
-                    {
-                        var fi = new FileInfo(f);
-                        return fi.LastWriteTime;
-                    }).Take(logFiles.Length - Consts.MaxOldLogs).ToList();
+                    .Where(f => f.IsFile)
+                    .OrderBy(f => f.LastModified)
+                    .Take(logFiles.Count - Consts.MaxOldLogs)
+                    .ToList();
 
                 Log($"Found {filesToDelete.Count} old log files to delete");
 
@@ -89,7 +83,7 @@ namespace Wabbajack.Common
                 {
                     try
                     {
-                        File.Delete(f);
+                        f.Delete();
                         success++;
                     }
                     catch (Exception e)
@@ -102,7 +96,7 @@ namespace Wabbajack.Common
                 Log($"Deleted {success} log files, failed to delete {failed} logs");
             }
 
-            var watcher = new FileSystemWatcher(Consts.LocalAppDataPath);
+            var watcher = new FileSystemWatcher((string)Consts.LocalAppDataPath);
             AppLocalEvents = Observable.Merge(Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Changed += h, h => watcher.Changed -= h).Select(e => (FileEventType.Changed, e.EventArgs)),
                                                 Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Created += h, h => watcher.Created -= h).Select(e => (FileEventType.Created, e.EventArgs)),
                                                 Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Deleted += h, h => watcher.Deleted -= h).Select(e => (FileEventType.Deleted, e.EventArgs)))
@@ -164,7 +158,7 @@ namespace Wabbajack.Common
         {
             lock (_lock)
             {
-                File.AppendAllText(LogFile, $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n");
+                LogFile.AppendAllText($"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n");
             }
         }
 
@@ -328,9 +322,9 @@ namespace Wabbajack.Common
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public static dynamic LoadIniFile(this string file)
+        public static dynamic LoadIniFile(this AbsolutePath file)
         {
-            return new DynamicIniData(new FileIniDataParser().ReadFile(file));
+            return new DynamicIniData(new FileIniDataParser().ReadFile((string)file));
         }
 
         /// <summary>
@@ -746,18 +740,17 @@ namespace Wabbajack.Common
         {
             var dataA = a.xxHash().FromBase64().ToHex();
             var dataB = b.xxHash().FromBase64().ToHex();
-            var cacheFile = Path.Combine(Consts.PatchCacheFolder, $"{dataA}_{dataB}.patch");
-            if (!Directory.Exists(Consts.PatchCacheFolder))
-                Directory.CreateDirectory(Consts.PatchCacheFolder);
+            var cacheFile = Consts.PatchCacheFolder.Combine($"{dataA}_{dataB}.patch");
+            Consts.PatchCacheFolder.CreateDirectory();
 
             while (true)
             {
-                if (File.Exists(cacheFile))
+                if (cacheFile.IsFile)
                 {
                     RETRY_OPEN:
                     try
                     {
-                        await using var f = File.OpenRead(cacheFile);
+                        await using var f = cacheFile.OpenRead();
                         await f.CopyToAsync(output);
                     }
                     catch (IOException)
@@ -770,9 +763,9 @@ namespace Wabbajack.Common
                 }
                 else
                 {
-                    var tmpName = Path.Combine(Consts.PatchCacheFolder, Guid.NewGuid() + ".tmp");
+                    var tmpName = Consts.PatchCacheFolder.Combine(Guid.NewGuid() + ".tmp");
 
-                    await using (var f = File.Open(tmpName, System.IO.FileMode.Create))
+                    await using (var f = tmpName.Create())
                     {
                         Status("Creating Patch");
                         OctoDiff.Create(a, b, f);
@@ -781,12 +774,11 @@ namespace Wabbajack.Common
                     RETRY:
                     try
                     {
-                        
-                        File.Move(tmpName, cacheFile, MoveOptions.ReplaceExisting);
+                        tmpName.MoveTo(cacheFile, true);
                     }
                     catch (UnauthorizedAccessException)
                     {
-                        if (File.Exists(cacheFile))
+                        if (cacheFile.IsFile)
                             continue;
                         await Task.Delay(1000);
                         goto RETRY;
@@ -805,9 +797,9 @@ namespace Wabbajack.Common
             await using var sigFile = new TempStream();
             OctoDiff.Create(srcStream, destStream, sigFile, patchStream);
             patchStream.Position = 0;
-            var tmpName = Path.Combine(Consts.PatchCacheFolder, Guid.NewGuid() + ".tmp");
+            var tmpName = Consts.PatchCacheFolder.Combine(Guid.NewGuid() + ".tmp");
 
-            await using (var f = File.Create(tmpName))
+            await using (var f = tmpName.Create())
             {
                 await patchStream.CopyToAsync(f);
                 patchStream.Position = 0;
@@ -815,26 +807,23 @@ namespace Wabbajack.Common
             
             try
             {
-                var cacheFile = Path.Combine(Consts.PatchCacheFolder, $"{srcHash.ToHex()}_{destHash.ToHex()}.patch");
-                if (!Directory.Exists(Consts.PatchCacheFolder))
-                    Directory.CreateDirectory(Consts.PatchCacheFolder);
+                var cacheFile = Consts.PatchCacheFolder.Combine($"{srcHash.ToHex()}_{destHash.ToHex()}.patch");
+                Consts.PatchCacheFolder.CreateDirectory();
 
-                File.Move(tmpName, cacheFile, MoveOptions.ReplaceExisting);
+                tmpName.MoveTo(cacheFile, true);
             }
             catch (UnauthorizedAccessException)
             {
-                if (File.Exists(tmpName)) 
-                    File.Delete(tmpName);
+                tmpName.Delete();
             }
         }
 
         public static bool TryGetPatch(Hash foundHash, Hash fileHash, out byte[] ePatch)
         {
-            var patchName = Path.Combine(Consts.PatchCacheFolder,
-                $"{foundHash.ToHex()}_{fileHash.ToHex()}.patch");
-            if (File.Exists(patchName))
+            var patchName = Consts.PatchCacheFolder.Combine($"{foundHash.ToHex()}_{fileHash.ToHex()}.patch");
+            if (patchName.Exists)
             {
-                ePatch = File.ReadAllBytes(patchName);
+                ePatch = patchName.ReadAllBytes();
                 return true;
             }
 
@@ -1081,42 +1070,35 @@ namespace Wabbajack.Common
         public static void ToEcryptedData(this byte[] bytes, string key)
         {
             var encoded = ProtectedData.Protect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
+            Consts.LocalAppDataPath.CreateDirectory();
             
-            if (!Directory.Exists(Consts.LocalAppDataPath))
-                Directory.CreateDirectory(Consts.LocalAppDataPath);
-            
-            var path = Path.Combine(Consts.LocalAppDataPath, key);
-            File.WriteAllBytes(path, encoded);
+            Consts.LocalAppDataPath.Combine(key).WriteAllBytes(bytes);
         }
         public static byte[] FromEncryptedData(string key)
         {
-            var path = Path.Combine(Consts.LocalAppDataPath, key);
-            var bytes = File.ReadAllBytes(path);
+            var bytes = Consts.LocalAppDataPath.Combine(key).ReadAllBytes();
             return ProtectedData.Unprotect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
         }
 
         public static bool HaveEncryptedJson(string key)
         {
-            var path = Path.Combine(Consts.LocalAppDataPath, key);
-            return File.Exists(path);
+            return Consts.LocalAppDataPath.Combine(key).IsFile;
         }
 
         public static IObservable<(FileEventType, FileSystemEventArgs)> AppLocalEvents { get; }
 
         public static IObservable<bool> HaveEncryptedJsonObservable(string key)
         {
-            var path = Path.Combine(Consts.LocalAppDataPath, key).ToLower();
-            return AppLocalEvents.Where(t => t.Item2.FullPath.ToLower() == path)
-                                 .Select(_ => File.Exists(path))
-                                 .StartWith(File.Exists(path))
+            var path = Consts.LocalAppDataPath.Combine(key);
+            return AppLocalEvents.Where(t => (AbsolutePath)t.Item2.FullPath.ToLower() == path)
+                                 .Select(_ => path.Exists)
+                                 .StartWith(path.Exists)
                                  .DistinctUntilChanged();
         }
 
         public static void DeleteEncryptedJson(string key)
         {
-            var path = Path.Combine(Consts.LocalAppDataPath, key);
-            if (File.Exists(path))
-                File.Delete(path);
+            Consts.LocalAppDataPath.Combine(key).Delete();
         }
 
         public static void StartProcessFromFile(string file)

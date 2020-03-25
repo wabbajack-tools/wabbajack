@@ -18,7 +18,7 @@ namespace Wabbajack.Lib.CompilationSteps
             var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IsAlwaysEnabled(f.Value)).Select(f => f.Key).Distinct();
 
             _allEnabledMods = _mo2Compiler.SelectedProfiles
-                .SelectMany(p => File.ReadAllLines(Path.Combine(_mo2Compiler.MO2Folder, "profiles", p, "modlist.txt")))
+                .SelectMany(p => _mo2Compiler.MO2Folder.Combine("profiles", p, "modlist.txt").ReadAllLines())
                 .Where(line => line.StartsWith("+") || line.EndsWith("_separator"))
                 .Select(line => line.Substring(1))
                 .Concat(alwaysEnabled)

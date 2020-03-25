@@ -16,14 +16,15 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (source.Path.StartsWith(_prefix))
+            if (!((string)source.Path).StartsWith(_prefix))
             {
-                var result = source.EvolveTo<IgnoredDirectly>();
-                result.Reason = _reason;
-                return result;
+                return null;
             }
 
-            return null;
+            var result = source.EvolveTo<IgnoredDirectly>();
+            result.Reason = _reason;
+            return result;
+
         }
 
         public override IState GetState()

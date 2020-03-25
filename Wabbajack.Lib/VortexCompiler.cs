@@ -31,14 +31,14 @@ namespace Wabbajack.Lib
         public Game Game { get; }
         public string GameName { get; }
 
-        public string VortexFolder { get; set; }
-        public string StagingFolder { get; set; }
-        public string DownloadsFolder { get; set; }
+        public AbsolutePath VortexFolder { get; set; }
+        public AbsolutePath StagingFolder { get; set; }
+        public AbsolutePath DownloadsFolder { get; set; }
 
         public override ModManager ModManager => ModManager.Vortex;
-        public override string GamePath { get; }
-        public override string ModListOutputFolder => "output_folder";
-        public override string ModListOutputFile { get; }
+        public override AbsolutePath GamePath { get; }
+        public override AbsolutePath ModListOutputFolder => ((RelativePath)"output_folder").RelativeToEntryPoint();
+        public override AbsolutePath ModListOutputFile { get; }
 
         public const string StagingMarkerName = "__vortex_staging_folder";
         public const string DownloadMarkerName = "__vortex_downloads_folder";

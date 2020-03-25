@@ -16,7 +16,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!source.Path.Contains(_pattern)) return null;
+            if (!((string)source.Path).Contains(_pattern)) return null;
             var result = source.EvolveTo<IgnoredDirectly>();
             result.Reason = _reason;
             return result;

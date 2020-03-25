@@ -26,41 +26,41 @@ namespace Wabbajack.Lib
     public class MO2Compiler : ACompiler
     {
 
-        private string _mo2DownloadsFolder;
+        private AbsolutePath _mo2DownloadsFolder;
         
-        public string MO2Folder;
+        public AbsolutePath MO2Folder;
 
         public string MO2Profile { get; }
         public Dictionary<string, dynamic> ModMetas { get; set; }
 
         public override ModManager ModManager => ModManager.MO2;
 
-        public override string GamePath { get; }
+        public override AbsolutePath GamePath { get; }
 
         public GameMetaData CompilingGame { get; set; }
 
-        public override string ModListOutputFolder => "output_folder";
+        public override AbsolutePath ModListOutputFolder => ((RelativePath)"output_folder").RelativeToEntryPoint();
 
-        public override string ModListOutputFile { get; }
+        public override AbsolutePath ModListOutputFile { get; }
 
-        public override string VFSCacheName => Path.Combine(
-            Consts.LocalAppDataPath, 
-            $"vfs_compile_cache-{Path.Combine(MO2Folder ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
+        public override AbsolutePath VFSCacheName => 
+            Consts.LocalAppDataPath.Combine( 
+            $"vfs_compile_cache-{Path.Combine((string)MO2Folder ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
 
-        public MO2Compiler(string mo2Folder, string mo2Profile, string outputFile)
+        public MO2Compiler(AbsolutePath mo2Folder, string mo2Profile, AbsolutePath outputFile)
         {
             MO2Folder = mo2Folder;
             MO2Profile = mo2Profile;
-            MO2Ini = Path.Combine(MO2Folder, "ModOrganizer.ini").LoadIniFile();
+            MO2Ini = MO2Folder.Combine("ModOrganizer.ini").LoadIniFile();
             var mo2game = (string)MO2Ini.General.gameName;
             CompilingGame = GameRegistry.Games.First(g => g.Value.MO2Name == mo2game).Value;
-            GamePath = ((string)MO2Ini.General.gamePath).Replace("\\\\", "\\");
+            GamePath = new AbsolutePath((string)MO2Ini.General.gamePath.Replace("\\\\", "\\"));
             ModListOutputFile = outputFile;
         }
 
         public dynamic MO2Ini { get; }
 
-        public string MO2DownloadsFolder
+        public AbsolutePath MO2DownloadsFolder
         {
             get
             {
@@ -74,9 +74,9 @@ namespace Wabbajack.Lib
             set => _mo2DownloadsFolder = value;
         }
 
-        public static string GetTypicalDownloadsFolder(string mo2Folder) => Path.Combine(mo2Folder, "downloads");
+        public static AbsolutePath GetTypicalDownloadsFolder(AbsolutePath mo2Folder) => mo2Folder.Combine("downloads");
 
-        public string MO2ProfileDir => Path.Combine(MO2Folder, "profiles", MO2Profile);
+        public AbsolutePath MO2ProfileDir => MO2Folder.Combine("profiles", MO2Profile);
 
         internal UserStatus User { get; private set; }
         public ConcurrentBag<Directive> ExtraFiles { get; private set; }
@@ -91,9 +91,9 @@ namespace Wabbajack.Lib
             UpdateTracker.Reset();
             UpdateTracker.NextStep("Gathering information");
             Info("Looking for other profiles");
-            var otherProfilesPath = Path.Combine(MO2ProfileDir, "otherprofiles.txt");
+            var otherProfilesPath = MO2ProfileDir.Combine("otherprofiles.txt");
             SelectedProfiles = new HashSet<string>();
-            if (File.Exists(otherProfilesPath)) SelectedProfiles = File.ReadAllLines(otherProfilesPath).ToHashSet();
+            if (otherProfilesPath.Exists) SelectedProfiles = (await otherProfilesPath.ReadAllLinesAsync()).ToHashSet();
             SelectedProfiles.Add(MO2Profile);
 
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));

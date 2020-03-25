@@ -16,7 +16,7 @@ namespace Wabbajack.Lib.CompilationSteps
             if (!_compiler.IndexedFiles.TryGetValue(source.Hash, out var found)) return null;
             var result = source.EvolveTo<FromArchive>();
 
-            var match = found.Where(f => Path.GetFileName(f.Name) == Path.GetFileName(source.Path))
+            var match = found.Where(f => f.Name.FileName == source.Path.FileName)
                             .OrderBy(f => f.NestingFactor)
                             .FirstOrDefault()
                         ?? found.OrderBy(f => f.NestingFactor).FirstOrDefault();

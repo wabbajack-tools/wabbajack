@@ -20,18 +20,18 @@ namespace Wabbajack.Lib
     {
         public bool IgnoreMissingFiles { get; internal set; } = false;
 
-        public string OutputFolder { get; private set; }
-        public string DownloadFolder { get; private set; }
+        public AbsolutePath OutputFolder { get; private set; }
+        public AbsolutePath DownloadFolder { get; private set; }
 
         public abstract ModManager ModManager { get; }
 
         public string ModListArchive { get; private set; }
         public ModList ModList { get; private set; }
-        public Dictionary<Hash, string> HashedArchives { get; set; }
+        public Dictionary<Hash, AbsolutePath> HashedArchives { get; set; }
         
         public SystemParameters SystemParameters { get; set; }
 
-        public AInstaller(string archive, ModList modList, string outputFolder, string downloadFolder, SystemParameters parameters)
+        public AInstaller(string archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
         {
             ModList = modList;
             ModListArchive = archive;
@@ -90,20 +90,9 @@ namespace Wabbajack.Lib
         ///     We don't want to make the installer index all the archives, that's just a waste of time, so instead
         ///     we'll pass just enough information to VFS to let it know about the files we have.
         /// </summary>
-        public async Task PrimeVFS()
+        protected async Task PrimeVFS()
         {
-            VFS.AddKnown(HashedArchives.Select(a => new KnownFile
-            {
-                Paths = new[] { a.Value },
-                Hash = a.Key
-            }));
-
-            
-            VFS.AddKnown(
-                ModList.Directives
-                    .OfType<FromArchive>()
-                    .Select(f => new KnownFile { Paths = f.ArchiveHashPath, Hash = f.Hash}));
-
+            VFS.AddKnown(ModList.Directives.OfType<FromArchive>().Select(d => d.ArchiveHashPath), HashedArchives);
             await VFS.BackfillMissing();
         }
 
@@ -111,13 +100,9 @@ namespace Wabbajack.Lib
         {
             Info("Building Folder Structure");
             ModList.Directives
-                .Select(d => Path.Combine(OutputFolder, Path.GetDirectoryName(d.To)))
+                .Select(d => OutputFolder.Combine(d.To.Parent))
                 .Distinct()
-                .Do(f =>
-                {
-                    if (Directory.Exists(f)) return;
-                    Directory.CreateDirectory(f);
-                });
+                .Do(f => OutputFolder.CreateDirectory());
         }
 
         public async Task InstallArchives()
@@ -126,8 +111,8 @@ namespace Wabbajack.Lib
             Info("Grouping Install Files");
             var grouped = ModList.Directives
                 .OfType<FromArchive>()
-                .GroupBy(e => e.ArchiveHashPath[0])
-                .ToDictionary(k => Hash.FromBase64(k.Key));
+                .GroupBy(e => e.ArchiveHashPath.BaseHash)
+                .ToDictionary(k => k.Key);
             var archives = ModList.Archives
                 .Select(a => new { Archive = a, AbsolutePath = HashedArchives.GetOrDefault(a.Hash) })
                 .Where(a => a.AbsolutePath != null)
@@ -137,7 +122,7 @@ namespace Wabbajack.Lib
             await archives.PMap(Queue, UpdateTracker,a => InstallArchive(Queue, a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
         }
 
-        private async Task InstallArchive(WorkQueue queue, Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
+        private async Task InstallArchive(WorkQueue queue, Archive archive, AbsolutePath absolutePath, IGrouping<Hash, FromArchive> grouping)
         {
             Status($"Extracting {archive.Name}");
 
@@ -184,13 +169,12 @@ namespace Wabbajack.Lib
                   .PDoIndexed(queue, (idx, group) =>
             {
                 Utils.Status("Installing files", Percent.FactoryPutInRange(idx, vFiles.Count));
-                var firstDest = Path.Combine(OutputFolder, group.First().To);
-                CopyFile(group.Key.StagedPath, firstDest, true);
+                var firstDest = OutputFolder.Combine(group.First().To);
+                group.Key.StagedPath.CopyTo(firstDest, true);
                 
                 foreach (var copy in group.Skip(1))
                 {
-                    var nextDest = Path.Combine(OutputFolder, copy.To);
-                    CopyFile(firstDest, nextDest, false);
+                    firstDest.CopyTo(OutputFolder.Combine(copy.To));
                 }
 
             });
@@ -203,25 +187,25 @@ namespace Wabbajack.Lib
                 .PMap(queue, async toPatch =>
                 {
                     await using var patchStream = new MemoryStream();
-                    Status($"Patching {Path.GetFileName(toPatch.To)}");
+                    Status($"Patching {toPatch.To.FileName}");
                     // Read in the patch data
 
                     byte[] patchData = LoadBytesFromPath(toPatch.PatchID);
 
-                    var toFile = Path.Combine(OutputFolder, toPatch.To);
-                    var oldData = new MemoryStream(File.ReadAllBytes(toFile));
+                    var toFile = OutputFolder.Combine(toPatch.To);
+                    var oldData = new MemoryStream(await toFile.ReadAllBytesAsync());
 
                     // Remove the file we're about to patch
-                    File.Delete(toFile);
+                    toFile.Delete();
 
                     // Patch it
-                    await using (var outStream = File.Open(toFile, FileMode.Create))
+                    await using (var outStream = toFile.Create())
                     {
                         Utils.ApplyPatch(oldData, () => new MemoryStream(patchData), outStream);
                     }
 
-                    Status($"Verifying Patch {Path.GetFileName(toPatch.To)}");
-                    var resultSha = toFile.FileHash();
+                    Status($"Verifying Patch {toPatch.To.FileName}");
+                    var resultSha = await toFile.FileHashAsync();
                     if (resultSha != toPatch.Hash)
                         throw new InvalidDataException($"Invalid Hash for {toPatch.To} after patching");
                 });
