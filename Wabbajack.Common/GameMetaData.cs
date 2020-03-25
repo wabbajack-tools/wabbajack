@@ -183,6 +183,7 @@ namespace Wabbajack.Common
                     Game = Game.Morrowind,
                     Disabled = false,
                     SteamIDs = new List<int>{22320},
+                    GOGIDs = new List<int>{1440163901, 1435828767},
                     NexusName = "morrowind",
                     NexusGameId = 100,
                     MO2Name = "Morrowind",
