@@ -31,7 +31,7 @@ namespace Wabbajack.Lib
         public AbsolutePath MO2Folder;
 
         public string MO2Profile { get; }
-        public Dictionary<string, dynamic> ModMetas { get; set; }
+        public Dictionary<RelativePath, dynamic> ModMetas { get; set; }
 
         public override ModManager ModManager => ModManager.MO2;
 
@@ -103,19 +103,19 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             await VFS.IntegrateFromFile(VFSCacheName);
 
-            var roots = new List<string>()
+            var roots = new List<AbsolutePath>()
             {
                 MO2Folder, GamePath, MO2DownloadsFolder
             };
             
             // TODO: make this generic so we can add more paths
 
-            var lootPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            var lootPath = (AbsolutePath)Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "LOOT");
             IEnumerable<RawSourceFile> lootFiles = new List<RawSourceFile>();
-            if (Directory.Exists(lootPath))
+            if (lootPath.Exists)
             {
-                roots.Add(lootPath);
+                roots.Add((AbsolutePath)lootPath);
             }
             UpdateTracker.NextStep("Indexing folders");
 
@@ -123,18 +123,17 @@ namespace Wabbajack.Lib
             await VFS.AddRoots(roots);
             await VFS.WriteToFile(VFSCacheName);
             
-            if (Directory.Exists(lootPath))
+            if (lootPath.Exists)
             {
-                lootFiles = Directory.EnumerateFiles(lootPath, "userlist.yaml", SearchOption.AllDirectories)
-                    .Where(p => p.FileExists())
-                    .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(lootPath))));
+                lootFiles = lootPath.EnumerateFiles()
+                    .Where(p => (string)p.FileName == "userlist.yaml")
+                    .Where(p => p.IsFile)
+                    .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], Consts.LOOTFolderFilesDir.Combine(p.RelativeTo(lootPath))));
             }
             
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Cleaning output folder");
-            if (Directory.Exists(ModListOutputFolder))
-                Utils.DeleteDirectory(ModListOutputFolder);
-
+            ModListOutputFolder.DeleteDirectory();
             
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Inferring metas for game file downloads");
@@ -150,29 +149,28 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Pre-validating Archives");
             
 
-            IndexedArchives = Directory.EnumerateFiles(MO2DownloadsFolder)
-                .Where(f => File.Exists(f + Consts.MetaFileExtension))
-                .Select(f => new IndexedArchive
+            IndexedArchives = (await MO2DownloadsFolder.EnumerateFiles()
+                .Where(f => f.WithExtension(Consts.MetaFileExtension).Exists)
+                .PMap(Queue, async f => new IndexedArchive
                 {
                     File = VFS.Index.ByRootPath[f],
-                    Name = Path.GetFileName(f),
-                    IniData = (f + Consts.MetaFileExtension).LoadIniFile(),
-                    Meta = File.ReadAllText(f + Consts.MetaFileExtension)
-                })
-                .ToList();
+                    Name = (string)f.FileName,
+                    IniData = f.WithExtension(Consts.MetaFileExtension).LoadIniFile(),
+                    Meta = await f.WithExtension(Consts.MetaFileExtension).ReadAllTextAsync()
+                })).ToList();
             
 
 
             await CleanInvalidArchives();
 
             UpdateTracker.NextStep("Finding Install Files");
-            Directory.CreateDirectory(ModListOutputFolder);
+            ModListOutputFolder.CreateDirectory();
 
-            var mo2Files = Directory.EnumerateFiles(MO2Folder, "*", SearchOption.AllDirectories)
-                .Where(p => p.FileExists())
+            var mo2Files = MO2Folder.EnumerateFiles()
+                .Where(p => p.IsFile)
                 .Select(p =>
                 {
-                    if (!VFS.Index.ByFullPath.ContainsKey(p))
+                    if (!VFS.Index.ByRootPath.ContainsKey(p))
                         Utils.Log($"WELL THERE'S YOUR PROBLEM: {p} {VFS.Index.ByRootPath.Count}");
                     
                     return new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(MO2Folder));
@@ -180,13 +178,13 @@ namespace Wabbajack.Lib
 
             // If Game Folder Files exists, ignore the game folder
             IEnumerable<RawSourceFile> gameFiles;
-            if (!Directory.Exists(Path.Combine(MO2Folder, Consts.GameFolderFilesDir)))
+            if (!MO2Folder.Combine(Consts.GameFolderFilesDir).Exists)
             {
-                gameFiles = Directory.EnumerateFiles(GamePath, "*", SearchOption.AllDirectories)
-                    .Where(p => p.FileExists())
-                    .Where(p => Path.GetExtension(p) != Consts.HashFileExtension)
+                gameFiles = GamePath.EnumerateFiles()
+                    .Where(p => p.IsFile)
+                    .Where(p => p.Extension!= Consts.HashFileExtension)
                     .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p],
-                        Path.Combine(Consts.GameFolderFilesDir, p.RelativeTo(GamePath))));
+                        Consts.GameFolderFilesDir.Combine(p.RelativeTo(GamePath))));
             }
             else
             {
@@ -194,12 +192,12 @@ namespace Wabbajack.Lib
             }
 
 
-            ModMetas = Directory.EnumerateDirectories(Path.Combine(MO2Folder, Consts.MO2ModFolderName))
+            ModMetas = MO2Folder.Combine(Consts.MO2ModFolderName).EnumerateFiles()
                 .Keep(f =>
                 {
-                    var path = Path.Combine(f, "meta.ini");
-                    return File.Exists(path) ? (f, path.LoadIniFile()) : default;
-                }).ToDictionary(f => f.f.RelativeTo(MO2Folder) + "\\", v => v.Item2);
+                    var path = f.Combine("meta.ini");
+                    return path.Exists ? (f, path.LoadIniFile()) : default;
+                }).ToDictionary(f => f.f.RelativeTo(MO2Folder), v => v.Item2);
 
             IndexedFiles = IndexedArchives.SelectMany(f => f.File.ThisAndAllChildren)
                 .OrderBy(f => f.NestingFactor)

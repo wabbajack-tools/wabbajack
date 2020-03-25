@@ -98,7 +98,7 @@ namespace Wabbajack.Lib
                     };
                 }).ToList();
 
-                var src_data = result.Sources.Select(f => File.ReadAllBytes(Path.Combine(_mo2Compiler.MO2Folder, f.RelativePath)))
+                var src_data = result.Sources.Select(f => _mo2Compiler.MO2Folder.Combine(f.RelativePath).ReadAllBytes())
                     .ConcatArrays();
 
                 var dst_data = await source.AbsolutePath.ReadAllBytesAsync();
