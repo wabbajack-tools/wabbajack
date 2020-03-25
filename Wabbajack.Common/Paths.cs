@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -306,6 +307,17 @@ namespace Wabbajack.Common
             await using var src = OpenRead();
             await using var dest = destFile.Create();
             await src.CopyToAsync(dest);
+        }
+
+        public IEnumerable<AbsolutePath> EnumerateDirectories(bool recursive = true)
+        {
+            return Directory.EnumerateDirectories(_path, "*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+                .Select(p => (AbsolutePath)p);
+        }
+
+        public async Task WriteAllLinesAsync(params string[] strings)
+        {
+            await WriteAllTextAsync(string.Join("\n",strings));
         }
     }
 
