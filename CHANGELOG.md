@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - Next
+* Added support for Morrowind on GOG
+
 #### Version - 1.1.3.0 - 3/23/2020
 * Fix for a lack of VC++ Redist dlls on newly installed Windows machines.
 
