@@ -18,7 +18,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             if (!source.Path.StartsWith(_prefix)) return null;
             var result = source.EvolveTo<InlineFile>();
-            result.SourceDataID = _compiler.IncludeFile(File.ReadAllBytes(source.AbsolutePath));
+            result.SourceDataID = await _compiler.IncludeFile(await source.AbsolutePath.ReadAllBytesAsync());
             return result;
         }
 

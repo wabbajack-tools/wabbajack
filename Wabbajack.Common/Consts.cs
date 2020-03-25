@@ -30,12 +30,14 @@ namespace Wabbajack.Common
         public static readonly HashSet<Extension> SupportedBSAs = new[] {".bsa", ".ba2"}
             .Select(s => new Extension(s)).ToHashSet();
 
-        public static HashSet<string> ConfigFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".json", ".ini", ".yml", ".xml"};
-        public static HashSet<string> ESPFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".esp", ".esm", ".esl"};
-        public static HashSet<string> AssetFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".dds", ".tga", ".nif", ".psc", ".pex"};
+        public static HashSet<Extension> ConfigFileExtensions = new[]{".json", ".ini", ".yml", ".xml"}.Select(s => new Extension(s)).ToHashSet();
+        public static HashSet<Extension> ESPFileExtensions = new []{ ".esp", ".esm", ".esl"}.Select(s => new Extension(s)).ToHashSet();
+        public static HashSet<Extension> AssetFileExtensions = new[] {".dds", ".tga", ".nif", ".psc", ".pex"}.Select(s => new Extension(s)).ToHashSet();
         
         public static readonly Extension EXE = new Extension(".exe");
         public static readonly Extension OMOD = new Extension(".omod");
+        public static readonly Extension ESM = new Extension(".esm");
+        public static readonly Extension ESP = new Extension(".esp");
 
         public static string NexusCacheDirectory = "nexus_link_cache";
 
@@ -59,7 +61,7 @@ namespace Wabbajack.Common
 
         public static string AppName = "Wabbajack";
 
-        public static HashSet<string> GameESMs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        public static HashSet<RelativePath> GameESMs = new []
         {
             // Skyrim LE/SE
             "Skyrim.esm", 
@@ -77,7 +79,7 @@ namespace Wabbajack.Common
             "DLCNukaWorld.esm",
             "DLCUltraHighResolution.esm"
 
-        };
+        }.Select(s => (RelativePath)s).ToHashSet();
 
         public static string ModPermissionsURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/NexusModPermissions.yml";
         public static string ServerWhitelistURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml";
@@ -93,11 +95,13 @@ namespace Wabbajack.Common
                 return headerString;
             }
         }
+        
+        public static RelativePath MetaIni = new RelativePath("meta.ini");
 
-        public static string HashFileExtension => ".xxHash";
-        public static string MetaFileExtension => ".meta";
-        public static string ModListExtension = ".wabbajack";
-        public static string LocalAppDataPath => Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack");
+        public static Extension HashFileExtension = new Extension(".xxHash");
+        public static Extension MetaFileExtension = new Extension(".meta");
+        public static Extension ModListExtension = new Extension(".wabbajack");
+        public static AbsolutePath LocalAppDataPath => new AbsolutePath(Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack"));
         public static string MetricsKeyHeader => "x-metrics-key";
 
         public static string WabbajackCacheLocation = "http://build.wabbajack.org/nexus_api_cache/";
@@ -107,13 +111,16 @@ namespace Wabbajack.Common
         public static int MaxHTTPRetries = 4;
         public const string MO2ModFolderName = "mods";
 
-        public static string PatchCacheFolder => Path.Combine(LocalAppDataPath, "patch_cache");
+        public static AbsolutePath PatchCacheFolder => LocalAppDataPath.Combine("patch_cache");
         public static int MaxConnectionsPerServer = 4;
 
-        public static string LogsFolder = "logs";
+        public static AbsolutePath LogsFolder = ((RelativePath)"logs").RelativeToEntryPoint();
+        public static AbsolutePath EntryPoint = (AbsolutePath)(Assembly.GetEntryAssembly()?.Location ?? (string)((RelativePath)"Unknown").RelativeToWorkingDirectory());
+        public static AbsolutePath LogFile = LogsFolder.Combine(EntryPoint.FileNameWithoutExtension + ".current.log");
         public static int MaxOldLogs = 50;
+        public static Extension BSA = new Extension(".BSA");
 
-        public static string SettingsFile => Path.Combine(LocalAppDataPath, "settings.json");
+        public static AbsolutePath SettingsFile => LocalAppDataPath.Combine("settings.json");
         public static byte SettingsVersion => 1;
     }
 }

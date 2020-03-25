@@ -14,7 +14,7 @@ namespace Wabbajack.Lib.CompilationSteps.CompilationErrors
         public Hash Hash { get; }
         public string PathToFile { get; }
         private readonly CleanedESM _esm;
-        public string GameFileName => Path.GetFileName(_esm.To);
+        public RelativePath GameFileName => _esm.To.FileName;
         public override string ShortDescription
         {
             get =>
@@ -24,7 +24,7 @@ namespace Wabbajack.Lib.CompilationSteps.CompilationErrors
         public override string ExtendedDescription
         {
             get =>
-                $@"This modlist is setup to perform automatic cleaning of the stock game file {GameFileName} in order to perform this cleaning Wabbajack must first verify that the 
+                $@"This modlist is setup to perform automatic cleaning of the stock game file {(string)GameFileName} in order to perform this cleaning Wabbajack must first verify that the 
 source file is in the correct state. It seems that the file in your game directory has a hash of {Hash} instead of the expect hash of {_esm.SourceESMHash}. This could be caused by
 the modlist expecting a different of the game than you currently have installed, or perhaps you have already cleaned the file. You could attempt to fix this error by re-installing
 the game, and then attempting to re-install this modlist. Also verify that the version of the game you have installed matches the version expected by this modlist.";

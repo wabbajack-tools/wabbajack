@@ -233,9 +233,12 @@ namespace Wabbajack.VirtualFileSystem
         #region KnownFiles
 
         private List<HashRelativePath> _knownFiles = new List<HashRelativePath>();
-        public void AddKnown(IEnumerable<HashRelativePath> known)
+        private Dictionary<Hash, AbsolutePath> _knownArchives = new Dictionary<Hash, AbsolutePath>();
+        public void AddKnown(IEnumerable<HashRelativePath> known, Dictionary<Hash, AbsolutePath> archives)
         {
             _knownFiles.AddRange(known);
+            foreach (var (key, value) in archives)
+                _knownArchives.TryAdd(key, value);
         }
 
         public async Task BackfillMissing()

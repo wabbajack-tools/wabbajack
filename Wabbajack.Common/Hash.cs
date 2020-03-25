@@ -139,13 +139,13 @@ namespace Wabbajack.Common
 
         public static bool TryGetHashCache(AbsolutePath file, out Hash hash)
         {
-            var hashFile = file + Consts.HashFileExtension;
+            var hashFile = file.WithExtension(Consts.HashFileExtension);
             hash = Hash.Empty; 
-            if (!File.Exists(hashFile)) return false;
+            if (!hashFile.IsFile) return false;
             
-            if (File.GetSize(hashFile) != 20) return false;
+            if (hashFile.Size != 20) return false;
 
-            using var fs = File.OpenRead(hashFile);
+            using var fs = hashFile.OpenRead();
             using var br = new BinaryReader(fs);
             var version = br.ReadUInt32();
             if (version != HashCacheVersion) return false;
@@ -160,7 +160,7 @@ namespace Wabbajack.Common
         private const uint HashCacheVersion = 0x01;
         private static void WriteHashCache(AbsolutePath file, Hash hash)
         {
-            using var fs = File.Create(file + Consts.HashFileExtension);
+            using var fs = file.WithExtension(Consts.HashFileExtension).Create();
             using var bw = new BinaryWriter(fs);
             bw.Write(HashCacheVersion);
             var lastModified = file.LastModifiedUtc.AsUnixTime();

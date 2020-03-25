@@ -12,11 +12,9 @@ namespace Wabbajack.Lib
 {
     public class RawSourceFile
     {
-        // ToDo
-        // Make readonly
-        public string Path;
+        public readonly RelativePath Path;
 
-        public RawSourceFile(VirtualFile file, string path)
+        public RawSourceFile(VirtualFile file, RelativePath path)
         {
             File = file;
             Path = path;
@@ -153,7 +151,7 @@ namespace Wabbajack.Lib
         ///     location the file will be copied to, relative to the install path.
         /// </summary>
         [Key(2)]
-        public string To { get; set; }
+        public RelativePath To { get; set; }
     }
 
     public class IgnoredDirectly : Directive
@@ -172,14 +170,14 @@ namespace Wabbajack.Lib
         ///     Data that will be written as-is to the destination location;
         /// </summary>
         [Key(3)]
-        public string SourceDataID;
+        public RelativePath SourceDataID { get; set; }
     }
 
     [MessagePackObject]
     public class ArchiveMeta : Directive
     {
         [Key(3)]
-        public string SourceDataID { get; set; }
+        public RelativePath SourceDataID { get; set; }
     }
 
     public enum PropertyType { Banner, Readme }
@@ -218,7 +216,7 @@ namespace Wabbajack.Lib
         private string _fullPath;
 
         [Key(3)]
-        public string[] ArchiveHashPath { get; set; }
+        public HashRelativePath ArchiveHashPath { get; set; }
 
         [IgnoreMember]
         public VirtualFile FromFile { get; set; }
@@ -257,7 +255,7 @@ namespace Wabbajack.Lib
         [Key(0)]
         public Hash Hash { get; set; }
         [Key(1)]
-        public string RelativePath { get; set; }
+        public RelativePath RelativePath { get; set; }
     }
 
     [MessagePackObject]

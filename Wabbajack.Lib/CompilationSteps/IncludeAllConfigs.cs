@@ -13,9 +13,9 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!Consts.ConfigFileExtensions.Contains(Path.GetExtension(source.Path))) return null;
+            if (!Consts.ConfigFileExtensions.Contains(source.Path.Extension)) return null;
             var result = source.EvolveTo<InlineFile>();
-            result.SourceDataID = _compiler.IncludeFile(File.ReadAllBytes(source.AbsolutePath));
+            result.SourceDataID = await _compiler.IncludeFile(await source.AbsolutePath.ReadAllBytesAsync());
             return result;
         }
 

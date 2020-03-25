@@ -19,11 +19,12 @@ namespace Wabbajack.Lib
 {
     public abstract class ACompiler : ABatchProcessor
     {
-        public string ModListName, ModListAuthor, ModListDescription, ModListImage, ModListWebsite, ModListReadme;
+        public string ModListName, ModListAuthor, ModListDescription, ModListWebsite;
+        public RelativePath ModListImage, ModListReadme;
         public bool ReadmeIsWebsite;
         protected Version WabbajackVersion;
 
-        public abstract string VFSCacheName { get; }
+        public abstract AbsolutePath VFSCacheName { get; }
         //protected string VFSCacheName => Path.Combine(Consts.LocalAppDataPath, $"vfs_compile_cache.bin");
         /// <summary>
         /// A stream of tuples of ("Update Title", 0.25) which represent the name of the current task
@@ -34,10 +35,10 @@ namespace Wabbajack.Lib
 
         public abstract ModManager ModManager { get; }
 
-        public abstract string GamePath { get; }
+        public abstract AbsolutePath GamePath { get; }
 
-        public abstract string ModListOutputFolder { get; }
-        public abstract string ModListOutputFile { get; }
+        public abstract AbsolutePath ModListOutputFolder { get; }
+        public abstract AbsolutePath ModListOutputFile { get; }
 
         public bool IgnoreMissingFiles { get; set; }
 
@@ -65,23 +66,35 @@ namespace Wabbajack.Lib
             throw new Exception(msg);
         }
 
-        internal string IncludeFile(byte[] data)
+        internal RelativePath IncludeId()
         {
-            var id = Guid.NewGuid().ToString();
-            File.WriteAllBytes(Path.Combine(ModListOutputFolder, id), data);
+            return RelativePath.RandomFileName();
+        }
+
+        internal async Task<RelativePath> IncludeFile(byte[] data)
+        {
+            var id = IncludeId();
+            await ModListOutputFolder.Combine(id).WriteAllBytesAsync(data);
             return id;
         }
 
-        internal FileStream IncludeFile(out string id)
+        internal FileStream IncludeFile(out RelativePath id)
         {
-            id = Guid.NewGuid().ToString();
-            return File.Create(Path.Combine(ModListOutputFolder, id));
+            id = IncludeId();
+            return ModListOutputFolder.Combine(id).Create();
         }
 
-        internal string IncludeFile(string data)
+        internal async Task<RelativePath> IncludeFile(string data)
         {
-            var id = Guid.NewGuid().ToString();
-            File.WriteAllText(Path.Combine(ModListOutputFolder, id), data);
+            var id = IncludeId();
+            await ModListOutputFolder.Combine(id).WriteAllTextAsync(data);
+            return id;
+        }
+        
+        internal RelativePath IncludeFile(AbsolutePath data)
+        {
+            var id = IncludeId();
+            data.Copy(ModListOutputFolder.Combine(id));
             return id;
         }
 
