@@ -335,38 +335,39 @@ namespace Wabbajack.Lib
             var indexed = ModList.Directives.ToDictionary(d => d.To);
 
             UpdateTracker.NextStep("Looking for files to delete");
-            await Directory.EnumerateFiles(OutputFolder, "*", DirectoryEnumerationOptions.Recursive)
+            await OutputFolder.EnumerateFiles()
                 .PMap(Queue, UpdateTracker, f =>
                 {
                     var relative_to = f.RelativeTo(OutputFolder);
                     Utils.Status($"Checking if ModList file {relative_to}");
-                    if (indexed.ContainsKey(relative_to) || f.IsInPath(DownloadFolder))
+                    if (indexed.ContainsKey(relative_to) || f.InFolder(DownloadFolder))
                         return;
 
                     Utils.Log($"Deleting {relative_to} it's not part of this ModList");
-                    File.Delete(f);
+                    f.Delete();
                 });
 
             Utils.Log("Cleaning empty folders");
             var expectedFolders = indexed.Keys
+                .Select(f => f.RelativeTo(OutputFolder))
                 // We ignore the last part of the path, so we need a dummy file name
-                .Append(Path.Combine(DownloadFolder, "_"))
+                .Append(DownloadFolder.Combine("_"))
                 .SelectMany(path =>
                 {
                     // Get all the folders and all the folder parents
                     // so for foo\bar\baz\qux.txt this emits ["foo", "foo\\bar", "foo\\bar\\baz"]
-                    var split = path.Split('\\');
+                    var split = ((string)path.RelativeTo(OutputFolder)).Split('\\');
                     return Enumerable.Range(1, split.Length - 1).Select(t => string.Join("\\", split.Take(t)));
                 })
                .Distinct()
-               .Select(p => Path.Combine(OutputFolder, p))
+                .Select(p => OutputFolder.Combine(p))
                .ToHashSet();
 
             try
             {
-                Directory.EnumerateDirectories(OutputFolder, DirectoryEnumerationOptions.Recursive)
+                OutputFolder.EnumerateDirectories(true)
                     .Where(p => !expectedFolders.Contains(p))
-                    .OrderByDescending(p => p.Length)
+                    .OrderByDescending(p => p.Size)
                     .Do(Utils.DeleteDirectory);
             }
             catch (Exception)
@@ -376,19 +377,18 @@ namespace Wabbajack.Lib
             }
 
             UpdateTracker.NextStep("Looking for unmodified files");
-            (await indexed.Values.PMap(Queue, UpdateTracker, d =>
+            (await indexed.Values.PMap(Queue, UpdateTracker, async d =>
             {
                 // Bit backwards, but we want to return null for 
                 // all files we *want* installed. We return the files
                 // to remove from the install list.
                 Status($"Optimizing {d.To}");
-                var path = Path.Combine(OutputFolder, d.To);
-                if (!File.Exists(path)) return null;
+                var path = OutputFolder.Combine(d.To);
+                if (!path.Exists) return null;
 
-                var fi = new FileInfo(path);
-                if (fi.Length != d.Size) return null;
+                if (path.Size != d.Size) return null;
                 
-                return path.FileHash() == d.Hash ? d : null;
+                return await path.FileHashAsync() == d.Hash ? d : null;
             }))
               .Where(d => d != null)
               .Do(d => indexed.Remove(d.To));
@@ -396,8 +396,8 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Updating ModList");
             Utils.Log($"Optimized {ModList.Directives.Count} directives to {indexed.Count} required");
             var requiredArchives = indexed.Values.OfType<FromArchive>()
-                .GroupBy(d => d.ArchiveHashPath[0])
-                .Select(d => Hash.FromBase64(d.Key))
+                .GroupBy(d => d.ArchiveHashPath.BaseHash)
+                .Select(d => d.Key)
                 .ToHashSet();
             
             ModList.Archives = ModList.Archives.Where(a => requiredArchives.Contains(a.Hash)).ToList();

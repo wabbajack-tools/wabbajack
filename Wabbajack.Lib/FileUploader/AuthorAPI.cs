@@ -34,12 +34,12 @@ namespace Wabbajack.Lib.FileUploader
             var tcs = new TaskCompletionSource<string>();
             Task.Run(async () =>
             {
-                var client = GetAuthorizedClient();
+                var client = await GetAuthorizedClient();
 
                 var fsize = filename.Size;
                 var hash_task = filename.FileHashAsync();
 
-                var response = await client.PutAsync(UploadURL+$"/{filename.FileName.ToString()}/start", new StringContent(""));
+                var response = await client.PutAsync($"{UploadURL}/{filename.FileName.ToString()}/start", new StringContent(""));
                 if (!response.IsSuccessStatusCode)
                 {
                     tcs.SetException(new Exception($"Start Error: {response.StatusCode} {response.ReasonPhrase}"));

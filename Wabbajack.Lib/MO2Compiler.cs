@@ -30,6 +30,8 @@ namespace Wabbajack.Lib
         
         public AbsolutePath MO2Folder;
 
+        public AbsolutePath MO2ModsFolder => MO2Folder.Combine(Consts.MO2ModFolderName);
+
         public string MO2Profile { get; }
         public Dictionary<RelativePath, dynamic> ModMetas { get; set; }
 
@@ -80,7 +82,7 @@ namespace Wabbajack.Lib
 
         internal UserStatus User { get; private set; }
         public ConcurrentBag<Directive> ExtraFiles { get; private set; }
-        public Dictionary<string, dynamic> ModInis { get; private set; }
+        public Dictionary<AbsolutePath, dynamic> ModInis { get; private set; }
 
         public HashSet<string> SelectedProfiles { get; set; } = new HashSet<string>();
 
@@ -250,14 +252,15 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Loading INIs");
 
-            ModInis = Directory.EnumerateDirectories(Path.Combine(MO2Folder, Consts.MO2ModFolderName))
+            ModInis = MO2Folder.Combine(Consts.MO2ModFolderName)
+                .EnumerateDirectories()
                 .Select(f =>
                 {
-                    var modName = Path.GetFileName(f);
-                    var metaPath = Path.Combine(f, "meta.ini");
-                    if (File.Exists(metaPath))
+                    var modName = f.FileName;
+                    var metaPath = f.Combine("meta.ini");
+                    if (metaPath.Exists)
                         return (mod_name: modName, metaPath.LoadIniFile());
-                    return (null, null);
+                    return default;
                 })
                 .Where(f => f.Item2 != null)
                 .ToDictionary(f => f.Item1, f => f.Item2);
@@ -308,8 +311,8 @@ namespace Wabbajack.Lib
                 Name = ModListName ?? MO2Profile,
                 Author = ModListAuthor ?? "",
                 Description = ModListDescription ?? "",
-                Readme = ModListReadme ?? "",
-                Image = ModListImage ?? "",
+                Readme = (string)ModListReadme,
+                Image = ModListImage.FileName,
                 Website = ModListWebsite != null ? new Uri(ModListWebsite) : null
             };
 
@@ -356,17 +359,17 @@ namespace Wabbajack.Lib
 
         private async Task InferMetas()
         {
-            async Task<bool> HasInvalidMeta(string filename)
+            async Task<bool> HasInvalidMeta(AbsolutePath filename)
             {
-                string metaname = filename + Consts.MetaFileExtension;
-                if (!File.Exists(metaname)) return true;
-                return (AbstractDownloadState) await DownloadDispatcher.ResolveArchive(metaname.LoadIniFile()) == null;
+                var metaname = filename.WithExtension(Consts.MetaFileExtension);
+                if (metaname.Exists) return true;
+                return await DownloadDispatcher.ResolveArchive(metaname.LoadIniFile()) == null;
             }
 
-            var to_find = (await Directory.EnumerateFiles(MO2DownloadsFolder)
-                .Where(f => !f.EndsWith(Consts.MetaFileExtension) && !f.EndsWith(Consts.HashFileExtension))
-                .PMap(Queue, async f => await HasInvalidMeta(f) ? f : null))
-                .Where(f => f != null)
+            var to_find = (await MO2DownloadsFolder.EnumerateFiles()
+                .Where(f => f.Extension != Consts.MetaFileExtension && f.Extension !=Consts.HashFileExtension)
+                .PMap(Queue, async f => await HasInvalidMeta(f) ? f : default))
+                .Where(f => f.Exists)
                 .ToList();
 
             if (to_find.Count == 0) return;
@@ -375,7 +378,7 @@ namespace Wabbajack.Lib
 
             await to_find.PMap(Queue, async f =>
             {
-                var vf = VFS.Index.ByFullPath[f];
+                var vf = VFS.Index.ByRootPath[f];
                 var client = new Common.Http.Client();
                 using var response =
                     await client.GetAsync(
@@ -383,17 +386,15 @@ namespace Wabbajack.Lib
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    File.WriteAllLines(vf.FullPath + Consts.MetaFileExtension, new []
-                    {
-                        "[General]",
-                        "unknownArchive=true"
-                    });
+                    await vf.AbsoluteName.WithExtension(Consts.MetaFileExtension).WriteAllLinesAsync(
+                        "[General]", 
+                        "unknownArchive=true");
                     return;
                 }
 
-                var ini_data = await response.Content.ReadAsStringAsync();
-                Utils.Log($"Inferred .meta for {Path.GetFileName(vf.FullPath)}, writing to disk");
-                File.WriteAllText(vf.FullPath + Consts.MetaFileExtension, ini_data);
+                var iniData = await response.Content.ReadAsStringAsync();
+                Utils.Log($"Inferred .meta for {vf.FullPath.FileName}, writing to disk");
+                await vf.AbsoluteName.WithExtension(Consts.MetaFileExtension).WriteAllTextAsync(iniData);
             });
         }
 
