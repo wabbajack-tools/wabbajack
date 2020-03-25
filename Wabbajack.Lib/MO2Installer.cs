@@ -329,13 +329,13 @@ namespace Wabbajack.Lib
         private void SetScreenSizeInPrefs()
         {
             var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
-            foreach (var file in Directory.EnumerateFiles(Path.Combine(OutputFolder, "profiles"), "*refs.ini",
-                DirectoryEnumerationOptions.Recursive))
+            foreach (var file in OutputFolder.Combine("profiles").EnumerateFiles()
+                .Where(f => ((string)f.FileName).EndsWith("*refs.ini")))
             {
                 try
                 {
                     var parser = new FileIniDataParser(new IniDataParser(config));
-                    var data = parser.ReadFile(file);
+                    var data = parser.ReadFile((string)file);
                     bool modified = false;
                     if (data.Sections["Display"] != null)
                     {
@@ -361,7 +361,7 @@ namespace Wabbajack.Lib
                     }
 
                     if (modified) 
-                        parser.WriteFile(file, data);
+                        parser.WriteFile((string)file, data);
                 }
                 catch (Exception ex)
                 {

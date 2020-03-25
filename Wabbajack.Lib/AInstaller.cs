@@ -232,7 +232,7 @@ namespace Wabbajack.Lib
             {
                 foreach (var a in missing.Where(a => a.State.GetType() == typeof(ManualDownloader.State)))
                 {
-                    var outputPath = Path.Combine(DownloadFolder, a.Name);
+                    var outputPath = DownloadFolder.Combine(a.Name);
                     await a.State.Download(a, outputPath);
                 }
             }
@@ -241,18 +241,17 @@ namespace Wabbajack.Lib
                 .PMap(Queue, async archive =>
                 {
                     Info($"Downloading {archive.Name}");
-                    var outputPath = Path.Combine(DownloadFolder, archive.Name);
+                    var outputPath = DownloadFolder.Combine(archive.Name);
 
                     if (download)
                     {
-                        if (outputPath.FileExists())
+                        if (outputPath.Exists)
                         {
-                            var orig_name = Path.GetFileNameWithoutExtension(archive.Name);
+                            var origName = Path.GetFileNameWithoutExtension(archive.Name);
                             var ext = Path.GetExtension(archive.Name);
-                            var unique_key = archive.State.PrimaryKeyString.StringSha256Hex();
-                            outputPath = Path.Combine(DownloadFolder, orig_name + "_" + unique_key + "_" + ext);
-                            if (outputPath.FileExists())
-                                File.Delete(outputPath);
+                            var uniqueKey = archive.State.PrimaryKeyString.StringSha256Hex();
+                            outputPath = DownloadFolder.Combine(origName + "_" + uniqueKey + "_" + ext);
+                            outputPath.Delete();
                         }
                     }
 
@@ -260,13 +259,13 @@ namespace Wabbajack.Lib
                 });
         }
 
-        public async Task<bool> DownloadArchive(Archive archive, bool download, string destination = null)
+        public async Task<bool> DownloadArchive(Archive archive, bool download, AbsolutePath? destination = null)
         {
             try
             {
                 if (destination == null) 
-                    destination = Path.Combine(DownloadFolder, archive.Name);
-                await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, destination);
+                    destination = DownloadFolder.Combine(archive.Name);
+                await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, destination.Value);
             }
             catch (Exception ex)
             {
@@ -280,11 +279,11 @@ namespace Wabbajack.Lib
 
         public async Task HashArchives()
         {
-            var hashResults = await Directory.EnumerateFiles(DownloadFolder)
-                .Where(e => !e.EndsWith(Consts.HashFileExtension))
-                .PMap(Queue, e => (e.FileHashCached(), e));
+            var hashResults = await DownloadFolder.EnumerateFiles()
+                .Where(e => e.Extension != Consts.HashFileExtension)
+                .PMap(Queue, async e => (await e.FileHashCachedAsync(), e));
             HashedArchives = hashResults
-                .OrderByDescending(e => File.GetLastWriteTime(e.Item2))
+                .OrderByDescending(e => e.Item2.LastModified)
                 .GroupBy(e => e.Item1)
                 .Select(e => e.First())
                 .ToDictionary(e => e.Item1, e => e.Item2);

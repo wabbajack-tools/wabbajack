@@ -45,7 +45,7 @@ namespace Wabbajack.Lib.CompilationSteps
             else
             {
                 var bsa_path = _bsa.FullPath.Paths.Last().RelativeTo(((MO2Compiler)_compiler).MO2Folder);
-                mod_ini = ((MO2Compiler)_compiler).ModMetas.FirstOrDefault(f => ((string)bsa_path).StartsWith(f.Key)).Value;
+                mod_ini = ((MO2Compiler)_compiler).ModMetas.FirstOrDefault(f => ((string)bsa_path).StartsWith((string)f.Key)).Value;
             }
 
             var installationFile = mod_ini?.General?.installationFile;
