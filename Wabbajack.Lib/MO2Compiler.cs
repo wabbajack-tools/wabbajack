@@ -259,7 +259,7 @@ namespace Wabbajack.Lib
                     var modName = f.FileName;
                     var metaPath = f.Combine("meta.ini");
                     if (metaPath.Exists)
-                        return (mod_name: modName, metaPath.LoadIniFile());
+                        return (mod_name: f, metaPath.LoadIniFile());
                     return default;
                 })
                 .Where(f => f.Item2 != null)
@@ -402,15 +402,15 @@ namespace Wabbajack.Lib
         private async Task IncludeArchiveMetadata()
         {
             Utils.Log($"Including {SelectedArchives.Count} .meta files for downloads");
-            await SelectedArchives.PMap(Queue, a =>
+            await SelectedArchives.PMap(Queue, async a =>
             {
-                var source = Path.Combine(MO2DownloadsFolder, a.Name + Consts.MetaFileExtension);
-                InstallDirectives.Add(new ArchiveMeta()
+                var source = MO2DownloadsFolder.Combine(a.Name + Consts.MetaFileExtension);
+                InstallDirectives.Add(new ArchiveMeta
                 {
-                    SourceDataID = IncludeFile(File.ReadAllText(source)),
-                    Size = File.GetSize(source),
-                    Hash = source.FileHash(),
-                    To = Path.GetFileName(source)
+                    SourceDataID = await IncludeFile(source),
+                    Size = source.Size,
+                    Hash = await source.FileHashAsync(),
+                    To = source.FileName
                 });
             });
         }
@@ -434,17 +434,17 @@ namespace Wabbajack.Lib
         {
             Info("Gathering patch files");
 
-            InstallDirectives.OfType<PatchedFromArchive>()
+            await InstallDirectives.OfType<PatchedFromArchive>()
                 .Where(p => p.PatchID == null)
-                .Do(p =>
+                .PMap(Queue, async p =>
                 {
                     if (Utils.TryGetPatch(p.FromHash, p.Hash, out var bytes))
-                        p.PatchID = IncludeFile(bytes);
+                        p.PatchID = await IncludeFile(bytes);
                 });
 
             var groups = InstallDirectives.OfType<PatchedFromArchive>()
                 .Where(p => p.PatchID == null)
-                .GroupBy(p => p.ArchiveHashPath[0])
+                .GroupBy(p => p.ArchiveHashPath.BaseHash)
                 .ToList();
 
             Info($"Patching building patches from {groups.Count} archives");
@@ -456,8 +456,8 @@ namespace Wabbajack.Lib
                 Error($"Missing patches after generation, this should not happen. First failure: {firstFailedPatch.FullPath}");
         }
 
-        private async Task BuildArchivePatches(string archiveSha, IEnumerable<PatchedFromArchive> group,
-            Dictionary<string, string> absolutePaths)
+        private async Task BuildArchivePatches(Hash archiveSha, IEnumerable<PatchedFromArchive> group,
+            Dictionary<RelativePath, AbsolutePath> absolutePaths)
         {
             using (var files = await VFS.StageWith(group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath))))
             {
@@ -468,7 +468,7 @@ namespace Wabbajack.Lib
                 {
                     Info($"Patching {entry.To}");
                     Status($"Patching {entry.To}");
-                    var srcFile = byPath[string.Join("|", entry.ArchiveHashPath.Skip(1))];
+                    var srcFile = byPath[string.Join("|", entry.ArchiveHashPath.Paths)];
                     await using var srcStream = srcFile.OpenRead();
                     await using var outputStream = IncludeFile(out var id);
                     entry.PatchID = id;
@@ -479,25 +479,23 @@ namespace Wabbajack.Lib
             }
         }
 
-        private FileStream LoadDataForTo(string to, Dictionary<string, string> absolutePaths)
+        private FileStream LoadDataForTo(RelativePath to, Dictionary<RelativePath, AbsolutePath> absolutePaths)
         {
             if (absolutePaths.TryGetValue(to, out var absolute))
-                return File.OpenRead(absolute);
+                return absolute.OpenRead();
 
             if (to.StartsWith(Consts.BSACreationDir))
             {
-                var bsaID = to.Split('\\')[1];
-                var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsaID);
+                var bsaId = (RelativePath)((string)to).Split('\\')[1];
+                var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsaId);
 
-                using (var a = BSADispatch.OpenRead(Path.Combine(MO2Folder, bsa.To)))
-                {
-                    var find = Path.Combine(to.Split('\\').Skip(2).ToArray());
-                    var file = a.Files.First(e => e.Path.Replace('/', '\\') == find);
-                    var returnStream = new TempStream();
-                    file.CopyDataTo(returnStream);
-                    returnStream.Position = 0;
-                    return returnStream;
-                }
+                using var a = BSADispatch.OpenRead(MO2Folder.Combine(bsa.To));
+                var find = (RelativePath)Path.Combine(((string)to).Split('\\').Skip(2).ToArray());
+                var file = a.Files.First(e => e.Path == find);
+                var returnStream = new TempStream();
+                file.CopyDataTo(returnStream);
+                returnStream.Position = 0;
+                return returnStream;
             }
 
             Error($"Couldn't load data for {to}");
@@ -506,16 +504,7 @@ namespace Wabbajack.Lib
 
         public override IEnumerable<ICompilationStep> GetStack()
         {
-            var userConfig = Path.Combine(MO2ProfileDir, "compilation_stack.yml");
-            if (File.Exists(userConfig))
-                return Serialization.Deserialize(File.ReadAllText(userConfig), this);
-
-            var stack = MakeStack();
-
-            File.WriteAllText(Path.Combine(MO2ProfileDir, "_current_compilation_stack.yml"), 
-                Serialization.Serialize(stack));
-
-            return stack;
+            return MakeStack();
 
         }
 
@@ -548,9 +537,9 @@ namespace Wabbajack.Lib
                 // Ignore the ModOrganizer.ini file it contains info created by MO2 on startup
                 new IncludeStubbedConfigFiles(this),
                 new IncludeLootFiles(this),
-                new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Data")),
-                new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Papyrus Compiler")),
-                new IgnoreStartsWith(this, Path.Combine(Consts.GameFolderFilesDir, "Skyrim")),
+                new IgnoreStartsWith(this, Path.Combine((string)Consts.GameFolderFilesDir, "Data")),
+                new IgnoreStartsWith(this, Path.Combine((string)Consts.GameFolderFilesDir, "Papyrus Compiler")),
+                new IgnoreStartsWith(this, Path.Combine((string)Consts.GameFolderFilesDir, "Skyrim")),
                 new IgnoreRegex(this, Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
                 new IncludeRegex(this, "^[^\\\\]*\\.bat$"),
                 new IncludeModIniData(this),
