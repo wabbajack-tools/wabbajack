@@ -56,17 +56,18 @@ namespace Wabbajack.Lib
             throw new Exception(msg);
         }
 
-        public byte[] LoadBytesFromPath(string path)
+        public async Task<byte[]> LoadBytesFromPath(RelativePath path)
         {
-            using (var fs = new FileStream(ModListArchive, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
-            using (var ms = new MemoryStream())
+            await using var fs = new FileStream(ModListArchive, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
+            await using var ms = new MemoryStream();
+            var entry = ar.GetEntry((string)path);
+            await using (var e = entry.Open())
             {
-                var entry = ar.GetEntry(path);
-                using (var e = entry.Open())
-                    e.CopyTo(ms);
-                return ms.ToArray();
+                await e.CopyToAsync(ms);
             }
+
+            return ms.ToArray();
         }
 
         public static ModList LoadFromFile(string path)
@@ -190,7 +191,7 @@ namespace Wabbajack.Lib
                     Status($"Patching {toPatch.To.FileName}");
                     // Read in the patch data
 
-                    byte[] patchData = LoadBytesFromPath(toPatch.PatchID);
+                    byte[] patchData = await LoadBytesFromPath(toPatch.PatchID);
 
                     var toFile = OutputFolder.Combine(toPatch.To);
                     var oldData = new MemoryStream(await toFile.ReadAllBytesAsync());

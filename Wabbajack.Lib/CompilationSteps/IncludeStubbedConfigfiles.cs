@@ -46,7 +46,7 @@ namespace Wabbajack.Lib.CompilationSteps
             if (data == originalData)
                 return null;
             var result = source.EvolveTo<RemappedInlineFile>();
-            result.SourceDataID = _compiler.IncludeFile(Encoding.UTF8.GetBytes(data));
+            result.SourceDataID = await _compiler.IncludeFile(Encoding.UTF8.GetBytes(data));
             return result;
         }
 

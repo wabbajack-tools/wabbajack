@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using MessagePack;
+using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
@@ -96,15 +97,12 @@ namespace Wabbajack.Lib.Downloaders
         /// Downloads this file to the given destination location
         /// </summary>
         /// <param name="destination"></param>
-        public abstract Task<bool> Download(Archive a, string destination);
+        public abstract Task<bool> Download(Archive a, AbsolutePath destination);
 
-        public async Task<bool> Download(string destination)
+        public async Task<bool> Download(AbsolutePath destination)
         {
-            var path = Path.GetDirectoryName(destination);
-            if (!string.IsNullOrEmpty(path) && !Directory.Exists(path))
-                Directory.CreateDirectory(path);
-            
-            return await Download(new Archive {Name = Path.GetFileName(destination)}, destination);
+            destination.Parent.CreateDirectory();
+            return await Download(new Archive {Name = (string)destination.FileName}, destination);
         }
 
         /// <summary>

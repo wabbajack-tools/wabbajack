@@ -90,7 +90,7 @@ namespace Wabbajack.Common
                 if (MainExecutable == null)
                     throw new NotImplementedException();
 
-                return FileVersionInfo.GetVersionInfo(Path.Combine(GameLocation(), MainExecutable)).ProductVersion;
+                return FileVersionInfo.GetVersionInfo((string)GameLocation()?.Combine(MainExecutable)).ProductVersion;
             }
         }
 
@@ -98,9 +98,9 @@ namespace Wabbajack.Common
 
         public string MainExecutable { get; internal set; }
 
-        public string GameLocation()
+        public AbsolutePath? GameLocation()
         {
-            return Consts.TestMode ? Directory.GetCurrentDirectory() : StoreHandler.Instance.GetGamePath(Game);
+            return Consts.TestMode ? AbsolutePath.GetCurrentDirectory() : StoreHandler.Instance.GetGamePath(Game);
         }
     }
 

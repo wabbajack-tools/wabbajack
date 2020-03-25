@@ -73,7 +73,7 @@ namespace Wabbajack.Lib
         ///     Hash of the banner-image
         /// </summary>
         [Key(5)]
-        public string Image;
+        public RelativePath Image;
 
         /// <summary>
         ///     The Mod Manager used to create the modlist
@@ -229,7 +229,7 @@ namespace Wabbajack.Lib
     public class CreateBSA : Directive
     {
         [Key(3)]
-        public string TempID { get; set; }
+        public RelativePath TempID { get; set; }
         [Key(4)]
         public ArchiveStateObject State { get; set; }
         [Key(5)]
@@ -246,7 +246,7 @@ namespace Wabbajack.Lib
         ///     The file to apply to the source file to patch it
         /// </summary>
         [Key(5)]
-        public string PatchID { get; set; }
+        public RelativePath PatchID { get; set; }
     }
 
     [MessagePackObject]
@@ -262,7 +262,7 @@ namespace Wabbajack.Lib
     public class MergedPatch : Directive
     {
         [Key(3)]
-        public string PatchID { get; set; }
+        public RelativePath PatchID { get; set; }
         [Key(4)]
         public List<SourcePatch> Sources { get; set; }
     }

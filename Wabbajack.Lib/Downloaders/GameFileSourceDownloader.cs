@@ -25,12 +25,14 @@ namespace Wabbajack.Lib.Downloaders
             if (game == null) return null;
 
             var path = game.GameLocation();
-            var filePath = Path.Combine(path, gameFile);
+            var filePath = path?.Combine(gameFile);
             
-            if (!File.Exists(filePath))
+            
+            if (!filePath?.Exists ?? false)
                 return null;
 
-            var hash = filePath.FileHashCached();
+            var fp = filePath.Value;
+            var hash = await fp.FileHashCachedAsync();
 
             return new State
             {
@@ -53,7 +55,7 @@ namespace Wabbajack.Lib.Downloaders
             
             public string GameVersion { get; set; }
 
-            internal string SourcePath => Path.Combine(Game.MetaData().GameLocation(), GameFile);
+            internal AbsolutePath SourcePath => Game.MetaData().GameLocation().Value.Combine(GameFile);
 
             public override object[] PrimaryKey { get => new object[] {Game, GameVersion, GameFile}; }
 
@@ -62,12 +64,12 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
-                using(var src = File.OpenRead(SourcePath))
-                using (var dest = File.Open(destination, System.IO.FileMode.Create))
+                using(var src = SourcePath.OpenRead())
+                using (var dest = destination.Create())
                 {
-                    var size = new FileInfo(SourcePath).Length;
+                    var size = SourcePath.Size;
                     src.CopyToWithStatus(size, dest, "Copying from Game folder");
                 }
                 return true;
@@ -75,7 +77,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive a)
             {
-                return File.Exists(SourcePath) && SourcePath.FileHashCached() == Hash;
+                return SourcePath.Exists && await SourcePath.FileHashCachedAsync() == Hash;
             }
 
             public override IDownloader GetDownloader()

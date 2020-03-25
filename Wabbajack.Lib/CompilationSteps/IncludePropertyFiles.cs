@@ -25,16 +25,16 @@ namespace Wabbajack.Lib.CompilationSteps
             var isBanner = source.AbsolutePath == _compiler.ModListImage;
             //var isReadme = source.AbsolutePath == ModListReadme;
             var result = source.EvolveTo<PropertyFile>();
-            result.SourceDataID = await _compiler.IncludeFile(source.AbsolutePath.ReadAllBytesAsync());
+            result.SourceDataID = await _compiler.IncludeFile(await source.AbsolutePath.ReadAllBytesAsync());
             if (isBanner)
             {
                 result.Type = PropertyType.Banner;
-                _compiler.ModListImage = result.SourceDataID;
+                _compiler.ModListImage = result.SourceDataID.RelativeTo(_compiler.ModListOutputFolder);
             }
             else
             {
                 result.Type = PropertyType.Readme;
-                _compiler.ModListReadme = result.SourceDataID;
+                _compiler.ModListReadme = result.SourceDataID.RelativeTo(_compiler.ModListOutputFolder);
             }
 
             return result;

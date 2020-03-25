@@ -66,7 +66,7 @@ namespace Wabbajack.Lib.Downloaders
         public static async Task<BethesdaNetData> Login(Game game)
         {
             var metadata = game.MetaData();
-            var gamePath = Path.Combine(metadata.GameLocation(), metadata.MainExecutable);
+            var gamePath = metadata.GameLocation()?.Combine(metadata.MainExecutable);
             var info = new ProcessStartInfo
             {
                 FileName = @"Downloaders\BethesdaNet\bethnetlogin.exe",
@@ -125,7 +125,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var (client, info, collected) = await ResolveDownloadInfo();
                 using var tf = new TempFile();
@@ -151,16 +151,16 @@ namespace Wabbajack.Lib.Downloaders
                     }
                 }
                 file.Close();
-                await ConvertCKMToZip(file.Name, destination);
+                await ConvertCKMToZip((AbsolutePath)file.Name, destination);
 
                 return true;
             }
 
 
             private const uint CKM_Magic = 0x52415442; // BTAR
-            private async Task ConvertCKMToZip(string src, string dest)
+            private async Task ConvertCKMToZip(AbsolutePath src, AbsolutePath dest)
             {
-                using var reader = new BinaryReader(File.OpenRead(src));
+                using var reader = new BinaryReader(src.OpenRead());
                 var magic = reader.ReadUInt32();
                 if (magic != CKM_Magic)
                     throw new InvalidDataException("Invalid magic format in CKM parsing");
@@ -173,7 +173,7 @@ namespace Wabbajack.Lib.Downloaders
                 if (minorVersion < 2 || minorVersion > 4)
                     throw new InvalidDataException("Archive minor version is unknown. Should be 2, 3, or 4.");
 
-                await using var fos = File.Create(dest);
+                await using var fos = dest.Create();
                 using var archive = new ZipArchive(fos, ZipArchiveMode.Create);
                 while (reader.PeekChar() != -1)
                 {

@@ -152,7 +152,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 string url;
                 try

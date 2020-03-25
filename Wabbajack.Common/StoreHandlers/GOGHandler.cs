@@ -11,7 +11,7 @@ namespace Wabbajack.Common.StoreHandlers
     {
         public override Game Game { get; internal set; }
         public override string Name { get; internal set; }
-        public override string Path { get; internal set; }
+        public override AbsolutePath Path { get; internal set; }
         public override int ID { get; internal set; }
         public override StoreType Type { get; internal set; } = StoreType.GOG;
     }
@@ -101,7 +101,7 @@ namespace Wabbajack.Common.StoreHandlers
                     {
                         ID = gameID, 
                         Name = gameName, 
-                        Path = path
+                        Path = (AbsolutePath)path
                     };
 
                     var gameMeta = GameRegistry.Games.Values.FirstOrDefault(g => (g.GOGIDs?.Contains(gameID) ?? false));

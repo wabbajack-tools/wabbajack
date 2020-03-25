@@ -85,7 +85,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var (uri, client) = await Utils.Log(await ManuallyDownloadFile.Create(this)).Task;
                 var state = new HTTPDownloader.State {Url = uri.ToString(), Client = client};

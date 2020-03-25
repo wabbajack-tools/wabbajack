@@ -37,7 +37,7 @@ namespace Wabbajack.Lib
 
         public class IncludeZEditPatches : ACompilationStep
         {
-            private Dictionary<string, zEditMerge> _mergesIndexed;
+            private Dictionary<AbsolutePath, zEditMerge> _mergesIndexed;
 
             public IncludeZEditPatches(ACompiler compiler) : base(compiler)
             {
@@ -48,7 +48,7 @@ namespace Wabbajack.Lib
 
                 if (!havezEdit)
                 {
-                    _mergesIndexed = new Dictionary<string, zEditMerge>();
+                    _mergesIndexed = new Dictionary<AbsolutePath, zEditMerge>();
                     return;
                 }
 
@@ -67,7 +67,7 @@ namespace Wabbajack.Lib
 
                 _mergesIndexed =
                     merges.ToDictionary(
-                        m => Path.Combine(_mo2Compiler.MO2Folder, Consts.MO2ModFolderName, m.Key.name, m.Key.filename),
+                        m => _mo2Compiler.MO2Folder.Combine(Consts.MO2ModFolderName, (RelativePath)m.Key.name, (RelativePath)m.Key.filename),
                         m => m.First());
             }
 
@@ -78,35 +78,35 @@ namespace Wabbajack.Lib
                 result.Sources = merge.plugins.Select(f =>
                 {
                     var orig_path = Path.Combine(f.dataFolder, f.filename);
-                    var paths = new[]
+                    var paths = new AbsolutePath?[]
                     {
-                        orig_path,
-                        orig_path + ".mohidden",
-                        Path.Combine(Path.GetDirectoryName(orig_path), "optional", Path.GetFileName(orig_path))
+                        (AbsolutePath)orig_path,
+                        (AbsolutePath)(orig_path + ".mohidden"),
+                        (AbsolutePath)(Path.Combine(Path.GetDirectoryName(orig_path), "optional", Path.GetFileName(orig_path)))
                     };
 
-                    var abs_path = paths.FirstOrDefault(p => File.Exists(p));
+                    var absPath = paths.FirstOrDefault(p => p.Value.Exists);
 
-                    if (abs_path == null)
+                    if (absPath == null)
                         throw new InvalidDataException(
-                            $"File {abs_path} is required to build {merge.filename} but it doesn't exist searched in: \n" + String.Join("\n", paths));
+                            $"File {absPath} is required to build {merge.filename} but it doesn't exist searched in: \n" + String.Join("\n", paths));
 
                     return new SourcePatch
                     {
-                        RelativePath = abs_path.RelativeTo(_mo2Compiler.MO2Folder),
-                        Hash = _compiler.VFS.Index.ByFullPath[abs_path].Hash
+                        RelativePath = absPath.Value.RelativeTo(_mo2Compiler.MO2Folder),
+                        Hash = _compiler.VFS.Index.ByRootPath[absPath.Value].Hash
                     };
                 }).ToList();
 
                 var src_data = result.Sources.Select(f => File.ReadAllBytes(Path.Combine(_mo2Compiler.MO2Folder, f.RelativePath)))
                     .ConcatArrays();
 
-                var dst_data = File.ReadAllBytes(source.AbsolutePath);
+                var dst_data = await source.AbsolutePath.ReadAllBytesAsync();
 
                 await using (var ms = new MemoryStream())
                 {
                     await Utils.CreatePatch(src_data, dst_data, ms);
-                    result.PatchID = _compiler.IncludeFile(ms.ToArray());
+                    result.PatchID = await _compiler.IncludeFile(ms.ToArray());
                 }
 
                 return result;
@@ -166,17 +166,17 @@ namespace Wabbajack.Lib
             await installer.ModList
                 .Directives
                 .OfType<MergedPatch>()
-                .PMap(installer.Queue, m =>
+                .PMap(installer.Queue, async m =>
                 {
                     Utils.LogStatus($"Generating zEdit merge: {m.To}");
 
-                    var src_data = m.Sources.Select(s => File.ReadAllBytes(Path.Combine(installer.OutputFolder, s.RelativePath)))
+                    var srcData = m.Sources.Select(s => installer.OutputFolder.Combine(s.RelativePath).ReadAllBytes())
                         .ConcatArrays();
 
-                    var patch_data = installer.LoadBytesFromPath(m.PatchID);
+                    var patchData = await installer.LoadBytesFromPath(m.PatchID);
 
-                    using (var fs = File.Open(Path.Combine(installer.OutputFolder, m.To), FileMode.Create)) 
-                        Utils.ApplyPatch(new MemoryStream(src_data), () => new MemoryStream(patch_data), fs);
+                    await using var fs = installer.OutputFolder.Combine(m.To).Create();
+                    Utils.ApplyPatch(new MemoryStream(srcData), () => new MemoryStream(patchData), fs);
                 });
         }
     }

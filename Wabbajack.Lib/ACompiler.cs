@@ -20,7 +20,7 @@ namespace Wabbajack.Lib
     public abstract class ACompiler : ABatchProcessor
     {
         public string ModListName, ModListAuthor, ModListDescription, ModListWebsite;
-        public RelativePath ModListImage, ModListReadme;
+        public AbsolutePath ModListImage, ModListReadme;
         public bool ReadmeIsWebsite;
         protected Version WabbajackVersion;
 
@@ -91,10 +91,10 @@ namespace Wabbajack.Lib
             return id;
         }
         
-        internal RelativePath IncludeFile(AbsolutePath data)
+        internal async Task<RelativePath> IncludeFile(AbsolutePath data)
         {
             var id = IncludeId();
-            data.Copy(ModListOutputFolder.Combine(id));
+            await data.CopyToAsync(ModListOutputFolder.Combine(id));
             return id;
         }
 
@@ -124,57 +124,53 @@ namespace Wabbajack.Lib
             Utils.Log($"Exporting ModList to {ModListOutputFile}");
 
             // Modify readme and ModList image to relative paths if they exist
-            if (File.Exists(ModListImage))
+            if (ModListImage.Exists)
             {
-                ModList.Image = "modlist-image.png";
+                ModList.Image = (RelativePath)"modlist-image.png";
             }
-            if (File.Exists(ModListReadme))
+            if (ModListReadme.Exists)
             {
-                var readme = new FileInfo(ModListReadme);
-                ModList.Readme = $"readme{readme.Extension}";
+                ModList.Readme = $"readme{ModListReadme.Extension}";
             }
 
             ModList.ReadmeIsWebsite = ReadmeIsWebsite;
 
-            using (var of = File.Create(Path.Combine(ModListOutputFolder, "modlist"))) 
+            using (var of = ModListOutputFolder.Combine("modlist").Create()) 
                 of.WriteAsMessagePack(ModList);
 
-            if (File.Exists(ModListOutputFile))
-                File.Delete(ModListOutputFile);
+            ModListOutputFile.Delete();
 
-            using (var fs = new FileStream(ModListOutputFile, FileMode.Create))
+            using (var fs = ModListOutputFile.Create())
             {
                 using (var za = new ZipArchive(fs, ZipArchiveMode.Create))
                 {
-                    Directory.EnumerateFiles(ModListOutputFolder, "*.*")
+                    ModListOutputFolder.EnumerateFiles()
                         .DoProgress("Compressing ModList",
                     f =>
                     {
-                        var ze = za.CreateEntry(Path.GetFileName(f));
-                        using (var os = ze.Open())
-                        using (var ins = File.OpenRead(f))
-                        {
-                            ins.CopyTo(os);
-                        }
+                        var ze = za.CreateEntry((string)f.FileName);
+                        using var os = ze.Open();
+                        using var ins = f.OpenRead();
+                        ins.CopyTo(os);
                     });
 
                     // Copy in modimage
-                    if (File.Exists(ModListImage))
+                    if (ModListImage.Exists)
                     {
-                        var ze = za.CreateEntry(ModList.Image);
+                        var ze = za.CreateEntry((string)ModList.Image);
                         using (var os = ze.Open())
-                        using (var ins = File.OpenRead(ModListImage))
+                        using (var ins = ModListImage.OpenRead())
                         {
                             ins.CopyTo(os);
                         }
                     }
 
                     // Copy in readme
-                    if (File.Exists(ModListReadme))
+                    if (ModListReadme.Exists)
                     {
                         var ze = za.CreateEntry(ModList.Readme);
                         using (var os = ze.Open())
-                        using (var ins = File.OpenRead(ModListReadme))
+                        using (var ins = ModListReadme.OpenRead())
                         {
                             ins.CopyTo(os);
                         }
@@ -185,7 +181,7 @@ namespace Wabbajack.Lib
             Utils.Log("Exporting ModList metadata");
             var metadata = new DownloadMetadata
             {
-                Size = File.GetSize(ModListOutputFile),
+                Size = ModListOutputFile.Size,
                 Hash = ModListOutputFile.FileHash(),
                 NumberOfArchives = ModList.Archives.Count,
                 SizeOfArchives = ModList.Archives.Sum(a => a.Size),
@@ -210,7 +206,7 @@ namespace Wabbajack.Lib
             Info("Building a list of archives based on the files required");
 
             var hashes = InstallDirectives.OfType<FromArchive>()
-                .Select(a => Hash.FromBase64(a.ArchiveHashPath[0]))
+                .Select(a => a.Hash)
                 .Distinct();
 
             var archives = IndexedArchives.OrderByDescending(f => f.File.LastModified)

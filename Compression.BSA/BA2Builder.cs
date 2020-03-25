@@ -53,10 +53,10 @@ namespace Compression.BSA
             }
         }
 
-        public void Build(string filename)
+        public void Build(AbsolutePath filename)
         {
             SortEntries();
-            using (var fs = File.Open(filename, FileMode.Create))
+            using (var fs = filename.Create())
             using (var bw = new BinaryWriter(fs))
             {
                 bw.Write(Encoding.ASCII.GetBytes(_state.HeaderMagic));

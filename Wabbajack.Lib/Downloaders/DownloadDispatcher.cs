@@ -86,7 +86,7 @@ namespace Wabbajack.Lib.Downloaders
                   .Do(t => Downloaders.First(d => d.GetType() == t).Prepare());
         }
 
-        public static async Task<bool> DownloadWithPossibleUpgrade(Archive archive, string destination)
+        public static async Task<bool> DownloadWithPossibleUpgrade(Archive archive, AbsolutePath destination)
         {
             var success = await Download(archive, destination);
             if (success)
@@ -104,12 +104,12 @@ namespace Wabbajack.Lib.Downloaders
             }
 
             Utils.Log($"Upgrading {archive.Hash}");
-            var upgradePath = Path.Combine(Path.GetDirectoryName(destination), "_Upgrade_" + archive.Name);
+            var upgradePath = destination.Parent.Combine("_Upgrade_" + archive.Name);
             var upgradeResult = await Download(upgrade, upgradePath);
             if (!upgradeResult) return false;
 
             var patchName = $"{archive.Hash.ToHex()}_{upgrade.Hash.ToHex()}";
-            var patchPath = Path.Combine(Path.GetDirectoryName(destination), "_Patch_" + patchName);
+            var patchPath = destination.Parent.Combine("_Patch_" + patchName);
 
             var patchState = new Archive
             {
@@ -124,9 +124,9 @@ namespace Wabbajack.Lib.Downloaders
             if (!patchResult) return false;
 
             Utils.Status($"Applying Upgrade to {archive.Hash}");
-            await using (var patchStream = File.OpenRead(patchPath))
-            await using (var srcStream = File.OpenRead(upgradePath))
-            await using (var destStream = File.Create(destination))
+            await using (var patchStream = patchPath.OpenRead())
+            await using (var srcStream = upgradePath.OpenRead())
+            await using (var destStream = destination.Create())
             {
                 OctoDiff.Apply(srcStream, patchStream, destStream);
             }
@@ -136,7 +136,7 @@ namespace Wabbajack.Lib.Downloaders
             return true;
         }
 
-        private static async Task<bool> Download(Archive archive, string destination)
+        private static async Task<bool> Download(Archive archive, AbsolutePath destination)
         {
             try
             {

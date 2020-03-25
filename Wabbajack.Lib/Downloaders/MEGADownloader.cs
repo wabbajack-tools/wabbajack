@@ -26,7 +26,7 @@ namespace Wabbajack.Lib.Downloaders
 
         public class State : HTTPDownloader.State
         {
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var client = new MegaApiClient();
                 Utils.Status("Logging into MEGA (as anonymous)");
@@ -34,7 +34,7 @@ namespace Wabbajack.Lib.Downloaders
                 var fileLink = new Uri(Url);
                 var node = client.GetNodeFromLink(fileLink);
                 Utils.Status($"Downloading MEGA file: {a.Name}");
-                client.DownloadFile(fileLink, destination);
+                client.DownloadFile(fileLink, (string)destination);
                 return true;
             }
 

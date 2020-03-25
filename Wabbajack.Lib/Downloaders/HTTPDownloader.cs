@@ -64,21 +64,19 @@ namespace Wabbajack.Lib.Downloaders
                 return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
             }
 
-            public override Task<bool> Download(Archive a, string destination)
+            public override Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 return DoDownload(a, destination, true);
             }
 
-            public async Task<bool> DoDownload(Archive a, string destination, bool download)
+            public async Task<bool> DoDownload(Archive a, AbsolutePath destination, bool download)
             {
                 if (download)
                 {
-                    var parent = Directory.GetParent(destination);
-                    if (!Directory.Exists(parent.FullName))
-                        Directory.CreateDirectory(parent.FullName);
+                    destination.Parent.CreateDirectory();
                 }
 
-                using (var fs = download ? File.Open(destination, FileMode.Create) : null)
+                using (var fs = download ? destination.Create() : null)
                 {
                     var client = Client ?? new Common.Http.Client();
                     client.Headers.Add(("User-Agent", Consts.UserAgent));
@@ -186,7 +184,7 @@ TOP:
 
             public override async Task<bool> Verify(Archive a)
             {
-                return await DoDownload(a, "", false);
+                return await DoDownload(a, ((RelativePath)"").RelativeToEntryPoint(), false);
             }
 
             public override IDownloader GetDownloader()

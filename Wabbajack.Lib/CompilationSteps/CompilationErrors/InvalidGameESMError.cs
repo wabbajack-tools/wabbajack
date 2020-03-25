@@ -12,7 +12,7 @@ namespace Wabbajack.Lib.CompilationSteps.CompilationErrors
     public class InvalidGameESMError : AErrorMessage
     {
         public Hash Hash { get; }
-        public string PathToFile { get; }
+        public AbsolutePath PathToFile { get; }
         private readonly CleanedESM _esm;
         public RelativePath GameFileName => _esm.To.FileName;
         public override string ShortDescription
@@ -30,7 +30,7 @@ the modlist expecting a different of the game than you currently have installed,
 the game, and then attempting to re-install this modlist. Also verify that the version of the game you have installed matches the version expected by this modlist.";
         }
 
-        public InvalidGameESMError(CleanedESM esm, Hash hash, string path)
+        public InvalidGameESMError(CleanedESM esm, Hash hash, AbsolutePath path)
         {
             Hash = hash;
             PathToFile = path;
