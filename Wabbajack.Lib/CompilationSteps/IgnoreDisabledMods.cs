@@ -22,7 +22,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 .Where(line => line.StartsWith("+") || line.EndsWith("_separator"))
                 .Select(line => line.Substring(1))
                 .Concat(alwaysEnabled)
-                .Select(line => Path.Combine(Consts.MO2ModFolderName, line) + "\\")
+                .Select(line => Path.Combine((string)Consts.MO2ModFolderName, line) + "\\")
                 .ToList();
         }
 

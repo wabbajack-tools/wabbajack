@@ -91,12 +91,12 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 await using var stream = await ResolveDownloadStream();
-                await using (var file = File.Open(destination, FileMode.Create))
+                await using (var file = destination.Create())
                 {
-                    stream.CopyTo(file);
+                    await stream.CopyToAsync(file);
                 }
                 return true;
             }

@@ -52,19 +52,9 @@ namespace Wabbajack.Common.StoreHandlers
             }
         }
 
-        public string GetGamePath(Game game)
+        public AbsolutePath? GetGamePath(Game game)
         {
             return StoreGames.FirstOrDefault(g => g.Game == game)?.Path;
-        }
-
-        public string GetGamePath(Game game, StoreType type)
-        {
-            return StoreGames.FirstOrDefault(g => g.Type == type && g.Game == game)?.Path;
-        }
-
-        public string GetGamePath(int id)
-        {
-            return StoreGames.FirstOrDefault(g => g.ID == id)?.Path;
         }
     }
 
@@ -72,7 +62,7 @@ namespace Wabbajack.Common.StoreHandlers
     {
         public abstract Game Game { get; internal set; }
         public abstract string Name { get; internal set; }
-        public abstract string Path { get; internal set; }
+        public abstract AbsolutePath Path { get; internal set; }
         public abstract int ID { get; internal set; }
         public abstract StoreType Type { get; internal set; }
     }

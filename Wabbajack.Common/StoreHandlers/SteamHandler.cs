@@ -12,7 +12,7 @@ namespace Wabbajack.Common.StoreHandlers
     {
         public override Game Game { get; internal set; }
         public override string Name { get; internal set; }
-        public override string Path { get; internal set; }
+        public override AbsolutePath Path { get; internal set; }
         public override int ID { get; internal set; }
         public override StoreType Type { get; internal set; } = StoreType.STEAM;
 
@@ -153,15 +153,15 @@ namespace Wabbajack.Common.StoreHandlers
 
                         var path = Path.Combine(u, "common", GetVdfValue(l));
                         if (Directory.Exists(path))
-                            game.Path = path;
+                            game.Path = (AbsolutePath)path;
                     });
 
-                    if (!gotID || !Directory.Exists(game.Path)) return;
+                    if (!gotID || !game.Path.IsDirectory) return;
 
                     var gameMeta = GameRegistry.Games.Values.FirstOrDefault(g =>
                     {
                         return (g.SteamIDs?.Contains(game.ID) ?? false)
-                            && (g.RequiredFiles?.TrueForAll(file => File.Exists(Path.Combine(game.Path, file))) ?? true);
+                            && (g.RequiredFiles?.TrueForAll(file => game.Path.Combine(file).Exists) ?? true);
                     });
 
                     if (gameMeta == null)

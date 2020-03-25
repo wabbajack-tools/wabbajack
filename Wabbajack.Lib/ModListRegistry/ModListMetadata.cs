@@ -82,16 +82,6 @@ namespace Wabbajack.Lib.ModListRegistry
 
             return metadata.OrderBy(m => (m.ValidationSummary?.HasFailures ?? false ? 1 : 0, m.Title)).ToList();
         }
-
-        public bool NeedsDownload(string modlistPath)
-        {
-            if (!File.Exists(modlistPath)) return true;
-            if (DownloadMetadata?.Hash == null)
-            {
-                return true;
-            }
-            return DownloadMetadata.Hash != modlistPath.FileHashCached(true);
-        }
     }
 
     public class DownloadMetadata

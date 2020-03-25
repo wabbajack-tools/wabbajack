@@ -30,9 +30,9 @@ namespace Wabbajack.Lib
 
         public override ModManager ModManager => ModManager.MO2;
 
-        public string GameFolder { get; set; }
+        public AbsolutePath? GameFolder { get; set; }
 
-        public MO2Installer(string archive, ModList modList, string outputFolder, string downloadFolder, SystemParameters parameters)
+        public MO2Installer(string archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
             : base(
                   archive: archive,
                   modList: modList,
@@ -84,10 +84,10 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Validating Modlist");
             await ValidateModlist.RunValidation(ModList);
 
-            Directory.CreateDirectory(OutputFolder);
-            Directory.CreateDirectory(DownloadFolder);
+            OutputFolder.CreateDirectory();
+            DownloadFolder.CreateDirectory();
 
-            if (Directory.Exists(Path.Combine(OutputFolder, Consts.MO2ModFolderName)) && WarnOnOverwrite)
+            if (OutputFolder.Combine(Consts.MO2ModFolderName).IsDirectory && WarnOnOverwrite)
             {
                 if ((await Utils.Log(new ConfirmUpdateOfExistingInstall { ModListName = ModList.Name, OutputFolder = OutputFolder }).Task) == ConfirmUpdateOfExistingInstall.Choice.Abort)
                 {
@@ -152,7 +152,7 @@ namespace Wabbajack.Lib
             await zEditIntegration.GenerateMerges(this);
 
             UpdateTracker.NextStep("Set MO2 into portable");
-            ForcePortable();
+            await ForcePortable();
 
             UpdateTracker.NextStep("Create Empty Output Mods");
             CreateOutputMods();
@@ -168,7 +168,11 @@ namespace Wabbajack.Lib
 
         private void CreateOutputMods()
         {
-            Directory.EnumerateFiles(Path.Combine(OutputFolder, "profiles"), "settings.ini", DirectoryEnumerationOptions.Recursive).Do(f =>
+            
+            OutputFolder.Combine("profiles")
+                .EnumerateFiles(true)
+                .Where(f => f.FileName == Consts.SettingsIni)
+                .Do(f =>
             {
                 var ini = f.LoadIniFile();
                 if (ini == null)
@@ -189,23 +193,22 @@ namespace Wabbajack.Lib
                     data.Coll.Do(keyData =>
                     {
                         var v = keyData.Value;
-                        var mod = Path.Combine(OutputFolder, Consts.MO2ModFolderName, v);
+                        var mod = OutputFolder.Combine(Consts.MO2ModFolderName, (RelativePath)v);
 
-                        if (!Directory.Exists(mod))
-                            Directory.CreateDirectory(mod);
+                        mod.CreateDirectory();
                     });
                 }
             });
         }
 
-        private void ForcePortable()
+        private async Task ForcePortable()
         {
-            var path = Path.Combine(OutputFolder, "portable.txt");
-            if (File.Exists(path)) return;
+            var path = OutputFolder.Combine("portable.txt");
+            if (path.Exists) return;
 
             try
             {
-                File.WriteAllText(path, "Created by Wabbajack");
+                await path.WriteAllTextAsync("Created by Wabbajack");
             }
             catch (Exception e)
             {
@@ -217,12 +220,12 @@ namespace Wabbajack.Lib
         {
             await ModList.Directives
                    .OfType<ArchiveMeta>()
-                   .PMap(Queue, directive =>
+                   .PMap(Queue, async directive =>
                    {
                        Status($"Writing included .meta file {directive.To}");
-                       var outPath = Path.Combine(DownloadFolder, directive.To);
-                       if (File.Exists(outPath)) File.Delete(outPath);
-                       File.WriteAllBytes(outPath, LoadBytesFromPath(directive.SourceDataID));
+                       var outPath = DownloadFolder.Combine(directive.To);
+                       if (outPath.IsFile) outPath.Delete();
+                       await outPath.WriteAllBytesAsync(await LoadBytesFromPath(directive.SourceDataID));
                    });
         }
 
@@ -230,8 +233,8 @@ namespace Wabbajack.Lib
         {
             foreach (var esm in ModList.Directives.OfType<CleanedESM>().ToList())
             {
-                var filename = Path.GetFileName(esm.To);
-                var gameFile = Path.Combine(GameFolder, "Data", filename);
+                var filename = esm.To.FileName;
+                var gameFile = GameFolder.Value.Combine((RelativePath)"Data", filename);
                 Utils.Log($"Validating {filename}");
                 var hash = gameFile.FileHash();
                 if (hash != esm.SourceESMHash)
@@ -249,28 +252,28 @@ namespace Wabbajack.Lib
             foreach (var bsa in bsas)
             {
                 Status($"Building {bsa.To}");
-                var sourceDir = Path.Combine(OutputFolder, Consts.BSACreationDir, bsa.TempID);
+                var sourceDir = OutputFolder.Combine(Consts.BSACreationDir, bsa.TempID);
 
-                var bsaSize = bsa.FileStates.Select(state => File.GetSize(Path.Combine(sourceDir, state.Path))).Sum();
+                var bsaSize = bsa.FileStates.Select(state => sourceDir.Combine(state.Path).Size).Sum();
 
                 using (var a = bsa.State.MakeBuilder(bsaSize))
                 {
                     var streams = await bsa.FileStates.PMap(Queue, state =>
                     {
                         Status($"Adding {state.Path} to BSA");
-                        var fs = File.OpenRead(Path.Combine(sourceDir, state.Path));
+                        var fs = sourceDir.Combine(state.Path).OpenRead();
                         a.AddFile(state, fs);
                         return fs;
                     });
 
                     Info($"Writing {bsa.To}");
-                    a.Build(Path.Combine(OutputFolder, bsa.To));
+                    a.Build(OutputFolder.Combine(bsa.To));
                     streams.Do(s => s.Dispose());
                 }
             }
 
-            var bsaDir = Path.Combine(OutputFolder, Consts.BSACreationDir);
-            if (Directory.Exists(bsaDir))
+            var bsaDir = OutputFolder.Combine(Consts.BSACreationDir);
+            if (bsaDir.Exists)
             {
                 Info($"Removing temp folder {Consts.BSACreationDir}");
                 Utils.DeleteDirectory(bsaDir);
@@ -282,40 +285,45 @@ namespace Wabbajack.Lib
             Info("Writing inline files");
             await ModList.Directives
                 .OfType<InlineFile>()
-                .PMap(Queue, directive =>
+                .PMap(Queue, async directive =>
                 {
                     Status($"Writing included file {directive.To}");
-                    var outPath = Path.Combine(OutputFolder, directive.To);
-                    if (File.Exists(outPath)) File.Delete(outPath);
-                    if (directive is RemappedInlineFile)
-                        WriteRemappedFile((RemappedInlineFile)directive);
-                    else if (directive is CleanedESM)
-                        GenerateCleanedESM((CleanedESM)directive);
-                    else
-                        File.WriteAllBytes(outPath, LoadBytesFromPath(directive.SourceDataID));
+                    var outPath = OutputFolder.Combine(directive.To);
+                    outPath.Delete();
+
+                    switch (directive)
+                    {
+                        case RemappedInlineFile file:
+                            await WriteRemappedFile(file);
+                            break;
+                        case CleanedESM esm:
+                            await GenerateCleanedESM(esm);
+                            break;
+                        default:
+                            await outPath.WriteAllBytesAsync(await LoadBytesFromPath(directive.SourceDataID));
+                            break;
+                    }
                 });
         }
 
-        private void GenerateCleanedESM(CleanedESM directive)
+        private async Task GenerateCleanedESM(CleanedESM directive)
         {
-            var filename = Path.GetFileName(directive.To);
-            var gameFile = Path.Combine(GameFolder, "Data", filename);
+            var filename = directive.To.FileName;
+            var gameFile = GameFolder.Value.Combine((RelativePath)"Data", filename);
             Info($"Generating cleaned ESM for {filename}");
-            if (!File.Exists(gameFile)) throw new InvalidDataException($"Missing {filename} at {gameFile}");
+            if (!gameFile.Exists) throw new InvalidDataException($"Missing {filename} at {gameFile}");
             Status($"Hashing game version of {filename}");
-            var sha = gameFile.FileHash();
+            var sha = await gameFile.FileHashAsync();
             if (sha != directive.SourceESMHash)
                 throw new InvalidDataException(
                     $"Cannot patch {filename} from the game folder because the hashes do not match. Have you already cleaned the file?");
 
-            var patchData = LoadBytesFromPath(directive.SourceDataID);
-            var toFile = Path.Combine(OutputFolder, directive.To);
+            var patchData = await LoadBytesFromPath(directive.SourceDataID);
+            var toFile = OutputFolder.Combine(directive.To);
             Status($"Patching {filename}");
-            using (var output = File.Open(toFile, FileMode.Create))
-            using (var input = File.OpenRead(gameFile))
-            {
-                Utils.ApplyPatch(input, () => new MemoryStream(patchData), output);
-            }
+            using var output = toFile.Create();
+            using var input = gameFile.OpenRead();
+            Utils.ApplyPatch(input, () => new MemoryStream(patchData), output);
         }
 
         private void SetScreenSizeInPrefs()
@@ -363,23 +371,23 @@ namespace Wabbajack.Lib
             }
         }
 
-        private void WriteRemappedFile(RemappedInlineFile directive)
+        private async Task WriteRemappedFile(RemappedInlineFile directive)
         {
-            var data = Encoding.UTF8.GetString(LoadBytesFromPath(directive.SourceDataID));
+            var data = Encoding.UTF8.GetString(await LoadBytesFromPath(directive.SourceDataID));
 
-            data = data.Replace(Consts.GAME_PATH_MAGIC_BACK, GameFolder);
-            data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, GameFolder.Replace("\\", "\\\\"));
-            data = data.Replace(Consts.GAME_PATH_MAGIC_FORWARD, GameFolder.Replace("\\", "/"));
+            data = data.Replace(Consts.GAME_PATH_MAGIC_BACK, (string)GameFolder);
+            data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, ((string)GameFolder).Replace("\\", "\\\\"));
+            data = data.Replace(Consts.GAME_PATH_MAGIC_FORWARD, ((string)GameFolder).Replace("\\", "/"));
 
-            data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, OutputFolder);
-            data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK, OutputFolder.Replace("\\", "\\\\"));
-            data = data.Replace(Consts.MO2_PATH_MAGIC_FORWARD, OutputFolder.Replace("\\", "/"));
+            data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, (string)OutputFolder);
+            data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK, ((string)OutputFolder).Replace("\\", "\\\\"));
+            data = data.Replace(Consts.MO2_PATH_MAGIC_FORWARD, ((string)OutputFolder).Replace("\\", "/"));
 
-            data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_BACK, DownloadFolder);
-            data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK, DownloadFolder.Replace("\\", "\\\\"));
-            data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_FORWARD, DownloadFolder.Replace("\\", "/"));
+            data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_BACK, (string)DownloadFolder);
+            data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK, ((string)DownloadFolder).Replace("\\", "\\\\"));
+            data = data.Replace(Consts.DOWNLOAD_PATH_MAGIC_FORWARD, ((string)DownloadFolder).Replace("\\", "/"));
 
-            File.WriteAllText(Path.Combine(OutputFolder, directive.To), data);
+            await OutputFolder.Combine(directive.To).WriteAllTextAsync(data);
         }
 
         public static IErrorResponse CheckValidInstallPath(string path, string downloadFolder)

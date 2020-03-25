@@ -46,7 +46,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var urls = await GetDownloadUrls();
                 Utils.Log($"Found {urls.Length} ModDB mirrors for {a.Name}");

@@ -18,7 +18,7 @@ namespace Compression.BSA
     public interface IBSABuilder : IDisposable
     {
         void AddFile(FileStateObject state, Stream src);
-        void Build(string filename);
+        void Build(AbsolutePath filename);
     }
 
     public class ArchiveStateObject

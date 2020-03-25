@@ -47,11 +47,9 @@ namespace Wabbajack.Lib
         private SteamGame _steamGame;
         private bool _hasSteamWorkshopItems;
 
-        public override string VFSCacheName => Path.Combine(
-            Consts.LocalAppDataPath, 
-            $"vfs_compile_cache-{StagingFolder?.StringSha256Hex() ?? "Unknown"}.bin");
+        public override AbsolutePath VFSCacheName => Consts.LocalAppDataPath.Combine($"vfs_compile_cache-{((string)StagingFolder)?.StringSha256Hex() ?? "Unknown"}.bin");
 
-        public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder, string outputFile)
+        public VortexCompiler(Game game, AbsolutePath gamePath, AbsolutePath vortexFolder, AbsolutePath downloadsFolder, AbsolutePath stagingFolder, AbsolutePath outputFile)
         {
             Game = game;
 
@@ -65,7 +63,7 @@ namespace Wabbajack.Lib
             if (string.IsNullOrEmpty(ModListName))
             {
                 ModListName = $"Vortex ModList for {Game.ToString()}";
-                ModListOutputFile = $"{ModListName}{Consts.ModListExtension}";
+                ModListOutputFile = ((RelativePath)ModListName).RelativeToEntryPoint().WithExtension(Consts.ModListExtension);
             }
 
             GameName = Game.MetaData().NexusName;

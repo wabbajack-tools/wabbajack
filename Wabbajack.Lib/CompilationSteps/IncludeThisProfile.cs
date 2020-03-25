@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
+using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -22,12 +23,12 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             if (_correctProfiles.Any(p => source.Path.StartsWith(p)))
             {
-                var data = source.Path.EndsWith("\\modlist.txt")
-                    ? ReadAndCleanModlist(source.AbsolutePath)
-                    : File.ReadAllBytes(source.AbsolutePath);
+                var data = source.Path.FileName == Consts.ModListTxt
+                    ? await ReadAndCleanModlist(source.AbsolutePath)
+                    : await source.AbsolutePath.ReadAllBytesAsync();
 
                 var e = source.EvolveTo<InlineFile>();
-                e.SourceDataID = _compiler.IncludeFile(data);
+                e.SourceDataID = await _compiler.IncludeFile(data);
                 return e;
             }
 
@@ -39,12 +40,11 @@ namespace Wabbajack.Lib.CompilationSteps
             return new State();
         }
 
-        private static byte[] ReadAndCleanModlist(string absolutePath)
+        private static async Task<byte[]> ReadAndCleanModlist(AbsolutePath absolutePath)
         {
-            var lines = File.ReadAllLines(absolutePath);
-            lines = (from line in lines
-                where !(line.StartsWith("-") && !line.EndsWith("_separator"))
-                select line).ToArray();
+            var lines = await absolutePath.ReadAllLinesAsync();
+            lines = lines.Where(line => !(line.StartsWith("-") && !line.EndsWith("_separator")))
+                         .ToArray();
             return Encoding.UTF8.GetBytes(string.Join("\r\n", lines));
         }
 

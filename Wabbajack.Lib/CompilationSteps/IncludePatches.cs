@@ -11,40 +11,41 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class IncludePatches : ACompilationStep
     {
-        private readonly Dictionary<string, IGrouping<string, VirtualFile>> _indexed;
+        private readonly Dictionary<RelativePath, IGrouping<RelativePath, VirtualFile>> _indexed;
         private VirtualFile _bsa;
-        private Dictionary<string, VirtualFile> _indexedByName;
+        private Dictionary<RelativePath, VirtualFile> _indexedByName;
 
         public IncludePatches(ACompiler compiler, VirtualFile constructingFromBSA = null) : base(compiler)
         {
             _bsa = constructingFromBSA;
             _indexed = _compiler.IndexedFiles.Values
                 .SelectMany(f => f)
-                .GroupBy(f => Path.GetFileName(f.Name).ToLower())
+                .GroupBy(f => f.Name.FileName)
                 .ToDictionary(f => f.Key);
             _indexedByName = _indexed.Values
                                      .SelectMany(s => s)
                                      .Where(f => f.IsNative)
-                                     .ToDictionary(f => Path.GetFileName(f.FullPath));
+                                     .ToDictionary(f => f.FullPath.FileName);
         }
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            var name = Path.GetFileName(source.File.Name.ToLower());
-            string nameWithoutExt = name;
-            if (Path.GetExtension(name) == ".mohidden")
-                nameWithoutExt = Path.GetFileNameWithoutExtension(name);
+            
+            var name = source.File.Name.FileName;
+            RelativePath nameWithoutExt = name;
+            if (name.Extension == Consts.MOHIDDEN)
+                nameWithoutExt = name.FileNameWithoutExtension;
 
-            if (!_indexed.TryGetValue(Path.GetFileName(name), out var choices))
-                _indexed.TryGetValue(Path.GetFileName(nameWithoutExt), out choices);
+            if (!_indexed.TryGetValue(name, out var choices))
+                _indexed.TryGetValue(nameWithoutExt, out choices);
 
             dynamic mod_ini;
             if (_bsa == null)
                 mod_ini = ((MO2Compiler)_compiler).ModMetas.FirstOrDefault(f => source.Path.StartsWith(f.Key)).Value;
             else
             {
-                var bsa_path = _bsa.FullPath.RelativeTo(((MO2Compiler)_compiler).MO2Folder);
-                mod_ini = ((MO2Compiler)_compiler).ModMetas.FirstOrDefault(f => bsa_path.StartsWith(f.Key)).Value;
+                var bsa_path = _bsa.FullPath.Paths.Last().RelativeTo(((MO2Compiler)_compiler).MO2Folder);
+                mod_ini = ((MO2Compiler)_compiler).ModMetas.FirstOrDefault(f => ((string)bsa_path).StartsWith(f.Key)).Value;
             }
 
             var installationFile = mod_ini?.General?.installationFile;
@@ -55,7 +56,7 @@ namespace Wabbajack.Lib.CompilationSteps
             if (choices != null)
             {
                 found = choices.FirstOrDefault(
-                    f => Path.GetFileName(f.FilesInFullPath.First().Name) == installationFile);
+                    f => f.FilesInFullPath.First().Name.FileName == installationFile);
             }
 
             // Find based on file name only (not ext)
@@ -67,11 +68,10 @@ namespace Wabbajack.Lib.CompilationSteps
             }
 
             // Find based on matchAll=<archivename> in [General] in meta.ini
-            var matchAllName = (string)mod_ini?.General?.matchAll;
+            var matchAllName = (RelativePath?)mod_ini?.General?.matchAll;
             if (matchAllName != null)
             {
-                matchAllName = matchAllName.Trim();
-                if (_indexedByName.TryGetValue(matchAllName, out var arch))
+                if (_indexedByName.TryGetValue(matchAllName.Value, out var arch))
                 {
                     // Just match some file in the archive based on the smallest delta difference
                     found = arch.ThisAndAllChildren
@@ -92,7 +92,7 @@ namespace Wabbajack.Lib.CompilationSteps
             Utils.TryGetPatch(found.Hash, source.File.Hash, out var data);
 
             if (data != null)
-                e.PatchID = _compiler.IncludeFile(data);
+                e.PatchID = await _compiler.IncludeFile(data);
 
             return e;
         }

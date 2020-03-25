@@ -91,10 +91,10 @@ namespace Compression.BSA
             }
         }
 
-        public void Build(string outputName)
+        public void Build(AbsolutePath outputName)
         {
             RegenFolderRecords();
-            using (var fs = File.Open(outputName, FileMode.Create))
+            using (var fs = outputName.Create())
             using (var wtr = new BinaryWriter(fs))
             {
                 wtr.Write(_fileId);

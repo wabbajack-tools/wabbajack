@@ -12,10 +12,10 @@ namespace Wabbajack.Common
     {
         public static bool TestMode { get; set; } = false;
 
-        public static string GameFolderFilesDir = "Game Folder Files";
-        public static string ManualGameFilesDir = "Manual Game Files";
-        public static string LOOTFolderFilesDir = "LOOT Config Files";
-        public static string BSACreationDir = "TEMP_BSA_FILES";
+        public static RelativePath GameFolderFilesDir = (RelativePath)"Game Folder Files";
+        public static RelativePath ManualGameFilesDir = (RelativePath)"Manual Game Files";
+        public static RelativePath LOOTFolderFilesDir = (RelativePath)"LOOT Config Files";
+        public static RelativePath BSACreationDir = (RelativePath)"TEMP_BSA_FILES";
 
         public static string ModListDownloadFolder = "downloaded_mod_lists";
 
@@ -109,7 +109,7 @@ namespace Wabbajack.Common
         public static string WabbajackCacheHostname = "build.wabbajack.org";
         public static int WabbajackCachePort = 80;
         public static int MaxHTTPRetries = 4;
-        public const string MO2ModFolderName = "mods";
+        public static RelativePath MO2ModFolderName = (RelativePath)"mods";
 
         public static AbsolutePath PatchCacheFolder => LocalAppDataPath.Combine("patch_cache");
         public static int MaxConnectionsPerServer = 4;
@@ -119,8 +119,11 @@ namespace Wabbajack.Common
         public static AbsolutePath LogFile = LogsFolder.Combine(EntryPoint.FileNameWithoutExtension + ".current.log");
         public static int MaxOldLogs = 50;
         public static Extension BSA = new Extension(".BSA");
+        public static Extension MOHIDDEN = new Extension(".mohidden");
 
         public static AbsolutePath SettingsFile => LocalAppDataPath.Combine("settings.json");
+        public static RelativePath SettingsIni = (RelativePath)"settings.ini";
         public static byte SettingsVersion => 1;
+        public static RelativePath ModListTxt = (RelativePath)"modlist.txt";
     }
 }

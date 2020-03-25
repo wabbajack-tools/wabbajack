@@ -212,9 +212,9 @@ namespace Wabbajack.Common
             }
         }
 
-        public bool InFolder(AbsolutePath gameFolder)
+        public bool InFolder(AbsolutePath folder)
         {
-            throw new NotImplementedException();
+            return _path.StartsWith(folder._path + Path.DirectorySeparator);
         }
 
         public async Task<byte[]> ReadAllBytesAsync()
@@ -295,6 +295,18 @@ namespace Wabbajack.Common
         {
             return File.ReadAllBytes(_path);
         }
+
+        public static AbsolutePath GetCurrentDirectory()
+        {
+            return new AbsolutePath(Directory.GetCurrentDirectory());
+        }
+
+        public async Task CopyToAsync(AbsolutePath destFile)
+        {
+            await using var src = OpenRead();
+            await using var dest = destFile.Create();
+            await src.CopyToAsync(dest);
+        }
     }
 
     public struct RelativePath : IPath, IEquatable<RelativePath>
@@ -367,6 +379,8 @@ namespace Wabbajack.Common
 
         public RelativePath FileName => new RelativePath(Path.GetFileName(_path));
 
+        public RelativePath FileNameWithoutExtension => (RelativePath)Path.GetFileNameWithoutExtension(_path);
+
         public bool Equals(RelativePath other)
         {
             return _path == other._path;
@@ -390,6 +404,16 @@ namespace Wabbajack.Common
         public bool StartsWith(string s)
         {
             return _path.StartsWith(s);
+        }
+        
+        public bool StartsWith(RelativePath s)
+        {
+            return _path.StartsWith(s._path);
+        }
+
+        public RelativePath Combine(params RelativePath[] paths )
+        {
+            return (RelativePath)Path.Combine(paths.Select(p => (string)p).Cons(_path).ToArray());
         }
     }
 
@@ -615,7 +639,7 @@ namespace Wabbajack.Common
         }
     }
 
-    public struct FullPath : IEquatable<FullPath>
+    public struct FullPath : IEquatable<FullPath>, IPath
     {
         public AbsolutePath Base { get; }
         public RelativePath[] Paths { get; }
@@ -675,5 +699,7 @@ namespace Wabbajack.Common
         {
             return obj is FullPath other && Equals(other);
         }
+
+        public RelativePath FileName => Paths.Length == 0 ? Base.FileName : Paths.Last().FileName;
     }
 }
