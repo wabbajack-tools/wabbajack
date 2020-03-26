@@ -674,6 +674,11 @@ namespace Wabbajack.Common
         {
             return HashCode.Combine(BaseHash, Paths);
         }
+
+        public static HashRelativePath FromStrings(string hash, params string[] paths)        
+        {
+            return new HashRelativePath(Hash.FromBase64(hash), paths.Select(p => (RelativePath)p).ToArray());
+        }
     }
 
     public struct FullPath : IEquatable<FullPath>, IPath
