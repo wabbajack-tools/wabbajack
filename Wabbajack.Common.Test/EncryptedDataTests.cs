@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Windows;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Wabbajack.Common;
+using Xunit;
 
-namespace Wabbajack.Test
+namespace Wabbajack.Common.Test
 {
-    [TestClass]
     public class EncryptedDataTests
     {
 
-        [TestMethod]
+        [Fact]
         public async Task CanDetectNewEncryptedData()
         {
             var test_string = Guid.NewGuid().ToString();
@@ -28,7 +24,7 @@ namespace Wabbajack.Test
             test_string.ToEcryptedJson(test_string);
             await Task.Delay(100);
             
-            CollectionAssert.Contains(data, test_string);
+            Assert.Contains(test_string, data);
 
 
         } 

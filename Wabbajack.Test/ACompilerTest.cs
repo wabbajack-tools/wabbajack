@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.LibCefHelpers;
-using Wabbajack.Util;
 
 namespace Wabbajack.Test
 {

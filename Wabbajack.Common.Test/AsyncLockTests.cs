@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Wabbajack.Common;
+using Xunit;
 
-namespace Wabbajack.Test
+namespace Wabbajack.Common.Test
 {
-    [TestClass]
     public class AsyncLockTests
     {
-        [TestMethod]
+        [Fact]
         public async Task Typical()
         {
             var asyncLock = new AsyncLock();
@@ -29,20 +24,20 @@ namespace Wabbajack.Test
                 await Task.Delay(200);
                 using (await asyncLock.Wait())
                 {
-                    Assert.IsTrue(firstRun);
+                    Assert.True(firstRun);
                 }
             });
             await Task.WhenAll(first, second);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task Exception()
         {
             var asyncLock = new AsyncLock();
             bool firstRun = false;
             bool secondRun = false;
             // Throw exception inside a lock
-            await Assert.ThrowsExceptionAsync<Exception>(() =>
+            await Assert.ThrowsAsync<Exception>(() =>
             {
                 return Task.Run(async () =>
                 {
@@ -62,7 +57,7 @@ namespace Wabbajack.Test
                     await Task.Delay(200);
                     using (await asyncLock.Wait())
                     {
-                        Assert.IsTrue(firstRun);
+                        Assert.True(firstRun);
                         secondRun = true;
                     }
                 }),

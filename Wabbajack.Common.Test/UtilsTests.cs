@@ -2,33 +2,29 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Wabbajack.Common;
+using Xunit;
 
-namespace Wabbajack.Test
+namespace Wabbajack.Common.Test
 {
-    [TestClass]
     public class UtilsTests
     {
        
-        [TestMethod]
+        [Fact]
         public void IsInPathTests()
         {
-            Assert.IsTrue("c:\\foo\\bar.exe".IsInPath("c:\\foo"));
-            Assert.IsFalse("c:\\foo\\bar.exe".IsInPath("c:\\fo"));
-            Assert.IsTrue("c:\\Foo\\bar.exe".IsInPath("c:\\foo"));
-            Assert.IsTrue("c:\\foo\\bar.exe".IsInPath("c:\\Foo"));
-            Assert.IsTrue("c:\\foo\\bar.exe".IsInPath("c:\\fOo"));
-            Assert.IsTrue("c:\\foo\\bar.exe".IsInPath("c:\\foo\\"));
-            Assert.IsTrue("c:\\foo\\bar\\".IsInPath("c:\\foo\\"));
+            Assert.True("c:\\foo\\bar.exe".IsInPath("c:\\foo"));
+            Assert.False("c:\\foo\\bar.exe".IsInPath("c:\\fo"));
+            Assert.True("c:\\Foo\\bar.exe".IsInPath("c:\\foo"));
+            Assert.True("c:\\foo\\bar.exe".IsInPath("c:\\Foo"));
+            Assert.True("c:\\foo\\bar.exe".IsInPath("c:\\fOo"));
+            Assert.True("c:\\foo\\bar.exe".IsInPath("c:\\foo\\"));
+            Assert.True("c:\\foo\\bar\\".IsInPath("c:\\foo\\"));
         }
 
 
-        [TestMethod]
-        [DataTestMethod]
-        [DynamicData(nameof(PatchData), DynamicDataSourceType.Method)]
+        [Theory]
+        [ClassData(typeof(PatchData))]
         public async Task DiffCreateAndApply(byte[] src, byte[] dest, DiffMethod method)
         {
             await using var ms = new MemoryStream();
@@ -51,7 +47,7 @@ namespace Wabbajack.Test
             var patch = ms.ToArray();
             await using var resultStream = new MemoryStream();
             Utils.ApplyPatch(new MemoryStream(src), () => new MemoryStream(patch), resultStream);
-            CollectionAssert.AreEqual(dest, resultStream.ToArray());
+            Assert.Equal(dest, resultStream.ToArray());
         }
 
 
@@ -61,10 +57,18 @@ namespace Wabbajack.Test
             BSDiff,
             OctoDiff
         }
-        public static IEnumerable<object[]> PatchData()
+        public class PatchData :  TheoryData<byte[], byte[], DiffMethod> 
         {
-            var maxSize = 1024 * 1024 * 8;
-            return Enumerable.Range(0, 10).Select(x => new[] {TestUtils.RandomData(maxSize:maxSize), TestUtils.RandomData(maxSize:maxSize), TestUtils.RandomeOne(DiffMethod.Default, DiffMethod.OctoDiff, DiffMethod.BSDiff)});
+            public PatchData()
+            {
+                var maxSize = 64;
+                Enumerable.Range(0, 10).Do(x =>
+
+                {
+                    Add(TestUtils.RandomData(maxSize: maxSize), TestUtils.RandomData(maxSize: maxSize),
+                        (DiffMethod)TestUtils.RandomOne(DiffMethod.Default, DiffMethod.OctoDiff, DiffMethod.BSDiff));
+                });
+            }
         }
     }
 }
