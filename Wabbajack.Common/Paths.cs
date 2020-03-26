@@ -605,7 +605,7 @@ namespace Wabbajack.Common
         }
     }
 
-    public struct HashRelativePath
+    public struct HashRelativePath : IEquatable<HashRelativePath>
     {
         private static RelativePath[] EMPTY_PATH;
         public Hash BaseHash { get; }
@@ -622,14 +622,13 @@ namespace Wabbajack.Common
             Paths = paths;
         }
 
-        public string ToString()
+        public override string ToString()
         {
             return string.Join("|", Paths.Select(t => t.ToString()).Cons(BaseHash.ToString()));
         }
-
         public static bool operator ==(HashRelativePath a, HashRelativePath b)
         {
-            if (a.BaseHash != b.BaseHash || a.Paths.Length == b.Paths.Length)
+            if (a.BaseHash != b.BaseHash || a.Paths.Length != b.Paths.Length)
             {
                 return false;
             }
@@ -649,6 +648,21 @@ namespace Wabbajack.Common
         {
             return !(a == b);
         }
+
+        public bool Equals(HashRelativePath other)
+        {
+            return this == other;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is HashRelativePath other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(BaseHash, Paths);
+        }
     }
 
     public struct FullPath : IEquatable<FullPath>, IPath
@@ -658,7 +672,7 @@ namespace Wabbajack.Common
 
         private readonly int _hash;
 
-        public FullPath(AbsolutePath basePath, RelativePath[] paths)
+        public FullPath(AbsolutePath basePath, params RelativePath[] paths)
         {
             Base = basePath;
             Paths = paths;
