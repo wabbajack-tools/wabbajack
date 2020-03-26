@@ -1,42 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Validation;
 using Game = Wabbajack.Common.Game;
 using Wabbajack.Common;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace Wabbajack.Test
 {
-    [TestClass]
-    public class ContentRightsManagementTests
+    public class ContentRightsManagementTests : IDisposable
     {
         private ValidateModlist validate;
         private WorkQueue queue;
-
-
-        private static string permissions = @"
-
-        bill: 
-            Permissions:
-                CanExtractBSAs: false
-            Games:
-                Skyrim:
-                    Permissions:
-                        CanModifyESPs: false
-                    Mods:
-                        42:
-                            Permissions:
-                                CanModifyAssets: false
-                            Files:
-                                33:
-                                    Permissions:
-                                        CanUseInOtherGames: false
-";
-
         private static string server_whitelist = @"
         
         GoogleIDs:
@@ -48,21 +26,21 @@ namespace Wabbajack.Test
 ";
 
 
-        [TestInitialize]
-        public void TestSetup()
+        public ContentRightsManagementTests()
         {
             queue = new WorkQueue();
             validate = new ValidateModlist();
             validate.LoadServerWhitelist(server_whitelist);
         }
 
-        [TestCleanup]
-        public void TestCleanup()
+        public void Dispose()
         {
             queue?.Dispose();
+            
         }
 
-        [TestMethod]
+
+        [Fact]
         public async Task TestModValidation()
         {
             var modlist = new ModList
@@ -86,8 +64,8 @@ namespace Wabbajack.Test
                 {
                     new FromArchive
                     {
-                        ArchiveHashPath = new[] {"DEADBEEF", "foo\\bar\\baz.pex"},
-                        To = "foo\\bar\\baz.pex"
+                        ArchiveHashPath = HashRelativePath.FromStrings(Hash.FromULong(42).ToBase64(), "foo\\bar\\baz.pex"),
+                        To = (RelativePath)"foo\\bar\\baz.pex"
                     }
                 }
             };
@@ -99,7 +77,7 @@ namespace Wabbajack.Test
                 Hash = Hash.FromLong(42)
             };
             var errors = await validate.Validate(modlist);
-            Assert.AreEqual(1, errors.Count());
+            Assert.Single(errors);
 
             // Ok due to file downloaded from whitelisted 3rd party
             modlist.GameType = Game.Skyrim;
@@ -109,7 +87,7 @@ namespace Wabbajack.Test
                 Hash = Hash.FromLong(42)
             };
             errors = await validate.Validate(modlist);
-            Assert.AreEqual(0, errors.Count());
+            Assert.Empty(errors);
 
 
             // Error due to file downloaded from bad 3rd party
@@ -120,7 +98,7 @@ namespace Wabbajack.Test
                 Hash = Hash.FromLong(42)
             };
             errors = await validate.Validate(modlist);
-            Assert.AreEqual(errors.Count(), 1);
+            Assert.Single(errors);
 
             // Ok due to file downloaded from good google site
             modlist.GameType = Game.Skyrim;
@@ -130,11 +108,11 @@ namespace Wabbajack.Test
                 Hash = Hash.FromLong(42)
             };
             errors = await validate.Validate(modlist);
-            Assert.AreEqual(0, errors.Count());
+            Assert.Empty(errors);
 
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CanLoadFromGithub()
         {
             using (var workQueue = new WorkQueue())
