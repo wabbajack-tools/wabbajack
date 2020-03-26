@@ -1,18 +1,17 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
-namespace Wabbajack.Test
+namespace Wabbajack.Common.Test
 {
-    [TestClass]
     public class HttpClientTests
     {
-        [TestMethod]
+        [Fact]
         public async Task DoesntReuseHttpMessages()
         {
             var client = new Common.Http.Client();
             // If we reuse the HTTP message this will throw a invalid operation exception
-            await Assert.ThrowsExceptionAsync<HttpRequestException>(async () => await client.GetAsync("http://blerg.blaz.bloz.buz"));
+            await Assert.ThrowsAsync<HttpRequestException>(async () => await client.GetAsync("http://blerg.blaz.bloz.buz"));
         }
     }
 }

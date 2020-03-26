@@ -20,10 +20,10 @@ namespace Compression.BSA.Test
     [TestClass]
     public class BSATests
     {
-        private static string _stagingFolder = "NexusDownloads";
-        private static string _bsaFolder = "BSAs";
-        private static string _testDir = "BSA Test Dir";
-        private static string _tempDir = "BSA Temp Dir";
+        private static AbsolutePath _stagingFolder = ((RelativePath)"NexusDownloads").RelativeToEntryPoint();
+        private static AbsolutePath _bsaFolder = ((RelativePath)"BSAs").RelativeToEntryPoint();
+        private static AbsolutePath _testDir = ((RelativePath)"BSA Test Dir").RelativeToEntryPoint();
+        private static AbsolutePath _tempDir = ((RelativePath)"BSA Temp Dir").RelativeToEntryPoint();
 
         public TestContext TestContext { get; set; }
 
@@ -34,11 +34,8 @@ namespace Compression.BSA.Test
         {
             Queue = new WorkQueue();
             Utils.LogMessages.Subscribe(f => testContext.WriteLine(f.ShortDescription));
-            if (!Directory.Exists(_stagingFolder))
-                Directory.CreateDirectory(_stagingFolder);
-            
-            if (!Directory.Exists(_bsaFolder))
-                Directory.CreateDirectory(_bsaFolder);
+            _stagingFolder.DeleteDirectory();
+            _bsaFolder.DeleteDirectory();
 
             var modIDs = new[]
             {
@@ -53,22 +50,21 @@ namespace Compression.BSA.Test
             await Task.WhenAll(modIDs.Select(async (info) =>
             {
                 var filename = await DownloadMod(info);
-                var folder = Path.Combine(_bsaFolder, info.Item1.ToString(), info.Item2.ToString());
-                if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
+                var folder = _bsaFolder.Combine(info.Item1.ToString(), info.Item2.ToString());
+                folder.CreateDirectory();
                 await FileExtractor.ExtractAll(Queue, filename, folder);
             }));
         }
 
-        private static async Task<string> DownloadMod((Game, int) info)
+        private static async Task<AbsolutePath> DownloadMod((Game, int) info)
         {
             using var client = await NexusApiClient.Get();
             var results = await client.GetModFiles(info.Item1, info.Item2);
             var file = results.files.FirstOrDefault(f => f.is_primary) ??
                        results.files.OrderByDescending(f => f.uploaded_timestamp).First();
-            var src = Path.Combine(_stagingFolder, file.file_name);
+            var src = _stagingFolder.Combine(file.file_name);
 
-            if (File.Exists(src)) return src;
+            if (src.Exists) return src;
 
             var state = new NexusDownloader.State
             {
@@ -82,41 +78,38 @@ namespace Compression.BSA.Test
 
         public static IEnumerable<object[]> BSAs()
         {
-            return Directory.EnumerateFiles(_bsaFolder, "*", DirectoryEnumerationOptions.Recursive)
-                .Where(f => Consts.SupportedBSAs.Contains(Path.GetExtension(f)))
+            return _bsaFolder.EnumerateFiles()
+                .Where(f => Consts.SupportedBSAs.Contains(f.Extension))
                 .Select(nm => new object[] {nm});
         }
 
         [TestMethod]
         [DataTestMethod]
         [DynamicData(nameof(BSAs), DynamicDataSourceType.Method)]
-        public async Task BSACompressionRecompression(string bsa)
+        public async Task BSACompressionRecompression(AbsolutePath bsa)
         {
             TestContext.WriteLine($"From {bsa}");
             TestContext.WriteLine("Cleaning Output Dir");
-            if (Directory.Exists(_tempDir)) Utils.DeleteDirectory(_tempDir);
-            Directory.CreateDirectory(_tempDir);
-
+            _tempDir.DeleteDirectory();
+            _tempDir.CreateDirectory();
+            
             TestContext.WriteLine($"Reading {bsa}");
-            string tempFile = Path.Combine("tmp.bsa");
-            var size = File.GetSize(bsa);
+            var tempFile = ((RelativePath)"tmp.bsa").RelativeToEntryPoint();
+            var size = bsa.Size;
             using (var a = BSADispatch.OpenRead(bsa))
             {
                 await a.Files.PMap(Queue, file =>
                 {
-                    var absName = Path.Combine(_tempDir, file.Path);
+                    var absName = _tempDir.Combine(file.Path);
                     ViaJson(file.State);
 
-                    if (!Directory.Exists(Path.GetDirectoryName(absName)))
-                        Directory.CreateDirectory(Path.GetDirectoryName(absName));
-
-
-                    using (var fs = File.Open(absName, FileMode.Create))
+                    absName.Parent.CreateDirectory();
+                    using (var fs = absName.Create())
                     {
                         file.CopyDataTo(fs);
                     }
 
-                    Assert.AreEqual(file.Size, new FileInfo(absName).Length);
+                    Assert.AreEqual(file.Size, absName.Size);
                 });
 
                 Console.WriteLine($"Building {bsa}");
@@ -125,8 +118,8 @@ namespace Compression.BSA.Test
                 {
                     var streams = await a.Files.PMap(Queue, file =>
                     {
-                        var absPath = Path.Combine(_tempDir, file.Path);
-                        var str = File.OpenRead(absPath);
+                        var absPath = _tempDir.Combine(file.Path);
+                        var str = absPath.OpenRead();
                         w.AddFile(ViaJson(file.State), str);
                         return str;
                     });

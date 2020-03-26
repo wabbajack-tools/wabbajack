@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
@@ -22,37 +23,37 @@ namespace Wabbajack.Test
             WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "tmp_data");
         }
 
-        public string WorkingDirectory { get;}
+        public AbsolutePath WorkingDirectory { get;}
         public string ID { get; }
         public Random RNG => _rng;
 
         public Game Game { get; set; }
 
-        public string TestFolder => Path.Combine(WorkingDirectory, ID);
-        public string GameFolder => Path.Combine(WorkingDirectory, ID, "game_folder");
+        public AbsolutePath TestFolder => WorkingDirectory.Combine(ID);
+        public AbsolutePath GameFolder => WorkingDirectory.Combine(ID, "game_folder");
 
-        public string MO2Folder => Path.Combine(WorkingDirectory, ID, "mo2_folder");
-        public string ModsFolder => Path.Combine(MO2Folder, Consts.MO2ModFolderName);
-        public string DownloadsFolder => Path.Combine(MO2Folder, "downloads");
+        public AbsolutePath MO2Folder => WorkingDirectory.Combine(ID, "mo2_folder");
+        public AbsolutePath ModsFolder => MO2Folder.Combine(Consts.MO2ModFolderName);
+        public AbsolutePath DownloadsFolder => MO2Folder.Combine("downloads");
 
-        public string InstallFolder => Path.Combine(TestFolder, "installed");
+        public AbsolutePath InstallFolder => TestFolder.Combine("installed");
 
         public HashSet<string> Profiles = new HashSet<string>();
 
         public List<string> Mods = new List<string>();
 
-        public void Configure()
+        public async Task Configure()
         {
-            File.WriteAllLines(Path.Combine(MO2Folder, "ModOrganizer.ini"), new []
+            await MO2Folder.Combine("ModOrganizer.ini").WriteAllLinesAsync(new []
             {
                 "[General]",
                 $"gameName={Game.MetaData().MO2Name}",
-                $"gamePath={GameFolder.Replace("\\", "\\\\")}",
+                $"gamePath={((string)GameFolder).Replace("\\", "\\\\")}",
                 $"download_directory={DownloadsFolder}"
             });
 
-            Directory.CreateDirectory(DownloadsFolder);
-            Directory.CreateDirectory(Path.Combine(GameFolder, "Data"));
+            DownloadsFolder.CreateDirectory();
+            GameFolder.Combine("Data").CreateDirectory();
 
             Profiles.Do(profile =>
             {
@@ -260,9 +261,6 @@ namespace Wabbajack.Test
             return full_path;
         }
 
-        public static object RandomeOne(params object[] opts)
-        {
-            return opts[_rng.Next(0, opts.Length)];
-        }
+
     }
 }

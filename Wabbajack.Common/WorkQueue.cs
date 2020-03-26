@@ -31,7 +31,8 @@ namespace Wabbajack.Common
         public IObservable<CPUStatus> Status => _Status;
 
         private int _nextCpuID = 1; // Start at 1, as 0 is "Unassigned"
-        internal Dictionary<int, Task> _tasks = new Dictionary<int, Task>();
+        // Public for testing reasons
+        public Dictionary<int, Task> _tasks = new Dictionary<int, Task>();
         public int DesiredNumWorkers { get; private set; } = 0;
 
         private CancellationTokenSource _shutdown = new CancellationTokenSource();
@@ -50,7 +51,7 @@ namespace Wabbajack.Common
 
         private readonly Subject<IObservable<int>> _activeNumThreadsObservable = new Subject<IObservable<int>>();
 
-        internal const int PollMS = 200;
+        public const int PollMS = 200;
 
         /// <summary>
         /// Creates a WorkQueue with the given number of threads
