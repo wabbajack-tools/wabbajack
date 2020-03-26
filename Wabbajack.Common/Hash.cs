@@ -81,6 +81,11 @@ namespace Wabbajack.Common
         {
             return new Hash(BitConverter.ToUInt64(BitConverter.GetBytes(argHash)));
         }
+        
+        public static Hash FromULong(in ulong argHash)
+        {
+            return new Hash(argHash);
+        }
 
         public static Hash FromHex(string xxHashAsHex)
         {

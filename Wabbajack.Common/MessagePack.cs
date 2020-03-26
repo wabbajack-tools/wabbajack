@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using MessagePack;
 using MessagePack.Formatters;
@@ -15,7 +17,14 @@ namespace Wabbajack.Common
         private static void MessagePackInit()
         {
             _resolver = CompositeResolver.Create(
-                new List<IMessagePackFormatter>{new HashFormatter()},
+                new List<IMessagePackFormatter>
+                {
+                    new HashFormatter(),
+                    new RelativePathFormatter(),
+                    new AbsolutePathFormatter(),
+                    new HashRelativePathFormatter(),
+                    new FullPathFormatter()
+                },
                 new List<IFormatterResolver> {StandardResolver.Instance}
             );
             _messagePackOptions = MessagePackSerializerOptions.Standard
@@ -84,6 +93,86 @@ namespace Wabbajack.Common
         public Hash Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             return new Hash(reader.ReadUInt64());
+        }
+    }
+    
+    public class RelativePathFormatter : IMessagePackFormatter<RelativePath>
+    {
+        public void Serialize(ref MessagePackWriter writer, RelativePath value, MessagePackSerializerOptions options)
+        {
+            var encoded = Encoding.UTF8.GetBytes((string)value);
+            writer.WriteString(encoded);
+        }
+
+        public RelativePath Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            return (RelativePath)reader.ReadString();
+        }
+    }
+    
+    public class AbsolutePathFormatter : IMessagePackFormatter<AbsolutePath>
+    {
+        public void Serialize(ref MessagePackWriter writer, AbsolutePath value, MessagePackSerializerOptions options)
+        {
+            var encoded = Encoding.UTF8.GetBytes((string)value);
+            writer.WriteString(encoded);
+        }
+
+        public AbsolutePath Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            return (AbsolutePath)reader.ReadString();
+        }
+    }
+    
+    public class HashRelativePathFormatter : IMessagePackFormatter<HashRelativePath>
+    {
+        public void Serialize(ref MessagePackWriter writer, HashRelativePath value, MessagePackSerializerOptions options)
+        {
+            writer.WriteArrayHeader(value.Paths.Length + 1);
+            writer.WriteUInt64((ulong)value.BaseHash);
+            foreach (var path in value.Paths)
+            {
+                var encoded = Encoding.UTF8.GetBytes((string)path);
+                writer.WriteString(encoded);
+            }
+        }
+
+        public HashRelativePath Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            var header = reader.ReadArrayHeader();
+            var hash = Hash.FromULong(reader.ReadUInt64());
+            var paths = new RelativePath[header - 1];
+            for (int idx = 0; idx < header - 1; idx += 1)
+            {
+                paths[idx] = (RelativePath)reader.ReadString();
+            }
+            return new HashRelativePath(hash, paths);
+        }
+    }
+    
+    public class FullPathFormatter : IMessagePackFormatter<FullPath>
+    {
+        public void Serialize(ref MessagePackWriter writer, FullPath value, MessagePackSerializerOptions options)
+        {
+            writer.WriteArrayHeader(value.Paths.Length + 1);
+            writer.WriteString(Encoding.UTF8.GetBytes((string)value.Base));
+            foreach (var path in value.Paths)
+            {
+                var encoded = Encoding.UTF8.GetBytes((string)path);
+                writer.WriteString(encoded);
+            }
+        }
+
+        public FullPath Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            var header = reader.ReadArrayHeader();
+            var basePath = (AbsolutePath)reader.ReadString(); 
+            var paths = new RelativePath[header - 1];
+            for (int idx = 0; idx < header - 1; idx += 1)
+            {
+                paths[idx] = (RelativePath)reader.ReadString();
+            }
+            return new FullPath(basePath, paths);
         }
     }
     
