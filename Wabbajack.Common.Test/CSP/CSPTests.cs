@@ -2,43 +2,28 @@
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common.CSP;
+using Xunit;
 
-namespace Wabbajack.Test.CSP
+namespace Wabbajack.Common.CSP.Test
 {
-    [TestClass]
     public class CSPTests
     {
-
-        public TestContext TestContext { get; set; }
-
-        public void Log(string msg)
-        {
-            TestContext.WriteLine(msg);
-        }
-
-        [TestInitialize]
-        public void Startup()
-        {
-            
-        }
-
         /// <summary>
         /// Test that we can put a value onto a channel without a buffer, and that the put is released once the
         /// take finalizes
         /// </summary>
         /// <returns></returns>
-        [TestMethod]
+        [Fact]
         public async Task TestTakePutBlocking()
         {
             var channel = Channel.Create<int>();
             var ptask = channel.Put(1);
             var (open, val) = await channel.Take();
 
-            Assert.AreEqual(1, val);
-            Assert.IsTrue(open);
-            Assert.IsTrue(await ptask);
+            Assert.Equal(1, val);
+            Assert.True(open);
+            Assert.True(await ptask);
         }
 
         /// <summary>
@@ -46,7 +31,7 @@ namespace Wabbajack.Test.CSP
         /// We can then take those items later on.
         /// </summary>
         /// <returns></returns>
-        [TestMethod]
+        [Fact]
         public async Task TestTakePutBuffered()
         {
             var channel = Channel.Create<int>(10);
@@ -56,8 +41,8 @@ namespace Wabbajack.Test.CSP
             foreach (var itm in Enumerable.Range(0, 10))
             {
                 var (is_open, val) = await channel.Take();
-                Assert.AreEqual(itm, val);
-                Assert.IsTrue(is_open);
+                Assert.Equal(itm, val);
+                Assert.True(is_open);
             }
         }
 
@@ -65,7 +50,7 @@ namespace Wabbajack.Test.CSP
         /// We can convert a IEnumerable into a channel by inlining the enumerable into the channel's buffer. 
         /// </summary>
         /// <returns></returns>
-        [TestMethod]
+        [Fact]
         public async Task TestToChannel()
         {
             var channel = Enumerable.Range(0, 10).ToChannel();
@@ -73,8 +58,8 @@ namespace Wabbajack.Test.CSP
             foreach (var itm in Enumerable.Range(0, 10))
             {
                 var (is_open, val) = await channel.Take();
-                Assert.AreEqual(itm, val);
-                Assert.IsTrue(is_open);
+                Assert.Equal(itm, val);
+                Assert.True(is_open);
             }
         }
 
@@ -84,12 +69,12 @@ namespace Wabbajack.Test.CSP
         /// TakeAll returns a list of the items taken.
         /// </summary>
         /// <returns></returns>
-        [TestMethod]
+        [Fact]
         public async Task TestTakeAll()
         {
             var results = await Enumerable.Range(0, 10).ToChannel().TakeAll();
 
-            CollectionAssert.AreEqual(Enumerable.Range(0, 10).ToList(), results);
+            Assert.Equal(Enumerable.Range(0, 10).ToList(), results);
         }
 
         /// <summary>
@@ -99,7 +84,7 @@ namespace Wabbajack.Test.CSP
         /// cheap.
         /// </summary>
         /// <returns></returns>
-        [TestMethod]
+        [Fact]
         public async Task RxTransformInChannel()
         {
             var chan = Channel.Create<int, int>(1, o => o.Select(v => v + 1));
@@ -108,13 +93,13 @@ namespace Wabbajack.Test.CSP
             foreach (var itm in Enumerable.Range(0, 10))
             {
                 var (is_open, val) = await chan.Take();
-                Assert.AreEqual(itm + 1, val);
-                Assert.IsTrue(is_open);
+                Assert.Equal(itm + 1, val);
+                Assert.True(is_open);
             }
             await finished;
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UnorderedPipeline()
         {
             var o = Channel.Create<string>(3);
@@ -124,11 +109,11 @@ namespace Wabbajack.Test.CSP
 
             var results = (await o.TakeAll()).OrderBy(e => e).ToList();
             var expected = Enumerable.Range(0, 3).Select(i => i.ToString()).OrderBy(e => e).ToList();
-            CollectionAssert.AreEqual(expected, results);
+            Assert.Equal(expected, results);
 
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UnorderedPipelineWithParallelism()
         {
             // Do it a hundred times to try and catch rare deadlocks
@@ -139,11 +124,11 @@ namespace Wabbajack.Test.CSP
 
             var results = (await o.TakeAll()).OrderBy(e => e).ToList();
             var expected = Enumerable.Range(0, 1024).Select(i => i.ToString()).OrderBy(e => e).ToList();
-            CollectionAssert.AreEqual(expected, results);
+            Assert.Equal(expected, results);
             await finished;
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UnorderedTaskPipeline()
         {
             // Do it a hundred times to try and catch rare deadlocks
@@ -158,11 +143,11 @@ namespace Wabbajack.Test.CSP
 
             var results = (await o.TakeAll()).OrderBy(e => e).ToList();
             var expected = Enumerable.Range(0, 1024).ToList();
-            CollectionAssert.AreEqual(expected, results);
+            Assert.Equal(expected, results);
             await finished;
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UnorderedThreadPipeline()
         {
             // Do it a hundred times to try and catch rare deadlocks
@@ -177,11 +162,11 @@ namespace Wabbajack.Test.CSP
 
             var results = (await o.TakeAll()).OrderBy(e => e).ToList();
             var expected = Enumerable.Range(0, 1024).ToList();
-            CollectionAssert.AreEqual(expected, results);
+            Assert.Equal(expected, results);
             await finished;
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ChannelStressTest()
         {
             var chan = Channel.Create<int>();
@@ -201,7 +186,7 @@ namespace Wabbajack.Test.CSP
                     for (var i = 0; i < 1000; i++)
                     {
                         var (is_open, val) = await chan.Take();
-                        Assert.AreEqual(i, val);
+                        Assert.Equal(i, val);
                     }
                 }
                 finally
@@ -214,7 +199,7 @@ namespace Wabbajack.Test.CSP
             await taker;
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ChannelStressWithBuffer()
         {
             var chan = Channel.Create<int>(1);
@@ -234,7 +219,7 @@ namespace Wabbajack.Test.CSP
                     for (var i = 0; i < 1000; i++)
                     {
                         var (is_open, val) = await chan.Take();
-                        Assert.AreEqual(i, val);
+                        Assert.Equal(i, val);
                     }
                 }
                 finally
