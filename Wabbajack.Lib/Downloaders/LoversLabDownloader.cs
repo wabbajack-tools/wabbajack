@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using MessagePack;
 using Wabbajack.Common;
 using Wabbajack.Lib.WebAutomation;
 
@@ -33,6 +34,7 @@ namespace Wabbajack.Lib.Downloaders
 
         public class State : State<LoversLabDownloader>
         {
+            [IgnoreMember]
             public override bool IsNSFW => true;
 
             public override async Task<bool> LoadMetaData()

@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using HtmlAgilityPack;
+using MessagePack;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
@@ -61,11 +62,32 @@ namespace Wabbajack.Lib.Downloaders
             };
         }
 
-
+        
+        [MessagePackObject]
         public class State<TDownloader> : AbstractDownloadState, IMetaState where TDownloader : IDownloader
         {
+            [Key(0)]
             public string FileID { get; set; }
+            
+            [Key(1)]
             public string FileName { get; set; }
+            
+            // from IMetaState
+            [Key(2)]
+            
+            public Uri URL => new Uri($"{Site}/files/file/{FileName}");
+            [Key(3)]
+            public string Name { get; set; }
+            [Key(4)]
+            public string Author { get; set; }
+            [Key(5)]
+            public string Version { get; set; }
+            [Key(6)]
+            public string ImageURL { get; set; }
+            [Key(7)]
+            public virtual bool IsNSFW { get; set; }
+            [Key(8)]
+            public string Description { get; set; }
 
             private static bool IsHTTPS => Downloader.SiteURL.AbsolutePath.StartsWith("https://");
             private static string URLPrefix => IsHTTPS ? "https://" : "http://";
@@ -202,16 +224,6 @@ namespace Wabbajack.Lib.Downloaders
                     $"directURL={Site}/files/file/{FileName}"
                 };
             }
-
-            // from IMetaState
-            public Uri URL => new Uri($"{Site}/files/file/{FileName}");
-            public string Name { get; set; }
-            public string Author { get; set; }
-            public string Version { get; set; }
-            public string ImageURL { get; set; }
-            public virtual bool IsNSFW { get; set; }
-            public string Description { get; set; }
-
             public virtual async Task<bool> LoadMetaData()
             {
                 return false;

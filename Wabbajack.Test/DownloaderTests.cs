@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
-using Alphaleonis.Win32.Filesystem;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
@@ -15,39 +14,36 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
+using Xunit;
+using Xunit.Abstractions;
 using Directory = System.IO.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Test
 {
-    [TestClass]
     public class DownloaderTests
     {
-        static DownloaderTests()
+        public DownloaderTests(ITestOutputHelper helper)
         {
-            Helpers.Init();
-        }
-
-        public TestContext TestContext { get; set; }
-
-        [TestInitialize]
-        public async Task Setup()
-        {
+            TestContext = helper;
             Helpers.Init();
             Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => TestContext.WriteLine(msg.ShortDescription));
             Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
                 TestContext.WriteLine("ERROR: User intervention required: " + msg.ShortDescription));
-
         }
 
-        [TestMethod]
+        public ITestOutputHelper TestContext { get; }
+
+
+        [Fact]
         public void TestAllPrepares()
         {
             DownloadDispatcher.Downloaders.Do(d => d.Prepare());
         }
 
-        [TestMethod]
+        [Fact]
         public async Task MegaDownload()
         {
             var ini = @"[General]
@@ -55,30 +51,30 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
             var url_state = DownloadDispatcher.ResolveArchive(
                 "https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k");
 
-            Assert.AreEqual("https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k",
+            Assert.Equal("https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k",
                 ((MegaDownloader.State)url_state).Url);
 
 
-            var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
-            var filename = Guid.NewGuid().ToString();
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive{Size = 20}));
+            using var filename = new TempFile();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist {AllowedPrefixes = new List<string>{"https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k" } }));
-            Assert.IsFalse(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>{ "blerg" }}));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist {AllowedPrefixes = new List<string>{"https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k" } }));
+            Assert.False(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>{ "blerg" }}));
 
-            await converted.Download(new Archive {Name = "MEGA Test.txt"}, filename);
+            await converted.Download(new Archive {Name = "MEGA Test.txt"}, filename.Path);
 
-            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
-            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+            Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
         }
 
-        [TestMethod]
+        [Fact]
         public async Task DropboxTests()
         {
             var ini = @"[General]
@@ -86,29 +82,29 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
             var url_state = DownloadDispatcher.ResolveArchive(
                 "https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?dl=0");
 
-            Assert.AreEqual("https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?dl=1", 
+            Assert.Equal("https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?dl=1", 
                 ((HTTPDownloader.State)url_state).Url);
 
-            var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
-            var filename = Guid.NewGuid().ToString();
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive{Size = 20}));
+            using var filename = new TempFile();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?" } }));
-            Assert.IsFalse(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "blerg" } }));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?" } }));
+            Assert.False(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "blerg" } }));
 
-            await converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
+            await converted.Download(new Archive { Name = "MEGA Test.txt" }, filename.Path);
 
-            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
-            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+            Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
         }
 
-        [TestMethod]
+        [Fact]
         public async Task GoogleDriveTests()
         {
             var ini = @"[General]
@@ -116,29 +112,29 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
             var url_state = DownloadDispatcher.ResolveArchive(
                 "https://drive.google.com/file/d/1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_/view?usp=sharing");
 
-            Assert.AreEqual("1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_",
+            Assert.Equal("1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_",
                 ((GoogleDriveDownloader.State)url_state).Id);
 
-            var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
-            var filename = Guid.NewGuid().ToString();
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive{Size = 20}));
+            using var filename = new TempFile();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { GoogleIDs = new List<string> { "1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_" } }));
-            Assert.IsFalse(converted.IsWhitelisted(new ServerWhitelist { GoogleIDs = new List<string>()}));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { GoogleIDs = new List<string> { "1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_" } }));
+            Assert.False(converted.IsWhitelisted(new ServerWhitelist { GoogleIDs = new List<string>()}));
 
-            await converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
+            await converted.Download(new Archive { Name = "MEGA Test.txt" }, filename.Path);
 
-            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
-            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+            Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
         }
 
-        [TestMethod]
+        [Fact]
         public async Task HttpDownload()
         {
             var ini = @"[General]
@@ -146,28 +142,28 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
             var url_state = DownloadDispatcher.ResolveArchive("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt");
 
-            Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
+            Assert.Equal("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
                 ((HTTPDownloader.State)url_state).Url);
 
-            var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
-            var filename = Guid.NewGuid().ToString();
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive{Size = 20}));
+            using var filename = new TempFile();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://build.wabbajack.org/" } }));
-            Assert.IsFalse(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://build.wabbajack.org/" } }));
+            Assert.False(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = "MEGA Test.txt" }, filename);
+            await converted.Download(new Archive { Name = "MEGA Test.txt" }, filename.Path);
 
-            Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
+            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
-            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+            Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ManualDownload()
         {
             var ini = @"[General]
@@ -175,23 +171,23 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
-            var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
-            var filename = Guid.NewGuid().ToString();
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive{Size = 20}));
+            using var filename = new TempFile();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://build.wabbajack.org/" } }));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://build.wabbajack.org/" } }));
 
             
             // Doesn't work well on the test server, so we're disabling for now
-            //await converted.Download(new Archive { Name = "WABBAJACK_TEST_FILE.zip", Size = 20, Hash = "eSIyd+KOG3s="}, filename);
-            //Assert.AreEqual("eSIyd+KOG3s=", Utils.FileHash(filename));
-            //Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+            //await converted.Download(new Archive { Name = "WABBAJACK_TEST_FILE.zip", Size = 20, Hash = "eSIyd+KOG3s="}, filename.Path);
+            //Assert.Equal("eSIyd+KOG3s=", Utils.FileHash(filename.Path));
+            //Assert.Equal(File.ReadAllText(filename.Path), "Cheese for Everyone!");
         }
 
         /*
-        [TestMethod]
+        [Fact]
         public async Task MediaFireDownload()
         {
             var ini = @"[General]
@@ -199,29 +195,29 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
             var url_state = DownloadDispatcher.ResolveArchive(
                 "http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt");
 
-            Assert.AreEqual("http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt",
+            Assert.Equal("http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.txt",
                 ((MediaFireDownloader.State) url_state).Url);
 
-            var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify());
-            var filename = Guid.NewGuid().ToString();
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify());
+            using var filename = new TempFile();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist
                 {AllowedPrefixes = new List<string> {"http://www.mediafire.com/file/agiqzm1xwebczpx/"}}));
-            Assert.IsFalse(converted.IsWhitelisted(new ServerWhitelist {AllowedPrefixes = new List<string>()}));
+            Assert.False(converted.IsWhitelisted(new ServerWhitelist {AllowedPrefixes = new List<string>()}));
 
-            await converted.Download(new Archive {Name = "Media Fire Test.txt"}, filename);
+            await converted.Download(new Archive {Name = "Media Fire Test.txt"}, filename.Path);
 
-            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+            Assert.Equal(File.ReadAllText(filename.Path), "Cheese for Everyone!");
 
         }*/
 
-        [TestMethod]
+        [Fact]
         public async Task NexusDownload()
         {
             var old_val = NexusApiClient.CacheMethod;
@@ -235,20 +231,20 @@ namespace Wabbajack.Test
 
                 var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-                Assert.IsNotNull(state);
+                Assert.NotNull(state);
 
 
-                var converted = await state.RoundTripState();
-                Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
+                var converted = RoundTripState(state);
+                Assert.True(await converted.Verify(new Archive{Size = 20}));
                 // Exercise the cache code
-                Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
-                var filename = Guid.NewGuid().ToString();
+                Assert.True(await converted.Verify(new Archive{Size = 20}));
+                using var filename = new TempFile();
 
-                Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> () }));
+                Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> () }));
 
-                await converted.Download(new Archive { Name = "SkyUI.7z" }, filename);
+                await converted.Download(new Archive { Name = "SkyUI.7z" }, filename.Path);
 
-                Assert.AreEqual(filename.FileHash(), "dF2yafV2Oks=");
+                Assert.Equal(Hash.FromBase64("dF2yafV2Oks="),await filename.Path.FileHashAsync());
 
             }
             finally
@@ -257,7 +253,7 @@ namespace Wabbajack.Test
             }
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ModDbTests()
         {
             var ini = @"[General]
@@ -265,26 +261,26 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
             var url_state = DownloadDispatcher.ResolveArchive(
                 "https://www.moddb.com/downloads/start/124908?referer=https%3A%2F%2Fwww.moddb.com%2Fmods%2Fautopause");
 
-            Assert.AreEqual("https://www.moddb.com/downloads/start/124908?referer=https%3A%2F%2Fwww.moddb.com%2Fmods%2Fautopause",
+            Assert.Equal("https://www.moddb.com/downloads/start/124908?referer=https%3A%2F%2Fwww.moddb.com%2Fmods%2Fautopause",
                 ((ModDBDownloader.State)url_state).Url);
 
-            var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
-            var filename = Guid.NewGuid().ToString();
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive{Size = 20}));
+            using var filename = new TempFile();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = "moddbtest.7z" }, filename);
+            await converted.Download(new Archive { Name = "moddbtest.7z" }, filename.Path);
 
-            Assert.AreEqual("2lZt+1h6wxM=", filename.FileHash());
+            Assert.Equal(Hash.FromBase64("2lZt+1h6wxM="), await filename.Path.FileHashAsync());
         }
 
-        [TestMethod]
+        [Fact]
         public async Task LoversLabDownload()
         {
             await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
@@ -293,26 +289,26 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
             /*var url_state = DownloadDispatcher.ResolveArchive("https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1");
-            Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
+            Assert.Equal("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
                 ((HTTPDownloader.State)url_state).Url);
                 */
-            var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
-            var filename = Guid.NewGuid().ToString();
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive{Size = 20}));
+            using var filename = new TempFile();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = "LoversLab Test.txt" }, filename);
+            await converted.Download(new Archive { Name = "LoversLab Test.txt" }, filename.Path);
 
-            Assert.AreEqual("eSIyd+KOG3s=", filename.FileHash());
+            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
-            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+            Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
         }
         
-        [TestMethod]
+        [Fact]
         public async Task VectorPlexusDownload()
         {
             await DownloadDispatcher.GetInstance<VectorPlexusDownloader>().Prepare();
@@ -321,27 +317,27 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
             /*var url_state = DownloadDispatcher.ResolveArchive("https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1");
-            Assert.AreEqual("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
+            Assert.Equal("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
                 ((HTTPDownloader.State)url_state).Url);
                 */
-            var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
-            var filename = Guid.NewGuid().ToString();
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive{Size = 20}));
+            using var filename = new TempFile();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = "Vector Plexus Test.zip" }, filename);
+            await converted.Download(new Archive { Name = "Vector Plexus Test.zip" }, filename.Path);
 
-            Assert.AreEqual("eSIyd+KOG3s=", filename.FileHash());
+            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
-            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+            Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
         }
 
         
-        [TestMethod]
+        [Fact]
         public async Task TESAllianceDownload()
         {
             await DownloadDispatcher.GetInstance<TESAllianceDownloader>().Prepare();
@@ -350,23 +346,23 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
-            var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
-            var filename = Guid.NewGuid().ToString();
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive{Size = 20}));
+            using var filename = new TempFile();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = "TESAlliance Test.zip" }, filename);
+            await converted.Download(new Archive { Name = "TESAlliance Test.zip" }, filename.Path);
 
-            Assert.AreEqual("eSIyd+KOG3s=", filename.FileHash());
+            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
-            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+            Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
         }
 
         /* WAITING FOR APPROVAL BY MODERATOR
-         [TestMethod]
+         [Fact]
         public async Task DeadlyStreamDownloader()
         {
             await DownloadDispatcher.GetInstance<DeadlyStreamDownloader>().Prepare();
@@ -375,22 +371,22 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
-            var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
-            var filename = Guid.NewGuid().ToString();
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive{Size = 20}));
+            using var filename = new TempFile();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = "DeadlyStream Test.zip" }, filename);
+            await converted.Download(new Archive { Name = "DeadlyStream Test.zip" }, filename.Path);
 
-            Assert.AreEqual("eSIyd+KOG3s=", filename.FileHash());
+            Assert.Equal("eSIyd+KOG3s=", filename.FileHash());
 
-            Assert.AreEqual(File.ReadAllText(filename), "Cheese for Everyone!");
+            Assert.Equal(File.ReadAllText(filename.Path), "Cheese for Everyone!");
         }*/
 
-        [TestMethod]
+        [Fact]
         public async Task GameFileSourceDownload()
         {
             // Test mode off for this test
@@ -402,73 +398,73 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
-            var converted = await state.RoundTripState();
-            Assert.IsTrue(await converted.Verify(new Archive{Size = 20}));
-            var filename = Guid.NewGuid().ToString();
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive{Size = 20}));
+            using var filename = new TempFile();
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = "Update.esm" }, filename);
+            await converted.Download(new Archive { Name = "Update.esm" }, filename.Path);
 
-            Assert.AreEqual("/DLG/LjdGXI=", Utils.FileHash(filename));
-            CollectionAssert.AreEqual(File.ReadAllBytes(Path.Combine(Game.SkyrimSpecialEdition.MetaData().GameLocation(), "Data/Update.esm")), File.ReadAllBytes(filename));
+            Assert.Equal(Hash.FromBase64("/DLG/LjdGXI="), Utils.FileHash(filename.Path));
+            Assert.Equal(await filename.Path.ReadAllBytesAsync(), await Game.SkyrimSpecialEdition.MetaData().GameLocation()?.Combine("Data/Update.esm").ReadAllBytesAsync());
             Consts.TestMode = true;
         }
         
-        [TestMethod]
+        [Fact]
         public async Task BethesdaNetDownload()
         {
 
             var downloader = DownloadDispatcher.GetInstance<BethesdaNetDownloader>();
-            Assert.IsTrue(await downloader.IsLoggedIn.FirstAsync());
+            Assert.True(await downloader.IsLoggedIn.FirstAsync());
 
             var ini = $@"[General]
                               directURL=https://bethesda.net/en/mods/skyrim/mod-detail/4145641";
 
-            var filename = Guid.NewGuid().ToString();
+            using var filename = new TempFile();
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
-            Assert.IsNotNull(state);
+            Assert.NotNull(state);
 
             var converted = state.ViaJSON();
-            Assert.IsTrue(await converted.Verify(new Archive {Name = "mod.ckm"}));
+            Assert.True(await converted.Verify(new Archive {Name = "mod.ckm"}));
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            await converted.Download(new Archive { Name = "mod.zip" }, filename);
+            await converted.Download(new Archive { Name = "mod.zip" }, filename.Path);
 
-            await using var fs = File.OpenRead(filename);
+            await using var fs = filename.Path.OpenRead();
             using var archive = new ZipArchive(fs);
             var entries = archive.Entries.Select(e => e.FullName).ToList();
-            CollectionAssert.AreEqual(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});
+            Assert.Equal(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});
         }
         
-        [TestMethod]
+        [Fact]
         public async Task YoutubeDownloader()
         {
 
             var infered_ini = await DownloadDispatcher.Infer(new Uri("https://www.youtube.com/watch?v=4ceowgHn8BE"));
-            Assert.IsInstanceOfType(infered_ini, typeof(YouTubeDownloader.State));
-            Assert.AreEqual(15, ((YouTubeDownloader.State)infered_ini).Tracks.Count);
+            Assert.IsAssignableFrom<YouTubeDownloader.State>(infered_ini);
+            Assert.Equal(15, ((YouTubeDownloader.State)infered_ini).Tracks.Count);
             
             var ini = string.Join("\n", infered_ini.GetMetaIni());
             
             var state = (YouTubeDownloader.State)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
-            Assert.AreEqual(15, state.Tracks.Count);
-            Assert.IsNotNull(state);
+            Assert.Equal(15, state.Tracks.Count);
+            Assert.NotNull(state);
 
             
             
             var converted = state.ViaJSON();
-            Assert.IsTrue(await converted.Verify(new Archive {Name = "yt_test.zip"}));
+            Assert.True(await converted.Verify(new Archive {Name = "yt_test.zip"}));
 
-            Assert.IsTrue(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
             using var tempFile = new TempFile();
-            await converted.Download(new Archive {Name = "yt_test.zip"}, tempFile.File.FullName);
+            await converted.Download(new Archive {Name = "yt_test.zip"}, tempFile.Path);
             File.Copy(tempFile.File.FullName, "c:\\tmp\\" + Path.GetFileName(tempFile.File.FullName) + ".zip");
-            Assert.AreEqual("kD36zbA2X9Q=", await tempFile.File.FullName.FileHashAsync());
+            Assert.Equal(Hash.FromBase64("kD36zbA2X9Q="), await tempFile.Path.FileHashAsync());
         }
         
         
@@ -476,7 +472,7 @@ namespace Wabbajack.Test
         /// Tests that files from different sources don't overwrite eachother when downloaded by AInstaller
         /// </summary>
         /// <returns></returns>
-        [TestMethod]
+        [Fact]
         public async Task DownloadRenamingTests()
         {
             // Test mode off for this test
@@ -503,34 +499,44 @@ namespace Wabbajack.Test
             {
                 new Archive {Hash = stateb.Hash, Name = "Download.esm", State = stateb}
             };
-            
-            if (Directory.Exists("DownloadTests"))
-                Utils.DeleteDirectory("DownloadTests");
-            Directory.CreateDirectory("DownloadTests");
-            
-            var inst = new TestInstaller(null, null, null, "DownloadTests", null);
+
+            var folder = ((RelativePath)"DownloadTests").RelativeToEntryPoint();
+            folder.DeleteDirectory();
+            folder.CreateDirectory();
+           
+            var inst = new TestInstaller(default, null, default, folder, null);
 
             await inst.DownloadMissingArchives(archivesa, true);
             await inst.DownloadMissingArchives(archivesb, true);
 
-            CollectionAssert.AreEqual(Directory.EnumerateFiles("DownloadTests").Select(Path.GetFileName).OrderBy(a => a).ToArray(), 
-                new string[]
+            Assert.Equal(folder.EnumerateFiles().Select(f => f.FileName).OrderBy(a => a).ToArray(), 
+                new RelativePath[]
                 {
-                    @"Download.esm",
-                    @"Download.esm.xxHash",
-                    @"Download_f80ee6d109516018308f62e2c862b7f061987ac4a8c2327a101ac6b8f80ec4ae_.esm",
-                    @"Download_f80ee6d109516018308f62e2c862b7f061987ac4a8c2327a101ac6b8f80ec4ae_.esm.xxHash"
+                    (RelativePath)@"Download.esm",
+                    (RelativePath)@"Download.esm.xxHash",
+                    (RelativePath)@"Download_f80ee6d109516018308f62e2c862b7f061987ac4a8c2327a101ac6b8f80ec4ae_.esm",
+                    (RelativePath)@"Download_f80ee6d109516018308f62e2c862b7f061987ac4a8c2327a101ac6b8f80ec4ae_.esm.xxHash"
                 }.OrderBy(a => a).ToArray());
            
             Consts.TestMode = true;
             
         }
 
-        [TestMethod]
+        private T RoundTripState<T>(T state)
+        {
+            using var ms = new MemoryStream();
+            ms.WriteAsMessagePack(state);
+            ms.Position = 0;
+
+            return ms.ReadAsMessagePack<T>();
+        }
+        
+
+        [Fact]
         public async Task TestUpgrading()
         {
             using var folder = new TempFolder();
-            var dest = Path.Combine(folder.Dir.FullName, "Cori.7z");
+            var dest = folder.Dir.Combine("Cori.7z");
             var archive = new Archive
             {
                 Name = "Cori.7z",
@@ -542,15 +548,15 @@ namespace Wabbajack.Test
                     FileID = "123501"
                 }
             };
-            Assert.IsTrue(await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, dest));
-            Assert.AreEqual("gCRVrvzDNH0=", await dest.FileHashCachedAsync());
+            Assert.True(await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, dest));
+            Assert.Equal(Hash.FromBase64("gCRVrvzDNH0="), await dest.FileHashCachedAsync());
         }
         
         
 
         class TestInstaller : AInstaller
         {
-            public TestInstaller(string archive, ModList modList, string outputFolder, string downloadFolder, SystemParameters parameters) : base(archive, modList, outputFolder, downloadFolder, parameters)
+            public TestInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters) : base(archive, modList, outputFolder, downloadFolder, parameters)
             {
                 ConfigureProcessor(1, new Subject<int>().StartWith(1));
             }
