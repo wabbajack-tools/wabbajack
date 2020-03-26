@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.LibCefHelpers;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Wabbajack.Test
 {
-    public abstract class  ACompilerTest
+    public abstract class ACompilerTest : IDisposable
     {
-        public TestContext TestContext { get; set; }
+        public ITestOutputHelper TestContext { get; set; }
         protected TestUtils utils { get; set; }
 
-        [TestInitialize]
-        public async Task TestInitialize()
+        public ACompilerTest()
         {
             Helpers.Init();
             Consts.TestMode = true;
@@ -25,8 +25,7 @@ namespace Wabbajack.Test
 
         }
 
-        [TestCleanup]
-        public void TestCleanup()
+        public void Dispose()
         {
             utils.Dispose();
         }
@@ -36,8 +35,8 @@ namespace Wabbajack.Test
             var compiler = new MO2Compiler(
                 mo2Folder: utils.MO2Folder,
                 mo2Profile: profile,
-                outputFile: profile + Consts.ModListExtension);
-            Assert.IsTrue(await compiler.Begin());
+                outputFile: OutputFile(profile));
+            Assert.True(await compiler.Begin());
             return compiler;
         }
 
@@ -48,6 +47,11 @@ namespace Wabbajack.Test
             return compiler.ModList;
         }
 
+        private static AbsolutePath OutputFile(string profile)
+        {
+            return ((RelativePath)profile).RelativeToEntryPoint().WithExtension(Consts.ModListExtension);
+        }
+
         protected async Task Install(MO2Compiler compiler)
         {
             var modlist = AInstaller.LoadFromFile(compiler.ModListOutputFile);
@@ -56,10 +60,22 @@ namespace Wabbajack.Test
                 modList: modlist,
                 outputFolder: utils.InstallFolder,
                 downloadFolder: utils.DownloadsFolder,
-                parameters: SystemParametersConstructor.Create());
+                parameters: CreateDummySystemParameters());
             installer.WarnOnOverwrite = false;
             installer.GameFolder = utils.GameFolder;
             await installer.Begin();
+        }
+
+        private SystemParameters CreateDummySystemParameters()
+        {
+            return new SystemParameters
+            {
+                WindowsVersion = new Version("6.2.4.0"),
+                ScreenWidth = 1920,
+                ScreenHeight = 1080,
+                SystemMemorySize = 16 * 1024 * 1040,
+                VideoMemorySize = 4 * 1024 * 1024
+            };
         }
     }
 }

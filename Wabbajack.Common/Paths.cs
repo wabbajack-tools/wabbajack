@@ -116,6 +116,12 @@ namespace Wabbajack.Common
             await using var fs = File.Create(_path);
             await fs.WriteAsync(Encoding.UTF8.GetBytes(text));
         }
+        
+        public void WriteAllText(string text)
+        {
+            using var fs = File.Create(_path);
+            fs.Write(Encoding.UTF8.GetBytes(text));
+        }
 
         public bool Exists => File.Exists(_path) || Directory.Exists(_path);
         public bool IsFile => File.Exists(_path);
@@ -318,6 +324,11 @@ namespace Wabbajack.Common
         public async Task WriteAllLinesAsync(params string[] strings)
         {
             await WriteAllTextAsync(string.Join("\n",strings));
+        }
+
+        public void	 WriteAllLines(string[] strings)
+        {
+            WriteAllText(string.Join("\n",strings));
         }
     }
 

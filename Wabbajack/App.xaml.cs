@@ -5,6 +5,8 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Media;
 using Wabbajack.Common;
 using Wabbajack.Util;
 
@@ -17,6 +19,7 @@ namespace Wabbajack
     {
         public App()
         {
+            RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
             CLIOld.ParseOptions(Environment.GetCommandLineArgs());
             if (CLIArguments.Help)
                 CLIOld.DisplayHelpText();

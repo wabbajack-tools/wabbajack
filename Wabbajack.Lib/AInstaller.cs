@@ -25,13 +25,13 @@ namespace Wabbajack.Lib
 
         public abstract ModManager ModManager { get; }
 
-        public string ModListArchive { get; private set; }
+        public AbsolutePath ModListArchive { get; private set; }
         public ModList ModList { get; private set; }
         public Dictionary<Hash, AbsolutePath> HashedArchives { get; set; }
         
         public SystemParameters SystemParameters { get; set; }
 
-        public AInstaller(string archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
+        public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
         {
             ModList = modList;
             ModListArchive = archive;
@@ -58,7 +58,7 @@ namespace Wabbajack.Lib
 
         public async Task<byte[]> LoadBytesFromPath(RelativePath path)
         {
-            await using var fs = new FileStream(ModListArchive, FileMode.Open, FileAccess.Read, FileShare.Read);
+            await using var fs = new FileStream((string)ModListArchive, FileMode.Open, FileAccess.Read, FileShare.Read);
             using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
             await using var ms = new MemoryStream();
             var entry = ar.GetEntry((string)path);
@@ -70,21 +70,19 @@ namespace Wabbajack.Lib
             return ms.ToArray();
         }
 
-        public static ModList LoadFromFile(string path)
+        public static ModList LoadFromFile(AbsolutePath path)
         {
-            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+            using var fs = new FileStream((string)path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
+            var entry = ar.GetEntry("modlist");
+            if (entry == null)
             {
-                var entry = ar.GetEntry("modlist");
-                if (entry == null)
-                {
-                    entry = ar.GetEntry("modlist.json");
-                    using (var e = entry.Open())
-                        return e.FromJSON<ModList>();
-                }
+                entry = ar.GetEntry("modlist.json");
                 using (var e = entry.Open())
-                    return e.ReadAsMessagePack<ModList>();
+                    return e.FromJSON<ModList>();
             }
+            using (var e = entry.Open())
+                return e.ReadAsMessagePack<ModList>();
         }
 
         /// <summary>
