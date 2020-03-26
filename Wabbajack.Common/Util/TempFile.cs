@@ -4,16 +4,19 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AlphaPath = Alphaleonis.Win32.Filesystem.Path;
+    
 
 namespace Wabbajack.Common
 {
     public class TempFile : IDisposable
     {
         public FileInfo File { get; private set; }
+        public AbsolutePath Path => (AbsolutePath)File.FullName;
         public bool DeleteAfter = true;
 
         public TempFile(bool deleteAfter = true, bool createFolder = true)
-            : this(new FileInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName())))
+            : this(new FileInfo((string)((AbsolutePath)AlphaPath.GetTempPath()).Combine(AlphaPath.GetRandomFileName())))
         {
         }
 

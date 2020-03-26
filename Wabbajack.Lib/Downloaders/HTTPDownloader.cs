@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using MessagePack;
 using Wabbajack.Common;
 using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.Validation;
@@ -49,14 +50,19 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
+        [MessagePackObject]
         public class State : AbstractDownloadState
         {
+            [Key(0)]
             public string Url { get; set; }
 
+            [Key(1)]
             public List<string> Headers { get; set; }
 
+            [IgnoreMember]
             public Common.Http.Client Client { get; set; }
 
+            [IgnoreMember]
             public override object[] PrimaryKey { get => new object[] {Url};}
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)

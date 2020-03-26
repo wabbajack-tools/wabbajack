@@ -232,7 +232,7 @@ namespace Wabbajack.Common
 
         public AbsolutePath WithExtension(Extension hashFileExtension)
         {
-            return new AbsolutePath(_path + (string)Extension, true);
+            return new AbsolutePath(_path + (string)hashFileExtension, true);
         }
 
         public AbsolutePath ReplaceExtension(Extension extension)
@@ -332,7 +332,7 @@ namespace Wabbajack.Common
         }
     }
 
-    public struct RelativePath : IPath, IEquatable<RelativePath>
+    public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<RelativePath>
     {
         private readonly string _path;
 
@@ -437,6 +437,11 @@ namespace Wabbajack.Common
         public RelativePath Combine(params RelativePath[] paths )
         {
             return (RelativePath)Path.Combine(paths.Select(p => (string)p).Cons(_path).ToArray());
+        }
+
+        public int CompareTo(RelativePath other)
+        {
+            return string.Compare(_path, other._path, StringComparison.Ordinal);
         }
     }
 

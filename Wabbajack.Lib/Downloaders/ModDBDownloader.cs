@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using HtmlAgilityPack;
+using MessagePack;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 
@@ -35,9 +36,14 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
+        [MessagePackObject]
         public class State : AbstractDownloadState
         {
+            
+            [Key(0)]
             public string Url { get; set; }
+            
+            [IgnoreMember]
             public override object[] PrimaryKey { get => new object[]{Url}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)

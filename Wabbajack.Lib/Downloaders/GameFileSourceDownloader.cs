@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using MessagePack;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -47,16 +48,22 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
+        [MessagePackObject]
         public class State : AbstractDownloadState
         {
+            [Key(0)]
             public Game Game { get; set; }
+            [Key(1)]
             public string GameFile { get; set; }
+            [Key(2)]
             public Hash Hash { get; set; }
-            
+            [Key(3)]
             public string GameVersion { get; set; }
 
+            [IgnoreMember]
             internal AbsolutePath SourcePath => Game.MetaData().GameLocation().Value.Combine(GameFile);
 
+            [IgnoreMember]
             public override object[] PrimaryKey { get => new object[] {Game, GameVersion, GameFile}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)

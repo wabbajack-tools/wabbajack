@@ -14,8 +14,6 @@
     <None Remove="Readme.md" />
     <Compile Remove="AVortexCompilerTest.cs" />
     <None Include="AVortexCompilerTest.cs" />
-    <Compile Remove="DownloaderTests.cs" />
-    <None Include="DownloaderTests.cs" />
     <Compile Remove="EndToEndTests.cs" />
     <None Include="EndToEndTests.cs" />
     <Compile Remove="Extensions.cs" />
