@@ -12,6 +12,36 @@
 
   <ItemGroup>
     <None Remove="Readme.md" />
+    <Compile Remove="ABatchProcessorTests.cs" />
+    <None Include="ABatchProcessorTests.cs" />
+    <Compile Remove="AVortexCompilerTest.cs" />
+    <None Include="AVortexCompilerTest.cs" />
+    <Compile Remove="ContentRightsManagementTests.cs" />
+    <None Include="ContentRightsManagementTests.cs" />
+    <Compile Remove="DownloaderTests.cs" />
+    <None Include="DownloaderTests.cs" />
+    <Compile Remove="EndToEndTests.cs" />
+    <None Include="EndToEndTests.cs" />
+    <Compile Remove="Extensions.cs" />
+    <None Include="Extensions.cs" />
+    <Compile Remove="MO2Tests.cs" />
+    <None Include="MO2Tests.cs" />
+    <Compile Remove="RestartingDownloadsTests.cs" />
+    <None Include="RestartingDownloadsTests.cs" />
+    <Compile Remove="SanityTests.cs" />
+    <None Include="SanityTests.cs" />
+    <Compile Remove="SimpleHTTPServer.cs" />
+    <None Include="SimpleHTTPServer.cs" />
+    <Compile Remove="VortexTests.cs" />
+    <None Include="VortexTests.cs" />
+    <Compile Remove="WebAutomationTests.cs" />
+    <None Include="WebAutomationTests.cs" />
+    <Compile Remove="ZEditIntegrationTests.cs" />
+    <None Include="ZEditIntegrationTests.cs" />
+    <Compile Remove="CompilationStackTests.cs" />
+    <None Include="CompilationStackTests.cs" />
+    <Compile Remove="FilePickerTests.cs" />
+    <None Include="FilePickerTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
