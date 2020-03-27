@@ -390,52 +390,40 @@ namespace Wabbajack.Lib
             await OutputFolder.Combine(directive.To).WriteAllTextAsync(data);
         }
 
-        public static IErrorResponse CheckValidInstallPath(string path, string downloadFolder)
+        public static IErrorResponse CheckValidInstallPath(AbsolutePath path, AbsolutePath? downloadFolder)
         {
-            var ret = Utils.IsDirectoryPathValid(path);
-            if (!ret.Succeeded) return ret;
-
-            if (!Directory.Exists(path)) return ErrorResponse.Success;
+            if (!path.Exists) return ErrorResponse.Success;
 
             // Check folder does not have a Wabbajack ModList
-            foreach (var file in Directory.EnumerateFiles(path))
+            if (path.EnumerateFiles(false).Where(file => file.Exists).Any(file => file.Extension == Consts.ModListExtension))
             {
-                if (!File.Exists(file)) continue;
-                if (System.IO.Path.GetExtension(file).Equals(Consts.ModListExtension))
-                {
-                    return ErrorResponse.Fail($"Cannot install into a folder with a Wabbajack ModList inside of it");
-                }
+                return ErrorResponse.Fail($"Cannot install into a folder with a Wabbajack ModList inside of it");
             }
 
             // Check folder is either empty, or a likely valid previous install
-            if (!Directory.IsEmpty(path))
+            if (path.IsEmptyDirectory)
             {
-                // If we have a MO2 install, assume good to go
-                if (Directory.EnumerateFiles(path).Any(file =>
-                {
-                    var fileName = Path.GetFileName(file);
-                    if (fileName.Equals("ModOrganizer.exe", StringComparison.OrdinalIgnoreCase)) return true;
-                    if (fileName.Equals("ModOrganizer.ini", StringComparison.OrdinalIgnoreCase)) return true;
-                    return false;
-                }))
-                {
-                    return ErrorResponse.Success;
-                }
-
-                // If we don't have a MO2 install, and there's any file that's not in the downloads folder, mark failure
-                if (Directory.EnumerateFiles(path).Any(file =>
-                {
-                    var fileName = Path.GetFileName(file);
-                    if (string.IsNullOrWhiteSpace(downloadFolder)) return true;
-                    return !Utils.IsUnderneathDirectory(file, downloadFolder);
-                }))
-                {
-                    return ErrorResponse.Fail($"Cannot install into a non-empty folder that does not look like a previous WJ installation.\n" +
-                        $"To override, delete all installed files from your target installation folder.  Any files in your download folder are okay to keep.");
-                }
+                return ErrorResponse.Success;
             }
 
-            return ErrorResponse.Success;
+            // If we have a MO2 install, assume good to go
+            if (path.EnumerateFiles(false).Any(file =>
+            {
+                if (file.FileName == Consts.ModOrganizer2Exe) return true;
+                if (file.FileName == Consts.ModOrganizer2Ini) return true;
+                return false;
+            }))
+            {
+                return ErrorResponse.Success;
+            }
+
+            // If we don't have a MO2 install, and there's any file that's not in the downloads folder, mark failure
+            if (downloadFolder.HasValue && path.EnumerateFiles(true).All(file => file.InFolder(downloadFolder.Value)))
+            {
+                return ErrorResponse.Success;
+            }
+
+            return ErrorResponse.Fail($"Cannot install to this folder as it has unknown files that could be deleted");
         }
     }
 }

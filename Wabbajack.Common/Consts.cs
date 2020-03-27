@@ -125,5 +125,7 @@ namespace Wabbajack.Common
         public static RelativePath SettingsIni = (RelativePath)"settings.ini";
         public static byte SettingsVersion => 1;
         public static RelativePath ModListTxt = (RelativePath)"modlist.txt";
+        public static RelativePath ModOrganizer2Exe = (RelativePath)"ModOrganizer.exe";
+        public static RelativePath ModOrganizer2Ini = (RelativePath)"ModOrganizer.ini";
     }
 }

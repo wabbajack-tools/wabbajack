@@ -18,8 +18,6 @@
     <None Include="EndToEndTests.cs" />
     <Compile Remove="Extensions.cs" />
     <None Include="Extensions.cs" />
-    <Compile Remove="MO2Tests.cs" />
-    <None Include="MO2Tests.cs" />
     <Compile Remove="RestartingDownloadsTests.cs" />
     <None Include="RestartingDownloadsTests.cs" />
     <Compile Remove="SanityTests.cs" />
