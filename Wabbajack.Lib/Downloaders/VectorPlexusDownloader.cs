@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using MessagePack;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -15,6 +16,8 @@ namespace Wabbajack.Lib.Downloaders
             "vectorplexus", "vectorplexus.com")
         {
         }
+        
+        [MessagePackObject]
         public class State : State<VectorPlexusDownloader>
         {
         }

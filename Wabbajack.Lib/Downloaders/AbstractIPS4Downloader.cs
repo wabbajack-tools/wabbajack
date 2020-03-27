@@ -92,12 +92,14 @@ namespace Wabbajack.Lib.Downloaders
             private static bool IsHTTPS => Downloader.SiteURL.AbsolutePath.StartsWith("https://");
             private static string URLPrefix => IsHTTPS ? "https://" : "http://";
 
+            [IgnoreMember]
             public static string Site => string.IsNullOrWhiteSpace(Downloader.SiteURL.Query)
                 ? $"{URLPrefix}{Downloader.SiteURL.Host}"
                 : Downloader.SiteURL.ToString();
 
             public static AbstractNeedsLoginDownloader Downloader => (AbstractNeedsLoginDownloader)(object)DownloadDispatcher.GetInstance<TDownloader>();
 
+            [IgnoreMember]
             public override object[] PrimaryKey
             {
                 get

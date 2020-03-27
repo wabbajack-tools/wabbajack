@@ -23,7 +23,7 @@ namespace Wabbajack.Common
         public RelativePath FileName { get; }
     }
 
-    public struct AbsolutePath : IPath
+    public struct AbsolutePath : IPath, IComparable<AbsolutePath>
     {
         #region ObjectEquality
 
@@ -57,6 +57,11 @@ namespace Wabbajack.Common
         public override int GetHashCode()
         {
             return _path != null ? _path.GetHashCode() : 0;
+        }
+
+        public override string ToString()
+        {
+            return _path;
         }
 
         private readonly string _path;
@@ -329,6 +334,11 @@ namespace Wabbajack.Common
         public void	 WriteAllLines(string[] strings)
         {
             WriteAllText(string.Join("\n",strings));
+        }
+
+        public int CompareTo(AbsolutePath other)
+        {
+            return string.Compare(_path, other._path, StringComparison.Ordinal);
         }
     }
 

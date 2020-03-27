@@ -1,4 +1,5 @@
 ﻿using System;
+using MessagePack;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -15,6 +16,7 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
+        [MessagePackObject]
         public class State : State<TESAllianceDownloader>{}
     }
 }

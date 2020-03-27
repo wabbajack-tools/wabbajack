@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using MessagePack;
 using MongoDB.Bson.Serialization.Attributes;
 using ReactiveUI;
 using Wabbajack.Common;
@@ -119,31 +120,44 @@ namespace Wabbajack.Lib.Downloaders
         }
 
         [BsonIgnoreExtraElements]
+        [MessagePackObject]
         public class State : AbstractDownloadState, IMetaState
         {
+            [IgnoreMember]
             public Uri URL => new Uri($"http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID}");
 
+            [Key(0)]
             public string Name { get; set; }
 
+            [Key(1)]
             public string Author { get; set; }
 
+            [Key(2)]
             public string Version { get; set; }
             
+            [Key(3)]
             public string ImageURL { get; set; }
             
+            [Key(4)]
             public bool IsNSFW { get; set; }
 
+            [Key(5)]
             public string Description { get; set; }
 
+            [Key(6)]
+            public string GameName { get; set; }
+            
+            [Key(7)]
+            public string ModID { get; set; }
+            [Key(8)]
+            public string FileID { get; set; }
+            
             public async Task<bool> LoadMetaData()
             {
                 return true;
             }
-
-            public string GameName { get; set; }
-            public string ModID { get; set; }
-            public string FileID { get; set; }
-
+            
+            [IgnoreMember]
             public override object[] PrimaryKey { get => new object[]{GameName, ModID, FileID};}
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
