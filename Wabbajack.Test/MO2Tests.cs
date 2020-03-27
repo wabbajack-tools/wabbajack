@@ -1,88 +1,62 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.IO;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Xunit;
 
 namespace Wabbajack.Test
 {
-    [TestClass]
     public class MO2Tests
     {
         #region CheckValidInstallPath
-        [TestMethod]
+        [Fact]
         public void CheckValidInstallPath_Empty()
         {
-            using (var tempDir = new TempFolder())
-            {
-                Assert.IsTrue(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: null).Succeeded);
-            }
+            using var tempDir = new TempFolder();
+            Assert.True(MO2Installer.CheckValidInstallPath(tempDir.Dir, downloadFolder: null).Succeeded);
         }
 
-        [TestMethod]
+        [Fact]
         public void CheckValidInstallPath_DoesNotExist()
         {
-            using (var tempDir = new TempFolder())
-            {
-                Assert.IsTrue(MO2Installer.CheckValidInstallPath(Path.Combine(tempDir.Dir.FullName, "Subfolder"), downloadFolder: null).Succeeded);
-            }
+            using var tempDir = new TempFolder();
+            Assert.True(MO2Installer.CheckValidInstallPath(tempDir.Dir.Combine("Subfolder"), downloadFolder: null).Succeeded);
         }
 
-        [TestMethod]
-        public void CheckValidInstallPath_Invalid()
-        {
-            // TODO: This doesn't fail, and I'm not sure why it should?
-            using (var tempDir = new TempFolder())
-            {
-               // Assert.IsFalse(MO2Installer.CheckValidInstallPath($"{tempDir.Dir.FullName}/*", downloadFolder: null).Succeeded);
-            }
-        }
-
-        [TestMethod]
+        [Fact]
         public void CheckValidInstallPath_HasModlist()
         {
-            using (var tempDir = new TempFolder())
-            {
-                File.Create(Path.Combine(tempDir.Dir.FullName, $"ModOrganizer.exe"));
-                File.Create(Path.Combine(tempDir.Dir.FullName, $"modlist{Consts.ModListExtension}"));
-                Assert.IsFalse(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: null).Succeeded);
-            }
+            using var tempDir = new TempFolder();
+            using var mo2 = tempDir.Dir.Combine("ModOrganizer.exe").Create();
+            using var molist = tempDir.Dir.Combine(((RelativePath)"modlist")).WithExtension(Consts.ModListExtension).Create();
+            Assert.False(MO2Installer.CheckValidInstallPath(tempDir.Dir, downloadFolder: null).Succeeded);
         }
 
-        [TestMethod]
+        [Fact]
         public void CheckValidInstallPath_ProperOverwrite()
         {
-            using (var tempDir = new TempFolder())
-            {
-                File.Create(Path.Combine(tempDir.Dir.FullName, $"ModOrganizer.exe"));
-                Assert.IsTrue(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: null).Succeeded);
-            }
+            using var tempDir = new TempFolder();
+            using var tmp = tempDir.Dir.Combine(Consts.ModOrganizer2Exe).Create();
+            Assert.True(MO2Installer.CheckValidInstallPath(tempDir.Dir, downloadFolder: null).Succeeded);
         }
 
-        [TestMethod]
+        [Fact]
         public void CheckValidInstallPath_ImproperOverwrite()
         {
-            using (var tempDir = new TempFolder())
-            {
-                File.Create(Path.Combine(tempDir.Dir.FullName, $"someFile.txt"));
-                Assert.IsFalse(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: null).Succeeded);
-            }
+            using var tempDir = new TempFolder();
+            tempDir.Dir.DeleteDirectory();
+            tempDir.Dir.CreateDirectory();
+            using var tmp = tempDir.Dir.Combine($"someFile.txt").Create();
+            Assert.False(MO2Installer.CheckValidInstallPath(tempDir.Dir, downloadFolder: null).Succeeded);
         }
 
-        [TestMethod]
+        [Fact]
         public void CheckValidInstallPath_OverwriteFilesInDownloads()
         {
-            using (var tempDir = new TempFolder())
-            {
-                var downloadsFolder = Path.Combine(tempDir.Dir.FullName, "downloads");
-                Directory.CreateDirectory(downloadsFolder);
-                File.Create(Path.Combine(tempDir.Dir.FullName, $"downloads/someFile.txt"));
-                Assert.IsTrue(MO2Installer.CheckValidInstallPath(tempDir.Dir.FullName, downloadFolder: downloadsFolder).Succeeded);
-            }
+            using var tempDir = new TempFolder();
+            var downloadsFolder = tempDir.Dir.Combine("downloads");
+            downloadsFolder.CreateDirectory();
+            using var tmp = tempDir.Dir.Combine($"downloads/someFile.txt").Create();
+            Assert.True(MO2Installer.CheckValidInstallPath(tempDir.Dir, downloadFolder: downloadsFolder).Succeeded);
         }
         #endregion
     }

@@ -147,6 +147,7 @@ namespace Wabbajack.Common
         public AbsolutePath Parent => (AbsolutePath)Path.GetDirectoryName(_path);
         public RelativePath FileName => (RelativePath)Path.GetFileName(_path);
         public RelativePath FileNameWithoutExtension => (RelativePath)Path.GetFileNameWithoutExtension(_path);
+        public bool IsEmptyDirectory => IsDirectory && !EnumerateFiles().Any();
 
         /// <summary>
         ///     Moves this file to the specified location
