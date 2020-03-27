@@ -271,7 +271,7 @@ namespace Wabbajack.Lib
     public class Archive
     {
         /// <summary>
-        ///     MurMur3 Hash of the archive
+        ///     xxHash64 of the archive
         /// </summary>
         [Key(0)]
         public Hash Hash { get; set; }

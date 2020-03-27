@@ -143,7 +143,7 @@ namespace Wabbajack.Lib.Downloaders
                 var result =  await archive.State.Download(archive, destination);
                 if (!result) return false;
 
-                if (archive.Hash == null) return true;
+                if (!archive.Hash.IsValid) return true;
                 var hash = await destination.FileHashCachedAsync();
                 if (hash == archive.Hash) return true;
 

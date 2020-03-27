@@ -456,15 +456,14 @@ namespace Wabbajack.Test
 
             
             
-            var converted = state.ViaJSON();
+            var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive {Name = "yt_test.zip"}));
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
             using var tempFile = new TempFile();
             await converted.Download(new Archive {Name = "yt_test.zip"}, tempFile.Path);
-            File.Copy(tempFile.File.FullName, "c:\\tmp\\" + Path.GetFileName(tempFile.File.FullName) + ".zip");
-            Assert.Equal(Hash.FromBase64("kD36zbA2X9Q="), await tempFile.Path.FileHashAsync());
+            Assert.Equal(Hash.FromBase64("H166oHG0wpY="), await tempFile.Path.FileHashAsync());
         }
         
         

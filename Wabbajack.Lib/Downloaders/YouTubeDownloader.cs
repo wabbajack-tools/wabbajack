@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using MessagePack;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 using YoutubeExplode;
@@ -58,12 +59,19 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
+        [MessagePackObject]
         public class State : AbstractDownloadState
         {
+            [Key(0)]
             public string Key { get; set; }
+            
+            [Key(1)]
             public List<Track> Tracks { get; set; } = new List<Track>();
+            
+            [IgnoreMember]
             public override object[] PrimaryKey => new object[] {Key};
 
+            [MessagePackObject]
             public class Track
             {
                 public enum FormatEnum
@@ -71,9 +79,16 @@ namespace Wabbajack.Lib.Downloaders
                     XWM,
                     WAV
                 }
+                [Key(0)]
                 public FormatEnum Format { get; set; }
+                
+                [Key(1)]
                 public string Name { get; set; }
+                
+                [Key(2)]
                 public TimeSpan Start { get; set; }
+                
+                [Key(3)]
                 public TimeSpan End { get; set; }
             }
             

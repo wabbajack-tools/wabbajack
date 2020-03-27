@@ -23,6 +23,9 @@ namespace Wabbajack.Common
             _code = code;
         }
 
+        
+        public bool IsValid => _code != 0;
+
         public override string ToString()
         {
             return BitConverter.GetBytes(_code).ToBase64();
