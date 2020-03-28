@@ -154,7 +154,7 @@ namespace Wabbajack
             Process.Start(process);
         }
 
-        private static bool IsStartingFromModlist(out string modlistPath)
+        private static bool IsStartingFromModlist(out AbsolutePath modlistPath)
         {
             if (CLIArguments.InstallPath == null)
             {
@@ -162,14 +162,14 @@ namespace Wabbajack
                 return false;
             }
 
-            modlistPath = CLIArguments.InstallPath;
+            modlistPath = (AbsolutePath)CLIArguments.InstallPath;
             return true;
         }
 
 
-        public void OpenInstaller(string path)
+        public void OpenInstaller(AbsolutePath path)
         {
-            if (path == null) return;
+            if (path == default) return;
             var installer = Installer.Value;
             Settings.Installer.LastInstalledListLocation = path;
             NavigateTo(installer);

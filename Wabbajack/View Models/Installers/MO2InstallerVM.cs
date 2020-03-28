@@ -79,9 +79,9 @@ namespace Wabbajack
                 .Skip(1) // Don't do it initially
                 .Subscribe(installPath =>
                 {
-                    if (string.IsNullOrWhiteSpace(DownloadLocation.TargetPath))
+                    if (DownloadLocation.TargetPath == default)
                     {
-                        DownloadLocation.TargetPath = Path.Combine(installPath, "downloads");
+                        DownloadLocation.TargetPath = installPath.Combine("downloads");
                     }
                 })
                 .DisposeWith(CompositeDisposable);
@@ -142,7 +142,7 @@ namespace Wabbajack
 
         public void AfterInstallNavigation()
         {
-            Process.Start("explorer.exe", Location.TargetPath);
+            Process.Start("explorer.exe", (string)Location.TargetPath);
         }
 
         public async Task<bool> Install()

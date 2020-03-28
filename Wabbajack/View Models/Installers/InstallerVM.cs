@@ -128,8 +128,8 @@ namespace Wabbajack
                     {
                         case ModManager.MO2:
                             return new MO2InstallerVM(this);
-                        case ModManager.Vortex:
-                            return new VortexInstallerVM(this);
+                        /*case ModManager.Vortex:
+                            return new VortexInstallerVM(this);*/
                         default:
                             return null;
                     }
@@ -162,7 +162,7 @@ namespace Wabbajack
                     resultSelector: (path, active) => (path, active))
                 .Select(x =>
                 {
-                    if (!x.active) return default(string);
+                    if (!x.active) return default;
                     return x.path;
                 })
                 // Throttle slightly so changes happen more atomically
@@ -175,8 +175,8 @@ namespace Wabbajack
                 // Convert from active path to modlist VM
                 .Select(modListPath =>
                 {
-                    if (modListPath == null) return default(ModListVM);
-                    if (!File.Exists(modListPath)) return default(ModListVM);
+                    if (modListPath == default) return default;
+                    if (!modListPath.Exists) return default;
                     return new ModListVM(modListPath);
                 })
                 .DisposeOld()

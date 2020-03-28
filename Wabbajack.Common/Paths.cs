@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -361,6 +362,16 @@ namespace Wabbajack.Common
         public int CompareTo(AbsolutePath other)
         {
             return string.Compare(_path, other._path, StringComparison.Ordinal);
+        }
+
+        public string ReadAllText()
+        {
+            return File.ReadAllText(_path);
+        }
+
+        public FileStream OpenShared()
+        {
+            return File.Open(_path, FileMode.Open, FileAccess.Read);
         }
     }
 

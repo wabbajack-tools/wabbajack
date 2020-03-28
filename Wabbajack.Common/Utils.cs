@@ -934,15 +934,15 @@ namespace Wabbajack.Common
             return ErrorResponse.Success;
         }
 
-        public static IErrorResponse IsDirectoryPathValid(string path)
+        public static IErrorResponse IsDirectoryPathValid(AbsolutePath path)
         {
-            if (string.IsNullOrWhiteSpace(path))
+            if (path == default)
             {
                 return ErrorResponse.Fail("Path is empty");
             }
             try
             {
-                var fi = new System.IO.DirectoryInfo(path);
+                var fi = new System.IO.DirectoryInfo((string)path);
             }
             catch (ArgumentException ex)
             {

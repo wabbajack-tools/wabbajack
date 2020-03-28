@@ -28,23 +28,22 @@ namespace Wabbajack
 
         public static bool TryLoadTypicalSettings(out MainSettings settings)
         {
-            if (!File.Exists(Consts.SettingsFile))
+            if (!Consts.SettingsFile.Exists)
             {
                 settings = default;
                 return false;
             }
 
             // Version check
-            settings = JsonConvert.DeserializeObject<MainSettings>(File.ReadAllText(Consts.SettingsFile));
+            settings = JsonConvert.DeserializeObject<MainSettings>(Consts.SettingsFile.ReadAllText());
             if (settings.Version == Consts.SettingsVersion)
                 return true;
 
-            var backup = Consts.SettingsFile + "-backup.json";
-            if(File.Exists(backup))
-                File.Delete(backup);
+            var backup = (AbsolutePath)(Consts.SettingsFile + "-backup.json");
+            backup.Delete();
             
-            File.Copy(Consts.SettingsFile, backup);
-            File.Delete(Consts.SettingsFile);
+            Consts.SettingsFile.CopyTo(backup);
+            Consts.SettingsFile.Delete();
 
             settings = default;
             return false;
@@ -59,27 +58,27 @@ namespace Wabbajack
             //settings._saveSignal.OnCompleted();
             //await settings._saveSignal;
 
-            File.WriteAllText(Consts.SettingsFile, JsonConvert.SerializeObject(settings, Formatting.Indented));
+            Consts.SettingsFile.WriteAllText(JsonConvert.SerializeObject(settings, Formatting.Indented));
         }
     }
 
     public class InstallerSettings
     {
-        public string LastInstalledListLocation { get; set; }
-        public Dictionary<string, Mo2ModlistInstallationSettings> Mo2ModlistSettings { get; } = new Dictionary<string, Mo2ModlistInstallationSettings>();
+        public AbsolutePath LastInstalledListLocation { get; set; }
+        public Dictionary<AbsolutePath, Mo2ModlistInstallationSettings> Mo2ModlistSettings { get; } = new Dictionary<AbsolutePath, Mo2ModlistInstallationSettings>();
     }
 
     public class Mo2ModlistInstallationSettings
     {
-        public string InstallationLocation { get; set; }
-        public string DownloadLocation { get; set; }
+        public AbsolutePath InstallationLocation { get; set; }
+        public AbsolutePath DownloadLocation { get; set; }
         public bool AutomaticallyOverrideExistingInstall { get; set; }
     }
 
     public class CompilerSettings
     {
         public ModManager LastCompiledModManager { get; set; }
-        public string OutputLocation { get; set; }
+        public AbsolutePath OutputLocation { get; set; }
         public MO2CompilationSettings MO2Compilation { get; } = new MO2CompilationSettings();
         public VortexCompilationSettings VortexCompilation { get; } = new VortexCompilationSettings();
     }
@@ -118,14 +117,14 @@ namespace Wabbajack
         public string Website { get; set; }
         public bool ReadmeIsWebsite { get; set; }
         public string Readme { get; set; }
-        public string SplashScreen { get; set; }
+        public AbsolutePath SplashScreen { get; set; }
     }
 
     public class MO2CompilationSettings
     {
-        public string DownloadLocation { get; set; }
-        public string LastCompiledProfileLocation { get; set; }
-        public Dictionary<string, CompilationModlistSettings> ModlistSettings { get; } = new Dictionary<string, CompilationModlistSettings>();
+        public AbsolutePath DownloadLocation { get; set; }
+        public AbsolutePath LastCompiledProfileLocation { get; set; }
+        public Dictionary<AbsolutePath, CompilationModlistSettings> ModlistSettings { get; } = new Dictionary<AbsolutePath, CompilationModlistSettings>();
     }
 
     public class VortexCompilationSettings
