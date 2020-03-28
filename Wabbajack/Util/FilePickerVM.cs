@@ -98,7 +98,7 @@ namespace Wabbajack
                         case CheckOptions.Off:
                             return false;
                         case CheckOptions.IfPathNotEmpty:
-                            return t.Path != null;
+                            return t.Path != default;
                         case CheckOptions.On:
                             return true;
                         default:
@@ -182,7 +182,7 @@ namespace Wabbajack
 
                     try
                     {
-                        if (!query.Any(filter => filter.Extensions.Any(ext => new Extension(ext) == target.Extension))) return false;
+                        if (!query.Any(filter => filter.Extensions.Any(ext => new Extension("." + ext) == target.Extension))) return false;
                     }
                     catch (ArgumentException)
                     {

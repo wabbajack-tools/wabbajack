@@ -7,7 +7,7 @@ namespace Wabbajack.App.Test
 {
     public class BasicUITests
     {
-        
+        /*
         [StaFact]
         public async Task CanCompileASimpleModlist()
         {
@@ -20,5 +20,6 @@ namespace Wabbajack.App.Test
             window.Close();
             Assert.True(true);
         } 
+        */
     }
 }

@@ -657,7 +657,7 @@ namespace Wabbajack.Common
         {
             if (!_extension.StartsWith("."))
             {
-                throw new InvalidDataException("Extensions must start with '.'");
+                throw new InvalidDataException($"Extensions must start with '.' got {_extension}");
             }
         }
 

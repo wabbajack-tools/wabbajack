@@ -21,7 +21,6 @@
     <None Include="ZEditIntegrationTests.cs" />
     <Compile Remove="CompilationStackTests.cs" />
     <Compile Remove="FilePickerTests.cs" />
-    <None Include="FilePickerTests.cs" />
   </ItemGroup>
 
   <ItemGroup>
