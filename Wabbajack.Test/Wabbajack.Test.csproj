@@ -20,8 +20,6 @@
     <None Include="Extensions.cs" />
     <Compile Remove="RestartingDownloadsTests.cs" />
     <None Include="RestartingDownloadsTests.cs" />
-    <Compile Remove="SanityTests.cs" />
-    <None Include="SanityTests.cs" />
     <Compile Remove="SimpleHTTPServer.cs" />
     <None Include="SimpleHTTPServer.cs" />
     <Compile Remove="VortexTests.cs" />

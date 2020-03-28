@@ -101,7 +101,7 @@ namespace Wabbajack.Lib
             ModList.Directives
                 .Select(d => OutputFolder.Combine(d.To.Parent))
                 .Distinct()
-                .Do(f => OutputFolder.CreateDirectory());
+                .Do(f => f.CreateDirectory());
         }
 
         public async Task InstallArchives()
@@ -336,12 +336,12 @@ namespace Wabbajack.Lib
             await OutputFolder.EnumerateFiles()
                 .PMap(Queue, UpdateTracker, f =>
                 {
-                    var relative_to = f.RelativeTo(OutputFolder);
-                    Utils.Status($"Checking if ModList file {relative_to}");
-                    if (indexed.ContainsKey(relative_to) || f.InFolder(DownloadFolder))
+                    var relativeTo = f.RelativeTo(OutputFolder);
+                    Utils.Status($"Checking if ModList file {relativeTo}");
+                    if (indexed.ContainsKey(relativeTo) || f.InFolder(DownloadFolder))
                         return;
 
-                    Utils.Log($"Deleting {relative_to} it's not part of this ModList");
+                    Utils.Log($"Deleting {relativeTo} it's not part of this ModList");
                     f.Delete();
                 });
 
@@ -350,6 +350,7 @@ namespace Wabbajack.Lib
                 .Select(f => f.RelativeTo(OutputFolder))
                 // We ignore the last part of the path, so we need a dummy file name
                 .Append(DownloadFolder.Combine("_"))
+                .Where(f => f.InFolder(OutputFolder))
                 .SelectMany(path =>
                 {
                     // Get all the folders and all the folder parents

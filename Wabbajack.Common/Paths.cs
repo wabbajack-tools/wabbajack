@@ -291,7 +291,7 @@ namespace Wabbajack.Common
         {
             if (useMove)
             {
-                File.Move(_path, dest._path);
+                File.Move(_path, dest._path, MoveOptions.ReplaceExisting);
             }
             else
             {
@@ -329,10 +329,10 @@ namespace Wabbajack.Common
 
         public async Task WriteAllLinesAsync(params string[] strings)
         {
-            await WriteAllTextAsync(string.Join("\n",strings));
+            await WriteAllTextAsync(string.Join("\r\n",strings));
         }
 
-        public void	 WriteAllLines(string[] strings)
+        public void	 WriteAllLines(params string[] strings)
         {
             WriteAllText(string.Join("\n",strings));
         }
@@ -551,6 +551,11 @@ namespace Wabbajack.Common
             return Equals((Extension)obj);
         }
 
+        public override string ToString()
+        {
+            return _extension;
+        }
+
         public override int GetHashCode()
         {
             return _extension != null ? _extension.GetHashCode() : 0;
@@ -727,6 +732,7 @@ namespace Wabbajack.Common
 
         public static bool operator ==(FullPath a, FullPath b)
         {
+            if (a.Paths == null || b.Paths == null) return false;
             if (a.Base != b.Base || a.Paths.Length != b.Paths.Length)
             {
                 return false;

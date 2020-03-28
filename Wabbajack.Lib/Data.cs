@@ -140,6 +140,7 @@ namespace Wabbajack.Lib
     [Union(4, typeof(InlineFile))]
     [Union(5, typeof(PatchedFromArchive))]
     [Union(6, typeof(RemappedInlineFile))]
+    [Union(7, typeof(CleanedESM))]
     public abstract class Directive
     {
         [Key(0)]
@@ -185,13 +186,17 @@ namespace Wabbajack.Lib
     /// <summary>
     ///     File meant to be extracted before the installation
     /// </summary>
+    [MessagePackObject]
     public class PropertyFile : InlineFile
     {
+        [Key(4)]
         public PropertyType Type;
     }
 
+    [MessagePackObject]
     public class CleanedESM : InlineFile
     {
+        [Key(4)]
         public Hash SourceESMHash;
     }
 

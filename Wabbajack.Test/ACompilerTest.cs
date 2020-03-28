@@ -13,15 +13,17 @@ namespace Wabbajack.Test
         public ITestOutputHelper TestContext { get; set; }
         protected TestUtils utils { get; set; }
 
-        public ACompilerTest()
+        public ACompilerTest(ITestOutputHelper helper)
         {
+            TestContext = helper;
             Helpers.Init();
             Consts.TestMode = true;
 
             utils = new TestUtils();
             utils.Game = Game.SkyrimSpecialEdition;
 
-            Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f.ShortDescription));
+            DateTime startTime = DateTime.Now;
+            Utils.LogMessages.Subscribe(f => TestContext.WriteLine($"{DateTime.Now - startTime} -  {f.ShortDescription}"));
 
         }
 
@@ -43,6 +45,7 @@ namespace Wabbajack.Test
         protected async Task<ModList> CompileAndInstall(string profile)
         {
             var compiler = await ConfigureAndRunCompiler(profile);
+            Utils.Log("Finished Compiling");
             await Install(compiler);
             return compiler.ModList;
         }
@@ -66,7 +69,7 @@ namespace Wabbajack.Test
             await installer.Begin();
         }
 
-        private SystemParameters CreateDummySystemParameters()
+        protected SystemParameters CreateDummySystemParameters()
         {
             return new SystemParameters
             {
