@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Wabbajack.Common
 {
-    public class TempFolder : IDisposable
+    public class TempFolder : IAsyncDisposable
     {
         public AbsolutePath Dir { get; }
         public bool DeleteAfter = true;
@@ -29,12 +29,11 @@ namespace Wabbajack.Common
             }
             DeleteAfter = deleteAfter;
         }
-
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             if (DeleteAfter && Dir.Exists)
             {
-                Utils.DeleteDirectory(Dir).Wait();
+                await Utils.DeleteDirectory(Dir);
             }
         }
     }

@@ -137,43 +137,41 @@ namespace Wabbajack.Lib
 
             Status($"Copying files for {archive.Name}");
 
-            void CopyFile(string from, string to, bool useMove)
+            async ValueTask CopyFile(AbsolutePath from, AbsolutePath to, bool useMove)
             {
-                if (File.Exists(to))
+                if (to.Exists)
                 {
-                    var fi = new FileInfo(to);
-                    if (fi.IsReadOnly)
-                        fi.IsReadOnly = false;
-                    File.Delete(to);
+                    if (to.IsReadOnly)
+                        to.IsReadOnly = false;
+                    to.Delete();
                 }
 
-                if (File.Exists(from))
+                if (from.Exists)
                 {
-                    var fi = new FileInfo(from);
-                    if (fi.IsReadOnly)
-                        fi.IsReadOnly = false;
+                    if (from.IsReadOnly)
+                        from.IsReadOnly = false;
                 }
 
 
                 if (useMove)
-                    File.Move(from, to);
+                    from.MoveTo(to);
                 else
-                    File.Copy(from, to);
+                    from.CopyTo(to);
                 // If we don't do this, the file will use the last-modified date of the file when it was compressed
                 // into an archive, which isn't really what we want in the case of files installed archives
-                File.SetLastWriteTime(to, DateTime.Now);
+                to.LastModified = DateTime.Now;
             }
 
             await vFiles.GroupBy(f => f.FromFile)
-                  .PDoIndexed(queue, (idx, group) =>
+                  .PDoIndexed(queue, async (idx, group) =>
             {
                 Utils.Status("Installing files", Percent.FactoryPutInRange(idx, vFiles.Count));
                 var firstDest = OutputFolder.Combine(group.First().To);
-                group.Key.StagedPath.CopyTo(firstDest, true);
+                await CopyFile(group.Key.StagedPath, firstDest, true);
                 
                 foreach (var copy in group.Skip(1))
                 {
-                    firstDest.CopyTo(OutputFolder.Combine(copy.To));
+                    await CopyFile(firstDest, OutputFolder.Combine(copy.To), false);
                 }
 
             });

@@ -61,7 +61,7 @@ namespace Wabbajack.Launcher
                     return new Version(0, 0, 0, 0);
                 }).FirstOrDefault();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 FinishAndExit();
             }

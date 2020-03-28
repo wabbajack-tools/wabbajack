@@ -76,8 +76,9 @@ namespace Wabbajack.Lib.ModListRegistry
                     if (summaries.TryGetValue(data.Title, out var summary))
                         data.ValidationSummary = summary;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
+                // ignored
             }
 
             return metadata.OrderBy(m => (m.ValidationSummary?.HasFailures ?? false ? 1 : 0, m.Title)).ToList();

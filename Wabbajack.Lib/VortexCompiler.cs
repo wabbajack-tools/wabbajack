@@ -43,7 +43,7 @@ namespace Wabbajack.Lib
         public const string StagingMarkerName = "__vortex_staging_folder";
         public const string DownloadMarkerName = "__vortex_downloads_folder";
 
-        private bool _isSteamGame;
+        //private bool _isSteamGame = true;
         private SteamGame _steamGame;
         private bool _hasSteamWorkshopItems;
 
@@ -71,12 +71,14 @@ namespace Wabbajack.Lib
             ActiveArchives = new List<string>();
 
             // there can be max one game after filtering
+            /*
             StoreHandler.Instance.StoreGames.Where(g => g.Game == game && g.Type == StoreType.STEAM).Do(g =>
             {
                 _isSteamGame = true;
                 _steamGame = (SteamGame)g;
                 _hasSteamWorkshopItems = _steamGame.WorkshopItems.Count > 0;
             });
+            */
         }
         
         protected override async Task<bool> _Begin(CancellationToken cancel)

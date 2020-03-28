@@ -10,11 +10,10 @@ namespace Wabbajack.Common
     /// </summary>
     public class DiskSlabAllocator : IDisposable
     {
-        private TempFile _file;
-        private MemoryMappedFile _mmap;
+        private readonly TempFile _file;
+        private readonly MemoryMappedFile _mmap;
         private long _head = 0;
-        private string _name;
-        private FileStream _fileStream;
+        private readonly FileStream _fileStream;
 
         public DiskSlabAllocator(long size)
         {

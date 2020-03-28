@@ -64,7 +64,7 @@ namespace Wabbajack.Lib.Downloaders
 
         
         [MessagePackObject]
-        public class State<TDownloader> : AbstractDownloadState, IMetaState where TDownloader : IDownloader
+        public class State<TStateDownloader> : AbstractDownloadState, IMetaState where TStateDownloader : IDownloader
         {
             [Key(0)]
             public string FileID { get; set; }

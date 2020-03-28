@@ -55,7 +55,7 @@ namespace Wabbajack.Common.CSP
 
         private static ManyToManyChannel<TIn, TOut> ChannelForRxBuf<TIn, TOut>(RxBuffer<TIn, TOut> buf)
         {
-            return new ManyToManyChannel<TIn, TOut>(null, RxBuffer<TIn,TOut>.TransformAdd, RxBuffer<TIn, TOut>.Finalize, buf);
+            return new ManyToManyChannel<TIn, TOut>(null, RxBuffer<TIn,TOut>.TransformAdd, (final) => ((RxBuffer<TIn, TOut>)final).Dispose(), buf);
         }
 
         /// <summary>

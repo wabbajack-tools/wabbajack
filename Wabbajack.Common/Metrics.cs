@@ -35,9 +35,9 @@ namespace Wabbajack.Common
                     Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader));
                 await client.GetAsync($"http://build.wabbajack.org/metrics/{action}/{value}");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                
+                // ignored
             }
         }
     }
