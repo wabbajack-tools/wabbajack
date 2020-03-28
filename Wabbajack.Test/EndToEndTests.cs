@@ -3,29 +3,29 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.VirtualFileSystem;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Wabbajack.Test
 {
-    [TestClass]
-    public class EndToEndTests
+    public class EndToEndTests : IDisposable
     {
-        private const string DOWNLOAD_FOLDER = "downloads";
+        private AbsolutePath _downloadFolder = "downloads".RelativeTo(AbsolutePath.EntryPoint);
 
         private TestUtils utils = new TestUtils();
 
-        public TestContext TestContext { get; set; }
+        public ITestOutputHelper TestContext { get; set; }
 
         public WorkQueue Queue { get; set; }
 
-        [TestInitialize]
-        public void TestInitialize()
+        public EndToEndTests(ITestOutputHelper helper)
         {
+            TestContext = helper;
             Queue = new WorkQueue();
             Consts.TestMode = true;
 
@@ -33,18 +33,16 @@ namespace Wabbajack.Test
             utils.Game = Game.SkyrimSpecialEdition;
 
             Utils.LogMessages.Subscribe(f => TestContext.WriteLine($"{DateTime.Now} - {f}"));
-
-            if (!Directory.Exists(DOWNLOAD_FOLDER))
-                Directory.CreateDirectory(DOWNLOAD_FOLDER);
+            
+            _downloadFolder.CreateDirectory();
         }
 
-        [TestCleanup]
-        public void Cleanup()
+        public void Dispose()
         {
             Queue.Dispose();
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CreateModlist()
         {
             var profile = utils.AddProfile("Default");
@@ -52,14 +50,11 @@ namespace Wabbajack.Test
 
             await DownloadAndInstall(
                 "https://github.com/ModOrganizer2/modorganizer/releases/download/v2.2.1/Mod.Organizer.2.2.1.7z",
-                "Mod.Organizer.2.2.1.7z",
-                utils.MO2Folder);
-            File.WriteAllLines(Path.Combine(utils.DownloadsFolder, "Mod.Organizer.2.2.1.7z.meta"),
-                new List<string>
-                {
+                "Mod.Organizer.2.2.1.7z");
+            await utils.DownloadsFolder.Combine("Mod.Organizer.2.2.1.7z.meta").WriteAllLinesAsync(
                     "[General]",
                     "directURL=https://github.com/ModOrganizer2/modorganizer/releases/download/v2.2.1/Mod.Organizer.2.2.1.7z"
-                });
+                );
 
             var modfiles = await Task.WhenAll(
                 DownloadAndInstall(Game.SkyrimSpecialEdition, 12604, "SkyUI"), 
@@ -68,95 +63,85 @@ namespace Wabbajack.Test
                 DownloadAndInstall(Game.SkyrimSpecialEdition, 32359, "Frost Armor HDT"));
             
             // We're going to fully patch this mod from another source.
-            File.Delete(modfiles[3].Download);
+            modfiles[3].Download.Delete();
 
-            utils.Configure();
+            await utils.Configure();
             
-            File.WriteAllLines(Path.Combine(modfiles[3].ModFolder, "meta.ini"), new []
-            {
+            await modfiles[3].ModFolder.Combine("meta.ini").WriteAllLinesAsync(
                 "[General]",
-                $"matchAll= {Path.GetFileName(modfiles[2].Download)}"
-            });
+                $"matchAll= {modfiles[2].Download.FileName}"
+            );
             
-            File.WriteAllLines(Path.Combine(utils.MO2Folder, "startup.bat"), new []
-            {
+            await utils.MO2Folder.Combine("startup.bat").WriteAllLinesAsync(
                 "ModOrganizer2.exe SKSE"
-            });
+            );
 
 
-            var modlist = await CompileAndInstall(profile);
+            await CompileAndInstall(profile);
             utils.VerifyAllFiles();
 
-            var loot_folder = Path.Combine(utils.InstallFolder, "LOOT Config Files");
-            if (Directory.Exists(loot_folder))
-                Utils.DeleteDirectory(loot_folder);
+            await utils.InstallFolder.Combine(Consts.LOOTFolderFilesDir).DeleteDirectory();
 
             var compiler = new MO2Compiler(
                 mo2Folder: utils.InstallFolder,
                 mo2Profile: profile,
-                outputFile: profile + Consts.ModListExtension);
-            compiler.MO2DownloadsFolder = Path.Combine(utils.DownloadsFolder);
-            Assert.IsTrue(await compiler.Begin());
+                outputFile: profile.RelativeTo(AbsolutePath.EntryPoint).WithExtension(Consts.ModListExtension));
+            compiler.MO2DownloadsFolder = utils.DownloadsFolder;
+            Assert.True(await compiler.Begin());
 
         }
 
-        private async Task DownloadAndInstall(string url, string filename, string mod_name = null)
+        private async Task DownloadAndInstall(string url, string filename, string modName = null)
         {
-            var src = Path.Combine(DOWNLOAD_FOLDER, filename);
-            if (!File.Exists(src))
+            var src = _downloadFolder.Combine(filename);
+            if (!src.Exists)
             {
                 var state = DownloadDispatcher.ResolveArchive(url);
                 await state.Download(new Archive { Name = "Unknown"}, src);
             }
 
-            if (!Directory.Exists(utils.DownloadsFolder))
-            {
-                Directory.CreateDirectory(utils.DownloadsFolder);
-            }
+            utils.DownloadsFolder.CreateDirectory();
 
-            await Utils.CopyFileAsync(src, Path.Combine(utils.DownloadsFolder, filename));
+            await src.CopyToAsync(utils.DownloadsFolder.Combine(filename));
 
             await FileExtractor.ExtractAll(Queue, src,
-                mod_name == null ? utils.MO2Folder : Path.Combine(utils.ModsFolder, mod_name));
+                modName == null ? utils.MO2Folder : utils.ModsFolder.Combine(modName));
         }
 
-        private async Task<(string Download, string ModFolder)> DownloadAndInstall(Game game, int modid, string mod_name)
+        private async Task<(AbsolutePath Download, AbsolutePath ModFolder)> DownloadAndInstall(Game game, int modId, string modName)
         {
-            utils.AddMod(mod_name);
+            utils.AddMod(modName);
             var client = await NexusApiClient.Get();
-            var resp = await client.GetModFiles(game, modid);
+            var resp = await client.GetModFiles(game, modId);
             var file = resp.files.FirstOrDefault(f => f.is_primary) ?? resp.files.FirstOrDefault(f => !string.IsNullOrEmpty(f.category_name));
 
-            var src = Path.Combine(DOWNLOAD_FOLDER, file.file_name);
+            var src = _downloadFolder.Combine(file.file_name);
 
             var ini = string.Join("\n",
                 new List<string>
                 {
                     "[General]",
                     $"gameName={game.MetaData().MO2ArchiveName}",
-                    $"modID={modid}",
+                    $"modID={modId}",
                     $"fileID={file.file_id}"
                 });
 
-            if (!File.Exists(src))
+            if (!src.Exists)
             {
 
                 var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
                 await state.Download(src);
             }
+            
+            utils.DownloadsFolder.CreateDirectory();
 
-            if (!Directory.Exists(utils.DownloadsFolder))
-            {
-                Directory.CreateDirectory(utils.DownloadsFolder);
-            }
+            var dest = utils.DownloadsFolder.Combine(file.file_name);
+            await src.CopyToAsync(dest);
 
-            var dest = Path.Combine(utils.DownloadsFolder, file.file_name);
-            await Utils.CopyFileAsync(src, dest);
-
-            var modFolder = Path.Combine(utils.ModsFolder, mod_name);
+            var modFolder = utils.ModsFolder.Combine(modName);
             await FileExtractor.ExtractAll(Queue, src, modFolder);
 
-            File.WriteAllText(dest + Consts.MetaFileExtension, ini);
+            await dest.WithExtension(Consts.MetaFileExtension).WriteAllTextAsync(ini);
             return (dest, modFolder);
         }
 
@@ -175,7 +160,7 @@ namespace Wabbajack.Test
                 modList: modlist,
                 outputFolder: utils.InstallFolder,
                 downloadFolder: utils.DownloadsFolder,
-                parameters: SystemParametersConstructor.Create());
+                parameters: ACompilerTest.CreateDummySystemParameters());
             installer.GameFolder = utils.GameFolder;
             await installer.Begin();
         }
@@ -185,8 +170,8 @@ namespace Wabbajack.Test
             var compiler = new MO2Compiler(
                 mo2Folder: utils.MO2Folder,
                 mo2Profile: profile,
-                outputFile: profile + Consts.ModListExtension);
-            Assert.IsTrue(await compiler.Begin());
+                outputFile: profile.RelativeTo(AbsolutePath.EntryPoint).WithExtension(Consts.ModListExtension));
+            Assert.True(await compiler.Begin());
             return compiler;
         }
     }

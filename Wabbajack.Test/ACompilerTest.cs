@@ -69,7 +69,7 @@ namespace Wabbajack.Test
             await installer.Begin();
         }
 
-        protected SystemParameters CreateDummySystemParameters()
+        public static SystemParameters CreateDummySystemParameters()
         {
             return new SystemParameters
             {

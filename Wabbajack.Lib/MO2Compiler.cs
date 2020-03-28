@@ -33,7 +33,6 @@ namespace Wabbajack.Lib
         public AbsolutePath MO2ModsFolder => MO2Folder.Combine(Consts.MO2ModFolderName);
 
         public string MO2Profile { get; }
-        public Dictionary<RelativePath, dynamic> ModMetas { get; set; }
 
         public override ModManager ModManager => ModManager.MO2;
 
@@ -194,13 +193,6 @@ namespace Wabbajack.Lib
             }
 
 
-            ModMetas = MO2Folder.Combine(Consts.MO2ModFolderName).EnumerateFiles()
-                .Keep(f =>
-                {
-                    var path = f.Combine("meta.ini");
-                    return path.Exists ? (f, path.LoadIniFile()) : default;
-                }).ToDictionary(f => f.f.RelativeTo(MO2Folder), v => v.Item2);
-
             IndexedFiles = IndexedArchives.SelectMany(f => f.File.ThisAndAllChildren)
                 .OrderBy(f => f.NestingFactor)
                 .GroupBy(f => f.Hash)
@@ -241,11 +233,9 @@ namespace Wabbajack.Lib
                 {
                     var modName = f.FileName;
                     var metaPath = f.Combine("meta.ini");
-                    if (metaPath.Exists)
-                        return (mod_name: f, metaPath.LoadIniFile());
-                    return default;
+                    return metaPath.Exists ? (mod_name: f, metaPath.LoadIniFile()) : default;
                 })
-                .Where(f => f.Item2 != null)
+                .Where(f => f.Item1 != default)
                 .ToDictionary(f => f.Item1, f => f.Item2);
 
             if (cancel.IsCancellationRequested) return false;
