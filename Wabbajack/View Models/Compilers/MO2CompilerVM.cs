@@ -18,8 +18,8 @@ namespace Wabbajack
 
         private readonly MO2CompilationSettings _settings;
 
-        private readonly ObservableAsPropertyHelper<string> _mo2Folder;
-        public string Mo2Folder => _mo2Folder.Value;
+        private readonly ObservableAsPropertyHelper<AbsolutePath> _mo2Folder;
+        public AbsolutePath Mo2Folder => _mo2Folder.Value;
 
         private readonly ObservableAsPropertyHelper<string> _moProfile;
         public string MOProfile => _moProfile.Value;
@@ -60,12 +60,12 @@ namespace Wabbajack
                 {
                     try
                     {
-                        var profileFolder = Path.GetDirectoryName(loc);
-                        return Path.GetDirectoryName(Path.GetDirectoryName(profileFolder));
+                        var profileFolder = loc.Parent;
+                        return profileFolder.Parent.Parent;
                     }
                     catch (Exception)
                     {
-                        return null;
+                        return default;
                     }
                 })
                 .ToGuiProperty(this, nameof(Mo2Folder));
@@ -74,8 +74,7 @@ namespace Wabbajack
                 {
                     try
                     {
-                        var profileFolder = Path.GetDirectoryName(loc);
-                        return Path.GetFileName(profileFolder);
+                        return (string)loc.Parent.FileName;
                     }
                     catch (Exception)
                     {
@@ -86,9 +85,9 @@ namespace Wabbajack
 
             // Wire missing Mo2Folder to signal error state for ModList Location
             ModListLocation.AdditionalError = this.WhenAny(x => x.Mo2Folder)
-                .Select<string, IErrorResponse>(moFolder =>
+                .Select<AbsolutePath, IErrorResponse>(moFolder =>
                 {
-                    if (Directory.Exists(moFolder)) return ErrorResponse.Success;
+                    if (moFolder.IsDirectory) return ErrorResponse.Success;
                     return ErrorResponse.Fail($"MO2 folder could not be located from the given ModList location.{Environment.NewLine}Make sure your ModList is inside a valid MO2 distribution.");
                 });
 
@@ -132,7 +131,7 @@ namespace Wabbajack
             // Load settings
             _settings = parent.MWVM.Settings.Compiler.MO2Compilation;
             ModListLocation.TargetPath = _settings.LastCompiledProfileLocation;
-            if (!string.IsNullOrWhiteSpace(_settings.DownloadLocation))
+            if (_settings.DownloadLocation != default)
             {
                 DownloadLocation.TargetPath = _settings.DownloadLocation;
             }
@@ -143,7 +142,7 @@ namespace Wabbajack
             // If Mo2 folder changes and download location is empty, set it for convenience
             this.WhenAny(x => x.Mo2Folder)
                 .DelayInitial(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
-                .Where(x => Directory.Exists(x))
+                .Where(x => x.IsDirectory)
                 .FlowSwitch(
                     (this).WhenAny(x => x.DownloadLocation.Exists)
                         .Invert())
@@ -165,14 +164,14 @@ namespace Wabbajack
 
         public async Task<GetResponse<ModList>> Compile()
         {
-            string outputFile;
-            if (string.IsNullOrWhiteSpace(Parent.OutputLocation.TargetPath))
+            AbsolutePath outputFile;
+            if (Parent.OutputLocation.TargetPath == default)
             {
-                outputFile = MOProfile + Consts.ModListExtension;
+                outputFile = (MOProfile + Consts.ModListExtension).RelativeTo(AbsolutePath.EntryPoint);
             }
             else
             {
-                outputFile = Path.Combine(Parent.OutputLocation.TargetPath, MOProfile + Consts.ModListExtension);
+                outputFile = Parent.OutputLocation.TargetPath.Combine(MOProfile + Consts.ModListExtension);
             }
 
             try
@@ -187,7 +186,7 @@ namespace Wabbajack
                     ModListDescription = ModlistSettings.Description,
                     ModListImage = ModlistSettings.ImagePath.TargetPath,
                     ModListWebsite = ModlistSettings.Website,
-                    ModListReadme = ModlistSettings.ReadmeIsWebsite ? ModlistSettings.ReadmeWebsite : ModlistSettings.ReadmeFilePath.TargetPath,
+                    //ModListReadme = ModlistSettings.ReadmeIsWebsite ? ModlistSettings.ReadmeWebsite : ModlistSettings.ReadmeFilePath.TargetPath,
                     ReadmeIsWebsite = ModlistSettings.ReadmeIsWebsite,
                     MO2DownloadsFolder = DownloadLocation.TargetPath,
                 })

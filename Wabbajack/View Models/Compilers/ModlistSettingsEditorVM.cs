@@ -80,11 +80,13 @@ namespace Wabbajack
             ReadmeIsWebsite = _settings.ReadmeIsWebsite;
             if (ReadmeIsWebsite)
             {
-                ReadmeWebsite = _settings.Readme;
+                // TODO README
+                // ReadmeWebsite = _settings.Readme;
             }
             else
             {
-                ReadmeFilePath.TargetPath = _settings.Readme;
+                // TODO README
+                //ReadmeFilePath.TargetPath = _settings.Readme;
             }
             ImagePath.TargetPath = _settings.SplashScreen;
             Website = _settings.Website;
@@ -102,7 +104,8 @@ namespace Wabbajack
             }
             else
             {
-                _settings.Readme = ReadmeFilePath.TargetPath;
+                // TODO README
+                //_settings.Readme = ReadmeFilePath.TargetPath;
             }
             _settings.SplashScreen = ImagePath.TargetPath;
             _settings.Website = Website;

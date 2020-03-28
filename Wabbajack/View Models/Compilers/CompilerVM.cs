@@ -102,8 +102,10 @@ namespace Wabbajack
                     {
                         case ModManager.MO2:
                             return new MO2CompilerVM(this);
+                        /*
                         case ModManager.Vortex:
                             return new VortexCompilerVM(this);
+                            */
                         default:
                             return null;
                     }
@@ -128,12 +130,8 @@ namespace Wabbajack
                 .ObserveOnGuiThread()
                 .Select(path =>
                 {
-                    if (string.IsNullOrWhiteSpace(path)) return UIUtils.BitmapImageFromResource("Resources/Wabba_Mouth_No_Text.png");
-                    if (UIUtils.TryGetBitmapImageFromFile(path, out var image))
-                    {
-                        return image;
-                    }
-                    return null;
+                    if (path == default) return UIUtils.BitmapImageFromResource("Resources/Wabba_Mouth_No_Text.png");
+                    return UIUtils.TryGetBitmapImageFromFile(path, out var image) ? image : null;
                 })
                 .ToGuiProperty(this, nameof(Image));
 
@@ -233,14 +231,14 @@ namespace Wabbajack
                 {
                     if (Completed?.Failed ?? false)
                     {
-                        Process.Start("explorer.exe", Utils.LogFolder);
+                        Process.Start("explorer.exe", (string)Utils.LogFolder);
                     }
                     else
                     {
                         Process.Start("explorer.exe",
-                            string.IsNullOrWhiteSpace(OutputLocation.TargetPath)
-                                ? Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location)
-                                : OutputLocation.TargetPath);
+                            (string)(OutputLocation.TargetPath == default
+                                ? AbsolutePath.EntryPoint
+                                : OutputLocation.TargetPath));
                     }
                 });
 

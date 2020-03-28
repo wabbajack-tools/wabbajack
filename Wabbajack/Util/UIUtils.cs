@@ -30,16 +30,16 @@ namespace Wabbajack
             return img;
         }
 
-        public static bool TryGetBitmapImageFromFile(string path, out BitmapImage bitmapImage)
+        public static bool TryGetBitmapImageFromFile(AbsolutePath path, out BitmapImage bitmapImage)
         {
             try
             {
-                if (!File.Exists(path))
+                if (!path.Exists)
                 {
                     bitmapImage = default;
                     return false;
                 }
-                bitmapImage = new BitmapImage(new Uri(path, UriKind.RelativeOrAbsolute));
+                bitmapImage = new BitmapImage(new Uri((string)path, UriKind.RelativeOrAbsolute));
                 return true;
             }
             catch (Exception)
@@ -49,14 +49,14 @@ namespace Wabbajack
             }
         }
 
-        public static string OpenFileDialog(string filter, string initialDirectory = null)
+        public static AbsolutePath OpenFileDialog(string filter, string initialDirectory = null)
         {
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter = filter;
             ofd.InitialDirectory = initialDirectory;
             if (ofd.ShowDialog() == DialogResult.OK)
-                return ofd.FileName;
-            return null;
+                return (AbsolutePath)ofd.FileName;
+            return default;
         }
 
         public static IDisposable BindCpuStatus(IObservable<CPUStatus> status, ObservableCollectionExtended<CPUDisplayVM> list)
