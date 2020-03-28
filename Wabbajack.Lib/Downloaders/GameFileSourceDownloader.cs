@@ -38,7 +38,7 @@ namespace Wabbajack.Lib.Downloaders
             return new State
             {
                 Game = game.Game, 
-                GameFile = gameFile,
+                GameFile = (RelativePath)gameFile,
                 Hash = hash,
                 GameVersion = game.InstalledVersion
             };
@@ -54,7 +54,7 @@ namespace Wabbajack.Lib.Downloaders
             [Key(0)]
             public Game Game { get; set; }
             [Key(1)]
-            public string GameFile { get; set; }
+            public RelativePath GameFile { get; set; }
             [Key(2)]
             public Hash Hash { get; set; }
             [Key(3)]

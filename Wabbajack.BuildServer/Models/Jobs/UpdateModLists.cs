@@ -48,16 +48,15 @@ namespace Wabbajack.BuildServer.Models.Jobs
         
          private async Task ValidateList(DBContext db, ModlistMetadata list, WorkQueue queue, ValidateModlist whitelists)
         {
-            var modlist_path = Path.Combine(Consts.ModListDownloadFolder, list.Links.MachineURL + Consts.ModListExtension);
+            var modlistPath = Consts.ModListDownloadFolder.Combine(list.Links.MachineURL + Consts.ModListExtension);
 
-            if (list.NeedsDownload(modlist_path))
+            if (list.NeedsDownload(modlistPath))
             {
-                if (File.Exists(modlist_path))
-                    File.Delete(modlist_path);
+                modlistPath.Delete();
 
                 var state = DownloadDispatcher.ResolveArchive(list.Links.Download);
                 Utils.Log($"Downloading {list.Links.MachineURL} - {list.Title}");
-                await state.Download(modlist_path);
+                await state.Download(modlistPath);
             }
             else
             {
@@ -65,9 +64,9 @@ namespace Wabbajack.BuildServer.Models.Jobs
             }
 
 
-            Utils.Log($"Loading {modlist_path}");
+            Utils.Log($"Loading {modlistPath}");
 
-            var installer = AInstaller.LoadFromFile(modlist_path);
+            var installer = AInstaller.LoadFromFile(modlistPath);
 
             Utils.Log($"{installer.Archives.Count} archives to validate");
 

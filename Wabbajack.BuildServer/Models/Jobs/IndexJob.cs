@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using FluentFTP;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
@@ -39,13 +40,13 @@ namespace Wabbajack.BuildServer.Models.Jobs
             string fileName = Archive.Name;
             string folder = Guid.NewGuid().ToString();
             Utils.Log($"Indexer is downloading {fileName}");
-            var downloadDest = Path.Combine(settings.DownloadDir, folder, fileName);
+            var downloadDest = settings.DownloadDir.Combine(folder, fileName);
             await Archive.State.Download(downloadDest);
 
             using (var queue = new WorkQueue())
             {
                 var vfs = new Context(queue, true);
-                await vfs.AddRoot(Path.Combine(settings.DownloadDir, folder));
+                await vfs.AddRoot(settings.DownloadDir.Combine(folder));
                 var archive = vfs.Index.ByRootPath.First().Value;
 
                 await sql.MergeVirtualFile(archive);
@@ -55,13 +56,14 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     Key = pk_str, Hash = archive.Hash, State = Archive.State, IsValid = true
                 });
                 
-                var to_path = Path.Combine(settings.ArchiveDir,
+                var to_path = settings.ArchiveDir.Combine(
                     $"{Path.GetFileName(fileName)}_{archive.Hash.ToHex()}_{Path.GetExtension(fileName)}");
-                if (File.Exists(to_path))
-                    File.Delete(downloadDest);
+                
+                if (to_path.Exists)
+                    downloadDest.Delete();
                 else
-                    File.Move(downloadDest, to_path);
-                Utils.DeleteDirectory(Path.Combine(settings.DownloadDir, folder));
+                    downloadDest.MoveTo(to_path);
+                await settings.DownloadDir.Combine(folder).DeleteDirectory();
                 
             }
             
@@ -70,9 +72,10 @@ namespace Wabbajack.BuildServer.Models.Jobs
             return JobResult.Success();
         }
 
+        /*
         private List<IndexedFile> ConvertArchive(List<IndexedFile> files, VirtualFile file, bool isTop = true)
         {
-            var name = isTop ? Path.GetFileName(file.Name) : file.Name;
+            var name = isTop ? file.Name.FileName : file.Name;
             var ifile = new IndexedFile
             {
                 Hash = file.Hash,
@@ -89,7 +92,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                         return new ChildFile
                         {
                             Hash = f.Hash,
-                            Name = f.Name.ToLowerInvariant(),
+                            Name = f.Name,
                             Extension = Path.GetExtension(f.Name.ToLowerInvariant())
                         };
                     }).ToList() : new List<ChildFile>()
@@ -97,7 +100,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             ifile.IsArchive = ifile.Children.Count > 0;
             files.Add(ifile);
             return files;
-        }
+        }*/
 
 
     }

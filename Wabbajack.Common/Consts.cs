@@ -17,7 +17,7 @@ namespace Wabbajack.Common
         public static RelativePath LOOTFolderFilesDir = (RelativePath)"LOOT Config Files";
         public static RelativePath BSACreationDir = (RelativePath)"TEMP_BSA_FILES";
 
-        public static string ModListDownloadFolder = "downloaded_mod_lists";
+        public static AbsolutePath ModListDownloadFolder = "downloaded_mod_lists".RelativeTo(AbsolutePath.EntryPoint);
 
         public static string MegaPrefix = "https://mega.nz/#!";
 
@@ -124,6 +124,8 @@ namespace Wabbajack.Common
         public static AbsolutePath SettingsFile => LocalAppDataPath.Combine("settings.json");
         public static RelativePath SettingsIni = (RelativePath)"settings.ini";
         public static byte SettingsVersion => 1;
+        public static Extension OctoSig = new Extension(".octo_sig");
+
         public static RelativePath ModListTxt = (RelativePath)"modlist.txt";
         public static RelativePath ModOrganizer2Exe = (RelativePath)"ModOrganizer.exe";
         public static RelativePath ModOrganizer2Ini = (RelativePath)"ModOrganizer.ini";

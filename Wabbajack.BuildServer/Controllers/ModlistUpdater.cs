@@ -145,7 +145,7 @@ namespace Wabbajack.BuildServer.Controllers
             if (startingHash == newArchive.Hash)
                 return NotFound("End hash same as old hash");
 
-            if (!AlphaFile.Exists(PatchArchive.CdnPath(startingHash, newArchive.Hash)))
+            if (!PatchArchive.CdnPath(startingHash, newArchive.Hash).Exists)
             {
                 Db.Jobs.InsertOne(new Job
                 {
@@ -162,7 +162,7 @@ namespace Wabbajack.BuildServer.Controllers
 
         private async Task<Archive> FindAlternatives(NexusDownloader.State state, Hash srcHash)
         {
-            var origSize = AlphaFile.GetSize(_settings.PathForArchive(srcHash));
+            var origSize = _settings.PathForArchive(srcHash).Size;
             var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
             var allMods = await api.GetModFiles(GameRegistry.GetByFuzzyName(state.GameName).Game,
                 int.Parse(state.ModID));

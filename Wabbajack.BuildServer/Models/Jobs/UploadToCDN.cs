@@ -36,7 +36,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 {
                     try
                     {
-                        await client.UploadAsync(stream, file.MungedName, progress: new Progress(file.MungedName));
+                        await client.UploadAsync(stream, file.MungedName, progress: new Progress((RelativePath)file.MungedName));
                     }
                     catch (Exception ex)
                     {
@@ -71,10 +71,10 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
         public class Progress : IProgress<FluentFTP.FtpProgress>
         {
-            private string _name;
+            private RelativePath _name;
             private DateTime LastUpdate = DateTime.UnixEpoch;
 
-            public Progress(string name)
+            public Progress(RelativePath name)
             {
                 _name = name;
             }
