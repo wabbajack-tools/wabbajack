@@ -111,7 +111,7 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Cleaning output folder");
-            ModListOutputFolder.DeleteDirectory();
+            await ModListOutputFolder.DeleteDirectory();
             ModListOutputFolder.CreateDirectory();
 
             UpdateTracker.NextStep("Finding Install Files");

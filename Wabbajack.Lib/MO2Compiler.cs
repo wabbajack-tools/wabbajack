@@ -152,7 +152,7 @@ namespace Wabbajack.Lib
             
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Cleaning output folder");
-            ModListOutputFolder.DeleteDirectory();
+            await ModListOutputFolder.DeleteDirectory();
             
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Inferring metas for game file downloads");

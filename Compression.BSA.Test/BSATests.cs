@@ -65,7 +65,7 @@ namespace Compression.BSA.Test
         {
             var filename = await DownloadMod(game, modid);
             var folder = _bsaFolder.Combine(game.ToString(), modid.ToString());
-            folder.DeleteDirectory();
+            await folder.DeleteDirectory();
             folder.CreateDirectory();
             await FileExtractor.ExtractAll(Queue, filename, folder);
 
@@ -73,7 +73,7 @@ namespace Compression.BSA.Test
             {
                 TestContext.WriteLine($"From {bsa}");
                 TestContext.WriteLine("Cleaning Output Dir");
-                _tempDir.DeleteDirectory();
+                await _tempDir.DeleteDirectory();
                 _tempDir.CreateDirectory();
 
                 TestContext.WriteLine($"Reading {bsa}");
