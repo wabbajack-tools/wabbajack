@@ -17,11 +17,11 @@ namespace Wabbajack.Lib
     {
         private static MO2Compiler _mo2Compiler;
 
-        public static string FindzEditPath(ACompiler compiler)
+        public static AbsolutePath FindzEditPath(ACompiler compiler)
         {
             _mo2Compiler = (MO2Compiler) compiler;
             var executables = _mo2Compiler.MO2Ini.customExecutables;
-            if (executables.size == null) return null;
+            if (executables.size == null) return default;
 
             foreach (var idx in Enumerable.Range(1, int.Parse(executables.size)))
             {
@@ -29,10 +29,10 @@ namespace Wabbajack.Lib
                 if (path == null) continue;
 
                 if (path.EndsWith("zEdit.exe"))
-                    return Path.GetDirectoryName(path);
+                    return (AbsolutePath)path;
             }
 
-            return null;
+            return default;
         }
 
         public class IncludeZEditPatches : ACompilationStep
@@ -52,9 +52,8 @@ namespace Wabbajack.Lib
                     return;
                 }
 
-                var merges = Directory.EnumerateFiles(Path.Combine(zEditPath, "profiles"),
-                        DirectoryEnumerationOptions.Files | DirectoryEnumerationOptions.Recursive)
-                    .Where(f => f.EndsWith("\\merges.json"))
+                var merges = zEditPath.Combine("profiles").EnumerateFiles()
+                    .Where(f => f.FileName == (RelativePath)"merges.json")
                     .SelectMany(f => f.FromJSON<List<zEditMerge>>())
                     .GroupBy(f => (f.name, f.filename));
 

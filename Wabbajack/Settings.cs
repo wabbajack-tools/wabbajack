@@ -35,7 +35,7 @@ namespace Wabbajack
             }
 
             // Version check
-            settings = JsonConvert.DeserializeObject<MainSettings>(Consts.SettingsFile.ReadAllText());
+            settings = Consts.SettingsFile.FromJSON<MainSettings>();
             if (settings.Version == Consts.SettingsVersion)
                 return true;
 

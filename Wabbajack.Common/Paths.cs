@@ -218,6 +218,7 @@ namespace Wabbajack.Common
 
         public static explicit operator AbsolutePath(string path)
         {
+            if (string.IsNullOrEmpty(path)) return default;
             return !Path.IsPathRooted(path) ? ((RelativePath)path).RelativeToEntryPoint() : new AbsolutePath(path);
         }
 

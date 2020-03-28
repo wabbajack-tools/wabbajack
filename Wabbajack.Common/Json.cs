@@ -42,11 +42,11 @@ namespace Wabbajack.Common
                 });
         }
         
-        public static T FromJSON<T>(this string filename, 
+        public static T FromJSON<T>(this AbsolutePath filename, 
             TypeNameHandling handling = TypeNameHandling.All, 
             TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
         {
-            return JsonConvert.DeserializeObject<T>(File.ReadAllText(filename),
+            return JsonConvert.DeserializeObject<T>(filename.ReadAllText(),
                 new JsonSerializerSettings {TypeNameHandling = handling, 
                     TypeNameAssemblyFormatHandling = format,
                     Converters = Converters
