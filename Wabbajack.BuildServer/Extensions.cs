@@ -47,22 +47,19 @@ namespace Wabbajack.BuildServer
             return authenticationBuilder.AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationOptions.DefaultScheme, options);
         }
         
-        private static readonly ConcurrentDictionary<Hash, string> PathForArchiveHash = new ConcurrentDictionary<Hash, string>();
-        public static string PathForArchive(this AppSettings settings, Hash hash)
+        private static readonly ConcurrentDictionary<Hash, AbsolutePath> PathForArchiveHash = new ConcurrentDictionary<Hash, AbsolutePath>();
+        public static AbsolutePath PathForArchive(this AppSettings settings, Hash hash)
         {
-            if (PathForArchiveHash.TryGetValue(hash, out string result))
+            if (PathForArchiveHash.TryGetValue(hash, out AbsolutePath result))
                 return result;
             
             var hexHash = hash.ToHex();
 
             var ends = "_" + hexHash + "_";
-            var file = Directory.EnumerateFiles(settings.ArchiveDir, DirectoryEnumerationOptions.Files,
-                new DirectoryEnumerationFilters
-                {
-                    InclusionFilter = f => Path.GetFileNameWithoutExtension(f.FileName).EndsWith(ends)
-                }).FirstOrDefault();
-            
-            if (file != null) 
+            var file = settings.ArchiveDir.EnumerateFiles()
+                .FirstOrDefault(f => ((string)f.FileNameWithoutExtension).EndsWith(ends)); 
+
+            if (file != default) 
                 PathForArchiveHash.TryAdd(hash, file);
             return file;
         }

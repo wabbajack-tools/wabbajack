@@ -126,16 +126,16 @@ namespace Wabbajack.BuildServer.Controllers
             if (!Key.All(a => HexChars.Contains(a)))
                 return BadRequest("NOT A VALID FILENAME");
             var parts = Encoding.UTF8.GetString(Key.FromHex()).Split('|');
-            var final_name = $"{parts[0]}-{parts[1]}{parts[2]}";
-            var original_name = $"{parts[0]}{parts[2]}";
+            var finalName = $"{parts[0]}-{parts[1]}{parts[2]}";
+            var originalName = $"{parts[0]}{parts[2]}";
 
-            var final_path = Path.Combine("public", "files", final_name);
-            System.IO.File.Move(Path.Combine("public", "tmp_files", Key), final_path);
-            var hash = await final_path.FileHashAsync();
+            var finalPath = "public".RelativeTo(AbsolutePath.EntryPoint).Combine("files", finalName);
+            "public".RelativeTo(AbsolutePath.EntryPoint).MoveTo(finalPath);
+            var hash = await finalPath.FileHashAsync();
 
             if (expectedHash != hash)
             {
-                System.IO.File.Delete(final_path);
+                finalPath.Delete();
                 return BadRequest($"Bad Hash, Expected: {expectedHash} Got: {hash}");
             }
 
@@ -144,9 +144,9 @@ namespace Wabbajack.BuildServer.Controllers
             {
                 Id = parts[1],
                 Hash = hash, 
-                Name = original_name, 
+                Name = originalName, 
                 Uploader = user, 
-                Size = new FileInfo(final_path).Length,
+                Size = finalPath.Size,
                 CDNName = "wabbajackpush"
             };
             await Db.UploadedFiles.InsertOneAsync(record);

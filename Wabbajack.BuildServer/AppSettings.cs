@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Wabbajack.Common;
 
 namespace Wabbajack.BuildServer
 {
@@ -9,8 +10,8 @@ namespace Wabbajack.BuildServer
             config.Bind("WabbajackSettings", this);
         }
         
-        public string DownloadDir { get; set; }
-        public string ArchiveDir { get; set; }
+        public AbsolutePath DownloadDir { get; set; }
+        public AbsolutePath ArchiveDir { get; set; }
         
         public bool JobScheduler { get; set; }
         public bool JobRunner { get; set; }

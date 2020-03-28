@@ -504,6 +504,11 @@ namespace Wabbajack.Common
         {
             return (RelativePath)Path.Combine(paths.Select(p => (string)p).Cons(_path).ToArray());
         }
+        
+        public RelativePath Combine(params string[] paths )
+        {
+            return (RelativePath)Path.Combine(paths.Cons(_path).ToArray());
+        }
 
         public int CompareTo(RelativePath other)
         {

@@ -69,13 +69,13 @@ namespace Wabbajack.CLI.Verbs
                 Directory.CreateDirectory(Output);
             }
 
-            if (!Modlist.EndsWith(Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt"))
+            if (!Modlist.EndsWith((string)Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt"))
                 return CLIUtils.Exit($"The file {Modlist} is not a valid modlist file!", -1);
 
             if (Copy && Move)
                 return CLIUtils.Exit("You can't set both copy and move flags!", -1);
 
-            var isModlist = Modlist.EndsWith(Consts.ModListExtension);
+            var isModlist = Modlist.EndsWith((string)Consts.ModListExtension);
 
             var list = new List<TransferFile>();
 
@@ -85,7 +85,7 @@ namespace Wabbajack.CLI.Verbs
 
                 try
                 {
-                    modlist = AInstaller.LoadFromFile(Modlist);
+                    modlist = AInstaller.LoadFromFile((AbsolutePath)Modlist);
                 }
                 catch (Exception e)
                 {

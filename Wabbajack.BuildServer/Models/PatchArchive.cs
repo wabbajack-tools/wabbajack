@@ -32,15 +32,14 @@ namespace Wabbajack.BuildServer.Models
             Utils.Log($"Creating Patch ({Src} -> {DestPK})");
             var cdnPath = CdnPath(Src, destHash);
             
-            if (File.Exists(cdnPath))
+            if (cdnPath.Exists)
                 return JobResult.Success();
 
             Utils.Log($"Calculating Patch ({Src} -> {DestPK})");
-            await using var fs = File.Create(cdnPath);
-            
-            await using (var srcStream = File.OpenRead(srcPath))
-            await using (var destStream = File.OpenRead(destPath))
-            await using (var sigStream = File.Create(cdnPath + ".octo_sig"))
+            await using var fs = cdnPath.Create();
+            await using (var srcStream = srcPath.OpenRead())
+            await using (var destStream = destPath.OpenRead())
+            await using (var sigStream = cdnPath.WithExtension(Consts.OctoSig).Create())
             {
                 OctoDiff.Create(destStream, srcStream, sigStream, fs);
             }
@@ -56,7 +55,7 @@ namespace Wabbajack.BuildServer.Models
                 await client.ConnectAsync();
                 try
                 {
-                    await client.UploadAsync(fs, $"updates/{Src.ToHex()}_{destHash.ToHex()}", progress: new UploadToCDN.Progress(cdnPath));
+                    await client.UploadAsync(fs, $"updates/{Src.ToHex()}_{destHash.ToHex()}", progress: new UploadToCDN.Progress(cdnPath.FileName));
                 }
                 catch (Exception ex)
                 {
@@ -72,9 +71,9 @@ namespace Wabbajack.BuildServer.Models
             
         }
 
-        public static string CdnPath(Hash srcHash, Hash destHash)
+        public static AbsolutePath CdnPath(Hash srcHash, Hash destHash)
         {
-            return $"updates/{srcHash.ToHex()}_{destHash.ToHex()}";
+            return $"updates/{srcHash.ToHex()}_{destHash.ToHex()}".RelativeTo(AbsolutePath.EntryPoint);
         }
     }
 }

@@ -69,7 +69,7 @@ namespace Wabbajack.BuildServer.Model.Models
                 {
                     Parent = (long)root.Hash,
                     Child = (long)child.Hash,
-                    Path = child.Name
+                    Path = (RelativePath)child.Name
                 });
             }
 
@@ -120,7 +120,7 @@ namespace Wabbajack.BuildServer.Model.Models
                 {
                     return children.Select(f => new IndexedVirtualFile
                     {
-                        Name = f.Path,
+                        Name = (RelativePath)f.Path,
                         Hash = Hash.FromLong(f.Hash),
                         Size = f.Size,
                         Children = Build(f.Hash)

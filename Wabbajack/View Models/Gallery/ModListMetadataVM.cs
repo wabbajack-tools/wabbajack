@@ -52,7 +52,7 @@ namespace Wabbajack
         {
             _parent = parent;
             Metadata = metadata;
-            Location = Consts.ModListDownloadFolder.RelativeTo(AbsolutePath.EntryPoint).Combine(Metadata.Links.MachineURL + Consts.ModListExtension);
+            Location = Consts.ModListDownloadFolder.Combine(Metadata.Links.MachineURL + (string)Consts.ModListExtension);
             IsBroken = metadata.ValidationSummary.HasFailures;
             OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.Links.MachineURL}")));
             ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, Unit>(

@@ -33,14 +33,14 @@ namespace Wabbajack.CLI.Verbs
                 return CLIUtils.Exit($"The file {Input} does not exist!", -1);
 
 
-            if (!Input.EndsWith(Consts.ModListExtension))
+            if (!Input.EndsWith((string)Consts.ModListExtension))
                 return CLIUtils.Exit($"The file {Input} does not end with {Consts.ModListExtension}!", -1);
 
             ModList modlist;
 
             try
             {
-                modlist = AInstaller.LoadFromFile(Input);
+                modlist = AInstaller.LoadFromFile((AbsolutePath)Input);
             }
             catch (Exception e)
             {
