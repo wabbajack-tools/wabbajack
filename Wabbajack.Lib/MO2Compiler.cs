@@ -66,7 +66,7 @@ namespace Wabbajack.Lib
         {
             get
             {
-                if (_mo2DownloadsFolder != null) return _mo2DownloadsFolder;
+                if (_mo2DownloadsFolder != default) return _mo2DownloadsFolder;
                 if (MO2Ini != null)
                     if (MO2Ini.Settings != null)
                         if (MO2Ini.Settings.download_directory != null)
@@ -105,7 +105,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             await VFS.IntegrateFromFile(VFSCacheName);
 
-            var roots = new List<AbsolutePath>()
+            var roots = new List<AbsolutePath>
             {
                 MO2Folder, GamePath, MO2DownloadsFolder
             };
@@ -312,7 +312,7 @@ namespace Wabbajack.Lib
                 Author = ModListAuthor ?? "",
                 Description = ModListDescription ?? "",
                 Readme = (string)ModListReadme,
-                Image = ModListImage.FileName,
+                Image = ModListImage != default ? ModListImage.FileName : default,
                 Website = ModListWebsite != null ? new Uri(ModListWebsite) : null
             };
 
@@ -362,7 +362,7 @@ namespace Wabbajack.Lib
             async Task<bool> HasInvalidMeta(AbsolutePath filename)
             {
                 var metaname = filename.WithExtension(Consts.MetaFileExtension);
-                if (metaname.Exists) return true;
+                if (!metaname.Exists) return true;
                 return await DownloadDispatcher.ResolveArchive(metaname.LoadIniFile()) == null;
             }
 
@@ -443,7 +443,7 @@ namespace Wabbajack.Lib
                 });
 
             var groups = InstallDirectives.OfType<PatchedFromArchive>()
-                .Where(p => p.PatchID == null)
+                .Where(p => p.PatchID == default)
                 .GroupBy(p => p.ArchiveHashPath.BaseHash)
                 .ToList();
 

@@ -206,7 +206,7 @@ namespace Wabbajack.Lib
             Info("Building a list of archives based on the files required");
 
             var hashes = InstallDirectives.OfType<FromArchive>()
-                .Select(a => a.Hash)
+                .Select(a => a.ArchiveHashPath.BaseHash)
                 .Distinct();
 
             var archives = IndexedArchives.OrderByDescending(f => f.File.LastModified)

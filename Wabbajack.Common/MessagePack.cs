@@ -100,6 +100,12 @@ namespace Wabbajack.Common
     {
         public void Serialize(ref MessagePackWriter writer, RelativePath value, MessagePackSerializerOptions options)
         {
+            if (value == default)
+            {
+                writer.WriteString(new byte[0]);
+                return;
+            }
+
             var encoded = Encoding.UTF8.GetBytes((string)value);
             writer.WriteString(encoded);
         }

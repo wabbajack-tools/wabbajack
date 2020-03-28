@@ -330,7 +330,7 @@ namespace Wabbajack.Lib
         {
             var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
             foreach (var file in OutputFolder.Combine("profiles").EnumerateFiles()
-                .Where(f => ((string)f.FileName).EndsWith("*refs.ini")))
+                .Where(f => ((string)f.FileName).EndsWith("refs.ini")))
             {
                 try
                 {

@@ -17,6 +17,8 @@ using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
+using IniParser.Model.Configuration;
+using IniParser.Parser;
 using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common.StatusFeed;
@@ -50,13 +52,12 @@ namespace Wabbajack.Common
 
         static Utils()
         {
-            MessagePackInit();
-            
+            LogFolder = Consts.LogsFolder;
+            LogFile = Consts.LogFile;
             Consts.LocalAppDataPath.CreateDirectory();
             Consts.LogsFolder.CreateDirectory();
 
-            LogFolder = Consts.LogsFolder;
-            LogFile = Consts.LogFile;
+            MessagePackInit();
             _startTime = DateTime.Now;
 
             if (LogFile.Exists)
@@ -65,7 +66,7 @@ namespace Wabbajack.Common
                 LogFile.MoveTo(newPath, true);
             }
 
-            var logFiles = Consts.LogsFolder.EnumerateFiles(false).ToList();
+            var logFiles = LogFolder.EnumerateFiles(false).ToList();
             if (logFiles.Count >= Consts.MaxOldLogs)
             {
                 Log($"Maximum amount of old logs reached ({logFiles.Count} >= {Consts.MaxOldLogs})");
@@ -156,6 +157,7 @@ namespace Wabbajack.Common
 
         public static void LogStraightToFile(string msg)
         {
+            if (LogFile == default) return;
             lock (_lock)
             {
                 LogFile.AppendAllText($"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n");
@@ -315,6 +317,13 @@ namespace Wabbajack.Common
         }
 
 
+        private static IniDataParser IniParser()
+        {
+            var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
+            var parser = new IniDataParser(config);
+            return parser;
+        }
+
 
         /// <summary>
         ///     Loads INI data from the given filename and returns a dynamic type that
@@ -324,7 +333,7 @@ namespace Wabbajack.Common
         /// <returns></returns>
         public static dynamic LoadIniFile(this AbsolutePath file)
         {
-            return new DynamicIniData(new FileIniDataParser().ReadFile((string)file));
+            return new DynamicIniData(new FileIniDataParser(IniParser()).ReadFile((string)file));
         }
 
         /// <summary>
@@ -334,7 +343,7 @@ namespace Wabbajack.Common
         /// <returns></returns>
         public static dynamic LoadIniString(this string file)
         {
-            return new DynamicIniData(new FileIniDataParser().ReadData(new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(file)))));
+            return new DynamicIniData(new FileIniDataParser(IniParser()).ReadData(new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(file)))));
         }
 
 

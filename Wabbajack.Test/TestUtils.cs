@@ -44,13 +44,11 @@ namespace Wabbajack.Test
 
         public async Task Configure()
         {
-            await MO2Folder.Combine("ModOrganizer.ini").WriteAllLinesAsync(new []
-            {
-                "[General]",
-                $"gameName={Game.MetaData().MO2Name}",
-                $"gamePath={((string)GameFolder).Replace("\\", "\\\\")}",
-                $"download_directory={DownloadsFolder}"
-            });
+            await MO2Folder.Combine("ModOrganizer.ini").WriteAllLinesAsync(
+                "[General]", 
+                $"gameName={Game.MetaData().MO2Name}", 
+                $"gamePath={((string)GameFolder).Replace("\\", "\\\\")}", 
+                $"download_directory={DownloadsFolder}");
 
             DownloadsFolder.CreateDirectory();
             GameFolder.Combine("Data").CreateDirectory();
@@ -157,12 +155,9 @@ namespace Wabbajack.Test
             });
 
             DownloadsFolder.Combine(name + Consts.MetaFileExtension).WriteAllLines(
-                
-                new string[]
-                {
                     "[General]",
                     "manualURL=<TESTING>"
-                });
+                );
 
             return name;
         }
@@ -173,7 +168,7 @@ namespace Wabbajack.Test
             Assert.True(src.Exists);
 
             var dest = InstallFolder.Combine((string)Consts.MO2ModFolderName, mod, file);
-            Assert.True(src.Exists);
+            Assert.True(dest.Exists, $"Destination {dest} doesn't exist");
 
             var srcData = src.ReadAllBytes();
             var destData = dest.ReadAllBytes();

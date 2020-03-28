@@ -243,21 +243,15 @@ namespace Wabbajack.VirtualFileSystem
 
         public async Task BackfillMissing()
         {
-            var newFiles = _knownFiles.Where(f => f.Paths.Length == 0)
-                                       .GroupBy(f => f.BaseHash)
-                                       .ToDictionary(f => f.Key, s => new VirtualFile()
-                                       {
-                                           Name = s.First().Paths[0],
-                                           Hash = s.First().BaseHash,
-                                           Context = this
-                                       });
+            var newFiles = _knownArchives.ToDictionary(kv => kv.Key,
+                kv => new VirtualFile {Name = kv.Value, Size = kv.Value.Size, Hash = kv.Key});
 
             var parentchild = new Dictionary<(VirtualFile, RelativePath), VirtualFile>();
 
             void BackFillOne(HashRelativePath file)
             {
                 var parent = newFiles[file.BaseHash];
-                foreach (var path in file.Paths.Skip(1))
+                foreach (var path in file.Paths)
                 {
                     if (parentchild.TryGetValue((parent, path), out var foundParent))
                     {
@@ -271,7 +265,7 @@ namespace Wabbajack.VirtualFileSystem
                     parent = nf;
                 }
             }
-            _knownFiles.Where(f => f.Paths.Length > 1).Do(BackFillOne);
+            _knownFiles.Where(f => f.Paths.Length > 0).Do(BackFillOne);
 
             var newIndex = await Index.Integrate(newFiles.Values.ToList());
 

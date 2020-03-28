@@ -1,92 +1,96 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Compression.BSA;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.CompilationSteps.CompilationErrors;
+using Xunit;
+using Xunit.Abstractions;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Test
 {
-    [TestClass]
     public class SanityTests : ACompilerTest
     {
-        [TestMethod]
-        public async Task TestDirectMatch()
+
+        public SanityTests(ITestOutputHelper helper) : base(helper)
+        {
+        }
+
+        
+        [Fact]
+        public async Task TestDirectMatch() 
         {
 
             var profile = utils.AddProfile();
             var mod = utils.AddMod();
-            var test_pex = utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
+            var testPex = utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
 
-            utils.Configure();
+            await utils.Configure();
 
             utils.AddManualDownload(
-                new Dictionary<string, byte[]> {{"/baz/biz.pex", File.ReadAllBytes(test_pex)}});
+                new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
 
             await CompileAndInstall(profile);
 
             utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
         }
         
-        [TestMethod]
+        [Fact]
         public async Task TestDirectMatchFromGameFolder()
         {
 
             var profile = utils.AddProfile();
             var mod = utils.AddMod();
-            var test_pex = utils.AddGameFile(@"enbstuff\test.pex", 10);
+            var testPex = utils.AddGameFile(@"enbstuff\test.pex", 10);
 
-            utils.Configure();
+            await utils.Configure();
 
             utils.AddManualDownload(
-                new Dictionary<string, byte[]> {{"/baz/biz.pex", File.ReadAllBytes(test_pex)}});
+                new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
 
             await CompileAndInstall(profile);
 
             utils.VerifyInstalledGameFile(@"enbstuff\test.pex");
         }
         
-        [TestMethod]
+        [Fact]
         public async Task TestDirectMatchIsIgnoredWhenGameFolderFilesOverrideExists()
         {
 
             var profile = utils.AddProfile();
             var mod = utils.AddMod();
-            var test_pex = utils.AddGameFile(@"enbstuff\test.pex", 10);
+            var testPex = utils.AddGameFile(@"enbstuff\test.pex", 10);
 
-            utils.Configure();
+            await utils.Configure();
 
-            Directory.CreateDirectory(Path.Combine(utils.MO2Folder, Consts.GameFolderFilesDir));
+            utils.MO2Folder.Combine(Consts.GameFolderFilesDir).CreateDirectory();
 
             utils.AddManualDownload(
-                new Dictionary<string, byte[]> {{"/baz/biz.pex", File.ReadAllBytes(test_pex)}});
+                new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
 
             await CompileAndInstall(profile);
 
-            Assert.IsFalse(File.Exists(Path.Combine(utils.InstallFolder, Consts.GameFolderFilesDir, @"enbstuff\test.pex")));
+            Assert.False(utils.InstallFolder.Combine(Consts.GameFolderFilesDir, (RelativePath)@"enbstuff\test.pex").IsFile);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TestDuplicateFilesAreCopied()
         {
 
             var profile = utils.AddProfile();
             var mod = utils.AddMod();
-            var test_pex = utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
+            var testPex = utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
 
             // Make a copy to make sure it gets picked up and moved around.
-            File.Copy(test_pex, test_pex + ".copy");
+            testPex.CopyTo(testPex.WithExtension(new Extension(".copy")));
 
-            utils.Configure();
+            await utils.Configure();
 
             utils.AddManualDownload(
-                new Dictionary<string, byte[]> { { "/baz/biz.pex", File.ReadAllBytes(test_pex) } });
+                new Dictionary<string, byte[]> { { "/baz/biz.pex", await testPex.ReadAllBytesAsync() } });
 
             await CompileAndInstall(profile);
 
@@ -94,7 +98,7 @@ namespace Wabbajack.Test
             utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex.copy");
         }
 
-        [TestMethod]
+        [Fact]
         public async Task TestUpdating()
         {
 
@@ -104,14 +108,14 @@ namespace Wabbajack.Test
             var deleted = utils.AddModFile(mod, @"Data\scripts\deleted.pex", 10);
             var modified = utils.AddModFile(mod, @"Data\scripts\modified.pex", 10);
 
-            utils.Configure();
+            await utils.Configure();
 
             utils.AddManualDownload(
                 new Dictionary<string, byte[]>
                 {
-                    { "/baz/unchanged.pex", File.ReadAllBytes(unchanged) },
-                    { "/baz/deleted.pex", File.ReadAllBytes(deleted) },
-                    { "/baz/modified.pex", File.ReadAllBytes(modified) },
+                    { "/baz/unchanged.pex", await unchanged.ReadAllBytesAsync() },
+                    { "/baz/deleted.pex", await deleted.ReadAllBytesAsync() },
+                    { "/baz/modified.pex", await modified.ReadAllBytesAsync() },
                 });
 
             await CompileAndInstall(profile);
@@ -120,51 +124,52 @@ namespace Wabbajack.Test
             utils.VerifyInstalledFile(mod, @"Data\scripts\deleted.pex");
             utils.VerifyInstalledFile(mod, @"Data\scripts\modified.pex");
 
-            var unchanged_path = utils.PathOfInstalledFile(mod, @"Data\scripts\unchanged.pex");
-            var deleted_path = utils.PathOfInstalledFile(mod, @"Data\scripts\deleted.pex");
-            var modified_path = utils.PathOfInstalledFile(mod, @"Data\scripts\modified.pex");
+            var unchangedPath = utils.PathOfInstalledFile(mod, @"Data\scripts\unchanged.pex");
+            var deletedPath = utils.PathOfInstalledFile(mod, @"Data\scripts\deleted.pex");
+            var modifiedPath = utils.PathOfInstalledFile(mod, @"Data\scripts\modified.pex");
 
-            var extra_path = utils.PathOfInstalledFile(mod, @"something_i_made.foo");
-            File.WriteAllText(extra_path, "bleh");
+            var extraPath = utils.PathOfInstalledFile(mod, @"something_i_made.foo");
+            await extraPath.WriteAllTextAsync("bleh");
 
-            var extra_folder = Path.Combine(Path.GetDirectoryName(utils.PathOfInstalledFile(mod, @"something_i_made.foo")), "folder_i_made");
-            Directory.CreateDirectory(extra_folder);
+            var extraFolder = utils.PathOfInstalledFile(mod, @"something_i_made.foo").Parent.Combine("folder_i_made");
+            extraFolder.CreateDirectory();
             
-            Assert.IsTrue(Directory.Exists(extra_folder));
+            Assert.True(extraFolder.IsDirectory);
 
 
-            var unchanged_modified = File.GetLastWriteTime(unchanged_path);
-            var modified_modified = File.GetLastWriteTime(modified_path);
+            var unchangedModified = unchangedPath.LastModified;
 
-            File.WriteAllText(modified_path, "random data");
-            File.Delete(deleted_path);
+            await modifiedPath.WriteAllTextAsync("random data");
+            var modifiedModified = modifiedPath.LastModified;
 
-            Assert.IsTrue(File.Exists(extra_path));
+            deletedPath.Delete();
 
+            Assert.True(extraPath.Exists);
+            
             await CompileAndInstall(profile);
 
             utils.VerifyInstalledFile(mod, @"Data\scripts\unchanged.pex");
             utils.VerifyInstalledFile(mod, @"Data\scripts\deleted.pex");
             utils.VerifyInstalledFile(mod, @"Data\scripts\modified.pex");
 
-            Assert.AreEqual(unchanged_modified, File.GetLastWriteTime(unchanged_path));
-            Assert.AreNotEqual(modified_modified, File.GetLastWriteTime(modified_path));
-            Assert.IsFalse(File.Exists(extra_path));
-            Assert.IsFalse(Directory.Exists(extra_folder));
+            Assert.Equal(unchangedModified, unchangedPath.LastModified);
+            Assert.NotEqual(modifiedModified, modifiedPath.LastModified);
+            Assert.False(extraPath.Exists);
+            Assert.False(extraFolder.Exists);
         }
 
 
-        [TestMethod]
+        [Fact]
         public async Task CleanedESMTest()
         {
             var profile = utils.AddProfile();
             var mod = utils.AddMod("Cleaned ESMs");
-            var update_esm = utils.AddModFile(mod, @"Update.esm", 10);
+            var updateEsm = utils.AddModFile(mod, @"Update.esm", 10);
 
-            utils.Configure();
+            await utils.Configure();
 
-            var game_file = Path.Combine(utils.GameFolder, "Data", "Update.esm");
-            utils.GenerateRandomFileData(game_file, 20);
+            var gameFile = utils.GameFolder.Combine("Data", "Update.esm");
+            utils.GenerateRandomFileData(gameFile, 20);
 
             var modlist = await CompileAndInstall(profile);
 
@@ -173,65 +178,62 @@ namespace Wabbajack.Test
             var compiler = await ConfigureAndRunCompiler(profile);
 
             // Update the file and verify that it throws an error.
-            utils.GenerateRandomFileData(game_file, 20);
-            var exception = await Assert.ThrowsExceptionAsync<InvalidGameESMError>(async () => await Install(compiler));
-            Assert.IsInstanceOfType(exception, typeof(InvalidGameESMError));
+            utils.GenerateRandomFileData(gameFile, 20);
+            var exception = await Assert.ThrowsAsync<InvalidGameESMError>(async () => await Install(compiler));
+            Assert.IsAssignableFrom<InvalidGameESMError>(exception);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task SetScreenSizeTest()
         {
             var profile = utils.AddProfile();
             var mod = utils.AddMod("dummy");
 
-            utils.Configure();
-            File.WriteAllLines(Path.Combine(utils.MO2Folder, "profiles", profile, "somegameprefs.ini"),
-                new List<string>
-                {
-                    // Beth inis are messy, let's make ours just as messy to catch some parse failures
-                    "[Display]",
-                    "foo=4",
-                    "[Display]",
-                    "STestFile=f",
-                    "STestFile=",
-                    "iSize H=3", 
-                    "iSize W=-200",
-                    "[Display]",
-                    "foo=4",
-                    "[MEMORY]",
-                    "VideoMemorySizeMb=22"
-                });
+            await utils.Configure();
+            await utils.MO2Folder.Combine("profiles", profile, "somegameprefs.ini").WriteAllLinesAsync(
+                // Beth inis are messy, let's make ours just as messy to catch some parse failures
+                "[Display]",
+                "foo=4",
+                "[Display]",
+                "STestFile=f",
+                "STestFile=",
+                "[Display]",
+                "foo=4",
+                "iSize H=50", 
+                "iSize W=100",
+                "[MEMORY]",
+                "VideoMemorySizeMb=22");
 
             var modlist = await CompileAndInstall(profile);
 
-            var ini = Path.Combine(utils.InstallFolder, "profiles", profile, "somegameprefs.ini").LoadIniFile();
+            var ini = utils.InstallFolder.Combine("profiles", profile, "somegameprefs.ini").LoadIniFile();
 
-            var sysinfo = SystemParametersConstructor.Create();
+            var sysinfo = CreateDummySystemParameters();
 
-            Assert.AreEqual(System.Windows.SystemParameters.PrimaryScreenHeight.ToString(), ini?.Display?["iSize H"]);
-            Assert.AreEqual(System.Windows.SystemParameters.PrimaryScreenWidth.ToString(), ini?.Display?["iSize W"]);
-            Assert.AreEqual(sysinfo.EnbLEVRAMSize.ToString(), ini?.MEMORY?["VideoMemorySizeMb"]);
+            Assert.Equal(sysinfo.ScreenHeight.ToString(), ini?.Display?["iSize H"]);
+            Assert.Equal(sysinfo.ScreenWidth.ToString(), ini?.Display?["iSize W"]);
+            Assert.Equal(sysinfo.EnbLEVRAMSize.ToString(), ini?.MEMORY?["VideoMemorySizeMb"]);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UnmodifiedInlinedFilesArePulledFromArchives()
         {
             var profile = utils.AddProfile();
             var mod = utils.AddMod();
             var ini = utils.AddModFile(mod, @"foo.ini", 10);
-            utils.Configure();
+            await utils.Configure();
 
             utils.AddManualDownload(
-                new Dictionary<string, byte[]> { { "/baz/biz.pex", File.ReadAllBytes(ini) } });
+                new Dictionary<string, byte[]> { { "/baz/biz.pex", await ini.ReadAllBytesAsync() } });
 
             var modlist = await CompileAndInstall(profile);
-            var directive = modlist.Directives.Where(m => m.To == $"mods\\{mod}\\foo.ini").FirstOrDefault();
+            var directive = modlist.Directives.FirstOrDefault(m => m.To == (RelativePath)$"mods\\{mod}\\foo.ini");
 
-            Assert.IsNotNull(directive);
-            Assert.IsInstanceOfType(directive, typeof(FromArchive));
+            Assert.NotNull(directive);
+            Assert.IsAssignableFrom<FromArchive>(directive);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task ModifiedIniFilesArePatchedAgainstFileWithSameName()
         {
             var profile = utils.AddProfile();
@@ -239,26 +241,25 @@ namespace Wabbajack.Test
             var ini = utils.AddModFile(mod, @"foo.ini", 10);
             var meta = utils.AddModFile(mod, "meta.ini");
 
-            utils.Configure();
+            await utils.Configure();
 
 
             var archive = utils.AddManualDownload(
-                new Dictionary<string, byte[]> { { "/baz/foo.ini", File.ReadAllBytes(ini) } });
+                new Dictionary<string, byte[]> { { "/baz/foo.ini", await ini.ReadAllBytesAsync() } });
 
-            File.WriteAllLines(meta, new[]
-            {
+            await meta.WriteAllLinesAsync(
                 "[General]",
-                $"installationFile={archive}",
-            });
+                $"installationFile={archive}");
 
             // Modify after creating mod archive in the downloads folder
-            File.WriteAllText(ini, "Wabbajack, Wabbajack, Wabbajack!");
+            await ini.WriteAllTextAsync("Wabbajack, Wabbajack, Wabbajack!");
 
             var modlist = await CompileAndInstall(profile);
-            var directive = modlist.Directives.Where(m => m.To == $"mods\\{mod}\\foo.ini").FirstOrDefault();
+            var directive = modlist.Directives.FirstOrDefault(m => m.To == (RelativePath)$"mods\\{mod}\\foo.ini");
 
-            Assert.IsNotNull(directive);
-            Assert.IsInstanceOfType(directive, typeof(PatchedFromArchive));
+            Assert.NotNull(directive);
+            Assert.IsAssignableFrom<PatchedFromArchive>(directive);
         }
+
     }
 }

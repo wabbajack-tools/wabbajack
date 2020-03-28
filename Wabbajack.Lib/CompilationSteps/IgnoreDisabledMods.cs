@@ -27,7 +27,8 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!_allEnabledMods.Any(mod => source.AbsolutePath.InFolder(mod)))
+            if (!source.AbsolutePath.InFolder(_mo2Compiler.MO2ModsFolder)) return null;
+            if (_allEnabledMods.Any(mod => source.AbsolutePath.InFolder(mod)))
                 return null;
             var r = source.EvolveTo<IgnoredDirectly>();
             r.Reason = "Disabled Mod";
