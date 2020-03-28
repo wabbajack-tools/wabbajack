@@ -151,7 +151,7 @@ namespace Wabbajack.Lib.Downloaders
                 return false;
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }

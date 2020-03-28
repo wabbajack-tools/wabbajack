@@ -25,7 +25,7 @@ namespace Wabbajack.Test
 
         public static TempFolder CreateSetFolder(FilePickerVM vm)
         {
-            var temp = new TempFolder();
+            await var temp = new TempFolder();
             Directory.CreateDirectory(temp.Dir.FullName);
             vm.TargetPath = temp.Dir.FullName;
             return temp;

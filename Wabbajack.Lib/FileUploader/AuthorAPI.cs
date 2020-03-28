@@ -68,8 +68,6 @@ namespace Wabbajack.Lib.FileUploader
                         Interlocked.Add(ref sent, block_size);
                         progressFn((double)sent / fsize);
 
-                        int retries = 0;
-
                         await using var fs = filename.OpenRead();
                         fs.Position = block_offset;
                         var data = new byte[block_size];

@@ -102,7 +102,7 @@ namespace Wabbajack.Lib.Downloaders
                 try
                 {
                     using var queue = new WorkQueue();
-                    using var folder = new TempFolder();
+                    await using var folder = new TempFolder();
                     folder.Dir.Combine("tracks").CreateDirectory();
                     var client = new YoutubeClient(Common.Http.ClientFactory.Client);
                     var meta = await client.GetVideoAsync(Key);
@@ -143,7 +143,7 @@ namespace Wabbajack.Lib.Downloaders
                         
                     return true;
                 }
-                catch (VideoUnavailableException ex)
+                catch (VideoUnavailableException)
                 {
                     return false;
                 }
@@ -240,7 +240,7 @@ namespace Wabbajack.Lib.Downloaders
                     var video = await client.GetVideoAsync(Key);
                     return true;
                 }
-                catch (VideoUnavailableException ex)
+                catch (VideoUnavailableException)
                 {
                     return false;
                 }

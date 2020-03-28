@@ -235,7 +235,7 @@ namespace Wabbajack.VirtualFileSystem
                     return stream.FromJSON<IndexedVirtualFile>();
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }

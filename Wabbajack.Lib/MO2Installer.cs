@@ -363,10 +363,9 @@ namespace Wabbajack.Lib
                     if (modified) 
                         parser.WriteFile((string)file, data);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     Utils.Log($"Skipping screen size remap for {file} due to parse error.");
-                    continue;
                 }
             }
         }

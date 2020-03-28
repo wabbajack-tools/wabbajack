@@ -94,7 +94,7 @@ namespace Wabbajack.Lib.Downloaders
                 result.ToEcryptedJson(DataName);
                 return result;
             }
-            catch (Exception _)
+            catch (Exception)
             {
                 return null;
             }
@@ -105,7 +105,6 @@ namespace Wabbajack.Lib.Downloaders
             return StateFromUrl(new Uri(url));
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
         public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
         public ReactiveCommand<Unit, Unit> ClearLogin { get; }
         public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable(DataName);

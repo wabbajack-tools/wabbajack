@@ -142,12 +142,29 @@ namespace Wabbajack.Common
 
         public long Size => new FileInfo(_path).Length;
 
-        public DateTime LastModified => File.GetLastWriteTime(_path);
+        public DateTime LastModified
+        {
+            get => File.GetLastWriteTime(_path);
+            set => File.SetLastWriteTime(_path, value);
+        }
+
         public DateTime LastModifiedUtc => File.GetLastWriteTimeUtc(_path);
         public AbsolutePath Parent => (AbsolutePath)Path.GetDirectoryName(_path);
         public RelativePath FileName => (RelativePath)Path.GetFileName(_path);
         public RelativePath FileNameWithoutExtension => (RelativePath)Path.GetFileNameWithoutExtension(_path);
         public bool IsEmptyDirectory => IsDirectory && !EnumerateFiles().Any();
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                return new FileInfo(_path).IsReadOnly;
+            }
+            set
+            {
+                new FileInfo(_path).IsReadOnly = value;
+            }
+        }
 
         /// <summary>
         ///     Moves this file to the specified location

@@ -151,9 +151,9 @@ namespace Wabbajack.Common.CSP
                         var putIsOpen = await to.Put(f(job));
                         if (!putIsOpen) return;
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-
+                        // ignored
                     }
                 }
             }

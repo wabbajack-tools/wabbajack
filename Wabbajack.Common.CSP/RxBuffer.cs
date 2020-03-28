@@ -33,19 +33,9 @@ namespace Wabbajack.Common.CSP
             return ((RxBuffer<TIn, TOut>) buf).TransformAdd(itm);
         }
 
-        public void Finalize()
-        {
-            _inputSubject.OnCompleted();
-        }
-
         public void Dispose()
         {
-            throw new NotImplementedException();
-        }
-
-        public static void Finalize(IBuffer<TOut> buf)
-        {
-            ((RxBuffer<TIn, TOut>)buf).Finalize();
+            _inputSubject.OnCompleted();
         }
 
         public bool IsFull => Count >= _maxSize;

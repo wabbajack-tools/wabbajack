@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Wabbajack.Common.IO
 {
@@ -9,7 +10,7 @@ namespace Wabbajack.Common.IO
     {
         // ---- MEMBERS ------------------------------------------------------------------------------------------------
 
-        private static Dictionary<KnownFolderType, KnownFolder> _knownFolderInstances;
+        private static ConcurrentDictionary<KnownFolderType, KnownFolder> _knownFolderInstances;
 
         // ---- PROPERTIES ---------------------------------------------------------------------------------------------
 
@@ -660,18 +661,21 @@ namespace Wabbajack.Common.IO
         public static KnownFolder Windows => GetInstance(KnownFolderType.Windows);
 
         // ---- METHODS (PRIVATE) --------------------------------------------------------------------------------------
-
+        
         private static KnownFolder GetInstance(KnownFolderType type)
         {
+            
             // Check if the caching directory exists yet.
             if (_knownFolderInstances == null)
-                _knownFolderInstances = new Dictionary<KnownFolderType, KnownFolder>();
+                _knownFolderInstances = new ConcurrentDictionary<KnownFolderType, KnownFolder>();
 
             // Get a KnownFolder instance out of the cache dictionary or create it when not cached yet.
             if (!_knownFolderInstances.TryGetValue(type, out KnownFolder knownFolder))
             {
                 knownFolder = new KnownFolder(type);
-                _knownFolderInstances.Add(type, knownFolder);
+                if (_knownFolderInstances.TryAdd(type, knownFolder))
+                    return knownFolder;
+                return _knownFolderInstances[type];
             }
             return knownFolder;
         }

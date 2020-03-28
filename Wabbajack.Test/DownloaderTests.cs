@@ -534,7 +534,7 @@ namespace Wabbajack.Test
         [Fact]
         public async Task TestUpgrading()
         {
-            using var folder = new TempFolder();
+            await using var folder = new TempFolder();
             var dest = folder.Dir.Combine("Cori.7z");
             var archive = new Archive
             {

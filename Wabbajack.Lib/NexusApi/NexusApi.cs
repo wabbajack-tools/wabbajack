@@ -22,7 +22,6 @@ namespace Wabbajack.Lib.NexusApi
     public class NexusApiClient : ViewModel
     {
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
-        private static string _additionalEntropy = "vtP2HF6ezg";
        
         public Common.Http.Client HttpClient { get; } = new Common.Http.Client();
 
@@ -331,7 +330,6 @@ namespace Wabbajack.Lib.NexusApi
             public string URI { get; set; }
         }
 
-        private static bool? _useLocalCache;
         public static MethodInfo CacheMethod { get; set; }
 
         private static string _localCacheDir;

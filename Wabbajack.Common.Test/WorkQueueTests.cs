@@ -46,7 +46,7 @@ namespace Wabbajack.Common.Test
             using (var queue = new WorkQueue(Observable.Empty<int>()))
             {
                 Assert.Equal(0, queue.DesiredNumWorkers);
-                Assert.Equal(0, queue._tasks.Count);
+                Assert.Empty(queue._tasks);
             }
         }
 
@@ -207,6 +207,7 @@ namespace Wabbajack.Common.Test
         /// 
         /// TLDR:  Don't put the same work completion source to be done on the queue multiple times.
         /// </summary>
+        [Fact]
         public async Task ThreadCoalescenceExample()
         {
             var subj = new BehaviorSubject<int>(Large);
@@ -260,7 +261,7 @@ namespace Wabbajack.Common.Test
                 // Show that only one job was started/worked on (by our one coalesced worker thread)
                 lock (lockObj)
                 {
-                    Assert.Equal(1, secondWorkStartedArray.Where(i => i).Count());
+                    Assert.Single(secondWorkStartedArray.Where(i => i));
                 }
             }
         }
