@@ -276,7 +276,7 @@ namespace Wabbajack.Lib
             if (bsaDir.Exists)
             {
                 Info($"Removing temp folder {Consts.BSACreationDir}");
-                Utils.DeleteDirectory(bsaDir);
+                await Utils.DeleteDirectory(bsaDir);
             }
         }
 

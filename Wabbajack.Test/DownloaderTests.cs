@@ -500,7 +500,7 @@ namespace Wabbajack.Test
             };
 
             var folder = ((RelativePath)"DownloadTests").RelativeToEntryPoint();
-            folder.DeleteDirectory();
+            await folder.DeleteDirectory();
             folder.CreateDirectory();
            
             var inst = new TestInstaller(default, null, default, folder, null);

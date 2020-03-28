@@ -364,10 +364,14 @@ namespace Wabbajack.Lib
 
             try
             {
-                OutputFolder.EnumerateDirectories(true)
+                var toDelete = OutputFolder.EnumerateDirectories(true)
                     .Where(p => !expectedFolders.Contains(p))
-                    .OrderByDescending(p => p.Size)
-                    .Do(Utils.DeleteDirectory);
+                    .OrderByDescending(p => ((string)p).Length)
+                    .ToList();
+                foreach (var dir in toDelete)
+                {
+                    await dir.DeleteDirectory();
+                }
             }
             catch (Exception)
             {

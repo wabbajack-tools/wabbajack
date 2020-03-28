@@ -132,11 +132,11 @@ namespace Wabbajack.Common
         public bool IsFile => File.Exists(_path);
         public bool IsDirectory => Directory.Exists(_path);
 
-        public void DeleteDirectory()
+        public async Task DeleteDirectory()
         {
             if (IsDirectory)
             {
-                Utils.DeleteDirectory(this);
+                await Utils.DeleteDirectory(this);
             }
         }
 

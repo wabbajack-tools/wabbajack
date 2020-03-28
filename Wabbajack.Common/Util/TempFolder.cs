@@ -34,7 +34,7 @@ namespace Wabbajack.Common
         {
             if (DeleteAfter && Dir.Exists)
             {
-                Utils.DeleteDirectory(Dir);
+                Utils.DeleteDirectory(Dir).Wait();
             }
         }
     }

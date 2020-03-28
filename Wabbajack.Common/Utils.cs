@@ -965,7 +965,7 @@ namespace Wabbajack.Common
         /// delete a folder. If you don't like this code, it's unlikely to change without a ton of testing.
         /// </summary>
         /// <param name="path"></param>
-        public static async void DeleteDirectory(AbsolutePath path)
+        public static async Task DeleteDirectory(AbsolutePath path)
         {
             var process = new ProcessHelper
             {
