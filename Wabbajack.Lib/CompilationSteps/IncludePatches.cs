@@ -14,10 +14,12 @@ namespace Wabbajack.Lib.CompilationSteps
         private readonly Dictionary<RelativePath, IGrouping<RelativePath, VirtualFile>> _indexed;
         private VirtualFile _bsa;
         private Dictionary<RelativePath, VirtualFile> _indexedByName;
+        private MO2Compiler _mo2Compiler;
 
         public IncludePatches(ACompiler compiler, VirtualFile constructingFromBSA = null) : base(compiler)
         {
             _bsa = constructingFromBSA;
+            _mo2Compiler = (MO2Compiler)compiler;
             _indexed = _compiler.IndexedFiles.Values
                 .SelectMany(f => f)
                 .GroupBy(f => f.Name.FileName)
@@ -39,16 +41,19 @@ namespace Wabbajack.Lib.CompilationSteps
             if (!_indexed.TryGetValue(name, out var choices))
                 _indexed.TryGetValue(nameWithoutExt, out choices);
 
-            dynamic mod_ini;
-            if (_bsa == null)
-                mod_ini = ((MO2Compiler)_compiler).ModMetas.FirstOrDefault(f => source.Path.StartsWith(f.Key)).Value;
-            else
+            dynamic modIni = null;
+            if (source.AbsolutePath.InFolder(_mo2Compiler.MO2ModsFolder))
             {
-                var bsa_path = _bsa.FullPath.Paths.Last().RelativeTo(((MO2Compiler)_compiler).MO2Folder);
-                mod_ini = ((MO2Compiler)_compiler).ModMetas.FirstOrDefault(f => ((string)bsa_path).StartsWith((string)f.Key)).Value;
+                if (_bsa == null)
+                    ((MO2Compiler)_compiler).ModInis.TryGetValue(ModForFile(source.AbsolutePath), out modIni);
+                else
+                {
+                    var bsaPath = _bsa.FullPath.Paths.Last().RelativeTo(((MO2Compiler)_compiler).MO2Folder);
+                    ((MO2Compiler)_compiler).ModInis.TryGetValue(ModForFile(bsaPath), out modIni);
+                }
             }
 
-            var installationFile = mod_ini?.General?.installationFile;
+            var installationFile = modIni?.General?.installationFile;
 
             VirtualFile found = null;
             
@@ -68,7 +73,7 @@ namespace Wabbajack.Lib.CompilationSteps
             }
 
             // Find based on matchAll=<archivename> in [General] in meta.ini
-            var matchAllName = (RelativePath?)mod_ini?.General?.matchAll;
+            var matchAllName = (RelativePath?)modIni?.General?.matchAll;
             if (matchAllName != null)
             {
                 if (_indexedByName.TryGetValue(matchAllName.Value, out var arch))
@@ -95,6 +100,12 @@ namespace Wabbajack.Lib.CompilationSteps
                 e.PatchID = await _compiler.IncludeFile(data);
 
             return e;
+        }
+
+        private AbsolutePath ModForFile(AbsolutePath file)
+        {
+            return file.RelativeTo(((MO2Compiler)_compiler).MO2ModsFolder).TopParent
+                .RelativeTo(((MO2Compiler)_compiler).MO2ModsFolder);
         }
 
         public override IState GetState()

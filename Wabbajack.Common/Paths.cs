@@ -166,6 +166,8 @@ namespace Wabbajack.Common
             }
         }
 
+        public static AbsolutePath EntryPoint => ((AbsolutePath)Assembly.GetEntryAssembly().Location).Parent;
+
         /// <summary>
         ///     Moves this file to the specified location
         /// </summary>
@@ -199,6 +201,7 @@ namespace Wabbajack.Common
         /// <returns></returns>
         public IEnumerable<AbsolutePath> EnumerateFiles(bool recursive = true)
         {
+            if (!IsDirectory) return new AbsolutePath[0];
             return Directory
                 .EnumerateFiles(_path, "*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
                 .Select(path => new AbsolutePath(path, true));
@@ -274,11 +277,12 @@ namespace Wabbajack.Common
 
         public AbsolutePath Combine(params RelativePath[] paths)
         {
-            return new AbsolutePath(Path.Combine(paths.Select(s => (string)s).Cons(_path).ToArray()));
+            return new AbsolutePath(Path.Combine(paths.Select(s => (string)s).Where(s => s != null).Cons(_path).ToArray()));
         }
 
         public AbsolutePath Combine(params string[] paths)
         {
+            
             return new AbsolutePath(Path.Combine(paths.Cons(_path).ToArray()));
         }
 
@@ -366,8 +370,17 @@ namespace Wabbajack.Common
 
         public RelativePath(string path)
         {
-            _path = path.ToLowerInvariant().Replace("/", "\\").Trim('\\');
-            Extension = new Extension(Path.GetExtension(path));
+            var trimmed = path.ToLowerInvariant().Replace("/", "\\").Trim('\\');
+            if (string.IsNullOrEmpty(trimmed))
+            {
+                _path = null;
+                Extension = default;
+            }
+            else
+            {
+                _path = trimmed;
+                Extension = new Extension(Path.GetExtension(path));
+            }
             Validate();
         }
 
@@ -398,7 +411,7 @@ namespace Wabbajack.Common
 
         public AbsolutePath RelativeTo(AbsolutePath abs)
         {
-            return new AbsolutePath(Path.Combine((string)abs, _path));
+            return _path == null ? abs : new AbsolutePath(Path.Combine((string)abs, _path));
         }
 
         public AbsolutePath RelativeToEntryPoint()
@@ -431,6 +444,20 @@ namespace Wabbajack.Common
         public RelativePath FileName => new RelativePath(Path.GetFileName(_path));
 
         public RelativePath FileNameWithoutExtension => (RelativePath)Path.GetFileNameWithoutExtension(_path);
+        
+        public RelativePath TopParent
+        {
+            get
+            {
+                var curr = this;
+                
+                while (curr.Parent != default) 
+                    curr = curr.Parent;
+
+                return curr;
+            }
+        }
+
 
         public bool Equals(RelativePath other)
         {
@@ -527,6 +554,7 @@ namespace Wabbajack.Common
         {
             return new RelativePath(rdr.ReadString());
         }
+
 
         public static T[] Add<T>(this T[] arr, T itm)
         {

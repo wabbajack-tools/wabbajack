@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Reactive.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib.Downloaders;
+using Xunit;
+using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Wabbajack.Test
 {
@@ -54,34 +53,30 @@ namespace Wabbajack.Test
         }
     }
 
-    [TestClass]
     public class RestartingDownloadsTests
     {
-        public TestContext TestContext { get; set; }
+        private ITestOutputHelper TestContext { get; set; }
 
-        [TestInitialize]
-        public void Setup()
+        public RestartingDownloadsTests(ITestOutputHelper helper)
         {
+            TestContext = helper;
             Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => TestContext.WriteLine(msg.ShortDescription));
             Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
                 TestContext.WriteLine("ERROR: User intervention required: " + msg.ShortDescription));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task DownloadResume()
         {
-            using (var server = new CrappyRandomServer())
-            {
-                var downloader = DownloadDispatcher.GetInstance<HTTPDownloader>();
-                var state = new HTTPDownloader.State {Url = $"http://localhost:{server.Port}/foo"};
+            using var testFile = new TempFile();
+            using var server = new CrappyRandomServer();
+            var state = new HTTPDownloader.State {Url = $"http://localhost:{server.Port}/foo"};
                 
-                await state.Download("test.resume_file");
+            await state.Download(testFile.Path);
 
-                CollectionAssert.AreEqual(server.Data, File.ReadAllBytes("test.resume_file"));
+            Assert.Equal(server.Data, await testFile.Path.ReadAllBytesAsync());
 
-                if (File.Exists("test.resume_file"))
-                    File.Delete("test.resume_file");
-            }
+            testFile.Path.Delete();
         }
     }
 

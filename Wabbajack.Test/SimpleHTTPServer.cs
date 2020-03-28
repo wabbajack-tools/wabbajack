@@ -30,22 +30,11 @@ namespace Wabbajack.Test
         {
             get { return _port; }
         }
-
-        /// <summary>
-        /// Construct server with given port.
-        /// </summary>
-        /// <param name="path">Directory path to serve.</param>
-        /// <param name="port">Port of the server.</param>
-        public SimpleHTTPServer(string path, int port)
-        {
-            this.Initialize(path, port);
-        }
-
         /// <summary>
         /// Construct server with suitable port.
         /// </summary>
         /// <param name="path">Directory path to serve.</param>
-        public SimpleHTTPServer(string path)
+        protected SimpleHTTPServer(string path)
         {
             //get an empty port
             TcpListener l = new TcpListener(IPAddress.Loopback, 0);
@@ -76,9 +65,9 @@ namespace Wabbajack.Test
                     HttpListenerContext context = _listener.GetContext();
                     Process(context);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-
+                    // ignored
                 }
             }
         }
