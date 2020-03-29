@@ -53,7 +53,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 }
             }
 
-            var installationFile = modIni?.General?.installationFile;
+            var installationFile = (RelativePath)modIni?.General?.installationFile;
 
             VirtualFile found = null;
             

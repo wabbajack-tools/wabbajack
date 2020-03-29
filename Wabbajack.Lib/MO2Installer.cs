@@ -46,6 +46,7 @@ namespace Wabbajack.Lib
         {
             if (cancel.IsCancellationRequested) return false;
             var metric = Metrics.Send(Metrics.BeginInstall, ModList.Name);
+            Utils.Log("Configuring Processor");
 
             ConfigureProcessor(20, ConstructDynamicNumThreads(await RecommendQueueSize()));
             var game = ModList.GameType.MetaData();

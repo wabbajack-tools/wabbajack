@@ -14,7 +14,7 @@ namespace Wabbajack.Common.Test
         const int Large = 8;
         const int Medium = 6;
         const int Small = 4;
-        public int PollMS => WorkQueue.PollMS * 5;
+        public TimeSpan PollMS => TimeSpan.FromSeconds(1);
 
         [Fact]
         public void DynamicNumThreads_Typical()

@@ -57,7 +57,9 @@ namespace Wabbajack.Test
 
         protected async Task Install(MO2Compiler compiler)
         {
+            Utils.Log("Loading Modlist");
             var modlist = AInstaller.LoadFromFile(compiler.ModListOutputFile);
+            Utils.Log("Constructing Installer");
             var installer = new MO2Installer(
                 archive: compiler.ModListOutputFile,
                 modList: modlist,
@@ -66,6 +68,7 @@ namespace Wabbajack.Test
                 parameters: CreateDummySystemParameters());
             installer.WarnOnOverwrite = false;
             installer.GameFolder = utils.GameFolder;
+            Utils.Log("Starting Install");
             await installer.Begin();
         }
 

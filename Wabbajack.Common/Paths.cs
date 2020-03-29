@@ -167,7 +167,17 @@ namespace Wabbajack.Common
             }
         }
 
-        public static AbsolutePath EntryPoint => ((AbsolutePath)Assembly.GetEntryAssembly().Location).Parent;
+        public static AbsolutePath EntryPoint
+        {
+            get
+            {
+                var location = Assembly.GetEntryAssembly()?.Location ?? null;
+                if (location == null)
+                    location = Assembly.GetExecutingAssembly().Location ?? null;
+
+                return ((AbsolutePath)location).Parent;
+            }
+        } 
 
         /// <summary>
         ///     Moves this file to the specified location
@@ -382,17 +392,22 @@ namespace Wabbajack.Common
 
         public RelativePath(string path)
         {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                _path = null;
+                Extension = default;
+                return;
+            }
             var trimmed = path.ToLowerInvariant().Replace("/", "\\").Trim('\\');
             if (string.IsNullOrEmpty(trimmed))
             {
                 _path = null;
                 Extension = default;
+                return;
             }
-            else
-            {
-                _path = trimmed;
-                Extension = new Extension(Path.GetExtension(path));
-            }
+
+            _path = trimmed;
+            Extension = new Extension(Path.GetExtension(path));
             Validate();
         }
 
@@ -428,7 +443,7 @@ namespace Wabbajack.Common
 
         public AbsolutePath RelativeToEntryPoint()
         {
-            return RelativeTo(((AbsolutePath)Assembly.GetEntryAssembly().Location).Parent);
+            return RelativeTo(AbsolutePath.EntryPoint);
         }
 
         public AbsolutePath RelativeToWorkingDirectory()
