@@ -29,7 +29,7 @@ namespace Compression.BSA.Test
             TestContext = helper;
             Queue = new WorkQueue();
             Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f.ShortDescription));
-            _stagingFolder.DeleteDirectory();
+            _stagingFolder.CreateDirectory();
             _bsaFolder.DeleteDirectory();
             _bsaFolder.CreateDirectory();
         }
