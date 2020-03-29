@@ -80,6 +80,7 @@
 
     <ItemGroup>
       <EmbeddedResource Remove="swiftshader\**" />
+      <None Remove="sql\wabbajack_db.sql" />
     </ItemGroup>
 
     <ItemGroup>

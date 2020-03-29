@@ -33,7 +33,7 @@ namespace Wabbajack.BuildServer.Controllers
 
         [HttpGet]
         [Route("enqueue_job/{JobName}")]
-        public async Task<string> EnqueueJob(string JobName)
+        public async Task<long> EnqueueJob(string JobName)
         {
             var jobtype = AJobPayload.NameToType[JobName];
             var job = new Job{Priority = Job.JobPriority.High, Payload = (AJobPayload)jobtype.GetConstructor(new Type[0]).Invoke(new object?[0])};

@@ -9,6 +9,7 @@ using Dapper;
 using Microsoft.Extensions.Configuration;
 using Wabbajack.BuildServer.Model.Models.Results;
 using Wabbajack.BuildServer.Models;
+using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.VirtualFileSystem;
 
@@ -164,6 +165,87 @@ namespace Wabbajack.BuildServer.Model.Models
                         ORDER BY d.Date, d.GroupingSubject, d.Action", new {Action = action}))
                 .ToList();
         }
+        
+        
+        #region JobRoutines
 
+        /// <summary>
+        /// Enqueue a Job into the Job queue to be run at a later time
+        /// </summary>
+        /// <param name="job"></param>
+        /// <returns></returns>
+        public async Task EnqueueJob(Job job)
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync(
+                @"INSERT INTO dbo.Jobs (Created, Priority, Payload, OnSuccess) VALUES (GETDATE(), @Priority, @Payload, @OnSuccess)",
+                new {
+                    Priority = job.Priority,
+                    Payload = job.Payload.ToJSON(), 
+                    OnSuccess = job.OnSuccess?.ToJSON() ?? null});
+        }
+        
+        /// <summary>
+        /// Enqueue a Job into the Job queue to be run at a later time
+        /// </summary>
+        /// <param name="job"></param>
+        /// <returns></returns>
+        public async Task FinishJob(Job job)
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync(
+                @"UPDATE dbo.Jobs SET Finshed = GETDATE(), Success = @Success, ResultContent = @ResultContent WHERE Id = @Id",
+                new { 
+                    Id = job.Id,
+                    Success = job.Result.ResultType == JobResultType.Success,
+                    ResultPayload = job.Result.ToJSON()
+                    
+                });
+            
+            if (job.OnSuccess != null)
+                await EnqueueJob(job.OnSuccess);
+        }
+
+        
+        /// <summary>
+        /// Get a Job from the Job queue to run. 
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Job> GetJob()
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryAsync<Job>(
+                @"UPDATE jobs SET Started = GETDATE(), RunBy = @RunBy WHERE ID in (SELECT TOP(1) ID FROM Jobs WHERE Started is NULL ORDER BY Priority DESC, Created);
+                      SELECT TOP(1) * FROM jobs WHERE RunBy = @RunBy ORDER BY Started DESC",
+                new {RunBy = Guid.NewGuid().ToString()});
+            return result.FirstOrDefault();
+        }
+
+        
+        #endregion
+
+
+        #region TypeMappers
+
+        static SqlService()
+        {
+            SqlMapper.AddTypeHandler(new PayloadMapper());
+        }
+
+        public class PayloadMapper : SqlMapper.TypeHandler<AJobPayload>
+        {
+            public override void SetValue(IDbDataParameter parameter, AJobPayload value)
+            {
+                parameter.Value = value.ToJSON();
+            }
+
+            public override AJobPayload Parse(object value)
+            {
+                return Utils.FromJSONString<AJobPayload>((string)value);
+            }
+        }
+        
+
+        #endregion
     }
 }

@@ -49,10 +49,10 @@ namespace Wabbajack.BuildServer.GraphQL
             
             FieldAsync<ListGraphType<JobType>>("job",
                 arguments: new QueryArguments(
-                    new QueryArgument<IdGraphType> {Name = "id", Description = "Id of the Job"}),
+                    new QueryArgument<IntGraphType> {Name = "id", Description = "Id of the Job"}),
                 resolve: async context =>
                 {
-                    var id = context.GetArgument<string>("id");
+                    var id = context.GetArgument<long>("id");
                     var data = await db.Jobs.AsQueryable().Where(j => j.Id == id).ToListAsync();
                     return data;
                 });
