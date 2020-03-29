@@ -45,14 +45,14 @@
 
         var result = metrics({type: group})
                 .then(function (data) {
-                    var data = data.dailyUniqueMetrics;
-                    var labels = _.uniq(_.flatten(_.map(data, series => series.labels))).sort();
-                    var datasets = _.map(data, series => {
+                    var data = _.filter(data.dailyUniqueMetrics, series => _.some(series.values, v => v > 2));
+                    var labels = _.last(_.uniq(_.flatten(_.map(data, series => series.labels))), 30);
+                    var datasets = _.last(_.map(data, series => {
                         return {
                             label: series.seriesName,
                             fill: false,
                             data: series.values
-                        }});
+                        }}), 30);
                     var ctx = document.getElementById(ele).getContext('2d');
                     var chart = new Chart(ctx, {
                         // The type of chart we want to create
