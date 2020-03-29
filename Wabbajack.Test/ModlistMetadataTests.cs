@@ -4,10 +4,11 @@ using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Wabbajack.Test
 {
-    public class ModlistMetadataTests
+    public class ModlistMetadataTests : ATestBase
     {
         [Fact]
         public async Task TestLoadingModlists()
@@ -27,6 +28,11 @@ namespace Wabbajack.Test
                 Assert.NotNull(logoState);
                 Assert.True(await logoState.Verify(new Archive{Size = 0}), $"{modlist.ImageUri} is not valid");
             }
+        }
+
+        public ModlistMetadataTests(ITestOutputHelper output) : base(output)
+        {
+            
         }
     }
 }

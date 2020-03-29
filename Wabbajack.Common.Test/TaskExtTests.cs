@@ -18,7 +18,7 @@ namespace Wabbajack.Common.Test
         public async Task TimeoutButContinue_TimedOut()
         {
             bool timedOut = false;
-            await Task.Delay(300).TimeoutButContinue(TimeSpan.FromMilliseconds(100), () => timedOut = true);
+            await Task.Delay(3000).TimeoutButContinue(TimeSpan.FromMilliseconds(100), () => timedOut = true);
             Assert.True(timedOut);
         }
     }
