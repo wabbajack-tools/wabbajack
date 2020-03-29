@@ -19,23 +19,16 @@ namespace Wabbajack.BuildServer.Models.JobQueue
             High,
         }
 
-        [BsonId] public String Id { get; set; } = Guid.NewGuid().ToString();
+        public long Id { get; set; }
         public DateTime? Started { get; set; }
         public DateTime? Ended { get; set; }
         public DateTime Created { get; set; } = DateTime.Now;
         public JobPriority Priority { get; set; } = JobPriority.Normal;
-
         public JobResult Result { get; set; }
         public bool RequiresNexus { get; set; } = true;
         public AJobPayload Payload { get; set; }
         
         public Job OnSuccess { get; set; }
-
-        public static async Task<String> Enqueue(DBContext db, Job job)
-        {
-            await db.Jobs.InsertOneAsync(job);
-            return job.Id;
-        }
 
         public static async Task<Job> GetNext(DBContext db)
         {

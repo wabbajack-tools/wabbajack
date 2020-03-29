@@ -9,6 +9,11 @@ namespace Wabbajack.BuildServer
         {
             config.Bind("WabbajackSettings", this);
         }
+
+        public AppSettings()
+        {
+            
+        }
         
         public AbsolutePath DownloadDir { get; set; }
         public AbsolutePath ArchiveDir { get; set; }
