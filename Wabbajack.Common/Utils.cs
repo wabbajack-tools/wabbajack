@@ -216,6 +216,21 @@ namespace Wabbajack.Common
                 Status(status, Percent.FactoryPutInRange(totalRead, maxSize));
             }
         }
+        
+        public static async Task CopyToWithStatusAsync(this Stream istream, long maxSize, Stream ostream, string status)
+        {
+            var buffer = new byte[1024 * 64];
+            if (maxSize == 0) maxSize = 1;
+            long totalRead = 0;
+            while (true)
+            {
+                var read = await istream.ReadAsync(buffer, 0, buffer.Length);
+                if (read == 0) break;
+                totalRead += read;
+                await ostream.WriteAsync(buffer, 0, read);
+                Status(status, Percent.FactoryPutInRange(totalRead, maxSize));
+            }
+        }
         public static string xxHash(this byte[] data, bool nullOnIOError = false)
         {
             try

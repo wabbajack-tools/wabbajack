@@ -185,16 +185,14 @@ namespace Wabbajack.VirtualFileSystem
 
             if (FileExtractor.CanExtract(absPath))
             {
-                using (var tempFolder = Context.GetTemporaryFolder())
-                {
-                    await FileExtractor.ExtractAll(context.Queue, absPath, tempFolder.FullName);
+                using var tempFolder = Context.GetTemporaryFolder();
+                await FileExtractor.ExtractAll(context.Queue, absPath, tempFolder.FullName);
 
-                    var list = await tempFolder.FullName.EnumerateFiles()
-                        .PMap(context.Queue,
-                            absSrc => Analyze(context, self, absSrc, absSrc.RelativeTo(tempFolder.FullName), depth + 1));
+                var list = await tempFolder.FullName.EnumerateFiles()
+                    .PMap(context.Queue,
+                        absSrc => Analyze(context, self, absSrc, absSrc.RelativeTo(tempFolder.FullName), depth + 1));
 
-                    self.Children = list.ToImmutableList();
-                }
+                self.Children = list.ToImmutableList();
             }
 
             return self;

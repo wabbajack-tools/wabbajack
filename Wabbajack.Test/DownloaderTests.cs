@@ -23,19 +23,25 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Test
 {
-    public class DownloaderTests
+    public class DownloaderTests : XunitContextBase, IDisposable
     {
-        public DownloaderTests(ITestOutputHelper helper)
+        private IDisposable _unsubMsgs;
+        private IDisposable _unsubErr;
+
+        public DownloaderTests(ITestOutputHelper helper) : base(helper)
         {
-            TestContext = helper;
-            Helpers.Init();
-            Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => TestContext.WriteLine(msg.ShortDescription));
-            Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
-                TestContext.WriteLine("ERROR: User intervention required: " + msg.ShortDescription));
+            Helpers.Init(); 
+            _unsubMsgs = Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => XunitContext.WriteLine(msg.ShortDescription));
+            _unsubErr = Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
+                XunitContext.WriteLine("ERROR: User intervention required: " + msg.ShortDescription));
         }
 
-        public ITestOutputHelper TestContext { get; }
-
+        public override void Dispose()
+        {
+            base.Dispose();
+            _unsubErr.Dispose();
+            _unsubMsgs.Dispose();
+        }
 
         [Fact]
         public void TestAllPrepares()
@@ -408,7 +414,7 @@ namespace Wabbajack.Test
 
             await converted.Download(new Archive { Name = "Update.esm" }, filename.Path);
 
-            Assert.Equal(Hash.FromBase64("/DLG/LjdGXI="), Utils.FileHash(filename.Path));
+            Assert.Equal(Hash.FromBase64("/DLG/LjdGXI="), await Utils.FileHashAsync(filename.Path));
             Assert.Equal(await filename.Path.ReadAllBytesAsync(), await Game.SkyrimSpecialEdition.MetaData().GameLocation()?.Combine("Data/Update.esm").ReadAllBytesAsync());
             Consts.TestMode = true;
         }
@@ -513,8 +519,8 @@ namespace Wabbajack.Test
                 {
                     (RelativePath)@"Download.esm",
                     (RelativePath)@"Download.esm.xxHash",
-                    (RelativePath)@"Download_f80ee6d109516018308f62e2c862b7f061987ac4a8c2327a101ac6b8f80ec4ae_.esm",
-                    (RelativePath)@"Download_f80ee6d109516018308f62e2c862b7f061987ac4a8c2327a101ac6b8f80ec4ae_.esm.xxHash"
+                    (RelativePath)@"Download_c4047f2251d8eead22df4b4888cc4b833ae7d9a6766ff29128e083d944f9ec4b_.esm",
+                    (RelativePath)@"Download_c4047f2251d8eead22df4b4888cc4b833ae7d9a6766ff29128e083d944f9ec4b_.esm.xxHash"
                 }.OrderBy(a => a).ToArray());
            
             Consts.TestMode = true;

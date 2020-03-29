@@ -13,33 +13,33 @@ using Xunit.Abstractions;
 
 namespace Wabbajack.Test
 {
-    public class EndToEndTests : IDisposable
+    public class EndToEndTests : XunitContextBase, IDisposable
     {
         private AbsolutePath _downloadFolder = "downloads".RelativeTo(AbsolutePath.EntryPoint);
 
         private TestUtils utils = new TestUtils();
-
-        public ITestOutputHelper TestContext { get; set; }
+        private IDisposable _unsub;
 
         public WorkQueue Queue { get; set; }
 
-        public EndToEndTests(ITestOutputHelper helper)
+        public EndToEndTests(ITestOutputHelper helper) : base(helper)
         {
-            TestContext = helper;
             Queue = new WorkQueue();
             Consts.TestMode = true;
 
             utils = new TestUtils();
             utils.Game = Game.SkyrimSpecialEdition;
 
-            Utils.LogMessages.Subscribe(f => TestContext.WriteLine($"{DateTime.Now} - {f}"));
+            _unsub = Utils.LogMessages.Subscribe(f => XunitContext.WriteLine($"{DateTime.Now} - {f}"));
             
             _downloadFolder.CreateDirectory();
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             Queue.Dispose();
+            _unsub.Dispose();
+            base.Dispose();
         }
 
         [Fact]

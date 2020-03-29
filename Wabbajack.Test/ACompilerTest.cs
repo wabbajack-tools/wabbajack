@@ -8,14 +8,13 @@ using Xunit.Abstractions;
 
 namespace Wabbajack.Test
 {
-    public abstract class ACompilerTest : IDisposable
+    public abstract class ACompilerTest : XunitContextBase, IDisposable
     {
-        public ITestOutputHelper TestContext { get; set; }
+        private IDisposable _unsub;
         protected TestUtils utils { get; set; }
 
-        public ACompilerTest(ITestOutputHelper helper)
+        public ACompilerTest(ITestOutputHelper helper) : base (helper)
         {
-            TestContext = helper;
             Helpers.Init();
             Consts.TestMode = true;
 
@@ -23,13 +22,15 @@ namespace Wabbajack.Test
             utils.Game = Game.SkyrimSpecialEdition;
 
             DateTime startTime = DateTime.Now;
-            Utils.LogMessages.Subscribe(f => TestContext.WriteLine($"{DateTime.Now - startTime} -  {f.ShortDescription}"));
+            _unsub = Utils.LogMessages.Subscribe(f => XunitContext.WriteLine($"{DateTime.Now - startTime} -  {f.ShortDescription}"));
 
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             utils.Dispose();
+            _unsub.Dispose();
+            base.Dispose();
         }
 
         protected async Task<MO2Compiler> ConfigureAndRunCompiler(string profile)
