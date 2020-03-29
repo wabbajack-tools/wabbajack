@@ -42,7 +42,7 @@ namespace Wabbajack.Lib
             public IncludeZEditPatches(ACompiler compiler) : base(compiler)
             {
                 var zEditPath = FindzEditPath(compiler);
-                var havezEdit = zEditPath != null;
+                var havezEdit = zEditPath != default;
 
                 Utils.Log(havezEdit ? $"Found zEdit at {zEditPath}" : $"zEdit not detected, disabling zEdit routines");
 

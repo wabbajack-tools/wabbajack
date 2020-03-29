@@ -17,7 +17,7 @@ namespace Wabbajack.Common
         public static RelativePath LOOTFolderFilesDir = (RelativePath)"LOOT Config Files";
         public static RelativePath BSACreationDir = (RelativePath)"TEMP_BSA_FILES";
 
-        public static AbsolutePath ModListDownloadFolder = "downloaded_mod_lists".RelativeTo(AbsolutePath.EntryPoint);
+        public static AbsolutePath ModListDownloadFolder => "downloaded_mod_lists".RelativeTo(AbsolutePath.EntryPoint);
 
         public static string MegaPrefix = "https://mega.nz/#!";
 
@@ -114,9 +114,9 @@ namespace Wabbajack.Common
         public static AbsolutePath PatchCacheFolder => LocalAppDataPath.Combine("patch_cache");
         public static int MaxConnectionsPerServer = 4;
 
-        public static AbsolutePath LogsFolder = ((RelativePath)"logs").RelativeToEntryPoint();
-        public static AbsolutePath EntryPoint = (AbsolutePath)(Assembly.GetEntryAssembly()?.Location ?? (string)((RelativePath)"Unknown").RelativeToWorkingDirectory());
-        public static AbsolutePath LogFile = LogsFolder.Combine(EntryPoint.FileNameWithoutExtension + ".current.log");
+        public static AbsolutePath LogsFolder => ((RelativePath)"logs").RelativeToEntryPoint();
+        public static AbsolutePath EntryPoint => (AbsolutePath)(Assembly.GetEntryAssembly()?.Location ?? (string)((RelativePath)"Unknown").RelativeToWorkingDirectory());
+        public static AbsolutePath LogFile => LogsFolder.Combine(EntryPoint.FileNameWithoutExtension + ".current.log");
         public static int MaxOldLogs = 50;
         public static Extension BSA = new Extension(".BSA");
         public static Extension MOHIDDEN = new Extension(".mohidden");

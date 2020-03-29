@@ -515,7 +515,7 @@ namespace Wabbajack.Common
             {
                 while (remainingTasks > 0)
                 {
-                    var (got, a) = await queue.Queue.TryTake(TimeSpan.FromMilliseconds(200), CancellationToken.None);
+                    var (got, a) = await queue.Queue.TryTake(TimeSpan.FromMilliseconds(100), CancellationToken.None);
                     if (got)
                     {
                         await a();

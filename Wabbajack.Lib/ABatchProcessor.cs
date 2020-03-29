@@ -164,10 +164,12 @@ namespace Wabbajack.Lib
                 throw new InvalidDataException("Can't start the processor twice");
             }
 
+            Utils.Log("Starting Installer Task");
             return Task.Run(async () =>
             { 
                 try
                 {
+                    Utils.Log("Installation has Started");
                     _isRunning.OnNext(true);
                     return await _Begin(_cancel.Token);
                 }
