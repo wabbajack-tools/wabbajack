@@ -4,7 +4,7 @@
 * Added support for Morrowind on GOG
 * Fix a bug in the Author file uploader (Sync Error)
 * Include symbols in the launcher
-
+* Fix a small race condition/deadlock in the worker queue code
 
 #### Version - 1.1.3.0 - 3/23/2020
 * Fix for a lack of VC++ Redist dlls on newly installed Windows machines.
