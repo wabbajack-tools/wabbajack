@@ -22,8 +22,17 @@ namespace Wabbajack.Launcher
     {
         public MainWindow()
         {
-            DataContext = new MainWindowVM();
             InitializeComponent();
+            try
+            {
+                DataContext = new MainWindowVM();
+            }
+            catch(Exception ex)
+            {
+                System.Console.Error.WriteLine("Error creating datacontext.");
+                System.Console.Error.WriteLine(ex);
+                throw;
+            }
         }
     }
 }
