@@ -205,8 +205,8 @@ namespace Wabbajack.BuildServer.Controllers
         {
             var user = User.FindFirstValue(ClaimTypes.Name);
             Utils.Log($"List Uploaded Files {user}");
-            var files = await Db.UploadedFiles.AsQueryable().Where(f => f.Uploader == user).ToListAsync();
-            return Ok(files.OrderBy(f => f.UploadDate).Select(f => f.MungedName).ToArray().ToJSON(prettyPrint:true));
+            var files = await SQL.AllUploadedFilesForUser(user);
+            return Ok(files.OrderBy(f => f.UploadDate).Select(f => f.MungedName ).ToArray().ToJSON(prettyPrint:true));
         }
 
         [HttpDelete]

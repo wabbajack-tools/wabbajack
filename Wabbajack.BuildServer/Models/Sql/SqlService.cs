@@ -242,6 +242,7 @@ namespace Wabbajack.BuildServer.Model.Models
         static SqlService()
         {
             SqlMapper.AddTypeHandler(new PayloadMapper());
+            SqlMapper.AddTypeHandler(new HashMapper());
         }
 
         public class PayloadMapper : SqlMapper.TypeHandler<AJobPayload>
@@ -254,6 +255,19 @@ namespace Wabbajack.BuildServer.Model.Models
             public override AJobPayload Parse(object value)
             {
                 return Utils.FromJSONString<AJobPayload>((string)value);
+            }
+        }
+        
+        class HashMapper : SqlMapper.TypeHandler<Hash>
+        {
+            public override void SetValue(IDbDataParameter parameter, Hash value)
+            {
+                parameter.Value = (long)value;
+            }
+
+            public override Hash Parse(object value)
+            {
+                return Hash.FromLong((long)value);
             }
         }
         
@@ -276,6 +290,13 @@ namespace Wabbajack.BuildServer.Model.Models
                     UploadDate = uf.UploadDate,
                     CDNName = uf.CDNName
                 });
+        }
+
+        public async Task<IEnumerable<UploadedFile>> AllUploadedFilesForUser(string user)
+        {
+            await using var conn = await Open();
+            return await conn.QueryAsync<UploadedFile>("SELECT * FROM dbo.UploadedFiles WHERE UploadedBy = @uploadedBy", 
+                new {UploadedBy = user});
         }
     }
 }
