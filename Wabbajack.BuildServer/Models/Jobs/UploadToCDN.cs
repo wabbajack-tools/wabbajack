@@ -20,7 +20,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
     {
         public override string Description => $"Push an uploaded file ({FileId}) to the CDN";
         
-        public string FileId { get; set; }
+        public Guid FileId { get; set; }
         
         public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
         {

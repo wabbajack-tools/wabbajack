@@ -52,6 +52,13 @@ namespace Wabbajack.Common.Http
         private async Task<string> SendStringAsync(HttpRequestMessage request)
         {
             using var result = await SendAsync(request);
+            if (!result.IsSuccessStatusCode)
+            {
+                Utils.Log("Internal Error");
+                Utils.Log(await result.Content.ReadAsStringAsync());
+                throw new Exception(
+                    $"Bad HTTP request {result.StatusCode} {result.ReasonPhrase} - {request.RequestUri}");
+            }
             return await result.Content.ReadAsStringAsync();
         }
 

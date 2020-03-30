@@ -229,6 +229,15 @@ CREATE TABLE [dbo].[ArchiveContent](
                                        [PathHash]  AS (CONVERT([binary](32),hashbytes('SHA2_256',[Path]))) PERSISTED NOT NULL
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
+
+CREATE STATISTICS [Child_Parent_Stat] ON [dbo].[ArchiveContent]([Child], [Parent])
+GO
+CREATE CLUSTERED INDEX [Child_Parent_IDX] ON [dbo].[ArchiveContent]
+    (
+     [Child] ASC,
+     [Parent] ASC
+        )WITH (SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF) ON [PRIMARY]
+GO
 /****** Object:  Table [dbo].[AllFilesInArchive]    Script Date: 3/28/2020 4:58:59 PM ******/
 SET ANSI_NULLS ON
 GO
@@ -278,6 +287,40 @@ CREATE TABLE [dbo].[Metrics](
                                         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
+/****** Uploaded Files [UploadedFiles] *************/
+
+CREATE TABLE [dbo].[UploadedFiles](
+      [Id] [uniqueidentifier] NOT NULL,
+      [Name] [nvarchar](max) NOT NULL,
+      [Size] [bigint] NOT NULL,
+      [UploadedBy] [nvarchar](40) NOT NULL,
+      [Hash] [bigint] NOT NULL,
+      [UploadDate] [datetime] NOT NULL,
+      [CDNName] [nvarchar](max) NULL,
+      CONSTRAINT [PK_UploadedFiles] PRIMARY KEY CLUSTERED
+          (
+           [Id] ASC
+              )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** API Keys [ApiKeys] ********/
+CREATE TABLE [dbo].[ApiKeys](
+[APIKey] [nvarchar](260) NOT NULL,
+[Owner] [nvarchar](40) NOT NULL,
+CONSTRAINT [PK_ApiKeys] PRIMARY KEY CLUSTERED
+    (
+     [APIKey] ASC,
+     [Owner] ASC
+        )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [ByAPIKey] ON [dbo].[ApiKeys]
+    (
+     [APIKey] ASC
+        )
+    INCLUDE([Owner]) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+
 /****** Object:  Index [IX_Child]    Script Date: 3/28/2020 4:58:59 PM ******/
 CREATE NONCLUSTERED INDEX [IX_Child] ON [dbo].[AllFilesInArchive]
     (

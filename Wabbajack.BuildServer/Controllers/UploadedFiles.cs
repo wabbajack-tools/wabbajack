@@ -16,6 +16,8 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using Nettle;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Crypto.Engines;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
@@ -142,7 +144,7 @@ namespace Wabbajack.BuildServer.Controllers
             _writeLocks.TryRemove(Key, out var _);
             var record = new UploadedFile
             {
-                Id = parts[1],
+                Id = Guid.Parse(parts[1]),
                 Hash = hash, 
                 Name = originalName, 
                 Uploader = user, 
@@ -235,8 +237,42 @@ namespace Wabbajack.BuildServer.Controllers
                 return Ok($"Deleted {name}");
             return NotFound(name);
         }
-        
-        
-        
+
+        [HttpGet]
+        [Route("ingest/uploaded_files/{name}")]
+        [Authorize]
+        public async Task<IActionResult> IngestMongoDB(string name)
+        {
+            var fullPath = name.RelativeTo((AbsolutePath)_settings.TempFolder);
+            await using var fs = fullPath.OpenRead();
+            
+            var files = new List<UploadedFile>();
+            using var rdr = new JsonTextReader(new StreamReader(fs)) {SupportMultipleContent = true};
+
+            while (await rdr.ReadAsync())
+            {
+                dynamic obj = await JObject.LoadAsync(rdr);
+
+
+                var uf = new UploadedFile
+                {
+                    Id = Guid.Parse((string)obj._id),
+                    Name = obj.Name,
+                    Size = long.Parse((string)(obj.Size["$numberLong"] ?? obj.Size["$numberInt"])),
+                    Hash = Hash.FromBase64((string)obj.Hash),
+                    Uploader = obj.Uploader,
+                    UploadDate = long.Parse(((string)obj.UploadDate["$date"]["$numberLong"]).Substring(0, 10)).AsUnixTime(),
+                    CDNName = obj.CDNName
+                };
+                files.Add(uf);
+                await SQL.AddUploadedFile(uf);
+            }
+            
+
+            return Ok(files.Count);
+        }
+
+
+
     }
 }
