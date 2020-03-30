@@ -13,6 +13,7 @@
     <PublishReadyToRun>true</PublishReadyToRun>
     <StartupObject></StartupObject>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IncludeSymbolsInSingleFile>true</IncludeSymbolsInSingleFile>
   </PropertyGroup>
 
     <PropertyGroup>

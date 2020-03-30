@@ -13,6 +13,7 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <AssemblyName>Wabbajack</AssemblyName>
         <RootNamespace>Wabbajack</RootNamespace>
+        <IncludeSymbolsInSingleFile>true</IncludeSymbolsInSingleFile>
     </PropertyGroup>
 
     <PropertyGroup>
