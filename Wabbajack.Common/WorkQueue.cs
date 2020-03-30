@@ -16,7 +16,7 @@ namespace Wabbajack.Common
 {
     public class WorkQueue : IDisposable
     {
-        internal BlockingCollection<Func<Task>> Queue = new BlockingCollection<Func<Task>>(new ConcurrentStack<Func<Task>>());
+        internal AsyncBlockingCollection<Func<Task>> Queue = new AsyncBlockingCollection<Func<Task>>();
 
         public const int UnassignedCpuId = 0;
 
@@ -50,7 +50,7 @@ namespace Wabbajack.Common
 
         private readonly Subject<IObservable<int>> _activeNumThreadsObservable = new Subject<IObservable<int>>();
 
-        internal const int PollMS = 200;
+        public TimeSpan PollMS = TimeSpan.FromMilliseconds(200);
 
         /// <summary>
         /// Creates a WorkQueue with the given number of threads
@@ -124,7 +124,7 @@ namespace Wabbajack.Common
                     bool got;
                     try
                     {
-                        got = Queue.TryTake(out f, PollMS, _shutdown.Token);
+                        (got, f) = await Queue.TryTake(PollMS, _shutdown.Token);
                     }
                     catch (Exception)
                     {

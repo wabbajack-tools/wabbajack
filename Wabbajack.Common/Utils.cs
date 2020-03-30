@@ -759,7 +759,8 @@ namespace Wabbajack.Common
             {
                 while (remainingTasks > 0)
                 {
-                    if (queue.Queue.TryTake(out var a, 500))
+                    var (got, a) = await queue.Queue.TryTake(TimeSpan.FromMilliseconds(200), CancellationToken.None);
+                    if (got)
                     {
                         await a();
                     }
@@ -799,7 +800,8 @@ namespace Wabbajack.Common
             {
                 while (remainingTasks > 0)
                 {
-                    if (queue.Queue.TryTake(out var a, 500))
+                    var (got, a) = await queue.Queue.TryTake(TimeSpan.FromMilliseconds(200), CancellationToken.None);
+                    if (got)
                     {
                         await a();
                     }
@@ -840,7 +842,8 @@ namespace Wabbajack.Common
             {
                 while (remainingTasks > 0)
                 {
-                    if (queue.Queue.TryTake(out var a, 500))
+                    var (got, a) = await queue.Queue.TryTake(TimeSpan.FromMilliseconds(200), CancellationToken.None);
+                    if (got)
                     {
                         await a();
                     }
