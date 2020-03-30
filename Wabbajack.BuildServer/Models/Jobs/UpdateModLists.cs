@@ -173,7 +173,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
          {
              try
              {
-                 var gameMeta = GameRegistry.GetByFuzzyName(state.GameName);
+                 var gameMeta = state.Game.MetaData();
                  if (gameMeta == null)
                      return false;
 

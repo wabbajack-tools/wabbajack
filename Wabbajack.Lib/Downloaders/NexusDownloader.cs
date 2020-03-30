@@ -10,6 +10,7 @@ using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
+using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -77,7 +78,7 @@ namespace Wabbajack.Lib.Downloaders
                     ImageURL = info.picture_url,
                     IsNSFW = info.contains_adult_content,
                     Description = NexusApiUtils.FixupSummary(info.summary),
-                    GameName = general.gameName,
+                    Game = GameRegistry.GetByFuzzyName((string)general.gameName).Game,
                     ModID = general.modID,
                     FileID = general.fileID
                 };
@@ -124,7 +125,7 @@ namespace Wabbajack.Lib.Downloaders
         public class State : AbstractDownloadState, IMetaState
         {
             [IgnoreMember]
-            public Uri URL => new Uri($"http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID}");
+            public Uri URL => new Uri($"http://nexusmods.com/{Game.MetaData().NexusName}/mods/{ModID}");
 
             [Key(0)]
             public string Name { get; set; }
@@ -145,7 +146,7 @@ namespace Wabbajack.Lib.Downloaders
             public string Description { get; set; }
 
             [Key(6)]
-            public string GameName { get; set; }
+            public Game Game { get; set; }
             
             [Key(7)]
             public string ModID { get; set; }
@@ -158,7 +159,7 @@ namespace Wabbajack.Lib.Downloaders
             }
             
             [IgnoreMember]
-            public override object[] PrimaryKey { get => new object[]{GameName, ModID, FileID};}
+            public override object[] PrimaryKey { get => new object[]{Game, ModID, FileID};}
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -180,7 +181,7 @@ namespace Wabbajack.Lib.Downloaders
                     return false;
                 }
 
-                Utils.Log($"Downloading Nexus Archive - {a.Name} - {GameName} - {ModID} - {FileID}");
+                Utils.Log($"Downloading Nexus Archive - {a.Name} - {Game} - {ModID} - {FileID}");
 
                 return await new HTTPDownloader.State
                 {
@@ -192,7 +193,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 try
                 {
-                    var gameMeta = GameRegistry.GetByMO2ArchiveName(GameName) ?? GameRegistry.GetByNexusName(GameName);
+                    var gameMeta = Game.MetaData();
                     if (gameMeta == null)
                         return false;
 
@@ -212,7 +213,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log($"{Name} - {GameName} - {ModID} - {FileID} - Error getting Nexus download URL - {ex}");
+                    Utils.Log($"{Name} - {Game} - {ModID} - {FileID} - Error getting Nexus download URL - {ex}");
                     return false;
                 }
 
@@ -225,12 +226,12 @@ namespace Wabbajack.Lib.Downloaders
 
             public override string GetManifestURL(Archive a)
             {
-                return $"http://nexusmods.com/{NexusApiUtils.ConvertGameName(GameName)}/mods/{ModID}";
+                return $"http://nexusmods.com/{Game.MetaData().NexusName}/mods/{ModID}";
             }
 
             public override string[] GetMetaIni()
             {
-                return new[] {"[General]", $"gameName={GameName}", $"modID={ModID}", $"fileID={FileID}"};
+                return new[] {"[General]", $"gameName={Game.MetaData().MO2Name}", $"modID={ModID}", $"fileID={FileID}"};
             }
         }
     }
