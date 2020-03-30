@@ -9,14 +9,11 @@ namespace Wabbajack.BuildServer
         {
             config.Bind("WabbajackSettings", this);
         }
-
-        public AppSettings()
-        {
-            
-        }
         
         public AbsolutePath DownloadDir { get; set; }
         public AbsolutePath ArchiveDir { get; set; }
+        
+        public string TempFolder { get; set; }
         
         public bool JobScheduler { get; set; }
         public bool JobRunner { get; set; }

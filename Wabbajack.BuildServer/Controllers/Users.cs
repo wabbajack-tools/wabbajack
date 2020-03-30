@@ -25,10 +25,7 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<string> AddUser(string Name)
         {
             var user = new ApiKey();
-            var arr = new byte[128];
-            new Random().NextBytes(arr);
-            user.Owner = Name;
-            user.Key = arr.ToHex();
+            user.Key = NewAPIKey();
             user.Id = Guid.NewGuid().ToString();
             user.Roles = new List<string>();
             user.CanUploadLists = new List<string>();
@@ -54,6 +51,12 @@ namespace Wabbajack.BuildServer.Controllers
             return "done";
         }
 
+        public static string NewAPIKey()
+        {
+            var arr = new byte[128];
+            new Random().NextBytes(arr);
+            return arr.ToHex();
+        }
     }
     
 }

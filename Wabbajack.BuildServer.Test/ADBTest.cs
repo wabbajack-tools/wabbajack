@@ -7,36 +7,32 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Wabbajack.BuildServer.Controllers;
+using Wabbajack.Common;
 using Wabbajack.BuildServer.Model.Models;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Wabbajack.BuildServer.Test
 {
-    public class ABuildServerTest : IAsyncLifetime
+    public class ADBTest : IAsyncLifetime
     {
         private static string CONN_STR = @"Data Source=.\SQLEXPRESS;Integrated Security=True;";
+        public string PublicConnStr => CONN_STR + $";Initial Catalog={DBName}";
         private AppSettings _appSettings;
         protected SqlService _sqlService;
+        private bool _finishedSchema;
         private string DBName { get; }
 
-        public ABuildServerTest(ITestOutputHelper helper)
+        public ADBTest()
         {
-            TestContext = helper;
             DBName = "test_db" + Guid.NewGuid().ToString().Replace("-", "_");
-            _appSettings = MakeAppSettings();
-            _sqlService = new SqlService(_appSettings);
+            User = Guid.NewGuid().ToString().Replace("-", "");
+            APIKey = Users.NewAPIKey();
         }
 
-        private AppSettings MakeAppSettings()
-        {
-            return new AppSettings
-            {
-                SqlConnection = CONN_STR + $"Initial Catalog={DBName}"
-            };
-        }
-
-        public ITestOutputHelper TestContext { get;}
+        public string APIKey { get; }
+        public string User { get; }
 
         public async Task InitializeAsync()
         {
@@ -45,7 +41,7 @@ namespace Wabbajack.BuildServer.Test
         
         private async Task CreateSchema()
         {
-            TestContext.WriteLine("Creating Database");
+            Utils.Log("Creating Database");
             //var conn = new SqlConnection("Data Source=localhost,1433;User ID=test;Password=test;MultipleActiveResultSets=true");
             await using var conn = new SqlConnection(CONN_STR);
 
@@ -60,8 +56,12 @@ namespace Wabbajack.BuildServer.Test
             foreach (var statement in SplitSqlStatements(schemaString))
             {
                 await new SqlCommand(statement, conn).ExecuteNonQueryAsync();
-                
             }
+
+            await new SqlCommand($"USE {DBName}", conn).ExecuteNonQueryAsync();
+            
+            await new SqlCommand($"INSERT INTO dbo.ApiKeys (APIKey, Owner) VALUES ('{APIKey}', '{User}');", conn).ExecuteNonQueryAsync();
+            _finishedSchema = true;
         }
 
         private static IEnumerable<string> SplitSqlStatements(string sqlScript)
@@ -82,7 +82,9 @@ namespace Wabbajack.BuildServer.Test
 
         async Task IAsyncLifetime.DisposeAsync()
         {
-            TestContext.WriteLine("Deleting Database");
+            // Don't delete it if the setup failed, so we can debug the issue
+            if (!_finishedSchema) return;
+            Utils.Log("Deleting Database");
             await using  var conn = new SqlConnection(CONN_STR);
 
             await conn.OpenAsync();

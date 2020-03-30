@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 
 namespace Wabbajack.BuildServer
@@ -24,7 +25,7 @@ namespace Wabbajack.BuildServer
     public class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
     {
         private const string ProblemDetailsContentType = "application/problem+json";
-        private readonly DBContext _db;
+        private readonly SqlService _db;
         private const string ApiKeyHeaderName = "X-Api-Key";
 
         public ApiKeyAuthenticationHandler(
@@ -32,7 +33,7 @@ namespace Wabbajack.BuildServer
             ILoggerFactory logger,
             UrlEncoder encoder,
             ISystemClock clock,
-            DBContext db) : base(options, logger, encoder, clock)
+            SqlService db) : base(options, logger, encoder, clock)
         {
             _db = db;
         }
@@ -51,13 +52,15 @@ namespace Wabbajack.BuildServer
                 return AuthenticateResult.NoResult();
             }
 
-            var existingApiKey = await ApiKey.Get(_db, providedApiKey);
+            var owner = await _db.LoginByAPIKey(providedApiKey);
 
-            if (existingApiKey != null)
+            if (owner != null)
             {
-                var claims = new List<Claim> {new Claim(ClaimTypes.Name, existingApiKey.Owner)};
+                var claims = new List<Claim> {new Claim(ClaimTypes.Name, owner)};
 
+                /*
                 claims.AddRange(existingApiKey.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
+                */
 
                 var identity = new ClaimsIdentity(claims, Options.AuthenticationType);
                 var identities = new List<ClaimsIdentity> {identity};

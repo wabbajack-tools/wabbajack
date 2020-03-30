@@ -29,6 +29,7 @@ namespace Wabbajack.BuildServer.Model.Models
         private async Task<SqlConnection> Open()
         {
             var conn = new SqlConnection(_settings.SqlConnection);
+            Utils.Log("CONN : " + _settings.SqlConnection);
             await conn.OpenAsync();
             return conn;
         }
@@ -166,6 +167,17 @@ namespace Wabbajack.BuildServer.Model.Models
                 .ToList();
         }
         
+        #region UserRoutines
+
+        public async Task<string> LoginByAPIKey(string key)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryAsync<string>(@"SELECT Owner as Id FROM dbo.ApiKeys WHERE ApiKey = @Key",
+                new {Key = key});
+            return result.FirstOrDefault();
+        }
+        
+        #endregion
         
         #region JobRoutines
 
@@ -247,5 +259,23 @@ namespace Wabbajack.BuildServer.Model.Models
         
 
         #endregion
+
+        public async Task AddUploadedFile(UploadedFile uf)
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync(
+                "INSERT INTO dbo.UploadedFiles (Id, Name, Size, UploadedBy, Hash, UploadDate, CDNName) VALUES " +
+                "(@Id, @Name, @Size, @UploadedBy, @Hash, @UploadDate, @CDNName)",
+                new
+                {
+                    Id = uf.Id.ToString(),
+                    Name = uf.Name,
+                    Size = uf.Size,
+                    UploadedBy = uf.Uploader,
+                    Hash = (long)uf.Hash,
+                    UploadDate = uf.UploadDate,
+                    CDNName = uf.CDNName
+                });
+        }
     }
 }

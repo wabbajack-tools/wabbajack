@@ -36,6 +36,12 @@ using Directory = System.IO.Directory;
 
 namespace Wabbajack.BuildServer
 {
+    public class TestStartup : Startup
+    {
+        public TestStartup(IConfiguration configuration) : base(configuration)
+        {
+        }
+    }
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -90,7 +96,9 @@ namespace Wabbajack.BuildServer
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+            if (!(this is TestStartup)) 
+                app.UseHttpsRedirection();
+            
             app.UseGraphiQl();
             app.UseDeveloperExceptionPage();
             

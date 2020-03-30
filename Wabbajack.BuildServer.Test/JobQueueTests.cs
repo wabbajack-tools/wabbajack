@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Wabbajack.BuildServer.Test
 {
-    public class BasicTest : ABuildServerTest
+    public class BasicTest : ADBTest
     {
         [Fact]
         public async Task CanEneuqueAndGetJobs()
@@ -40,7 +40,7 @@ namespace Wabbajack.BuildServer.Test
             }
         }
 
-        public BasicTest(ITestOutputHelper helper) : base(helper)
+        public BasicTest()
         {
             
             
