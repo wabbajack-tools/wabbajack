@@ -78,7 +78,7 @@ namespace Wabbajack.BuildServer.Controllers
             var loaded = 0;
             foreach (var ini in await Db.DownloadStates.AsQueryable().ToListAsync())
             {
-                var file = Path.Combine("exported_inis", ini.Hash.FromBase64().ToHex() + ".ini");
+                var file = Path.Combine("exported_inis", ini.Hash.FromBase64().ToHex() + "_" + ini.Key.StringSHA256Hex() + ".ini");
                 Alphaleonis.Win32.Filesystem.File.WriteAllLines(file, ini.State.GetMetaIni());
                 loaded += 1;
             }
