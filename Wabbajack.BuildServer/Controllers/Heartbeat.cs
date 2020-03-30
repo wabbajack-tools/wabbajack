@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
+using MongoDB.Driver;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.Common;
@@ -64,6 +66,24 @@ namespace Wabbajack.BuildServer.Controllers
                 lst = Log.ToArray();
             }
             return Ok(string.Join("\n", lst));
+        }
+
+        [HttpPost("export_inis")]
+        [Authorize]
+        public async Task<IActionResult> ExportInis()
+        {
+            if (!Directory.Exists("exported_inis"))
+                Directory.CreateDirectory("exported_inis");
+
+            var loaded = 0;
+            foreach (var ini in await Db.DownloadStates.AsQueryable().ToListAsync())
+            {
+                var file = Path.Combine("exported_inis", ini.Hash.FromBase64().ToHex() + ".ini");
+                Alphaleonis.Win32.Filesystem.File.WriteAllLines(file, ini.State.GetMetaIni());
+                loaded += 1;
+            }
+
+            return Ok(loaded);
         }
     }
 }

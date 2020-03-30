@@ -83,16 +83,16 @@ namespace Wabbajack.Lib.FileUploader
                             await fs.ReadAsync(data, 0, data.Length);
 
                             
-                            response = await client.PutAsync(UploadURL + $"/{key}/data/{block_offset}",
+                            var putResponse = await client.PutAsync(UploadURL + $"/{key}/data/{block_offset}",
                                 new ByteArrayContent(data));
 
-                            if (!response.IsSuccessStatusCode)
+                            if (!putResponse.IsSuccessStatusCode)
                             {
-                                tcs.SetException(new Exception($"Put Error: {response.StatusCode} {response.ReasonPhrase}"));
+                                tcs.SetException(new Exception($"Put Error: {putResponse.StatusCode} {putResponse.ReasonPhrase}"));
                                 return;
                             }
 
-                            var val = long.Parse(await response.Content.ReadAsStringAsync());
+                            var val = long.Parse(await putResponse.Content.ReadAsStringAsync());
                             if (val != block_offset + data.Length)
                             {
                                 tcs.SetResult($"Sync Error {val} vs {block_offset + data.Length}");
