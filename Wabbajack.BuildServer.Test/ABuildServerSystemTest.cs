@@ -29,7 +29,7 @@ namespace Wabbajack.BuildServer.Test
                 {
                     $"WabbajackSettings:DownloadDir={"tmp".RelativeTo(AbsolutePath.EntryPoint)}",
                     $"WabbajackSettings:ArchiveDir={"archives".RelativeTo(AbsolutePath.EntryPoint)}",
-                    $"WabbajackSettings:TempDir={ServerTempFolder}",
+                    $"WabbajackSettings:TempFolder={ServerTempFolder}",
                     $"WabbajackSettings:SQLConnection={PublicConnStr}",
                 }, true);
             _host = builder.Build();

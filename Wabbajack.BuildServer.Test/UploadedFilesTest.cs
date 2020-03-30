@@ -25,7 +25,7 @@ namespace Wabbajack.BuildServer.Test
             Utils.Log("Loaded: " + result);
 
             
-            Assert.Equal("251", result);
+            Assert.Equal("4", result);
         }
     }
 }
