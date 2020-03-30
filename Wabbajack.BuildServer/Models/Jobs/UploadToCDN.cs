@@ -27,6 +27,11 @@ namespace Wabbajack.BuildServer.Models.Jobs
             int retries = 0;
             TOP:
             var file = await db.UploadedFiles.AsQueryable().Where(f => f.Id == FileId).FirstOrDefaultAsync();
+
+            if (settings.BunnyCDN_User == "TEST" && settings.BunnyCDN_Password == "TEST")
+            {
+                return JobResult.Success();
+            }
             
             using (var client = new FtpClient("storage.bunnycdn.com"))
             {

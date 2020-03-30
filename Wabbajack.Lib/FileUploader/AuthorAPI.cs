@@ -21,24 +21,25 @@ namespace Wabbajack.Lib.FileUploader
     {
         public static IObservable<bool> HaveAuthorAPIKey => Utils.HaveEncryptedJsonObservable("author-api-key.txt");
 
-        public static async Task<string> GetAPIKey()
+        public static async Task<string> GetAPIKey(string apiKey = null)
         {
-            return (await Consts.LocalAppDataPath.Combine("author-api-key.txt").ReadAllTextAsync()).Trim();
+            return apiKey ?? (await Consts.LocalAppDataPath.Combine("author-api-key.txt").ReadAllTextAsync()).Trim();
         }
         
-        public static readonly Uri UploadURL = new Uri("https://build.wabbajack.org/upload_file");
+        public static Uri UploadURL => new Uri($"{Consts.WabbajackBuildServerUri}upload_file");
         public static long BLOCK_SIZE = (long)1024 * 1024 * 2;
         public static int MAX_CONNECTIONS = 8;
-        public static Task<string> UploadFile(WorkQueue queue, AbsolutePath filename, Action<double> progressFn)
+        public static Task<string> UploadFile(AbsolutePath filename, Action<double> progressFn, string apikey=null)
         {
             var tcs = new TaskCompletionSource<string>();
             Task.Run(async () =>
             {
-                var client = await GetAuthorizedClient();
+                var client = await GetAuthorizedClient(apikey);
 
                 var fsize = filename.Size;
-                var hash_task = filename.FileHashAsync();
+                var hashTask = filename.FileHashAsync();
 
+                Utils.Log($"{UploadURL}/{filename.FileName.ToString()}/start");
                 var response = await client.PutAsync($"{UploadURL}/{filename.FileName.ToString()}/start", new StringContent(""));
                 if (!response.IsSuccessStatusCode)
                 {
@@ -58,36 +59,39 @@ namespace Wabbajack.Lib.FileUploader
                 {
                     iqueue.Report("Starting Upload", Percent.One);
                 await Blocks(fsize)
-                    .PMap(iqueue, async block_idx =>
+                    .PMap(iqueue, async blockIdx =>
                     {
                         if (tcs.Task.IsFaulted) return;
-                        var block_offset = block_idx * BLOCK_SIZE;
-                        var block_size = block_offset + BLOCK_SIZE > fsize
-                            ? fsize - block_offset
+                        var blockOffset = blockIdx * BLOCK_SIZE;
+                        var blockSize = blockOffset + BLOCK_SIZE > fsize
+                            ? fsize - blockOffset
                             : BLOCK_SIZE;
-                        Interlocked.Add(ref sent, block_size);
+                        Interlocked.Add(ref sent, blockSize);
                         progressFn((double)sent / fsize);
 
-                        await using var fs = filename.OpenRead();
-                        fs.Position = block_offset;
-                        var data = new byte[block_size];
-                        await fs.ReadAsync(data, 0, data.Length);
+                        var data = new byte[blockSize];
+                        await using (var fs = filename.OpenRead())
+                        {
+                            fs.Position = blockOffset;
+                            await fs.ReadAsync(data, 0, data.Length);
+                        }
 
-                            
-                        response = await client.PutAsync(UploadURL + $"/{key}/data/{block_offset}",
+
+                        var offsetResponse = await client.PutAsync(UploadURL + $"/{key}/data/{blockOffset}",
                             new ByteArrayContent(data));
 
-                        if (!response.IsSuccessStatusCode)
+                        if (!offsetResponse.IsSuccessStatusCode)
                         {
-                            tcs.SetException(new Exception($"Put Error: {response.StatusCode} {response.ReasonPhrase}"));
+                            Utils.Log(await offsetResponse.Content.ReadAsStringAsync());
+                            tcs.SetException(new Exception($"Put Error: {offsetResponse.StatusCode} {offsetResponse.ReasonPhrase}"));
                             return;
                         }
 
-                        var val = long.Parse(await response.Content.ReadAsStringAsync());
-                        if (val != block_offset + data.Length)
+                        var val = long.Parse(await offsetResponse.Content.ReadAsStringAsync());
+                        if (val != blockOffset + data.Length)
                         {
-                            tcs.SetResult($"Sync Error {val} vs {block_offset + data.Length}");
-                            tcs.SetException(new Exception($"Sync Error {val} vs {block_offset + data.Length}"));
+                            tcs.SetResult($"Sync Error {val} vs {blockOffset + data.Length} Offset {blockOffset} Size {data.Length}");
+                            tcs.SetException(new Exception($"Sync Error {val} vs {blockOffset + data.Length}"));
                         }
                     });
                 }
@@ -95,7 +99,7 @@ namespace Wabbajack.Lib.FileUploader
                 if (!tcs.Task.IsFaulted)
                 {
                     progressFn(1.0);
-                    var hash = (await hash_task).ToHex();
+                    var hash = (await hashTask).ToHex();
                     response = await client.PutAsync(UploadURL + $"/{key}/finish/{hash}", new StringContent(""));
                     if (response.IsSuccessStatusCode)
                         tcs.SetResult(await response.Content.ReadAsStringAsync());
@@ -109,10 +113,10 @@ namespace Wabbajack.Lib.FileUploader
             return tcs.Task;
         }
 
-        public static async Task<Common.Http.Client> GetAuthorizedClient()
+        public static async Task<Common.Http.Client> GetAuthorizedClient(string apiKey=null)
         {
             var client = new Common.Http.Client();
-            client.Headers.Add(("X-API-KEY", await GetAPIKey()));
+            client.Headers.Add(("X-API-KEY", await GetAPIKey(apiKey)));
             return client;
         }
         

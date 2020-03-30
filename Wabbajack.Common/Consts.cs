@@ -107,6 +107,7 @@ namespace Wabbajack.Common
         public static string WabbajackCacheLocation = "http://build.wabbajack.org/nexus_api_cache/";
 
         public static string WabbajackCacheHostname = "build.wabbajack.org";
+        public static Uri WabbajackBuildServerUri = new Uri("https://build.wabbajack.org");
         public static int WabbajackCachePort = 80;
         public static int MaxHTTPRetries = 4;
         public static RelativePath MO2ModFolderName = (RelativePath)"mods";

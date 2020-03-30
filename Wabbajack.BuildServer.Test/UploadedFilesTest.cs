@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.Common;
+using Wabbajack.Lib;
+using Wabbajack.Lib.FileUploader;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Priority;
@@ -33,7 +35,7 @@ namespace Wabbajack.BuildServer.Test
         }
         
         [Fact, Priority(1)]
-        public async Task CanLoadUploadedFiles()
+        public async Task CanListMyUploadedFiles()
         {
             var result = (await _authedClient.GetStringAsync(MakeURL("uploaded_files/list"))).FromJSONString<string[]>();
             Utils.Log("Loaded: " + result);
@@ -45,6 +47,27 @@ namespace Wabbajack.BuildServer.Test
             // These are from other users
             Assert.DoesNotContain("file2-1f18f301-67eb-46c9-928a-088f6666bf61.zip", result);
             Assert.DoesNotContain("file3-17b3e918-8409-48e6-b7ff-6af858bfd1ba.zip", result);
+        }
+
+        [Fact]
+        public async Task CanUploadFilesUsingClientApi()
+        {
+            using (var file = new TempFile())
+            {
+                var data = new byte[1024 * 1024 * 8 * 4];
+                await using (var fs = file.Path.Create())
+                {
+                    await fs.WriteAsync(data);
+                }
+
+                Utils.Log($"Uploading {file.Path.Size.ToFileSizeString()} file");
+                var result = await AuthorAPI.UploadFile(file.Path,
+                    progress => Utils.Log($"Uploading : {progress * 100}%"), Fixture.APIKey);
+
+                Utils.Log($"Result {result}");
+                Assert.StartsWith("https://wabbajackpush.b-cdn.net/" +(string)file.Path.FileNameWithoutExtension, result);
+            }
+
         }
 
     }

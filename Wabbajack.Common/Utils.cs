@@ -1137,6 +1137,14 @@ namespace Wabbajack.Common
             random.NextBytes(bytes);
             return bytes.ToHex();
         }
+        
+        public static byte[] RandomData(int size)
+        {
+            var random = new Random();
+            byte[] bytes = new byte[size];
+            random.NextBytes(bytes);
+            return bytes;
+        }
 
         public static async Task CopyFileAsync(string src, string dest)
         {

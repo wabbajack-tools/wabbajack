@@ -14,6 +14,8 @@ namespace Wabbajack.BuildServer
         public AbsolutePath ArchiveDir { get; set; }
         
         public string TempFolder { get; set; }
+
+        public AbsolutePath TempPath => (AbsolutePath)TempFolder;
         
         public bool JobScheduler { get; set; }
         public bool JobRunner { get; set; }
