@@ -31,10 +31,13 @@ namespace Wabbajack.BuildServer.Test
                     $"WabbajackSettings:ArchiveDir={"archives".RelativeTo(AbsolutePath.EntryPoint)}",
                     $"WabbajackSettings:TempFolder={ServerTempFolder}",
                     $"WabbajackSettings:SQLConnection={PublicConnStr}",
+                    $"WabbajackSettings:BunnyCDN_User=TEST",
+                    $"WabbajackSettings:BunnyCDN_Password=TEST",
                 }, true);
             _host = builder.Build();
             _token = new CancellationTokenSource();
             _task = _host.RunAsync(_token.Token);
+            Consts.WabbajackBuildServerUri = new Uri("http://localhost:8080");
         }
 
         public void Dispose()
@@ -52,16 +55,19 @@ namespace Wabbajack.BuildServer.Test
         private readonly IDisposable _unsubMsgs;
         private readonly IDisposable _unsubErr;
         protected Client _authedClient;
+        protected WorkQueue _queue;
 
 
         public ABuildServerSystemTest(ITestOutputHelper output, BuildServerFixture fixture) : base(output)
         {
+            Filters.Clear();
             _unsubMsgs = Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => XunitContext.WriteLine(msg.ShortDescription));
             _unsubErr = Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
                 XunitContext.WriteLine("ERROR: User intervention required: " + msg.ShortDescription));
             _client = new Client();
             _authedClient = new Client();
             _authedClient.Headers.Add(("x-api-key", fixture.APIKey));
+            _queue = new WorkQueue();
             Fixture = fixture;
         }
 

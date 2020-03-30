@@ -384,6 +384,11 @@ namespace Wabbajack.Common
         {
             return File.Open(_path, FileMode.Open, FileAccess.Read);
         }
+
+        public FileStream WriteShared()
+        {
+            return File.Open(_path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
+        }
     }
 
     public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<RelativePath>

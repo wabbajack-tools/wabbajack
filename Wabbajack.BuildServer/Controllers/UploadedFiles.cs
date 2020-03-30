@@ -49,8 +49,8 @@ namespace Wabbajack.BuildServer.Controllers
             var key = Encoding.UTF8.GetBytes($"{Path.GetFileNameWithoutExtension(Name)}|{guid.ToString()}|{Path.GetExtension(Name)}").ToHex();
             
             _writeLocks.GetOrAdd(key, new AsyncLock());
-            
-            System.IO.File.Create(Path.Combine("public", "tmp_files", key)).Close();
+
+            await using var fs = _settings.TempPath.Combine(key).Create();
             Utils.Log($"Starting Ingest for {key}");
             return Ok(key);
         }
@@ -62,20 +62,24 @@ namespace Wabbajack.BuildServer.Controllers
         {
             if (!Key.All(a => HexChars.Contains(a)))
                 return BadRequest("NOT A VALID FILENAME");
-            Utils.Log($"Writing at position {Offset} in ingest file {Key}");
             
             var ms = new MemoryStream();
             await Request.Body.CopyToAsync(ms);
             ms.Position = 0;
-            
+
+            Utils.Log($"Writing {ms.Length} at position {Offset} in ingest file {Key}");
+
             long position;
             using (var _ = await _writeLocks[Key].Wait())
-            await using (var file = System.IO.File.Open(Path.Combine("public", "tmp_files", Key), FileMode.Open, FileAccess.Write, FileShare.ReadWrite))
             {
+                await using var file = _settings.TempPath.Combine(Key).WriteShared();
                 file.Position = Offset;
                 await ms.CopyToAsync(file);
-                position = file.Position;
+                position = Offset + ms.Length;
             }
+
+            Utils.Log($"Wrote {ms.Length} as position {Offset} result {position}");
+
             return Ok(position);
         }
 
@@ -132,7 +136,8 @@ namespace Wabbajack.BuildServer.Controllers
             var originalName = $"{parts[0]}{parts[2]}";
 
             var finalPath = "public".RelativeTo(AbsolutePath.EntryPoint).Combine("files", finalName);
-            "public".RelativeTo(AbsolutePath.EntryPoint).MoveTo(finalPath);
+            _settings.TempPath.Combine(Key).MoveTo(finalPath);
+            
             var hash = await finalPath.FileHashAsync();
 
             if (expectedHash != hash)
@@ -151,8 +156,8 @@ namespace Wabbajack.BuildServer.Controllers
                 Size = finalPath.Size,
                 CDNName = "wabbajackpush"
             };
-            await Db.UploadedFiles.InsertOneAsync(record);
-            await Db.Jobs.InsertOneAsync(new Job
+            await SQL.AddUploadedFile(record);
+            await SQL.EnqueueJob(new Job
             {
                 Priority = Job.JobPriority.High, Payload = new UploadToCDN {FileId = record.Id}
             });
