@@ -102,7 +102,7 @@ namespace Wabbajack.BuildServer.Controllers
                 return NotFound("Original state not found");
 
             var nexusState = state.State as NexusDownloader.State;
-            var nexusGame = GameRegistry.GetByFuzzyName(nexusState.GameName).NexusName;
+            var nexusGame = nexusState.Game.MetaData().NexusName;
             var mod_files = await Db.NexusModFiles.AsQueryable()
                 .Where(f => f.Game == nexusGame && f.ModId == nexusState.ModID)
                 .ToListAsync();
@@ -164,8 +164,7 @@ namespace Wabbajack.BuildServer.Controllers
         {
             var origSize = _settings.PathForArchive(srcHash).Size;
             var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-            var allMods = await api.GetModFiles(GameRegistry.GetByFuzzyName(state.GameName).Game,
-                int.Parse(state.ModID));
+            var allMods = await api.GetModFiles(state.Game, int.Parse(state.ModID));
             var archive = allMods.files.Where(m => !string.IsNullOrEmpty(m.category_name))
                 .OrderBy(s => Math.Abs((long)s.size - origSize))
                 .Select(s => new Archive {
@@ -173,7 +172,7 @@ namespace Wabbajack.BuildServer.Controllers
                     Size = (long)s.size,
                     State = new NexusDownloader.State 
                     {
-                    GameName = state.GameName, 
+                    Game = state.Game, 
                     ModID = state.ModID, 
                     FileID = s.file_id.ToString()
                 }}).FirstOrDefault();

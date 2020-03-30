@@ -39,13 +39,13 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     {
                         var files = await client.GetModFiles(GameRegistry.GetByNexusName(mod.Game).Game,
                             (int)mod.ModId);
-                        return (mod.Game, mod.ModId, files.files);
+                        return (Game: GameRegistry.GetByFuzzyName(mod.Game).Game, mod.ModId, files.files);
                     }
                     catch (Exception)
                     {
                         return default;
                     }
-                })).Where(t => t.Game != null).ToList();
+                })).Where(t => t.Game != default).ToList();
                 
                 var archives = 
                     mod_files.SelectMany(mod => mod.files.Select(file => (mod.Game, mod.ModId, File:file)).Where(f => !string.IsNullOrEmpty(f.File.category_name) ))
@@ -53,7 +53,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                         {
                             var state = new NexusDownloader.State
                             {
-                                GameName = tuple.Game, ModID = tuple.ModId.ToString(), FileID = tuple.File.file_id.ToString()
+                                Game = tuple.Game, ModID = tuple.ModId.ToString(), FileID = tuple.File.file_id.ToString()
                             };
                             return new Archive {State = state, Name = tuple.File.file_name}; 
                         }).ToList();

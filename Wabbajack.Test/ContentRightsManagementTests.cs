@@ -52,7 +52,7 @@ namespace Wabbajack.Test
                     {
                         State = new NexusDownloader.State                    
                         {
-                            GameName = "Skyrim",
+                            Game = Game.Skyrim,
                             Author = "bill",
                             ModID = "42",
                             FileID = "33",

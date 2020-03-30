@@ -548,7 +548,7 @@ namespace Wabbajack.Test
                 Hash = Hash.FromBase64("gCRVrvzDNH0="),
                 State = new NexusDownloader.State
                 {
-                    GameName = Game.SkyrimSpecialEdition.MetaData().NexusName,
+                    Game = Game.SkyrimSpecialEdition,
                     ModID = "24808",
                     FileID = "123501"
                 }
