@@ -7,10 +7,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Extensions.Configuration;
+using Microsoft.VisualBasic;
+using ReactiveUI;
 using Wabbajack.BuildServer.Model.Models.Results;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
+using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.BuildServer.Model.Models
@@ -29,7 +32,6 @@ namespace Wabbajack.BuildServer.Model.Models
         private async Task<SqlConnection> Open()
         {
             var conn = new SqlConnection(_settings.SqlConnection);
-            Utils.Log("CONN : " + _settings.SqlConnection);
             await conn.OpenAsync();
             return conn;
         }
@@ -297,6 +299,42 @@ namespace Wabbajack.BuildServer.Model.Models
             await using var conn = await Open();
             return await conn.QueryAsync<UploadedFile>("SELECT * FROM dbo.UploadedFiles WHERE UploadedBy = @uploadedBy", 
                 new {UploadedBy = user});
+        }
+
+        public async Task AddDownloadState(Hash hash, AbstractDownloadState state)
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync("INSERT INTO dbo.DownloadStates (Id, Hash, PrimaryKey, IniState, JsonState) " +
+                                    "VALUES (@Id, @Hash, @PrimaryKey, @IniState, @JsonState)",
+                new
+                {
+                    Id = state.PrimaryKeyString.StringSha256Hex().FromHex(),
+                    Hash = hash,
+                    PrimaryKey = state.PrimaryKeyString,
+                    IniState = string.Join("\n", state.GetMetaIni()),
+                    JsonState = state.ToJSON()
+                });
+        }
+
+        public async Task<string> GetIniForHash(Hash id)
+        {
+            await using var conn = await Open();
+            var results = await conn.QueryAsync<string>("SELECT IniState FROM dbo.DownloadStates WHERE Hash = @Hash",
+            new {
+                Hash = id
+            });
+
+            return results.FirstOrDefault();
+
+        }
+
+        public async Task<bool> HaveIndexedArchivePrimaryKey(string key)
+        {
+            await using var conn = await Open();
+            var results = await conn.QueryAsync<string>(
+                "SELECT * FROM dbo.DownloadStates WHERE PrimaryKey = @PrimaryKey",
+                new {PrimaryKey = key});
+            return results.Any();
         }
     }
 }

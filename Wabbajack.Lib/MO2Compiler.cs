@@ -264,7 +264,7 @@ namespace Wabbajack.Lib
             
             // Don't await this because we don't care if it fails.
             Utils.Log("Finding States to package");
-            await AuthorAPI.UploadPackagedInis(Queue, SelectedArchives.ToArray());
+            await AuthorAPI.UploadPackagedInis(SelectedArchives.ToArray());
             
             UpdateTracker.NextStep("Including Archive Metadata");
             await IncludeArchiveMetadata();
