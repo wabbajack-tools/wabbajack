@@ -389,6 +389,16 @@ namespace Wabbajack.Common
         {
             return File.Open(_path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
         }
+
+        public async Task CopyDirectoryToAsync(AbsolutePath destination)
+        {
+            destination.CreateDirectory();
+            foreach (var file in EnumerateFiles())
+            {
+                var dest = file.RelativeTo(this).RelativeTo(destination);
+                await file.CopyToAsync(dest);
+            }
+        }
     }
 
     public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<RelativePath>

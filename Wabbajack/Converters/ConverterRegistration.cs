@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ReactiveUI;
 using Splat;
+using Wabbajack.Converters;
 
 namespace Wabbajack
 {
@@ -24,6 +25,9 @@ namespace Wabbajack
                 new PercentToDoubleConverter(),
                 typeof(IBindingTypeConverter)
             );
+            Locator.CurrentMutable.RegisterConstant(
+                new PathToStringConverter(),
+                typeof(IBindingTypeConverter));
         }
     }
 }

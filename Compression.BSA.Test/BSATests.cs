@@ -13,12 +13,13 @@ using Xunit.Abstractions;
 
 namespace Compression.BSA.Test
 {
-    public class BSATests
+    public class BSATests : IAsyncLifetime
     {
         private static AbsolutePath _stagingFolder = ((RelativePath)"NexusDownloads").RelativeToEntryPoint();
         private static AbsolutePath _bsaFolder = ((RelativePath)"BSAs").RelativeToEntryPoint();
         private static AbsolutePath _testDir = ((RelativePath)"BSA Test Dir").RelativeToEntryPoint();
         private static AbsolutePath _tempDir = ((RelativePath)"BSA Temp Dir").RelativeToEntryPoint();
+        private IDisposable _unsub;
 
         public ITestOutputHelper TestContext { get; }
 
@@ -27,11 +28,24 @@ namespace Compression.BSA.Test
         public BSATests(ITestOutputHelper helper)
         {
             TestContext = helper;
+
+        }
+        
+        
+        public async Task InitializeAsync()
+        {
             Queue = new WorkQueue();
-            Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f.ShortDescription));
+            _unsub = Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f.ShortDescription));
             _stagingFolder.CreateDirectory();
-            _bsaFolder.DeleteDirectory();
+            await _bsaFolder.DeleteDirectory();
             _bsaFolder.CreateDirectory();
+        }
+
+        public async Task DisposeAsync()
+        {
+            await _bsaFolder.DeleteDirectory();
+            Queue.Dispose();
+            _unsub.Dispose();
         }
 
         private static async Task<AbsolutePath> DownloadMod(Game game, int mod)
@@ -142,5 +156,6 @@ namespace Compression.BSA.Test
         {
             return i.ToJSON().FromJSONString<T>();
         }
+
     }
 }

@@ -97,6 +97,7 @@ namespace Wabbajack.Common
         }
         
         public static RelativePath MetaIni = new RelativePath("meta.ini");
+        public static Extension IniExtension = new Extension(".ini");
 
         public static Extension HashFileExtension = new Extension(".xxHash");
         public static Extension MetaFileExtension = new Extension(".meta");

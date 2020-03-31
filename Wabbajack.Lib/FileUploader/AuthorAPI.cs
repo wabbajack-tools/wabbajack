@@ -137,7 +137,7 @@ namespace Wabbajack.Lib.FileUploader
             return await RunJob("UpdateModLists");
         }
 
-        public static async Task UploadPackagedInis(WorkQueue queue, IEnumerable<Archive> archives)
+        public static async Task<bool> UploadPackagedInis(IEnumerable<Archive> archives)
         {
             archives = archives.ToArray(); // defensive copy
             Utils.Log($"Packaging {archives.Count()} inis");
@@ -155,13 +155,14 @@ namespace Wabbajack.Lib.FileUploader
                     }
                 }
 
-                var webClient = new WebClient();
-                await webClient.UploadDataTaskAsync($"https://{Consts.WabbajackCacheHostname}/indexed_files/notify",
-                    "POST", ms.ToArray());
+                var client = new Common.Http.Client();
+                await client.PostAsync($"{Consts.WabbajackBuildServerUri}indexed_files/notify", new ByteArrayContent(ms.ToArray()));
+                return true;
             }
             catch (Exception ex)
             {
                 Utils.Log(ex.ToString());
+                return false;
             }
         }
 

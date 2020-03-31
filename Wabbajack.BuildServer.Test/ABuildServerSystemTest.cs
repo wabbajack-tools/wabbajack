@@ -33,6 +33,8 @@ namespace Wabbajack.BuildServer.Test
                     $"WabbajackSettings:SQLConnection={PublicConnStr}",
                     $"WabbajackSettings:BunnyCDN_User=TEST",
                     $"WabbajackSettings:BunnyCDN_Password=TEST",
+                    "WabbajackSettings:JobScheduler=false",
+                    "WabbajackSettings:JobRunner=false"
                 }, true);
             _host = builder.Build();
             _token = new CancellationTokenSource();
@@ -40,11 +42,25 @@ namespace Wabbajack.BuildServer.Test
             Consts.WabbajackBuildServerUri = new Uri("http://localhost:8080");
         }
 
+        public T GetService<T>()
+        {
+            return (T)_host.Services.GetService(typeof(T));
+        }
+
         public void Dispose()
         {
             if (!_token.IsCancellationRequested)
                 _token.Cancel();
-            _task.Wait();
+
+            try
+            {
+                _task.Wait();
+            }
+            catch (Exception)
+            {
+                // 
+            }
+
             _severTempFolder.DisposeAsync().AsTask().Wait();
         }
     }
@@ -69,7 +85,10 @@ namespace Wabbajack.BuildServer.Test
             _authedClient.Headers.Add(("x-api-key", fixture.APIKey));
             _queue = new WorkQueue();
             Fixture = fixture;
+            Queue = new WorkQueue();
         }
+
+        public WorkQueue Queue { get; set; }
 
         public BuildServerFixture Fixture { get; set; }
 
@@ -80,10 +99,11 @@ namespace Wabbajack.BuildServer.Test
 
         public override void Dispose()
         {
-
+            Queue.Dispose();
             base.Dispose();
             _unsubMsgs.Dispose();
             _unsubErr.Dispose();
+            
         }
     }
 }
