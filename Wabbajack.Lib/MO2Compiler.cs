@@ -297,7 +297,7 @@ namespace Wabbajack.Lib
             GenerateManifest();
 
             UpdateTracker.NextStep("Exporting Modlist");
-            ExportModList();
+            await ExportModList();
 
             ResetMembers();
 

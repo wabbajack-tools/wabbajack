@@ -22,7 +22,7 @@ namespace Wabbajack.VirtualFileSystem
         static Context()
         {
             Utils.Log("Cleaning VFS, this may take a bit of time");
-            Utils.DeleteDirectory(StagingFolder);
+            Utils.DeleteDirectory(StagingFolder).Wait();
         }
         public const ulong FileVersion = 0x03;
         public const string Magic = "WABBAJACK VFS FILE";
@@ -360,7 +360,7 @@ namespace Wabbajack.VirtualFileSystem
         }
     }
 
-    public class TemporaryDirectory : IDisposable
+    public class TemporaryDirectory : IAsyncDisposable
     {
         public TemporaryDirectory(AbsolutePath name)
         {
@@ -371,10 +371,10 @@ namespace Wabbajack.VirtualFileSystem
 
         public AbsolutePath FullName { get; }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            if (FullName.Exists) 
-                Utils.DeleteDirectory(FullName);
+            if (FullName.Exists)
+                await Utils.DeleteDirectory(FullName);
         }
     }
 }
