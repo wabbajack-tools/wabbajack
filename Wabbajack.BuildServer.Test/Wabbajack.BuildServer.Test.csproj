@@ -46,6 +46,9 @@
       <None Update="sql\NotifyStates\00e8bbbf591f61a3_6a5eb07c4b3c03fde38c9223a94a38c9076ef8fc8167f77c875c58db8f2aefd2.ini">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="xunit.runner.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>

@@ -64,8 +64,40 @@ namespace Wabbajack.BuildServer.Test
             _severTempFolder.DisposeAsync().AsTask().Wait();
         }
     }
+
+    /// <summary>
+    /// Bit of a hack to get around that we don't want the system starting and stopping our
+    /// HTTP server for each class its testing.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class SingletonAdaptor<T> where T : new()
+    {
+        private static T _singleton = default;
+        private static object _lock = new object();
+        public SingletonAdaptor()
+        {
+        }
+
+        public T Deref()
+        {
+            lock (this)
+            {
+                if (_singleton == null)
+                {
+                    _singleton = new T();
+                    if (_singleton is IAsyncLifetime d)
+                    {
+                        d.InitializeAsync().Wait();
+                    }
+                }
+
+                return _singleton;
+            }
+        }
+    }
     
-    public class ABuildServerSystemTest : XunitContextBase, IClassFixture<BuildServerFixture>
+    [Collection("ServerTests")]
+    public class ABuildServerSystemTest : XunitContextBase, IClassFixture<SingletonAdaptor<BuildServerFixture>>
     {
         protected readonly Client _client;
         private readonly IDisposable _unsubMsgs;
@@ -74,7 +106,7 @@ namespace Wabbajack.BuildServer.Test
         protected WorkQueue _queue;
 
 
-        public ABuildServerSystemTest(ITestOutputHelper output, BuildServerFixture fixture) : base(output)
+        public ABuildServerSystemTest(ITestOutputHelper output, SingletonAdaptor<BuildServerFixture> fixture) : base(output)
         {
             Filters.Clear();
             _unsubMsgs = Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => XunitContext.WriteLine(msg.ShortDescription));
@@ -82,9 +114,9 @@ namespace Wabbajack.BuildServer.Test
                 XunitContext.WriteLine("ERROR: User intervention required: " + msg.ShortDescription));
             _client = new Client();
             _authedClient = new Client();
-            _authedClient.Headers.Add(("x-api-key", fixture.APIKey));
+            Fixture = fixture.Deref();
+            _authedClient.Headers.Add(("x-api-key", Fixture.APIKey));
             _queue = new WorkQueue();
-            Fixture = fixture;
             Queue = new WorkQueue();
         }
 

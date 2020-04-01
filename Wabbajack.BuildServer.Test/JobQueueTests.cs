@@ -10,14 +10,17 @@ using Xunit.Abstractions;
 
 namespace Wabbajack.BuildServer.Test
 {
-    public class BasicTest : ADBTest
+    [Collection("ServerTests")]
+   
+    public class BasicTest : ABuildServerSystemTest
     {
         [Fact]
         public async Task CanEneuqueAndGetJobs()
         {
             var job = new Job {Payload = new GetNexusUpdatesJob()};
-            await _sqlService.EnqueueJob(job);
-            var found = await _sqlService.GetJob();
+            var sqlService = Fixture.GetService<SqlService>();
+            await sqlService.EnqueueJob(job);
+            var found = await sqlService.GetJob();
             Assert.NotNull(found);
             Assert.IsAssignableFrom<GetNexusUpdatesJob>(found.Payload);
         }
@@ -25,25 +28,25 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task PriorityMatters()
         {
+            var sqlService = Fixture.GetService<SqlService>();
             var priority = new List<Job.JobPriority>
             {
                 Job.JobPriority.Normal, Job.JobPriority.High, Job.JobPriority.Low
             };
             foreach (var pri in priority) 
-                await _sqlService.EnqueueJob(new Job {Payload = new GetNexusUpdatesJob(), Priority = pri});
+                await sqlService.EnqueueJob(new Job {Payload = new GetNexusUpdatesJob(), Priority = pri});
 
             foreach (var pri in priority.OrderByDescending(p => (int)p))
             {
-                var found = await _sqlService.GetJob();
+                var found = await sqlService.GetJob();
                 Assert.NotNull(found);
                 Assert.Equal(pri, found.Priority);
             }
         }
 
-        public BasicTest()
+
+        public BasicTest(ITestOutputHelper output, SingletonAdaptor<BuildServerFixture> fixture) : base(output, fixture)
         {
-            
-            
         }
     }
 }

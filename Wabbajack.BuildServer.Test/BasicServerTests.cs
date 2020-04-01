@@ -6,11 +6,10 @@ using Xunit.Abstractions;
 
 namespace Wabbajack.BuildServer.Test
 {
+    [Collection("ServerTests")]
     public class BasicServerTests : ABuildServerSystemTest
     {
-        public BasicServerTests(ITestOutputHelper output, BuildServerFixture fixture) : base(output, fixture)
-        {
-        }
+
         
         
         [Fact]
@@ -27,5 +26,8 @@ namespace Wabbajack.BuildServer.Test
             Assert.NotEmpty(logs);
         }
 
+        public BasicServerTests(ITestOutputHelper output, SingletonAdaptor<BuildServerFixture> fixture) : base(output, fixture)
+        {
+        }
     }
 }
