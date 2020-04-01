@@ -5,9 +5,11 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using MessagePack;
 using MongoDB.Bson.Serialization.Attributes;
+using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed.Errors;
+using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using Game = Wabbajack.Common.Game;
@@ -146,6 +148,8 @@ namespace Wabbajack.Lib.Downloaders
             public string Description { get; set; }
 
             [Key(6)]
+            [JsonProperty("GameName")]
+            [JsonConverter(typeof(Utils.GameConverter))]
             public Game Game { get; set; }
             
             [Key(7)]
