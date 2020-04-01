@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -30,7 +30,7 @@ namespace Wabbajack.Common
 
         public bool Equals(AbsolutePath other)
         {
-            return _path == other._path;
+            return string.Equals(_path, other._path, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public override bool Equals(object obj)
@@ -42,7 +42,7 @@ namespace Wabbajack.Common
 
         public override int GetHashCode()
         {
-            return _path != null ? _path.GetHashCode() : 0;
+            return _path?.GetHashCode(StringComparison.InvariantCultureIgnoreCase) ?? 0;
         }
 
         public override string ToString()
@@ -54,7 +54,7 @@ namespace Wabbajack.Common
 
         public AbsolutePath(string path, bool skipValidation = false)
         {
-            _path = path.ToLowerInvariant().Replace("/", "\\").TrimEnd('\\');
+            _path = path.Replace("/", "\\").TrimEnd('\\');
             Extension = Extension.FromPath(path);
             if (!skipValidation)
             {
@@ -196,7 +196,6 @@ namespace Wabbajack.Common
                 .Select(path => new AbsolutePath(path, true));
         }
 
-
         #region Operators
 
         public static explicit operator string(AbsolutePath path)
@@ -212,12 +211,12 @@ namespace Wabbajack.Common
 
         public static bool operator ==(AbsolutePath a, AbsolutePath b)
         {
-            return a._path == b._path;
+            return a.Equals(b);
         }
 
         public static bool operator !=(AbsolutePath a, AbsolutePath b)
         {
-            return a._path != b._path;
+            return !a.Equals(b);
         }
 
         #endregion
@@ -391,7 +390,7 @@ namespace Wabbajack.Common
                 Extension = default;
                 return;
             }
-            var trimmed = path.ToLowerInvariant().Replace("/", "\\").Trim('\\');
+            var trimmed = path.Replace("/", "\\").Trim('\\');
             if (string.IsNullOrEmpty(trimmed))
             {
                 _path = null;
@@ -413,7 +412,7 @@ namespace Wabbajack.Common
 
         public override int GetHashCode()
         {
-            return _path != null ? _path.GetHashCode() : 0;
+            return _path?.GetHashCode(StringComparison.InvariantCultureIgnoreCase) ?? 0;
         }
 
         public static RelativePath RandomFileName()
@@ -478,10 +477,9 @@ namespace Wabbajack.Common
             }
         }
 
-
         public bool Equals(RelativePath other)
         {
-            return _path == other._path;
+            return string.Equals(_path, other._path, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public override bool Equals(object obj)
@@ -491,12 +489,12 @@ namespace Wabbajack.Common
 
         public static bool operator ==(RelativePath a, RelativePath b)
         {
-            return a._path == b._path;
+            return a.Equals(b);
         }
 
         public static bool operator !=(RelativePath a, RelativePath b)
         {
-            return !(a == b);
+            return !a.Equals(b);
         }
 
         public bool StartsWith(string s)
@@ -514,7 +512,7 @@ namespace Wabbajack.Common
             return (RelativePath)Path.Combine(paths.Select(p => (string)p).Cons(_path).ToArray());
         }
         
-        public RelativePath Combine(params string[] paths )
+        public RelativePath Combine(params string[] paths)
         {
             return (RelativePath)Path.Combine(paths.Cons(_path).ToArray());
         }
@@ -580,7 +578,6 @@ namespace Wabbajack.Common
             return new RelativePath(rdr.ReadString());
         }
 
-
         public static T[] Add<T>(this T[] arr, T itm)
         {
             var newArr = new T[arr.Length + 1];
@@ -598,27 +595,12 @@ namespace Wabbajack.Common
 
         private bool Equals(Extension other)
         {
-            return _extension == other._extension;
+            return string.Equals(_extension, other._extension, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((Extension)obj);
+            return obj is Extension other && Equals(other);
         }
 
         public override string ToString()
@@ -628,7 +610,7 @@ namespace Wabbajack.Common
 
         public override int GetHashCode()
         {
-            return _extension != null ? _extension.GetHashCode() : 0;
+            return _extension?.GetHashCode(StringComparison.InvariantCultureIgnoreCase) ?? 0;
         }
 
         #endregion
