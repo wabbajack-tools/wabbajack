@@ -220,7 +220,15 @@ namespace Wabbajack.Common
                 bool hasExistingValue,
                 JsonSerializer serializer)
             {
-                return GameRegistry.GetByFuzzyName((string)reader.Value).Game;
+                // Backwards compatibility support
+                var str = reader.Value?.ToString();
+                if (string.IsNullOrWhiteSpace(str)) return default;
+                if (int.TryParse(str, out var i))
+                {
+                    return (Game)i;
+                }
+
+                return GameRegistry.GetByFuzzyName(str).Game;
             }
         }
     }
