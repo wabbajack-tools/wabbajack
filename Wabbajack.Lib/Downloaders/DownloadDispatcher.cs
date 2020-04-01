@@ -102,7 +102,8 @@ namespace Wabbajack.Lib.Downloaders
                 Utils.Log($"No upgrade found for {archive.Hash}");
                 return false;
             }
-
+            Utils.Log($"Upgrading via {upgrade.State.PrimaryKeyString}");
+            
             Utils.Log($"Upgrading {archive.Hash}");
             var upgradePath = destination.Parent.Combine("_Upgrade_" + archive.Name);
             var upgradeResult = await Download(upgrade, upgradePath);

@@ -15,52 +15,53 @@ namespace Wabbajack.Common
             new RelativePathConverter(),
             new AbolutePathConverter(),
             new HashRelativePathConverter(),
-            new FullPathConverter()
-                
+            new FullPathConverter(),
+            new GameConverter()
         };
+
         public static void ToJSON<T>(this T obj, string filename)
         {
             if (File.Exists(filename))
                 File.Delete(filename);
             File.WriteAllText(filename,
                 JsonConvert.SerializeObject(obj, Formatting.Indented,
-                    new JsonSerializerSettings {
-                        TypeNameHandling = TypeNameHandling.Auto, 
-                        Converters = Converters}));
+                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto, Converters = Converters}));
         }
 
-        public static string ToJSON<T>(this T obj, 
+        public static string ToJSON<T>(this T obj,
             TypeNameHandling handling = TypeNameHandling.All,
             TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full,
             bool prettyPrint = false)
         {
             return JsonConvert.SerializeObject(obj, Formatting.Indented,
-                new JsonSerializerSettings {TypeNameHandling = handling, 
-                    TypeNameAssemblyFormatHandling = format, 
+                new JsonSerializerSettings
+                {
+                    TypeNameHandling = handling,
+                    TypeNameAssemblyFormatHandling = format,
                     Formatting = prettyPrint ? Formatting.Indented : Formatting.None,
                     Converters = Converters
                 });
         }
-        
-        public static T FromJSON<T>(this AbsolutePath filename, 
-            TypeNameHandling handling = TypeNameHandling.All, 
+
+        public static T FromJSON<T>(this AbsolutePath filename,
+            TypeNameHandling handling = TypeNameHandling.All,
             TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
         {
             return JsonConvert.DeserializeObject<T>(filename.ReadAllText(),
-                new JsonSerializerSettings {TypeNameHandling = handling, 
-                    TypeNameAssemblyFormatHandling = format,
-                    Converters = Converters
+                new JsonSerializerSettings
+                {
+                    TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format, Converters = Converters
                 });
         }
-        
-        public static T FromJSONString<T>(this string data, 
+
+        public static T FromJSONString<T>(this string data,
             TypeNameHandling handling = TypeNameHandling.All,
             TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
         {
             return JsonConvert.DeserializeObject<T>(data,
-                new JsonSerializerSettings {TypeNameHandling = handling, 
-                    TypeNameAssemblyFormatHandling = format,
-                    Converters = Converters
+                new JsonSerializerSettings
+                {
+                    TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format, Converters = Converters
                 });
         }
 
@@ -70,11 +71,7 @@ namespace Wabbajack.Common
             try
             {
                 return JsonConvert.DeserializeObject<T>(s,
-                    new JsonSerializerSettings
-                    {
-                        TypeNameHandling = TypeNameHandling.Auto,
-                        Converters = Converters
-                    });
+                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto, Converters = Converters});
             }
             catch (JsonSerializationException)
             {
@@ -85,8 +82,8 @@ namespace Wabbajack.Common
                 throw;
             }
         }
-        
-        
+
+
         private class HashJsonConverter : JsonConverter<Hash>
         {
             public override void WriteJson(JsonWriter writer, Hash value, JsonSerializer serializer)
@@ -94,12 +91,13 @@ namespace Wabbajack.Common
                 writer.WriteValue(value.ToBase64());
             }
 
-            public override Hash ReadJson(JsonReader reader, Type objectType, Hash existingValue, bool hasExistingValue, JsonSerializer serializer)
+            public override Hash ReadJson(JsonReader reader, Type objectType, Hash existingValue, bool hasExistingValue,
+                JsonSerializer serializer)
             {
                 return Hash.FromBase64((string)reader.Value);
             }
         }
-        
+
         private class RelativePathConverter : JsonConverter<RelativePath>
         {
             public override void WriteJson(JsonWriter writer, RelativePath value, JsonSerializer serializer)
@@ -107,13 +105,14 @@ namespace Wabbajack.Common
                 writer.WriteValue((string)value);
             }
 
-            public override RelativePath ReadJson(JsonReader reader, Type objectType, RelativePath existingValue, bool hasExistingValue,
+            public override RelativePath ReadJson(JsonReader reader, Type objectType, RelativePath existingValue,
+                bool hasExistingValue,
                 JsonSerializer serializer)
             {
                 return (RelativePath)(string)reader.Value;
             }
         }
-        
+
         private class AbolutePathConverter : JsonConverter<AbsolutePath>
         {
             public override void WriteJson(JsonWriter writer, AbsolutePath value, JsonSerializer serializer)
@@ -121,13 +120,14 @@ namespace Wabbajack.Common
                 writer.WriteValue((string)value);
             }
 
-            public override AbsolutePath ReadJson(JsonReader reader, Type objectType, AbsolutePath existingValue, bool hasExistingValue,
+            public override AbsolutePath ReadJson(JsonReader reader, Type objectType, AbsolutePath existingValue,
+                bool hasExistingValue,
                 JsonSerializer serializer)
             {
                 return (AbsolutePath)(string)reader.Value;
             }
         }
-        
+
         private class HashRelativePathConverter : JsonConverter<HashRelativePath>
         {
             public override void WriteJson(JsonWriter writer, HashRelativePath value, JsonSerializer serializer)
@@ -139,7 +139,8 @@ namespace Wabbajack.Common
                 writer.WriteEndArray();
             }
 
-            public override HashRelativePath ReadJson(JsonReader reader, Type objectType, HashRelativePath existingValue, bool hasExistingValue,
+            public override HashRelativePath ReadJson(JsonReader reader, Type objectType,
+                HashRelativePath existingValue, bool hasExistingValue,
                 JsonSerializer serializer)
             {
                 if (reader.TokenType != JsonToken.StartArray)
@@ -159,7 +160,7 @@ namespace Wabbajack.Common
                 return new HashRelativePath(hash, paths.ToArray());
             }
         }
-        
+
         private class FullPathConverter : JsonConverter<FullPath>
         {
             public override void WriteJson(JsonWriter writer, FullPath value, JsonSerializer serializer)
@@ -171,7 +172,8 @@ namespace Wabbajack.Common
                 writer.WriteEndArray();
             }
 
-            public override FullPath ReadJson(JsonReader reader, Type objectType, FullPath existingValue, bool hasExistingValue,
+            public override FullPath ReadJson(JsonReader reader, Type objectType, FullPath existingValue,
+                bool hasExistingValue,
                 JsonSerializer serializer)
             {
                 if (reader.TokenType != JsonToken.StartArray)
@@ -192,6 +194,19 @@ namespace Wabbajack.Common
             }
         }
 
-        
+        public class GameConverter : JsonConverter<Game>
+        {
+            public override void WriteJson(JsonWriter writer, Game value, JsonSerializer serializer)
+            {
+                writer.WriteValue(Enum.GetName(typeof(Game), value));
+            }
+
+            public override Game ReadJson(JsonReader reader, Type objectType, Game existingValue,
+                bool hasExistingValue,
+                JsonSerializer serializer)
+            {
+                return GameRegistry.GetByFuzzyName((string)reader.Value).Game;
+            }
+        }
     }
 }
