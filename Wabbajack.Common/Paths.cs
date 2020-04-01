@@ -52,14 +52,7 @@ namespace Wabbajack.Common
 
         private readonly string _path;
 
-        public AbsolutePath(string path)
-        {
-            _path = path.ToLowerInvariant().Replace("/", "\\").TrimEnd('\\');
-            Extension = new Extension(Path.GetExtension(_path));
-            ValidateAbsolutePath();
-        }
-
-        public AbsolutePath(string path, bool skipValidation)
+        public AbsolutePath(string path, bool skipValidation = false)
         {
             _path = path.ToLowerInvariant().Replace("/", "\\").TrimEnd('\\');
             Extension = Extension.FromPath(path);
