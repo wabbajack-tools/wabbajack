@@ -17,6 +17,7 @@
     <local:IsNotNullVisibilityConverter x:Key="IsNotNullVisibilityConverter" />
     <local:EqualsToBoolConverter x:Key="EqualsToBoolConverter" />
     <local:IsTypeVisibilityConverter x:Key="IsTypeVisibilityConverter" />
+    <local:AbsolutePathToStringConverter x:Key="AbsolutePathToStringConverter" />
 
     <!--  Colors  -->
     <Color x:Key="WindowBackgroundColor">#121212</Color>
