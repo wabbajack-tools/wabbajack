@@ -68,6 +68,9 @@
       <None Update="public\metrics.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="public\files\placeholder">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -85,10 +88,6 @@
 
     <ItemGroup>
       <Content Remove="swiftshader\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="public\files" />
     </ItemGroup>
 
     <ItemGroup>
