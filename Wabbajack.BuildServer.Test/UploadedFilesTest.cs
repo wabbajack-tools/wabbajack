@@ -12,14 +12,9 @@ using Xunit.Priority;
 
 namespace Wabbajack.BuildServer.Test
 {
+    [Collection("ServerTests")]
     public class UploadedFilesTest : ABuildServerSystemTest
     {
-
-        public UploadedFilesTest(ITestOutputHelper helper, BuildServerFixture fixture) : base(helper, fixture)
-        {
-        }
-
-
         [Fact, Priority(1)]
         public async Task CanIngestMongoDBExports()
         {
@@ -70,5 +65,8 @@ namespace Wabbajack.BuildServer.Test
 
         }
 
+        public UploadedFilesTest(ITestOutputHelper output, SingletonAdaptor<BuildServerFixture> fixture) : base(output, fixture)
+        {
+        }
     }
 }

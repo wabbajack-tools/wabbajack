@@ -53,15 +53,17 @@ namespace Wabbajack.Test
         }
     }
 
-    public class RestartingDownloadsTests
+    public class RestartingDownloadsTests : IDisposable
     {
+        private IDisposable _unsubInfo;
+        private IDisposable _unsubIntevention;
         private ITestOutputHelper TestContext { get; set; }
 
         public RestartingDownloadsTests(ITestOutputHelper helper)
         {
             TestContext = helper;
-            Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => TestContext.WriteLine(msg.ShortDescription));
-            Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
+            _unsubInfo = Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => TestContext.WriteLine(msg.ShortDescription));
+            _unsubIntevention = Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
                 TestContext.WriteLine("ERROR: User intervention required: " + msg.ShortDescription));
         }
 
@@ -77,6 +79,12 @@ namespace Wabbajack.Test
             Assert.Equal(server.Data, await testFile.Path.ReadAllBytesAsync());
 
             testFile.Path.Delete();
+        }
+
+        public void Dispose()
+        {
+            _unsubInfo?.Dispose();
+            _unsubIntevention?.Dispose();
         }
     }
 

@@ -14,11 +14,9 @@ using Xunit.Priority;
 
 namespace Wabbajack.BuildServer.Test
 {
+    [Collection("ServerTests")]
     public class IndexedFilesTests : ABuildServerSystemTest
     {
-        public IndexedFilesTests(ITestOutputHelper output, BuildServerFixture fixture) : base(output, fixture)
-        {
-        }
 
         [Fact, Priority(1)]
         public async Task CanIngestExportedInis()
@@ -82,6 +80,11 @@ namespace Wabbajack.BuildServer.Test
             
             // File is aleady indexed so nothing gets enqueued
             Assert.Null(await SQL.GetJob());
+        }
+
+        public IndexedFilesTests(ITestOutputHelper output, SingletonAdaptor<BuildServerFixture> fixture) : base(output, fixture)
+        {
+            
         }
     }
 }
