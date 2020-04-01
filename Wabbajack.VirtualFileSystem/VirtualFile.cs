@@ -185,7 +185,7 @@ namespace Wabbajack.VirtualFileSystem
 
             if (FileExtractor.CanExtract(absPath))
             {
-                using var tempFolder = Context.GetTemporaryFolder();
+                await using var tempFolder = Context.GetTemporaryFolder();
                 await FileExtractor.ExtractAll(context.Queue, absPath, tempFolder.FullName);
 
                 var list = await tempFolder.FullName.EnumerateFiles()
