@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Globalization;
+using System.Windows.Data;
 using ReactiveUI;
 using Wabbajack.Common;
-using Wabbajack.Lib.Downloaders;
 
-namespace Wabbajack.Converters
+namespace Wabbajack
 {
-    public class PathToStringConverter : IBindingTypeConverter
+    public class AbsolutePathToStringConverter : IBindingTypeConverter, IValueConverter
     {
         public int GetAffinityForObjects(Type fromType, Type toType)
         {
@@ -14,8 +15,6 @@ namespace Wabbajack.Converters
             if (toType == typeof(AbsolutePath)) return 1;
             if (toType == typeof(AbsolutePath?)) return 1;
             return 0;
-
-
         }
 
         public bool TryConvert(object @from, Type toType, object conversionHint, out object result)
@@ -59,6 +58,22 @@ namespace Wabbajack.Converters
 
             result = default;
             return false;
+        }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (targetType != typeof(string))
+                throw new InvalidOperationException($"The target must be of type string");
+            if (value is AbsolutePath path)
+            {
+                return path.ToString();
+            }
+            return string.Empty;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (AbsolutePath)(value as string);
         }
     }
 }
