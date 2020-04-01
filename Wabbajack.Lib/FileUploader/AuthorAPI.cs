@@ -40,9 +40,11 @@ namespace Wabbajack.Lib.FileUploader
                 var hashTask = filename.FileHashAsync();
 
                 Utils.Log($"{UploadURL}/{filename.FileName.ToString()}/start");
-                var response = await client.PutAsync($"{UploadURL}/{filename.FileName.ToString()}/start", new StringContent(""));
+                using var response = await client.PutAsync($"{UploadURL}/{filename.FileName.ToString()}/start", new StringContent(""));
                 if (!response.IsSuccessStatusCode)
                 {
+                    Utils.Log("Error starting upload");
+                    Utils.Log(await response.Content.ReadAsStringAsync());
                     tcs.SetException(new Exception($"Start Error: {response.StatusCode} {response.ReasonPhrase}"));
                     return;
                 }
@@ -100,11 +102,11 @@ namespace Wabbajack.Lib.FileUploader
                 {
                     progressFn(1.0);
                     var hash = (await hashTask).ToHex();
-                    response = await client.PutAsync(UploadURL + $"/{key}/finish/{hash}", new StringContent(""));
-                    if (response.IsSuccessStatusCode)
-                        tcs.SetResult(await response.Content.ReadAsStringAsync());
+                    using var finalResponse = await client.PutAsync(UploadURL + $"/{key}/finish/{hash}", new StringContent(""));
+                    if (finalResponse.IsSuccessStatusCode)
+                        tcs.SetResult(await finalResponse.Content.ReadAsStringAsync());
                     else
-                        tcs.SetException(new Exception($"Finalization Error: {response.StatusCode} {response.ReasonPhrase}"));
+                        tcs.SetException(new Exception($"Finalization Error: {finalResponse.StatusCode} {finalResponse.ReasonPhrase}"));
                 }
 
                 progressFn(0.0);
