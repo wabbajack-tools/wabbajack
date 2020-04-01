@@ -55,7 +55,6 @@ namespace Wabbajack.Common
         public AbsolutePath(string path, bool skipValidation = false)
         {
             _path = path.Replace("/", "\\").TrimEnd('\\');
-            Extension = Extension.FromPath(path);
             if (!skipValidation)
             {
                 ValidateAbsolutePath();
@@ -65,7 +64,6 @@ namespace Wabbajack.Common
         public AbsolutePath(AbsolutePath path)
         {
             _path = path._path;
-            Extension = path.Extension;
         }
 
         private void ValidateAbsolutePath()
@@ -78,7 +76,7 @@ namespace Wabbajack.Common
             throw new InvalidDataException("Absolute path must be absolute");
         }
 
-        public Extension Extension { get; }
+        public Extension Extension => Extension.FromPath(_path);
 
         public FileStream OpenRead()
         {
@@ -387,19 +385,16 @@ namespace Wabbajack.Common
             if (string.IsNullOrWhiteSpace(path))
             {
                 _path = null;
-                Extension = default;
                 return;
             }
             var trimmed = path.Replace("/", "\\").Trim('\\');
             if (string.IsNullOrEmpty(trimmed))
             {
                 _path = null;
-                Extension = default;
                 return;
             }
 
             _path = trimmed;
-            Extension = new Extension(Path.GetExtension(path));
             Validate();
         }
 
@@ -408,7 +403,7 @@ namespace Wabbajack.Common
             return _path;
         }
 
-        public Extension Extension { get; }
+        public Extension Extension => Extension.FromPath(_path);
 
         public override int GetHashCode()
         {
