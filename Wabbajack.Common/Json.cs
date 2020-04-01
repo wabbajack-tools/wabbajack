@@ -16,7 +16,8 @@ namespace Wabbajack.Common
             new AbolutePathConverter(),
             new HashRelativePathConverter(),
             new FullPathConverter(),
-            new GameConverter()
+            new GameConverter(),
+            new PercentConverter(),
         };
 
         public static void ToJSON<T>(this T obj, string filename)
@@ -125,6 +126,20 @@ namespace Wabbajack.Common
                 JsonSerializer serializer)
             {
                 return (AbsolutePath)(string)reader.Value;
+            }
+        }
+
+        private class PercentConverter : JsonConverter<Percent>
+        {
+            public override Percent ReadJson(JsonReader reader, Type objectType, Percent existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                double d = (double)reader.Value;
+                return Percent.FactoryPutInRange(d);
+            }
+
+            public override void WriteJson(JsonWriter writer, Percent value, JsonSerializer serializer)
+            {
+                writer.WriteValue(value.Value);
             }
         }
 

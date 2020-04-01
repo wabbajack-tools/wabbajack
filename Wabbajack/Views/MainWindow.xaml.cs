@@ -61,13 +61,6 @@ namespace Wabbajack
             }).FireAndForget();
 
             // Load settings
-            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
-            {
-                Converters = new List<JsonConverter>
-                {
-                    new PercentJsonConverter()
-                }
-            };
             if (CLIArguments.NoSettings || !MainSettings.TryLoadTypicalSettings(out var settings))
             {
                 _settings = new MainSettings
