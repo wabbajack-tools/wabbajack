@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -24,33 +24,18 @@ namespace Wabbajack.Common
         public RelativePath FileName { get; }
     }
 
-    public struct AbsolutePath : IPath, IComparable<AbsolutePath>
+    public struct AbsolutePath : IPath, IComparable<AbsolutePath>, IEquatable<AbsolutePath>
     {
         #region ObjectEquality
 
-        private bool Equals(AbsolutePath other)
+        public bool Equals(AbsolutePath other)
         {
             return _path == other._path;
         }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
-            if (obj.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Equals((AbsolutePath)obj);
+            return obj is AbsolutePath other && Equals(other);
         }
 
         #endregion
