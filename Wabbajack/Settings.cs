@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -39,7 +39,7 @@ namespace Wabbajack
             if (settings.Version == Consts.SettingsVersion)
                 return true;
 
-            var backup = (AbsolutePath)(Consts.SettingsFile + "-backup.json");
+            var backup = Consts.SettingsFile.AppendToName("-backup");
             backup.Delete();
             
             Consts.SettingsFile.CopyTo(backup);
