@@ -1,4 +1,4 @@
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -35,9 +35,16 @@ namespace Wabbajack
             }
 
             // Version check
-            settings = Consts.SettingsFile.FromJSON<MainSettings>();
-            if (settings.Version == Consts.SettingsVersion)
-                return true;
+            try
+            {
+                settings = Consts.SettingsFile.FromJSON<MainSettings>();
+                if (settings.Version == Consts.SettingsVersion)
+                    return true;
+            }
+            catch (Exception ex)
+            {
+                Utils.Error(ex, "Error loading settings");
+            }
 
             var backup = Consts.SettingsFile.AppendToName("-backup");
             backup.Delete();
