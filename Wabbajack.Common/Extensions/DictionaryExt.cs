@@ -18,5 +18,21 @@ namespace Wabbajack
             dict[key] = ret;
             return ret;
         }
+
+        public static void Add<K, V>(this IDictionary<K, V> dict, IEnumerable<KeyValuePair<K, V>> vals)
+        {
+            foreach (var val in vals)
+            {
+                dict.Add(val);
+            }
+        }
+
+        public static void Set<K, V>(this IDictionary<K, V> dict, IEnumerable<KeyValuePair<K, V>> vals)
+        {
+            foreach (var val in vals)
+            {
+                dict[val.Key] = val.Value;
+            }
+        }
     }
 }
