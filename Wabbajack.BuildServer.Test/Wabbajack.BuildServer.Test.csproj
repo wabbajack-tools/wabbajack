@@ -25,7 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="sql\uploaded_files_ingest.json">
+      <None Update="sql\nexus_export.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="sql\DownloadStates\097ad17ef4b9f5b7_68d29ad947f2bf80d887407b6e8794c37ac08f3728eca95c8774184c56df3800.ini">
