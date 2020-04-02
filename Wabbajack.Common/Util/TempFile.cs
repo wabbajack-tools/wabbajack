@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AlphaPath = Alphaleonis.Win32.Filesystem.Path;
-    
 
 namespace Wabbajack.Common
 {
@@ -16,7 +15,10 @@ namespace Wabbajack.Common
         public bool DeleteAfter = true;
 
         public TempFile(bool deleteAfter = true, bool createFolder = true)
-            : this(new FileInfo((string)((AbsolutePath)AlphaPath.GetTempPath()).Combine(AlphaPath.GetRandomFileName())))
+            : this(
+                  new FileInfo((string)((AbsolutePath)AlphaPath.GetTempPath()).Combine(AlphaPath.GetRandomFileName())),
+                  deleteAfter: deleteAfter,
+                  createFolder: createFolder)
         {
         }
 

@@ -39,7 +39,7 @@ namespace Wabbajack.Common
             var tempKey = progIDKey?.OpenSubKey("shell\\open\\command");
             if (progIDKey == null || tempKey == null) return true;
             var value = tempKey.GetValue("");
-            return value == null || !value.ToString().Equals($"\"{execPath}\" -i=\"%1\"");
+            return value == null || !string.Equals(value.ToString(), $"\"{execPath}\" -i=\"%1\"");
         }
 
         public static bool IsAssociated()

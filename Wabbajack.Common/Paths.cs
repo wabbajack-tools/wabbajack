@@ -33,7 +33,7 @@ namespace Wabbajack.Common
             return string.Equals(_path, other._path, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is AbsolutePath other && Equals(other);
         }
@@ -42,7 +42,7 @@ namespace Wabbajack.Common
 
         public override int GetHashCode()
         {
-            return _path?.GetHashCode(StringComparison.InvariantCultureIgnoreCase) ?? 0;
+            return _path.GetHashCode(StringComparison.InvariantCultureIgnoreCase);
         }
 
         public override string ToString()
@@ -50,11 +50,12 @@ namespace Wabbajack.Common
             return _path;
         }
 
-        private readonly string _path;
+        private readonly string _nullable_path;
+        private string _path => _nullable_path ?? string.Empty;
 
         public AbsolutePath(string path, bool skipValidation = false)
         {
-            _path = path.Replace("/", "\\").TrimEnd('\\');
+            _nullable_path = path.Replace("/", "\\").TrimEnd('\\');
             if (!skipValidation)
             {
                 ValidateAbsolutePath();
@@ -63,7 +64,7 @@ namespace Wabbajack.Common
 
         public AbsolutePath(AbsolutePath path)
         {
-            _path = path._path;
+            _nullable_path = path._path;
         }
 
         private void ValidateAbsolutePath()
@@ -150,7 +151,8 @@ namespace Wabbajack.Common
                 var location = Assembly.GetEntryAssembly()?.Location ?? null;
                 if (location == null)
                     location = Assembly.GetExecutingAssembly().Location ?? null;
-
+                if (location == null)
+                    throw new ArgumentException("Could not find entry point.");
                 return ((AbsolutePath)location).Parent;
             }
         } 
@@ -264,7 +266,7 @@ namespace Wabbajack.Common
 
         public AbsolutePath Combine(params RelativePath[] paths)
         {
-            return new AbsolutePath(Path.Combine(paths.Select(s => (string)s).Where(s => s != null).Cons(_path).ToArray()));
+            return new AbsolutePath(Path.Combine(paths.Select(s => (string)s).Cons(_path).ToArray()));
         }
 
         public AbsolutePath Combine(params string[] paths)
@@ -378,23 +380,24 @@ namespace Wabbajack.Common
 
     public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<RelativePath>
     {
-        private readonly string _path;
+        private readonly string? _nullable_path;
+        private string _path => _nullable_path ?? string.Empty;
 
         public RelativePath(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
-                _path = null;
+                _nullable_path = null;
                 return;
             }
             var trimmed = path.Replace("/", "\\").Trim('\\');
             if (string.IsNullOrEmpty(trimmed))
             {
-                _path = null;
+                _nullable_path = null;
                 return;
             }
 
-            _path = trimmed;
+            _nullable_path = trimmed;
             Validate();
         }
 
@@ -407,7 +410,7 @@ namespace Wabbajack.Common
 
         public override int GetHashCode()
         {
-            return _path?.GetHashCode(StringComparison.InvariantCultureIgnoreCase) ?? 0;
+            return _path.GetHashCode(StringComparison.InvariantCultureIgnoreCase);
         }
 
         public static RelativePath RandomFileName()
@@ -425,7 +428,7 @@ namespace Wabbajack.Common
 
         public AbsolutePath RelativeTo(AbsolutePath abs)
         {
-            return _path == null ? abs : new AbsolutePath(Path.Combine((string)abs, _path));
+            return new AbsolutePath(Path.Combine((string)abs, _path));
         }
 
         public AbsolutePath RelativeToEntryPoint()
@@ -477,7 +480,7 @@ namespace Wabbajack.Common
             return string.Equals(_path, other._path, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is RelativePath other && Equals(other);
         }
@@ -593,7 +596,7 @@ namespace Wabbajack.Common
             return string.Equals(_extension, other._extension, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is Extension other && Equals(other);
         }
@@ -610,23 +613,24 @@ namespace Wabbajack.Common
 
         #endregion
 
-        private readonly string _extension;
+        private readonly string? _nullable_extension;
+        private string _extension => _nullable_extension ?? string.Empty;
 
         public Extension(string extension)
         {
             if (string.IsNullOrWhiteSpace(extension))
             {
-                _extension = None._extension;
+                _nullable_extension = None._extension;
                 return;
             }
 
-            _extension = string.Intern(extension);
+            _nullable_extension = string.Intern(extension);
             Validate();
         }
 
         private Extension(string extension, bool validate)
         {
-            _extension = string.Intern(extension);
+            _nullable_extension = string.Intern(extension);
             if (validate)
             {
                 Validate();
@@ -635,7 +639,7 @@ namespace Wabbajack.Common
 
         public Extension(Extension other)
         {
-            _extension = other._extension;
+            _nullable_extension = other._extension;
         }
 
         private void Validate()
@@ -659,16 +663,6 @@ namespace Wabbajack.Common
         public static bool operator ==(Extension a, Extension b)
         {
             // Super fast comparison because extensions are interned
-            if ((object)a == null && (object)b == null)
-            {
-                return true;
-            }
-
-            if ((object)a == null || (object)b == null)
-            {
-                return false;
-            }
-
             return ReferenceEquals(a._extension, b._extension);
         }
 
@@ -733,7 +727,7 @@ namespace Wabbajack.Common
             return this == other;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is HashRelativePath other && Equals(other);
         }
@@ -779,7 +773,6 @@ namespace Wabbajack.Common
 
         public static bool operator ==(FullPath a, FullPath b)
         {
-            if (a.Paths == null || b.Paths == null) return false;
             if (a.Base != b.Base || a.Paths.Length != b.Paths.Length)
             {
                 return false;
@@ -806,7 +799,7 @@ namespace Wabbajack.Common
             return this == other;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is FullPath other && Equals(other);
         }

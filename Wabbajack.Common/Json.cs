@@ -52,7 +52,7 @@ namespace Wabbajack.Common
                 new JsonSerializerSettings
                 {
                     TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format, Converters = Converters
-                });
+                })!;
         }
 
         public static T FromJSONString<T>(this string data,
@@ -63,7 +63,7 @@ namespace Wabbajack.Common
                 new JsonSerializerSettings
                 {
                     TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format, Converters = Converters
-                });
+                })!;
         }
 
         public static T FromJSON<T>(this Stream data)
@@ -72,7 +72,7 @@ namespace Wabbajack.Common
             try
             {
                 return JsonConvert.DeserializeObject<T>(s,
-                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto, Converters = Converters});
+                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto, Converters = Converters})!;
             }
             catch (JsonSerializationException)
             {
@@ -95,7 +95,7 @@ namespace Wabbajack.Common
             public override Hash ReadJson(JsonReader reader, Type objectType, Hash existingValue, bool hasExistingValue,
                 JsonSerializer serializer)
             {
-                return Hash.FromBase64((string)reader.Value);
+                return Hash.FromBase64((string)reader.Value!);
             }
         }
 
@@ -110,7 +110,7 @@ namespace Wabbajack.Common
                 bool hasExistingValue,
                 JsonSerializer serializer)
             {
-                return (RelativePath)(string)reader.Value;
+                return (RelativePath)(string)reader.Value!;
             }
         }
 
@@ -125,7 +125,7 @@ namespace Wabbajack.Common
                 bool hasExistingValue,
                 JsonSerializer serializer)
             {
-                return (AbsolutePath)(string)reader.Value;
+                return (AbsolutePath)(string)reader.Value!;
             }
         }
 
@@ -133,7 +133,7 @@ namespace Wabbajack.Common
         {
             public override Percent ReadJson(JsonReader reader, Type objectType, Percent existingValue, bool hasExistingValue, JsonSerializer serializer)
             {
-                double d = (double)reader.Value;
+                double d = (double)reader.Value!;
                 return Percent.FactoryPutInRange(d);
             }
 
@@ -162,13 +162,13 @@ namespace Wabbajack.Common
                     throw new JsonException("Invalid JSON state while reading Hash Relative Path");
                 reader.Read();
 
-                var hash = Hash.FromBase64((string)reader.Value);
+                var hash = Hash.FromBase64((string)reader.Value!);
                 var paths = new List<RelativePath>();
 
                 reader.Read();
                 while (reader.TokenType != JsonToken.EndArray)
                 {
-                    paths.Add((RelativePath)(string)reader.Value);
+                    paths.Add((RelativePath)(string)reader.Value!);
                     reader.Read();
                 }
 
@@ -195,13 +195,13 @@ namespace Wabbajack.Common
                     throw new JsonException("Invalid JSON state while reading Hash Relative Path");
                 reader.Read();
 
-                var abs = (AbsolutePath)(string)reader.Value;
+                var abs = (AbsolutePath)(string)reader.Value!;
                 var paths = new List<RelativePath>();
 
                 reader.Read();
                 while (reader.TokenType != JsonToken.EndArray)
                 {
-                    paths.Add((RelativePath)(string)reader.Value);
+                    paths.Add((RelativePath)(string)reader.Value!);
                     reader.Read();
                 }
 
@@ -228,7 +228,13 @@ namespace Wabbajack.Common
                     return (Game)i;
                 }
 
-                return GameRegistry.GetByFuzzyName(str).Game;
+                GameMetaData? game = GameRegistry.GetByFuzzyName(str);
+                if (game == null)
+                {
+                    throw new ArgumentException($"Could not convert {str} to a Game type.");
+                }
+
+                return game.Game;
             }
         }
     }

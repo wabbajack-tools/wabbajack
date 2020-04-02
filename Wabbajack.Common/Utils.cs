@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data.HashFunction.xxHash;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -132,12 +133,12 @@ namespace Wabbajack.Common
             Log(errMessage);
         }
 
-        public static void Error(Exception ex, string extraMessage = null)
+        public static void Error(Exception ex, string? extraMessage = null)
         {
             Log(new GenericException(ex, extraMessage));
         }
 
-        public static void ErrorThrow(Exception ex, string extraMessage = null)
+        public static void ErrorThrow(Exception ex, string? extraMessage = null)
         {
             Error(ex, extraMessage);
             throw ex;
@@ -231,28 +232,20 @@ namespace Wabbajack.Common
                 Status(status, Percent.FactoryPutInRange(totalRead, maxSize));
             }
         }
-        public static string xxHash(this byte[] data, bool nullOnIOError = false)
+        public static string xxHash(this byte[] data)
         {
-            try
+            var hash = new xxHashConfig();
+            hash.HashSizeInBits = 64;
+            hash.Seed = 0x42;
+            using (var fs = new MemoryStream(data))
             {
-                var hash = new xxHashConfig();
-                hash.HashSizeInBits = 64;
-                hash.Seed = 0x42;
-                using (var fs = new MemoryStream(data))
+                var config = new xxHashConfig();
+                config.HashSizeInBits = 64;
+                using (var f = new StatusFileStream(fs, $"Hashing memory stream"))
                 {
-                    var config = new xxHashConfig();
-                    config.HashSizeInBits = 64;
-                    using (var f = new StatusFileStream(fs, $"Hashing memory stream"))
-                    {
-                        var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
-                        return value.AsBase64String();
-                    }
+                    var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
+                    return value.AsBase64String();
                 }
-            }
-            catch (IOException ex)
-            {
-                if (nullOnIOError) return null;
-                throw ex;
             }
         }
 
@@ -673,7 +666,9 @@ namespace Wabbajack.Common
             return a[a.Length - 1];
         }
 
+        [return: MaybeNull]
         public static V GetOrDefault<K, V>(this IDictionary<K, V> dict, K key)
+            where K : notnull
         {
             if (dict.TryGetValue(key, out var v)) return v;
             return default;
@@ -776,7 +771,7 @@ namespace Wabbajack.Common
             }
         }
 
-        public static bool TryGetPatch(Hash foundHash, Hash fileHash, out byte[] ePatch)
+        public static bool TryGetPatch(Hash foundHash, Hash fileHash, [MaybeNullWhen(false)] out byte[] ePatch)
         {
             var patchName = Consts.PatchCacheFolder.Combine($"{foundHash.ToHex()}_{fileHash.ToHex()}.patch");
             if (patchName.Exists)
@@ -807,17 +802,6 @@ namespace Wabbajack.Common
                     throw new Exception($"No diff dispatch for: {str}");
             }
 
-        }
-
-        /*
-        public static void Warning(string s)
-        {
-            Log($"WARNING: {s}");
-        }*/
-
-        public static TV GetOrDefault<TK, TV>(this Dictionary<TK, TV> dict, TK key)
-        {
-            return dict.TryGetValue(key, out var result) ? result : default;
         }
 
         public static IEnumerable<T> ButLast<T>(this IEnumerable<T> coll)
@@ -1097,7 +1081,7 @@ namespace Wabbajack.Common
         public class NexusErrorResponse
         {
             public int code;
-            public string message;
+            public string message = string.Empty;
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]

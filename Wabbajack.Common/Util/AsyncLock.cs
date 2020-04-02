@@ -10,7 +10,7 @@ namespace Wabbajack.Common
 {
     public class AsyncLock
     {
-        private SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
 
         public async Task<IDisposable> Wait()
         {

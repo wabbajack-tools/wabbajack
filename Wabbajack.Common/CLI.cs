@@ -10,10 +10,10 @@ namespace Wabbajack.Common
         public static bool NoSettings { get; set; }
 
         [CLIOptions("apikey", HelpText = "Manually input an Nexus api key")]
-        public static string ApiKey { get; set; }
+        public static string? ApiKey { get; set; }
 
         [CLIOptions("install", ShortOption = 'i', HelpText = "Install a ModList via CLI")]
-        public static string InstallPath { get; set; }
+        public static string? InstallPath { get; set; }
 
         [CLIOptions("help", ShortOption = 'h', HelpText = "Display this message")]
         public static bool Help { get; set; }
@@ -94,7 +94,7 @@ namespace Wabbajack.Common
         // -shortOption, short name of the option. Eg: -o
         public char ShortOption;
         // text to be displayed when --help is called
-        public string HelpText;
+        public string HelpText = string.Empty;
 
         public CLIOptions(string option)
         {

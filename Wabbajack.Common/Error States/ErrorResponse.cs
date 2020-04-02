@@ -8,7 +8,7 @@ namespace Wabbajack
         public readonly static ErrorResponse Failure = new ErrorResponse();
 
         public bool Succeeded { get; }
-        public Exception Exception { get; }
+        public Exception? Exception { get; }
         private readonly string _reason;
 
         public bool Failed => !Succeeded;
@@ -32,15 +32,15 @@ namespace Wabbajack
         }
 
         bool IErrorResponse.Succeeded => Succeeded;
-        Exception IErrorResponse.Exception => Exception;
+        Exception? IErrorResponse.Exception => Exception;
 
         private ErrorResponse(
             bool succeeded,
-            string reason = null,
-            Exception ex = null)
+            string? reason = null,
+            Exception? ex = null)
         {
             Succeeded = succeeded;
-            _reason = reason;
+            _reason = reason ?? string.Empty;
             Exception = ex;
         }
 
@@ -60,7 +60,7 @@ namespace Wabbajack
             return new ErrorResponse(true, reason);
         }
 
-        public static ErrorResponse Fail(string reason, Exception ex = null)
+        public static ErrorResponse Fail(string reason, Exception? ex = null)
         {
             return new ErrorResponse(false, reason: reason, ex: ex);
         }
@@ -75,7 +75,7 @@ namespace Wabbajack
             return new ErrorResponse(false);
         }
 
-        public static ErrorResponse Create(bool successful, string reason = null)
+        public static ErrorResponse Create(bool successful, string? reason = null)
         {
             return new ErrorResponse(successful, reason);
         }
@@ -91,7 +91,7 @@ namespace Wabbajack
     public interface IErrorResponse
     {
         bool Succeeded { get; }
-        Exception Exception { get; }
+        Exception? Exception { get; }
         string Reason { get; }
     }
 }

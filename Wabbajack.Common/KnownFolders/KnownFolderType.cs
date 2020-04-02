@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+#nullable disable
 
 namespace Wabbajack.Common.IO
 {

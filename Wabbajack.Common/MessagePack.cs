@@ -11,8 +11,8 @@ namespace Wabbajack.Common
 {
     public partial class Utils
     {
-        private static MessagePackSerializerOptions _messagePackOptions;
-        private static IFormatterResolver _resolver;
+        private static MessagePackSerializerOptions? _messagePackOptions;
+        private static IFormatterResolver? _resolver;
 
         private static void MessagePackInit()
         {

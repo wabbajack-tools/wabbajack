@@ -11,9 +11,6 @@ namespace Wabbajack
 
         public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source, Random rng)
         {
-            if (source == null) throw new ArgumentNullException("source");
-            if (rng == null) throw new ArgumentNullException("rng");
-
             return source.ShuffleIterator(rng);
         }
 
@@ -30,5 +27,11 @@ namespace Wabbajack
             }
         }
         #endregion
+
+        public static IEnumerable<T> Cons<T>(this IEnumerable<T> coll, T next)
+        {
+            yield return next;
+            foreach (var itm in coll) yield return itm;
+        }
     }
 }
