@@ -280,7 +280,7 @@ namespace Wabbajack.Common
                 true);
         }
 
-        public AbsolutePath AppendToName(AbsolutePath bsa, string toAppend)
+        public AbsolutePath AppendToName(string toAppend)
         {
             return new AbsolutePath(
                 Path.Combine(Path.GetDirectoryName(_path),

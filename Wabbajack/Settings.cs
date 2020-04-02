@@ -35,11 +35,18 @@ namespace Wabbajack
             }
 
             // Version check
-            settings = Consts.SettingsFile.FromJSON<MainSettings>();
-            if (settings.Version == Consts.SettingsVersion)
-                return true;
+            try
+            {
+                settings = Consts.SettingsFile.FromJSON<MainSettings>();
+                if (settings.Version == Consts.SettingsVersion)
+                    return true;
+            }
+            catch (Exception ex)
+            {
+                Utils.Error(ex, "Error loading settings");
+            }
 
-            var backup = (AbsolutePath)(Consts.SettingsFile + "-backup.json");
+            var backup = Consts.SettingsFile.AppendToName("-backup");
             backup.Delete();
             
             Consts.SettingsFile.CopyTo(backup);

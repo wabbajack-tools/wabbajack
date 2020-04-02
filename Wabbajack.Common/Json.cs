@@ -16,7 +16,8 @@ namespace Wabbajack.Common
             new AbolutePathConverter(),
             new HashRelativePathConverter(),
             new FullPathConverter(),
-            new GameConverter()
+            new GameConverter(),
+            new PercentConverter(),
         };
 
         public static void ToJSON<T>(this T obj, string filename)
@@ -128,6 +129,20 @@ namespace Wabbajack.Common
             }
         }
 
+        private class PercentConverter : JsonConverter<Percent>
+        {
+            public override Percent ReadJson(JsonReader reader, Type objectType, Percent existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                double d = (double)reader.Value;
+                return Percent.FactoryPutInRange(d);
+            }
+
+            public override void WriteJson(JsonWriter writer, Percent value, JsonSerializer serializer)
+            {
+                writer.WriteValue(value.Value);
+            }
+        }
+
         private class HashRelativePathConverter : JsonConverter<HashRelativePath>
         {
             public override void WriteJson(JsonWriter writer, HashRelativePath value, JsonSerializer serializer)
@@ -205,7 +220,15 @@ namespace Wabbajack.Common
                 bool hasExistingValue,
                 JsonSerializer serializer)
             {
-                return GameRegistry.GetByFuzzyName((string)reader.Value).Game;
+                // Backwards compatibility support
+                var str = reader.Value?.ToString();
+                if (string.IsNullOrWhiteSpace(str)) return default;
+                if (int.TryParse(str, out var i))
+                {
+                    return (Game)i;
+                }
+
+                return GameRegistry.GetByFuzzyName(str).Game;
             }
         }
     }

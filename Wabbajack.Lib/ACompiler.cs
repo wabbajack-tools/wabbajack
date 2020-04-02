@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -119,7 +119,7 @@ namespace Wabbajack.Lib
             return true;
         }
 
-        public void ExportModList()
+        public async Task ExportModList()
         {
             Utils.Log($"Exporting ModList to {ModListOutputFile}");
 
@@ -192,7 +192,7 @@ namespace Wabbajack.Lib
 
 
             Utils.Log("Removing ModList staging folder");
-            Utils.DeleteDirectory(ModListOutputFolder);
+            await Utils.DeleteDirectory(ModListOutputFolder);
         }
 
         public void GenerateManifest()

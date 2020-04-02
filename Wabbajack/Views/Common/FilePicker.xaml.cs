@@ -7,7 +7,7 @@ namespace Wabbajack
     /// <summary>
     /// Interaction logic for FilePicker.xaml
     /// </summary>
-    public partial class FilePicker : UserControl
+    public partial class FilePicker
     {
         // This exists, as utilizing the datacontext directly seemed to bug out the exit animations
         // "Bouncing" off this property seems to fix it, though.  Could perhaps be done other ways.
