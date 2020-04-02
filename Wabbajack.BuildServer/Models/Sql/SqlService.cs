@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -8,12 +8,14 @@ using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic;
+using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.BuildServer.Model.Models.Results;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.NexusApi;
 using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.BuildServer.Model.Models
