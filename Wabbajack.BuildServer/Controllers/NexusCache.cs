@@ -1,10 +1,13 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
+using Wabbajack.Common;
 using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -119,6 +122,22 @@ namespace Wabbajack.BuildServer.Controllers
 
             Response.Headers.Add("x-cache-method", method);
             return result.Data;
+        }
+
+        [HttpPost]
+        [Authorize]
+        [Route("/nexus_api_cache/export")]
+        public async Task<IActionResult> ExportNexusCache()
+        {
+            Utils.Log("Exporting Nexus Info");
+            var file_infos = Db.NexusFileInfos.AsQueryable().ToListAsync();
+            var mod_infos = Db.NexusModInfos.AsQueryable().ToListAsync();
+            var mod_files = Db.NexusModFiles.AsQueryable().ToListAsync();
+
+            var data = new {FileInfos = await file_infos, ModInfos = await mod_infos, Modfiles = await mod_files,};
+            Utils.Log("Writing Data");
+            return Ok(JsonConvert.SerializeObject(data));
+
         }
     }
 }
