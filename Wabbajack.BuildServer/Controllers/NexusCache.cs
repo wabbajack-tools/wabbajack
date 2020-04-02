@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -29,37 +30,46 @@ namespace Wabbajack.BuildServer.Controllers
         /// <returns>A Mod Info result</returns>
         [HttpGet]
         [Route("{GameName}/mods/{ModId}.json")]
-        public async Task<ModInfo> GetModInfo(string GameName, string ModId)
+        public async Task<ModInfo> GetModInfo(string GameName, long ModId)
         {
-            var result = await Db.NexusModInfos.FindOneAsync(info => info.Game == GameName && info.ModId == ModId);
-
+            Utils.Log($"Nexus Mod Info {GameName} {ModId}");
+            var game = GameRegistry.GetByFuzzyName(GameName).Game;
+            var result = await SQL.GetNexusModInfoString(game, ModId);
+            
             string method = "CACHED";
             if (result == null)
             {
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-                var path = $"https://api.nexusmods.com/v1/games/{GameName}/mods/{ModId}.json";
+                var path = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{ModId}.json";
                 var body = await api.Get<ModInfo>(path);
-                result = new NexusCacheData<ModInfo> {Data = body, Path = path, Game = GameName, ModId = ModId};
                 try
                 {
-                    await Db.NexusModInfos.InsertOneAsync(result);
+                    await SQL.AddNexusModInfo(game, ModId, DateTime.Now, body);
                 }
                 catch (MongoWriteException)
                 {
                 }
 
                 method = "NOT_CACHED";
+                Interlocked.Increment(ref ForwardCount);
+            }
+            else
+            {
+                Interlocked.Increment(ref CachedCount);
             }
 
             Response.Headers.Add("x-cache-result", method);
-            return result.Data;
+            return result;
         }
 
         [HttpGet]
         [Route("{GameName}/mods/{ModId}/files.json")]
-        public async Task<NexusApiClient.GetModFilesResponse> GetModFiles(string GameName, string ModId)
+        public async Task<NexusApiClient.GetModFilesResponse> GetModFiles(string GameName, long ModId)
         {
-            var result = await Db.NexusModFiles.FindOneAsync(info => info.Game == GameName && info.ModId == ModId);
+            Utils.Log($"Nexus Mod Files {GameName} {ModId}");
+
+            var game = GameRegistry.GetByFuzzyName(GameName).Game;
+            var result = await SQL.GetModFiles(game, ModId);
 
             string method = "CACHED";
             if (result == null)
@@ -67,59 +77,79 @@ namespace Wabbajack.BuildServer.Controllers
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
                 var path = $"https://api.nexusmods.com/v1/games/{GameName}/mods/{ModId}/files.json";
                 var body = await api.Get<NexusApiClient.GetModFilesResponse>(path);
-                result = new NexusCacheData<NexusApiClient.GetModFilesResponse>
-                {
-                    Data = body, Path = path, Game = GameName, ModId = ModId
-                };
                 try
                 {
-                    await Db.NexusModFiles.InsertOneAsync(result);
+                    await SQL.AddNexusModFiles(game, ModId, DateTime.Now, body);
                 }
                 catch (MongoWriteException)
                 {
                 }
 
                 method = "NOT_CACHED";
+                Interlocked.Increment(ref ForwardCount);
+            }
+            else
+            {
+                Interlocked.Increment(ref CachedCount);
+            }
+            Response.Headers.Add("x-cache-result", method);
+            return result;
+        }
+
+        private class NexusIngestHeader
+        {
+            public List<NexusCacheData<ModInfo>> ModInfos { get; set; }
+            public List<NexusCacheData<NexusFileInfo>> FileInfos { get; set; }
+            public List<NexusCacheData<NexusApiClient.GetModFilesResponse>> ModFiles { get; set; }
+        }
+        
+        [HttpGet]
+        [Route("/nexus_cache/ingest")]
+        [Authorize]
+        public async Task<IActionResult> IngestNexusFile()
+        {
+            long totalRows = 0;
+            
+            var dataPath = @"nexus_export.json".RelativeTo(_settings.TempPath);
+
+            var data = JsonConvert.DeserializeObject<NexusIngestHeader>(await dataPath.ReadAllTextAsync());
+
+            foreach (var record in data.ModInfos)
+            {
+                await SQL.AddNexusModInfo(GameRegistry.GetByFuzzyName(record.Game).Game, long.Parse(record.ModId),
+                    record.LastCheckedUTC, record.Data);
+                totalRows += 1;
+            }
+            
+            foreach (var record in data.FileInfos)
+            {
+                await SQL.AddNexusFileInfo(GameRegistry.GetByFuzzyName(record.Game).Game, long.Parse(record.ModId),
+                    long.Parse(record.FileId),
+                    record.LastCheckedUTC, record.Data);
+                totalRows += 1;
+            }
+            
+            foreach (var record in data.ModFiles)
+            {
+                await SQL.AddNexusModFiles(GameRegistry.GetByFuzzyName(record.Game).Game, long.Parse(record.ModId),
+                    record.LastCheckedUTC, record.Data);
+                totalRows += 1;
             }
 
-            Response.Headers.Add("x-cache-result", method);
-            return result.Data;
+            return Ok(totalRows);
         }
 
         [HttpGet]
-        [Route("{GameName}/mods/{ModId}/files/{FileId}.json")]
-        public async Task<object> GetFileInfo(string GameName, string ModId, string FileId)
+        [Route("/nexus_cache/stats")]
+        public async Task<IActionResult> NexusCacheStats()
         {
-            var result = await Db.NexusFileInfos.FindOneAsync(info =>
-                info.Game == GameName && info.ModId == ModId && info.FileId == FileId);
-
-            string method = "CACHED";
-            if (result == null)
+            return Ok(new ClientAPI.NexusCacheStats
             {
-                var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-                var path = $"https://api.nexusmods.com/v1/games/{GameName}/mods/{ModId}/files/{FileId}.json";
-                var body = await api.Get<NexusFileInfo>(path);
-                result = new NexusCacheData<NexusFileInfo>
-                {
-                    Data = body,
-                    Path = path,
-                    Game = GameName,
-                    ModId = ModId,
-                    FileId = FileId
-                };
-                try
-                {
-                    await Db.NexusFileInfos.InsertOneAsync(result);
-                }
-                catch (MongoWriteException)
-                {
-                }
-
-                method = "NOT_CACHED";
-            }
-
-            Response.Headers.Add("x-cache-method", method);
-            return result.Data;
+                CachedCount = CachedCount,
+                ForwardCount = ForwardCount,
+                CacheRatio = (double)CachedCount / (ForwardCount == 0 ? 1 : ForwardCount)
+            });
         }
+        
     }
 }

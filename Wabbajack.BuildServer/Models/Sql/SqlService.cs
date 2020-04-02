@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic;
 using Newtonsoft.Json;
 using ReactiveUI;
+using Wabbajack.BuildServer.GraphQL;
 using Wabbajack.BuildServer.Model.Models.Results;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
