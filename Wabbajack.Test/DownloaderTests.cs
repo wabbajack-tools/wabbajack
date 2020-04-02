@@ -469,7 +469,7 @@ namespace Wabbajack.Test
 
             using var tempFile = new TempFile();
             await converted.Download(new Archive {Name = "yt_test.zip"}, tempFile.Path);
-            Assert.Equal(Hash.FromBase64("H166oHG0wpY="), await tempFile.Path.FileHashAsync());
+            Assert.Equal(Hash.FromBase64("kD36zbA2X9Q="), await tempFile.Path.FileHashAsync());
         }
         
         
