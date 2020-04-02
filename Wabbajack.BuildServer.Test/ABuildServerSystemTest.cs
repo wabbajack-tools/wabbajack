@@ -34,7 +34,8 @@ namespace Wabbajack.BuildServer.Test
                     $"WabbajackSettings:BunnyCDN_User=TEST",
                     $"WabbajackSettings:BunnyCDN_Password=TEST",
                     "WabbajackSettings:JobScheduler=false",
-                    "WabbajackSettings:JobRunner=false"
+                    "WabbajackSettings:JobRunner=false",
+                    "WabbajackSettinss:DisableNexusForwarding=true"
                 }, true);
             _host = builder.Build();
             _token = new CancellationTokenSource();
