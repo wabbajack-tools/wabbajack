@@ -125,9 +125,27 @@ namespace Wabbajack.Lib
             
             if (Directory.Exists(lootPath))
             {
-                lootFiles = Directory.EnumerateFiles(lootPath, "userlist.yaml", SearchOption.AllDirectories)
-                    .Where(p => p.FileExists())
-                    .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(lootPath))));
+                var lootGameDirs = new []
+                {
+                    CompilingGame.MO2Name, // most of the games use the MO2 name
+                    CompilingGame.MO2Name.Replace(" ", "") //eg: Fallout 4 -> Fallout4
+                };
+
+                var lootGameDir = lootGameDirs.Select(x => Path.Combine(lootPath, x))
+                    .FirstOrDefault(Directory.Exists);
+
+                if (lootGameDir != null)
+                {
+                    Utils.Log($"Found LOOT game folder at {lootGameDir}");
+                    lootFiles = Directory.EnumerateFiles(lootGameDir, "userlist.yaml", SearchOption.TopDirectoryOnly)
+                        .Where(p => p.FileExists())
+                        .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p],
+                            Path.Combine(Consts.LOOTFolderFilesDir, p.RelativeTo(lootPath))));
+
+                    if (!lootFiles.Any())
+                        Utils.Log(
+                            $"Found no LOOT user data for {CompilingGame.HumanFriendlyGameName} at {lootGameDir}!");
+                }
             }
             
             if (cancel.IsCancellationRequested) return false;
