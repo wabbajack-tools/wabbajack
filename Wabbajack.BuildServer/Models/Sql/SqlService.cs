@@ -20,7 +20,6 @@ namespace Wabbajack.BuildServer.Model.Models
 {
     public class SqlService
     {
-        private IConfiguration _configuration;
         private AppSettings _settings;
 
         public SqlService(AppSettings settings)

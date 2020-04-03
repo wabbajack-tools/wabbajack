@@ -164,9 +164,6 @@ namespace Wabbajack.BuildServer.Models.Jobs
                  Utils.Log(ex.ToString());
                  return false;
              }
-
-             return false;
-
          }
 
          private async Task<bool> ValidateNexusFast(DBContext db, NexusDownloader.State state)
@@ -192,7 +189,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                      .FirstOrDefault(file => file.file_id == state.FileID && file.category_name != null);
                  return found != null;
              }
-             catch (Exception ex)
+             catch (Exception)
              {
                  return false;
              }
