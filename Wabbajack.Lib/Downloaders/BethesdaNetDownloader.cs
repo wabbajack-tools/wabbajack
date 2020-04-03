@@ -39,7 +39,7 @@ namespace Wabbajack.Lib.Downloaders
             var result = await Utils.Log(new RequestBethesdaNetLogin()).Task;
         }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = (Uri)DownloaderUtils.GetDirectURL(archiveINI);
             return StateFromUrl(url);

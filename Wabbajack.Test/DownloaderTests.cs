@@ -514,14 +514,14 @@ namespace Wabbajack.Test
             await inst.DownloadMissingArchives(archivesa, true);
             await inst.DownloadMissingArchives(archivesb, true);
 
-            Assert.Equal(folder.EnumerateFiles().Select(f => f.FileName).OrderBy(a => a).ToArray(), 
-                new RelativePath[]
+            Assert.Equal(new[]
                 {
                     (RelativePath)@"Download.esm",
                     (RelativePath)@"Download.esm.xxHash",
-                    (RelativePath)@"Download_c4047f2251d8eead22df4b4888cc4b833ae7d9a6766ff29128e083d944f9ec4b_.esm",
-                    (RelativePath)@"Download_c4047f2251d8eead22df4b4888cc4b833ae7d9a6766ff29128e083d944f9ec4b_.esm.xxHash"
-                }.OrderBy(a => a).ToArray());
+                    (RelativePath)@"Download_ed33cbb256e5328361da8d9227df9cab1bb43a79a87dca2f223b2e2762ccaad1_.esm",
+                    (RelativePath)@"Download_ed33cbb256e5328361da8d9227df9cab1bb43a79a87dca2f223b2e2762ccaad1_.esm.xxHash"
+                }.OrderBy(a => a).ToArray(),
+            folder.EnumerateFiles().Select(f => f.FileName).OrderBy(a => a).ToArray());
            
             Consts.TestMode = true;
             
@@ -549,8 +549,8 @@ namespace Wabbajack.Test
                 State = new NexusDownloader.State
                 {
                     Game = Game.SkyrimSpecialEdition,
-                    ModID = "24808",
-                    FileID = "123501"
+                    ModID = 24808,
+                    FileID = 123501
                 }
             };
             Assert.True(await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, dest));

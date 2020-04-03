@@ -53,7 +53,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                         {
                             var state = new NexusDownloader.State
                             {
-                                Game = tuple.Game, ModID = tuple.ModId.ToString(), FileID = tuple.File.file_id.ToString()
+                                Game = tuple.Game, ModID = tuple.ModId, FileID = tuple.File.file_id
                             };
                             return new Archive {State = state, Name = tuple.File.file_name}; 
                         }).ToList();

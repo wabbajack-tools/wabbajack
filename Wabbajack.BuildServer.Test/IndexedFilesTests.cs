@@ -49,34 +49,35 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanNotifyOfInis()
         {
-            var files = await @"sql\NotifyStates".RelativeTo(AbsolutePath.EntryPoint)
-                .EnumerateFiles()
-                .Where(f => f.Extension == Consts.IniExtension)
-                .PMap(Queue, async ini => (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(ini.LoadIniFile())));
-
-            var archives = files.Select(f =>
+            var archive =
                 new Archive
                 {
-                    State = f,
+                    State = new NexusDownloader.State
+                    {
+                        Game = Game.SkyrimSpecialEdition,
+                        ModID = long.MaxValue >> 3,
+                        FileID = long.MaxValue >> 3,
+                    },
                     Name = Guid.NewGuid().ToString()
-                });
-            Assert.True(await AuthorAPI.UploadPackagedInis(archives));
+                };
+            Assert.True(await AuthorAPI.UploadPackagedInis(new[] {archive}));
 
             var SQL = Fixture.GetService<SqlService>();
             var job = await SQL.GetJob();
+            Assert.NotNull(job);
             Assert.IsType<IndexJob>(job.Payload);
             var payload = (IndexJob)job.Payload;
             
             Assert.IsType<NexusDownloader.State>(payload.Archive.State);
 
             var casted = (NexusDownloader.State)payload.Archive.State;
-            Assert.Equal(Game.Skyrim, casted.Game);
+            Assert.Equal(Game.SkyrimSpecialEdition, casted.Game);
             
             // Insert the record into SQL
             await SQL.AddDownloadState(Hash.FromHex("00e8bbbf591f61a3"), casted);
 
             // Enqueue the same file again
-            Assert.True(await AuthorAPI.UploadPackagedInis(archives));
+            Assert.True(await AuthorAPI.UploadPackagedInis(new[] {archive}));
             
             // File is aleady indexed so nothing gets enqueued
             Assert.Null(await SQL.GetJob());

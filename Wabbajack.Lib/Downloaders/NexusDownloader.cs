@@ -51,13 +51,23 @@ namespace Wabbajack.Lib.Downloaders
                 canExecute: IsLoggedIn.ObserveOnGuiThread());
         }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var general = archiveINI?.General;
 
             if (general.modID != null && general.fileID != null && general.gameName != null)
             {
                 var game = GameRegistry.GetByFuzzyName((string)general.gameName).Game;
+                if (quickMode)
+                {
+                    return new State
+                    {
+                        Game = GameRegistry.GetByFuzzyName((string)general.gameName).Game,
+                        ModID = long.Parse(general.modID),
+                        FileID = long.Parse(general.fileID),
+                    };
+                }
+
                 var client = await NexusApiClient.Get();
                 ModInfo info;
                 try
@@ -79,8 +89,8 @@ namespace Wabbajack.Lib.Downloaders
                     IsNSFW = info.contains_adult_content,
                     Description = NexusApiUtils.FixupSummary(info.summary),
                     Game = GameRegistry.GetByFuzzyName((string)general.gameName).Game,
-                    ModID = general.modID,
-                    FileID = general.fileID
+                    ModID = long.Parse(general.modID),
+                    FileID = long.Parse(general.fileID)
                 };
             }
 
@@ -151,9 +161,9 @@ namespace Wabbajack.Lib.Downloaders
             public Game Game { get; set; }
             
             [Key(7)]
-            public string ModID { get; set; }
+            public long ModID { get; set; }
             [Key(8)]
-            public string FileID { get; set; }
+            public long FileID { get; set; }
             
             public async Task<bool> LoadMetaData()
             {
@@ -195,22 +205,11 @@ namespace Wabbajack.Lib.Downloaders
             {
                 try
                 {
-                    var gameMeta = Game.MetaData();
-                    if (gameMeta == null)
-                        return false;
-
-                    var game = gameMeta.Game;
-                    if (!int.TryParse(ModID, out var modID))
-                        return false;
-
                     var client = await NexusApiClient.Get();
-                    var modFiles = await client.GetModFiles(game, modID);
-
-                    if (!ulong.TryParse(FileID, out var fileID))
-                        return false;
+                    var modFiles = await client.GetModFiles(Game, ModID);
 
                     var found = modFiles.files
-                        .FirstOrDefault(file => file.file_id == fileID && file.category_name != null);
+                        .FirstOrDefault(file => file.file_id == FileID && file.category_name != null);
                     return found != null;
                 }
                 catch (Exception ex)
@@ -233,7 +232,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override string[] GetMetaIni()
             {
-                return new[] {"[General]", $"gameName={Game.MetaData().MO2Name}", $"modID={ModID}", $"fileID={FileID}"};
+                return new[] {"[General]", $"gameName={Game.MetaData().MO2ArchiveName}", $"modID={ModID}", $"fileID={FileID}"};
             }
         }
     }

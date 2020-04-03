@@ -54,8 +54,8 @@ namespace Wabbajack.Test
                         {
                             Game = Game.Skyrim,
                             Author = "bill",
-                            ModID = "42",
-                            FileID = "33",
+                            ModID = 42,
+                            FileID = 33,
                         },
                         Hash = Hash.FromLong(42)
                     }

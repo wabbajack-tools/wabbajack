@@ -14,7 +14,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class GameFileSourceDownloader : IDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var gameName = (string)archiveINI?.General?.gameName;
             var gameFile = (string)archiveINI?.General?.gameFile;

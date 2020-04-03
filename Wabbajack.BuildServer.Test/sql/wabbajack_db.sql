@@ -277,9 +277,9 @@ GO
 CREATE TABLE [dbo].[Metrics](
                                 [Id] [bigint] IDENTITY(1,1) NOT NULL,
                                 [Timestamp] [datetime] NOT NULL,
-                                [Action] [varchar](64) NOT NULL,
-                                [Subject] [varchar](max) NOT NULL,
-                                [MetricsKey] [varchar](64) NULL,
+                                [Action] [nvarchar](64) NOT NULL,
+                                [Subject] [nvarchar](max) NOT NULL,
+                                [MetricsKey] [nvarchar](64) NULL,
                                 [GroupingSubject]  AS (substring([Subject],(0),case when patindex('%[0-9].%',[Subject])=(0) then len([Subject])+(1) else patindex('%[0-9].%',[Subject]) end)),
                                 CONSTRAINT [PK_Metrics] PRIMARY KEY CLUSTERED
                                     (
@@ -326,9 +326,9 @@ GO
 CREATE TABLE [dbo].[DownloadStates](
    [Id] [binary](32) NOT NULL,
    [Hash] [bigint] NOT NULL,
-   [PrimaryKey] [varchar](max) NOT NULL,
-   [IniState] [varchar](max) NOT NULL,
-   [JsonState] [varchar](max) NOT NULL,
+   [PrimaryKey] [nvarchar](max) NOT NULL,
+   [IniState] [nvarchar](max) NOT NULL,
+   [JsonState] [nvarchar](max) NOT NULL,
    CONSTRAINT [PK_DownloadStates] PRIMARY KEY CLUSTERED
        (
         [Id] ASC
