@@ -27,9 +27,9 @@ namespace Wabbajack.BuildServer.Controllers
         
         [HttpGet]
         [Route("status.json")]
-        public async Task<IList<ModlistSummary>> HandleGetLists()
+        public async Task<IEnumerable<ModlistSummary>> HandleGetLists()
         {
-            return await Db.ModListStatus.AsQueryable().Select(m => m.Summary).ToListAsync();
+            return await SQL.GetModListSummaries();
         }
 
         private static readonly Func<object, string> HandleGetRssFeedTemplate = NettleEngine.GetCompiler().Compile(@"
@@ -53,7 +53,7 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("status/{Name}/broken.rss")]
         public async Task<ContentResult> HandleGetRSSFeed(string Name)
         {
-            var lst = (await ModListStatus.ByName(Db, Name)).DetailedStatus;
+            var lst = await SQL.GetDetailedModlistStatus(Name);
             var response = HandleGetRssFeedTemplate(new
             {
                 lst,
@@ -91,7 +91,7 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<ContentResult> HandleGetListHtml(string Name)
         {
 
-            var lst = (await ModListStatus.ByName(Db, Name)).DetailedStatus;
+            var lst = await SQL.GetDetailedModlistStatus(Name);
             var response = HandleGetListTemplate(new
             {
                 lst,
@@ -112,7 +112,7 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<ContentResult> HandleGetListJson(string Name)
         {
 
-            var lst = (await ModListStatus.ByName(Db, Name)).DetailedStatus;
+            var lst = await SQL.GetDetailedModlistStatus(Name);
             lst.Archives.Do(a => a.Archive.Meta = null);
             return new ContentResult
             {

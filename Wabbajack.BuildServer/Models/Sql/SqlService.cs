@@ -1,5 +1,4 @@
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -7,15 +6,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Extensions.Configuration;
-using Microsoft.VisualBasic;
 using Newtonsoft.Json;
-using ReactiveUI;
-using Wabbajack.BuildServer.GraphQL;
 using Wabbajack.BuildServer.Model.Models.Results;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.VirtualFileSystem;
 
@@ -197,7 +194,7 @@ namespace Wabbajack.BuildServer.Model.Models
             await conn.ExecuteAsync(
                 @"INSERT INTO dbo.Jobs (Created, Priority, Payload, OnSuccess) VALUES (GETDATE(), @Priority, @Payload, @OnSuccess)",
                 new {
-                    Priority = job.Priority,
+                    job.Priority,
                     Payload = job.Payload.ToJSON(), 
                     OnSuccess = job.OnSuccess?.ToJSON() ?? null});
         }
@@ -212,8 +209,8 @@ namespace Wabbajack.BuildServer.Model.Models
             await using var conn = await Open();
             await conn.ExecuteAsync(
                 @"UPDATE dbo.Jobs SET Finshed = GETDATE(), Success = @Success, ResultContent = @ResultContent WHERE Id = @Id",
-                new { 
-                    Id = job.Id,
+                new {
+                    job.Id,
                     Success = job.Result.ResultType == JobResultType.Success,
                     ResultPayload = job.Result.ToJSON()
                     
@@ -259,7 +256,7 @@ namespace Wabbajack.BuildServer.Model.Models
 
             public override AJobPayload Parse(object value)
             {
-                return Utils.FromJSONString<AJobPayload>((string)value);
+                return ((string)value).FromJSONString<AJobPayload>();
             }
         }
         
@@ -288,12 +285,12 @@ namespace Wabbajack.BuildServer.Model.Models
                 new
                 {
                     Id = uf.Id.ToString(),
-                    Name = uf.Name,
-                    Size = uf.Size,
+                    uf.Name,
+                    uf.Size,
                     UploadedBy = uf.Uploader,
                     Hash = (long)uf.Hash,
-                    UploadDate = uf.UploadDate,
-                    CDNName = uf.CDNName
+                    uf.UploadDate,
+                    uf.CDNName
                 });
         }
 
@@ -334,10 +331,115 @@ namespace Wabbajack.BuildServer.Model.Models
         public async Task<bool> HaveIndexedArchivePrimaryKey(string key)
         {
             await using var conn = await Open();
-            var results = await conn.QueryAsync<string>(
-                "SELECT * FROM dbo.DownloadStates WHERE PrimaryKey = @PrimaryKey",
+            var results = await conn.QueryFirstOrDefaultAsync<string>(
+                "SELECT PrimaryKey FROM dbo.DownloadStates WHERE PrimaryKey = @PrimaryKey",
                 new {PrimaryKey = key});
-            return results.Any();
+            return results != null;
         }
+
+        public async Task AddNexusFileInfo(Game game, long modId, long fileId, DateTime lastCheckedUtc, NexusFileInfo data)
+        {
+            await using var conn = await Open();
+
+            await conn.ExecuteAsync("INSERT INTO dbo.NexusFileInfos (Game, ModId, FileId, LastChecked, Data) VALUES " +
+                                    "(@Game, @ModId, @FileId, @LastChecked, @Data)",
+                new
+                {
+                    Game = game.MetaData().NexusGameId,
+                    ModId = modId,
+                    FileId = fileId,
+                    LastChecked = lastCheckedUtc,
+                    Data = JsonConvert.SerializeObject(data)
+                });
+            
+        }
+
+        public async Task AddNexusModInfo(Game game, long modId, DateTime lastCheckedUtc, ModInfo data)
+        {
+            await using var conn = await Open();
+
+            await conn.ExecuteAsync(
+                @"MERGE dbo.NexusModInfos AS Target
+                      USING (SELECT @Game Game, @ModId ModId, @LastChecked LastChecked, @Data Data) AS Source
+                      ON Target.Game = Source.Game AND Target.ModId = Source.ModId
+                      WHEN MATCHED THEN UPDATE SET Target.Data = @Data, Target.LastChecked = @LastChecked
+                      WHEN NOT MATCHED THEN INSERT (Game, ModId, LastChecked, Data) VALUES (@Game, @ModId, @LastChecked, @Data);",
+                new
+                {
+                    Game = game.MetaData().NexusGameId,
+                    ModId = modId,
+                    LastChecked = lastCheckedUtc,
+                    Data = JsonConvert.SerializeObject(data)
+                });
+            
+        }
+        
+        public async Task AddNexusModFiles(Game game, long modId, DateTime lastCheckedUtc, NexusApiClient.GetModFilesResponse data)
+        {
+            await using var conn = await Open();
+
+            await conn.ExecuteAsync(                
+                @"MERGE dbo.NexusModFiles AS Target
+                      USING (SELECT @Game Game, @ModId ModId, @LastChecked LastChecked, @Data Data) AS Source
+                      ON Target.Game = Source.Game AND Target.ModId = Source.ModId
+                      WHEN MATCHED THEN UPDATE SET Target.Data = @Data, Target.LastChecked = @LastChecked
+                      WHEN NOT MATCHED THEN INSERT (Game, ModId, LastChecked, Data) VALUES (@Game, @ModId, @LastChecked, @Data);",
+                new
+                {
+                    Game = game.MetaData().NexusGameId,
+                    ModId = modId,
+                    LastChecked = lastCheckedUtc,
+                    Data = JsonConvert.SerializeObject(data)
+                });
+            
+        }
+
+        public async Task<ModInfo> GetNexusModInfoString(Game game, long modId)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryFirstOrDefaultAsync<string>(
+                "SELECT Data FROM dbo.NexusModInfos WHERE Game = @Game AND @ModId = ModId",
+                new {Game = game.MetaData().NexusGameId, ModId = modId});
+            return result == null ? null : JsonConvert.DeserializeObject<ModInfo>(result);
+        }
+
+        public async Task<NexusApiClient.GetModFilesResponse> GetModFiles(Game game, long modId)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryFirstOrDefaultAsync<string>(
+                "SELECT Data FROM dbo.NexusModFiles WHERE Game = @Game AND @ModId = ModId",
+                new {Game = game.MetaData().NexusGameId, ModId = modId});
+            return result == null ? null : JsonConvert.DeserializeObject<NexusApiClient.GetModFilesResponse>(result);
+        }
+
+        #region ModLists
+        public async Task<IEnumerable<ModlistSummary>> GetModListSummaries()
+        {
+            await using var conn = await Open();
+            var results = await conn.QueryAsync<string>("SELECT Summary from dbo.ModLists");
+            return results.Select(s => s.FromJSONString<ModlistSummary>()).ToList();
+        }
+        
+        public async Task<DetailedStatus> GetDetailedModlistStatus(string machineUrl)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryFirstOrDefaultAsync<string>("SELECT DetailedStatus from dbo.ModLists WHERE MachineURL = @MachineURL",
+                new
+                {
+                    machineUrl
+                });
+            return result.FromJSONString<DetailedStatus>();
+        }
+        
+        public async Task<List<DetailedStatus>> GetDetailedModlistStatuses()
+        {
+            await using var conn = await Open();
+            var results = await conn.QueryAsync<string>("SELECT DetailedStatus from dbo.ModLists");
+            return results.Select(s => s.FromJSONString<DetailedStatus>()).ToList();
+        }
+
+        
+
+        #endregion
     }
 }

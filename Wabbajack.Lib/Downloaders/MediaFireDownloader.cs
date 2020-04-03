@@ -10,7 +10,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class MediaFireDownloader : IUrlDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             Uri url = DownloaderUtils.GetDirectURL(archiveINI);
             if (url == null || url.Host != "www.mediafire.com") return null;

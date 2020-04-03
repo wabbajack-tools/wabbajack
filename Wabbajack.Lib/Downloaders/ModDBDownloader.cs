@@ -13,7 +13,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class ModDBDownloader : IDownloader, IUrlDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);

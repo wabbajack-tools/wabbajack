@@ -158,8 +158,14 @@ namespace Wabbajack.Lib.FileUploader
                 }
 
                 var client = new Common.Http.Client();
-                await client.PostAsync($"{Consts.WabbajackBuildServerUri}indexed_files/notify", new ByteArrayContent(ms.ToArray()));
-                return true;
+                var response = await client.PostAsync($"{Consts.WabbajackBuildServerUri}indexed_files/notify", new ByteArrayContent(ms.ToArray()));
+                
+                if (response.IsSuccessStatusCode) return true;
+
+                Utils.Log("Error sending Inis");
+                Utils.Log(await response.Content.ReadAsStringAsync());
+                return false;
+
             }
             catch (Exception ex)
             {

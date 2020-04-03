@@ -16,7 +16,7 @@ namespace Wabbajack.Lib.Downloaders
     public class HTTPDownloader : IDownloader, IUrlDownloader
     {
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url, archiveINI);

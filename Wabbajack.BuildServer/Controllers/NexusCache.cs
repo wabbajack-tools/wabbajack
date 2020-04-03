@@ -116,14 +116,14 @@ namespace Wabbajack.BuildServer.Controllers
 
             foreach (var record in data.ModInfos)
             {
-                await SQL.AddNexusModInfo(GameRegistry.GetByFuzzyName(record.Game).Game, long.Parse(record.ModId),
+                await SQL.AddNexusModInfo(GameRegistry.GetByFuzzyName(record.Game).Game, record.ModId,
                     record.LastCheckedUTC, record.Data);
                 totalRows += 1;
             }
             
             foreach (var record in data.FileInfos)
             {
-                await SQL.AddNexusFileInfo(GameRegistry.GetByFuzzyName(record.Game).Game, long.Parse(record.ModId),
+                await SQL.AddNexusFileInfo(GameRegistry.GetByFuzzyName(record.Game).Game, record.ModId,
                     long.Parse(record.FileId),
                     record.LastCheckedUTC, record.Data);
                 totalRows += 1;
@@ -131,7 +131,7 @@ namespace Wabbajack.BuildServer.Controllers
             
             foreach (var record in data.ModFiles)
             {
-                await SQL.AddNexusModFiles(GameRegistry.GetByFuzzyName(record.Game).Game, long.Parse(record.ModId),
+                await SQL.AddNexusModFiles(GameRegistry.GetByFuzzyName(record.Game).Game, record.ModId,
                     record.LastCheckedUTC, record.Data);
                 totalRows += 1;
             }

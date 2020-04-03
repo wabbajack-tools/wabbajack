@@ -56,7 +56,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     // Mod activity could hide files
                     var b = d.mod.LastestModActivity.AsUnixTime();
 
-                    return new {Game = d.game.NexusName, Date = (a > b ? a : b), ModId = d.mod.ModId.ToString()};
+                    return new {Game = d.game.NexusName, Date = (a > b ? a : b), ModId = d.mod.ModId};
                 });
                     
                 var purged = await collected.PMap(queue, async t =>

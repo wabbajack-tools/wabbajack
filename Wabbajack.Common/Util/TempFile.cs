@@ -16,8 +16,15 @@ namespace Wabbajack.Common
         public bool DeleteAfter = true;
 
         public TempFile(bool deleteAfter = true, bool createFolder = true)
-            : this(new FileInfo((string)((AbsolutePath)AlphaPath.GetTempPath()).Combine(AlphaPath.GetRandomFileName())))
+            : this(new FileInfo((string)GetTempFilePath()))
         {
+        }
+
+        private static AbsolutePath GetTempFilePath()
+        {
+            var path = (@"temp\" + Guid.NewGuid()).RelativeTo(AbsolutePath.EntryPoint);
+            path.Parent.CreateDirectory();
+            return path;
         }
 
         public TempFile(FileInfo file, bool deleteAfter = true, bool createFolder = true)

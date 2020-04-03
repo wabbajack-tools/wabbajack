@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Text;
+using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Wabbajack.Common;
 
@@ -56,40 +57,38 @@ namespace Compression.BSA
         public void Build(AbsolutePath filename)
         {
             SortEntries();
-            using (var fs = filename.Create())
-            using (var bw = new BinaryWriter(fs))
+            using var fs = filename.Create();
+            using var bw = new BinaryWriter(fs);
+            
+            bw.Write(Encoding.ASCII.GetBytes(_state.HeaderMagic));
+            bw.Write(_state.Version);
+            bw.Write(Encoding.ASCII.GetBytes(Enum.GetName(typeof(EntryType), _state.Type)));
+            bw.Write((uint)_entries.Count);
+            var table_offset_loc = bw.BaseStream.Position;
+            bw.Write((ulong)0);
+
+            foreach (var entry in _entries)
             {
-                bw.Write(Encoding.ASCII.GetBytes(_state.HeaderMagic));
-                bw.Write(_state.Version);
-                bw.Write(Encoding.ASCII.GetBytes(Enum.GetName(typeof(EntryType), _state.Type)));
-                bw.Write((uint)_entries.Count);
-                var table_offset_loc = bw.BaseStream.Position;
-                bw.Write((ulong)0);
+                entry.WriteHeader(bw);
+            }
 
-                foreach (var entry in _entries)
-                {
-                    entry.WriteHeader(bw);
-                }
+            foreach (var entry in _entries)
+            {
+                entry.WriteData(bw);
+            }
 
-                foreach (var entry in _entries)
-                {
-                    entry.WriteData(bw);
-                }
+            if (!_state.HasNameTable) return;
 
-                if (_state.HasNameTable)
-                {
-                    var pos = bw.BaseStream.Position;
-                    bw.BaseStream.Seek(table_offset_loc, SeekOrigin.Begin);
-                    bw.Write((ulong) pos);
-                    bw.BaseStream.Seek(pos, SeekOrigin.Begin);
+            var pos = bw.BaseStream.Position;
+            bw.BaseStream.Seek(table_offset_loc, SeekOrigin.Begin);
+            bw.Write((ulong)pos);
+            bw.BaseStream.Seek(pos, SeekOrigin.Begin);
 
-                    foreach (var entry in _entries)
-                    {
-                        var bytes = Encoding.UTF7.GetBytes(entry.FullName);
-                        bw.Write((ushort)bytes.Length);
-                        bw.BaseStream.Write(bytes, 0, bytes.Length);
-                    }
-                }
+            foreach (var entry in _entries)
+            {
+                var bytes = Encoding.UTF7.GetBytes(entry.FullName);
+                bw.Write((ushort)bytes.Length);
+                bw.BaseStream.Write(bytes, 0, bytes.Length);
             }
         }
 
@@ -108,8 +107,8 @@ namespace Compression.BSA
         {
             var builder = new BA2DX10FileEntryBuilder {_state = state};
 
-            var header_size = DDS.HeaderSizeForFormat((DXGI_FORMAT) state.PixelFormat) + 4;
-            new BinaryReader(src).ReadBytes((int)header_size);
+            var headerSize = DDS.HeaderSizeForFormat((DXGI_FORMAT) state.PixelFormat) + 4;
+            new BinaryReader(src).ReadBytes((int)headerSize);
 
             // This can't be parallel because it all runs off the same base IO stream.
             builder._chunks = new List<ChunkBuilder>();
@@ -169,8 +168,9 @@ namespace Compression.BSA
             }
             else
             {
+                var deflater = new Deflater(Deflater.BEST_COMPRESSION);
                 using var ms = new MemoryStream();
-                using (var ds = new DeflaterOutputStream(ms))
+                using (var ds = new DeflaterOutputStream(ms, deflater))
                 {
                     ds.IsStreamOwner = false;
                     src.CopyToLimit(ds, (int)chunk.FullSz);

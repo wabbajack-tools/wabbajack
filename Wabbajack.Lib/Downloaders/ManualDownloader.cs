@@ -61,7 +61,7 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.manualURL;
             return url != null ? new State { Url = url} : null;

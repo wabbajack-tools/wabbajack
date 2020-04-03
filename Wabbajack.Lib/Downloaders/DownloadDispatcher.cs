@@ -62,9 +62,9 @@ namespace Wabbajack.Lib.Downloaders
             return inst;
         }
 
-        public static async Task<AbstractDownloadState> ResolveArchive(dynamic ini)
+        public static async Task<AbstractDownloadState> ResolveArchive(dynamic ini, bool quickMode = false)
         {
-            var states = await Task.WhenAll(Downloaders.Select(d => (Task<AbstractDownloadState>)d.GetDownloaderState(ini)));
+            var states = await Task.WhenAll(Downloaders.Select(d => (Task<AbstractDownloadState>)d.GetDownloaderState(ini, quickMode)));
             return states.FirstOrDefault(result => result != null);
         }
 

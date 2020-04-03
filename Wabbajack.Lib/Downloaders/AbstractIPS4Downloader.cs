@@ -24,7 +24,7 @@ namespace Wabbajack.Lib.Downloaders
         public override string SiteName { get; }
         public override Uri SiteURL { get; }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             Uri url = DownloaderUtils.GetDirectURL(archiveINI);
 
