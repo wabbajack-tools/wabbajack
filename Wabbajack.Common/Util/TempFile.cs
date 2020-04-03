@@ -22,7 +22,7 @@ namespace Wabbajack.Common
 
         private static AbsolutePath GetTempFilePath()
         {
-            var path = (@"temp\" + Guid.NewGuid()).RelativeTo(AbsolutePath.EntryPoint);
+            var path = (@"temp\" + Guid.NewGuid()).RelativeTo(AbsolutePath.EntryPoint).WithExtension(Consts.TempExtension);
             path.Parent.CreateDirectory();
             return path;
         }
