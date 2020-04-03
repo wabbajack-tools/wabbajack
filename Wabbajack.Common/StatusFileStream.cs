@@ -6,9 +6,9 @@ namespace Wabbajack.Common
     {
         private string _message;
         private Stream _inner;
-        private WorkQueue _queue;
+        private WorkQueue? _queue;
 
-        public StatusFileStream(Stream fs, string message, WorkQueue queue = null)
+        public StatusFileStream(Stream fs, string message, WorkQueue? queue = null)
         {
             _queue = queue;
             _inner = fs;

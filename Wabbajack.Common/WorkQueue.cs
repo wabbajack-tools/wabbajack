@@ -25,7 +25,7 @@ namespace Wabbajack.Common
 
         public static bool WorkerThread => AsyncLocalCurrentQueue.Value != null;
         public bool IsWorkerThread => WorkerThread;
-        internal static readonly AsyncLocal<WorkQueue> AsyncLocalCurrentQueue = new AsyncLocal<WorkQueue>();
+        internal static readonly AsyncLocal<WorkQueue?> AsyncLocalCurrentQueue = new AsyncLocal<WorkQueue?>();
 
         private readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
@@ -194,7 +194,7 @@ namespace Wabbajack.Common
     public class CPUStatus
     {
         public Percent ProgressPercent { get; internal set; }
-        public string Msg { get; internal set; }
+        public string Msg { get; internal set; } = string.Empty;
         public int ID { get; internal set; }
         public bool IsWorking { get; internal set; }
     }

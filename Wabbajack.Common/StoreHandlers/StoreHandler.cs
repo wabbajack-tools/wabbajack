@@ -61,15 +61,15 @@ namespace Wabbajack.Common.StoreHandlers
     public abstract class AStoreGame
     {
         public abstract Game Game { get; internal set; }
-        public abstract string Name { get; internal set; }
-        public abstract AbsolutePath Path { get; internal set; }
-        public abstract int ID { get; internal set; }
+        public virtual string Name { get; internal set; } = string.Empty;
+        public virtual AbsolutePath Path { get; internal set; }
+        public virtual int ID { get; internal set; }
         public abstract StoreType Type { get; internal set; }
     }
 
     public abstract class AStoreHandler
     {
-        public abstract List<AStoreGame> Games { get; set; }
+        public List<AStoreGame> Games { get; } = new List<AStoreGame>();
 
         public abstract StoreType Type { get; internal set; }
 

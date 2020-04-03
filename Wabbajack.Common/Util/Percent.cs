@@ -142,7 +142,7 @@ namespace Wabbajack.Common
             return new Percent(percent, check: false);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (!(obj is Percent rhs)) return false;
             return Equals(rhs);
@@ -191,7 +191,7 @@ namespace Wabbajack.Common
             }
         }
 
-        public int CompareTo(object obj)
+        public int CompareTo(object? obj)
         {
             if (obj is Percent rhs)
             {

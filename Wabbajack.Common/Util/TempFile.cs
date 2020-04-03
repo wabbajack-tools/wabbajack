@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AlphaPath = Alphaleonis.Win32.Filesystem.Path;
-    
 
 namespace Wabbajack.Common
 {
