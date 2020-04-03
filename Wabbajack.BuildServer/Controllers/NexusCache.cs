@@ -1,12 +1,20 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CsvHelper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
+using Wabbajack.Common;
+using Wabbajack.Lib;
 using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -16,8 +24,13 @@ namespace Wabbajack.BuildServer.Controllers
     [Route("/v1/games/")]
     public class NexusCache : AControllerBase<NexusCache>
     {
-        public NexusCache(ILogger<NexusCache> logger, DBContext db, SqlService sql) : base(logger, db, sql)
+        private AppSettings _settings;
+        private static long CachedCount = 0;
+        private static long ForwardCount = 0;
+
+        public NexusCache(ILogger<NexusCache> logger, DBContext db, SqlService sql, AppSettings settings) : base(logger, db, sql)
         {
+            _settings = settings;
         }
 
         /// <summary>

@@ -269,6 +269,66 @@ FROM
         LEFT JOIN dbo.ArchiveContent ac on af.Child = ac.Child
         LEFT JOIN dbo.IndexedFile idx on af.Child = idx.Hash
 GO
+
+/****** Object:  Table [dbo].[NexusFileInfos]    Script Date: 4/1/2020 2:41:00 PM ******/
+CREATE TABLE [dbo].[NexusFileInfos](
+                                       [Game] [int] NOT NULL,
+                                       [ModId] [bigint] NOT NULL,
+                                       [FileId] [bigint] NOT NULL,
+                                       [LastChecked] [datetime] NOT NULL,
+                                       [Data] [nvarchar](max) NOT NULL,
+                                       CONSTRAINT [PK_NexusFileInfos] PRIMARY KEY CLUSTERED
+                                           (
+                                            [Game] ASC,
+                                            [ModId] ASC,
+                                            [FileId] ASC
+                                               )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+/****** Object:  Table [dbo].[NexusModFiles]    Script Date: 4/1/2020 2:41:04 PM ******/
+
+CREATE TABLE [dbo].[NexusModFiles](
+                                      [Game] [int] NOT NULL,
+                                      [ModId] [bigint] NOT NULL,
+                                      [LastChecked] [datetime] NOT NULL,
+                                      [Data] [nvarchar](max) NOT NULL,
+                                      CONSTRAINT [PK_NexusModFiles] PRIMARY KEY CLUSTERED
+                                          (
+                                           [Game] ASC,
+                                           [ModId] ASC
+                                              )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+/****** Object:  Table [dbo].[NexusModInfos]    Script Date: 4/1/2020 2:41:07 PM ******/
+
+CREATE TABLE [dbo].[NexusModInfos](
+                                      [Game] [int] NOT NULL,
+                                      [ModId] [bigint] NOT NULL,
+                                      [LastChecked] [datetime] NOT NULL,
+                                      [Data] [nvarchar](max) NOT NULL,
+                                      CONSTRAINT [PK_NexusModInfos] PRIMARY KEY CLUSTERED
+                                          (
+                                           [Game] ASC,
+                                           [ModId] ASC
+                                              )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+/****** Object:  Table [dbo].[ModLists]    Script Date: 4/2/2020 3:59:19 PM ******/
+CREATE TABLE [dbo].[ModLists](
+ [MachineURL] [nvarchar](50) NOT NULL,
+ [Summary] [nvarchar](max) NOT NULL,
+ [Metadata] [nvarchar](max) NOT NULL,
+ [DetailedStatus] [nvarchar](max) NOT NULL,
+ CONSTRAINT [PK_ModLists] PRIMARY KEY CLUSTERED
+     (
+      [MachineURL] ASC
+         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
 /****** Object:  Table [dbo].[Metrics]    Script Date: 3/28/2020 4:58:59 PM ******/
 SET ANSI_NULLS ON
 GO
