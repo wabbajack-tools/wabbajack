@@ -77,24 +77,34 @@ namespace Wabbajack.Lib
                 var result = source.EvolveTo<MergedPatch>();
                 result.Sources = merge.plugins.Select(f =>
                 {
-                    var orig_path = Path.Combine(f.dataFolder, f.filename);
+                    var origPath = Path.Combine(f.dataFolder, f.filename);
                     var paths = new[]
                     {
-                        orig_path,
-                        orig_path + ".mohidden",
-                        Path.Combine(Path.GetDirectoryName(orig_path), "optional", Path.GetFileName(orig_path))
+                        origPath,
+                        origPath + ".mohidden",
+                        Path.Combine(Path.GetDirectoryName(origPath), "optional", Path.GetFileName(origPath))
                     };
 
-                    var abs_path = paths.FirstOrDefault(p => File.Exists(p));
+                    var absPath = paths.FirstOrDefault(File.Exists);
 
-                    if (abs_path == null)
+                    if (absPath == null)
                         throw new InvalidDataException(
-                            $"File {abs_path} is required to build {merge.filename} but it doesn't exist searched in: \n" + String.Join("\n", paths));
+                            $"File {origPath} is required to build {merge.filename} but it doesn't exist searched in: \n" + string.Join("\n", paths));
+
+                    string hash = "";
+
+                    try
+                    {
+                        hash = _compiler.VFS.Index.ByFullPath[absPath].Hash;
+                    } catch (KeyNotFoundException e)
+                    {
+                        Utils.ErrorThrow(e, $"Could not find the key {absPath} in the VFS Index dictionary!");
+                    }
 
                     return new SourcePatch
                     {
-                        RelativePath = abs_path.RelativeTo(_mo2Compiler.MO2Folder),
-                        Hash = _compiler.VFS.Index.ByFullPath[abs_path].Hash
+                        RelativePath = absPath.RelativeTo(_mo2Compiler.MO2Folder),
+                        Hash = hash
                     };
                 }).ToList();
 
