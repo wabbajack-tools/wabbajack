@@ -297,16 +297,9 @@ namespace Wabbajack.Common
             File.AppendAllText(_path, text);
         }
 
-        public void CopyTo(AbsolutePath dest, bool useMove = false)
+        public void CopyTo(AbsolutePath dest)
         {
-            if (useMove)
-            {
-                File.Move(_path, dest._path, MoveOptions.ReplaceExisting);
-            }
-            else
-            {
-                File.Copy(_path, dest._path);
-            }
+            File.Copy(_path, dest._path);
         }
 
         public async Task<IEnumerable<string>> ReadAllLinesAsync()

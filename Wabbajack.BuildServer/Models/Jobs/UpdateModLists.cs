@@ -164,9 +164,6 @@ namespace Wabbajack.BuildServer.Models.Jobs
                  Utils.Log(ex.ToString());
                  return false;
              }
-
-             return false;
-
          }
 
          private async Task<bool> ValidateNexusFast(DBContext db, NexusDownloader.State state)
@@ -178,8 +175,6 @@ namespace Wabbajack.BuildServer.Models.Jobs
                      return false;
 
                  var game = gameMeta.Game;
-                 if (!int.TryParse(state.ModID, out var modID))
-                     return false;
 
                  var modFiles = (await db.NexusModFiles.AsQueryable().Where(g => g.Game == gameMeta.NexusName && g.ModId == state.ModID).FirstOrDefaultAsync())?.Data;
 
@@ -187,17 +182,14 @@ namespace Wabbajack.BuildServer.Models.Jobs
                  {
                      Utils.Log($"No Cache for {state.PrimaryKeyString} falling back to HTTP");
                      var nexusApi = await NexusApiClient.Get();
-                     modFiles = await nexusApi.GetModFiles(game, modID);
+                     modFiles = await nexusApi.GetModFiles(game, state.ModID);
                  }
 
-                 if (!ulong.TryParse(state.FileID, out var fileID))
-                     return false;
-
                  var found = modFiles.files
-                     .FirstOrDefault(file => file.file_id == fileID && file.category_name != null);
+                     .FirstOrDefault(file => file.file_id == state.FileID && file.category_name != null);
                  return found != null;
              }
-             catch (Exception ex)
+             catch (Exception)
              {
                  return false;
              }

@@ -13,7 +13,7 @@ namespace Wabbajack.BuildServer.Models
         public string Game { get; set; }
         
         [BsonIgnoreIfNull]
-        public string ModId { get; set; }
+        public long ModId { get; set; }
 
         public DateTime LastCheckedUTC { get; set; } = DateTime.UtcNow;
 

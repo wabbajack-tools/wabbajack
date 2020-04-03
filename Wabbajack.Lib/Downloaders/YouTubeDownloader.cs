@@ -20,7 +20,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class YouTubeDownloader : IDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var directURL = (Uri)DownloaderUtils.GetDirectURL(archiveINI);
             var state = (State)UriToState(directURL);

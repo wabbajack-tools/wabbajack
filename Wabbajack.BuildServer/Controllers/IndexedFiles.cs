@@ -60,7 +60,7 @@ namespace Wabbajack.BuildServer.Controllers
             int loadCount = 0;
             foreach (var file in fullPath.EnumerateFiles().Where(f => f.Extension == Consts.IniExtension))
             {
-                var loaded = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(file.LoadIniFile()));
+                var loaded = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(file.LoadIniFile(), true));
                 if (loaded == null)
                 {
                     Utils.Log($"Unsupported Ini {file}");
@@ -88,7 +88,9 @@ namespace Wabbajack.BuildServer.Controllers
             {
                 await using var ins = entry.Open();
                 var iniString = Encoding.UTF8.GetString(await ins.ReadAllAsync());
-                var data = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(iniString.LoadIniString()));
+                Utils.Log(iniString);
+                var data = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(iniString.LoadIniString(), true));
+                
                 if (data == null)
                 {
                     Utils.Log("No valid INI parser for: \n" + iniString);

@@ -28,7 +28,6 @@ using Wabbajack.BuildServer.Controllers;
 using Wabbajack.BuildServer.Models;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using Microsoft.AspNetCore.StaticFiles;
-using Wabbajack.BuildServer.Controllers;
 using Microsoft.Extensions.FileProviders;
 using Wabbajack.BuildServer.Model.Models;
 using Directory = System.IO.Directory;

@@ -19,6 +19,7 @@ namespace Wabbajack.BuildServer.Test
         private Task _task;
 
         public readonly TempFolder _severTempFolder = new TempFolder();
+        private bool _disposed = false;
         public AbsolutePath ServerTempFolder => _severTempFolder.Dir;
 
 
@@ -34,12 +35,18 @@ namespace Wabbajack.BuildServer.Test
                     $"WabbajackSettings:BunnyCDN_User=TEST",
                     $"WabbajackSettings:BunnyCDN_Password=TEST",
                     "WabbajackSettings:JobScheduler=false",
-                    "WabbajackSettings:JobRunner=false"
+                    "WabbajackSettings:JobRunner=false",
+                    "WabbajackSettinss:DisableNexusForwarding=true"
                 }, true);
             _host = builder.Build();
             _token = new CancellationTokenSource();
             _task = _host.RunAsync(_token.Token);
             Consts.WabbajackBuildServerUri = new Uri("http://localhost:8080");
+        }
+
+        ~BuildServerFixture()
+        {
+            Dispose();
         }
 
         public T GetService<T>()
@@ -49,6 +56,8 @@ namespace Wabbajack.BuildServer.Test
 
         public void Dispose()
         {
+            if (_disposed) return;
+            _disposed = true;
             if (!_token.IsCancellationRequested)
                 _token.Cancel();
 

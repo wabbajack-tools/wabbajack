@@ -39,5 +39,18 @@ namespace Wabbajack.Lib
                 return null;
             }
         }
+
+        public class NexusCacheStats
+        {
+            public long CachedCount { get; set; }
+            public long ForwardCount { get; set; }
+            public double CacheRatio { get; set; }
+        }
+
+        public static async Task<NexusCacheStats> GetNexusCacheStats()
+        {
+            return await GetClient()
+                .GetJsonAsync<NexusCacheStats>($"{Consts.WabbajackBuildServerUri}nexus_cache/stats");
+        }
     }
 }

@@ -41,8 +41,8 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("/delete_updates")]
         public async Task<IActionResult> DeleteUpdates()
         {
-            var lists = await Db.ModListStatus.AsQueryable().ToListAsync();
-            var archives = lists.SelectMany(list => list.DetailedStatus.Archives)
+            var lists = await SQL.GetDetailedModlistStatuses();
+            var archives = lists.SelectMany(list => list.Archives)
                 .Select(a => a.Archive.Hash.ToHex())
                 .ToHashSet();
 
@@ -108,7 +108,7 @@ namespace Wabbajack.BuildServer.Controllers
                 .ToListAsync();
 
             if (mod_files.SelectMany(f => f.Data.files)
-                .Any(f => f.category_name != null && f.file_id.ToString() == nexusState.FileID))
+                .Any(f => f.category_name != null && f.file_id == nexusState.FileID))
             {
                 await Metric("not_required_upgrade", startingHash.ToString());
                 return BadRequest("Upgrade Not Required");
@@ -164,7 +164,7 @@ namespace Wabbajack.BuildServer.Controllers
         {
             var origSize = _settings.PathForArchive(srcHash).Size;
             var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-            var allMods = await api.GetModFiles(state.Game, int.Parse(state.ModID));
+            var allMods = await api.GetModFiles(state.Game, state.ModID);
             var archive = allMods.files.Where(m => !string.IsNullOrEmpty(m.category_name))
                 .OrderBy(s => Math.Abs((long)s.size - origSize))
                 .Select(s => new Archive {
@@ -174,7 +174,7 @@ namespace Wabbajack.BuildServer.Controllers
                     {
                     Game = state.Game, 
                     ModID = state.ModID, 
-                    FileID = s.file_id.ToString()
+                    FileID = s.file_id
                 }}).FirstOrDefault();
 
             if (archive == null)

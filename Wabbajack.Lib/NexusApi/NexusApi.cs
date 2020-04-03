@@ -254,7 +254,12 @@ namespace Wabbajack.Lib.NexusApi
         {
             try
             {
-                var builder = new UriBuilder(url) { Host = Consts.WabbajackCacheHostname, Scheme = "https" };
+                var builder = new UriBuilder(url)
+                {
+                    Host = Consts.WabbajackBuildServerUri.Host, 
+                    Scheme = Consts.WabbajackBuildServerUri.Scheme, 
+                    Port = Consts.WabbajackBuildServerUri.Port
+                };
                 return await Get<T>(builder.ToString());
             }
             catch (Exception)
@@ -297,7 +302,7 @@ namespace Wabbajack.Lib.NexusApi
             public List<NexusFileInfo> files { get; set; }
         }
 
-        public async Task<GetModFilesResponse> GetModFiles(Game game, int modid)
+        public async Task<GetModFilesResponse> GetModFiles(Game game, long modid)
         {
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modid}/files.json";
             var result = await GetCached<GetModFilesResponse>(url);
@@ -312,7 +317,7 @@ namespace Wabbajack.Lib.NexusApi
             return await Get<List<MD5Response>>(url);
         }
 
-        public async Task<ModInfo> GetModInfo(Game game, string modId)
+        public async Task<ModInfo> GetModInfo(Game game, long modId)
         {
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modId}.json";
             return await GetCached<ModInfo>(url);

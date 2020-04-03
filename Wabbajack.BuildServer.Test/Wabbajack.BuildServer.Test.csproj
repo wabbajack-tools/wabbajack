@@ -49,10 +49,14 @@
       <None Update="xunit.runner.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="sql\uploaded_files_ingest.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="sql\DownloadStates" />
+      <Folder Include="sql\NexusCache" />
       <Folder Include="sql\NotifyStates" />
     </ItemGroup>
 
