@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - Next
+* Included LOOT configs are no longer Base64 encoded
+
 #### Version - 3/30/2020
 * Added support for Morrowind on GOG
 * Fix a bug in the Author file uploader (Sync Error)
