@@ -93,18 +93,27 @@ namespace Wabbajack.Lib.Downloaders
         {
             public MegaApiClient MegaApiClient;
 
-            public override async Task<bool> Download(Archive a, string destination)
+            private void MegaLogin()
             {
-                if (!MegaApiClient.IsLoggedIn && !Utils.HaveEncryptedJson(DataName))
+                if (MegaApiClient.IsLoggedIn)
+                    return;
+
+                if (!Utils.HaveEncryptedJson(DataName))
                 {
                     Utils.Status("Logging into MEGA (as anonymous)");
                     MegaApiClient.LoginAnonymous();
-                } else if (Utils.HaveEncryptedJson(DataName))
+                }
+                else
                 {
                     Utils.Status("Logging into MEGA with saved credentials.");
                     var authInfo = Utils.FromEncryptedJson<MegaApiClient.AuthInfos>(DataName);
                     MegaApiClient.Login(authInfo);
                 }
+            }
+
+            public override async Task<bool> Download(Archive a, string destination)
+            {
+                MegaLogin();
 
                 var fileLink = new Uri(Url);
                 var node = MegaApiClient.GetNodeFromLink(fileLink);
@@ -115,11 +124,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive a)
             {
-                if (!MegaApiClient.IsLoggedIn)
-                {
-                    Utils.Status("Logging into MEGA (as anonymous)");
-                    MegaApiClient.LoginAnonymous();
-                }
+                MegaLogin();
 
                 var fileLink = new Uri(Url);
                 try
