@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Reactive;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
+using System.Security;
 using ReactiveUI;
 
 namespace Wabbajack.Lib.Downloaders
@@ -19,5 +14,22 @@ namespace Wabbajack.Lib.Downloaders
         IObservable<string> MetaInfo { get; }
         Uri SiteURL { get; }
         Uri IconUri { get; }
+    }
+
+    public struct LoginReturnMessage
+    {
+        public string Message;
+        public bool Failure;
+
+        public LoginReturnMessage(string message, bool failure)
+        {
+            Message = message;
+            Failure = failure;
+        }
+    }
+
+    public interface INeedsLoginCredentials : INeedsLogin
+    {
+        LoginReturnMessage LoginWithCredentials(string username, SecureString password);
     }
 }
