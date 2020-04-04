@@ -40,8 +40,7 @@ namespace Wabbajack.Lib.CompilationSteps
             return new State();
         }
 
-
-        private static bool IsAlwaysEnabled(dynamic data)
+        public static bool IsAlwaysEnabled(dynamic data)
         {
             if (data == null)
                 return false;

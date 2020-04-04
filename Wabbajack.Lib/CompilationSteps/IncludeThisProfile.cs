@@ -10,7 +10,7 @@ namespace Wabbajack.Lib.CompilationSteps
     public class IncludeThisProfile : ACompilationStep
     {
         private readonly IEnumerable<string> _correctProfiles;
-        private readonly MO2Compiler _mo2Compiler;
+        private MO2Compiler _mo2Compiler;
 
         public IncludeThisProfile(ACompiler compiler) : base(compiler)
         {
@@ -20,18 +20,17 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (_correctProfiles.Any(p => source.Path.StartsWith(p)))
-            {
-                var data = source.Path.EndsWith("\\modlist.txt")
-                    ? ReadAndCleanModlist(source.AbsolutePath)
-                    : File.ReadAllBytes(source.AbsolutePath);
+            if (!_correctProfiles.Any(p => source.Path.StartsWith(p)))
+                return null;
 
-                var e = source.EvolveTo<InlineFile>();
-                e.SourceDataID = _compiler.IncludeFile(data);
-                return e;
-            }
+            var data = source.Path.EndsWith("\\modlist.txt")
+                ? ReadAndCleanModlist(source.AbsolutePath)
+                : File.ReadAllBytes(source.AbsolutePath);
 
-            return null;
+            var e = source.EvolveTo<InlineFile>();
+            e.SourceDataID = _compiler.IncludeFile(data);
+            return e;
+
         }
 
         public override IState GetState()
@@ -39,12 +38,17 @@ namespace Wabbajack.Lib.CompilationSteps
             return new State();
         }
 
-        private static byte[] ReadAndCleanModlist(string absolutePath)
+        private byte[] ReadAndCleanModlist(string absolutePath)
         {
-            var lines = File.ReadAllLines(absolutePath);
-            lines = (from line in lines
-                where !(line.StartsWith("-") && !line.EndsWith("_separator"))
-                select line).ToArray();
+            var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IgnoreDisabledMods.IsAlwaysEnabled(f.Value))
+                .Select(f => f.Key)
+                .Distinct();
+            var lines = File.ReadAllLines(absolutePath).Where(l =>
+            {
+                return l.StartsWith("+") 
+                       || alwaysEnabled.Any(x => x == l.Substring(1)) 
+                       || l.EndsWith("_separator");
+            }).ToArray();
             return Encoding.UTF8.GetBytes(string.Join("\r\n", lines));
         }
 
