@@ -49,7 +49,7 @@ namespace Wabbajack.Common
         private readonly BehaviorSubject<(int DesiredCPUs, int CurrentCPUs)> _cpuCountSubj = new BehaviorSubject<(int DesiredCPUs, int CurrentCPUs)>((0, 0));
         public IObservable<(int CurrentCPUs, int DesiredCPUs)> CurrentCpuCount => _cpuCountSubj;
 
-        private readonly Subject<IObservable<int>> _activeNumThreadsObservable = new Subject<IObservable<int>>();
+        private readonly Subject<IObservable<int>?> _activeNumThreadsObservable = new Subject<IObservable<int>?>();
 
         public static TimeSpan PollMS = TimeSpan.FromMilliseconds(200);
 
@@ -66,7 +66,7 @@ namespace Wabbajack.Common
         /// Creates a WorkQueue whos number of threads is determined by the given observable
         /// </summary>
         /// <param name="numThreads">Driving observable that determines how many threads should be actively pulling jobs from the queue</param>
-        public WorkQueue(IObservable<int> numThreads)
+        public WorkQueue(IObservable<int>? numThreads)
         {
             // Hook onto the number of active threads subject, and subscribe to it for changes
             _activeNumThreadsObservable
@@ -86,7 +86,7 @@ namespace Wabbajack.Common
         /// Sets the driving observable that determines how many threads should be actively pulling jobs from the queue
         /// </summary>
         /// <param name="numThreads">Driving observable that determines how many threads should be actively pulling jobs from the queue</param>
-        public void SetActiveThreadsObservable(IObservable<int> numThreads)
+        public void SetActiveThreadsObservable(IObservable<int>? numThreads)
         {
             _activeNumThreadsObservable.OnNext(numThreads);
         }
