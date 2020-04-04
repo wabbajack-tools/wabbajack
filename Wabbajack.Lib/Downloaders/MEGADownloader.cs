@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Security;
 using System.Threading.Tasks;
 using CG.Web.MegaApiClient;
+using MessagePack;
 using ReactiveUI;
 using Wabbajack.Common;
 
@@ -91,7 +92,8 @@ namespace Wabbajack.Lib.Downloaders
 
         public class State : HTTPDownloader.State
         {
-            public MegaApiClient MegaApiClient;
+            [IgnoreMember]
+            internal MegaApiClient MegaApiClient;
 
             private void MegaLogin()
             {
