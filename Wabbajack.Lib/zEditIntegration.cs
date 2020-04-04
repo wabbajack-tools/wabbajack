@@ -107,7 +107,7 @@ namespace Wabbajack.Lib
 
                 Utils.Log($"Using merge file {mergeFile}");
 
-                var merges = mergeFile.FromJSON<List<zEditMerge>>().GroupBy(f => (f.name, f.filename));
+                var merges = mergeFile.FromJSON<List<zEditMerge>>().GroupBy(f => (f.name, f.filename)).ToArray();
 
                 merges.Where(m => m.Count() > 1)
                     .Do(m =>
@@ -127,7 +127,27 @@ namespace Wabbajack.Lib
             public override async ValueTask<Directive> Run(RawSourceFile source)
             {
                 if (_disabled) return null;
-                if (!_mergesIndexed.TryGetValue(source.AbsolutePath, out var merge)) return null;
+                if (!_mergesIndexed.TryGetValue(source.AbsolutePath, out var merge))
+                {
+                    if(!source.AbsolutePath.EndsWith(".seq"))
+                        return null;
+
+                    var seqFolder = Path.GetDirectoryName(source.AbsolutePath);
+
+                    if (!seqFolder.EndsWith("seq"))
+                        return null;
+
+                    var mergeFolder = Path.GetDirectoryName(seqFolder);
+                    var split = mergeFolder.Split("\\");
+                    var mergeName = split[^1];
+
+                    if (!File.Exists(Path.Combine(mergeFolder, mergeName + ".esp")))
+                        return null;
+
+                    var inline = source.EvolveTo<InlineFile>();
+                    inline.SourceDataID = _compiler.IncludeFile(File.ReadAllBytes(source.AbsolutePath));
+                    return inline;
+                }
                 var result = source.EvolveTo<MergedPatch>();
                 result.Sources = merge.plugins.Select(f =>
                 {
@@ -162,14 +182,14 @@ namespace Wabbajack.Lib
                     };
                 }).ToList();
 
-                var src_data = result.Sources.Select(f => File.ReadAllBytes(Path.Combine(_mo2Compiler.MO2Folder, f.RelativePath)))
+                var srcData = result.Sources.Select(f => File.ReadAllBytes(Path.Combine(_mo2Compiler.MO2Folder, f.RelativePath)))
                     .ConcatArrays();
 
-                var dst_data = File.ReadAllBytes(source.AbsolutePath);
+                var dstData = File.ReadAllBytes(source.AbsolutePath);
 
                 await using (var ms = new MemoryStream())
                 {
-                    await Utils.CreatePatch(src_data, dst_data, ms);
+                    await Utils.CreatePatch(srcData, dstData, ms);
                     result.PatchID = _compiler.IncludeFile(ms.ToArray());
                 }
 
@@ -216,19 +236,18 @@ namespace Wabbajack.Lib
 
         public static void VerifyMerges(MO2Compiler compiler)
         {
-            var by_name = compiler.InstallDirectives.ToDictionary(f => f.To);
+            var byName = compiler.InstallDirectives.ToDictionary(f => f.To);
 
             foreach (var directive in compiler.InstallDirectives.OfType<MergedPatch>())
             {
                 foreach (var source in directive.Sources)
                 {
-                    if (by_name.TryGetValue(source.RelativePath, out var result))
-                    {
-                        if (result.Hash != source.Hash)
-                            throw new InvalidDataException($"Hashes for {result.To} needed for zEdit merge sources don't match, this shouldn't happen");
-                        continue;
-                    }
-                    throw new InvalidDataException($"{source.RelativePath} is needed for merged patch {directive.To} but is not included in the install.");
+                    if (!byName.TryGetValue(source.RelativePath, out var result))
+                        throw new InvalidDataException(
+                            $"{source.RelativePath} is needed for merged patch {directive.To} but is not included in the install.");
+
+                    if (result.Hash != source.Hash)
+                        throw new InvalidDataException($"Hashes for {result.To} needed for zEdit merge sources don't match, this shouldn't happen");
                 }
             }
         }
@@ -242,13 +261,13 @@ namespace Wabbajack.Lib
                 {
                     Utils.LogStatus($"Generating zEdit merge: {m.To}");
 
-                    var src_data = m.Sources.Select(s => File.ReadAllBytes(Path.Combine(installer.OutputFolder, s.RelativePath)))
+                    var srcData = m.Sources.Select(s => File.ReadAllBytes(Path.Combine(installer.OutputFolder, s.RelativePath)))
                         .ConcatArrays();
 
-                    var patch_data = installer.LoadBytesFromPath(m.PatchID);
+                    var patchData = installer.LoadBytesFromPath(m.PatchID);
 
-                    using (var fs = File.Open(Path.Combine(installer.OutputFolder, m.To), FileMode.Create)) 
-                        Utils.ApplyPatch(new MemoryStream(src_data), () => new MemoryStream(patch_data), fs);
+                    using var fs = File.Open(Path.Combine(installer.OutputFolder, m.To), FileMode.Create);
+                    Utils.ApplyPatch(new MemoryStream(srcData), () => new MemoryStream(patchData), fs);
                 });
         }
     }
