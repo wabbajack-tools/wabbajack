@@ -1,5 +1,4 @@
 ﻿using Alphaleonis.Win32.Filesystem;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -37,26 +36,78 @@ namespace Wabbajack.Lib
 
         public class IncludeZEditPatches : ACompilationStep
         {
-            private Dictionary<string, zEditMerge> _mergesIndexed;
+            private readonly Dictionary<string, zEditMerge> _mergesIndexed;
+
+            private bool _disabled = true;
 
             public IncludeZEditPatches(ACompiler compiler) : base(compiler)
             {
                 var zEditPath = FindzEditPath(compiler);
                 var havezEdit = zEditPath != null;
 
-                Utils.Log(havezEdit ? $"Found zEdit at {zEditPath}" : $"zEdit not detected, disabling zEdit routines");
+                Utils.Log(havezEdit ? $"Found zEdit at {zEditPath}" : "zEdit not detected, disabling zEdit routines");
 
                 if (!havezEdit)
                 {
                     _mergesIndexed = new Dictionary<string, zEditMerge>();
                     return;
                 }
-
-                var merges = Directory.EnumerateFiles(Path.Combine(zEditPath, "profiles"),
+                _mo2Compiler = (MO2Compiler) compiler;
+                
+                var settingsFiles = Directory.EnumerateFiles(Path.Combine(zEditPath, "profiles"),
                         DirectoryEnumerationOptions.Files | DirectoryEnumerationOptions.Recursive)
-                    .Where(f => f.EndsWith("\\merges.json"))
-                    .SelectMany(f => f.FromJSON<List<zEditMerge>>())
-                    .GroupBy(f => (f.name, f.filename));
+                    .Where(f => f.EndsWith("settings.json"))
+                    .Where(f =>
+                    {
+                        var settings = f.FromJSON<zEditSettings>();
+
+                        if (settings.modManager != "Mod Organizer 2")
+                        {
+                            Utils.Log($"zEdit settings file {f}: modManager is not Mod Organizer 2 but {settings.modManager}!");
+                            return false;
+                        }
+
+                        if (settings.managerPath != _mo2Compiler.MO2Folder)
+                        {
+                            Utils.Log($"zEdit settings file {f}: managerPath is not {_mo2Compiler.MO2Folder} but {settings.managerPath}!");
+                            return false;
+                        }
+
+                        if (settings.modsPath != Path.Combine(_mo2Compiler.MO2Folder, "mods"))
+                        {
+                            Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.MO2Folder}\\mods but {settings.modsPath}!");
+                            return false;
+                        }
+
+                        if (settings.mergePath != Path.Combine(_mo2Compiler.MO2Folder, "mods"))
+                        {
+                            Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.MO2Folder}\\mods but {settings.modsPath}!");
+                            return false;
+                        }
+
+                        return true;
+                    });
+
+                if (!settingsFiles.Any())
+                {
+                    Utils.Log($"Found not acceptable settings.json file for zEdit!");
+                    return;
+                }
+                
+                var profileFolder =
+                    settingsFiles.Where(x => File.Exists(Path.Combine(Path.GetDirectoryName(x), "merges.json")))?.Select(x => string.IsNullOrWhiteSpace(x) ? "" : Path.GetDirectoryName(x)).FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(profileFolder))
+                {
+                    Utils.Log("Found no acceptable profiles folder for zEdit!");
+                    return;
+                }
+
+                var mergeFile = Path.Combine(profileFolder, "merges.json");
+
+                Utils.Log($"Using merge file {mergeFile}");
+
+                var merges = mergeFile.FromJSON<List<zEditMerge>>().GroupBy(f => (f.name, f.filename));
 
                 merges.Where(m => m.Count() > 1)
                     .Do(m =>
@@ -69,10 +120,13 @@ namespace Wabbajack.Lib
                     merges.ToDictionary(
                         m => Path.Combine(_mo2Compiler.MO2Folder, Consts.MO2ModFolderName, m.Key.name, m.Key.filename),
                         m => m.First());
+
+                _disabled = false;
             }
 
             public override async ValueTask<Directive> Run(RawSourceFile source)
             {
+                if (_disabled) return null;
                 if (!_mergesIndexed.TryGetValue(source.AbsolutePath, out var merge)) return null;
                 var result = source.EvolveTo<MergedPatch>();
                 result.Sources = merge.plugins.Select(f =>
@@ -136,6 +190,14 @@ namespace Wabbajack.Lib
                     return new IncludeZEditPatches(compiler);
                 }
             }
+        }
+
+        public class zEditSettings
+        {
+            public string modManager;
+            public string managerPath;
+            public string modsPath;
+            public string mergePath;
         }
 
         public class zEditMerge
