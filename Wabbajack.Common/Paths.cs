@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -690,10 +691,16 @@ namespace Wabbajack.Common
 
         public override string ToString()
         {
-            return string.Join("|", Paths.Select(t => t.ToString()).Cons(BaseHash.ToString()));
+            var paths = Paths == null ? EmptyPath : Paths;
+            return string.Join("|", paths.Select(t => t.ToString()).Cons(BaseHash.ToString()));
         }
+        
+        private static RelativePath[] EmptyPath = Array.Empty<RelativePath>();
+
         public static bool operator ==(HashRelativePath a, HashRelativePath b)
         {
+            if (a.Paths == null || b.Paths == null) return false;
+            
             if (a.BaseHash != b.BaseHash || a.Paths.Length != b.Paths.Length)
             {
                 return false;
@@ -739,6 +746,7 @@ namespace Wabbajack.Common
     public struct FullPath : IEquatable<FullPath>, IPath
     {
         public AbsolutePath Base { get; }
+        
         public RelativePath[] Paths { get; }
 
         private readonly int _hash;
@@ -746,7 +754,7 @@ namespace Wabbajack.Common
         public FullPath(AbsolutePath basePath, params RelativePath[] paths)
         {
             Base = basePath;
-            Paths = paths;
+            Paths = paths == null ? Array.Empty<RelativePath>() : paths;
             _hash = Base.GetHashCode();
             foreach (var itm in Paths)
             {
@@ -756,7 +764,8 @@ namespace Wabbajack.Common
 
         public override string ToString()
         {
-            return string.Join("|", Paths.Select(t => (string)t).Cons((string)Base));
+            var paths = Paths == null ? EmptyPath : Paths;
+            return string.Join("|", paths.Select(t => (string)t).Cons((string)Base));
         }
 
         public override int GetHashCode()
@@ -764,8 +773,12 @@ namespace Wabbajack.Common
             return _hash;
         }
 
+        private static RelativePath[] EmptyPath = Array.Empty<RelativePath>();
+
         public static bool operator ==(FullPath a, FullPath b)
         {
+            if (a.Paths == null || b.Paths == null) return false;
+            
             if (a.Base != b.Base || a.Paths.Length != b.Paths.Length)
             {
                 return false;

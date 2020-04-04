@@ -36,7 +36,7 @@ namespace Wabbajack.Common
             return true;
         }
         
-        public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, [MaybeNullWhen(false)] out object result)
+        public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, [MaybeNullWhen(false)] out object? result)
         {
             if (indexes.Length > 1)
             {
@@ -115,7 +115,7 @@ namespace Wabbajack.Common
             return Encoding.UTF8.GetString(acc.ToArray());
         }
 
-        public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, [MaybeNullWhen(false)] out object result)
+        public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, [MaybeNullWhen(false)] out object? result)
         {
             if (indexes.Length > 1)
             {

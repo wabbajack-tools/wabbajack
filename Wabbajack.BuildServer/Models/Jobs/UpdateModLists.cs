@@ -171,10 +171,6 @@ namespace Wabbajack.BuildServer.Models.Jobs
              try
              {
                  var gameMeta = state.Game.MetaData();
-                 if (gameMeta == null)
-                     return false;
-
-                 var game = gameMeta.Game;
 
                  var modFiles = (await db.NexusModFiles.AsQueryable().Where(g => g.Game == gameMeta.NexusName && g.ModId == state.ModID).FirstOrDefaultAsync())?.Data;
 
@@ -182,7 +178,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                  {
                      Utils.Log($"No Cache for {state.PrimaryKeyString} falling back to HTTP");
                      var nexusApi = await NexusApiClient.Get();
-                     modFiles = await nexusApi.GetModFiles(game, state.ModID);
+                     modFiles = await nexusApi.GetModFiles(state.Game, state.ModID);
                  }
 
                  var found = modFiles.files

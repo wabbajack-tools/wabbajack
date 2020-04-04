@@ -450,24 +450,22 @@ namespace Wabbajack.Lib
         private async Task BuildArchivePatches(Hash archiveSha, IEnumerable<PatchedFromArchive> group,
             Dictionary<RelativePath, AbsolutePath> absolutePaths)
         {
-            using (var files = await VFS.StageWith(group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath))))
+            using var files = await VFS.StageWith(@group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath)));
+            var byPath = files.GroupBy(f => string.Join("|", f.FilesInFullPath.Skip(1).Select(i => i.Name)))
+                .ToDictionary(f => f.Key, f => f.First());
+            // Now Create the patches
+            await @group.PMap(Queue, async entry =>
             {
-                var byPath = files.GroupBy(f => string.Join("|", f.FilesInFullPath.Skip(1).Select(i => i.Name)))
-                    .ToDictionary(f => f.Key, f => f.First());
-                // Now Create the patches
-                await group.PMap(Queue, async entry =>
-                {
-                    Info($"Patching {entry.To}");
-                    Status($"Patching {entry.To}");
-                    var srcFile = byPath[string.Join("|", entry.ArchiveHashPath.Paths)];
-                    await using var srcStream = srcFile.OpenRead();
-                    await using var outputStream = IncludeFile(out var id);
-                    entry.PatchID = id;
-                    await using var destStream = LoadDataForTo(entry.To, absolutePaths);
-                    await Utils.CreatePatch(srcStream, srcFile.Hash, destStream, entry.Hash, outputStream);
-                    Info($"Patch size {outputStream.Length} for {entry.To}");
-                });
-            }
+                Info($"Patching {entry.To}");
+                Status($"Patching {entry.To}");
+                var srcFile = byPath[string.Join("|", entry.ArchiveHashPath.Paths)];
+                await using var srcStream = srcFile.OpenRead();
+                await using var outputStream = IncludeFile(out var id);
+                entry.PatchID = id;
+                await using var destStream = LoadDataForTo(entry.To, absolutePaths);
+                await Utils.CreatePatch(srcStream, srcFile.Hash, destStream, entry.Hash, outputStream);
+                Info($"Patch size {outputStream.Length} for {entry.To}");
+            });
         }
 
         private FileStream LoadDataForTo(RelativePath to, Dictionary<RelativePath, AbsolutePath> absolutePaths)

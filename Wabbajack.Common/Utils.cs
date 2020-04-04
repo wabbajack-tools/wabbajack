@@ -780,7 +780,7 @@ namespace Wabbajack.Common
                 return true;
             }
 
-            ePatch = null;
+            ePatch = Array.Empty<byte>();
             return false;
         }
 
