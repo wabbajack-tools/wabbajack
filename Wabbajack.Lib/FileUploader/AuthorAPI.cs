@@ -106,7 +106,12 @@ namespace Wabbajack.Lib.FileUploader
                     if (finalResponse.IsSuccessStatusCode)
                         tcs.SetResult(await finalResponse.Content.ReadAsStringAsync());
                     else
-                        tcs.SetException(new Exception($"Finalization Error: {finalResponse.StatusCode} {finalResponse.ReasonPhrase}"));
+                    {
+                        Utils.Log("Finalization Error: ");
+                        Utils.Log(await finalResponse.Content.ReadAsStringAsync());
+                        tcs.SetException(new Exception(
+                            $"Finalization Error: {finalResponse.StatusCode} {finalResponse.ReasonPhrase}"));
+                    }
                 }
 
                 progressFn(0.0);
