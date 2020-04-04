@@ -136,7 +136,7 @@ namespace Wabbajack.BuildServer.Controllers
             var originalName = $"{parts[0]}{parts[2]}";
 
             var finalPath = "public".RelativeTo(AbsolutePath.EntryPoint).Combine("files", finalName);
-            _settings.TempPath.Combine(Key).MoveTo(finalPath);
+            await _settings.TempPath.Combine(Key).MoveToAsync(finalPath);
             
             var hash = await finalPath.FileHashAsync();
 

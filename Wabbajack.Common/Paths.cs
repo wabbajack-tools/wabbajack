@@ -156,15 +156,44 @@ namespace Wabbajack.Common
                     throw new ArgumentException("Could not find entry point.");
                 return ((AbsolutePath)location).Parent;
             }
-        } 
+        }
+
+        public AbsolutePath Root => (AbsolutePath)Path.GetPathRoot(_path);
 
         /// <summary>
-        ///     Moves this file to the specified location
+        ///     Moves this file to the specified location, will use Copy if required
         /// </summary>
         /// <param name="otherPath"></param>
         /// <param name="overwrite">Replace the destination file if it exists</param>
         public void MoveTo(AbsolutePath otherPath, bool overwrite = false)
         {
+            if (Root != otherPath.Root)
+            {
+                if (otherPath.Exists && overwrite)
+                    otherPath.Delete();
+                
+                CopyTo(otherPath);
+                return;
+            }
+            File.Move(_path, otherPath._path, overwrite ? MoveOptions.ReplaceExisting : MoveOptions.None);
+        }
+        
+        /// <summary>
+        ///     Moves this file to the specified location, will use Copy if required
+        /// </summary>
+        /// <param name="otherPath"></param>
+        /// <param name="overwrite">Replace the destination file if it exists</param>
+        public async Task MoveToAsync(AbsolutePath otherPath, bool overwrite = false)
+        {
+            if (Root != otherPath.Root)
+            {
+                if (otherPath.Exists && overwrite)
+                    otherPath.Delete();
+                
+                await CopyToAsync(otherPath);
+                Delete();
+                return;
+            }
             File.Move(_path, otherPath._path, overwrite ? MoveOptions.ReplaceExisting : MoveOptions.None);
         }
 
