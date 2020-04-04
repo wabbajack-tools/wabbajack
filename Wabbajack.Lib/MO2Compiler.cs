@@ -49,6 +49,7 @@ namespace Wabbajack.Lib
             $"vfs_compile_cache-{Path.Combine((string)MO2Folder ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
 
         public MO2Compiler(AbsolutePath mo2Folder, string mo2Profile, AbsolutePath outputFile)
+            : base(steps: 20)
         {
             MO2Folder = mo2Folder;
             MO2Profile = mo2Profile;
@@ -88,7 +89,7 @@ namespace Wabbajack.Lib
         protected override async Task<bool> _Begin(CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested) return false;
-            ConfigureProcessor(20, ConstructDynamicNumThreads(await RecommendQueueSize()));
+            Queue.SetActiveThreadsObservable(ConstructDynamicNumThreads(await RecommendQueueSize()));
             UpdateTracker.Reset();
             UpdateTracker.NextStep("Gathering information");
             Info("Looking for other profiles");

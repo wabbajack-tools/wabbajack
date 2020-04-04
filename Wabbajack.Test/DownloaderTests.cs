@@ -532,7 +532,6 @@ namespace Wabbajack.Test
             return state.ToJson().FromJsonString<T>();
         }
         
-
         [Fact]
         public async Task TestUpgrading()
         {
@@ -553,13 +552,12 @@ namespace Wabbajack.Test
             Assert.Equal(Hash.FromBase64("gCRVrvzDNH0="), await dest.FileHashCachedAsync());
         }
         
-        
-
         class TestInstaller : AInstaller
         {
-            public TestInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters) : base(archive, modList, outputFolder, downloadFolder, parameters)
+            public TestInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
+                : base(archive, modList, outputFolder, downloadFolder, parameters, steps: 1)
             {
-                ConfigureProcessor(1, new Subject<int>().StartWith(1));
+                Queue.SetActiveThreadsObservable(Observable.Return(1));
             }
 
             protected override Task<bool> _Begin(CancellationToken cancel)
@@ -569,10 +567,5 @@ namespace Wabbajack.Test
 
             public override ModManager ModManager { get => ModManager.MO2; }
         }
-
-
     }
-
-
-
 }

@@ -31,7 +31,8 @@ namespace Wabbajack.Lib
         
         public SystemParameters SystemParameters { get; set; }
 
-        public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
+        public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters, int steps)
+            : base(steps)
         {
             ModList = modList;
             ModListArchive = archive;

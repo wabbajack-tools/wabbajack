@@ -38,7 +38,8 @@ namespace Wabbajack.Lib
                   modList: modList,
                   outputFolder: outputFolder, 
                   downloadFolder: downloadFolder,
-                  parameters: parameters)
+                  parameters: parameters,
+                  steps: 20)
         {
         }
 
@@ -48,7 +49,7 @@ namespace Wabbajack.Lib
             var metric = Metrics.Send(Metrics.BeginInstall, ModList.Name);
             Utils.Log("Configuring Processor");
 
-            ConfigureProcessor(20, ConstructDynamicNumThreads(await RecommendQueueSize()));
+            Queue.SetActiveThreadsObservable(ConstructDynamicNumThreads(await RecommendQueueSize()));
             var game = ModList.GameType.MetaData();
 
             if (GameFolder == null)

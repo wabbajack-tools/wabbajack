@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -49,6 +49,11 @@ namespace Wabbajack.Lib
 
         public List<IndexedArchive> IndexedArchives = new List<IndexedArchive>();
         public Dictionary<Hash, IEnumerable<VirtualFile>> IndexedFiles = new Dictionary<Hash, IEnumerable<VirtualFile>>();
+
+        public ACompiler(int steps)
+            : base(steps)
+        {
+        }
 
         public static void Info(string msg)
         {

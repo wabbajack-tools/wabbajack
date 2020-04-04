@@ -26,7 +26,8 @@ namespace Wabbajack.Lib
                   modList: modList,
                   outputFolder: outputFolder,
                   downloadFolder: downloadFolder,
-                  parameters: parameters)
+                  parameters: parameters,
+                  steps: 10)
         {
             #if DEBUG
             // TODO: only for testing
@@ -51,7 +52,7 @@ namespace Wabbajack.Lib
             }
 
             if (cancel.IsCancellationRequested) return false;
-            ConfigureProcessor(10, ConstructDynamicNumThreads(await RecommendQueueSize()));
+            Queue.SetActiveThreadsObservable(ConstructDynamicNumThreads(await RecommendQueueSize()));
             DownloadFolder.CreateDirectory();
 
             if (cancel.IsCancellationRequested) return false;
