@@ -9,13 +9,8 @@ namespace Wabbajack.Common
 {
     public class AsyncBlockingCollection<T> : IDisposable
     {
-        private readonly ConcurrentQueue<T> _collection;
+        private readonly ConcurrentQueue<T> _collection = new ConcurrentQueue<T>();
         private bool isDisposed = false;
-
-        public AsyncBlockingCollection()
-        {
-            _collection = new ConcurrentQueue<T>();
-        }
         
         public void Add(T val)
         {

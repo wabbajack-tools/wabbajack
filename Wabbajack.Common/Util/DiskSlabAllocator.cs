@@ -43,9 +43,9 @@ namespace Wabbajack.Common
         public void Dispose()
         {
             _allocated.Do(s => s.Dispose());
-            _mmap?.Dispose();
-            _fileStream?.Dispose();
-            _file?.Dispose();
+            _mmap.Dispose();
+            _fileStream.Dispose();
+            _file.Dispose();
         }
     }
 }

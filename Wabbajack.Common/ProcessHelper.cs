@@ -15,9 +15,9 @@ namespace Wabbajack.Common
             Output, 
             Error,
         }
-        
-        public string Path { get; set; }
-        public IEnumerable<object> Arguments { get; set; }
+
+        public string Path { get; set; } = string.Empty;
+        public IEnumerable<object> Arguments { get; set; } = Enumerable.Empty<object>();
 
         public bool LogError { get; set; } = true;
         
