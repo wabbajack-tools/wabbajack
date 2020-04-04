@@ -30,7 +30,16 @@ namespace Wabbajack.Lib.Downloaders
 
             var absolute = true;
             if (url == null || url.Host != SiteURL.Host) return null;
-            
+
+            if (url.PathAndQuery.StartsWith("/applications/core/interface/file/attachment"))
+            {
+                return new TState
+                {
+                    IsAttachment = true,
+                    FullURL = url.ToString()
+                };
+            }
+
             if (url.PathAndQuery.StartsWith("/index.php?"))
             {
                 var id2 = HttpUtility.ParseQueryString(url.Query)["r"];
@@ -38,6 +47,7 @@ namespace Wabbajack.Lib.Downloaders
                 var name = parsed[null].Split("/", StringSplitOptions.RemoveEmptyEntries).Last();
                 return new TState
                 {
+                    FullURL = url.AbsolutePath,
                     FileID = id2,
                     FileName = name
                 };
@@ -57,6 +67,7 @@ namespace Wabbajack.Lib.Downloaders
             
             return new TState
             {
+                FullURL = url.AbsolutePath,
                 FileID = id,
                 FileName = file
             };
@@ -67,26 +78,30 @@ namespace Wabbajack.Lib.Downloaders
         public class State<TStateDownloader> : AbstractDownloadState, IMetaState where TStateDownloader : IDownloader
         {
             [Key(0)]
+            public string FullURL { get; set; }
+            [Key(1)]
+            public bool IsAttachment { get; set; }
+            [Key(2)]
             public string FileID { get; set; }
             
-            [Key(1)]
+            [Key(3)]
             public string FileName { get; set; }
             
             // from IMetaState
-            [Key(2)]
+            [Key(4)]
             
             public Uri URL => new Uri($"{Site}/files/file/{FileName}");
-            [Key(3)]
-            public string Name { get; set; }
-            [Key(4)]
-            public string Author { get; set; }
             [Key(5)]
-            public string Version { get; set; }
+            public string Name { get; set; }
             [Key(6)]
-            public string ImageURL { get; set; }
+            public string Author { get; set; }
             [Key(7)]
-            public virtual bool IsNSFW { get; set; }
+            public string Version { get; set; }
             [Key(8)]
+            public string ImageURL { get; set; }
+            [Key(9)]
+            public virtual bool IsNSFW { get; set; }
+            [Key(10)]
             public string Description { get; set; }
 
             private static bool IsHTTPS => Downloader.SiteURL.AbsolutePath.StartsWith("https://");
@@ -105,7 +120,9 @@ namespace Wabbajack.Lib.Downloaders
                 get
                 {
                     return FileID == null
-                        ? new object[] {Downloader.SiteURL, FileName}
+                        ? IsAttachment 
+                            ? new object[] {Downloader.SiteURL, IsAttachment, FullURL}
+                            : new object[] {Downloader.SiteURL, FileName}
                         : new object[] {Downloader.SiteURL, FileName, FileID};
                 }
             }
@@ -127,27 +144,32 @@ namespace Wabbajack.Lib.Downloaders
 
             private async Task<Stream> ResolveDownloadStream()
             {
-                //var downloader = (AbstractNeedsLoginDownloader)(object)DownloadDispatcher.GetInstance<TDownloader>();
-
                 TOP:
-                var csrfurl = FileID == null
-                    ? $"{Site}/files/file/{FileName}/?do=download"
-                    : $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
-                var html = await Downloader.AuthedClient.GetStringAsync(csrfurl);
+                string url;
+                if (IsAttachment)
+                {
+                    url = FullURL;
+                }
+                else
+                {
+                    var csrfURL = FileID == null
+                        ? $"{Site}/files/file/{FileName}/?do=download"
+                        : $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
+                    var html = await Downloader.AuthedClient.GetStringAsync(csrfURL);
 
-                var pattern = new Regex("(?<=csrfKey=).*(?=[&\"\'])|(?<=csrfKey: \").*(?=[&\"\'])");
-                var matches = pattern.Matches(html).Cast<Match>();
+                    var pattern = new Regex("(?<=csrfKey=).*(?=[&\"\'])|(?<=csrfKey: \").*(?=[&\"\'])");
+                    var matches = pattern.Matches(html).Cast<Match>();
                     
                     var csrfKey = matches.Where(m => m.Length == 32).Select(m => m.ToString()).FirstOrDefault();
 
-                if (csrfKey == null)
-                    return null;
+                    if (csrfKey == null)
+                        return null;
 
-                var sep = Site.EndsWith("?") ? "&" : "?";
-                var url = FileID == null
-                    ? $"{Site}/files/file/{FileName}/{sep}do=download&confirm=1&t=1&csrfKey={csrfKey}"
-                    : $"{Site}/files/file/{FileName}/{sep}do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
-                    
+                    var sep = Site.EndsWith("?") ? "&" : "?";
+                    url = FileID == null
+                        ? $"{Site}/files/file/{FileName}/{sep}do=download&confirm=1&t=1&csrfKey={csrfKey}"
+                        : $"{Site}/files/file/{FileName}/{sep}do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
+                }
 
                 var streamResult = await Downloader.AuthedClient.GetAsync(url);
                 if (streamResult.StatusCode != HttpStatusCode.OK)
@@ -198,34 +220,33 @@ namespace Wabbajack.Lib.Downloaders
 
             public override string GetManifestURL(Archive a)
             {
-                return $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
+                return IsAttachment ? FullURL : $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
             }
 
             public override string[] GetMetaIni()
             {
-                if (FileID != null)
-                {
-                    if (Site.EndsWith("?"))
-                    {
-                        return new[]
-                        {
-                            "[General]", $"directURL={Site}/files/file/{FileName}&do=download&r={FileID}&confirm=1&t=1"
-                        };
-                        
-                    }
+                if (IsAttachment)
+                    return new[] {"[General]", $"directURL={FullURL}"};
 
+                if (FileID == null)
+                    return new[] {"[General]", $"directURL={Site}/files/file/{FileName}"};
+
+                if (Site.EndsWith("?"))
+                {
                     return new[]
                     {
-                        "[General]", $"directURL={Site}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1"
+                        "[General]", $"directURL={Site}/files/file/{FileName}&do=download&r={FileID}&confirm=1&t=1"
                     };
+                        
                 }
 
                 return new[]
                 {
-                    "[General]",
-                    $"directURL={Site}/files/file/{FileName}"
+                    "[General]", $"directURL={Site}/files/file/{FileName}/?do=download&r={FileID}&confirm=1&t=1"
                 };
+
             }
+
             public virtual async Task<bool> LoadMetaData()
             {
                 return false;

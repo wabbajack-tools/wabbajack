@@ -27,6 +27,18 @@ namespace Wabbajack.Test
 
 
             Directory.CreateDirectory(Path.Combine(utils.MO2Folder, "tools", "mator", "bleh", "profiles", "myprofile"));
+
+            var settings = new zEditIntegration.zEditSettings()
+            {
+                modManager = "Mod Organizer 2",
+                managerPath = utils.MO2Folder,
+                modsPath = Path.Combine(utils.MO2Folder, Consts.MO2ModFolderName),
+                mergePath = Path.Combine(utils.MO2Folder, Consts.MO2ModFolderName)
+            };
+
+            settings.ToJSON(Path.Combine(utils.MO2Folder, "tools", "mator", "bleh", "profiles", "myprofile",
+                "settings.json"));
+
             new List<zEditIntegration.zEditMerge>()
             {
                 new zEditIntegration.zEditMerge()

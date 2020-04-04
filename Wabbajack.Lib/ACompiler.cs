@@ -105,6 +105,9 @@ namespace Wabbajack.Lib
             {
                 if (a.State is IMetaState metaState)
                 {
+                    if (metaState.URL == null)
+                        return;
+
                     var b = await metaState.LoadMetaData();
                     Utils.Log(b
                         ? $"Getting meta data for {a.Name} was successful!"

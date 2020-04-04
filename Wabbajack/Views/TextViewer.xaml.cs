@@ -1,8 +1,6 @@
-﻿using System.Windows;
-
-namespace Wabbajack
+﻿namespace Wabbajack
 {
-    public partial class TextViewer : Window
+    public partial class TextViewer
     {
         public TextViewer(string text, string title)
         {

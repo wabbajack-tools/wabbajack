@@ -126,6 +126,10 @@ namespace Wabbajack.Common
         public static AbsolutePath SettingsFile => LocalAppDataPath.Combine("settings.json");
         public static RelativePath SettingsIni = (RelativePath)"settings.ini";
         public static byte SettingsVersion => 1;
+        public static Extension SeqExtension = new Extension(".seq");
+
+        public static RelativePath SettingsJson = (RelativePath)"settings.json";
+
         public static Extension TempExtension = new Extension(".temp");
 
         public static Extension OctoSig = new Extension(".octo_sig");

@@ -11,7 +11,7 @@ namespace Wabbajack.Lib.CompilationSteps
     public class IncludeThisProfile : ACompilationStep
     {
         private readonly IEnumerable<AbsolutePath> _correctProfiles;
-        private readonly MO2Compiler _mo2Compiler;
+        private MO2Compiler _mo2Compiler;
 
         public IncludeThisProfile(ACompiler compiler) : base(compiler)
         {
@@ -21,18 +21,17 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (_correctProfiles.Any(p => source.AbsolutePath.InFolder(p)))
-            {
-                var data = source.Path.FileName == Consts.ModListTxt
-                    ? await ReadAndCleanModlist(source.AbsolutePath)
-                    : await source.AbsolutePath.ReadAllBytesAsync();
+            if (!_correctProfiles.Any(p => source.AbsolutePath.InFolder(p)))
+                return null;
 
-                var e = source.EvolveTo<InlineFile>();
-                e.SourceDataID = await _compiler.IncludeFile(data);
-                return e;
-            }
+            var data = source.Path.FileName == Consts.ModListTxt
+                ? await ReadAndCleanModlist(source.AbsolutePath)
+                : await source.AbsolutePath.ReadAllBytesAsync();
 
-            return null;
+            var e = source.EvolveTo<InlineFile>();
+            e.SourceDataID = await _compiler.IncludeFile(data);
+            return e;
+
         }
 
         public override IState GetState()
@@ -43,8 +42,7 @@ namespace Wabbajack.Lib.CompilationSteps
         private static async Task<byte[]> ReadAndCleanModlist(AbsolutePath absolutePath)
         {
             var lines = await absolutePath.ReadAllLinesAsync();
-            lines = lines.Where(line => !(line.StartsWith("-") && !line.EndsWith("_separator")))
-                         .ToArray();
+            lines = lines.Where(line => !(line.StartsWith("-") && !line.EndsWith("_separator"))).ToArray();
             return Encoding.UTF8.GetBytes(string.Join("\r\n", lines));
         }
 
