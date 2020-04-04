@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Security;
 using System.Threading.Tasks;
 using CG.Web.MegaApiClient;
 using ReactiveUI;
@@ -13,14 +14,13 @@ namespace Wabbajack.Lib.Downloaders
         public MegaApiClient MegaApiClient;
         private const string DataName = "mega-cred";
 
-        public LoginReturnMessage LoginWithCredentials(string username, string password)
+        public LoginReturnMessage LoginWithCredentials(string username, SecureString password)
         {
             MegaApiClient.AuthInfos authInfos;
 
             try
             {
-                authInfos = MegaApiClient.GenerateAuthInfos(username, password);
-                // purge credentials
+                authInfos = MegaApiClient.GenerateAuthInfos(username, password.ToNormalString());
                 username = null;
                 password = null;
             }

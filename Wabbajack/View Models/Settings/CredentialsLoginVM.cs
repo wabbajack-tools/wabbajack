@@ -1,6 +1,6 @@
 ﻿using System.Reactive;
 using System.Reactive.Linq;
-using System.Windows.Controls;
+using System.Security;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Lib;
@@ -14,21 +14,27 @@ namespace Wabbajack
         public string Username { get; set; }
 
         [Reactive]
-        public string Password { get; set; }
-
-        [Reactive]
         public LoginReturnMessage ReturnMessage { get; set; }
 
-        public ReactiveCommand<Unit, Unit> LoginCommand;
+        private readonly ObservableAsPropertyHelper<bool> _loginEnabled;
+        public bool LoginEnabled => _loginEnabled.Value;
+
+        private readonly INeedsLoginCredentials _downloader;
 
         public CredentialsLoginVM(INeedsLoginCredentials downloader)
         {
-            LoginCommand = ReactiveCommand.Create(() =>
-            {
-                ReturnMessage = downloader.LoginWithCredentials(Username, Password);
-                Password = "";
-            }, this.WhenAny(x => x.Username).CombineLatest(this.WhenAny(x => x.Password),
-                (username, password) => !string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password)));
+            _downloader = downloader;
+
+            _loginEnabled = this.WhenAny(x => x.Username)
+                .Select(username => !string.IsNullOrWhiteSpace(username))
+                .ToGuiProperty(this,
+                    nameof(LoginEnabled));
+        }
+
+        public void Login(SecureString password)
+        {
+            ReturnMessage = _downloader.LoginWithCredentials(Username, password);
+            password.Clear();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reactive;
+using System.Security;
 using ReactiveUI;
 
 namespace Wabbajack.Lib.Downloaders
@@ -29,6 +30,6 @@ namespace Wabbajack.Lib.Downloaders
 
     public interface INeedsLoginCredentials : INeedsLogin
     {
-        LoginReturnMessage LoginWithCredentials(string username, string password);
+        LoginReturnMessage LoginWithCredentials(string username, SecureString password);
     }
 }
