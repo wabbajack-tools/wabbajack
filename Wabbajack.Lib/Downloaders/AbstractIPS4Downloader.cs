@@ -193,7 +193,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override string GetManifestURL(Archive a)
             {
-                return IsAttachment ? "" : $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
+                return IsAttachment ? FullURL : $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
             }
 
             public override string[] GetMetaIni()
