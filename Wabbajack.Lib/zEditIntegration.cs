@@ -73,15 +73,15 @@ namespace Wabbajack.Lib
                             return false;
                         }
 
-                        if (settings.modsPath != Path.Combine(_mo2Compiler.MO2Folder, "mods"))
+                        if (settings.modsPath != Path.Combine(_mo2Compiler.MO2Folder, Consts.MO2ModFolderName))
                         {
-                            Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.MO2Folder}\\mods but {settings.modsPath}!");
+                            Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.MO2Folder}\\{Consts.MO2ModFolderName} but {settings.modsPath}!");
                             return false;
                         }
 
-                        if (settings.mergePath != Path.Combine(_mo2Compiler.MO2Folder, "mods"))
+                        if (settings.mergePath != Path.Combine(_mo2Compiler.MO2Folder, Consts.MO2ModFolderName))
                         {
-                            Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.MO2Folder}\\mods but {settings.modsPath}!");
+                            Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.MO2Folder}\\{Consts.MO2ModFolderName} but {settings.modsPath}!");
                             return false;
                         }
 
