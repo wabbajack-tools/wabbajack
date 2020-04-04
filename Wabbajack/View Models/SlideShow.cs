@@ -89,6 +89,7 @@ namespace Wabbajack
                     return modList.SourceModList.Archives
                         .Select(m => m.State)
                         .OfType<IMetaState>()
+                        .Where(x => !string.IsNullOrEmpty(x.URL) && !string.IsNullOrEmpty(x.ImageURL))
                         .DistinctBy(x => x.URL)
                         // Shuffle it
                         .Shuffle(_random)
