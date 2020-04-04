@@ -82,7 +82,7 @@ namespace Wabbajack.Lib.Downloaders
         public AbstractDownloadState GetDownloaderState(string url)
         {
             if (url != null && url.StartsWith(Consts.MegaPrefix))
-                return new State { Url = url, MegaApiClient = MegaApiClient};
+                return new State { Url = url};
             return null;
         }
 
@@ -92,8 +92,7 @@ namespace Wabbajack.Lib.Downloaders
 
         public class State : HTTPDownloader.State
         {
-            [IgnoreMember]
-            internal MegaApiClient MegaApiClient;
+            private static MegaApiClient MegaApiClient => DownloadDispatcher.GetInstance<MegaDownloader>().MegaApiClient;
 
             private void MegaLogin()
             {
