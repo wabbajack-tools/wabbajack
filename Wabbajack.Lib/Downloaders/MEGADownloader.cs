@@ -8,10 +8,58 @@ using Wabbajack.Common;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class MegaDownloader : IUrlDownloader, INeedsLogin
+    public class MegaDownloader : IUrlDownloader, INeedsLoginCredentials
     {
         public MegaApiClient MegaApiClient;
         private const string DataName = "mega-cred";
+
+        public LoginReturnMessage LoginWithCredentials(string username, string password)
+        {
+            MegaApiClient.AuthInfos authInfos;
+
+            try
+            {
+                authInfos = MegaApiClient.GenerateAuthInfos(username, password);
+                // purge credentials
+                username = null;
+                password = null;
+            }
+            catch (ApiException e)
+            {
+                return e.ApiResultCode switch
+                {
+                    ApiResultCode.BadArguments => new LoginReturnMessage($"Email or password was wrong! {e.Message}",
+                        true),
+                    ApiResultCode.InternalError => new LoginReturnMessage(
+                        $"Internal error occured! Please report this to the Wabbajack Team! {e.Message}", true),
+                    _ => new LoginReturnMessage($"Error generating authentication information! {e.Message}", true)
+                };
+            }
+            
+            try
+            {
+                MegaApiClient.Login(authInfos);
+            }
+            catch (ApiException e)
+            {
+                if ((int)e.ApiResultCode == -26)
+                {
+                    return new LoginReturnMessage("Two-Factor Authentication needs to be disabled before login!", true);
+                }
+                return e.ApiResultCode switch
+                {
+                    ApiResultCode.InternalError => new LoginReturnMessage(
+                        $"Internal error occured! Please report this to the Wabbajack Team! {e.Message}", true),
+                    _ => new LoginReturnMessage($"Error during login: {e.Message}", true)
+                };
+            }
+
+            if(MegaApiClient.IsLoggedIn)
+                authInfos.ToEcryptedJson(DataName);
+
+            return new LoginReturnMessage("Logged in successfully, you can now close this window.",
+                !MegaApiClient.IsLoggedIn || !Utils.HaveEncryptedJson(DataName));
+        }
 
         public MegaDownloader()
         {
@@ -47,10 +95,15 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, string destination)
             {
-                if (!MegaApiClient.IsLoggedIn)
+                if (!MegaApiClient.IsLoggedIn && !Utils.HaveEncryptedJson(DataName))
                 {
                     Utils.Status("Logging into MEGA (as anonymous)");
                     MegaApiClient.LoginAnonymous();
+                } else if (Utils.HaveEncryptedJson(DataName))
+                {
+                    Utils.Status("Logging into MEGA with saved credentials.");
+                    var authInfo = Utils.FromEncryptedJson<MegaApiClient.AuthInfos>(DataName);
+                    MegaApiClient.Login(authInfo);
                 }
 
                 var fileLink = new Uri(Url);

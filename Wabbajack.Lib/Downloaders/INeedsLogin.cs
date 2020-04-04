@@ -14,4 +14,21 @@ namespace Wabbajack.Lib.Downloaders
         Uri SiteURL { get; }
         Uri IconUri { get; }
     }
+
+    public struct LoginReturnMessage
+    {
+        public string Message;
+        public bool Failure;
+
+        public LoginReturnMessage(string message, bool failure)
+        {
+            Message = message;
+            Failure = failure;
+        }
+    }
+
+    public interface INeedsLoginCredentials : INeedsLogin
+    {
+        LoginReturnMessage LoginWithCredentials(string username, string password);
+    }
 }
