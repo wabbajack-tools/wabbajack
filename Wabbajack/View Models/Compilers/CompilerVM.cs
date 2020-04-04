@@ -233,14 +233,14 @@ namespace Wabbajack
                 {
                     if (Completed?.Failed ?? false)
                     {
-                        Process.Start("explorer.exe", Utils.LogFolder);
+                        Process.Start("explorer.exe", $"/select,\"{Utils.LogFolder}\"");
                     }
                     else
                     {
                         Process.Start("explorer.exe",
                             string.IsNullOrWhiteSpace(OutputLocation.TargetPath)
-                                ? Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location)
-                                : OutputLocation.TargetPath);
+                                ? $"/select,\"{Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location)}\""
+                                : $"/select,\"{OutputLocation.TargetPath}\"");
                     }
                 });
 
