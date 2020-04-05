@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
-using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -17,18 +13,8 @@ namespace Wabbajack.BuildServer.Controllers
     [Route("/jobs")]
     public class Jobs : AControllerBase<Jobs>
     {
-        public Jobs(ILogger<Jobs> logger, DBContext db, SqlService sql) : base(logger, db, sql)
+        public Jobs(ILogger<Jobs> logger, SqlService sql) : base(logger, sql)
         {
-        }
-
-        [HttpGet]
-        [Route("unfinished")]
-        public async Task<IEnumerable<Job>> GetUnfinished()
-        {
-            return await Db.Jobs.AsQueryable()
-                .Where(j => j.Ended == null)
-                .OrderByDescending(j => j.Priority)
-                .ToListAsync();
         }
 
         [HttpGet]
@@ -37,7 +23,7 @@ namespace Wabbajack.BuildServer.Controllers
         {
             var jobtype = AJobPayload.NameToType[JobName];
             var job = new Job{Priority = Job.JobPriority.High, Payload = (AJobPayload)jobtype.GetConstructor(new Type[0]).Invoke(new object?[0])};
-            await Db.Jobs.InsertOneAsync(job);
+            await SQL.EnqueueJob(job);
             return job.Id;
         }
     }

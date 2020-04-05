@@ -2,11 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
-using BunnyCDN.Net.Storage;
-using CG.Web.MegaApiClient;
 using FluentFTP;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
@@ -22,11 +18,11 @@ namespace Wabbajack.BuildServer.Models.Jobs
         
         public Guid FileId { get; set; }
         
-        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
+        public override async Task<JobResult> Execute(SqlService sql, AppSettings settings)
         {
             int retries = 0;
             TOP:
-            var file = await db.UploadedFiles.AsQueryable().Where(f => f.Id == FileId).FirstOrDefaultAsync();
+            var file = await sql.UploadedFileById(FileId);
 
             if (settings.BunnyCDN_User == "TEST" && settings.BunnyCDN_Password == "TEST")
             {
@@ -53,7 +49,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     }
                 }
                 
-                await db.Jobs.InsertOneAsync(new Job
+                await sql.EnqueueJob(new Job
                 {
                     Priority = Job.JobPriority.High,
                     Payload = new IndexJob

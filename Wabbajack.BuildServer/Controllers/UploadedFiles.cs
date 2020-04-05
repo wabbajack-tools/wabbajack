@@ -9,23 +9,16 @@ using System.Text;
 using System.Threading.Tasks;
 using FluentFTP;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Nettle;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Crypto.Engines;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.BuildServer.Models.Jobs;
 using Wabbajack.Common;
-using Wabbajack.Lib;
-using Wabbajack.Lib.Downloaders;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 using AlphaFile = Alphaleonis.Win32.Filesystem.File;
 
@@ -36,7 +29,7 @@ namespace Wabbajack.BuildServer.Controllers
         private static ConcurrentDictionary<string, AsyncLock> _writeLocks = new ConcurrentDictionary<string, AsyncLock>();
         private AppSettings _settings;
         
-        public UploadedFiles(ILogger<UploadedFiles> logger, DBContext db, AppSettings settings, SqlService sql) : base(logger, db, sql)
+        public UploadedFiles(ILogger<UploadedFiles> logger, AppSettings settings, SqlService sql) : base(logger, sql)
         {
             _settings = settings;
         }
@@ -88,7 +81,7 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("clean_http_uploads")]
         public async Task<IActionResult> CleanUploads()
         {
-            var files = await Db.UploadedFiles.AsQueryable().OrderByDescending(f => f.UploadDate).ToListAsync();
+            var files = await SQL.AllUploadedFiles();
             var seen = new HashSet<string>();
             var duplicate = new List<UploadedFile>();
 
@@ -115,7 +108,7 @@ namespace Wabbajack.BuildServer.Controllers
 
                     if (await client.FileExistsAsync(dup.MungedName))
                         await client.DeleteFileAsync(dup.MungedName);
-                    await Db.UploadedFiles.DeleteOneAsync(f => f.Id == dup.Id);
+                    await SQL.DeleteUploadedFile(dup.Id);
                 }
             }
 
@@ -182,7 +175,7 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("uploaded_files")]
         public async Task<ContentResult> UploadedFilesGet()
         {
-            var files = await Db.UploadedFiles.AsQueryable().OrderByDescending(f => f.UploadDate).ToListAsync();
+            var files = await SQL.AllUploadedFiles();
             var response = HandleGetListTemplate(new
             {
                 files = files.Select(file => new
@@ -221,7 +214,7 @@ namespace Wabbajack.BuildServer.Controllers
         {
             var user = User.FindFirstValue(ClaimTypes.Name);
             Utils.Log($"Delete Uploaded File {user} {name}");
-            var files = await Db.UploadedFiles.AsQueryable().Where(f => f.Uploader == user).ToListAsync();
+            var files = await SQL.AllUploadedFilesForUser(name);
             
             var to_delete = files.First(f => f.MungedName == name);
             
@@ -237,10 +230,8 @@ namespace Wabbajack.BuildServer.Controllers
 
             }
 
-            var result = await Db.UploadedFiles.DeleteOneAsync(f => f.Id == to_delete.Id);
-            if (result.DeletedCount == 1)
-                return Ok($"Deleted {name}");
-            return NotFound(name);
+            await SQL.DeleteUploadedFile(to_delete.Id);
+            return Ok($"Deleted {to_delete.MungedName}");
         }
 
         [HttpGet]

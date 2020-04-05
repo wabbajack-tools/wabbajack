@@ -1,5 +1,4 @@
 ﻿using System;
-using MongoDB.Bson.Serialization.Attributes;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 
@@ -7,7 +6,6 @@ namespace Wabbajack.BuildServer.Models
 {
     public class DownloadState
     {
-        [BsonId]
         public string Key { get; set; }
         public Hash Hash { get; set; }
         

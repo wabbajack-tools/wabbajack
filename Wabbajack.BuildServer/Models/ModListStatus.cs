@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
 
@@ -12,19 +9,11 @@ namespace Wabbajack.BuildServer.Models
 {
     public class ModListStatus
     {
-
-        [BsonId]
         public string Id { get; set; }
         public ModlistSummary Summary { get; set; }
 
         public ModlistMetadata Metadata { get; set; }
         public DetailedStatus DetailedStatus { get; set; }
-
-        public static async Task Update(DBContext db, ModListStatus status)
-        {
-            var id = status.Metadata.Links.MachineURL;
-            await db.ModListStatus.FindOneAndReplaceAsync<ModListStatus>(s => s.Id == id, status, new FindOneAndReplaceOptions<ModListStatus> {IsUpsert = true});
-        }
 
         public static IQueryable<ModListStatus> AllSummaries
         {
@@ -32,15 +21,6 @@ namespace Wabbajack.BuildServer.Models
             {
                 return null;
             }
-        }
-
-        public static async Task<ModListStatus> ByName(DBContext db, string name)
-        {
-            var result = await db.ModListStatus
-                .AsQueryable()
-                .Where(doc => doc.Metadata.Links.MachineURL == name || doc.Metadata.Title == name)
-                .ToListAsync();
-            return result.First();
         }
     }
 

@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
@@ -12,14 +9,13 @@ using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
-using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
     public class UpdateModLists : AJobPayload, IFrontEndJob
     {
         public override string Description => "Validate curated modlists";
-        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
+        public override async Task<JobResult> Execute(SqlService sql, AppSettings settings)
         {
             Utils.Log("Starting Modlist Validation");
             var modlists = await ModlistMetadata.LoadFromGithub();
@@ -34,7 +30,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 {
                     try
                     {
-                        await ValidateList(db, list, queue, whitelists);
+                        await ValidateList(sql, list, queue, whitelists);
                     }
                     catch (Exception ex)
                     {
@@ -46,7 +42,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             return JobResult.Success();
         }
         
-         private async Task ValidateList(DBContext db, ModlistMetadata list, WorkQueue queue, ValidateModlist whitelists)
+         private async Task ValidateList(SqlService sql, ModlistMetadata list, WorkQueue queue, ValidateModlist whitelists)
         {
             var modlistPath = Consts.ModListDownloadFolder.Combine(list.Links.MachineURL + Consts.ModListExtension);
 
@@ -76,7 +72,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             var validated = (await installer.Archives
                     .PMap(queue, async archive =>
                     {
-                        var isValid = await IsValid(db, whitelists, archive);
+                        var isValid = await IsValid(sql, whitelists, archive);
 
                         return new DetailedStatusItem {IsFailing = !isValid, Archive = archive};
                     }))
@@ -107,13 +103,13 @@ namespace Wabbajack.BuildServer.Models.Jobs
             };
             Utils.Log(
                 $"Writing Update for {dto.Summary.Name} - {dto.Summary.Failed} failed - {dto.Summary.Passed} passed");
-            await ModListStatus.Update(db, dto);
+            await sql.UpdateModListStatus(dto);
             Utils.Log(
                 $"Done updating {dto.Summary.Name}");
 
         }
 
-         private async Task<bool> IsValid(DBContext db, ValidateModlist whitelists, Archive archive)
+         private async Task<bool> IsValid(SqlService sql, ValidateModlist whitelists, Archive archive)
          {
              try
              {
@@ -123,7 +119,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                  {
                      if (archive.State is NexusDownloader.State state)
                      {
-                         if (await ValidateNexusFast(db, state)) return true;
+                         if (await ValidateNexusFast(sql, state)) return true;
 
                      }
                      else if (archive.State is GoogleDriveDownloader.State)
@@ -166,13 +162,11 @@ namespace Wabbajack.BuildServer.Models.Jobs
              }
          }
 
-         private async Task<bool> ValidateNexusFast(DBContext db, NexusDownloader.State state)
+         private async Task<bool> ValidateNexusFast(SqlService sql, NexusDownloader.State state)
          {
              try
              {
-                 var gameMeta = state.Game.MetaData();
-
-                 var modFiles = (await db.NexusModFiles.AsQueryable().Where(g => g.Game == gameMeta.NexusName && g.ModId == state.ModID).FirstOrDefaultAsync())?.Data;
+                 var modFiles =  await sql.GetModFiles(state.Game, state.ModID);
 
                  if (modFiles == null)
                  {

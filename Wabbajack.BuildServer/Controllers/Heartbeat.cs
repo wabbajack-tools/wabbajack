@@ -1,17 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using Wabbajack.BuildServer.Model.Models;
-using Wabbajack.BuildServer.Models;
-using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -26,7 +19,7 @@ namespace Wabbajack.BuildServer.Controllers
         }
         private static DateTime _startTime;
 
-        public Heartbeat(ILogger<Heartbeat> logger, DBContext db, SqlService sql) : base(logger, db, sql)
+        public Heartbeat(ILogger<Heartbeat> logger, SqlService sql) : base(logger, sql)
         {
         }
 

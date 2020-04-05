@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CsvHelper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
 using Newtonsoft.Json;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
@@ -28,7 +24,7 @@ namespace Wabbajack.BuildServer.Controllers
         private static long CachedCount = 0;
         private static long ForwardCount = 0;
 
-        public NexusCache(ILogger<NexusCache> logger, DBContext db, SqlService sql, AppSettings settings) : base(logger, db, sql)
+        public NexusCache(ILogger<NexusCache> logger, SqlService sql, AppSettings settings) : base(logger, sql)
         {
             _settings = settings;
         }
@@ -55,13 +51,7 @@ namespace Wabbajack.BuildServer.Controllers
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
                 var path = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{ModId}.json";
                 var body = await api.Get<ModInfo>(path);
-                try
-                {
-                    await SQL.AddNexusModInfo(game, ModId, DateTime.Now, body);
-                }
-                catch (MongoWriteException)
-                {
-                }
+                await SQL.AddNexusModInfo(game, ModId, DateTime.Now, body);
 
                 method = "NOT_CACHED";
                 Interlocked.Increment(ref ForwardCount);
@@ -90,13 +80,8 @@ namespace Wabbajack.BuildServer.Controllers
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
                 var path = $"https://api.nexusmods.com/v1/games/{GameName}/mods/{ModId}/files.json";
                 var body = await api.Get<NexusApiClient.GetModFilesResponse>(path);
-                try
-                {
-                    await SQL.AddNexusModFiles(game, ModId, DateTime.Now, body);
-                }
-                catch (MongoWriteException)
-                {
-                }
+                await SQL.AddNexusModFiles(game, ModId, DateTime.Now, body);
+
 
                 method = "NOT_CACHED";
                 Interlocked.Increment(ref ForwardCount);

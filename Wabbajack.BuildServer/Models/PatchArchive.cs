@@ -1,17 +1,11 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using FluentFTP;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.BuildServer.Models.Jobs;
 using Wabbajack.Common;
-using Wabbajack.Lib;
-using Wabbajack.Lib.Downloaders;
-using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.BuildServer.Models
 {
@@ -20,10 +14,10 @@ namespace Wabbajack.BuildServer.Models
         public override string Description => "Create a archive update patch";
         public Hash Src { get; set; }
         public string DestPK { get; set; }
-        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
+        public override async Task<JobResult> Execute(SqlService sql, AppSettings settings)
         {
             var srcPath = settings.PathForArchive(Src);
-            var destHash = (await db.DownloadStates.AsQueryable().Where(s => s.Key == DestPK).FirstOrDefaultAsync()).Hash;
+            var destHash = (await sql.DownloadStateByPrimaryKey(DestPK)).Hash;
             var destPath = settings.PathForArchive(destHash);
             
             if (Src == destHash)

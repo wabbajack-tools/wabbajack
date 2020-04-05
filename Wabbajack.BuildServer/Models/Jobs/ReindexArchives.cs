@@ -14,7 +14,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
     public class ReindexArchives : AJobPayload
     {
         public override string Description => "Reindex all files in the mod archive folder";
-        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
+        public override async Task<JobResult> Execute(SqlService sql, AppSettings settings)
         {
             using (var queue = new WorkQueue())
             {

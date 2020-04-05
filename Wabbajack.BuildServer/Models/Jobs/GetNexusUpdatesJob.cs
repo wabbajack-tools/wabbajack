@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.Lib.NexusApi;
-using MongoDB.Driver;
-using Newtonsoft.Json;
 using Wabbajack.BuildServer.Model.Models;
 
 
@@ -15,7 +13,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
     {
         public override string Description => "Poll the Nexus for updated mods, and clean any references to those mods";
 
-        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
+        public override async Task<JobResult> Execute(SqlService sql, AppSettings settings)
         {
             var api = await NexusApiClient.Get();
             
@@ -30,8 +28,6 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     entry.Game = game.NexusName;
                     entry.Path = $"/v1/games/{game.NexusName}/mods/updated.json?period=1m";
                     entry.Data = mods;
-
-                    await entry.Upsert(db.NexusUpdates);
 
                     return (game, mods);
                 })
@@ -56,19 +52,14 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     // Mod activity could hide files
                     var b = d.mod.LastestModActivity.AsUnixTime();
 
-                    return new {Game = d.game.NexusName, Date = (a > b ? a : b), ModId = d.mod.ModId};
+                    return new {Game = d.game.Game, Date = (a > b ? a : b), ModId = d.mod.ModId};
                 });
                     
                 var purged = await collected.PMap(queue, async t =>
                 {
-                    var resultA = await db.NexusModInfos.DeleteManyAsync(f =>
-                        f.Game == t.Game && f.ModId == t.ModId && f.LastCheckedUTC <= t.Date);
-                    var resultB = await db.NexusModFiles.DeleteManyAsync(f =>
-                        f.Game == t.Game && f.ModId == t.ModId && f.LastCheckedUTC <= t.Date);
-                    var resultC = await db.NexusFileInfos.DeleteManyAsync(f =>
-                        f.Game == t.Game && f.ModId == t.ModId && f.LastCheckedUTC <= t.Date);
-
-                    return resultA.DeletedCount + resultB.DeletedCount + resultC.DeletedCount;
+                    var resultA = await sql.DeleteNexusModInfosUpdatedBeforeDate(t.Game, t.ModId, t.Date);
+                    var resultB = await sql.DeleteNexusModFilesUpdatedBeforeDate(t.Game, t.ModId, t.Date);
+                    return resultA + resultB;
                 });
 
                 Utils.Log($"Purged {purged.Sum()} cache entries");

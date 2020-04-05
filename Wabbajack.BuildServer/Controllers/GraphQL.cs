@@ -13,18 +13,17 @@ namespace Wabbajack.BuildServer.Controllers
     [ApiController]
     public class GraphQL : AControllerBase<GraphQL>
     {
-        private SqlService _sql;
-
-        public GraphQL(ILogger<GraphQL> logger, DBContext db, SqlService sql) : base(logger, db, sql)
+        public GraphQL(ILogger<GraphQL> logger, SqlService sql) : base(logger, sql)
         {
-            _sql = sql;
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] GraphQLQuery query)
         {
             var inputs = query.Variables.ToInputs();
-            var schema = new Schema {Query = new Query(Db, _sql), Mutation = new Mutation(Db)};
+            var schema = new Schema {
+                Query = new Query(SQL)
+            };
 
             var result = await new DocumentExecuter().ExecuteAsync(_ =>
             {

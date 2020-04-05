@@ -71,7 +71,6 @@ namespace Wabbajack.BuildServer
                 x.MultipartBodyLengthLimit = int.MaxValue;
             });
 
-            services.AddSingleton<DBContext>();
             services.AddSingleton<JobManager>();
             services.AddSingleton<AppSettings>();
             services.AddSingleton<SqlService>();
@@ -89,7 +88,6 @@ namespace Wabbajack.BuildServer
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            SerializerSettings.Init();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

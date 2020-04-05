@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -11,6 +12,7 @@ using Wabbajack.BuildServer.Model.Models.Results;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
+using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Lib.NexusApi;
@@ -168,18 +170,6 @@ namespace Wabbajack.BuildServer.Model.Models
                 .ToList();
         }
         
-        #region UserRoutines
-
-        public async Task<string> LoginByAPIKey(string key)
-        {
-            await using var conn = await Open();
-            var result = await conn.QueryAsync<string>(@"SELECT Owner as Id FROM dbo.ApiKeys WHERE ApiKey = @Key",
-                new {Key = key});
-            return result.FirstOrDefault();
-        }
-        
-        #endregion
-        
         #region JobRoutines
 
         /// <summary>
@@ -232,6 +222,24 @@ namespace Wabbajack.BuildServer.Model.Models
                       SELECT TOP(1) * FROM jobs WHERE RunBy = @RunBy ORDER BY Started DESC",
                 new {RunBy = Guid.NewGuid().ToString()});
             return result.FirstOrDefault();
+        }
+        
+        
+        public async Task<IEnumerable<Job>> GetRunningJobs()
+        {
+            await using var conn = await Open();
+            var results =
+                await conn.QueryAsync<Job>("SELECT * from dbo.Jobs WHERE Started IS NOT NULL AND Ended IS NULL ");
+            return results;
+        }
+
+
+        public async Task<IEnumerable<Job>> GetUnfinishedJobs()
+        {
+            await using var conn = await Open();
+            var results =
+                await conn.QueryAsync<Job>("SELECT * from dbo.Jobs WHERE Ended IS NULL ");
+            return results;
         }
 
         
@@ -292,6 +300,15 @@ namespace Wabbajack.BuildServer.Model.Models
                     uf.CDNName
                 });
         }
+        
+        
+        public async Task<UploadedFile> UploadedFileById(Guid fileId)
+        {
+            await using var conn = await Open();
+            return await conn.QueryFirstAsync<UploadedFile>("SELECT * FROM dbo.UploadedFiles WHERE Id = @Id", 
+                new {Id = fileId.ToString()});
+
+        }
 
         public async Task<IEnumerable<UploadedFile>> AllUploadedFilesForUser(string user)
         {
@@ -299,6 +316,24 @@ namespace Wabbajack.BuildServer.Model.Models
             return await conn.QueryAsync<UploadedFile>("SELECT * FROM dbo.UploadedFiles WHERE UploadedBy = @uploadedBy", 
                 new {UploadedBy = user});
         }
+        
+        
+        public async Task<IEnumerable<UploadedFile>> AllUploadedFiles()
+        {
+            await using var conn = await Open();
+            return await conn.QueryAsync<UploadedFile>("SELECT * FROM dbo.UploadedFiles ORDER BY UploadDate DESC");
+        }
+        
+        public async Task DeleteUploadedFile(Guid dupId)
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync("SELECT * FROM dbo.UploadedFiles WHERE Id = @id", 
+                new
+                {
+                    Id = dupId.ToString()
+                });
+        }
+
 
         public async Task AddDownloadState(Hash hash, AbstractDownloadState state)
         {
@@ -429,7 +464,6 @@ namespace Wabbajack.BuildServer.Model.Models
                 });
             return result.FromJSONString<DetailedStatus>();
         }
-        
         public async Task<List<DetailedStatus>> GetDetailedModlistStatuses()
         {
             await using var conn = await Open();
@@ -440,5 +474,141 @@ namespace Wabbajack.BuildServer.Model.Models
         
 
         #endregion
+
+        #region Logins
+        public async Task<string> AddLogin(string name)
+        {
+            var key = NewAPIKey();
+            await using var conn = await Open();
+
+
+            await conn.ExecuteAsync("INSERT INTO dbo.ApiKeys (Owner, ApiKey) VALUES (@Owner, @ApiKey)",
+                new {Owner = name, ApiKey = key});
+            return key;
+        }
+        
+        public static string NewAPIKey()
+        {
+            var arr = new byte[128];
+            new Random().NextBytes(arr);
+            return arr.ToHex();
+        }
+        
+        public async Task<string> LoginByAPIKey(string key)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryAsync<string>(@"SELECT Owner as Id FROM dbo.ApiKeys WHERE ApiKey = @ApiKey",
+                new {ApiKey = key});
+            return result.FirstOrDefault();
+        }
+
+        public async Task<IEnumerable<(string Owner, string Key)>> GetAllUserKeys()
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryAsync<(string Owner, string Key)>("SELECT Owner, ApiKey FROM dbo.ApiKeys");
+            return result;
+        }
+
+        
+        #endregion
+
+        #region Auto-healing routines
+
+        public async Task<Archive> GetNexusStateByHash(Hash startingHash)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryFirstOrDefaultAsync<string>(@"SELECT JsonState FROM dbo.DownloadStates  
+                                                               WHERE Hash = @hash AND PrimaryKey like 'NexusDownloader+State|%'
+                                                               ORDER BY LastValidated DESC",
+                new {Hash = startingHash});
+            return result == null ? null : new Archive
+            {
+                State = result.FromJSONString<AbstractDownloadState>(),
+                Hash = startingHash
+            };
+        }
+        
+        public async Task<Archive> DownloadStateByPrimaryKey(string primaryKey)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryFirstOrDefaultAsync<(long Hash, string State)>(@"SELECT Hash, JsonState FROM dbo.DownloadStates WHERE PrimaryKey = @PrimaryKey",
+                new {PrimaryKey = primaryKey});
+            return result == default ? null : new Archive
+            {
+                State = result.State.FromJSONString<AbstractDownloadState>(),
+                Hash = Hash.FromLong(result.Hash)
+            };
+        }
+        
+
+        #endregion
+
+        
+        /// <summary>
+        /// Returns a hashset the only contains hashes from the input that do not exist in IndexedArchives
+        /// </summary>
+        /// <param name="searching"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<HashSet<Hash>> FilterByExistingIndexedArchives(HashSet<Hash> searching)
+        {
+            await using var conn = await Open();
+            var found = await conn.QueryAsync<long>("SELECT Hash from dbo.IndexedFile WHERE Hash in @Hashes",
+                new {Hashes = searching.Select(h => (long)h)});
+            return searching.Except(found.Select(h => Hash.FromLong(h)).ToHashSet()).ToHashSet();
+       }
+
+        
+        /// <summary>
+        /// Returns a hashset the only contains primary keys from the input that do not exist in IndexedArchives
+        /// </summary>
+        /// <param name="searching"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<HashSet<string>> FilterByExistingPrimaryKeys(HashSet<string> pks)
+        {
+            await using var conn = await Open();
+            var found = await conn.QueryAsync<string>("SELECT Hash from dbo.IndexedFile WHERE PrimaryKey in @PrimaryKeys",
+                new {PrimaryKeys = pks.ToList()});
+            return pks.Except(found.ToHashSet()).ToHashSet();
+        }
+
+        public async Task<long> DeleteNexusModInfosUpdatedBeforeDate(Game game, long modId, DateTime date)
+        {
+            await using var conn = await Open();
+            var deleted = await conn.ExecuteScalarAsync<long>(
+                @"DELETE FROM dbo.NexusModInfos WHERE Game = @Game AND ModID = @ModId AND LastChecked <= @Date
+                      SELECT @@ROWCOUNT AS Deleted",
+                new {Game = game.MetaData().NexusGameId, ModId = modId, @Date = date});
+            return deleted;
+        }
+        
+        public async Task<long> DeleteNexusModFilesUpdatedBeforeDate(Game game, long modId, DateTime date)
+        {
+            await using var conn = await Open();
+            var deleted = await conn.ExecuteScalarAsync<long>(
+                @"DELETE FROM dbo.NexusModFiles WHERE Game = @Game AND ModID = @ModId AND LastChecked <= @Date
+                      SELECT @@ROWCOUNT AS Deleted",
+                new {Game = game.MetaData().NexusGameId, ModId = modId, @Date = date});
+            return deleted;
+        }
+
+        public async Task UpdateModListStatus(ModListStatus dto)
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync(@"MERGE dbo.ModLists AS Target
+                USING (SELECT @MachineUrl MachineUrl, @Metadata Metadata, @Summary Summary, @DetailedStatus DetailedStatus) AS Source
+            ON Target.MachineUrl = Source.MachineUrl
+            WHEN MATCHED THEN UPDATE SET Target.Summary = Source.Summary, Target.Metadata = Source.Metadata, Target.DetailedStatus = Source.DetailedStats
+            WHEN NOT MATCHED THEN INSERT (MachineUrl, Summary, Metadata, DetailedStatus) VALUES (@MachineUrl, @Summary, @Metadata, @DetailedStatus)",
+                new
+                {
+                    MachineUrl = dto.Metadata.Links.MachineURL,
+                    Metadata = dto.Metadata.ToJSON(),
+                    Summary = dto.Summary.ToJSON(),
+                    DetailedStatus = dto.DetailedStatus.ToJSON()
+                });
+        }
+
     }
 }

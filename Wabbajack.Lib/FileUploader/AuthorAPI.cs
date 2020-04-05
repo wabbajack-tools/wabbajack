@@ -19,11 +19,11 @@ namespace Wabbajack.Lib.FileUploader
 {
     public class AuthorAPI
     {
-        public static IObservable<bool> HaveAuthorAPIKey => Utils.HaveEncryptedJsonObservable("author-api-key.txt");
+        public static IObservable<bool> HaveAuthorAPIKey => Utils.HaveEncryptedJsonObservable(Consts.AuthorAPIKeyFile);
 
         public static async Task<string> GetAPIKey(string apiKey = null)
         {
-            return apiKey ?? (await Consts.LocalAppDataPath.Combine("author-api-key.txt").ReadAllTextAsync()).Trim();
+            return apiKey ?? (await Consts.LocalAppDataPath.Combine(Consts.AuthorAPIKeyFile).ReadAllTextAsync()).Trim();
         }
         
         public static Uri UploadURL => new Uri($"{Consts.WabbajackBuildServerUri}upload_file");

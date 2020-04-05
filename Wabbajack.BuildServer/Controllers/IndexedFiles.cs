@@ -5,21 +5,15 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DynamicData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Bson;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
-using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.BuildServer.Models.Jobs;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
-using Wabbajack.VirtualFileSystem;
 using IndexedFile = Wabbajack.BuildServer.Models.IndexedFile;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -30,7 +24,7 @@ namespace Wabbajack.BuildServer.Controllers
         private SqlService _sql;
         private AppSettings _settings;
 
-        public IndexedFiles(ILogger<IndexedFiles> logger, DBContext db, SqlService sql, AppSettings settings) : base(logger, db, sql)
+        public IndexedFiles(ILogger<IndexedFiles> logger, SqlService sql, AppSettings settings) : base(logger, sql)
         {
             _settings = settings;
             _sql = sql;

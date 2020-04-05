@@ -8,8 +8,6 @@ using FluentFTP;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
@@ -30,7 +28,7 @@ namespace Wabbajack.BuildServer.Controllers
         private AppSettings _settings;
         private SqlService _sql;
 
-        public ModlistUpdater(ILogger<ModlistUpdater> logger, DBContext db, SqlService sql, AppSettings settings) : base(logger, db, sql)
+        public ModlistUpdater(ILogger<ModlistUpdater> logger, SqlService sql, AppSettings settings) : base(logger, sql)
         {
             _settings = settings;
             _sql = sql;
@@ -93,22 +91,21 @@ namespace Wabbajack.BuildServer.Controllers
             Utils.Log($"Alternative requested for {startingHash}");
             await Metric("requested_upgrade", startingHash.ToString());
 
-            var state = await Db.DownloadStates.AsQueryable()
+            var state = await SQL.GetNexusStateByHash(startingHash);
+                
+                /*.DownloadStates.AsQueryable()
                 .Where(s => s.Hash == startingHash)
                 .Where(s => s.State is NexusDownloader.State)
-                .OrderByDescending(s => s.LastValidationTime).FirstOrDefaultAsync();
+                .OrderByDescending(s => s.LastValidationTime).FirstOrDefaultAsync();*/
 
             if (state == null)
                 return NotFound("Original state not found");
 
             var nexusState = state.State as NexusDownloader.State;
-            var nexusGame = nexusState.Game.MetaData().NexusName;
-            var mod_files = await Db.NexusModFiles.AsQueryable()
-                .Where(f => f.Game == nexusGame && f.ModId == nexusState.ModID)
-                .ToListAsync();
+            var nexusGame = nexusState.Game;
+            var mod_files = (await SQL.GetModFiles(nexusGame, nexusState.ModID)).files;
 
-            if (mod_files.SelectMany(f => f.Data.files)
-                .Any(f => f.category_name != null && f.file_id == nexusState.FileID))
+            if (mod_files.Any(f => f.category_name != null && f.file_id == nexusState.FileID))
             {
                 await Metric("not_required_upgrade", startingHash.ToString());
                 return BadRequest("Upgrade Not Required");
@@ -124,7 +121,7 @@ namespace Wabbajack.BuildServer.Controllers
             Utils.Log($"Found {newArchive.State.PrimaryKeyString} {newArchive.Name} as an alternative to {startingHash}");
             if (newArchive.Hash == Hash.Empty)
             {
-                Db.Jobs.InsertOne(new Job
+                await SQL.EnqueueJob(new Job
                 {
                     Payload = new IndexJob
                     {
@@ -147,7 +144,7 @@ namespace Wabbajack.BuildServer.Controllers
 
             if (!PatchArchive.CdnPath(startingHash, newArchive.Hash).Exists)
             {
-                Db.Jobs.InsertOne(new Job
+                await SQL.EnqueueJob(new Job
                 {
                     Priority = Job.JobPriority.High,
                     Payload = new PatchArchive
@@ -185,7 +182,7 @@ namespace Wabbajack.BuildServer.Controllers
             
             Utils.Log($"Found alternative for {srcHash}");
             
-            var indexed = await Db.DownloadStates.AsQueryable().Where(s => s.Key == archive.State.PrimaryKeyString).FirstOrDefaultAsync();
+            var indexed = await SQL.DownloadStateByPrimaryKey(archive.State.PrimaryKeyString);
 
             if (indexed == null)
             {
@@ -195,9 +192,6 @@ namespace Wabbajack.BuildServer.Controllers
             Utils.Log($"Pre-Indexed alternative {indexed.Hash} found for {srcHash}");
             archive.Hash = indexed.Hash;
             return archive;
-
         }
-
-
     }
 }

@@ -3,8 +3,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
@@ -20,7 +18,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
     public class IndexDynDOLOD : AJobPayload
     {
         public override string Description => "Queue MEGA URLs from the DynDOLOD Post";
-        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
+        public override async Task<JobResult> Execute(SqlService sql, AppSettings settings)
         {
             var doc = new HtmlDocument();
             var body = await new HttpClient().GetStringAsync(new Uri(
@@ -54,11 +52,11 @@ namespace Wabbajack.BuildServer.Models.Jobs
             foreach (var job in matches)
             {
                 var key = ((MegaDownloader.State)((IndexJob)job.Payload).Archive.State).PrimaryKeyString;
-                var found = await db.DownloadStates.AsQueryable().Where(s => s.Key == key).FirstOrDefaultAsync();
+                var found = await sql.DownloadStateByPrimaryKey(key);
                 if (found != null) continue;
 
                 Utils.Log($"Queuing {key} for indexing");
-                await db.Jobs.InsertOneAsync(job);
+                await sql.EnqueueJob(job);
             }
 
             return JobResult.Success();

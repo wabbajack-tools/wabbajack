@@ -2,16 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.ServiceModel.Syndication;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Nettle;
 using Wabbajack.BuildServer.Model.Models;
-using Wabbajack.BuildServer.Models;
 using Wabbajack.Common;
 using Wabbajack.Lib.ModListRegistry;
 
@@ -21,7 +16,7 @@ namespace Wabbajack.BuildServer.Controllers
     [Route("/lists")]
     public class ListValidation : AControllerBase<ListValidation>
     {
-        public ListValidation(ILogger<ListValidation> logger, DBContext db, SqlService sql) : base(logger, db, sql)
+        public ListValidation(ILogger<ListValidation> logger, SqlService sql) : base(logger, sql)
         {
         }
         
