@@ -30,7 +30,13 @@ namespace Wabbajack.CLI
     /// <summary>
     /// Validating if the file exists
     /// </summary>
-    internal class IsFileAttribute : AValidateAttribute { }
+    internal class IsFileAttribute : AValidateAttribute
+    {
+        /// <summary>
+        /// Extension the file should have
+        /// </summary>
+        public string? Extension { get; set; }
+    }
 
     /// <summary>
     /// Validating if the directory exists
@@ -89,8 +95,21 @@ namespace Wabbajack.CLI
 
                 if (p.HasAttribute(typeof(IsFileAttribute)))
                 {
+                    var fileAttribute = (IsFileAttribute)attribute;
                     isFile = true;
-                    valid = File.Exists(value);
+
+                    if (!File.Exists(value))
+                        valid = false;
+                    else
+                    {
+                        if (!string.IsNullOrWhiteSpace(fileAttribute.Extension))
+                        {
+                            valid = value.EndsWith(fileAttribute.Extension);
+                            if(!valid)
+                                Exit($"The file {value} does not have the extension {fileAttribute.Extension}!",
+                                    ExitCode.BadArguments);
+                        }
+                    }
                 }
 
                 if (p.HasAttribute(typeof(IsDirectoryAttribute)))
