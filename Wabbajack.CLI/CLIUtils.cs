@@ -8,19 +8,52 @@ using Wabbajack.Common;
 
 namespace Wabbajack.CLI
 {
+    /// <summary>
+    /// Abstract class to mark attributes which need validating
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property)]
-    internal class IsFileAttribute : Attribute { }
+    internal abstract class AValidateAttribute : Attribute
+    {
+        /// <summary>
+        /// Exit the application if validation failed. Will just log if set to false
+        /// </summary>
+        public bool Exit { get; set; }
 
-    [AttributeUsage(AttributeTargets.Property)]
-    internal class IsDirectoryAttribute : Attribute { }
+        /// <summary>
+        /// Custom message if validation failed. Use placeholder %1 to insert the value
+        /// </summary>
+        public string? CustomMessage { get; set; }
+    }
+
+    /// <summary>
+    /// Validating if the file exists
+    /// </summary>
+    internal class IsFileAttribute : AValidateAttribute { }
+
+    /// <summary>
+    /// Validating if the directory exists
+    /// </summary>
+    internal class IsDirectoryAttribute : AValidateAttribute
+    {
+        /// <summary>
+        /// Create the directory if it does not exists
+        /// </summary>
+        public bool Create { get; set; }
+    }
 
     internal static class CLIUtils
     {
+        /// <summary>
+        /// Validates all Attributes of type <see cref="AValidateAttribute"/>
+        /// </summary>
+        /// <param name="verb">The verb to validate</param>
+        /// <returns></returns>
         internal static bool HasValidArguments(AVerb verb)
         {
             var props = verb.GetType().GetProperties().Where(p =>
             {
-                var hasAttr = p.HasAttribute(typeof(OptionAttribute));
+                var hasAttr = p.HasAttribute(typeof(OptionAttribute)) 
+                              && p.HasAttribute(typeof(AValidateAttribute));
                 if (!hasAttr)
                     return false;
 
@@ -32,7 +65,7 @@ namespace Wabbajack.CLI
                     return false;
 
                 var stringValue = (string)value;
-                return string.IsNullOrWhiteSpace(stringValue);
+                return !string.IsNullOrWhiteSpace(stringValue);
             });
 
             var valid = true;
@@ -49,21 +82,68 @@ namespace Wabbajack.CLI
                     return;
 
                 var value = (string)valueObject;
+                var attribute = (AValidateAttribute)p.GetAttribute(typeof(AValidateAttribute));
+                var isFile = false;
 
                 if (p.HasAttribute(typeof(IsFileAttribute)))
                 {
+                    isFile = true;
                     valid = File.Exists(value);
                 }
 
                 if (p.HasAttribute(typeof(IsDirectoryAttribute)))
                 {
-                    valid = Directory.Exists(value);
+                    var dirAttribute = (IsDirectoryAttribute)attribute;
+                    var exists = Directory.Exists(value);
+
+                    if (!exists)
+                    {
+                        if (dirAttribute.Create)
+                        {
+                            Log($"Directory {value} does not exist and will be created");
+                            Directory.CreateDirectory(value);
+                        }
+                        else
+                            valid = false;
+                    }
                 }
+
+                if (valid)
+                    return;
+
+                var message = string.IsNullOrWhiteSpace(attribute.CustomMessage) 
+                    ? isFile 
+                        ? $"The file {value} does not exist!"
+                        : $"The folder {value} does not exist!"
+                    : attribute.CustomMessage.Replace("%1", value);
+
+                if (attribute.Exit)
+                    Exit(message, -1);
+                else
+                    Log(message);
             });
 
             return valid;
         }
 
+        /// <summary>
+        /// Gets an attribute of a specific type
+        /// </summary>
+        /// <param name="member"></param>
+        /// <param name="attribute"></param>
+        /// <returns></returns>
+        internal static Attribute GetAttribute(this MemberInfo member, Type attribute)
+        {
+            var attributes = member.GetCustomAttributes(attribute);
+            return attributes.ElementAt(0);
+        }
+
+        /// <summary>
+        /// Checks if a <see cref="MemberInfo"/> has a custom attribute
+        /// </summary>
+        /// <param name="member"></param>
+        /// <param name="attribute"></param>
+        /// <returns></returns>
         internal static bool HasAttribute(this MemberInfo member, Type attribute)
         {
             var attributes = member.GetCustomAttributes(attribute);

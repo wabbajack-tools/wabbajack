@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,12 +17,15 @@ namespace Wabbajack.CLI.Verbs
     [Verb("change-download", HelpText = "Move or Copy all used Downloads from a Modlist to another directory")]
     public class ChangeDownload : AVerb
     {
+        [IsDirectory(Exit = true, CustomMessage = "Downloads folder %1 does not exist!")]
         [Option("input", Required = true, HelpText = "Input folder containing the downloads you want to move")]
         public string? Input { get; set; }
 
+        [IsDirectory(Create = true)]
         [Option("output", Required = true, HelpText = "Output folder the downloads should be transferred to")]
         public string? Output { get; set; }
 
+        [IsFile(Exit = true, CustomMessage = "Modlist file %1 does not exist!")]
         [Option("modlist", Required = true, HelpText = "The Modlist, can either be a .wabbajack or a modlist.txt file")]
         public string? Modlist { get; set; }
 
@@ -58,17 +60,8 @@ namespace Wabbajack.CLI.Verbs
 
         protected override async Task<int> Run()
         {
-            if (!File.Exists(Modlist))
-                return CLIUtils.Exit($"The file {Modlist} does not exist!", -1);
-
-            if (!Directory.Exists(Input))
-                return CLIUtils.Exit($"The input directory {Input} does not exist!", -1);
-
-            if (!Directory.Exists(Output))
-            {
-                CLIUtils.Log($"The output directory {Output} does not exist, it will be created.");
-                Directory.CreateDirectory(Output);
-            }
+            if (!CLIUtils.HasValidArguments(this))
+                CLIUtils.Exit("Arguments are not valid!", -1);
 
             if (Modlist != null && (!Modlist.EndsWith(Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt")))
                 return CLIUtils.Exit($"The file {Modlist} is not a valid modlist file!", -1);
