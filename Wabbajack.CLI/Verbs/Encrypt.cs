@@ -9,10 +9,10 @@ namespace Wabbajack.CLI.Verbs
     public class Encrypt : AVerb
     {
         [Option('n', "name", Required = true, HelpText = @"Credential to encrypt and store in AppData\Local\Wabbajack")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
         
         [Option('i', "input", Required = true, HelpText = @"Source data file name")]
-        public string Input { get; set; }
+        public string? Input { get; set; }
 
         protected override async Task<int> Run()
         {

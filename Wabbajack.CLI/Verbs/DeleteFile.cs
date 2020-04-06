@@ -9,7 +9,8 @@ namespace Wabbajack.CLI.Verbs
     public class DeleteFile : AVerb
     {
         [Option('n', "name", Required = true, HelpText = @"Full name (as returned by my-files) of the file")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
+
         protected override async Task<int> Run()
         {
             Console.WriteLine(await AuthorAPI.DeleteFile(Name));

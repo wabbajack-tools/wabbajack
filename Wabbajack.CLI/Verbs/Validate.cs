@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 using CommandLine;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Validation;
-using Wabbajack.VirtualFileSystem;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.CLI.Verbs
@@ -14,12 +12,11 @@ namespace Wabbajack.CLI.Verbs
     public class Validate : AVerb
     {
         [Option('i', "input", Required = true, HelpText = @"Modlist file")]
-        public string Input { get; set; }
+        public string? Input { get; set; }
 
         /// <summary>
         /// Runs the Validation of a Modlist
         /// </summary>
-        /// <param name="opts"></param>
         /// <returns>
         /// <para>
         /// <c>-1</c> bad Input
@@ -33,7 +30,7 @@ namespace Wabbajack.CLI.Verbs
                 return CLIUtils.Exit($"The file {Input} does not exist!", -1);
 
 
-            if (!Input.EndsWith(Consts.ModListExtension))
+            if (Input != null && !Input.EndsWith(Consts.ModListExtension))
                 return CLIUtils.Exit($"The file {Input} does not end with {Consts.ModListExtension}!", -1);
 
             ModList modlist;

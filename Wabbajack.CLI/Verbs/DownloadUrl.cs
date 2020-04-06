@@ -14,10 +14,10 @@ namespace Wabbajack.CLI.Verbs
     public class DownloadUrl : AVerb
     {
         [Option('u', "url", Required = true, HelpText = "Url to download")]
-        public Uri Url { get; set; }
+        public Uri? Url { get; set; }
 
         [Option('o', "output", Required = true, HelpText = "Output file name")]
-        public string Output { get; set; }
+        public string? Output { get; set; }
 
         protected override async Task<int> Run()
         {

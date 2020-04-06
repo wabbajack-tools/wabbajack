@@ -12,6 +12,8 @@
         <Description>An automated ModList installer</Description>
         <PublishReadyToRun>true</PublishReadyToRun>        
         <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+        <LangVersion>8.0</LangVersion>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>

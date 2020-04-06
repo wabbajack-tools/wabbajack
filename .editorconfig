@@ -122,3 +122,66 @@ csharp_preserve_single_line_blocks = true
 dotnet_diagnostic.CS4014.severity = error
 # CS1998: Async function does not contain await
 dotnet_diagnostic.CS1998.severity = silent
+
+###############################
+# C# Nullability              #
+###############################
+# CS8602: Dereference of a possibly null reference.
+dotnet_diagnostic.CS8602.severity = error
+
+# CS8600: Converting null literal or possible null value to non-nullable type.
+dotnet_diagnostic.CS8600.severity = error
+
+# CS8619: Nullability of reference types in value doesn't match target type.
+dotnet_diagnostic.CS8619.severity = error
+
+# CS8603: Possible null reference return.
+dotnet_diagnostic.CS8603.severity = error
+
+# CS8625: Cannot convert null literal to non-nullable reference type.
+dotnet_diagnostic.CS8625.severity = error
+
+# CS8653: A default expression introduces a null value for a type parameter.
+dotnet_diagnostic.CS8653.severity = silent
+
+# CS8601: Possible null reference assignment.
+dotnet_diagnostic.CS8601.severity = error
+
+# CS8604: Possible null reference argument.
+dotnet_diagnostic.CS8604.severity = error
+
+# CS8622: Nullability of reference types in type of parameter doesn't match the target delegate.
+dotnet_diagnostic.CS8622.severity = error
+
+# CS8610: Nullability of reference types in type of parameter doesn't match overridden member.
+dotnet_diagnostic.CS8610.severity = error
+
+# CS8618: Non-nullable field is uninitialized. Consider declaring as nullable.
+dotnet_diagnostic.CS8618.severity = error
+
+# CS8629: Nullable value type may be null.
+dotnet_diagnostic.CS8629.severity = error
+
+# CS8620: Argument cannot be used for parameter due to differences in the nullability of reference types.
+dotnet_diagnostic.CS8620.severity = error
+
+# CS8614: Nullability of reference types in type of parameter doesn't match implicitly implemented member.
+dotnet_diagnostic.CS8614.severity = error
+
+# CS8617: Nullability of reference types in type of parameter doesn't match implemented member.
+dotnet_diagnostic.CS8617.severity = error
+
+# CS8611: Nullability of reference types in type of parameter doesn't match partial method declaration.
+dotnet_diagnostic.CS8611.severity = error
+
+# CS8597: Thrown value may be null.
+dotnet_diagnostic.CS8597.severity = error
+
+# CS8609: Nullability of reference types in return type doesn't match overridden member.
+dotnet_diagnostic.CS8609.severity = error
+
+# CS8714: The type cannot be used as type parameter in the generic type or method. Nullability of type argument doesn't match 'notnull' constraint.
+dotnet_diagnostic.CS8714.severity = error
+
+# CS8605: Unboxing a possibly null value.
+dotnet_diagnostic.CS8605.severity = error 

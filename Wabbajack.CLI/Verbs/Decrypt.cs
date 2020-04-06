@@ -9,11 +9,11 @@ namespace Wabbajack.CLI.Verbs
     public class Decrypt : AVerb
     {
         [Option('n', "name", Required = true, HelpText = @"Credential to encrypt and store in AppData\Local\Wabbajack")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         
         [Option('o', "output", Required = true, HelpText = @"Output file for the decrypted data")]
-        public string Output { get; set; }
+        public string? Output { get; set; }
 
         protected override async Task<int> Run()
         {

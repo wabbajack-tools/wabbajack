@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,16 +19,16 @@ namespace Wabbajack.CLI.Verbs
     public class ChangeDownload : AVerb
     {
         [Option("input", Required = true, HelpText = "Input folder containing the downloads you want to move")]
-        public string Input { get; set; }
+        public string? Input { get; set; }
 
         [Option("output", Required = true, HelpText = "Output folder the downloads should be transferred to")]
-        public string Output { get; set; }
+        public string? Output { get; set; }
 
         [Option("modlist", Required = true, HelpText = "The Modlist, can either be a .wabbajack or a modlist.txt file")]
-        public string Modlist { get; set; }
+        public string? Modlist { get; set; }
 
         [Option("mods", Required = false, HelpText = "Mods folder location if the provided modlist file is an MO2 modlist.txt")]
-        public string Mods { get; set; }
+        public string? Mods { get; set; }
 
         [Option("copy", Default = true, HelpText = "Whether to copy the files", SetName = "copy")]
         public bool Copy { get; set; }
@@ -69,13 +70,13 @@ namespace Wabbajack.CLI.Verbs
                 Directory.CreateDirectory(Output);
             }
 
-            if (!Modlist.EndsWith(Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt"))
+            if (Modlist != null && (!Modlist.EndsWith(Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt")))
                 return CLIUtils.Exit($"The file {Modlist} is not a valid modlist file!", -1);
 
             if (Copy && Move)
                 return CLIUtils.Exit("You can't set both copy and move flags!", -1);
 
-            var isModlist = Modlist.EndsWith(Consts.ModListExtension);
+            var isModlist = Modlist != null && Modlist.EndsWith(Consts.ModListExtension);
 
             var list = new List<TransferFile>();
 
