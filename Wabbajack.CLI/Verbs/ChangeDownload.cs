@@ -60,9 +60,6 @@ namespace Wabbajack.CLI.Verbs
 
         protected override async Task<int> Run()
         {
-            if (!CLIUtils.HasValidArguments(this))
-                CLIUtils.Exit("Arguments are not valid!", -1);
-
             if (Modlist != null && (!Modlist.EndsWith(Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt")))
                 return CLIUtils.Exit($"The file {Modlist} is not a valid modlist file!", -1);
 

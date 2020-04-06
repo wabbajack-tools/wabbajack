@@ -11,6 +11,7 @@ namespace Wabbajack.CLI.Verbs
     [Verb("validate", HelpText = @"Validates a Modlist")]
     public class Validate : AVerb
     {
+        [IsFile(CustomMessage = "The modlist file %1 does not exist!")]
         [Option('i', "input", Required = true, HelpText = @"Modlist file")]
         public string? Input { get; set; }
 
@@ -26,10 +27,6 @@ namespace Wabbajack.CLI.Verbs
         /// </returns>
         protected override async Task<int> Run()
         {
-            if (!File.Exists(Input))
-                return CLIUtils.Exit($"The file {Input} does not exist!", -1);
-
-
             if (Input != null && !Input.EndsWith(Consts.ModListExtension))
                 return CLIUtils.Exit($"The file {Input} does not end with {Consts.ModListExtension}!", -1);
 

@@ -6,6 +6,9 @@ namespace Wabbajack.CLI.Verbs
     {
         public int Execute()
         {
+            if (!CLIUtils.HasValidArguments(this))
+                CLIUtils.Exit("The provided arguments are not valid! Check previous messages for more information", -1);
+
             return Run().Result;
         }
 
