@@ -9,10 +9,10 @@ using Wabbajack.Common;
 namespace Wabbajack.CLI
 {
     [AttributeUsage(AttributeTargets.Property)]
-    internal class FileAttribute : Attribute { }
+    internal class IsFileAttribute : Attribute { }
 
     [AttributeUsage(AttributeTargets.Property)]
-    internal class DirectoryAttribute : Attribute { }
+    internal class IsDirectoryAttribute : Attribute { }
 
     internal static class CLIUtils
     {
@@ -50,12 +50,12 @@ namespace Wabbajack.CLI
 
                 var value = (string)valueObject;
 
-                if (p.HasAttribute(typeof(FileAttribute)))
+                if (p.HasAttribute(typeof(IsFileAttribute)))
                 {
                     valid = File.Exists(value);
                 }
 
-                if (p.HasAttribute(typeof(DirectoryAttribute)))
+                if (p.HasAttribute(typeof(IsDirectoryAttribute)))
                 {
                     valid = Directory.Exists(value);
                 }
