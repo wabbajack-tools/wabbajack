@@ -15,11 +15,6 @@ namespace Wabbajack.CLI
     internal abstract class AValidateAttribute : Attribute
     {
         /// <summary>
-        /// Exit the application if validation failed. Will just log if set to false
-        /// </summary>
-        public bool Exit { get; set; }
-
-        /// <summary>
         /// Custom message if validation failed. Use placeholder %1 to insert the value
         /// </summary>
         public string? CustomMessage { get; set; }
@@ -117,7 +112,9 @@ namespace Wabbajack.CLI
                         : $"The folder {value} does not exist!"
                     : attribute.CustomMessage.Replace("%1", value);
 
-                if (attribute.Exit)
+                var optionAttribute = (OptionAttribute)p.GetAttribute(typeof(OptionAttribute));
+
+                if (optionAttribute.Required)
                     Exit(message, -1);
                 else
                     Log(message);

@@ -17,7 +17,7 @@ namespace Wabbajack.CLI.Verbs
     [Verb("change-download", HelpText = "Move or Copy all used Downloads from a Modlist to another directory")]
     public class ChangeDownload : AVerb
     {
-        [IsDirectory(Exit = true, CustomMessage = "Downloads folder %1 does not exist!")]
+        [IsDirectory(CustomMessage = "Downloads folder %1 does not exist!")]
         [Option("input", Required = true, HelpText = "Input folder containing the downloads you want to move")]
         public string? Input { get; set; }
 
@@ -25,7 +25,7 @@ namespace Wabbajack.CLI.Verbs
         [Option("output", Required = true, HelpText = "Output folder the downloads should be transferred to")]
         public string? Output { get; set; }
 
-        [IsFile(Exit = true, CustomMessage = "Modlist file %1 does not exist!")]
+        [IsFile(CustomMessage = "Modlist file %1 does not exist!")]
         [Option("modlist", Required = true, HelpText = "The Modlist, can either be a .wabbajack or a modlist.txt file")]
         public string? Modlist { get; set; }
 
