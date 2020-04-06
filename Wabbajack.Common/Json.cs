@@ -234,15 +234,19 @@ namespace Wabbajack.Common
         
         public class JsonNameSerializationBinder : ISerializationBinder
         {
-            private Dictionary<string, Type> _nameToType;
-            private Dictionary<Type, string> _typeToName;
+            private static Dictionary<string, Type> _nameToType = new Dictionary<string, Type>();
+            private static Dictionary<Type, string> _typeToName = new Dictionary<Type, string>();
+            private static bool _inited = false;
 
             public JsonNameSerializationBinder()
             {
+                if (_inited)
+                    return;
+                
                 var customDisplayNameTypes =
                     AppDomain.CurrentDomain
                         .GetAssemblies()
-                        .Where(a => a.FullName != null && a.FullName.StartsWith("Wabbajack"))
+                        .Where(a => a.FullName != null && !a.FullName.StartsWith("System") && !a.FullName.StartsWith("Microsoft"))
                         .SelectMany(a =>
                         {
                             try
@@ -266,6 +270,7 @@ namespace Wabbajack.Common
                 _typeToName = _nameToType.ToDictionary(
                     t => t.Value,
                     t => t.Key);
+                _inited = true;
 
             }
 

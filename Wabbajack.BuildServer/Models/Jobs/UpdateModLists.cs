@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
@@ -12,6 +13,7 @@ using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
+    [JsonName("UpdateModLists")]
     public class UpdateModLists : AJobPayload, IFrontEndJob
     {
         public override string Description => "Validate curated modlists";

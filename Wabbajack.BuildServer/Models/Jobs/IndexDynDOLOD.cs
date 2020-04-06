@@ -6,6 +6,7 @@ using HtmlAgilityPack;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 
@@ -15,6 +16,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
     /// DynDOLOD is really hosted on a STEP Forum post as a series of MEGA links. The Nexus URLs come and go
     /// but the real releases are on STEP. So let's keep that data fresh.
     /// </summary>
+    [JsonName("IndexDynDOLOD")]
     public class IndexDynDOLOD : AJobPayload
     {
         public override string Description => "Queue MEGA URLs from the DynDOLOD Post";

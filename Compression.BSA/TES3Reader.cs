@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Compression.BSA
 {
@@ -81,6 +82,7 @@ namespace Compression.BSA
         }
     }
 
+    [JsonName("TES3Archive")]
     public class TES3ArchiveState : ArchiveStateObject
     {
         public uint FileCount { get; set; }
@@ -127,6 +129,7 @@ namespace Compression.BSA
     }
     
     
+    [JsonName("TES3FileState")]
     public class TES3FileState : FileStateObject
     {
         public uint Offset { get; set; }

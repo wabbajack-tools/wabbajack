@@ -6,9 +6,11 @@ using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using System.IO;
 using Wabbajack.BuildServer.Model.Models;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
+    [JsonName("EnqueueAllGameFiles")]
     public class EnqueueAllGameFiles : AJobPayload, IBackEndJob
     {
         public override string Description { get => $"Enqueue all game files for indexing"; }

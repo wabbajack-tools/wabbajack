@@ -5,10 +5,12 @@ using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.BuildServer.Model.Models;
+using Wabbajack.Common.Serialization.Json;
 
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
+    [JsonName("GetNexusUpdatesJob")]
     public class GetNexusUpdatesJob : AJobPayload, IFrontEndJob
     {
         public override string Description => "Poll the Nexus for updated mods, and clean any references to those mods";

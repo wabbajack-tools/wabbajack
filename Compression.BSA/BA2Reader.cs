@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
@@ -108,6 +109,7 @@ namespace Compression.BSA
         public ArchiveStateObject State => new BA2StateObject(this);
     }
 
+    [JsonName("BA2State")]
     public class BA2StateObject : ArchiveStateObject
     {
         public BA2StateObject()
@@ -324,6 +326,7 @@ namespace Compression.BSA
         }
     }
 
+    [JsonName("BA2DX10Entry")]
     public class BA2DX10EntryState : FileStateObject
     {
         public BA2DX10EntryState() { }
@@ -367,6 +370,7 @@ namespace Compression.BSA
         public uint NameHash { get; set; }
     }
 
+    [JsonName("Chunk")]
     public class ChunkState
     {
         public ChunkState() {}
@@ -386,6 +390,7 @@ namespace Compression.BSA
         public uint FullSz { get; set; }
     }
 
+    [JsonName("BA2TextureChunk")]
     public class BA2TextureChunk
     {
         internal ulong _offset;
@@ -469,6 +474,7 @@ namespace Compression.BSA
         }
     }
 
+    [JsonName("BA2FileEntryState")]
     public class BA2FileEntryState : FileStateObject
     {
         public BA2FileEntryState() { }

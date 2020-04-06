@@ -4,12 +4,14 @@ using System.Linq;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
+    [JsonName("EnqueueAllArchives")]
     public class EnqueueAllArchives : AJobPayload, IBackEndJob
     {
         public override string Description => "Add missing modlist archives to indexer";

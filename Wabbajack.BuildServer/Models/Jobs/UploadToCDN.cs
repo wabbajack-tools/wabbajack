@@ -6,12 +6,14 @@ using FluentFTP;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using File = System.IO.File;
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
+    [JsonName("UploadToCDN")]
     public class UploadToCDN : AJobPayload
     {
         public override string Description => $"Push an uploaded file ({FileId}) to the CDN";

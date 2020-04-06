@@ -6,6 +6,7 @@ using Alphaleonis.Win32.Filesystem;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
@@ -13,6 +14,7 @@ using Wabbajack.VirtualFileSystem;
 namespace Wabbajack.BuildServer.Models.Jobs
 { 
     
+    [JsonName("IndexJob")]
     public class IndexJob : AJobPayload, IBackEndJob
     {
         public Archive Archive { get; set; }

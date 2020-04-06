@@ -5,6 +5,7 @@ using System.Text;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Compression.LZ4.Streams;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
@@ -152,6 +153,7 @@ namespace Compression.BSA
         }
     }
 
+    [JsonName("BSAState")]
     public class BSAStateObject : ArchiveStateObject
     {
         public BSAStateObject() { }
@@ -342,6 +344,7 @@ namespace Compression.BSA
         }
     }
 
+    [JsonName("BSAFileState")]
     public class BSAFileStateObject : FileStateObject
     {
         public BSAFileStateObject() { }
