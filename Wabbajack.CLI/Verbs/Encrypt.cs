@@ -15,7 +15,7 @@ namespace Wabbajack.CLI.Verbs
         [Option('i', "input", Required = true, HelpText = @"Source data file name")]
         public string? Input { get; set; }
 
-        protected override async Task<int> Run()
+        protected override async Task<ExitCode> Run()
         {
             File.ReadAllBytes(Input).ToEcryptedData(Name);
             return 0;

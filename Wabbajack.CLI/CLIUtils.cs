@@ -8,7 +8,7 @@ using Wabbajack.Common;
 
 namespace Wabbajack.CLI
 {
-    internal enum ExitCode
+    public enum ExitCode
     {
         BadArguments = -1,
         Ok = 0,
@@ -182,10 +182,10 @@ namespace Wabbajack.CLI
                 Console.Write(msg);
         }
 
-        internal static int Exit(string msg, ExitCode code)
+        internal static ExitCode Exit(string msg, ExitCode code)
         {
             Log(msg);
-            return (int)code;
+            return code;
         }
 
         internal static void LogException(Exception e, string msg)

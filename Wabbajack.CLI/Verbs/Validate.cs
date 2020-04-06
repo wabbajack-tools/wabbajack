@@ -18,7 +18,7 @@ namespace Wabbajack.CLI.Verbs
         /// Runs the Validation of a Modlist
         /// </summary>
         /// <returns></returns>
-        protected override async Task<int> Run()
+        protected override async Task<ExitCode> Run()
         {
             ModList modlist;
 

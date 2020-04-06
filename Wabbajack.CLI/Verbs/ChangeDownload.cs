@@ -58,7 +58,7 @@ namespace Wabbajack.CLI.Verbs
             }
         }
 
-        protected override async Task<int> Run()
+        protected override async Task<ExitCode> Run()
         {
             if (Modlist != null && (!Modlist.EndsWith(Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt")))
                 return CLIUtils.Exit($"The file {Modlist} is not a valid modlist file!", ExitCode.BadArguments);

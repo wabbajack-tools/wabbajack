@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
@@ -19,7 +18,7 @@ namespace Wabbajack.CLI.Verbs
         [Option('o', "output", Required = true, HelpText = "Output file name")]
         public string? Output { get; set; }
 
-        protected override async Task<int> Run()
+        protected override async Task<ExitCode> Run()
         {
             var state = await DownloadDispatcher.Infer(Url);
             if (state == null)

@@ -14,7 +14,7 @@ namespace Wabbajack.CLI.Verbs
         [Option('o', "output", Required = true, HelpText = @"Output file for the decrypted data")]
         public string? Output { get; set; }
 
-        protected override async Task<int> Run()
+        protected override async Task<ExitCode> Run()
         {
             File.WriteAllBytes(Output, Utils.FromEncryptedData(Name));
             return 0;

@@ -10,10 +10,9 @@ namespace Wabbajack.CLI.Verbs
                 CLIUtils.Exit("The provided arguments are not valid! Check previous messages for more information",
                     ExitCode.BadArguments);
 
-            return Run().Result;
+            return (int)Run().Result;
         }
 
-        protected abstract Task<int> Run();
-
+        protected abstract Task<ExitCode> Run();
     }
 }

@@ -8,7 +8,7 @@ namespace Wabbajack.CLI.Verbs
     [Verb("my-files", HelpText = "List files I have uploaded to the CDN (requires Author API key)")] 
     public class MyFiles : AVerb
     {
-        protected override async Task<int> Run()
+        protected override async Task<ExitCode> Run()
         {
             var files = await AuthorAPI.GetMyFiles();
             foreach (var file in files)
