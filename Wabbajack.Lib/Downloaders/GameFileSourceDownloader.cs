@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using MessagePack;
+﻿using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
-using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Lib.Downloaders
@@ -48,22 +43,18 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-        [MessagePackObject]
+        [JsonName("GameFileSourceDownloader")]
         public class State : AbstractDownloadState
         {
-            [Key(0)]
             public Game Game { get; set; }
-            [Key(1)]
             public RelativePath GameFile { get; set; }
-            [Key(2)]
             public Hash Hash { get; set; }
-            [Key(3)]
             public string GameVersion { get; set; }
 
-            [IgnoreMember]
+            [JsonIgnore]
             internal AbsolutePath SourcePath => Game.MetaData().GameLocation().Value.Combine(GameFile);
 
-            [IgnoreMember]
+            [JsonIgnore]
             public override object[] PrimaryKey { get => new object[] {Game, GameVersion, GameFile}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)

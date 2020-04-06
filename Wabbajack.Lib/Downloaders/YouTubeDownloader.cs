@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using MessagePack;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
 using YoutubeExplode;
 using YoutubeExplode.Exceptions;
@@ -59,19 +59,17 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-        [MessagePackObject]
+        [JsonName("YouTubeDownloader")]
         public class State : AbstractDownloadState
         {
-            [Key(0)]
             public string Key { get; set; }
             
-            [Key(1)]
             public List<Track> Tracks { get; set; } = new List<Track>();
             
-            [IgnoreMember]
+            [JsonIgnore]
             public override object[] PrimaryKey => new object[] {Key};
 
-            [MessagePackObject]
+            [JsonName("YouTubeTrack")]
             public class Track
             {
                 public enum FormatEnum
@@ -79,16 +77,12 @@ namespace Wabbajack.Lib.Downloaders
                     XWM,
                     WAV
                 }
-                [Key(0)]
                 public FormatEnum Format { get; set; }
                 
-                [Key(1)]
                 public string Name { get; set; }
                 
-                [Key(2)]
                 public TimeSpan Start { get; set; }
                 
-                [Key(3)]
                 public TimeSpan End { get; set; }
             }
             

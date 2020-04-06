@@ -1,5 +1,8 @@
 ﻿using System.IO;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Converters;
+using Wabbajack.Common.Serialization.Json;
 using Xunit;
 
 namespace Wabbajack.Common.Test
@@ -51,23 +54,52 @@ namespace Wabbajack.Common.Test
             await RoundTrips(new FullPath((AbsolutePath)@"c:\"));
         }
 
+
+        class Base
+        {
+            public int BaseNumber { get; set; }
+        }
+
+        [JsonName("ChildA")]
+        class ChildA : Base
+        {
+            public int ChildANumber { get; set; }
+        }
+
+        [JsonName("ChildB")]
+        class ChildB : ChildA
+        {
+            public int ChildBNumber { get; set; }
+        }
+        
+        
+        [Fact]
+        public async Task JsonSerializationUser()
+        {
+            var start = new ChildB {BaseNumber = 1, ChildANumber = 2, ChildBNumber = 3};
+
+            var result = (ChildB)start.ToJson().FromJsonString<Base>();
+
+            Utils.Log(start.ToJson());
+            
+            Assert.Equal(start.BaseNumber, result.BaseNumber);
+            Assert.Equal(start.ChildANumber, result.ChildANumber);
+            Assert.Equal(start.ChildBNumber, result.ChildBNumber);
+
+            Assert.DoesNotContain("Wabbajack.Common.Test.Serialization", start.ToJson());
+
+
+        }
+
         private static async Task RoundTrips<T>(T input)
         {
             Assert.Equal(input, RoundTripJson(input));
-            Assert.Equal(input, await RoundTripMessagePack(input));
         }
 
         private static T RoundTripJson<T>(T input)
         {
-            return input.ToJSON().FromJSONString<T>();
+            return input.ToJson().FromJsonString<T>();
         }
 
-        private static async Task<T> RoundTripMessagePack<T>(T input)
-        {
-            await using var ms = new MemoryStream();
-            await ms.WriteAsMessagePackAsync(input);
-            ms.Position = 0;
-            return await ms.ReadAsMessagePackAsync<T>();
-        }
     }
 }

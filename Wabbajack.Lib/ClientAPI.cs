@@ -18,7 +18,7 @@ namespace Wabbajack.Lib
         {
             using var response = await GetClient()
                 .GetAsync($"https://{Consts.WabbajackCacheHostname}/alternative/{hash.ToHex()}");
-            return !response.IsSuccessStatusCode ? null : (await response.Content.ReadAsStringAsync()).FromJSONString<Archive>();
+            return !response.IsSuccessStatusCode ? null : (await response.Content.ReadAsStringAsync()).FromJsonString<Archive>();
         }
 
         /// <summary>

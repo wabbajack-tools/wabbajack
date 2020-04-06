@@ -4,12 +4,9 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using K4os.Hash.Crc;
-using MessagePack;
 using Wabbajack.Common;
-using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.VirtualFileSystem
 {
@@ -230,7 +227,7 @@ namespace Wabbajack.VirtualFileSystem
 
                 using (var stream = await response.Content.ReadAsStreamAsync())
                 {
-                    return stream.FromJSON<IndexedVirtualFile>();
+                    return stream.FromJson<IndexedVirtualFile>();
                 }
             }
             catch (Exception)

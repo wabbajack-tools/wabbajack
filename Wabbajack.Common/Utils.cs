@@ -59,7 +59,6 @@ namespace Wabbajack.Common
             Consts.LocalAppDataPath.CreateDirectory();
             Consts.LogsFolder.CreateDirectory();
 
-            MessagePackInit();
             _startTime = DateTime.Now;
 
             if (LogFile.Exists)
@@ -832,7 +831,8 @@ namespace Wabbajack.Common
         /// <returns></returns>
         public static T ViaJSON<T>(this T tv)
         {
-            return tv.ToJSON().FromJSONString<T>();
+            var json = tv.ToJson();
+            return json.FromJsonString<T>();
         }
 
         /*
@@ -999,14 +999,14 @@ namespace Wabbajack.Common
         /// <param name="data"></param>
         public static void ToEcryptedJson<T>(this T data, string key)
         {
-            var bytes = Encoding.UTF8.GetBytes(data.ToJSON());
+            var bytes = Encoding.UTF8.GetBytes(data.ToJson());
             bytes.ToEcryptedData(key);
         }
 
         public static T FromEncryptedJson<T>(string key)
         {
             var decoded = FromEncryptedData(key);
-            return Encoding.UTF8.GetString(decoded).FromJSONString<T>();
+            return Encoding.UTF8.GetString(decoded).FromJsonString<T>();
         }
 
         

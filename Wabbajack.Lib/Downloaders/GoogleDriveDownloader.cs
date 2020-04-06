@@ -1,8 +1,8 @@
-﻿using System.Net.Http;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using MessagePack;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.Validation;
 
@@ -35,13 +35,12 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-        [MessagePackObject]
+        [JsonName("GoogleDriveDownloader")]
         public class State : AbstractDownloadState
         {
-            [Key(0)]
             public string Id { get; set; }
             
-            [IgnoreMember]
+            [JsonIgnore]
             public override object[] PrimaryKey { get => new object[] {Id}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)

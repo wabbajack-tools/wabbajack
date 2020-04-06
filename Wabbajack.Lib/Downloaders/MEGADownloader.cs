@@ -4,9 +4,10 @@ using System.Reactive.Linq;
 using System.Security;
 using System.Threading.Tasks;
 using CG.Web.MegaApiClient;
-using MessagePack;
+using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -90,6 +91,7 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
+        [JsonName("MegaDownloader")]
         public class State : HTTPDownloader.State
         {
             private static MegaApiClient MegaApiClient => DownloadDispatcher.GetInstance<MegaDownloader>().MegaApiClient;

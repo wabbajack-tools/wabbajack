@@ -37,7 +37,7 @@ namespace Wabbajack
             // Version check
             try
             {
-                settings = Consts.SettingsFile.FromJSON<MainSettings>();
+                settings = Consts.SettingsFile.FromJson<MainSettings>();
                 if (settings.Version == Consts.SettingsVersion)
                     return true;
             }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Lib.ModListRegistry
@@ -62,10 +63,10 @@ namespace Wabbajack.Lib.ModListRegistry
             var metadataResult = client.GetStringAsync(Consts.ModlistMetadataURL);
             var summaryResult = client.GetStringAsync(Consts.ModlistSummaryURL);
 
-            var metadata = (await metadataResult).FromJSONString<List<ModlistMetadata>>();
+            var metadata = (await metadataResult).FromJsonString<List<ModlistMetadata>>();
             try
             {
-                var summaries = (await summaryResult).FromJSONString<List<ModlistSummary>>().ToDictionary(d => d.Name);
+                var summaries = (await summaryResult).FromJsonString<List<ModlistSummary>>().ToDictionary(d => d.Name);
 
                 foreach (var data in metadata)
                     if (summaries.TryGetValue(data.Title, out var summary))
@@ -90,6 +91,7 @@ namespace Wabbajack.Lib.ModListRegistry
         }
     }
 
+    [JsonName("DownloadMetadata")]
     public class DownloadMetadata
     {
         public Hash Hash { get; set; }

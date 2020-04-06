@@ -1,15 +1,11 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reactive.Linq;
+﻿using System.IO;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using MessagePack;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Common.IO;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
-using File = System.IO.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -71,13 +67,12 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
         
-        [MessagePackObject]
+        [JsonName("ManualDownloader")]
         public class State : AbstractDownloadState
         {
-            [Key(0)]
             public string Url { get; set; }
             
-            [IgnoreMember]
+            [JsonIgnore]
             public override object[] PrimaryKey { get => new object[] {Url}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)

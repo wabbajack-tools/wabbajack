@@ -32,7 +32,7 @@ namespace Wabbajack.BuildServer.Test
         [Fact, Priority(1)]
         public async Task CanListMyUploadedFiles()
         {
-            var result = (await _authedClient.GetStringAsync(MakeURL("uploaded_files/list"))).FromJSONString<string[]>();
+            var result = (await _authedClient.GetStringAsync(MakeURL("uploaded_files/list"))).FromJsonString<string[]>();
             Utils.Log("Loaded: " + result);
             
             

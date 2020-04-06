@@ -233,7 +233,7 @@ namespace Wabbajack.Lib.NexusApi
 
 
                 await using var stream = await response.Content.ReadAsStreamAsync();
-                return stream.FromJSON<T>();
+                return stream.FromJson<T>();
             }
             catch (TimeoutException)
             {

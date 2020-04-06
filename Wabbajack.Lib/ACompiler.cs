@@ -139,7 +139,7 @@ namespace Wabbajack.Lib
             ModList.ReadmeIsWebsite = ReadmeIsWebsite;
 
             using (var of = ModListOutputFolder.Combine("modlist").Create()) 
-                of.WriteAsMessagePack(ModList);
+                ModList.ToJson(of);
 
             ModListOutputFile.Delete();
 
@@ -191,7 +191,7 @@ namespace Wabbajack.Lib
                 NumberOfInstalledFiles = ModList.Directives.Count,
                 SizeOfInstalledFiles = ModList.Directives.Sum(a => a.Size)
             };
-            metadata.ToJSON(ModListOutputFile + ".meta.json");
+            metadata.ToJson(ModListOutputFile + ".meta.json");
 
 
             Utils.Log("Removing ModList staging folder");
@@ -201,7 +201,7 @@ namespace Wabbajack.Lib
         public void GenerateManifest()
         {
             var manifest = new Manifest(ModList);
-            manifest.ToJSON(ModListOutputFile + ".manifest.json");
+            manifest.ToJson(ModListOutputFile + ".manifest.json");
         }
 
         public async Task GatherArchives()

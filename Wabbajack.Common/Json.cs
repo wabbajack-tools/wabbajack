@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Wabbajack.Common.Serialization.Json;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Common
@@ -19,70 +25,56 @@ namespace Wabbajack.Common
             new GameConverter(),
             new PercentConverter(),
         };
+        
+        public static JsonSerializerSettings JsonSettings  =>
+                    new JsonSerializerSettings {
+            TypeNameHandling = TypeNameHandling.Objects,
+            SerializationBinder = new JsonNameSerializationBinder(),
+            Converters = Converters};
+        
 
-        public static void ToJSON<T>(this T obj, string filename)
+        public static void ToJson<T>(this T obj, string filename)
         {
             if (File.Exists(filename))
                 File.Delete(filename);
-            File.WriteAllText(filename,
-                JsonConvert.SerializeObject(obj, Formatting.Indented,
-                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto, Converters = Converters}));
+            File.WriteAllText(filename, JsonConvert.SerializeObject(obj, Formatting.Indented, JsonSettings));
         }
-
-        public static string ToJSON<T>(this T obj,
-            TypeNameHandling handling = TypeNameHandling.All,
-            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full,
-            bool prettyPrint = false)
+        
+        public static void ToJson<T>(this T obj, Stream stream)
         {
-            return JsonConvert.SerializeObject(obj, Formatting.Indented,
-                new JsonSerializerSettings
-                {
-                    TypeNameHandling = handling,
-                    TypeNameAssemblyFormatHandling = format,
-                    Formatting = prettyPrint ? Formatting.Indented : Formatting.None,
-                    Converters = Converters
-                });
+            using var tw = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
+            using var writer = new JsonTextWriter(tw);
+            var ser = JsonSerializer.Create(JsonSettings);
+            ser.Serialize(writer, obj);
         }
 
-        public static T FromJSON<T>(this AbsolutePath filename,
+        public static string ToJson<T>(this T obj)
+        {
+            return JsonConvert.SerializeObject(obj, JsonSettings);
+        }
+
+        public static T FromJson<T>(this AbsolutePath filename,
             TypeNameHandling handling = TypeNameHandling.All,
             TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
         {
-            return JsonConvert.DeserializeObject<T>(filename.ReadAllText(),
-                new JsonSerializerSettings
-                {
-                    TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format, Converters = Converters
-                })!;
+            return JsonConvert.DeserializeObject<T>(filename.ReadAllText(), JsonSettings)!;
         }
 
-        public static T FromJSONString<T>(this string data,
-            TypeNameHandling handling = TypeNameHandling.All,
+        public static T FromJsonString<T>(this string data,
+            TypeNameHandling handling = TypeNameHandling.Objects,
             TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
         {
-            return JsonConvert.DeserializeObject<T>(data,
-                new JsonSerializerSettings
-                {
-                    TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format, Converters = Converters
-                })!;
+            return JsonConvert.DeserializeObject<T>(data, JsonSettings)!;
         }
 
-        public static T FromJSON<T>(this Stream data)
+        public static T FromJson<T>(this Stream stream)
         {
-            var s = Encoding.UTF8.GetString(data.ReadAll());
-            try
-            {
-                return JsonConvert.DeserializeObject<T>(s,
-                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto, Converters = Converters})!;
-            }
-            catch (JsonSerializationException)
-            {
-                var error = JsonConvert.DeserializeObject<NexusErrorResponse>(s,
-                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
-                if (error != null)
-                    Log($"Exception while deserializing\nError code: {error.code}\nError message: {error.message}");
-                throw;
-            }
+            using var tr = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
+            using var reader = new JsonTextReader(tr);
+            var ser = JsonSerializer.Create(JsonSettings);
+            return ser.Deserialize<T>(reader);
         }
+      
 
 
         private class HashJsonConverter : JsonConverter<Hash>
@@ -235,6 +227,88 @@ namespace Wabbajack.Common
                 }
 
                 return game.Game;
+            }
+        }
+
+
+        
+        public class JsonNameSerializationBinder : ISerializationBinder
+        {
+            private Dictionary<string, Type> _nameToType;
+            private Dictionary<Type, string> _typeToName;
+
+            public JsonNameSerializationBinder()
+            {
+                var customDisplayNameTypes =
+                    AppDomain.CurrentDomain
+                        .GetAssemblies()
+                        .Where(a => a.FullName != null && a.FullName.StartsWith("Wabbajack"))
+                        .SelectMany(a =>
+                        {
+                            try
+                            {
+                                return a.GetTypes();
+                            }
+                            catch (ReflectionTypeLoadException)
+                            {
+                                return new Type[0];
+                            }
+                        })
+                        //concat with references if desired
+                        .Where(x => x
+                            .GetCustomAttributes(false)
+                            .Any(y => y is JsonNameAttribute));
+
+                _nameToType = customDisplayNameTypes.ToDictionary(
+                    t => t.GetCustomAttributes(false).OfType<JsonNameAttribute>().First().Name,
+                    t => t);
+
+                _typeToName = _nameToType.ToDictionary(
+                    t => t.Value,
+                    t => t.Key);
+
+            }
+
+            public Type BindToType(string? assemblyName, string typeName)
+            {
+                if (typeName.EndsWith("[]"))
+                {
+                    var result = BindToType(assemblyName, typeName.Substring(0, typeName.Length - 2));
+                    return result.MakeArrayType();
+                }
+
+                if (_nameToType.ContainsKey(typeName))
+                    return _nameToType[typeName];
+
+                var val = Type.GetType(typeName);
+                if (val != null)
+                    return val;
+
+                if (assemblyName != null)
+                {
+                    var assembly = AppDomain.CurrentDomain.Load(assemblyName);
+                    if (assembly != null)
+                    {
+                        var result =  assembly.GetType(typeName);
+                        if (result != null) return result;
+                    }
+                }
+                
+
+                throw new InvalidDataException($"No Binding name for {typeName}");
+            }
+
+            public void BindToName(Type serializedType, out string? assemblyName, out string? typeName)
+            {
+                if (!_typeToName.ContainsKey(serializedType))
+                {
+                    throw new InvalidDataException($"No Binding name for {serializedType}");
+                }
+
+                var name = _typeToName[serializedType];
+
+                assemblyName = null;
+                typeName = name;
             }
         }
     }

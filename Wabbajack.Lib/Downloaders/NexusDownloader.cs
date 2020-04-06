@@ -1,12 +1,13 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using MessagePack;
 using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
@@ -128,38 +129,29 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        [MessagePackObject]
+        [JsonName("NexusDownloader")]
         public class State : AbstractDownloadState, IMetaState
         {
-            [IgnoreMember]
+            [JsonIgnore]
             public Uri URL => new Uri($"http://nexusmods.com/{Game.MetaData().NexusName}/mods/{ModID}");
 
-            [Key(0)]
             public string Name { get; set; }
 
-            [Key(1)]
             public string Author { get; set; }
 
-            [Key(2)]
             public string Version { get; set; }
             
-            [Key(3)]
             public string ImageURL { get; set; }
             
-            [Key(4)]
             public bool IsNSFW { get; set; }
 
-            [Key(5)]
             public string Description { get; set; }
 
-            [Key(6)]
             [JsonProperty("GameName")]
             [JsonConverter(typeof(Utils.GameConverter))]
             public Game Game { get; set; }
             
-            [Key(7)]
             public long ModID { get; set; }
-            [Key(8)]
             public long FileID { get; set; }
             
             public async Task<bool> LoadMetaData()
@@ -167,7 +159,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
             
-            [IgnoreMember]
+            [JsonIgnore]
             public override object[] PrimaryKey { get => new object[]{Game, ModID, FileID};}
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)

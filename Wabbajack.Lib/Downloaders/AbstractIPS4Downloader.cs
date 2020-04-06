@@ -5,12 +5,9 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
-using HtmlAgilityPack;
-using MessagePack;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
-using File = System.IO.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -74,47 +71,34 @@ namespace Wabbajack.Lib.Downloaders
         }
 
         
-        [MessagePackObject]
         public class State<TStateDownloader> : AbstractDownloadState, IMetaState where TStateDownloader : IDownloader
         {
-            [Key(0)]
             public string FullURL { get; set; }
-            [Key(1)]
             public bool IsAttachment { get; set; }
-            [Key(2)]
             public string FileID { get; set; }
             
-            [Key(3)]
             public string FileName { get; set; }
             
             // from IMetaState
-            [Key(4)]
-            
             public Uri URL => new Uri($"{Site}/files/file/{FileName}");
-            [Key(5)]
             public string Name { get; set; }
-            [Key(6)]
             public string Author { get; set; }
-            [Key(7)]
             public string Version { get; set; }
-            [Key(8)]
             public string ImageURL { get; set; }
-            [Key(9)]
             public virtual bool IsNSFW { get; set; }
-            [Key(10)]
             public string Description { get; set; }
 
             private static bool IsHTTPS => Downloader.SiteURL.AbsolutePath.StartsWith("https://");
             private static string URLPrefix => IsHTTPS ? "https://" : "http://";
 
-            [IgnoreMember]
+            [JsonIgnore]
             public static string Site => string.IsNullOrWhiteSpace(Downloader.SiteURL.Query)
                 ? $"{URLPrefix}{Downloader.SiteURL.Host}"
                 : Downloader.SiteURL.ToString();
 
             public static AbstractNeedsLoginDownloader Downloader => (AbstractNeedsLoginDownloader)(object)DownloadDispatcher.GetInstance<TDownloader>();
 
-            [IgnoreMember]
+            [JsonIgnore]
             public override object[] PrimaryKey
             {
                 get
@@ -183,7 +167,7 @@ namespace Wabbajack.Lib.Downloaders
                     return await streamResult.Content.ReadAsStreamAsync();
 
                 // Sometimes LL hands back a json object telling us to wait until a certain time
-                var times = (await streamResult.Content.ReadAsStringAsync()).FromJSONString<WaitResponse>();
+                var times = (await streamResult.Content.ReadAsStringAsync()).FromJsonString<WaitResponse>();
                 var secs = times.Download - times.CurrentTime;
                 for (int x = 0; x < secs; x++)
                 {

@@ -10,6 +10,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Newtonsoft.Json.Linq;
@@ -18,6 +19,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
@@ -90,7 +92,7 @@ namespace Wabbajack.Lib.Downloaders
 
             try
             {
-                var result = last_line.FromJSONString<BethesdaNetData>();
+                var result = last_line.FromJsonString<BethesdaNetData>();
                 result.ToEcryptedJson(DataName);
                 return result;
             }
@@ -113,10 +115,14 @@ namespace Wabbajack.Lib.Downloaders
         public Uri SiteURL => new Uri("https://bethesda.net");
         public Uri IconUri { get; }
 
+        
+        [JsonName("BethesdaNetDownloader")]
         public class State : AbstractDownloadState
         {
             public string GameName { get; set; }
             public string ContentId { get; set; }
+            
+            [JsonIgnore]
             public override object[] PrimaryKey => new object[] {GameName, ContentId};
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
@@ -210,7 +216,7 @@ namespace Wabbajack.Lib.Downloaders
                 var posted = await client.PostAsync("https://api.bethesda.net/beam/accounts/external_login",
                     new StringContent(login_info.body, Encoding.UTF8, "application/json"));
 
-                info.AccessToken = (await posted.Content.ReadAsStringAsync()).FromJSONString<BeamLoginResponse>().access_token;
+                info.AccessToken = (await posted.Content.ReadAsStringAsync()).FromJsonString<BeamLoginResponse>().access_token;
 
                 client.Headers.Add(("x-cdp-app", "UGC SDK"));
                 client.Headers.Add(("x-cdp-app-ver", "0.9.11314/debug"));
@@ -220,7 +226,7 @@ namespace Wabbajack.Lib.Downloaders
                 posted = await client.PostAsync("https://api.bethesda.net/cdp-user/auth",
                     new StringContent("{\"access_token\": \"" + info.AccessToken + "\"}", Encoding.UTF8,
                         "application/json"));
-                info.CDPToken = (await posted.Content.ReadAsStringAsync()).FromJSONString<CDPLoginResponse>().token;
+                info.CDPToken = (await posted.Content.ReadAsStringAsync()).FromJsonString<CDPLoginResponse>().token;
 
                 client.Headers.Add(("X-Access-Token", info.AccessToken));
                 var got = await client.GetAsync($"https://api.bethesda.net/mods/ugc-workshop/content/get?content_id={ContentId}");
@@ -238,7 +244,7 @@ namespace Wabbajack.Lib.Downloaders
                 got = await client.GetAsync(
                     $"https://api.bethesda.net/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/tree/.json");
 
-                var tree = (await got.Content.ReadAsStringAsync()).FromJSONString<CDPTree>();
+                var tree = (await got.Content.ReadAsStringAsync()).FromJsonString<CDPTree>();
                 
                 got.Dispose();
                 got = await client.PostAsync($"https://api.bethesda.net/mods/ugc-content/add-subscription", new StringContent($"{{\"content_id\": \"{ContentId}\"}}", Encoding.UTF8, "application/json"));

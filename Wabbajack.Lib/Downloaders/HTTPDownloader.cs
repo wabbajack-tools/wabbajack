@@ -5,11 +5,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using MessagePack;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.Validation;
-using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -50,19 +50,17 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-        [MessagePackObject]
+        [JsonName("HttpDownloader")]
         public class State : AbstractDownloadState
         {
-            [Key(0)]
             public string Url { get; set; }
 
-            [Key(1)]
             public List<string> Headers { get; set; }
 
-            [IgnoreMember]
+            [JsonIgnore]
             public Common.Http.Client Client { get; set; }
 
-            [IgnoreMember]
+            [JsonIgnore]
             public override object[] PrimaryKey { get => new object[] {Url};}
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)

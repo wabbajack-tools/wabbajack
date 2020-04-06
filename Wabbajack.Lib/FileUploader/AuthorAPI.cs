@@ -186,7 +186,7 @@ namespace Wabbajack.Lib.FileUploader
 
         public static async Task<IEnumerable<string>> GetMyFiles()
         {
-            return (await (await GetAuthorizedClient()).GetStringAsync($"https://{Consts.WabbajackCacheHostname}/uploaded_files/list")).FromJSONString<string[]>();
+            return (await (await GetAuthorizedClient()).GetStringAsync($"https://{Consts.WabbajackCacheHostname}/uploaded_files/list")).FromJsonString<string[]>();
         }
 
         public static async Task<string> DeleteFile(string name)

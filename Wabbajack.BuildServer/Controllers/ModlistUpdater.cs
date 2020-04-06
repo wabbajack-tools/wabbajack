@@ -80,7 +80,7 @@ namespace Wabbajack.BuildServer.Controllers
                 }
             }
 
-            return Ok(new {Save = toSave.ToArray(), Delete = toDelete.ToArray()}.ToJSON(prettyPrint:true));
+            return Ok(new {Save = toSave.ToArray(), Delete = toDelete.ToArray()}.ToJson());
         }
 
         [HttpGet]
@@ -154,7 +154,7 @@ namespace Wabbajack.BuildServer.Controllers
                     }
                 });
             }
-            return Ok(newArchive.ToJSON());
+            return Ok(newArchive.ToJson());
         }
 
         private async Task<Archive> FindAlternatives(NexusDownloader.State state, Hash srcHash)

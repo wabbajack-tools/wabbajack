@@ -15,7 +15,7 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanGetHeartbeat()
         {
-            var heartbeat = (await _client.GetStringAsync(MakeURL("heartbeat"))).FromJSONString<string>();
+            var heartbeat = (await _client.GetStringAsync(MakeURL("heartbeat"))).FromJsonString<string>();
             Assert.True(TimeSpan.Parse(heartbeat) > TimeSpan.Zero);
         }
 

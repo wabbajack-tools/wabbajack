@@ -112,7 +112,7 @@ namespace Wabbajack.BuildServer.Controllers
                 }
             }
 
-            return Ok(new {Remain = seen.ToArray(), Deleted = duplicate.ToArray()}.ToJSON(prettyPrint:true));
+            return Ok(new {Remain = seen.ToArray(), Deleted = duplicate.ToArray()}.ToJson());
         }
         
 
@@ -204,7 +204,7 @@ namespace Wabbajack.BuildServer.Controllers
             var user = User.FindFirstValue(ClaimTypes.Name);
             Utils.Log($"List Uploaded Files {user}");
             var files = await SQL.AllUploadedFilesForUser(user);
-            return Ok(files.OrderBy(f => f.UploadDate).Select(f => f.MungedName ).ToArray().ToJSON(prettyPrint:true));
+            return Ok(files.OrderBy(f => f.UploadDate).Select(f => f.MungedName ).ToArray().ToJson());
         }
 
         [HttpDelete]

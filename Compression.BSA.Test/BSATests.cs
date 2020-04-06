@@ -127,7 +127,7 @@ namespace Compression.BSA.Test
                 TestContext.WriteLine($"Verifying {bsa}");
                 using var b = BSADispatch.OpenRead(tempFile);
                 TestContext.WriteLine($"Performing A/B tests on {bsa}");
-                Assert.Equal(a.State.ToJSON(), b.State.ToJSON());
+                Assert.Equal(a.State.ToJson(), b.State.ToJson());
 
                 // Check same number of files
                 Assert.Equal(a.Files.Count(), b.Files.Count());
@@ -135,7 +135,7 @@ namespace Compression.BSA.Test
                 await a.Files.Zip(b.Files, (ai, bi) => (ai, bi))
                     .PMap(Queue, pair =>
                     {
-                        Assert.Equal(pair.ai.State.ToJSON(), pair.bi.State.ToJSON());
+                        Assert.Equal(pair.ai.State.ToJson(), pair.bi.State.ToJson());
                         //Console.WriteLine($"   - {pair.ai.Path}");
                         Assert.Equal(pair.ai.Path, pair.bi.Path);
                         //Equal(pair.ai.Compressed, pair.bi.Compressed);
@@ -154,7 +154,7 @@ namespace Compression.BSA.Test
 
         private static T ViaJson<T>(T i)
         {
-            return i.ToJSON().FromJSONString<T>();
+            return i.ToJson().FromJsonString<T>();
         }
 
     }

@@ -529,11 +529,7 @@ namespace Wabbajack.Test
 
         private T RoundTripState<T>(T state)
         {
-            using var ms = new MemoryStream();
-            ms.WriteAsMessagePack(state);
-            ms.Position = 0;
-
-            return ms.ReadAsMessagePack<T>();
+            return state.ToJson().FromJsonString<T>();
         }
         
 

@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Linq;
-using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Web;
 using HtmlAgilityPack;
-using MessagePack;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
@@ -36,14 +34,12 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-        [MessagePackObject]
+        [JsonName("ModDBDownloader")]
         public class State : AbstractDownloadState
         {
-            
-            [Key(0)]
             public string Url { get; set; }
             
-            [IgnoreMember]
+            [JsonIgnore]
             public override object[] PrimaryKey { get => new object[]{Url}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)

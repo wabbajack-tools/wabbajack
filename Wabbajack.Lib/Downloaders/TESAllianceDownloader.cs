@@ -1,5 +1,6 @@
 ﻿using System;
-using MessagePack;
+using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -16,7 +17,7 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-        [MessagePackObject]
+        [JsonName("TESAllianceDownloader")]
         public class State : State<TESAllianceDownloader>{}
     }
 }

@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using MessagePack;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 
@@ -22,22 +21,6 @@ namespace Wabbajack.Lib.Downloaders
         Task<bool> LoadMetaData();
     }
 
-    [MessagePackObject]
-    [Union(0, typeof(HTTPDownloader.State))]
-    [Union(1, typeof(GameFileSourceDownloader.State))]
-    [Union(2, typeof(GoogleDriveDownloader.State))]
-    [Union(3, typeof(LoversLabDownloader.State))]
-    [Union(4, typeof(ManualDownloader.State))]
-    [Union(5, typeof(MediaFireDownloader.State))]
-    [Union(6, typeof(MegaDownloader.State))]
-    [Union(7, typeof(ModDBDownloader.State))]
-    [Union(8, typeof(NexusDownloader.State))]
-    [Union(9, typeof(SteamWorkshopDownloader.State))]
-    [Union(10, typeof(VectorPlexusDownloader.State))]
-    [Union(11, typeof(AFKModsDownloader.State))]
-    [Union(12, typeof(TESAllianceDownloader.State))]
-    [Union(13, typeof(BethesdaNetDownloader.State))]
-    [Union(14, typeof(YouTubeDownloader.State))]
     public abstract class AbstractDownloadState
     {
 
@@ -69,10 +52,10 @@ namespace Wabbajack.Lib.Downloaders
             TypeToName = NameToType.ToDictionary(k => k.Value, k => k.Key);
         }
 
-        [IgnoreMember]
+        [JsonIgnore]
         public abstract object[] PrimaryKey { get; }
         
-        [IgnoreMember]
+        [JsonIgnore]
         public string PrimaryKeyString
         {
             get

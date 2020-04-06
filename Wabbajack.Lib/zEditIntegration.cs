@@ -59,7 +59,7 @@ namespace Wabbajack.Lib
                     .Where(f => f.FileName == Consts.SettingsJson)
                     .Where(f =>
                     {
-                        var settings = f.FromJSON<zEditSettings>();
+                        var settings = f.FromJson<zEditSettings>();
 
                         if (settings.modManager != "Mod Organizer 2")
                         {
@@ -109,7 +109,7 @@ namespace Wabbajack.Lib
 
                 Utils.Log($"Using merge file {mergeFile}");
 
-                var merges = mergeFile.FromJSON<List<zEditMerge>>().GroupBy(f => (f.name, f.filename)).ToArray();
+                var merges = mergeFile.FromJson<List<zEditMerge>>().GroupBy(f => (f.name, f.filename)).ToArray();
 
                 merges.Where(m => m.Count() > 1)
                     .Do(m =>

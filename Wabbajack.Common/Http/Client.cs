@@ -102,7 +102,7 @@ namespace Wabbajack.Common.Http
         public async Task<T> GetJsonAsync<T>(string s)
         {
             var result = await GetStringAsync(s);
-            return result.FromJSONString<T>();
+            return result.FromJsonString<T>();
         }
     }
 }

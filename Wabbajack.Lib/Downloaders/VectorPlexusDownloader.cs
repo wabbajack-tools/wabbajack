@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
-using MessagePack;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -17,7 +16,7 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
         
-        [MessagePackObject]
+        [JsonName("VectorPlexisDownloader")]
         public class State : State<VectorPlexusDownloader>
         {
         }

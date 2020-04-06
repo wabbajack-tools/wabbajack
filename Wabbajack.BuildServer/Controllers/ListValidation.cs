@@ -113,7 +113,7 @@ namespace Wabbajack.BuildServer.Controllers
             {
                 ContentType = "application/json",
                 StatusCode = (int) HttpStatusCode.OK,
-                Content = lst.ToJSON()
+                Content = lst.ToJson()
             };
         }
 

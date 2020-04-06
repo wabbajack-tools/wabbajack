@@ -79,10 +79,10 @@ namespace Wabbajack.Lib
             {
                 entry = ar.GetEntry("modlist.json");
                 using (var e = entry.Open())
-                    return e.FromJSON<ModList>();
+                    return e.FromJson<ModList>();
             }
             using (var e = entry.Open())
-                return e.ReadAsMessagePack<ModList>();
+                return e.FromJson<ModList>();
         }
 
         /// <summary>

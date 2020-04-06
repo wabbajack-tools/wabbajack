@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Compression.BSA;
-using MessagePack;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
 
@@ -36,122 +37,98 @@ namespace Wabbajack.Lib
         }
     }
 
-    [MessagePackObject]
+    [JsonName("ModList")]
     public class ModList
     {
         /// <summary>
         ///     Archives required by this modlist
         /// </summary>
-        [Key(0)]
         public List<Archive> Archives;
 
         /// <summary>
         ///     Author of the ModList
         /// </summary>
-        [Key(1)]
         public string Author;
 
         /// <summary>
         ///     Description of the ModList
         /// </summary>
-        [Key(2)]
         public string Description;
 
         /// <summary>
         ///     Install directives
         /// </summary>
-        [Key(3)]
         public List<Directive> Directives;
 
         /// <summary>
         ///     The game variant to which this game applies
         /// </summary>
-        [Key(4)]
         public Game GameType;
 
         /// <summary>
         ///     Hash of the banner-image
         /// </summary>
-        [Key(5)]
         public RelativePath Image;
 
         /// <summary>
         ///     The Mod Manager used to create the modlist
         /// </summary>
-        [Key(6)]
         public ModManager ModManager;
 
         /// <summary>
         ///     Name of the ModList
         /// </summary>
-        [Key(7)]
         public string Name;
 
         /// <summary>
         ///     readme path or website
         /// </summary>
-        [Key(8)]
         public string Readme;
 
         /// <summary>
         ///     Whether readme is a website
         /// </summary>
-        [Key(9)]
         public bool ReadmeIsWebsite;
 
         /// <summary>
         ///     The build version of Wabbajack used when compiling the Modlist
         /// </summary>
-        [Key(10)]
         public Version WabbajackVersion;
 
         /// <summary>
         ///     Website of the ModList
         /// </summary>
-        [Key(11)]
         public Uri Website;
 
         /// <summary>
         ///     The size of all the archives once they're downloaded
         /// </summary>
-        [IgnoreMember]
+        [JsonIgnore]
         public long DownloadSize => Archives.Sum(a => a.Size);
 
         /// <summary>
         ///     The size of all the files once they are installed (excluding downloaded archives)
         /// </summary>
-        [IgnoreMember]
+        [JsonIgnore]
         public long InstallSize => Directives.Sum(s => s.Size);
 
         public ModList Clone()
         {
             using var ms = new MemoryStream();
-            ms.WriteAsMessagePack(this);
+            this.ToJson(ms);
             ms.Position = 0;
-            return ms.ReadAsMessagePack<ModList>();
+            return ms.FromJson<ModList>();
         }
     }
 
-    [MessagePackObject]
-    [Union(0, typeof(ArchiveMeta))]
-    [Union(1, typeof(CreateBSA))]
-    [Union(2, typeof(FromArchive))]
-    [Union(3, typeof(MergedPatch))]
-    [Union(4, typeof(InlineFile))]
-    [Union(5, typeof(PatchedFromArchive))]
-    [Union(6, typeof(RemappedInlineFile))]
-    [Union(7, typeof(CleanedESM))]
     public abstract class Directive
     {
-        [Key(0)]
         public Hash Hash { get; set; }
-        [Key(1)]
         public long Size { get; set; }
 
         /// <summary>
         ///     location the file will be copied to, relative to the install path.
         /// </summary>
-        [Key(2)]
         public RelativePath To { get; set; }
     }
 
@@ -164,20 +141,18 @@ namespace Wabbajack.Lib
     {
     }
 
-    [MessagePackObject]
+    [JsonName("InlineFile")]
     public class InlineFile : Directive
     {
         /// <summary>
         ///     Data that will be written as-is to the destination location;
         /// </summary>
-        [Key(3)]
         public RelativePath SourceDataID { get; set; }
     }
 
-    [MessagePackObject]
+    [JsonName("ArchiveMeta")]
     public class ArchiveMeta : Directive
     {
-        [Key(3)]
         public RelativePath SourceDataID { get; set; }
     }
 
@@ -186,117 +161,99 @@ namespace Wabbajack.Lib
     /// <summary>
     ///     File meant to be extracted before the installation
     /// </summary>
-    [MessagePackObject]
+    [JsonName("PropertyFile")]
     public class PropertyFile : InlineFile
     {
-        [Key(4)]
         public PropertyType Type;
     }
 
-    [MessagePackObject]
+    [JsonName("CleanedESM")]
     public class CleanedESM : InlineFile
     {
-        [Key(4)]
         public Hash SourceESMHash;
     }
 
     /// <summary>
     ///     A file that has the game and MO2 folders remapped on installation
     /// </summary>
-    [MessagePackObject]
+    [JsonName("RemappedInlineFile")]
     public class RemappedInlineFile : InlineFile
     {
     }
 
-    [MessagePackObject]
+    [JsonName("SteamMeta")]
     public class SteamMeta : ArchiveMeta
     {
-        [Key(4)]
         public int ItemID { get; set; }
     }
 
-    [MessagePackObject]
+    [JsonName("FromArchive")]
     public class FromArchive : Directive
     {
         private string _fullPath;
 
-        [Key(3)]
         public HashRelativePath ArchiveHashPath { get; set; }
 
-        [IgnoreMember]
+        [JsonIgnore]
         public VirtualFile FromFile { get; set; }
 
-        [IgnoreMember]
+        [JsonIgnore]
         public string FullPath => _fullPath ??= string.Join("|", ArchiveHashPath);
     }
 
-    [MessagePackObject]
+    [JsonName("CreateBSA")]
     public class CreateBSA : Directive
     {
-        [Key(3)]
         public RelativePath TempID { get; set; }
-        [Key(4)]
         public ArchiveStateObject State { get; set; }
-        [Key(5)]
         public List<FileStateObject> FileStates { get; set; }
     }
 
-    [MessagePackObject]
+    [JsonName("PatchedFromArchive")]
     public class PatchedFromArchive : FromArchive
     {
-        [Key(4)]
         public Hash FromHash { get; set; }
 
         /// <summary>
         ///     The file to apply to the source file to patch it
         /// </summary>
-        [Key(5)]
         public RelativePath PatchID { get; set; }
     }
 
-    [MessagePackObject]
+    [JsonName("SourcePatch")]
     public class SourcePatch
     {
-        [Key(0)]
         public Hash Hash { get; set; }
-        [Key(1)]
         public RelativePath RelativePath { get; set; }
     }
 
-    [MessagePackObject]
+    [JsonName("MergedPatch")]
     public class MergedPatch : Directive
     {
-        [Key(3)]
         public RelativePath PatchID { get; set; }
-        [Key(4)]
         public List<SourcePatch> Sources { get; set; }
     }
 
-    [MessagePackObject]
+    [JsonName("Archive")]
     public class Archive
     {
         /// <summary>
         ///     xxHash64 of the archive
         /// </summary>
-        [Key(0)]
         public Hash Hash { get; set; }
 
         /// <summary>
         ///     Meta INI for the downloaded archive
         /// </summary>
-        [Key(1)]
         public string Meta { get; set; }
 
         /// <summary>
         ///     Human friendly name of this archive
         /// </summary>
-        [Key(2)]
         public string Name { get; set; }
 
-        [Key(3)]
         public long Size { get; set; }
         
-        [Key(4)]
         public AbstractDownloadState State { get; set; }
     }
 

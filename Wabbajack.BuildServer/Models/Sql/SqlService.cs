@@ -184,8 +184,8 @@ namespace Wabbajack.BuildServer.Model.Models
                 @"INSERT INTO dbo.Jobs (Created, Priority, Payload, OnSuccess) VALUES (GETDATE(), @Priority, @Payload, @OnSuccess)",
                 new {
                     job.Priority,
-                    Payload = job.Payload.ToJSON(), 
-                    OnSuccess = job.OnSuccess?.ToJSON() ?? null});
+                    Payload = job.Payload.ToJson(), 
+                    OnSuccess = job.OnSuccess?.ToJson() ?? null});
         }
         
         /// <summary>
@@ -201,7 +201,7 @@ namespace Wabbajack.BuildServer.Model.Models
                 new {
                     job.Id,
                     Success = job.Result.ResultType == JobResultType.Success,
-                    ResultPayload = job.Result.ToJSON()
+                    ResultPayload = job.Result.ToJson()
                     
                 });
             
@@ -258,12 +258,12 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             public override void SetValue(IDbDataParameter parameter, AJobPayload value)
             {
-                parameter.Value = value.ToJSON();
+                parameter.Value = value.ToJson();
             }
 
             public override AJobPayload Parse(object value)
             {
-                return ((string)value).FromJSONString<AJobPayload>();
+                return ((string)value).FromJsonString<AJobPayload>();
             }
         }
         
@@ -346,7 +346,7 @@ namespace Wabbajack.BuildServer.Model.Models
                     Hash = hash,
                     PrimaryKey = state.PrimaryKeyString,
                     IniState = string.Join("\n", state.GetMetaIni()),
-                    JsonState = state.ToJSON()
+                    JsonState = state.ToJson()
                 });
         }
 
@@ -451,7 +451,7 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             await using var conn = await Open();
             var results = await conn.QueryAsync<string>("SELECT Summary from dbo.ModLists");
-            return results.Select(s => s.FromJSONString<ModlistSummary>()).ToList();
+            return results.Select(s => s.FromJsonString<ModlistSummary>()).ToList();
         }
         
         public async Task<DetailedStatus> GetDetailedModlistStatus(string machineUrl)
@@ -462,13 +462,13 @@ namespace Wabbajack.BuildServer.Model.Models
                 {
                     machineUrl
                 });
-            return result.FromJSONString<DetailedStatus>();
+            return result.FromJsonString<DetailedStatus>();
         }
         public async Task<List<DetailedStatus>> GetDetailedModlistStatuses()
         {
             await using var conn = await Open();
             var results = await conn.QueryAsync<string>("SELECT DetailedStatus from dbo.ModLists");
-            return results.Select(s => s.FromJSONString<DetailedStatus>()).ToList();
+            return results.Select(s => s.FromJsonString<DetailedStatus>()).ToList();
         }
 
         
@@ -523,7 +523,7 @@ namespace Wabbajack.BuildServer.Model.Models
                 new {Hash = startingHash});
             return result == null ? null : new Archive
             {
-                State = result.FromJSONString<AbstractDownloadState>(),
+                State = result.FromJsonString<AbstractDownloadState>(),
                 Hash = startingHash
             };
         }
@@ -535,7 +535,7 @@ namespace Wabbajack.BuildServer.Model.Models
                 new {PrimaryKey = primaryKey});
             return result == default ? null : new Archive
             {
-                State = result.State.FromJSONString<AbstractDownloadState>(),
+                State = result.State.FromJsonString<AbstractDownloadState>(),
                 Hash = Hash.FromLong(result.Hash)
             };
         }
@@ -604,9 +604,9 @@ namespace Wabbajack.BuildServer.Model.Models
                 new
                 {
                     MachineUrl = dto.Metadata.Links.MachineURL,
-                    Metadata = dto.Metadata.ToJSON(),
-                    Summary = dto.Summary.ToJSON(),
-                    DetailedStatus = dto.DetailedStatus.ToJSON()
+                    Metadata = dto.Metadata.ToJson(),
+                    Summary = dto.Summary.ToJson(),
+                    DetailedStatus = dto.DetailedStatus.ToJson()
                 });
         }
 
