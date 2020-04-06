@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Wabbajack.CLI": {
-      "commandName": "Project",
-      "commandLineArgs": "change-download --input=\"S:\\Modding FAST\\Wabbajack\\downloads\" --output=\"S:\\Modding FAST\\test\" --modlist=\"S:\\Modding FAST\\Wabbajack\\profiles\\erri120's Dope Test Modlist\\modlist.txt\""
+      "commandName": "Project"
     }
   }
 }
