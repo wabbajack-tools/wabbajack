@@ -61,10 +61,10 @@ namespace Wabbajack.CLI.Verbs
         protected override async Task<int> Run()
         {
             if (Modlist != null && (!Modlist.EndsWith(Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt")))
-                return CLIUtils.Exit($"The file {Modlist} is not a valid modlist file!", -1);
+                return CLIUtils.Exit($"The file {Modlist} is not a valid modlist file!", ExitCode.BadArguments);
 
             if (Copy && Move)
-                return CLIUtils.Exit("You can't set both copy and move flags!", -1);
+                return CLIUtils.Exit("You can't set both copy and move flags!", ExitCode.BadArguments);
 
             var isModlist = Modlist != null && Modlist.EndsWith(Consts.ModListExtension);
 
@@ -80,12 +80,12 @@ namespace Wabbajack.CLI.Verbs
                 }
                 catch (Exception e)
                 {
-                    return CLIUtils.Exit($"Error while loading the Modlist!\n{e}", 1);
+                    return CLIUtils.Exit($"Error while loading the Modlist!\n{e}", ExitCode.Error);
                 }
 
                 if (modlist == null)
                 {
-                    return CLIUtils.Exit("The Modlist could not be loaded!", 1);
+                    return CLIUtils.Exit("The Modlist could not be loaded!", ExitCode.Error);
                 }
 
                 CLIUtils.Log($"Modlist contains {modlist.Archives.Count} archives.");
@@ -144,18 +144,18 @@ namespace Wabbajack.CLI.Verbs
             else
             {
                 if (!Directory.Exists(Mods))
-                    return CLIUtils.Exit($"Mods directory {Mods} does not exist!", -1);
+                    return CLIUtils.Exit($"Mods directory {Mods} does not exist!", ExitCode.BadArguments);
 
                 CLIUtils.Log($"Reading modlist.txt from {Modlist}");
                 string[] modlist = File.ReadAllLines(Modlist);
 
                 if (modlist == null || modlist.Length == 0)
-                    return CLIUtils.Exit($"Provided modlist.txt file at {Modlist} is empty or could not be read!", -1);
+                    return CLIUtils.Exit($"Provided modlist.txt file at {Modlist} is empty or could not be read!", ExitCode.BadArguments);
 
                 var mods = modlist.Where(s => s.StartsWith("+")).Select(s => s.Substring(1)).ToHashSet();
 
                 if (mods.Count == 0)
-                    return CLIUtils.Exit("Counted mods from modlist.txt are 0!", -1);
+                    return CLIUtils.Exit("Counted mods from modlist.txt are 0!", ExitCode.BadArguments);
 
                 CLIUtils.Log($"Found {mods.Count} mods in modlist.txt");
 

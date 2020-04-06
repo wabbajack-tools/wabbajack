@@ -8,6 +8,13 @@ using Wabbajack.Common;
 
 namespace Wabbajack.CLI
 {
+    internal enum ExitCode
+    {
+        BadArguments = -1,
+        Ok = 0,
+        Error = 1
+    }
+
     /// <summary>
     /// Abstract class to mark attributes which need validating
     /// </summary>
@@ -115,7 +122,7 @@ namespace Wabbajack.CLI
                 var optionAttribute = (OptionAttribute)p.GetAttribute(typeof(OptionAttribute));
 
                 if (optionAttribute.Required)
-                    Exit(message, -1);
+                    Exit(message, ExitCode.BadArguments);
                 else
                     Log(message);
             });
@@ -156,10 +163,10 @@ namespace Wabbajack.CLI
                 Console.Write(msg);
         }
 
-        internal static int Exit(string msg, int code)
+        internal static int Exit(string msg, ExitCode code)
         {
             Log(msg);
-            return code;
+            return (int)code;
         }
 
         internal static void LogException(Exception e, string msg)

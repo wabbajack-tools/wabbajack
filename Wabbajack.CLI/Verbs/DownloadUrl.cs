@@ -23,7 +23,7 @@ namespace Wabbajack.CLI.Verbs
         {
             var state = await DownloadDispatcher.Infer(Url);
             if (state == null)
-                return CLIUtils.Exit($"Could not find download source for URL {Url}", 1);
+                return CLIUtils.Exit($"Could not find download source for URL {Url}", ExitCode.Error);
 
             DownloadDispatcher.PrepareAll(new []{state});
 
