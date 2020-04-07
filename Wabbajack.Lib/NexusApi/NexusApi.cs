@@ -100,33 +100,52 @@ namespace Wabbajack.Lib.NexusApi
                 await Task.Delay(500, cancel);
             }
 
-            // open a web socket to receive the api key
-            var guid = Guid.NewGuid();
-            using (var websocket = new WebSocket("wss://sso.nexusmods.com")
-            {
-                SslConfiguration =
-                {
-                    EnabledSslProtocols = SslProtocols.Tls12
-                }
-            })
-            {
-                updateStatus("Please authorize Wabbajack to download Nexus mods");
-                var api_key = new TaskCompletionSource<string>();
-                websocket.OnMessage += (sender, msg) => { api_key.SetResult(msg.Data); };
 
-                websocket.Connect();
-                websocket.Send("{\"id\": \"" + guid + "\", \"appid\": \"" + Consts.AppName + "\"}");
-                await Task.Delay(1000, cancel);
+            await browser.NavigateTo(new Uri("https://www.nexusmods.com/users/myaccount?tab=api"));
 
-                // open a web browser to get user permission
-                await browser.NavigateTo(new Uri($"https://www.nexusmods.com/sso?id={guid}&application={Consts.AppName}"));
-                using (cancel.Register(() =>
+            updateStatus("Looking for API Key");
+
+            
+            var apiKey = new TaskCompletionSource<string>();
+
+            while (true)
+            {
+                var key = "";
+                try
                 {
-                    api_key.SetCanceled();
-                }))
-                {
-                    return await api_key.Task;
+                    key = await browser.EvaluateJavaScript(
+                        "document.querySelector(\"input[value=wabbajack]\").parentElement.parentElement.querySelector(\"textarea.application-key\").innerHTML");
                 }
+                catch (Exception ex)
+                {
+                    // ignored
+                }
+
+                if (!string.IsNullOrEmpty(key))
+                {
+                    return key;
+                }
+
+                try
+                {
+                    await browser.EvaluateJavaScript(
+                        "var found = document.querySelector(\"input[value=wabbajack]\").parentElement.parentElement.querySelector(\"form button[type=submit]\");" +
+                        "found.onclick= function() {return true;};" +
+                        "found.class = \" \"; " +
+                        "found.click();" +
+                        "found.remove(); found = undefined;"
+                    );
+                    updateStatus("Generating API Key, Please Wait...");
+
+
+                }
+                catch (Exception)
+                {
+                    // ignored
+                }
+
+                cancel.ThrowIfCancellationRequested();
+                await Task.Delay(500);
             }
         }
 
