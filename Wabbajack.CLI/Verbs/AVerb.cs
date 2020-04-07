@@ -1,6 +1,4 @@
-﻿using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Wabbajack.CLI.Verbs
 {
@@ -8,10 +6,13 @@ namespace Wabbajack.CLI.Verbs
     {
         public int Execute()
         {
-            return Run().Result;
+            if (!CLIUtils.HasValidArguments(this))
+                CLIUtils.Exit("The provided arguments are not valid! Check previous messages for more information",
+                    ExitCode.BadArguments);
+
+            return (int)Run().Result;
         }
 
-        protected abstract Task<int> Run();
-
+        protected abstract Task<ExitCode> Run();
     }
 }
