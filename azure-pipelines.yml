@@ -38,6 +38,10 @@ steps:
     projects: 'Wabbajack\Wabbajack.csproj'
     arguments: '--runtime win10-x64 --configuration Release /p:Platform=x64'
 
+- script: |
+   dotnet add package coverlet.msbuild
+  displayName: Install Coverlet
+
 - task: DotNetCoreCLI@2
   displayName: "Test Release"
   inputs:
