@@ -95,6 +95,8 @@ namespace Wabbajack.Lib.Downloaders
 
             private void MegaLogin()
             {
+                MegaApiClient = new MegaApiClient();
+
                 if (MegaApiClient.IsLoggedIn)
                     return;
 
