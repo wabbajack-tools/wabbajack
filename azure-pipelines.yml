@@ -43,7 +43,7 @@ steps:
   inputs:
     command: 'test'
     projects: '**/*.Test.csproj'
-    arguments: '/p:Platform=x64 /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura'
+    arguments: '/p:Platform=x64 /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/CodeCoverage'
     
   # Generate the report using ReportGenerator (https://github.com/danielpalme/ReportGenerator)
   # First install the tool on the machine, then run it
