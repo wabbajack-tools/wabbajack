@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
@@ -41,23 +42,35 @@ namespace Wabbajack.BuildServer.Test
             var modlists = await MakeModList();
             Consts.ModlistMetadataURL = modlists.ToString();
             Utils.Log("Updating modlists");
-            var result = await AuthorAPI.UpdateServerModLists();
-            Assert.NotNull(result);
-
-            var sql = Fixture.GetService<SqlService>();
-            var settings = Fixture.GetService<AppSettings>();
-            var job = await sql.GetJob();
-            
-            Assert.NotNull(job);
-            Assert.IsType<UpdateModLists>(job.Payload);
-
-
-            var jobResult = await job.Payload.Execute(sql, settings);
-            Assert.Equal(JobResultType.Success, jobResult.ResultType);
+            await RevalidateLists();
 
             Utils.Log("Checking validated results");
             var data = await ModlistMetadata.LoadFromGithub();
+            Assert.Single(data);
+            Assert.Equal(0, data.First().ValidationSummary.Failed);
+            Assert.Equal(1, data.First().ValidationSummary.Passed);
             
+            await CheckListFeeds(0, 1);
+
+            Utils.Log("Break List");
+            var archive = "test_archive.txt".RelativeTo(Fixture.ServerPublicFolder);
+            await archive.MoveToAsync(archive.WithExtension(new Extension(".moved")), true);
+
+            await RevalidateLists();
+            
+            data = await ModlistMetadata.LoadFromGithub();
+            Assert.Single(data);
+            Assert.Equal(1, data.First().ValidationSummary.Failed);
+            Assert.Equal(0, data.First().ValidationSummary.Passed);
+            
+            await CheckListFeeds(1, 0);
+            
+            Utils.Log("Fix List");
+            await archive.WithExtension(new Extension(".moved")).MoveToAsync(archive, false);
+
+            await RevalidateLists();
+            
+            data = await ModlistMetadata.LoadFromGithub();
             Assert.Single(data);
             Assert.Equal(0, data.First().ValidationSummary.Failed);
             Assert.Equal(1, data.First().ValidationSummary.Passed);
@@ -66,13 +79,36 @@ namespace Wabbajack.BuildServer.Test
 
         }
 
+        private async Task RevalidateLists()
+        {
+            var result = await AuthorAPI.UpdateServerModLists();
+            Assert.NotNull(result);
+            
+            var sql = Fixture.GetService<SqlService>();
+            var settings = Fixture.GetService<AppSettings>();
+            var job = await sql.GetJob();
+
+            Assert.NotNull(job);
+            Assert.IsType<UpdateModLists>(job.Payload);
+
+
+            var jobResult = await job.Payload.Execute(sql, settings);
+            Assert.Equal(JobResultType.Success, jobResult.ResultType);
+        }
+
         private async Task CheckListFeeds(int failed, int passed)
         {
             var statusJson = await _client.GetJsonAsync<DetailedStatus>(MakeURL("lists/status/test_list.json"));
             Assert.Equal(failed, statusJson.Archives.Count(a => a.IsFailing));
             Assert.Equal(passed, statusJson.Archives.Count(a => !a.IsFailing));
+
             
+            var statusHtml = await _client.GetHtmlAsync(MakeURL("lists/status/test_list.html"));
+            Assert.NotEmpty(statusHtml.DocumentNode.Descendants().Where(n => n.InnerHtml == $"Failed ({failed}):"));
+            Assert.NotEmpty(statusHtml.DocumentNode.Descendants().Where(n => n.InnerHtml == $"Passed ({passed}):"));
             
+            var statusRss = await _client.GetHtmlAsync(MakeURL("lists/status/test_list/broken.rss"));
+            Assert.Equal(failed, statusRss.DocumentNode.SelectNodes("//item")?.Count ?? 0);
         }
 
 

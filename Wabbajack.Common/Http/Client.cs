@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
 
 namespace Wabbajack.Common.Http
 {
@@ -103,6 +104,14 @@ namespace Wabbajack.Common.Http
         {
             var result = await GetStringAsync(s);
             return result.FromJsonString<T>();
+        }
+
+        public async Task<HtmlDocument> GetHtmlAsync(string s)
+        {
+            var body = await GetStringAsync(s);
+            var doc = new HtmlDocument();
+            doc.LoadHtml(body);
+            return doc;
         }
     }
 }
