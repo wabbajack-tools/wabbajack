@@ -21,10 +21,13 @@ namespace Wabbajack.BuildServer.Test
         [Fact, Priority(1)]
         public async Task CanIngestExportedInis()
         {
+            var sql = Fixture.GetService<SqlService>();
             var to = Fixture.ServerTempFolder.Combine("IniIngest");
             await @"sql\DownloadStates".RelativeTo(AbsolutePath.EntryPoint).CopyDirectoryToAsync(to);
             var result = await _authedClient.GetStringAsync(MakeURL("indexed_files/ingest/IniIngest"));
             Assert.Equal("5", result);
+
+            await ClearJobQueue();
         }
 
         [Fact, Priority(2)]

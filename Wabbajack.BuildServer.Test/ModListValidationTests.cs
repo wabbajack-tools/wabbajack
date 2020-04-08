@@ -6,6 +6,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.BuildServer.Model.Models;
+using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.BuildServer.Models.Jobs;
 using Wabbajack.Common;
@@ -60,7 +61,18 @@ namespace Wabbajack.BuildServer.Test
             Assert.Single(data);
             Assert.Equal(0, data.First().ValidationSummary.Failed);
             Assert.Equal(1, data.First().ValidationSummary.Passed);
+            
+            await CheckListFeeds(0, 1);
 
+        }
+
+        private async Task CheckListFeeds(int failed, int passed)
+        {
+            var statusJson = await _client.GetJsonAsync<DetailedStatus>(MakeURL("lists/status/test_list.json"));
+            Assert.Equal(failed, statusJson.Archives.Count(a => a.IsFailing));
+            Assert.Equal(passed, statusJson.Archives.Count(a => !a.IsFailing));
+            
+            
         }
 
 

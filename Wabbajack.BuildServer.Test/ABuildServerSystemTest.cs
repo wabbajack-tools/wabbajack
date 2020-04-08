@@ -4,6 +4,8 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
+using Wabbajack.BuildServer.Model.Models;
+using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
 using Wabbajack.Common.Http;
 using Wabbajack.Common.StatusFeed;
@@ -145,6 +147,19 @@ namespace Wabbajack.BuildServer.Test
         protected string MakeURL(string path)
         {
             return "http://localhost:8080/" + path;
+        }
+
+        protected async Task ClearJobQueue()
+        {
+            var sql = Fixture.GetService<SqlService>();
+            while (true)
+            {
+                var job = await sql.GetJob();
+                if (job == null) break;
+                
+                job.Result = JobResult.Success();
+                await sql.FinishJob(job);
+            }
         }
 
         public override void Dispose()
