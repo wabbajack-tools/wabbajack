@@ -30,7 +30,7 @@ namespace Wabbajack.BuildServer.Model.Models
 
         }
 
-        private async Task<SqlConnection> Open()
+        public async Task<SqlConnection> Open()
         {
             var conn = new SqlConnection(_settings.SqlConnection);
             await conn.OpenAsync();
@@ -201,8 +201,7 @@ namespace Wabbajack.BuildServer.Model.Models
                 new {
                     job.Id,
                     Success = job.Result.ResultType == JobResultType.Success,
-                    ResultPayload = job.Result.ToJson()
-                    
+                    ResultContent = job.Result.ToJson()
                 });
             
             if (job.OnSuccess != null)

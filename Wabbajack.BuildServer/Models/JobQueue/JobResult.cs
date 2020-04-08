@@ -1,7 +1,9 @@
 ﻿using System;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.BuildServer.Models.JobQueue
 {
+    [JsonName("JobResult")]
     public class JobResult
     {
         public JobResultType ResultType { get; set; }

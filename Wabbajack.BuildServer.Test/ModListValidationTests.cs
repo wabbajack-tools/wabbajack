@@ -39,6 +39,7 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanValidateModLists()
         {
+            await ClearJobQueue();
             var modlists = await MakeModList();
             Consts.ModlistMetadataURL = modlists.ToString();
             Utils.Log("Updating modlists");
