@@ -92,7 +92,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             var dto = new ModListStatus
             {
                 Id = list.Links.MachineURL,
-                Summary = new ModlistSummary
+                Summary = new ModListSummary
                 {
                     Name = status.Name,
                     MachineURL = list.Links?.MachineURL ?? status.Name,

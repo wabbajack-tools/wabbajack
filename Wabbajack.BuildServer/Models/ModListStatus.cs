@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
 
@@ -10,7 +11,7 @@ namespace Wabbajack.BuildServer.Models
     public class ModListStatus
     {
         public string Id { get; set; }
-        public ModlistSummary Summary { get; set; }
+        public ModListSummary Summary { get; set; }
 
         public ModlistMetadata Metadata { get; set; }
         public DetailedStatus DetailedStatus { get; set; }
@@ -24,6 +25,7 @@ namespace Wabbajack.BuildServer.Models
         }
     }
 
+    [JsonName("DetailedStatus")]
     public class DetailedStatus
     {
         public string Name { get; set; }
@@ -34,6 +36,7 @@ namespace Wabbajack.BuildServer.Models
         public string MachineName { get; set; }
     }
 
+    [JsonName("DetailedStatusItem")]
     public class DetailedStatusItem
     {
         public bool IsFailing { get; set; }

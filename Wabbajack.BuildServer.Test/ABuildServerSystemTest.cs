@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Wabbajack.Common;
 using Wabbajack.Common.Http;
 using Wabbajack.Common.StatusFeed;
+using Wabbajack.Lib.FileUploader;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,6 +22,8 @@ namespace Wabbajack.BuildServer.Test
         public readonly TempFolder _severTempFolder = new TempFolder();
         private bool _disposed = false;
         public AbsolutePath ServerTempFolder => _severTempFolder.Dir;
+
+        public AbsolutePath ServerPublicFolder => "public".RelativeTo(AbsolutePath.EntryPoint);
 
 
         public BuildServerFixture()
@@ -42,6 +45,9 @@ namespace Wabbajack.BuildServer.Test
             _token = new CancellationTokenSource();
             _task = _host.RunAsync(_token.Token);
             Consts.WabbajackBuildServerUri = new Uri("http://localhost:8080");
+
+            "ServerWhitelist.yaml".RelativeTo(ServerPublicFolder).WriteAllText(
+                "GoogleIDs:\nAllowedPrefixes:\n    - http://localhost");
         }
 
         ~BuildServerFixture()
@@ -125,8 +131,11 @@ namespace Wabbajack.BuildServer.Test
             _authedClient = new Client();
             Fixture = fixture.Deref();
             _authedClient.Headers.Add(("x-api-key", Fixture.APIKey));
+            AuthorAPI.ApiKeyOverride = Fixture.APIKey;
             _queue = new WorkQueue();
             Queue = new WorkQueue();
+            Consts.ModlistSummaryURL = MakeURL("lists/status.json");
+            Consts.ServerWhitelistURL = MakeURL("ServerWhitelist.yaml");
         }
 
         public WorkQueue Queue { get; set; }

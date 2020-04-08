@@ -81,7 +81,6 @@ namespace Wabbajack.Common
 
         }.Select(s => (RelativePath)s).ToHashSet();
 
-        public static string ModPermissionsURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/NexusModPermissions.yml";
         public static string ServerWhitelistURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml";
         public static string ModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json";
         public static string ModlistSummaryURL = "http://build.wabbajack.org/lists/status.json";

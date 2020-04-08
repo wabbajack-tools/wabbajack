@@ -47,6 +47,12 @@ namespace Wabbajack.Common
             var ser = JsonSerializer.Create(JsonSettings);
             ser.Serialize(writer, obj);
         }
+        
+        public static void ToJson<T>(this T obj, AbsolutePath path)
+        {
+            using var fs = path.Create();
+            obj.ToJson(fs);
+        }
 
         public static string ToJson<T>(this T obj)
         {

@@ -31,7 +31,7 @@ namespace Wabbajack.Lib.Validation
             using (var result = await response.Content.ReadAsStreamAsync())
             {
                 ServerWhitelist = result.FromYaml<ServerWhitelist>();
-                Utils.Log($"Loaded permissions for {ServerWhitelist.AllowedPrefixes.Count} servers and {ServerWhitelist.GoogleIDs.Count} Google Drive files");
+                Utils.Log($"Loaded permissions for {ServerWhitelist.AllowedPrefixes?.Count ?? 0} servers and {ServerWhitelist.GoogleIDs?.Count ?? 0} Google Drive files");
             }
 
         }

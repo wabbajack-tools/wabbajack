@@ -21,8 +21,11 @@ namespace Wabbajack.Lib.FileUploader
     {
         public static IObservable<bool> HaveAuthorAPIKey => Utils.HaveEncryptedJsonObservable(Consts.AuthorAPIKeyFile);
 
+        public static string ApiKeyOverride = null;
+
         public static async Task<string> GetAPIKey(string apiKey = null)
         {
+            if (ApiKeyOverride != null) return ApiKeyOverride;
             return apiKey ?? (await Consts.LocalAppDataPath.Combine(Consts.AuthorAPIKeyFile).ReadAllTextAsync()).Trim();
         }
         
@@ -130,7 +133,7 @@ namespace Wabbajack.Lib.FileUploader
         public static async Task<string> RunJob(string jobtype)
         {
             var client = await GetAuthorizedClient();
-            return await client.GetStringAsync($"https://{Consts.WabbajackCacheHostname}/jobs/enqueue_job/{jobtype}");
+            return await client.GetStringAsync($"{Consts.WabbajackBuildServerUri}jobs/enqueue_job/{jobtype}");
             
         }
 

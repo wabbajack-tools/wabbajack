@@ -9,6 +9,7 @@ using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Lib.ModListRegistry
 {
+    [JsonName("ModListMetadata")]
     public class ModlistMetadata
     {
         [JsonProperty("title")]
@@ -35,8 +36,9 @@ namespace Wabbajack.Lib.ModListRegistry
         public DownloadMetadata DownloadMetadata { get; set; }
 
         [JsonIgnore] 
-        public ModlistSummary ValidationSummary { get; set; } = new ModlistSummary();
+        public ModListSummary ValidationSummary { get; set; } = new ModListSummary();
 
+        [JsonName("Links")]
         public class LinksObject
         {
             [JsonProperty("image")]
@@ -66,10 +68,10 @@ namespace Wabbajack.Lib.ModListRegistry
             var metadata = (await metadataResult).FromJsonString<List<ModlistMetadata>>();
             try
             {
-                var summaries = (await summaryResult).FromJsonString<List<ModlistSummary>>().ToDictionary(d => d.Name);
+                var summaries = (await summaryResult).FromJsonString<List<ModListSummary>>().ToDictionary(d => d.MachineURL);
 
                 foreach (var data in metadata)
-                    if (summaries.TryGetValue(data.Title, out var summary))
+                    if (summaries.TryGetValue(data.Links.MachineURL, out var summary))
                         data.ValidationSummary = summary;
             }
             catch (Exception)
@@ -104,7 +106,8 @@ namespace Wabbajack.Lib.ModListRegistry
 
     }
 
-    public class ModlistSummary
+    [JsonName("ModListSummary")]
+    public class ModListSummary
     {
         [JsonProperty("name")]
         public string Name { get; set; }

@@ -447,11 +447,11 @@ namespace Wabbajack.BuildServer.Model.Models
         }
 
         #region ModLists
-        public async Task<IEnumerable<ModlistSummary>> GetModListSummaries()
+        public async Task<IEnumerable<ModListSummary>> GetModListSummaries()
         {
             await using var conn = await Open();
             var results = await conn.QueryAsync<string>("SELECT Summary from dbo.ModLists");
-            return results.Select(s => s.FromJsonString<ModlistSummary>()).ToList();
+            return results.Select(s => s.FromJsonString<ModListSummary>()).ToList();
         }
         
         public async Task<DetailedStatus> GetDetailedModlistStatus(string machineUrl)
@@ -599,8 +599,8 @@ namespace Wabbajack.BuildServer.Model.Models
             await conn.ExecuteAsync(@"MERGE dbo.ModLists AS Target
                 USING (SELECT @MachineUrl MachineUrl, @Metadata Metadata, @Summary Summary, @DetailedStatus DetailedStatus) AS Source
             ON Target.MachineUrl = Source.MachineUrl
-            WHEN MATCHED THEN UPDATE SET Target.Summary = Source.Summary, Target.Metadata = Source.Metadata, Target.DetailedStatus = Source.DetailedStats
-            WHEN NOT MATCHED THEN INSERT (MachineUrl, Summary, Metadata, DetailedStatus) VALUES (@MachineUrl, @Summary, @Metadata, @DetailedStatus)",
+            WHEN MATCHED THEN UPDATE SET Target.Summary = Source.Summary, Target.Metadata = Source.Metadata, Target.DetailedStatus = Source.DetailedStatus
+            WHEN NOT MATCHED THEN INSERT (MachineUrl, Summary, Metadata, DetailedStatus) VALUES (@MachineUrl, @Summary, @Metadata, @DetailedStatus);",
                 new
                 {
                     MachineUrl = dto.Metadata.Links.MachineURL,

@@ -22,7 +22,7 @@ namespace Wabbajack.BuildServer.Controllers
         
         [HttpGet]
         [Route("status.json")]
-        public async Task<IEnumerable<ModlistSummary>> HandleGetLists()
+        public async Task<IEnumerable<ModListSummary>> HandleGetLists()
         {
             return await SQL.GetModListSummaries();
         }
