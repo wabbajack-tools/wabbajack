@@ -3,15 +3,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using YoutubeExplode;
+#nullable enable
 
 namespace Wabbajack.Lib.Downloaders.UrlDownloaders
 {
     public class YoutubeInferencer : IUrlInferencer
     {
-        
-        public async Task<AbstractDownloadState> Infer(Uri uri)
+        public async Task<AbstractDownloadState?> Infer(Uri uri)
         {
-            var state = (YouTubeDownloader.State)YouTubeDownloader.UriToState(uri);
+            var state = YouTubeDownloader.UriToState(uri) as YouTubeDownloader.State;
             if (state == null) return null;
             
             var client = new YoutubeClient(Common.Http.ClientFactory.Client);
@@ -24,13 +24,13 @@ namespace Wabbajack.Lib.Downloaders.UrlDownloaders
                 .Select(line =>
                 {
                     var segments = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                    if (segments.Length == 0) return (TimeSpan.Zero, null);
+                    if (segments.Length == 0) return (TimeSpan.Zero, string.Empty);
                     
                     if (TryParseEx(segments.First(), out var s1))
                         return (s1, string.Join(" ", segments.Skip(1)));
                     if (TryParseEx(Enumerable.Last(segments), out var s2))
                         return (s2, string.Join(" ", Utils.ButLast(segments)));
-                    return (TimeSpan.Zero, null);
+                    return (TimeSpan.Zero, string.Empty);
                 })
                 .Where(t => t.Item2 != null)
                 .ToList();
