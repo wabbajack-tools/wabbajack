@@ -21,12 +21,12 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 Utils.Log($"Indexing game files");
                 var states = GameRegistry.Games.Values
                     .Where(game => game.GameLocation() != null && game.MainExecutable != null)
-                    .SelectMany(game => game.GameLocation().Value.EnumerateFiles()
+                    .SelectMany(game => game.GameLocation().EnumerateFiles()
                         .Select(file => new GameFileSourceDownloader.State
                         {
                             Game = game.Game,
                             GameVersion = game.InstalledVersion,
-                            GameFile = file.RelativeTo(game.GameLocation().Value),
+                            GameFile = file.RelativeTo(game.GameLocation()),
                         }))
                     .ToList();
                 
@@ -40,7 +40,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
                 await states.PMap(queue, async state =>
                 {
-                    var path = state.Game.MetaData().GameLocation().Value.Combine(state.GameFile);
+                    var path = state.Game.MetaData().GameLocation().Combine(state.GameFile);
                     Utils.Log($"Hashing Game file {path}");
                     try
                     {

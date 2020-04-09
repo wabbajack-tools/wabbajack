@@ -99,9 +99,16 @@ namespace Wabbajack.Common
 
         public string? MainExecutable { get; internal set; }
 
-        public AbsolutePath? GameLocation()
+        public AbsolutePath? TryGetGameLocation()
         {
-            return Consts.TestMode ? AbsolutePath.GetCurrentDirectory() : StoreHandler.Instance.GetGamePath(Game);
+            return Consts.TestMode ? AbsolutePath.GetCurrentDirectory() : StoreHandler.Instance.TryGetGamePath(Game);
+        }
+
+        public AbsolutePath GameLocation()
+        {
+            var ret = TryGetGameLocation();
+            if (ret == null) throw new ArgumentNullException();
+            return ret.Value;
         }
     }
 

@@ -52,7 +52,7 @@ namespace Wabbajack.Common.StoreHandlers
             }
         }
 
-        public AbsolutePath? GetGamePath(Game game)
+        public AbsolutePath? TryGetGamePath(Game game)
         {
             return StoreGames.FirstOrDefault(g => g.Game == game)?.Path;
         }

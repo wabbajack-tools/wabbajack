@@ -415,7 +415,7 @@ namespace Wabbajack.Test
             await converted.Download(new Archive { Name = "Update.esm" }, filename.Path);
 
             Assert.Equal(Hash.FromBase64("/DLG/LjdGXI="), await Utils.FileHashAsync(filename.Path));
-            Assert.Equal(await filename.Path.ReadAllBytesAsync(), await Game.SkyrimSpecialEdition.MetaData().GameLocation()?.Combine("Data/Update.esm").ReadAllBytesAsync());
+            Assert.Equal(await filename.Path.ReadAllBytesAsync(), await Game.SkyrimSpecialEdition.MetaData().GameLocation().Combine("Data/Update.esm").ReadAllBytesAsync());
             Consts.TestMode = true;
         }
         

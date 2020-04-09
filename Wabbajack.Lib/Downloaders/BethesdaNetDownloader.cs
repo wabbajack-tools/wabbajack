@@ -68,7 +68,7 @@ namespace Wabbajack.Lib.Downloaders
         public static async Task<BethesdaNetData> Login(Game game)
         {
             var metadata = game.MetaData();
-            var gamePath = metadata.GameLocation()?.Combine(metadata.MainExecutable);
+            var gamePath = metadata.GameLocation().Combine(metadata.MainExecutable);
             var info = new ProcessStartInfo
             {
                 FileName = @"Downloaders\BethesdaNet\bethnetlogin.exe",

@@ -20,9 +20,8 @@ namespace Wabbajack.Lib.Downloaders
             var game = GameRegistry.GetByFuzzyName(gameName);
             if (game == null) return null;
 
-            var path = game.GameLocation();
+            var path = game.TryGetGameLocation();
             var filePath = path?.Combine(gameFile);
-            
             
             if (!filePath?.Exists ?? false)
                 return null;
@@ -52,7 +51,7 @@ namespace Wabbajack.Lib.Downloaders
             public string GameVersion { get; set; }
 
             [JsonIgnore]
-            internal AbsolutePath SourcePath => Game.MetaData().GameLocation().Value.Combine(GameFile);
+            internal AbsolutePath SourcePath => Game.MetaData().GameLocation().Combine(GameFile);
 
             [JsonIgnore]
             public override object[] PrimaryKey { get => new object[] {Game, GameVersion, GameFile}; }
