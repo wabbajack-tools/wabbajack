@@ -22,10 +22,9 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 var states = GameRegistry.Games.Values
                     .Where(game => game.GameLocation() != null && game.MainExecutable != null)
                     .SelectMany(game => game.GameLocation().EnumerateFiles()
-                        .Select(file => new GameFileSourceDownloader.State
+                        .Select(file => new GameFileSourceDownloader.State(game.InstalledVersion)
                         {
                             Game = game.Game,
-                            GameVersion = game.InstalledVersion,
                             GameFile = file.RelativeTo(game.GameLocation()),
                         }))
                     .ToList();
@@ -59,11 +58,10 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     .ToList();
 
                 foreach (var job in jobs)
-                    await sql.EnqueueJob(job);                
+                    await sql.EnqueueJob(job);
                 
                 return JobResult.Success();
             }
-            
         }
     }
 }

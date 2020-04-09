@@ -130,7 +130,7 @@ namespace Wabbajack.BuildServer.Test
                         Hash = await test_archive_path.FileHashAsync(),
                         Name = "test_archive",
                         Size = test_archive_path.Size,
-                        State = new HTTPDownloader.State {Url = MakeURL("test_archive.txt")}
+                        State = new HTTPDownloader.State(MakeURL("test_archive.txt"))
                     }
                 }
             };

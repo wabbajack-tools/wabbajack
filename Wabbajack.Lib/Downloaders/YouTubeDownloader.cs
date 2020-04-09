@@ -15,15 +15,16 @@ using YoutubeExplode.Exceptions;
 using YoutubeExplode.Models.MediaStreams;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {
     public class YouTubeDownloader : IDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var directURL = (Uri)DownloaderUtils.GetDirectURL(archiveINI);
-            var state = (State)UriToState(directURL);
+            var state = UriToState(directURL) as State;
             if (state == null) return state;
 
             var idx = 0;
@@ -44,7 +45,7 @@ namespace Wabbajack.Lib.Downloaders
             return state;
         }
 
-        internal static AbstractDownloadState UriToState(Uri directURL)
+        internal static AbstractDownloadState? UriToState(Uri directURL)
         {
             if (directURL == null || !directURL.Host.EndsWith("youtube.com"))
             {
@@ -52,7 +53,7 @@ namespace Wabbajack.Lib.Downloaders
             }
 
             var key = HttpUtility.ParseQueryString(directURL.Query)["v"];
-            return key != null ? new State {Key = key} : null;
+            return key != null ? new State(key) : null;
         }
 
         public async Task Prepare()
@@ -62,12 +63,17 @@ namespace Wabbajack.Lib.Downloaders
         [JsonName("YouTubeDownloader")]
         public class State : AbstractDownloadState
         {
-            public string Key { get; set; }
+            public string Key { get; }
             
             public List<Track> Tracks { get; set; } = new List<Track>();
             
             [JsonIgnore]
             public override object[] PrimaryKey => new object[] {Key};
+
+            public State(string key)
+            {
+                Key = key;
+            }
 
             [JsonName("YouTubeTrack")]
             public class Track
@@ -78,8 +84,8 @@ namespace Wabbajack.Lib.Downloaders
                     WAV
                 }
                 public FormatEnum Format { get; set; }
-                
-                public string Name { get; set; }
+
+                public string Name { get; set; } = string.Empty;
                 
                 public TimeSpan Start { get; set; }
                 
@@ -164,7 +170,7 @@ namespace Wabbajack.Lib.Downloaders
                 p.Start();
                 ChildProcessTracker.AddProcess(p);
 
-                var output = await p.StandardError.ReadToEndAsync();
+                await p.StandardError.ReadToEndAsync();
 
                 try
                 {

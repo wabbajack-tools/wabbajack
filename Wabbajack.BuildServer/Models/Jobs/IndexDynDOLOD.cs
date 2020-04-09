@@ -41,10 +41,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                         Archive = new Archive
                         {
                             Name = Guid.NewGuid() + ".7z",
-                            State = new MegaDownloader.State
-                            {
-                                Url = url.ToString()
-                            }
+                            State = new MegaDownloader.State(url.ToString())
                         }
                     }
                 })

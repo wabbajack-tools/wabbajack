@@ -24,12 +24,22 @@ using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {
     public class BethesdaNetDownloader : IUrlDownloader, INeedsLogin
     {
         public const string DataName = "bethesda-net-data";
+
+        public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
+        public ReactiveCommand<Unit, Unit> ClearLogin { get; }
+        public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable(DataName);
+        public string SiteName => "Bethesda.NET";
+        public IObservable<string> MetaInfo => Observable.Return(""); //"Wabbajack will start the game, then exit once you enter the Mods page";
+        public Uri SiteURL => new Uri("https://bethesda.net");
+        public Uri? IconUri { get; }
+
         public BethesdaNetDownloader()
         {
             TriggerLogin = ReactiveCommand.CreateFromTask(() => Utils.CatchAndLog(RequestLoginAndCache), IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
@@ -38,23 +48,23 @@ namespace Wabbajack.Lib.Downloaders
 
         private static async Task RequestLoginAndCache()
         {
-            var result = await Utils.Log(new RequestBethesdaNetLogin()).Task;
+            await Utils.Log(new RequestBethesdaNetLogin()).Task;
         }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = (Uri)DownloaderUtils.GetDirectURL(archiveINI);
             return StateFromUrl(url);
         }
 
-        internal static AbstractDownloadState StateFromUrl(Uri url)
+        internal static AbstractDownloadState? StateFromUrl(Uri url)
         {
             if (url != null && url.Host == "bethesda.net" && url.AbsolutePath.StartsWith("/en/mods/"))
             {
                 var split = url.AbsolutePath.Split('/');
                 var game = split[3];
                 var modId = split[5];
-                return new State {GameName = game, ContentId = modId};
+                return new State(gameName: game, contentId: modId);
             }
             return null;
         }
@@ -65,9 +75,10 @@ namespace Wabbajack.Lib.Downloaders
             await Utils.Log(new RequestBethesdaNetLogin()).Task;
         }
 
-        public static async Task<BethesdaNetData> Login(Game game)
+        public static async Task<BethesdaNetData?> Login(Game game)
         {
             var metadata = game.MetaData();
+            if (metadata.MainExecutable == null) throw new NotImplementedException();
             var gamePath = metadata.GameLocation().Combine(metadata.MainExecutable);
             var info = new ProcessStartInfo
             {
@@ -102,28 +113,25 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        public AbstractDownloadState GetDownloaderState(string url)
+        public AbstractDownloadState? GetDownloaderState(string url)
         {
             return StateFromUrl(new Uri(url));
         }
 
-        public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
-        public ReactiveCommand<Unit, Unit> ClearLogin { get; }
-        public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable(DataName);
-        public string SiteName => "Bethesda.NET";
-        public IObservable<string> MetaInfo => Observable.Return(""); //"Wabbajack will start the game, then exit once you enter the Mods page";
-        public Uri SiteURL => new Uri("https://bethesda.net");
-        public Uri IconUri { get; }
-
-        
         [JsonName("BethesdaNetDownloader")]
         public class State : AbstractDownloadState
         {
-            public string GameName { get; set; }
-            public string ContentId { get; set; }
-            
+            public string GameName { get; }
+            public string ContentId { get; }
+
             [JsonIgnore]
-            public override object[] PrimaryKey => new object[] {GameName, ContentId};
+            public override object[] PrimaryKey => new object[] { GameName, ContentId };
+
+            public State(string gameName, string contentId)
+            {
+                GameName = gameName;
+                ContentId = contentId;
+            }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -142,8 +150,8 @@ namespace Wabbajack.Lib.Downloaders
                     using var got = await client.GetAsync(
                         $"https://content.cdp.bethesda.net/{collected.CDPProductId}/{collected.CDPPropertiesId}/{chunk.sha}");
                     var data = await got.Content.ReadAsByteArrayAsync();
-                    if (collected.AESKey != null) 
-                        AESCTRDecrypt(collected.AESKey, collected.AESIV, data);
+                    if (collected.AESKey != null)
+                        AESCTRDecrypt(collected.AESKey, collected.AESIV!, data);
 
                     if (chunk.uncompressed_size == chunk.chunk_size)
                         await file.WriteAsync(data, 0, data.Length);
@@ -197,7 +205,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive archive)
             {
-                var info = await ResolveDownloadInfo();
+                await ResolveDownloadInfo();
                 return true;
             }
 
@@ -221,7 +229,7 @@ namespace Wabbajack.Lib.Downloaders
                 client.Headers.Add(("x-cdp-app", "UGC SDK"));
                 client.Headers.Add(("x-cdp-app-ver", "0.9.11314/debug"));
                 client.Headers.Add(("x-cdp-lib-ver", "0.9.11314/debug"));
-                client.Headers.Add(("x-cdp-platform","Win/32"));
+                client.Headers.Add(("x-cdp-platform", "Win/32"));
 
                 posted = await client.PostAsync("https://api.bethesda.net/cdp-user/auth",
                     new StringContent("{\"access_token\": \"" + info.AccessToken + "\"}", Encoding.UTF8,
@@ -232,10 +240,10 @@ namespace Wabbajack.Lib.Downloaders
                 var got = await client.GetAsync($"https://api.bethesda.net/mods/ugc-workshop/content/get?content_id={ContentId}");
                 JObject data = JObject.Parse(await got.Content.ReadAsStringAsync());
 
-                var content = data["platform"]["response"]["content"];
+                var content = data["platform"]!["response"]!["content"]!;
 
-                info.CDPBranchId = (int)content["cdp_branch_id"];
-                info.CDPProductId = (int)content["cdp_product_id"];
+                info.CDPBranchId = (int)content["cdp_branch_id"]!;
+                info.CDPProductId = (int)content["cdp_product_id"]!;
 
                 client.Headers.Add(("Authorization", $"Token {info.CDPToken}"));
                 client.Headers.Add(("Accept", "application/json"));
@@ -245,7 +253,7 @@ namespace Wabbajack.Lib.Downloaders
                     $"https://api.bethesda.net/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/tree/.json");
 
                 var tree = (await got.Content.ReadAsStringAsync()).FromJsonString<CDPTree>();
-                
+
                 got.Dispose();
                 got = await client.PostAsync($"https://api.bethesda.net/mods/ugc-content/add-subscription", new StringContent($"{{\"content_id\": \"{ContentId}\"}}", Encoding.UTF8, "application/json"));
 
@@ -254,14 +262,14 @@ namespace Wabbajack.Lib.Downloaders
                     $"https://api.bethesda.net/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/depots/.json");
 
                 var props_obj = JObject.Parse(await got.Content.ReadAsStringAsync()).Properties().First();
-                info.CDPPropertiesId = (int)props_obj.Value["properties_id"];
-                
+                info.CDPPropertiesId = (int)props_obj.Value["properties_id"]!;
+
                 info.AESKey = props_obj.Value["ex_info_A"].Select(e => (byte)e).ToArray();
                 info.AESIV = props_obj.Value["ex_info_B"].Select(e => (byte)e).Take(16).ToArray();
 
                 return (client, tree, info);
             }
-            
+
             static int AESCTRDecrypt(byte[] Key, byte[] IV, byte[] Data)
             {
                 IBufferedCipher cipher = CipherUtilities.GetCipher("AES/CTR/NoPadding");
@@ -282,27 +290,26 @@ namespace Wabbajack.Lib.Downloaders
 
             public override string[] GetMetaIni()
             {
-                return new[] {"[General]", $"directURL=https://bethesda.net/en/mods/{GameName}/mod-detail/{ContentId}"};
+                return new[] { "[General]", $"directURL=https://bethesda.net/en/mods/{GameName}/mod-detail/{ContentId}" };
             }
 
 
             private class BeamLoginResponse
             {
-                public string access_token { get; set; }
-
+                public string access_token { get; set; } = string.Empty;
             }
 
             private class CDPLoginResponse
             {
-                public string token { get; set; }
+                public string token { get; set; } = string.Empty;
             }
 
             private class CollectedBNetInfo
             {
-                public byte[] AESKey { get; set; }
-                public byte[] AESIV { get; set; }
-                public string AccessToken { get; set; }
-                public string CDPToken { get; set; }
+                public byte[] AESKey { get; set; } = null!;
+                public byte[] AESIV { get; set; } = null!;
+                public string AccessToken { get; set; } = string.Empty;
+                public string CDPToken { get; set; } = string.Empty;
                 public int CDPBranchId { get; set; }
                 public int CDPProductId { get; set; }
                 public int CDPPropertiesId { get; set; }
@@ -310,24 +317,24 @@ namespace Wabbajack.Lib.Downloaders
 
             public class CDPTree
             {
-                public List<Depot> depot_list { get; set; }
+                public List<Depot> depot_list { get; set; } = null!;
 
                 public class Depot
                 {
-                    public List<CDPFile> file_list { get; set; }
+                    public List<CDPFile> file_list { get; set; } = null!;
 
                     public class CDPFile
                     {
                         public int chunk_count { get; set; }
-                        public List<Chunk> chunk_list { get; set; }
+                        public List<Chunk> chunk_list { get; set; } = null!;
 
-                        public string name { get; set; }
+                        public string? name { get; set; }
 
                         public class Chunk
                         {
                             public int chunk_size { get; set; }
                             public int index { get; set; }
-                            public string sha { get; set; }
+                            public string sha { get; set; } = string.Empty;
                             public int uncompressed_size { get; set; }
                         }
                     }
@@ -344,7 +351,7 @@ namespace Wabbajack.Lib.Downloaders
     public class RequestBethesdaNetLogin : AUserIntervention
     {
         public override string ShortDescription => "Logging into Bethesda.NET";
-        public override string ExtendedDescription { get; }
+        public override string ExtendedDescription { get; } = string.Empty;
 
         private readonly TaskCompletionSource<BethesdaNetData> _source = new TaskCompletionSource<BethesdaNetData>();
         public Task<BethesdaNetData> Task => _source.Task;
@@ -365,8 +372,7 @@ namespace Wabbajack.Lib.Downloaders
 
     public class BethesdaNetData
     {
-        public string body { get; set; }
+        public string body { get; set; } = string.Empty;
         public Dictionary<string, string> headers = new Dictionary<string, string>();
     }
-
 }

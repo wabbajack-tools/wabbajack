@@ -2,6 +2,7 @@
 using System.Reactive;
 using System.Security;
 using ReactiveUI;
+#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -13,7 +14,7 @@ namespace Wabbajack.Lib.Downloaders
         string SiteName { get; }
         IObservable<string> MetaInfo { get; }
         Uri SiteURL { get; }
-        Uri IconUri { get; }
+        Uri? IconUri { get; }
     }
 
     public struct LoginReturnMessage

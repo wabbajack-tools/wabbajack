@@ -5,27 +5,30 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 using Wabbajack.Lib.WebAutomation;
+#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {
     public class MediaFireDownloader : IUrlDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             Uri url = DownloaderUtils.GetDirectURL(archiveINI);
             if (url == null || url.Host != "www.mediafire.com") return null;
 
-            return new State
-            {
-                Url = url.ToString()
-            };
+            return new State(url.ToString());
         }
 
         public class State : AbstractDownloadState
         {
-            public string Url { get; set; }
+            public string Url { get; }
 
-            public override object[] PrimaryKey { get => new object[] {Url};}
+            public override object[] PrimaryKey => new object[] { Url };
+
+            public State(string url)
+            {
+                Url = url;
+            }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -35,6 +38,7 @@ namespace Wabbajack.Lib.Downloaders
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var result = await Resolve();
+                if (result == null) return false;
                 return await result.Download(a, destination);
             }
 
@@ -43,7 +47,7 @@ namespace Wabbajack.Lib.Downloaders
                 return await Resolve() != null;
             }
 
-            private async Task<HTTPDownloader.State> Resolve()
+            private async Task<HTTPDownloader.State?> Resolve()
             {
                 using (var d = await Driver.Create())
                 {
@@ -52,10 +56,9 @@ namespace Wabbajack.Lib.Downloaders
                     await Task.Delay(1000);
                     var newURL = await d.GetAttr("a.input", "href");
                     if (newURL == null || !newURL.StartsWith("http")) return null;
-                    return new HTTPDownloader.State()
+                    return new HTTPDownloader.State(newURL)
                     {
                         Client = new Common.Http.Client(),
-                        Url = newURL
                     };
                 }
             }
@@ -84,15 +87,12 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-        public AbstractDownloadState GetDownloaderState(string u)
+        public AbstractDownloadState? GetDownloaderState(string u)
         {
             var url = new Uri(u);
             if (url.Host != "www.mediafire.com") return null;
 
-            return new State
-            {
-                Url = url.ToString()
-            };
+            return new State(url.ToString());
         }
     }
 }

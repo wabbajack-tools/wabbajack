@@ -115,10 +115,7 @@ namespace Wabbajack.Lib.Downloaders
             var patchState = new Archive
             {
                 Name = patchName,
-                State = new HTTPDownloader.State
-                {
-                    Url = $"https://wabbajackcdn.b-cdn.net/updates/{patchName}"
-                }
+                State = new HTTPDownloader.State($"https://wabbajackcdn.b-cdn.net/updates/{patchName}")
             };
 
             var patchResult = await Download(patchState, patchPath);

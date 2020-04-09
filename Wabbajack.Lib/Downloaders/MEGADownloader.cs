@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
+#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -23,8 +24,6 @@ namespace Wabbajack.Lib.Downloaders
             try
             {
                 authInfos = MegaApiClient.GenerateAuthInfos(username, password.ToNormalString());
-                username = null;
-                password = null;
             }
             catch (ApiException e)
             {
@@ -72,16 +71,16 @@ namespace Wabbajack.Lib.Downloaders
                 IsLoggedIn.ObserveOnGuiThread());
         }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);
         }
 
-        public AbstractDownloadState GetDownloaderState(string url)
+        public AbstractDownloadState? GetDownloaderState(string url)
         {
             if (url != null && url.StartsWith(Consts.MegaPrefix))
-                return new State { Url = url};
+                return new State(url);
             return null;
         }
 
@@ -92,6 +91,11 @@ namespace Wabbajack.Lib.Downloaders
         [JsonName("MegaDownloader")]
         public class State : HTTPDownloader.State
         {
+            public State(string url) 
+                : base(url)
+            {
+            }
+
             private static MegaApiClient MegaApiClient => DownloadDispatcher.GetInstance<MegaDownloader>().MegaApiClient;
 
             private void MegaLogin()

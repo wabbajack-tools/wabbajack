@@ -73,7 +73,7 @@ namespace Wabbajack.Test
             modlist.GameType = Game.Skyrim;
             modlist.Archives[0] = new Archive()
             {
-                State = new HTTPDownloader.State() { Url = "https://somebadplace.com" },
+                State = new HTTPDownloader.State("https://somebadplace.com"),
                 Hash = Hash.FromLong(42)
             };
             var errors = await validate.Validate(modlist);
@@ -83,7 +83,7 @@ namespace Wabbajack.Test
             modlist.GameType = Game.Skyrim;
             modlist.Archives[0] = new Archive
             {
-                State = new HTTPDownloader.State { Url = "https://somegoodplace.com/baz.7z" },
+                State = new HTTPDownloader.State("https://somegoodplace.com/baz.7z"),
                 Hash = Hash.FromLong(42)
             };
             errors = await validate.Validate(modlist);
@@ -94,7 +94,7 @@ namespace Wabbajack.Test
             modlist.GameType = Game.Skyrim;
             modlist.Archives[0] = new Archive
             {
-                State = new GoogleDriveDownloader.State { Id = "bleg"},
+                State = new GoogleDriveDownloader.State("bleg"),
                 Hash = Hash.FromLong(42)
             };
             errors = await validate.Validate(modlist);
@@ -104,7 +104,7 @@ namespace Wabbajack.Test
             modlist.GameType = Game.Skyrim;
             modlist.Archives[0] = new Archive
             {
-                State = new GoogleDriveDownloader.State { Id = "googleDEADBEEF" },
+                State = new GoogleDriveDownloader.State("googleDEADBEEF"),
                 Hash = Hash.FromLong(42)
             };
             errors = await validate.Validate(modlist);

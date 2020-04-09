@@ -12,6 +12,7 @@ using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using Game = Wabbajack.Common.Game;
+#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -19,8 +20,8 @@ namespace Wabbajack.Lib.Downloaders
     {
         private bool _prepared;
         private AsyncLock _lock = new AsyncLock();
-        private UserStatus _status;
-        private NexusApiClient _client;
+        private UserStatus? _status;
+        private NexusApiClient? _client;
 
         public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable("nexusapikey");
 
@@ -50,9 +51,9 @@ namespace Wabbajack.Lib.Downloaders
                 canExecute: IsLoggedIn.ObserveOnGuiThread());
         }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
-            var general = archiveINI?.General;
+            var general = archiveINI.General;
 
             if (general.modID != null && general.fileID != null && general.gameName != null)
             {
@@ -135,17 +136,17 @@ namespace Wabbajack.Lib.Downloaders
             [JsonIgnore]
             public Uri URL => new Uri($"http://nexusmods.com/{Game.MetaData().NexusName}/mods/{ModID}");
 
-            public string Name { get; set; }
+            public string? Name { get; set; }
 
-            public string Author { get; set; }
+            public string? Author { get; set; }
 
-            public string Version { get; set; }
+            public string? Version { get; set; }
             
-            public string ImageURL { get; set; }
+            public string? ImageURL { get; set; }
             
             public bool IsNSFW { get; set; }
 
-            public string Description { get; set; }
+            public string? Description { get; set; }
 
             [JsonProperty("GameName")]
             [JsonConverter(typeof(Utils.GameConverter))]
@@ -184,10 +185,7 @@ namespace Wabbajack.Lib.Downloaders
 
                 Utils.Log($"Downloading Nexus Archive - {a.Name} - {Game} - {ModID} - {FileID}");
 
-                return await new HTTPDownloader.State
-                {
-                    Url = url
-                }.Download(a, destination);
+                return await new HTTPDownloader.State(url).Download(a, destination);
             }
 
             public override async Task<bool> Verify(Archive a)

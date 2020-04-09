@@ -61,10 +61,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                             Name = file.MungedName,
                             Size = file.Size,
                             Hash = file.Hash,
-                            State = new HTTPDownloader.State
-                            {
-                                Url = file.Uri
-                            }
+                            State = new HTTPDownloader.State(file.Uri)
                         }
                     }
                 });

@@ -45,10 +45,7 @@ namespace Wabbajack.BuildServer.Test
                     Archive = new Archive
                     {
                         Name = "Oldfile",
-                        State = new HTTPDownloader.State
-                        {
-                            Url = MakeURL("old_file_data.random"),
-                        }
+                        State = new HTTPDownloader.State(MakeURL("old_file_data.random"))
                     }
                 }
             });
@@ -60,10 +57,7 @@ namespace Wabbajack.BuildServer.Test
                     Archive = new Archive
                     {
                         Name = "Newfile",
-                        State = new HTTPDownloader.State
-                        {
-                            Url = MakeURL("new_file_data.random"),
-                        }
+                        State = new HTTPDownloader.State(MakeURL("new_file_data.random"))
                     }
                 }
             });

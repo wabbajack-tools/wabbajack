@@ -1,4 +1,5 @@
 ﻿using System;
+#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 { 

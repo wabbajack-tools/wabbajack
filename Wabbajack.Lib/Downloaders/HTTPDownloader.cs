@@ -10,34 +10,30 @@ using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.Validation;
+#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {
     public class HTTPDownloader : IDownloader, IUrlDownloader
     {
-
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url, archiveINI);
         }
 
-        public AbstractDownloadState GetDownloaderState(string uri)
+        public AbstractDownloadState? GetDownloaderState(string uri)
         {
             return GetDownloaderState(uri, null);
         }
 
-        public AbstractDownloadState GetDownloaderState(string url, dynamic archiveINI)
+        public AbstractDownloadState? GetDownloaderState(string url, dynamic? archiveINI)
         {
             if (url != null)
             {
-                var tmp = new State
-                {
-                    Url = url
-                };
+                var tmp = new State(url);
                 if (archiveINI?.General?.directURLHeaders != null)
                 {
-                    tmp.Headers = new List<string>();
                     tmp.Headers.AddRange(archiveINI?.General.directURLHeaders.Split('|'));
                 }
                 return tmp;
@@ -53,15 +49,20 @@ namespace Wabbajack.Lib.Downloaders
         [JsonName("HttpDownloader")]
         public class State : AbstractDownloadState
         {
-            public string Url { get; set; }
+            public string Url { get; }
 
-            public List<string> Headers { get; set; }
-
-            [JsonIgnore]
-            public Common.Http.Client Client { get; set; }
+            public List<string> Headers { get; } = new List<string>();
 
             [JsonIgnore]
-            public override object[] PrimaryKey { get => new object[] {Url};}
+            public Common.Http.Client? Client { get; set; }
+
+            [JsonIgnore]
+            public override object[] PrimaryKey => new object[] { Url };
+
+            public State(string url)
+            {
+                Url = url;
+            }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -85,19 +86,18 @@ namespace Wabbajack.Lib.Downloaders
                     var client = Client ?? new Common.Http.Client();
                     client.Headers.Add(("User-Agent", Consts.UserAgent));
 
-                    if (Headers != null)
-                        foreach (var header in Headers)
-                        {
-                            var idx = header.IndexOf(':');
-                            var k = header.Substring(0, idx);
-                            var v = header.Substring(idx + 1);
-                            client.Headers.Add((k, v));
-                        }
+                    foreach (var header in Headers)
+                    {
+                        var idx = header.IndexOf(':');
+                        var k = header.Substring(0, idx);
+                        var v = header.Substring(idx + 1);
+                        client.Headers.Add((k, v));
+                    }
 
                     long totalRead = 0;
                     var bufferSize = 1024 * 32;
 
-                    Utils.Status($"Starting Download {a?.Name ?? Url}", Percent.Zero);
+                    Utils.Status($"Starting Download {a.Name ?? Url}", Percent.Zero);
                     var response = await client.GetAsync(Url);
 TOP:
 
@@ -177,7 +177,7 @@ TOP:
                             if (read == 0) break;
                             Utils.Status($"Downloading {a.Name}", Percent.FactoryPutInRange(totalRead, contentSize));
 
-                            fs.Write(buffer, 0, read);
+                            fs!.Write(buffer, 0, read);
                             totalRead += read;
                         }
                     }
@@ -203,7 +203,7 @@ TOP:
 
             public override string[] GetMetaIni()
             {
-                if (Headers != null)
+                if (Headers.Count > 0)
                     return new [] {"[General]",
                           $"directURL={Url}",
                           $"directURLHeaders={string.Join("|", Headers)}"};

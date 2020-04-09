@@ -138,6 +138,4 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
     }
-
-
 }
