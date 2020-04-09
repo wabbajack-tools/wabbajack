@@ -59,16 +59,12 @@ namespace Wabbajack.Common
             return JsonConvert.SerializeObject(obj, JsonSettings);
         }
 
-        public static T FromJson<T>(this AbsolutePath filename,
-            TypeNameHandling handling = TypeNameHandling.All,
-            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
+        public static T FromJson<T>(this AbsolutePath filename)
         {
             return JsonConvert.DeserializeObject<T>(filename.ReadAllText(), JsonSettings)!;
         }
 
-        public static T FromJsonString<T>(this string data,
-            TypeNameHandling handling = TypeNameHandling.Objects,
-            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
+        public static T FromJsonString<T>(this string data)
         {
             return JsonConvert.DeserializeObject<T>(data, JsonSettings)!;
         }
@@ -78,10 +74,8 @@ namespace Wabbajack.Common
             using var tr = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
             using var reader = new JsonTextReader(tr);
             var ser = JsonSerializer.Create(JsonSettings);
-            return ser.Deserialize<T>(reader);
+            return ser.Deserialize<T>(reader)!;
         }
-      
-
 
         private class HashJsonConverter : JsonConverter<Hash>
         {
