@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -11,7 +12,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!_compiler.IndexedFiles.TryGetValue(source.Hash, out var found)) return null;
             var result = source.EvolveTo<FromArchive>();

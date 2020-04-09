@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.VirtualFileSystem;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -51,7 +52,7 @@ namespace Wabbajack.Lib.CompilationSteps
             return new State();
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!Consts.SupportedBSAs.Contains(source.Path.Extension)) return null;
 

@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -12,7 +13,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             // * TODO I don't know what this does
             /*

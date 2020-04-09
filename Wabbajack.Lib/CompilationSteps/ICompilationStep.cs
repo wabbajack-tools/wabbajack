@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
     public interface ICompilationStep
     {
-        ValueTask<Directive> Run(RawSourceFile source);
+        ValueTask<Directive?> Run(RawSourceFile source);
         IState GetState();
     }
 

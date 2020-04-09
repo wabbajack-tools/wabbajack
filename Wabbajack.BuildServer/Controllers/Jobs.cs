@@ -22,7 +22,7 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<long> EnqueueJob(string JobName)
         {
             var jobtype = AJobPayload.NameToType[JobName];
-            var job = new Job{Priority = Job.JobPriority.High, Payload = (AJobPayload)jobtype.GetConstructor(new Type[0]).Invoke(new object?[0])};
+            var job = new Job{Priority = Job.JobPriority.High, Payload = (AJobPayload)jobtype.GetConstructor(new Type[0]).Invoke(new object[0])};
             await SQL.EnqueueJob(job);
             return job.Id;
         }

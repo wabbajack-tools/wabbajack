@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Common.StoreHandlers;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -18,7 +19,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _game = steamGame;
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!_regex.IsMatch((string)source.Path)) 
                 return null;
@@ -31,7 +32,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 if (id == 0)
                     return null;
 
-                SteamWorkshopItem item = null;
+                SteamWorkshopItem? item = null;
                 _game.WorkshopItems.Where(i => i.ItemID == id).Do(i => item = i);
                 if (item == null)
                     return null;

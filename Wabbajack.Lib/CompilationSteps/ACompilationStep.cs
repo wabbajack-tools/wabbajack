@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -11,7 +12,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _compiler = compiler;
         }
 
-        public abstract ValueTask<Directive> Run(RawSourceFile source);
+        public abstract ValueTask<Directive?> Run(RawSourceFile source);
         public abstract IState GetState();
     }
 }

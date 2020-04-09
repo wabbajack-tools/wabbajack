@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 using Wabbajack.Common;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -19,7 +20,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _correctProfiles = _mo2Compiler.SelectedProfiles.Select(p => _mo2Compiler.MO2ProfileDir.Parent.Combine(p)).ToList();
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!_correctProfiles.Any(p => source.AbsolutePath.InFolder(p)))
                 return null;

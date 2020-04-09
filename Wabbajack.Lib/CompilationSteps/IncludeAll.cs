@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -10,7 +11,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             var inline = source.EvolveTo<InlineFile>();
             inline.SourceDataID = await _compiler.IncludeFile(await source.AbsolutePath.ReadAllBytesAsync());

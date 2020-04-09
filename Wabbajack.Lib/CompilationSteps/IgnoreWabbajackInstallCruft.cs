@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Common;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -19,7 +20,7 @@ namespace Wabbajack.Lib.CompilationSteps
             };
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!_cruftFiles.Any(f => source.Path.StartsWith(f))) return null;
             var result = source.EvolveTo<IgnoredDirectly>();

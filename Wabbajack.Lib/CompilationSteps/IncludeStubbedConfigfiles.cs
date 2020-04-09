@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 using Wabbajack.Common;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -15,7 +16,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _mo2Compiler = (MO2Compiler) compiler;
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             return Consts.ConfigFileExtensions.Contains(source.Path.Extension) ? await RemapFile(source) : null;
         }
@@ -25,7 +26,7 @@ namespace Wabbajack.Lib.CompilationSteps
             return new State();
         }
 
-        private async Task<Directive> RemapFile(RawSourceFile source)
+        private async Task<Directive?> RemapFile(RawSourceFile source)
         {
             var data = await source.AbsolutePath.ReadAllTextAsync();
             var originalData = data;

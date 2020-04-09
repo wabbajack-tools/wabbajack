@@ -2,6 +2,7 @@
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 using Wabbajack.Common;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -14,7 +15,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _prefix = Consts.LOOTFolderFilesDir + "\\";
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!source.Path.StartsWith(_prefix)) return null;
             var result = source.EvolveTo<InlineFile>();

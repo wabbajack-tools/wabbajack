@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 using Wabbajack.Common;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -14,7 +15,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             var files = new HashSet<AbsolutePath>
             {

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -16,7 +17,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _regex = new Regex(pattern);
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!_regex.IsMatch((string)source.Path)) return null;
 
@@ -33,16 +34,12 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IncludeRegex")]
         public class State : IState
         {
-            public State()
-            {
-            }
+            public string Pattern { get; set; }
 
             public State(string pattern)
             {
                 Pattern = pattern;
             }
-
-            public string Pattern { get; set; }
 
             public ICompilationStep CreateStep(ACompiler compiler)
             {

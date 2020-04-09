@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
+#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -15,7 +16,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _gameFolder = compiler.GamePath;
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (_gameFolderFilesExists)
             {
