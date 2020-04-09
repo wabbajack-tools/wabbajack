@@ -134,7 +134,17 @@ namespace Wabbajack.Common
                 throw;
             }
         }
-        
+        public static Hash xxHash(this byte[] data)
+        {
+            var hash = new xxHashConfig();
+            hash.HashSizeInBits = 64;
+            hash.Seed = 0x42;
+            using var fs = new MemoryStream(data);
+            var config = new xxHashConfig {HashSizeInBits = 64};
+            using var f = new StatusFileStream(fs, $"Hashing memory stream");
+            var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
+            return Hash.FromULong(BitConverter.ToUInt64(value.Hash));
+        }
         public static Hash FileHashCached(this AbsolutePath file, bool nullOnIoError = false)
         {
             if (TryGetHashCache(file, out var foundHash)) return foundHash;

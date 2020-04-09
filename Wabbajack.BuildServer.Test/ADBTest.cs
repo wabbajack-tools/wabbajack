@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Dapper;
 using Wabbajack.BuildServer.Controllers;
 using Wabbajack.Common;
 using Wabbajack.BuildServer.Model.Models;
@@ -46,6 +47,7 @@ namespace Wabbajack.BuildServer.Test
             await using var conn = new SqlConnection(CONN_STR);
 
             await conn.OpenAsync();
+            await KillTestDatabases(conn);
             //await new SqlCommand($"CREATE DATABASE {DBName};", conn).ExecuteNonQueryAsync();
 
             await using var schemaStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Wabbajack.BuildServer.Test.sql.wabbajack_db.sql");
@@ -88,8 +90,22 @@ namespace Wabbajack.BuildServer.Test
             await using  var conn = new SqlConnection(CONN_STR);
 
             await conn.OpenAsync();
+            await KillTestDatabases(conn);
+        }
+
+        private async Task KillTestDatabases(SqlConnection conn)
+        {
             await KillAll(conn);
-            await new SqlCommand($"DROP DATABASE {DBName};", conn).ExecuteNonQueryAsync();
+
+            var dbs = await conn.QueryAsync<string>("SELECT name from [master].[sys].[databases]");
+
+            foreach (var db in dbs.Where(name => name.StartsWith("test_")))
+            {
+                await new SqlCommand(
+                        $"DROP DATABASE {db};",
+                        conn)
+                    .ExecuteNonQueryAsync();
+            }
         }
 
         private async Task KillAll(SqlConnection conn)

@@ -197,7 +197,7 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             await using var conn = await Open();
             await conn.ExecuteAsync(
-                @"UPDATE dbo.Jobs SET Finshed = GETDATE(), Success = @Success, ResultContent = @ResultContent WHERE Id = @Id",
+                @"UPDATE dbo.Jobs SET Ended = GETDATE(), Success = @Success, ResultContent = @ResultContent WHERE Id = @Id",
                 new {
                     job.Id,
                     Success = job.Result.ResultType == JobResultType.Success,

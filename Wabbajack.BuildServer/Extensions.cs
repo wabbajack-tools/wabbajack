@@ -46,7 +46,7 @@ namespace Wabbajack.BuildServer
             var hexHash = hash.ToHex();
 
             var ends = "_" + hexHash + "_";
-            var file = settings.ArchiveDir.EnumerateFiles()
+            var file = settings.ArchivePath.EnumerateFiles()
                 .FirstOrDefault(f => ((string)f.FileNameWithoutExtension).EndsWith(ends)); 
 
             if (file != default) 

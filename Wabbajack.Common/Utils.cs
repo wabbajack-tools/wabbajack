@@ -232,22 +232,6 @@ namespace Wabbajack.Common
                 Status(status, Percent.FactoryPutInRange(totalRead, maxSize));
             }
         }
-        public static string xxHash(this byte[] data)
-        {
-            var hash = new xxHashConfig();
-            hash.HashSizeInBits = 64;
-            hash.Seed = 0x42;
-            using (var fs = new MemoryStream(data))
-            {
-                var config = new xxHashConfig();
-                config.HashSizeInBits = 64;
-                using (var f = new StatusFileStream(fs, $"Hashing memory stream"))
-                {
-                    var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
-                    return value.AsBase64String();
-                }
-            }
-        }
 
         /// <summary>
         ///     Returns a Base64 encoding of these bytes
@@ -691,8 +675,8 @@ namespace Wabbajack.Common
 
         public static async Task CreatePatch(byte[] a, byte[] b, Stream output)
         {
-            var dataA = a.xxHash().FromBase64().ToHex();
-            var dataB = b.xxHash().FromBase64().ToHex();
+            var dataA = a.xxHash().ToHex();
+            var dataB = b.xxHash().ToHex();
             var cacheFile = Consts.PatchCacheFolder.Combine($"{dataA}_{dataB}.patch");
             Consts.PatchCacheFolder.CreateDirectory();
 

@@ -28,36 +28,36 @@ namespace Wabbajack.BuildServer.Models.Jobs
             var pk = new List<object>();
             pk.Add(AbstractDownloadState.TypeToName[Archive.State.GetType()]);
             pk.AddRange(Archive.State.PrimaryKey);
-            var pk_str = string.Join("|",pk.Select(p => p.ToString()));
+            var pkStr = string.Join("|",pk.Select(p => p.ToString()));
 
-            var found = await sql.DownloadStateByPrimaryKey(pk_str);
-            if (found == null)
+            var found = await sql.DownloadStateByPrimaryKey(pkStr);
+            if (found != null)
                 return JobResult.Success();
             
             string fileName = Archive.Name;
             string folder = Guid.NewGuid().ToString();
             Utils.Log($"Indexer is downloading {fileName}");
-            var downloadDest = settings.DownloadDir.Combine(folder, fileName);
+            var downloadDest = settings.DownloadPath.Combine(folder, fileName);
             await Archive.State.Download(downloadDest);
 
             using (var queue = new WorkQueue())
             {
                 var vfs = new Context(queue, true);
-                await vfs.AddRoot(settings.DownloadDir.Combine(folder));
+                await vfs.AddRoot(settings.DownloadPath.Combine(folder));
                 var archive = vfs.Index.ByRootPath.First().Value;
 
                 await sql.MergeVirtualFile(archive);
 
                 await sql.AddDownloadState(archive.Hash, Archive.State);
                 
-                var to_path = settings.ArchiveDir.Combine(
+                var to_path = settings.ArchivePath.Combine(
                     $"{Path.GetFileName(fileName)}_{archive.Hash.ToHex()}_{Path.GetExtension(fileName)}");
                 
                 if (to_path.Exists)
                     downloadDest.Delete();
                 else
                     downloadDest.MoveTo(to_path);
-                await settings.DownloadDir.Combine(folder).DeleteDirectory();
+                await settings.DownloadPath.Combine(folder).DeleteDirectory();
                 
             }
             return JobResult.Success();

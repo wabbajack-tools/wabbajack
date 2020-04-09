@@ -27,6 +27,8 @@ namespace Wabbajack.BuildServer.Test
 
         public AbsolutePath ServerPublicFolder => "public".RelativeTo(AbsolutePath.EntryPoint);
 
+        public AbsolutePath ServerArchivesFolder => "archives".RelativeTo(AbsolutePath.EntryPoint);
+
 
         public BuildServerFixture()
         {
@@ -61,6 +63,8 @@ namespace Wabbajack.BuildServer.Test
         {
             return (T)_host.Services.GetService(typeof(T));
         }
+
+
 
         public void Dispose()
         {
@@ -111,8 +115,10 @@ namespace Wabbajack.BuildServer.Test
                 return _singleton;
             }
         }
+
     }
     
+
     [Collection("ServerTests")]
     public class ABuildServerSystemTest : XunitContextBase, IClassFixture<SingletonAdaptor<BuildServerFixture>>
     {
@@ -121,6 +127,7 @@ namespace Wabbajack.BuildServer.Test
         private readonly IDisposable _unsubErr;
         protected Client _authedClient;
         protected WorkQueue _queue;
+        private Random _random;
 
 
         public ABuildServerSystemTest(ITestOutputHelper output, SingletonAdaptor<BuildServerFixture> fixture) : base(output)
@@ -136,6 +143,8 @@ namespace Wabbajack.BuildServer.Test
             AuthorAPI.ApiKeyOverride = Fixture.APIKey;
             _queue = new WorkQueue();
             Queue = new WorkQueue();
+            _random = new Random();
+
             Consts.ModlistSummaryURL = MakeURL("lists/status.json");
             Consts.ServerWhitelistURL = MakeURL("ServerWhitelist.yaml");
         }
@@ -149,6 +158,14 @@ namespace Wabbajack.BuildServer.Test
             return "http://localhost:8080/" + path;
         }
 
+
+        protected byte[] RandomData()
+        {
+            var arr = new byte[_random.Next(1024)];
+            _random.NextBytes(arr);
+            return arr;
+        }
+
         protected async Task ClearJobQueue()
         {
             var sql = Fixture.GetService<SqlService>();
@@ -158,6 +175,20 @@ namespace Wabbajack.BuildServer.Test
                 if (job == null) break;
                 
                 job.Result = JobResult.Success();
+                await sql.FinishJob(job);
+            }
+        }
+        
+        protected async Task RunAllJobs()
+        {
+            var sql = Fixture.GetService<SqlService>();
+            var settings = Fixture.GetService<AppSettings>();
+            while (true)
+            {
+                var job = await sql.GetJob();
+                if (job == null) break;
+
+                job.Result = await job.Payload.Execute(sql, settings);
                 await sql.FinishJob(job);
             }
         }

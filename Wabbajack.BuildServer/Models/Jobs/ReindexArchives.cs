@@ -20,7 +20,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
         {
             using (var queue = new WorkQueue())
             {
-                var files = settings.ArchiveDir.EnumerateFiles()
+                var files = settings.ArchivePath.EnumerateFiles()
                     .Where(f => f.Extension != Consts.HashFileExtension)
                     .ToList();
                 var total_count = files.Count;
@@ -40,7 +40,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
                             }
 
                             var sub_folder = Guid.NewGuid().ToString();
-                            var folder = settings.DownloadDir.Combine(sub_folder);
+                            var folder = settings.DownloadPath.Combine(sub_folder);
                             
                             Utils.Log($"({completed}/{total_count}) Copying {file}");
                             folder.CreateDirectory();

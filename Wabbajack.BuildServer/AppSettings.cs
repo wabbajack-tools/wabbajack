@@ -10,8 +10,10 @@ namespace Wabbajack.BuildServer
             config.Bind("WabbajackSettings", this);
         }
         
-        public AbsolutePath DownloadDir { get; set; }
-        public AbsolutePath ArchiveDir { get; set; }
+        public string DownloadDir { get; set; }
+        public AbsolutePath DownloadPath => (AbsolutePath)DownloadDir;
+        public string ArchiveDir { get; set; }
+        public AbsolutePath ArchivePath => (AbsolutePath)ArchiveDir;
         
         public string TempFolder { get; set; }
 
