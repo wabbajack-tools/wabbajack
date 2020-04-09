@@ -25,7 +25,7 @@ namespace Wabbajack.VirtualFileSystem
                 else if (source.EndsWith(".omod"))
                     ExtractAllWithOMOD(source, dest);
                 else if (source.EndsWith(".exe"))
-                    ExtractAllWithInno(source, dest);
+                    ExtractAllEXE(source, dest);
                 else
                     ExtractAllWith7Zip(source, dest);
             }
@@ -35,8 +35,16 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        private static void ExtractAllWithInno(string source, string dest)
+        private static void ExtractAllEXE(string source, string dest)
         {
+            var isArchive = TestWith7z(source);
+
+            if (isArchive)
+            {
+                ExtractAllWith7Zip(source, dest);
+                return;
+            }
+
             Utils.Log($"Extracting {Path.GetFileName(source)}");
 
             var info = new ProcessStartInfo
@@ -225,46 +233,50 @@ namespace Wabbajack.VirtualFileSystem
             if(ext != ".exe" && !Consts.TestArchivesBeforeExtraction.Contains(ext))
                 return Consts.SupportedArchives.Contains(ext) || Consts.SupportedBSAs.Contains(ext);
 
-            if (ext == ".exe")
+            var isArchive = TestWith7z(v);
+
+            if (isArchive)
+                return true;
+
+            var info = new ProcessStartInfo
             {
-                var info = new ProcessStartInfo
-                {
-                    FileName = @"Extractors\innounp.exe",
-                    Arguments = $"-t \"{v}\" ",
-                    RedirectStandardError = true,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
+                FileName = @"Extractors\innounp.exe",
+                Arguments = $"-t \"{v}\" ",
+                RedirectStandardError = true,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
 
-                var p = new Process {StartInfo = info};
+            var p = new Process {StartInfo = info};
 
-                p.Start();
-                ChildProcessTracker.AddProcess(p);
+            p.Start();
+            ChildProcessTracker.AddProcess(p);
 
-                var name = Path.GetFileName(v);
-                while (!p.HasExited)
-                {
-                    var line = p.StandardOutput.ReadLine();
-                    if (line == null)
-                        break;
+            var name = Path.GetFileName(v);
+            while (!p.HasExited)
+            {
+                var line = p.StandardOutput.ReadLine();
+                if (line == null)
+                    break;
 
-                    if (line[0] != '#')
-                        continue;
+                if (line[0] != '#')
+                    continue;
 
-                    Utils.Status($"Testing {name} - {line.Trim()}");
-                }
-
-                p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Testing {name}");
-                return p.ExitCode == 0;
+                Utils.Status($"Testing {name} - {line.Trim()}");
             }
 
+            p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Testing {name}");
+            return p.ExitCode == 0;
+        }
 
+        public static bool TestWith7z(string file)
+        {
             var testInfo = new ProcessStartInfo
             {
                 FileName = @"Extractors\7z.exe",
-                Arguments = $"t \"{v}\"",
+                Arguments = $"t \"{file}\"",
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -282,6 +294,7 @@ namespace Wabbajack.VirtualFileSystem
             }
             catch (Exception)
             {
+                return false;
             }
 
             try
@@ -292,12 +305,15 @@ namespace Wabbajack.VirtualFileSystem
                     if (line == null)
                         break;
                 }
-            } catch (Exception){}
+            }
+            catch (Exception)
+            {
+                return false;
+            }
 
-            testP.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Can Extract Check {v}");
+            testP.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Can Extract Check {file}");
             return testP.ExitCode == 0;
         }
-        
         
         public static bool MightBeArchive(string path)
         {
