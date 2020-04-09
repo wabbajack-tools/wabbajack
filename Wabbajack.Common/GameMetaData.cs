@@ -163,16 +163,24 @@ namespace Wabbajack.Common
         }
 
         /// <summary>
-        /// Tries to parse game data from an arbitrary string. Tries first via parsing as a game Enum, then by Nexus name,
-        /// <param nambe="someName"></param>
-        /// <returns></returns>
-        public static GameMetaData? GetByFuzzyName(string someName)
+        /// Parse game data from an arbitrary string. Tries first via parsing as a game Enum, then by Nexus name.
+        /// <param nambe="someName">Name to query</param>
+        /// <returns>GameMetaData found</returns>
+        /// <exception cref="ArgumentNullException">If string could not be translated to a game</exception>
+        public static GameMetaData GetByFuzzyName(string someName)
+        {
+            return TryGetByFuzzyName(someName) ?? throw new ArgumentNullException($"{someName} could not be translated to a game");
+        }
+
+        /// <summary>
+        /// Tries to parse game data from an arbitrary string. Tries first via parsing as a game Enum, then by Nexus name.
+        /// <param nambe="someName">Name to query</param>
+        /// <returns>GameMetaData if found, otherwise null</returns>
+        public static GameMetaData? TryGetByFuzzyName(string someName)
         {
             if (Enum.TryParse(typeof(Game), someName, true, out var metadata)) return ((Game)metadata!).MetaData();
 
-            GameMetaData? result = null;
-
-            result = GetByNexusName(someName);
+            GameMetaData? result = GetByNexusName(someName);
             if (result != null) return result;
 
             result = GetByMO2ArchiveName(someName);
