@@ -1,9 +1,13 @@
 ### Changelog
 
-#### Version - Next
+#### Version - 1.1.5.0 - 4/6/2020
 * Included LOOT configs are no longer Base64 encoded
+* Reworked Wabbajack-cli
+* Can use a MEGA login (if you have it, not required)
+* Don't use the buggy Nexus SSO server, instead use the in-browser API key generator
+* Several fixes for zEdit merge integration, handles several side-cases of improper configuration
 
-#### Version - 3/30/2020
+#### Version - 1.1.4.0 - 3/30/2020
 * Added support for Morrowind on GOG
 * Fix a bug in the Author file uploader (Sync Error)
 * Include symbols in the launcher

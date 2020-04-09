@@ -21,7 +21,7 @@ namespace Wabbajack.Common
 
         public static string MegaPrefix = "https://mega.nz/#!";
 
-        public static readonly HashSet<Extension> SupportedArchives = new[]{".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod", ".exe", ".dat"}
+        public static readonly HashSet<Extension> SupportedArchives = new[]{".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod", ".exe", ".dat", ".gz", ".tar"}
             .Select(s => new Extension(s)).ToHashSet();
 
         // HashSet with archive extensions that need to be tested before extraction
@@ -100,7 +100,8 @@ namespace Wabbajack.Common
 
         public static Extension HashFileExtension = new Extension(".xxHash");
         public static Extension MetaFileExtension = new Extension(".meta");
-        public static Extension ModListExtension = new Extension(".wabbajack");
+        public const string ModListExtensionString = ".wabbajack";
+        public static Extension ModListExtension = new Extension(ModListExtensionString);
         public static AbsolutePath LocalAppDataPath => new AbsolutePath(Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack"));
         public static string MetricsKeyHeader => "x-metrics-key";
 

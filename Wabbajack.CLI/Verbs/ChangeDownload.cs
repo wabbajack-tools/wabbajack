@@ -17,17 +17,21 @@ namespace Wabbajack.CLI.Verbs
     [Verb("change-download", HelpText = "Move or Copy all used Downloads from a Modlist to another directory")]
     public class ChangeDownload : AVerb
     {
+        [IsDirectory(CustomMessage = "Downloads folder %1 does not exist!")]
         [Option("input", Required = true, HelpText = "Input folder containing the downloads you want to move")]
-        public string Input { get; set; }
+        public string Input { get; set; } = "";
 
+        [IsDirectory(Create = true)]
         [Option("output", Required = true, HelpText = "Output folder the downloads should be transferred to")]
-        public string Output { get; set; }
+        public string Output { get; set; } = "";
 
+        [IsFile(CustomMessage = "Modlist file %1 does not exist!")]
         [Option("modlist", Required = true, HelpText = "The Modlist, can either be a .wabbajack or a modlist.txt file")]
-        public string Modlist { get; set; }
+        public string Modlist { get; set; } = "";
 
-        [Option("mods", Required = false, HelpText = "Mods folder location if the provided modlist file is an MO2 modlist.txt")]
-        public string Mods { get; set; }
+        [Option("mods", Required = false,
+            HelpText = "Mods folder location if the provided modlist file is an MO2 modlist.txt")]
+        public string Mods { get; set; } = "";
 
         [Option("copy", Default = true, HelpText = "Whether to copy the files", SetName = "copy")]
         public bool Copy { get; set; }
@@ -55,27 +59,16 @@ namespace Wabbajack.CLI.Verbs
             }
         }
 
-        protected override async Task<int> Run()
+        protected override async Task<ExitCode> Run()
         {
-            if (!File.Exists(Modlist))
-                return CLIUtils.Exit($"The file {Modlist} does not exist!", -1);
-
-            if (!Directory.Exists(Input))
-                return CLIUtils.Exit($"The input directory {Input} does not exist!", -1);
-
-            if (!Directory.Exists(Output))
-            {
-                CLIUtils.Log($"The output directory {Output} does not exist, it will be created.");
-                Directory.CreateDirectory(Output);
-            }
-
-            if (!Modlist.EndsWith((string)Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt"))
-                return CLIUtils.Exit($"The file {Modlist} is not a valid modlist file!", -1);
+            var modListPath = (AbsolutePath)Modlist;
+            if (modListPath.Extension != Consts.ModListExtension && modListPath.FileName != (RelativePath)"modlist.txt")
+                return CLIUtils.Exit($"The file {Modlist} is not a valid modlist file!", ExitCode.BadArguments);
 
             if (Copy && Move)
-                return CLIUtils.Exit("You can't set both copy and move flags!", -1);
+                return CLIUtils.Exit("You can't set both copy and move flags!", ExitCode.BadArguments);
 
-            var isModlist = Modlist.EndsWith((string)Consts.ModListExtension);
+            var isModlist = modListPath.Extension == Consts.ModListExtension;
 
             var list = new List<TransferFile>();
 
@@ -85,16 +78,16 @@ namespace Wabbajack.CLI.Verbs
 
                 try
                 {
-                    modlist = AInstaller.LoadFromFile((AbsolutePath)Modlist);
+                    modlist = AInstaller.LoadFromFile(modListPath);
                 }
                 catch (Exception e)
                 {
-                    return CLIUtils.Exit($"Error while loading the Modlist!\n{e}", 1);
+                    return CLIUtils.Exit($"Error while loading the Modlist!\n{e}", ExitCode.Error);
                 }
 
                 if (modlist == null)
                 {
-                    return CLIUtils.Exit("The Modlist could not be loaded!", 1);
+                    return CLIUtils.Exit("The Modlist could not be loaded!", ExitCode.Error);
                 }
 
                 CLIUtils.Log($"Modlist contains {modlist.Archives.Count} archives.");
@@ -153,18 +146,18 @@ namespace Wabbajack.CLI.Verbs
             else
             {
                 if (!Directory.Exists(Mods))
-                    return CLIUtils.Exit($"Mods directory {Mods} does not exist!", -1);
+                    return CLIUtils.Exit($"Mods directory {Mods} does not exist!", ExitCode.BadArguments);
 
                 CLIUtils.Log($"Reading modlist.txt from {Modlist}");
                 string[] modlist = File.ReadAllLines(Modlist);
 
                 if (modlist == null || modlist.Length == 0)
-                    return CLIUtils.Exit($"Provided modlist.txt file at {Modlist} is empty or could not be read!", -1);
+                    return CLIUtils.Exit($"Provided modlist.txt file at {Modlist} is empty or could not be read!", ExitCode.BadArguments);
 
                 var mods = modlist.Where(s => s.StartsWith("+")).Select(s => s.Substring(1)).ToHashSet();
 
                 if (mods.Count == 0)
-                    return CLIUtils.Exit("Counted mods from modlist.txt are 0!", -1);
+                    return CLIUtils.Exit("Counted mods from modlist.txt are 0!", ExitCode.BadArguments);
 
                 CLIUtils.Log($"Found {mods.Count} mods in modlist.txt");
 

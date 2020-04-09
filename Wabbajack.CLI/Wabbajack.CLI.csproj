@@ -6,16 +6,20 @@
         <AssemblyName>wabbajack-cli</AssemblyName>
         <Company>Wabbajack</Company>
         <Platforms>x64</Platforms>
-        <AssemblyVersion>1.1.4.0</AssemblyVersion>
-        <FileVersion>1.1.4.0</FileVersion>
+        <AssemblyVersion>1.1.5.0</AssemblyVersion>
+        <FileVersion>1.1.5.0</FileVersion>
         <Copyright>Copyright © 2019-2020</Copyright>
         <Description>An automated ModList installer</Description>
         <PublishReadyToRun>true</PublishReadyToRun>        
         <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+        <LangVersion>8.0</LangVersion>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="CommandLineParser" Version="2.7.82" />
+      <PackageReference Include="F23.StringSimilarity" Version="3.1.0" />
+      <PackageReference Include="Markdig" Version="0.18.3" />
     </ItemGroup>
 
     <ItemGroup>
