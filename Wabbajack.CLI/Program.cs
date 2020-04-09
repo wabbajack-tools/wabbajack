@@ -20,6 +20,7 @@ namespace Wabbajack.CLI
                     (MyFiles opts) => opts.Execute(),
                     (DeleteFile opts) => opts.Execute(),
                     (Changelog opts) => opts.Execute(),
+                    (FindSimilar opts) => opts.Execute(),
                     errs => 1);
         }
     }

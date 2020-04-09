@@ -17,7 +17,8 @@ namespace Wabbajack.CLI
             typeof(ServerLog),
             typeof(MyFiles),
             typeof(DeleteFile),
-            typeof(Changelog)
+            typeof(Changelog),
+            typeof(FindSimilar)
         };
     }
 }
