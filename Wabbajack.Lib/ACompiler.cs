@@ -14,15 +14,16 @@ using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+#nullable enable
 
 namespace Wabbajack.Lib
 {
     public abstract class ACompiler : ABatchProcessor
     {
-        public string ModListName, ModListAuthor, ModListDescription, ModListWebsite;
+        public string? ModListName, ModListAuthor, ModListDescription, ModListWebsite;
         public AbsolutePath ModListImage, ModListReadme;
         public bool ReadmeIsWebsite;
-        protected Version WabbajackVersion;
+        protected Version? WabbajackVersion;
 
         public abstract AbsolutePath VFSCacheName { get; }
         //protected string VFSCacheName => Path.Combine(Consts.LocalAppDataPath, $"vfs_compile_cache.bin");
@@ -231,8 +232,7 @@ namespace Wabbajack.Lib
                 return await ResolveArchive(found);
             }
 
-            Error($"No match found for Archive sha: {hash.ToBase64()} this shouldn't happen");
-            return null;
+            throw new ArgumentException($"No match found for Archive sha: {hash.ToBase64()} this shouldn't happen");
         }
 
         public async Task<Archive> ResolveArchive(IndexedArchive archive)

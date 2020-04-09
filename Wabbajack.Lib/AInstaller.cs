@@ -13,6 +13,7 @@ using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+#nullable enable
 
 namespace Wabbajack.Lib
 {
@@ -27,7 +28,7 @@ namespace Wabbajack.Lib
 
         public AbsolutePath ModListArchive { get; private set; }
         public ModList ModList { get; private set; }
-        public Dictionary<Hash, AbsolutePath> HashedArchives { get; set; }
+        public Dictionary<Hash, AbsolutePath> HashedArchives { get; } = new Dictionary<Hash, AbsolutePath>();
         
         public SystemParameters SystemParameters { get; set; }
 
@@ -279,11 +280,11 @@ namespace Wabbajack.Lib
             var hashResults = await DownloadFolder.EnumerateFiles()
                 .Where(e => e.Extension != Consts.HashFileExtension)
                 .PMap(Queue, async e => (await e.FileHashCachedAsync(), e));
-            HashedArchives = hashResults
+            HashedArchives.Add(hashResults
                 .OrderByDescending(e => e.Item2.LastModified)
                 .GroupBy(e => e.Item1)
                 .Select(e => e.First())
-                .ToDictionary(e => e.Item1, e => e.Item2);
+                .Select(e => new KeyValuePair<Hash, AbsolutePath>(e.Item1, e.Item2)));
         }
 
         /// <summary>
@@ -392,8 +393,13 @@ namespace Wabbajack.Lib
                 
                 return await path.FileHashAsync() == d.Hash ? d : null;
             }))
-              .Where(d => d != null)
-              .Do(d => indexed.Remove(d.To));
+              .Do(d =>
+              {
+                  if (d != null)
+                  {
+                      indexed.Remove(d.To);
+                  }
+              });
 
             UpdateTracker.NextStep("Updating ModList");
             Utils.Log($"Optimized {ModList.Directives.Count} directives to {indexed.Count} required");

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Runtime.CompilerServices;
+#nullable enable
 
 namespace Wabbajack.Lib
 {
@@ -24,7 +25,7 @@ namespace Wabbajack.Lib
         protected void RaiseAndSetIfChanged<T>(
             ref T item,
             T newItem,
-            [CallerMemberName] string propertyName = null)
+            [CallerMemberName] string? propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(item, newItem)) return;
             item = newItem;

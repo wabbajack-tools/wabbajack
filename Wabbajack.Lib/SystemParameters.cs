@@ -1,4 +1,5 @@
 ﻿using System;
+#nullable enable
 
 namespace Wabbajack.Lib
 {
@@ -14,9 +15,9 @@ namespace Wabbajack.Lib
         public int ScreenWidth { get; set; }
         public long VideoMemorySize { get; set; }
         public long SystemMemorySize { get; set; }
-        
-        public Version WindowsVersion { get; set; }
-        
+
+        public Version WindowsVersion { get; set; } = Environment.OSVersion.Version;
+
         /// <summary>
         /// Value used in LE ENBs for VideoMemorySizeMb
         /// </summary>
