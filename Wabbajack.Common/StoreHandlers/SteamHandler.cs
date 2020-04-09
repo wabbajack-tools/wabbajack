@@ -11,33 +11,29 @@ namespace Wabbajack.Common.StoreHandlers
     public class SteamGame : AStoreGame
     {
         public override Game Game { get; internal set; }
-        public override string Name { get; internal set; }
-        public override string Path { get; internal set; }
-        public override int ID { get; internal set; }
         public override StoreType Type { get; internal set; } = StoreType.STEAM;
 
-        public string Universe;
+        public string Universe = string.Empty;
 
-        public List<SteamWorkshopItem> WorkshopItems;
-        public int WorkshopItemsSize;
+        public readonly List<SteamWorkshopItem> WorkshopItems = new List<SteamWorkshopItem>();
+        public int WorkshopItemsSizeOnDisk;
     }
 
     public class SteamWorkshopItem
     {
-        public SteamGame Game;
+        public SteamGame? Game;
         public int ItemID;
         public int Size;
     }
 
     public class SteamHandler : AStoreHandler
     {
-        public override List<AStoreGame> Games { get; set; }
         public override StoreType Type { get; internal set; } = StoreType.STEAM;
 
         private const string SteamRegKey = @"Software\Valve\Steam";
 
-        public string SteamPath { get; set; }
-        private List<string> SteamUniverses { get; set; }
+        public string SteamPath { get; set; } = string.Empty;
+        private List<string>? SteamUniverses { get; set; }
 
         private string SteamConfig => Path.Combine(SteamPath, "config", "config.vdf");
 
@@ -54,7 +50,7 @@ namespace Wabbajack.Common.StoreHandlers
                     return false;
                 }
 
-                SteamPath = steamPathKey.ToString();
+                SteamPath = steamPathKey.ToString() ?? string.Empty;
                 if (string.IsNullOrWhiteSpace(SteamPath))
                 {
                     Utils.Error(new StoreException("Path to the Steam Directory from registry is Null or Empty!"));
@@ -86,9 +82,9 @@ namespace Wabbajack.Common.StoreHandlers
             return false;
         }
 
-        private void LoadUniverses()
+        private List<string> LoadUniverses()
         {
-            SteamUniverses = new List<string>();
+            var ret = new List<string>();
 
             File.ReadAllLines(SteamConfig).Do(l =>
             {
@@ -100,31 +96,30 @@ namespace Wabbajack.Common.StoreHandlers
                     Utils.Log($"Directory {s} does not exist, skipping");
                     return;
                 }
-                
-                SteamUniverses.Add(s);
+
+                ret.Add(s);
                 Utils.Log($"Steam Library found at {s}");
             });
 
-            Utils.Log($"Total number of Steam Libraries found: {SteamUniverses.Count}");
+            Utils.Log($"Total number of Steam Libraries found: {ret.Count}");
 
             // Default path in the Steam folder isn't in the configs
-            if(Directory.Exists(Path.Combine(SteamPath, "steamapps")))
-                SteamUniverses.Add(Path.Combine(SteamPath, "steamapps"));
+            if (Directory.Exists(Path.Combine(SteamPath, "steamapps")))
+                ret.Add(Path.Combine(SteamPath, "steamapps"));
+
+            return ret;
         }
 
         public override bool LoadAllGames()
         {
-            if(SteamUniverses == null)
-                LoadUniverses();
+            if (SteamUniverses == null)
+                SteamUniverses = LoadUniverses();
 
             if (SteamUniverses.Count == 0)
             {
                 Utils.Log("Could not find any Steam Libraries");
                 return false;
             }
-
-            if(Games == null)
-                Games = new List<AStoreGame>();
 
             SteamUniverses.Do(u =>
             {
@@ -153,15 +148,15 @@ namespace Wabbajack.Common.StoreHandlers
 
                         var path = Path.Combine(u, "common", GetVdfValue(l));
                         if (Directory.Exists(path))
-                            game.Path = path;
+                            game.Path = (AbsolutePath)path;
                     });
 
-                    if (!gotID || !Directory.Exists(game.Path)) return;
+                    if (!gotID || !game.Path.IsDirectory) return;
 
                     var gameMeta = GameRegistry.Games.Values.FirstOrDefault(g =>
                     {
                         return (g.SteamIDs?.Contains(game.ID) ?? false)
-                            && (g.RequiredFiles?.TrueForAll(file => File.Exists(Path.Combine(game.Path, file))) ?? true);
+                            && (g.RequiredFiles?.TrueForAll(file => game.Path.Combine(file).Exists) ?? true);
                     });
 
                     if (gameMeta == null)
@@ -188,9 +183,6 @@ namespace Wabbajack.Common.StoreHandlers
 
         private static void LoadWorkshopItems(SteamGame game)
         {
-            if(game.WorkshopItems == null)
-                game.WorkshopItems = new List<SteamWorkshopItem>();
-
             var workshop = Path.Combine(game.Universe, "workshop");
             if (!Directory.Exists(workshop))
                 return;
@@ -210,13 +202,13 @@ namespace Wabbajack.Common.StoreHandlers
                 var bracketStart = 0;
                 var bracketEnd = 0;
 
-                var currentItem = new SteamWorkshopItem();
+                SteamWorkshopItem? currentItem = new SteamWorkshopItem();
 
                 lines.Do(l =>
                 {
                     if (end)
                         return;
-                    if(currentItem == null)
+                    if (currentItem == null)
                         currentItem = new SteamWorkshopItem();
 
                     var currentLine = lines.IndexOf(l);
@@ -239,7 +231,7 @@ namespace Wabbajack.Common.StoreHandlers
                         if (!int.TryParse(GetVdfValue(l), out var sizeOnDisk))
                             return;
 
-                        game.WorkshopItemsSize += sizeOnDisk;
+                        game.WorkshopItemsSizeOnDisk += sizeOnDisk;
                     }
 
                     if (l.ContainsCaseInsensitive("\"WorkshopItemsInstalled\""))

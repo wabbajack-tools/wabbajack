@@ -20,7 +20,7 @@ namespace Wabbajack.Lib
 
         public override ModManager ModManager => ModManager.Vortex;
 
-        public VortexInstaller(string archive, ModList modList, string outputFolder, string downloadFolder, SystemParameters parameters)
+        public VortexInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
             : base(
                   archive: archive,
                   modList: modList,
@@ -52,7 +52,7 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             ConfigureProcessor(10, ConstructDynamicNumThreads(await RecommendQueueSize()));
-            Directory.CreateDirectory(DownloadFolder);
+            DownloadFolder.CreateDirectory();
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Hashing Archives");
@@ -120,22 +120,22 @@ namespace Wabbajack.Lib
             if (result != ConfirmationIntervention.Choice.Continue)
                 return;
 
-            var manualFilesDir = Path.Combine(OutputFolder, Consts.ManualGameFilesDir);
+            var manualFilesDir = OutputFolder.Combine(Consts.ManualGameFilesDir);
 
             var gameFolder = GameInfo.GameLocation();
 
             Info($"Copying files from {manualFilesDir} " +
                  $"to the game folder at {gameFolder}");
 
-            if (!Directory.Exists(manualFilesDir))
+            if (!manualFilesDir.Exists)
             {
                 Info($"{manualFilesDir} does not exist!");
                 return;
             }
 
-            await Directory.EnumerateDirectories(manualFilesDir).PMap(Queue, dir =>
+            /* TODO FIX THIS
+            await manualFilesDir.EnumerateFiles().PMap(Queue, dir =>
             {
-                var dirInfo = new DirectoryInfo(dir);
                 dirInfo.GetDirectories("*", SearchOption.AllDirectories).Do(d =>
                 {
                     var destPath = d.FullName.Replace(manualFilesDir, gameFolder);
@@ -157,6 +157,8 @@ namespace Wabbajack.Lib
                     }
                 });
             });
+            
+            */
         }
 
         private async Task InstallSteamWorkshopItems()
@@ -182,12 +184,12 @@ namespace Wabbajack.Lib
                 return;
 
             await ModList.Directives.OfType<SteamMeta>()
-                .PMap(Queue, item =>
+                .PMap(Queue, async item =>
                 {
                     Status("Extracting Steam meta file to temp folder");
-                    var path = Path.Combine(DownloadFolder, $"steamWorkshopItem_{item.ItemID}.meta");
-                    if (!File.Exists(path))
-                        File.WriteAllBytes(path, LoadBytesFromPath(item.SourceDataID));
+                    var path = DownloadFolder.Combine($"steamWorkshopItem_{item.ItemID}.meta");
+                    if (!path.Exists)
+                        await path.WriteAllBytesAsync(await LoadBytesFromPath(item.SourceDataID));
 
                     Status("Downloading Steam Workshop Item through steam cmd");
 
@@ -209,15 +211,15 @@ namespace Wabbajack.Lib
         {
             Info("Writing inline files");
             await ModList.Directives.OfType<InlineFile>()
-                .PMap(Queue,directive =>
+                .PMap(Queue,async directive =>
                 {
-                    if (directive.To.EndsWith(Consts.MetaFileExtension))
+                    if (directive.To.Extension == Consts.MetaFileExtension)
                         return;
 
                     Info($"Writing included file {directive.To}");
-                    var outPath = Path.Combine(OutputFolder, directive.To);
-                    if(File.Exists(outPath)) File.Delete(outPath);
-                    File.WriteAllBytes(outPath, LoadBytesFromPath(directive.SourceDataID));
+                    var outPath = OutputFolder.Combine(directive.To);
+                    outPath.Delete();
+                    await outPath.WriteAllBytesAsync(await LoadBytesFromPath(directive.SourceDataID));
                 });
         }
     }

@@ -65,19 +65,19 @@ namespace Wabbajack
                         return list
                             // Sort randomly initially, just to give each list a fair shake
                             .Shuffle(random)
-                            .AsObservableChangeSet(x => x.DownloadMetadata?.Hash ?? $"Fallback{missingHashFallbackCounter++}");
+                            .AsObservableChangeSet(x => x.DownloadMetadata?.Hash ?? Hash.Empty);
                     }
                     catch (Exception ex)
                     {
                         Utils.Error(ex);
                         Error = ErrorResponse.Fail(ex);
-                        return Observable.Empty<IChangeSet<ModlistMetadata, string>>();
+                        return Observable.Empty<IChangeSet<ModlistMetadata, Hash>>();
                     }
                 })
                 // Unsubscribe and release when not active
                 .FlowSwitch(
                     this.WhenAny(x => x.IsActive),
-                    valueWhenOff: Observable.Return(ChangeSet<ModlistMetadata, string>.Empty))
+                    valueWhenOff: Observable.Return(ChangeSet<ModlistMetadata, Hash>.Empty))
                 .Switch()
                 .RefCount();
 

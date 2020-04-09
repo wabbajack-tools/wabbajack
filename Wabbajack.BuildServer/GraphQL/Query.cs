@@ -1,28 +1,13 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
-using GraphQL;
+﻿using System.Linq;
 using GraphQL.Types;
-using GraphQLParser.AST;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
-using Wabbajack.BuildServer.Models;
-using Wabbajack.Common;
 
 namespace Wabbajack.BuildServer.GraphQL
 {
     public class Query : ObjectGraphType
     {
-        public Query(DBContext db, SqlService sql)
+        public Query(SqlService sql)
         {
-            Field<ListGraphType<JobType>>("unfinishedJobs", resolve: context =>
-            {
-                var data =  db.Jobs.AsQueryable().Where(j => j.Ended == null).ToList();
-                return data;
-            });
-
             FieldAsync<ListGraphType<ModListStatusType>>("modLists",
                 arguments: new QueryArguments(new QueryArgument<ArchiveEnumFilterType>
                 {
@@ -31,37 +16,17 @@ namespace Wabbajack.BuildServer.GraphQL
                 resolve: async context =>
                 {
                     var arg = context.GetArgument<string>("filter");
-                    var lists = db.ModListStatus.AsQueryable();
+                    var lists = await sql.GetDetailedModlistStatuses();
                     switch (arg)
                     {
                         case "FAILED":
-                            lists = lists.Where(l => l.DetailedStatus.HasFailures);
-                            break;
+                            return lists.Where(l => l.HasFailures);
                         case "PASSED":
-                            lists = lists.Where(a => !a.DetailedStatus.HasFailures);
-                            break;
+                            return lists.Where(l => !l.HasFailures);
                         default:
-                            break;
+                            return lists;
                     }
 
-                    return await lists.ToListAsync();
-                });
-            
-            FieldAsync<ListGraphType<JobType>>("job",
-                arguments: new QueryArguments(
-                    new QueryArgument<IdGraphType> {Name = "id", Description = "Id of the Job"}),
-                resolve: async context =>
-                {
-                    var id = context.GetArgument<string>("id");
-                    var data = await db.Jobs.AsQueryable().Where(j => j.Id == id).ToListAsync();
-                    return data;
-                });
-            
-            FieldAsync<ListGraphType<UploadedFileType>>("uploadedFiles",
-                resolve: async context =>
-                {
-                    var data = await db.UploadedFiles.AsQueryable().ToListAsync();
-                    return data;
                 });
 
             FieldAsync<ListGraphType<MetricResultType>>("dailyUniqueMetrics",

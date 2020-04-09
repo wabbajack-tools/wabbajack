@@ -9,7 +9,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class IgnoreDisabledMods : ACompilationStep
     {
-        private readonly IEnumerable<string> _allEnabledMods;
+        private readonly IEnumerable<AbsolutePath> _allEnabledMods;
         private readonly MO2Compiler _mo2Compiler;
 
         public IgnoreDisabledMods(ACompiler compiler) : base(compiler)
@@ -18,17 +18,17 @@ namespace Wabbajack.Lib.CompilationSteps
             var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IsAlwaysEnabled(f.Value)).Select(f => f.Key).Distinct();
 
             _allEnabledMods = _mo2Compiler.SelectedProfiles
-                .SelectMany(p => File.ReadAllLines(Path.Combine(_mo2Compiler.MO2Folder, "profiles", p, "modlist.txt")))
+                .SelectMany(p => _mo2Compiler.MO2Folder.Combine("profiles", p, "modlist.txt").ReadAllLines())
                 .Where(line => line.StartsWith("+") || line.EndsWith("_separator"))
-                .Select(line => line.Substring(1))
+                .Select(line => line.Substring(1).RelativeTo(_mo2Compiler.MO2ModsFolder))
                 .Concat(alwaysEnabled)
-                .Select(line => Path.Combine(Consts.MO2ModFolderName, line) + "\\")
                 .ToList();
         }
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!source.Path.StartsWith(Consts.MO2ModFolderName) || _allEnabledMods.Any(mod => source.Path.StartsWith(mod)))
+            if (!source.AbsolutePath.InFolder(_mo2Compiler.MO2ModsFolder)) return null;
+            if (_allEnabledMods.Any(mod => source.AbsolutePath.InFolder(mod)))
                 return null;
             var r = source.EvolveTo<IgnoredDirectly>();
             r.Reason = "Disabled Mod";

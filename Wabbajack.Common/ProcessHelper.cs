@@ -15,9 +15,9 @@ namespace Wabbajack.Common
             Output, 
             Error,
         }
-        
-        public string Path { get; set; }
-        public IEnumerable<object> Arguments { get; set; }
+
+        public string Path { get; set; } = string.Empty;
+        public IEnumerable<object> Arguments { get; set; } = Enumerable.Empty<object>();
 
         public bool LogError { get; set; } = true;
         
@@ -47,24 +47,27 @@ namespace Wabbajack.Common
                 StartInfo = info,
                 EnableRaisingEvents = true
             };
-            p.Exited += (sender, args) =>
+            EventHandler Exited = (sender, args) =>
             {
                 finished.SetResult(p.ExitCode);
             };
+            p.Exited += Exited;
 
-            p.OutputDataReceived += (sender, data) =>
+            DataReceivedEventHandler OutputDataReceived = (sender, data) =>
             {
                 if (string.IsNullOrEmpty(data.Data)) return;
                 Output.OnNext((StreamType.Output, data.Data));
             };
+            p.OutputDataReceived += OutputDataReceived;
 
-            p.ErrorDataReceived += (sender, data) =>
+            DataReceivedEventHandler ErrorEventHandler = (sender, data) =>
             {
                 if (string.IsNullOrEmpty(data.Data)) return;
                 Output.OnNext((StreamType.Error, data.Data));
                 if (LogError)
                     Utils.Log($"{AlphaPath.GetFileName(Path)} ({p.Id}) StdErr: {data.Data}");
             };
+            p.ErrorDataReceived += ErrorEventHandler;
 
             p.Start();
             p.BeginErrorReadLine();
@@ -82,6 +85,12 @@ namespace Wabbajack.Common
 
 
             var result =  await finished.Task;
+            p.CancelErrorRead();
+            p.CancelOutputRead();
+            p.OutputDataReceived -= OutputDataReceived;
+            p.ErrorDataReceived -= ErrorEventHandler;
+            p.Exited -= Exited;
+            
             Output.OnCompleted();
             return result;
         }

@@ -15,20 +15,20 @@ namespace Wabbajack.Lib.NexusApi
 
     public class NexusFileInfo
     {
-        public ulong category_id { get; set; }
+        public long category_id { get; set; }
         public string category_name { get; set; }
         public string changelog_html { get; set; }
         public string description { get; set; }
         public string external_virus_scan_url { get; set; }
-        public ulong file_id { get; set; }
+        public long file_id { get; set; }
         public string file_name { get; set; }
         public bool is_primary { get; set; }
         public string mod_version { get; set; }
         public string name { get; set; }
-        public ulong size { get; set; }
-        public ulong size_kb { get; set; }
+        public long size { get; set; }
+        public long size_kb { get; set; }
         public DateTime uploaded_time { get; set; }
-        public ulong uploaded_timestamp { get; set; }
+        public long uploaded_timestamp { get; set; }
         public string version { get; set; }
     }
 

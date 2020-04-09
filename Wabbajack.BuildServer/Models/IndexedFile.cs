@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MongoDB.Bson.Serialization.Attributes;
-using Wabbajack.VirtualFileSystem;
+﻿using System.Collections.Generic;
+using Wabbajack.Common;
 
 namespace Wabbajack.BuildServer.Models
 {
     public class IndexedFile
     {
-        [BsonId]
-        public string Hash { get; set; }
+        public Hash Hash { get; set; }
         public string SHA256 { get; set; }
         public string SHA1 { get; set; }
         public string MD5 { get; set; }
@@ -25,6 +19,6 @@ namespace Wabbajack.BuildServer.Models
     {
         public string Name;
         public string Extension;
-        public string Hash;
+        public Hash Hash;
     }
 }

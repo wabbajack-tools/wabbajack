@@ -33,11 +33,11 @@ namespace Wabbajack.Common
             {
                 client.DefaultRequestHeaders.Add(Consts.MetricsKeyHeader,
                     Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader));
-                await client.GetAsync($"http://build.wabbajack.org/metrics/{action}/{value}");
+                await client.GetAsync($"{Consts.WabbajackBuildServerUri}metrics/{action}/{value}");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                
+                // ignored
             }
         }
     }

@@ -24,6 +24,9 @@ namespace Wabbajack
                 new PercentToDoubleConverter(),
                 typeof(IBindingTypeConverter)
             );
+            Locator.CurrentMutable.RegisterConstant(
+                new AbsolutePathToStringConverter(),
+                typeof(IBindingTypeConverter));
         }
     }
 }

@@ -25,13 +25,14 @@ namespace Wabbajack.Common
 
         public static bool WorkerThread => AsyncLocalCurrentQueue.Value != null;
         public bool IsWorkerThread => WorkerThread;
-        internal static readonly AsyncLocal<WorkQueue> AsyncLocalCurrentQueue = new AsyncLocal<WorkQueue>();
+        internal static readonly AsyncLocal<WorkQueue?> AsyncLocalCurrentQueue = new AsyncLocal<WorkQueue?>();
 
         private readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
 
         private int _nextCpuID = 1; // Start at 1, as 0 is "Unassigned"
-        internal Dictionary<int, Task> _tasks = new Dictionary<int, Task>();
+        // Public for testing reasons
+        public Dictionary<int, Task> _tasks = new Dictionary<int, Task>();
         public int DesiredNumWorkers { get; private set; } = 0;
 
         private CancellationTokenSource _shutdown = new CancellationTokenSource();
@@ -50,7 +51,7 @@ namespace Wabbajack.Common
 
         private readonly Subject<IObservable<int>> _activeNumThreadsObservable = new Subject<IObservable<int>>();
 
-        public TimeSpan PollMS = TimeSpan.FromMilliseconds(200);
+        public static TimeSpan PollMS = TimeSpan.FromMilliseconds(200);
 
         /// <summary>
         /// Creates a WorkQueue with the given number of threads
@@ -193,7 +194,7 @@ namespace Wabbajack.Common
     public class CPUStatus
     {
         public Percent ProgressPercent { get; internal set; }
-        public string Msg { get; internal set; }
+        public string Msg { get; internal set; } = string.Empty;
         public int ID { get; internal set; }
         public bool IsWorking { get; internal set; }
     }

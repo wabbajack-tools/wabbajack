@@ -16,13 +16,13 @@ namespace Wabbajack.CLI.Verbs
     [Verb("changelog", HelpText = "Generate a changelog using two different versions of the same Modlist.")]
     public class Changelog : AVerb
     {
-        [IsFile(CustomMessage = "Modlist %1 does not exist!", Extension = Consts.ModListExtension)]
+        [IsFile(CustomMessage = "Modlist %1 does not exist!", Extension = Consts.ModListExtensionString)]
         [Option("original", Required = true, HelpText = "The original/previous modlist")]
-        public string? Original { get; set; }
+        public string Original { get; set; } = "";
 
-        [IsFile(CustomMessage = "Modlist %1 does not exist!", Extension = Consts.ModListExtension)]
+        [IsFile(CustomMessage = "Modlist %1 does not exist!", Extension = Consts.ModListExtensionString)]
         [Option("update", Required = true, HelpText = "The current/updated modlist")]
-        public string? Update { get; set; }
+        public string Update { get; set; } = "";
 
         [Option('o', "output", Required = false, HelpText = "The output file")]
         public string? Output { get; set; }
@@ -38,6 +38,8 @@ namespace Wabbajack.CLI.Verbs
 
         protected override async Task<ExitCode> Run()
         {
+            var orignalPath = (AbsolutePath)Original;
+            var updatePath = (AbsolutePath)Update;
             if (Original == null)
                 return ExitCode.BadArguments;
             if (Update == null)
@@ -47,7 +49,7 @@ namespace Wabbajack.CLI.Verbs
 
             try
             {
-                original = AInstaller.LoadFromFile(Original);
+                original = AInstaller.LoadFromFile(orignalPath);
             }
             catch (Exception e)
             {
@@ -59,7 +61,7 @@ namespace Wabbajack.CLI.Verbs
 
             try
             {
-                update = AInstaller.LoadFromFile(Update);
+                update = AInstaller.LoadFromFile(updatePath);
             }
             catch (Exception e)
             {
@@ -113,15 +115,8 @@ namespace Wabbajack.CLI.Verbs
                             if (nexusState.ModID != originalState.ModID)
                                 return false;
 
-                            if (!int.TryParse(nexusState.FileID, out var currentFileID))
-                                return true;
 
-                            if (int.TryParse(originalState.FileID, out var originalFileID))
-                            {
-                                return currentFileID > originalFileID;
-                            }
-
-                            return true;
+                            return nexusState.FileID > originalState.FileID;
                         });
                     }).ToList();
 
@@ -158,20 +153,21 @@ namespace Wabbajack.CLI.Verbs
 
             if (IncludeLoadOrderChanges)
             {
+                var loadorder_txt = (RelativePath)"loadorder.txt";
                 var originalLoadOrderFile = original.Directives
                     .Where(d => d is InlineFile)
-                    .Where(d => d.To.EndsWith("loadorder.txt"))
+                    .Where(d => d.To.FileName == loadorder_txt)
                     .Cast<InlineFile>()
                     .First();
 
                 var updatedLoadOrderFile = update.Directives
                     .Where(d => d is InlineFile)
-                    .Where(d => d.To.EndsWith("loadorder.txt"))
+                    .Where(d => d.To.FileName == loadorder_txt)
                     .Cast<InlineFile>()
                     .First();
 
-                var originalLoadOrder = GetTextFileFromModlist(Original, original, originalLoadOrderFile.SourceDataID).Split("\n");
-                var updatedLoadOrder = GetTextFileFromModlist(Update, update, updatedLoadOrderFile.SourceDataID).Split("\n");
+                var originalLoadOrder = GetTextFileFromModlist(orignalPath, original, originalLoadOrderFile.SourceDataID).Result.Split("\n");
+                var updatedLoadOrder = GetTextFileFromModlist(updatePath, update, updatedLoadOrderFile.SourceDataID).Result.Split("\n");
                 
                 var addedPlugins = updatedLoadOrder
                     .Where(p => originalLoadOrder.All(x => p != x))
@@ -199,20 +195,21 @@ namespace Wabbajack.CLI.Verbs
 
             if (IncludeModChanges)
             {
+                var modlistTxt = (RelativePath)"modlist.txt";
                 var originalModlistFile = original.Directives
                     .Where(d => d is InlineFile)
-                    .Where(d => d.To.EndsWith("modlist.txt"))
+                    .Where(d => d.To.FileName == modlistTxt)
                     .Cast<InlineFile>()
                     .First();
 
                 var updatedModlistFile = update.Directives
                     .Where(d => d is InlineFile)
-                    .Where(d => d.To.EndsWith("modlist.txt"))
+                    .Where(d => d.To.FileName == modlistTxt)
                     .Cast<InlineFile>()
                     .First();
 
-                var originalModlist = GetTextFileFromModlist(Original, original, originalModlistFile.SourceDataID).Split("\n");
-                var updatedModlist = GetTextFileFromModlist(Update, update, updatedModlistFile.SourceDataID).Split("\n");
+                var originalModlist = GetTextFileFromModlist(orignalPath, original, originalModlistFile.SourceDataID).Result.Split("\n");
+                var updatedModlist = GetTextFileFromModlist(updatePath, update, updatedModlistFile.SourceDataID).Result.Split("\n");
 
                 var removedMods = originalModlist
                     .Where(m => m.StartsWith("+"))
@@ -319,10 +316,10 @@ namespace Wabbajack.CLI.Verbs
             return ExitCode.Ok;
         }
 
-        private static string GetTextFileFromModlist(string archive, ModList modlist, string sourceID)
+        private static async Task<string> GetTextFileFromModlist(AbsolutePath archive, ModList modlist, RelativePath sourceID)
         {
-            var installer = new MO2Installer(archive, modlist, "", "", null);
-            byte[] bytes = installer.LoadBytesFromPath(sourceID);
+            var installer = new MO2Installer(archive, modlist, default, default, null);
+            byte[] bytes = await installer.LoadBytesFromPath(sourceID);
             return Encoding.Default.GetString(bytes);
         }
 

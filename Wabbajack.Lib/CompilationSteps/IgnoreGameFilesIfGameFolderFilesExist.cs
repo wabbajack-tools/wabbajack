@@ -7,11 +7,11 @@ namespace Wabbajack.Lib.CompilationSteps
     public class IgnoreGameFilesIfGameFolderFilesExist : ACompilationStep
     {
         private readonly bool _gameFolderFilesExists;
-        private readonly string _gameFolder;
+        private readonly AbsolutePath _gameFolder;
 
         public IgnoreGameFilesIfGameFolderFilesExist(ACompiler compiler) : base(compiler)
         {
-            _gameFolderFilesExists = Directory.Exists(Path.Combine(((MO2Compiler)compiler).MO2Folder, Consts.GameFolderFilesDir));
+            _gameFolderFilesExists = ((MO2Compiler)compiler).MO2Folder.Combine(Consts.GameFolderFilesDir).IsDirectory;
             _gameFolder = compiler.GamePath;
         }
 
@@ -19,7 +19,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             if (_gameFolderFilesExists)
             {
-                if (source.AbsolutePath.IsInPath(_gameFolder))
+                if (source.AbsolutePath.InFolder(_gameFolder))
                 {
                     var result = source.EvolveTo<IgnoredDirectly>();
                     result.Reason = $"Ignoring game files because {Consts.GameFolderFilesDir} exists";

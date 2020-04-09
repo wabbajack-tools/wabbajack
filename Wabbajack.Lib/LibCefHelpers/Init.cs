@@ -11,6 +11,7 @@ using Alphaleonis.Win32.Filesystem;
 using CefSharp;
 using CefSharp.OffScreen;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.Lib.LibCefHelpers
 {
@@ -74,6 +75,7 @@ namespace Wabbajack.Lib.LibCefHelpers
             }
         }
 
+        [JsonName("HttpCookie")]
         public class Cookie
         {
             public string Name { get; set; }

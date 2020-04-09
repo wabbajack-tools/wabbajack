@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -15,6 +15,8 @@ namespace Wabbajack.Lib.Downloaders
             "vectorplexus", "vectorplexus.com")
         {
         }
+        
+        [JsonName("VectorPlexisDownloader")]
         public class State : State<VectorPlexusDownloader>
         {
         }

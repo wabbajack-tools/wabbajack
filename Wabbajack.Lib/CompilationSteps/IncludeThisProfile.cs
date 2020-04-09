@@ -4,31 +4,32 @@ using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
+using Wabbajack.Common;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
     public class IncludeThisProfile : ACompilationStep
     {
-        private readonly IEnumerable<string> _correctProfiles;
+        private readonly IEnumerable<AbsolutePath> _correctProfiles;
         private MO2Compiler _mo2Compiler;
 
         public IncludeThisProfile(ACompiler compiler) : base(compiler)
         {
             _mo2Compiler = (MO2Compiler) compiler;
-            _correctProfiles = _mo2Compiler.SelectedProfiles.Select(p => Path.Combine("profiles", p) + "\\").ToList();
+            _correctProfiles = _mo2Compiler.SelectedProfiles.Select(p => _mo2Compiler.MO2ProfileDir.Parent.Combine(p)).ToList();
         }
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!_correctProfiles.Any(p => source.Path.StartsWith(p)))
+            if (!_correctProfiles.Any(p => source.AbsolutePath.InFolder(p)))
                 return null;
 
-            var data = source.Path.EndsWith("\\modlist.txt")
-                ? ReadAndCleanModlist(source.AbsolutePath)
-                : File.ReadAllBytes(source.AbsolutePath);
+            var data = source.Path.FileName == Consts.ModListTxt
+                ? await ReadAndCleanModlist(source.AbsolutePath)
+                : await source.AbsolutePath.ReadAllBytesAsync();
 
             var e = source.EvolveTo<InlineFile>();
-            e.SourceDataID = _compiler.IncludeFile(data);
+            e.SourceDataID = await _compiler.IncludeFile(data);
             return e;
 
         }
@@ -38,17 +39,10 @@ namespace Wabbajack.Lib.CompilationSteps
             return new State();
         }
 
-        private byte[] ReadAndCleanModlist(string absolutePath)
+        private static async Task<byte[]> ReadAndCleanModlist(AbsolutePath absolutePath)
         {
-            var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IgnoreDisabledMods.IsAlwaysEnabled(f.Value))
-                .Select(f => f.Key)
-                .Distinct();
-            var lines = File.ReadAllLines(absolutePath).Where(l =>
-            {
-                return l.StartsWith("+") 
-                       || alwaysEnabled.Any(x => x == l.Substring(1)) 
-                       || l.EndsWith("_separator");
-            }).ToArray();
+            var lines = await absolutePath.ReadAllLinesAsync();
+            lines = lines.Where(line => !(line.StartsWith("-") && !line.EndsWith("_separator"))).ToArray();
             return Encoding.UTF8.GetBytes(string.Join("\r\n", lines));
         }
 

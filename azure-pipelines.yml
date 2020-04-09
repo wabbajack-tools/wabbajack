@@ -5,7 +5,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 trigger:
-- master
+- wabbajack-2.0
 
 pool:
   name: Default
@@ -37,12 +37,13 @@ steps:
     command: 'build'
     projects: 'Wabbajack\Wabbajack.csproj'
     arguments: '--runtime win10-x64 --configuration Release /p:Platform=x64'
+
 - task: DotNetCoreCLI@2
   displayName: "Test Release"
   inputs:
     command: 'test'
     projects: '**/*.Test.csproj'
-    arguments: '/p:Platform=x64'
+    arguments: '/p:Platform=x64 /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/CodeCoverage'
 
 - task: DotNetCoreCLI@2
   inputs:

@@ -5,21 +5,15 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using DynamicData;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Bson;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
-using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.BuildServer.Models.Jobs;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
-using Wabbajack.VirtualFileSystem;
 using IndexedFile = Wabbajack.BuildServer.Models.IndexedFile;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -28,9 +22,11 @@ namespace Wabbajack.BuildServer.Controllers
     public class IndexedFiles : AControllerBase<IndexedFiles>
     {
         private SqlService _sql;
+        private AppSettings _settings;
 
-        public IndexedFiles(ILogger<IndexedFiles> logger, DBContext db, SqlService sql) : base(logger, db, sql)
+        public IndexedFiles(ILogger<IndexedFiles> logger, SqlService sql, AppSettings settings) : base(logger, sql)
         {
+            _settings = settings;
             _sql = sql;
         }
 
@@ -38,59 +34,39 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("{xxHashAsBase64}/meta.ini")]
         public async Task<IActionResult> GetFileMeta(string xxHashAsBase64)
         {
-            var id = xxHashAsBase64.FromHex().ToBase64();
-            var state = await Db.DownloadStates.AsQueryable()
-                .Where(d => d.Hash == id && d.IsValid)
-                .OrderByDescending(d => d.LastValidationTime)
-                .Take(1)
-                .ToListAsync();
-
-            if (state.Count == 0)
+            var id = Hash.FromHex(xxHashAsBase64);
+            
+            var result = await SQL.GetIniForHash(id);
+            if (result == null)
                 return NotFound();
+            
             Response.ContentType = "text/plain";
-            return Ok(string.Join("\r\n", state.FirstOrDefault().State.GetMetaIni()));
+            return Ok(result);
         }
 
+        [HttpGet]
+        [Route("ingest/{folder}")]
         [Authorize]
-        [HttpDelete]
-        [Route("/indexed_files/nexus/{Game}/mod/{ModId}")]
-        public async Task<IActionResult> PurgeBySHA256(string Game, string ModId)
+        public async Task<IActionResult> Ingest(string folder)
         {
-            var files = await Db.DownloadStates.AsQueryable().Where(d => d.State is NexusDownloader.State &&
-                                                                   ((NexusDownloader.State)d.State).GameName == Game &&
-                                                                   ((NexusDownloader.State)d.State).ModID == ModId)
-                .ToListAsync();
-
-            async Task DeleteParentsOf(HashSet<string> acc, string hash)
+            var fullPath = folder.RelativeTo((AbsolutePath)_settings.TempFolder);
+            Utils.Log($"Ingesting Inis from {fullPath}");
+            int loadCount = 0;
+            foreach (var file in fullPath.EnumerateFiles().Where(f => f.Extension == Consts.IniExtension))
             {
-                var parents = await Db.IndexedFiles.AsQueryable().Where(f => f.Children.Any(c => c.Hash == hash))
-                    .ToListAsync();
-
-                foreach (var parent in parents)
-                    await DeleteThisAndAllChildren(acc, parent.Hash);
-            }
-            
-            async Task DeleteThisAndAllChildren(HashSet<string> acc, string hash)
-            {
-                acc.Add(hash);
-                var children = await Db.IndexedFiles.AsQueryable().Where(f => f.Hash == hash).FirstOrDefaultAsync();
-                if (children == null) return;
-                foreach (var child in children.Children)
+                var loaded = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(file.LoadIniFile(), true));
+                if (loaded == null)
                 {
-                    await DeleteThisAndAllChildren(acc, child.Hash);
+                    Utils.Log($"Unsupported Ini {file}");
+                    continue;
                 }
 
+                var hash = Hash.FromHex(((string)file.FileNameWithoutExtension).Split("_").First()); 
+                await SQL.AddDownloadState(hash, loaded);
+                loadCount += 1;
             }
-            
-            var acc = new HashSet<string>();
-            foreach (var file in files)
-                await DeleteThisAndAllChildren(acc, file.Hash);
 
-            var acclst = acc.ToList();
-            await Db.DownloadStates.DeleteManyAsync(d => acc.Contains(d.Hash));
-            await Db.IndexedFiles.DeleteManyAsync(d => acc.Contains(d.Hash));
-
-            return Ok(acc.ToList());
+            return Ok(loadCount);
         }
 
         [HttpPost]
@@ -106,7 +82,9 @@ namespace Wabbajack.BuildServer.Controllers
             {
                 await using var ins = entry.Open();
                 var iniString = Encoding.UTF8.GetString(await ins.ReadAllAsync());
-                var data = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(iniString.LoadIniString()));
+                Utils.Log(iniString);
+                var data = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(iniString.LoadIniString(), true));
+                
                 if (data == null)
                 {
                     Utils.Log("No valid INI parser for: \n" + iniString);
@@ -116,15 +94,13 @@ namespace Wabbajack.BuildServer.Controllers
                 if (data is ManualDownloader.State)
                     continue;
 
-                var key = data.PrimaryKeyString;
-                var found = await Db.DownloadStates.AsQueryable().Where(f => f.Key == key).Take(1).ToListAsync();
-                if (found.Count > 0)
+                if (await SQL.HaveIndexedArchivePrimaryKey(data.PrimaryKeyString))
                     continue;
 
-                await Db.Jobs.InsertOneAsync(new Job
+                await SQL.EnqueueJob(new Job
                 {
                     Priority = Job.JobPriority.Low,
-                    Payload = new IndexJob()
+                    Payload = new IndexJob
                     {
                         Archive = new Archive
                         {

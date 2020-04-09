@@ -2,24 +2,21 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection.Emit;
 using System.Threading.Tasks;
-using Ceras;
-using SharpCompress.Common;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.Validation;
-using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
     public class HTTPDownloader : IDownloader, IUrlDownloader
     {
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url, archiveINI);
@@ -53,16 +50,17 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-        [MemberConfig(TargetMember.All)]
+        [JsonName("HttpDownloader")]
         public class State : AbstractDownloadState
         {
             public string Url { get; set; }
 
             public List<string> Headers { get; set; }
 
-            [Exclude]
+            [JsonIgnore]
             public Common.Http.Client Client { get; set; }
 
+            [JsonIgnore]
             public override object[] PrimaryKey { get => new object[] {Url};}
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
@@ -70,21 +68,19 @@ namespace Wabbajack.Lib.Downloaders
                 return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
             }
 
-            public override Task<bool> Download(Archive a, string destination)
+            public override Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 return DoDownload(a, destination, true);
             }
 
-            public async Task<bool> DoDownload(Archive a, string destination, bool download)
+            public async Task<bool> DoDownload(Archive a, AbsolutePath destination, bool download)
             {
                 if (download)
                 {
-                    var parent = Directory.GetParent(destination);
-                    if (!Directory.Exists(parent.FullName))
-                        Directory.CreateDirectory(parent.FullName);
+                    destination.Parent.CreateDirectory();
                 }
 
-                using (var fs = download ? File.Open(destination, FileMode.Create) : null)
+                using (var fs = download ? destination.Create() : null)
                 {
                     var client = Client ?? new Common.Http.Client();
                     client.Headers.Add(("User-Agent", Consts.UserAgent));
@@ -192,7 +188,7 @@ TOP:
 
             public override async Task<bool> Verify(Archive a)
             {
-                return await DoDownload(a, "", false);
+                return await DoDownload(a, ((RelativePath)"").RelativeToEntryPoint(), false);
             }
 
             public override IDownloader GetDownloader()

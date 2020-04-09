@@ -10,6 +10,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Newtonsoft.Json.Linq;
@@ -18,6 +19,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
@@ -39,7 +41,7 @@ namespace Wabbajack.Lib.Downloaders
             var result = await Utils.Log(new RequestBethesdaNetLogin()).Task;
         }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = (Uri)DownloaderUtils.GetDirectURL(archiveINI);
             return StateFromUrl(url);
@@ -66,7 +68,7 @@ namespace Wabbajack.Lib.Downloaders
         public static async Task<BethesdaNetData> Login(Game game)
         {
             var metadata = game.MetaData();
-            var gamePath = Path.Combine(metadata.GameLocation(), metadata.MainExecutable);
+            var gamePath = metadata.GameLocation()?.Combine(metadata.MainExecutable);
             var info = new ProcessStartInfo
             {
                 FileName = @"Downloaders\BethesdaNet\bethnetlogin.exe",
@@ -90,11 +92,11 @@ namespace Wabbajack.Lib.Downloaders
 
             try
             {
-                var result = last_line.FromJSONString<BethesdaNetData>();
+                var result = last_line.FromJsonString<BethesdaNetData>();
                 result.ToEcryptedJson(DataName);
                 return result;
             }
-            catch (Exception _)
+            catch (Exception)
             {
                 return null;
             }
@@ -105,7 +107,6 @@ namespace Wabbajack.Lib.Downloaders
             return StateFromUrl(new Uri(url));
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
         public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
         public ReactiveCommand<Unit, Unit> ClearLogin { get; }
         public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable(DataName);
@@ -114,10 +115,14 @@ namespace Wabbajack.Lib.Downloaders
         public Uri SiteURL => new Uri("https://bethesda.net");
         public Uri IconUri { get; }
 
+        
+        [JsonName("BethesdaNetDownloader")]
         public class State : AbstractDownloadState
         {
             public string GameName { get; set; }
             public string ContentId { get; set; }
+            
+            [JsonIgnore]
             public override object[] PrimaryKey => new object[] {GameName, ContentId};
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
@@ -125,7 +130,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var (client, info, collected) = await ResolveDownloadInfo();
                 using var tf = new TempFile();
@@ -151,16 +156,16 @@ namespace Wabbajack.Lib.Downloaders
                     }
                 }
                 file.Close();
-                await ConvertCKMToZip(file.Name, destination);
+                await ConvertCKMToZip((AbsolutePath)file.Name, destination);
 
                 return true;
             }
 
 
             private const uint CKM_Magic = 0x52415442; // BTAR
-            private async Task ConvertCKMToZip(string src, string dest)
+            private async Task ConvertCKMToZip(AbsolutePath src, AbsolutePath dest)
             {
-                using var reader = new BinaryReader(File.OpenRead(src));
+                using var reader = new BinaryReader(src.OpenRead());
                 var magic = reader.ReadUInt32();
                 if (magic != CKM_Magic)
                     throw new InvalidDataException("Invalid magic format in CKM parsing");
@@ -173,7 +178,7 @@ namespace Wabbajack.Lib.Downloaders
                 if (minorVersion < 2 || minorVersion > 4)
                     throw new InvalidDataException("Archive minor version is unknown. Should be 2, 3, or 4.");
 
-                await using var fos = File.Create(dest);
+                await using var fos = dest.Create();
                 using var archive = new ZipArchive(fos, ZipArchiveMode.Create);
                 while (reader.PeekChar() != -1)
                 {
@@ -211,7 +216,7 @@ namespace Wabbajack.Lib.Downloaders
                 var posted = await client.PostAsync("https://api.bethesda.net/beam/accounts/external_login",
                     new StringContent(login_info.body, Encoding.UTF8, "application/json"));
 
-                info.AccessToken = (await posted.Content.ReadAsStringAsync()).FromJSONString<BeamLoginResponse>().access_token;
+                info.AccessToken = (await posted.Content.ReadAsStringAsync()).FromJsonString<BeamLoginResponse>().access_token;
 
                 client.Headers.Add(("x-cdp-app", "UGC SDK"));
                 client.Headers.Add(("x-cdp-app-ver", "0.9.11314/debug"));
@@ -221,7 +226,7 @@ namespace Wabbajack.Lib.Downloaders
                 posted = await client.PostAsync("https://api.bethesda.net/cdp-user/auth",
                     new StringContent("{\"access_token\": \"" + info.AccessToken + "\"}", Encoding.UTF8,
                         "application/json"));
-                info.CDPToken = (await posted.Content.ReadAsStringAsync()).FromJSONString<CDPLoginResponse>().token;
+                info.CDPToken = (await posted.Content.ReadAsStringAsync()).FromJsonString<CDPLoginResponse>().token;
 
                 client.Headers.Add(("X-Access-Token", info.AccessToken));
                 var got = await client.GetAsync($"https://api.bethesda.net/mods/ugc-workshop/content/get?content_id={ContentId}");
@@ -239,7 +244,7 @@ namespace Wabbajack.Lib.Downloaders
                 got = await client.GetAsync(
                     $"https://api.bethesda.net/cdp-user/projects/{info.CDPProductId}/branches/{info.CDPBranchId}/tree/.json");
 
-                var tree = (await got.Content.ReadAsStringAsync()).FromJSONString<CDPTree>();
+                var tree = (await got.Content.ReadAsStringAsync()).FromJsonString<CDPTree>();
                 
                 got.Dispose();
                 got = await client.PostAsync($"https://api.bethesda.net/mods/ugc-content/add-subscription", new StringContent($"{{\"content_id\": \"{ContentId}\"}}", Encoding.UTF8, "application/json"));

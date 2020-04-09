@@ -22,7 +22,6 @@ namespace Wabbajack.Lib.NexusApi
     public class NexusApiClient : ViewModel
     {
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
-        private static string _additionalEntropy = "vtP2HF6ezg";
        
         public Common.Http.Client HttpClient { get; } = new Common.Http.Client();
 
@@ -253,7 +252,7 @@ namespace Wabbajack.Lib.NexusApi
 
 
                 await using var stream = await response.Content.ReadAsStreamAsync();
-                return stream.FromJSON<T>();
+                return stream.FromJson<T>();
             }
             catch (TimeoutException)
             {
@@ -274,7 +273,12 @@ namespace Wabbajack.Lib.NexusApi
         {
             try
             {
-                var builder = new UriBuilder(url) { Host = Consts.WabbajackCacheHostname, Scheme = "https" };
+                var builder = new UriBuilder(url)
+                {
+                    Host = Consts.WabbajackBuildServerUri.Host, 
+                    Scheme = Consts.WabbajackBuildServerUri.Scheme, 
+                    Port = Consts.WabbajackBuildServerUri.Port
+                };
                 return await Get<T>(builder.ToString());
             }
             catch (Exception)
@@ -288,7 +292,7 @@ namespace Wabbajack.Lib.NexusApi
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
-            var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(archive.GameName)}/mods/{archive.ModID}/files/{archive.FileID}/download_link.json";
+            var url = $"https://api.nexusmods.com/v1/games/{archive.Game.MetaData().NexusName}/mods/{archive.ModID}/files/{archive.FileID}/download_link.json";
             try
             {
                 return (await Get<List<DownloadLink>>(url)).First().URI;
@@ -312,19 +316,12 @@ namespace Wabbajack.Lib.NexusApi
                 throw;
             }
         }
-
-        public async Task<NexusFileInfo> GetFileInfo(NexusDownloader.State mod)
-        {
-            var url = $"https://api.nexusmods.com/v1/games/{ConvertGameName(mod.GameName)}/mods/{mod.ModID}/files/{mod.FileID}.json";
-            return await GetCached<NexusFileInfo>(url);
-        }
-
         public class GetModFilesResponse
         {
             public List<NexusFileInfo> files { get; set; }
         }
 
-        public async Task<GetModFilesResponse> GetModFiles(Game game, int modid)
+        public async Task<GetModFilesResponse> GetModFiles(Game game, long modid)
         {
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modid}/files.json";
             var result = await GetCached<GetModFilesResponse>(url);
@@ -339,7 +336,7 @@ namespace Wabbajack.Lib.NexusApi
             return await Get<List<MD5Response>>(url);
         }
 
-        public async Task<ModInfo> GetModInfo(Game game, string modId)
+        public async Task<ModInfo> GetModInfo(Game game, long modId)
         {
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modId}.json";
             return await GetCached<ModInfo>(url);
@@ -350,7 +347,6 @@ namespace Wabbajack.Lib.NexusApi
             public string URI { get; set; }
         }
 
-        private static bool? _useLocalCache;
         public static MethodInfo CacheMethod { get; set; }
 
         private static string _localCacheDir;
@@ -367,7 +363,7 @@ namespace Wabbajack.Lib.NexusApi
 
         public static Uri ManualDownloadUrl(NexusDownloader.State state)
         {
-            return new Uri($"https://www.nexusmods.com/{GameRegistry.GetByFuzzyName(state.GameName).NexusName}/mods/{state.ModID}?tab=files");
+            return new Uri($"https://www.nexusmods.com/{state.Game.MetaData().NexusName}/mods/{state.ModID}?tab=files");
         }
     }
 }

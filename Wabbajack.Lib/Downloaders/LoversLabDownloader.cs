@@ -3,7 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using HtmlAgilityPack;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.Downloaders
@@ -32,8 +34,11 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
+        
+        [JsonName("LoversLabDownloader")]
         public class State : State<LoversLabDownloader>
         {
+            [JsonIgnore]
             public override bool IsNSFW => true;
 
             public override async Task<bool> LoadMetaData()

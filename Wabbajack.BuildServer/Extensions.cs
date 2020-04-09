@@ -4,25 +4,15 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.Common;
-using Directory =Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
-using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.BuildServer
 {
     public static class Extensions
     {
-        public static async Task<T> FindOneAsync<T>(this IMongoCollection<T> coll, Expression<Func<T, bool>> expr)
-        {
-            return (await coll.AsQueryable().Where(expr).Take(1).ToListAsync()).FirstOrDefault();
-        }
-
         public static void UseJobManager(this IApplicationBuilder b)
         {
             var manager = (JobManager)b.ApplicationServices.GetService(typeof(JobManager));
@@ -47,22 +37,19 @@ namespace Wabbajack.BuildServer
             return authenticationBuilder.AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(ApiKeyAuthenticationOptions.DefaultScheme, options);
         }
         
-        private static ConcurrentDictionary<string, string> PathForArchiveHash = new ConcurrentDictionary<string, string>();
-        public static string PathForArchive(this AppSettings settings, string hash)
+        private static readonly ConcurrentDictionary<Hash, AbsolutePath> PathForArchiveHash = new ConcurrentDictionary<Hash, AbsolutePath>();
+        public static AbsolutePath PathForArchive(this AppSettings settings, Hash hash)
         {
-            if (PathForArchiveHash.TryGetValue(hash, out string result))
+            if (PathForArchiveHash.TryGetValue(hash, out AbsolutePath result))
                 return result;
             
-            var hexHash = hash.FromBase64().ToHex();
+            var hexHash = hash.ToHex();
 
             var ends = "_" + hexHash + "_";
-            var file = Directory.EnumerateFiles(settings.ArchiveDir, DirectoryEnumerationOptions.Files,
-                new DirectoryEnumerationFilters
-                {
-                    InclusionFilter = f => Path.GetFileNameWithoutExtension(f.FileName).EndsWith(ends)
-                }).FirstOrDefault();
-            
-            if (file != null) 
+            var file = settings.ArchivePath.EnumerateFiles()
+                .FirstOrDefault(f => ((string)f.FileNameWithoutExtension).EndsWith(ends)); 
+
+            if (file != default) 
                 PathForArchiveHash.TryAdd(hash, file);
             return file;
         }

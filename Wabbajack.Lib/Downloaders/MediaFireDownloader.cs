@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 using Wabbajack.Lib.WebAutomation;
 
@@ -9,7 +10,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class MediaFireDownloader : IUrlDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             Uri url = DownloaderUtils.GetDirectURL(archiveINI);
             if (url == null || url.Host != "www.mediafire.com") return null;
@@ -31,7 +32,7 @@ namespace Wabbajack.Lib.Downloaders
                 return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var result = await Resolve();
                 return await result.Download(a, destination);

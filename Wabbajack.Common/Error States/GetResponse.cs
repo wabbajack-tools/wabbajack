@@ -8,7 +8,7 @@ namespace Wabbajack
 
         public readonly T Value;
         public readonly bool Succeeded;
-        public readonly Exception Exception;
+        public readonly Exception? Exception;
         private readonly string _reason;
 
         public bool Failed => !Succeeded;
@@ -25,17 +25,17 @@ namespace Wabbajack
         }
 
         bool IErrorResponse.Succeeded => Succeeded;
-        Exception IErrorResponse.Exception => Exception;
+        Exception? IErrorResponse.Exception => Exception;
 
         private GetResponse(
             bool succeeded,
-            T val = default(T),
-            string reason = null,
-            Exception ex = null)
+            T val = default,
+            string? reason = null,
+            Exception? ex = null)
         {
             Value = val;
             Succeeded = succeeded;
-            _reason = reason;
+            _reason = reason ?? string.Empty;
             Exception = ex;
         }
 
@@ -45,7 +45,7 @@ namespace Wabbajack
                 && Equals(Value, other.Value);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (!(obj is GetResponse<T> rhs)) return false;
             return Equals(rhs);
@@ -53,8 +53,10 @@ namespace Wabbajack
 
         public override int GetHashCode()
         {
-            return HashHelper.GetHashCode(Value)
-                .CombineHashCode(Succeeded.GetHashCode());
+            System.HashCode hash = new HashCode();
+            hash.Add(Value);
+            hash.Add(Succeeded);
+            return hash.ToHashCode();
         }
 
         public override string ToString()
@@ -124,7 +126,7 @@ namespace Wabbajack
             return new GetResponse<T>(false, val);
         }
 
-        public static GetResponse<T> Create(bool successful, T val = default(T), string reason = null)
+        public static GetResponse<T> Create(bool successful, T val = default(T), string? reason = null)
         {
             return new GetResponse<T>(successful, val, reason);
         }

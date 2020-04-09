@@ -62,9 +62,9 @@ namespace Wabbajack.Lib.Downloaders
             return inst;
         }
 
-        public static async Task<AbstractDownloadState> ResolveArchive(dynamic ini)
+        public static async Task<AbstractDownloadState> ResolveArchive(dynamic ini, bool quickMode = false)
         {
-            var states = await Task.WhenAll(Downloaders.Select(d => (Task<AbstractDownloadState>)d.GetDownloaderState(ini)));
+            var states = await Task.WhenAll(Downloaders.Select(d => (Task<AbstractDownloadState>)d.GetDownloaderState(ini, quickMode)));
             return states.FirstOrDefault(result => result != null);
         }
 
@@ -86,7 +86,7 @@ namespace Wabbajack.Lib.Downloaders
                   .Do(t => Downloaders.First(d => d.GetType() == t).Prepare());
         }
 
-        public static async Task<bool> DownloadWithPossibleUpgrade(Archive archive, string destination)
+        public static async Task<bool> DownloadWithPossibleUpgrade(Archive archive, AbsolutePath destination)
         {
             var success = await Download(archive, destination);
             if (success)
@@ -102,14 +102,15 @@ namespace Wabbajack.Lib.Downloaders
                 Utils.Log($"No upgrade found for {archive.Hash}");
                 return false;
             }
-
+            Utils.Log($"Upgrading via {upgrade.State.PrimaryKeyString}");
+            
             Utils.Log($"Upgrading {archive.Hash}");
-            var upgradePath = Path.Combine(Path.GetDirectoryName(destination), "_Upgrade_" + archive.Name);
+            var upgradePath = destination.Parent.Combine("_Upgrade_" + archive.Name);
             var upgradeResult = await Download(upgrade, upgradePath);
             if (!upgradeResult) return false;
 
-            var patchName = $"{archive.Hash.FromBase64().ToHex()}_{upgrade.Hash.FromBase64().ToHex()}";
-            var patchPath = Path.Combine(Path.GetDirectoryName(destination), "_Patch_" + patchName);
+            var patchName = $"{archive.Hash.ToHex()}_{upgrade.Hash.ToHex()}";
+            var patchPath = destination.Parent.Combine("_Patch_" + patchName);
 
             var patchState = new Archive
             {
@@ -124,9 +125,9 @@ namespace Wabbajack.Lib.Downloaders
             if (!patchResult) return false;
 
             Utils.Status($"Applying Upgrade to {archive.Hash}");
-            await using (var patchStream = File.OpenRead(patchPath))
-            await using (var srcStream = File.OpenRead(upgradePath))
-            await using (var destStream = File.Create(destination))
+            await using (var patchStream = patchPath.OpenRead())
+            await using (var srcStream = upgradePath.OpenRead())
+            await using (var destStream = destination.Create())
             {
                 OctoDiff.Apply(srcStream, patchStream, destStream);
             }
@@ -136,14 +137,14 @@ namespace Wabbajack.Lib.Downloaders
             return true;
         }
 
-        private static async Task<bool> Download(Archive archive, string destination)
+        private static async Task<bool> Download(Archive archive, AbsolutePath destination)
         {
             try
             {
                 var result =  await archive.State.Download(archive, destination);
                 if (!result) return false;
 
-                if (archive.Hash == null) return true;
+                if (!archive.Hash.IsValid) return true;
                 var hash = await destination.FileHashCachedAsync();
                 if (hash == archive.Hash) return true;
 
@@ -151,7 +152,7 @@ namespace Wabbajack.Lib.Downloaders
                 return false;
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }

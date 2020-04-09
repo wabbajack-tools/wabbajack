@@ -1,22 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Threading.Tasks;
-
 using System.Windows;
-using System.Windows.Documents;
 using System.Windows.Input;
-using Alphaleonis.Win32.Filesystem;
-using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
 using Wabbajack.Lib.FileUploader;
-using Wabbajack.Lib.GraphQL;
-using Wabbajack.Lib.GraphQL.DTOs;
-using File = System.IO.File;
 
 namespace Wabbajack
 {
@@ -59,7 +49,7 @@ namespace Wabbajack
                 _isUploading.OnNext(true);
                 try
                 {
-                    FinalUrl = await AuthorAPI.UploadFile(Queue, Picker.TargetPath,
+                    FinalUrl = await AuthorAPI.UploadFile(Picker.TargetPath,
                         progress => UploadProgress = progress);
                 }
                 catch (Exception ex)

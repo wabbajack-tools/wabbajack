@@ -3,8 +3,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Nettle;
 using Wabbajack.BuildServer.Controllers;
 using Wabbajack.BuildServer.Model.Models;
@@ -18,13 +16,11 @@ namespace Wabbajack.BuildServer
     public class JobManager
     {
         protected readonly ILogger<JobManager> Logger;
-        protected readonly DBContext Db;
         protected readonly AppSettings Settings;
         protected SqlService Sql;
 
-        public JobManager(ILogger<JobManager> logger, DBContext db, SqlService sql, AppSettings settings)
+        public JobManager(ILogger<JobManager> logger, SqlService sql, AppSettings settings)
         {
-            Db = db;
             Logger = logger;
             Settings = settings;
             Sql = sql;
@@ -42,7 +38,7 @@ namespace Wabbajack.BuildServer
                     {
                         try
                         {
-                            var job = await Job.GetNext(Db);
+                            var job = await Sql.GetJob();
                             if (job == null)
                             {
                                 await Task.Delay(5000);
@@ -50,18 +46,17 @@ namespace Wabbajack.BuildServer
                             }
 
                             Logger.Log(LogLevel.Information, $"Starting job: {job.Payload.Description}");
-                            JobResult result;
                             try
                             {
-                                result = await job.Payload.Execute(Db, Sql, Settings);
+                                job.Result = await job.Payload.Execute(Sql, Settings);
                             }
                             catch (Exception ex)
                             {
                                 Logger.Log(LogLevel.Error, ex, $"Error while running job: {job.Payload.Description}");
-                                result = JobResult.Error(ex);
+                                job.Result = JobResult.Error(ex);
                             }
 
-                            await Job.Finish(Db, job, result);
+                            await Sql.FinishJob(job);
                         }
                         catch (Exception ex)
                         {
@@ -95,16 +90,15 @@ namespace Wabbajack.BuildServer
         {
             try
             {
-                var started = await Db.Jobs.AsQueryable()
-                    .Where(j => j.Started != null && j.Ended == null)
-                    .ToListAsync();
+                var started = await Sql.GetRunningJobs();
                 foreach (var job in started)
                 {
                     var runtime = DateTime.Now - job.Started;
-                    if (runtime > TimeSpan.FromMinutes(30))
-                    {
-                        await Job.Finish(Db, job, JobResult.Error(new Exception($"Timeout after {runtime.Value.TotalMinutes}")));
-                    }
+                    
+                    if (!(runtime > TimeSpan.FromMinutes(30))) continue;
+
+                    job.Result = JobResult.Error(new Exception($"Timeout after {runtime.Value.TotalMinutes}"));
+                    await Sql.FinishJob(job);
                 }
             }
             catch (Exception ex)
@@ -119,18 +113,17 @@ namespace Wabbajack.BuildServer
             if (!Settings.RunFrontEndJobs && typeof(T).ImplementsInterface(typeof(IFrontEndJob))) return;
             try
             {
-                var jobs = await Db.Jobs.AsQueryable()
+                var jobs = (await Sql.GetUnfinishedJobs())
                     .Where(j => j.Payload is T)
                     .OrderByDescending(j => j.Created)
-                    .Take(10)
-                    .ToListAsync();
+                    .Take(10);
 
                 foreach (var job in jobs)
                 {
                     if (job.Started == null || job.Ended == null) return;
                     if (DateTime.Now - job.Ended < span) return;
                 }
-                await Db.Jobs.InsertOneAsync(new Job
+                await Sql.EnqueueJob(new Job
                 {
                     Priority = priority,
                     Payload = new T()

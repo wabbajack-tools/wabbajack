@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
+﻿using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
-using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Lib.Downloaders
 {
     public class GameFileSourceDownloader : IDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var gameName = (string)archiveINI?.General?.gameName;
             var gameFile = (string)archiveINI?.General?.gameFile;
@@ -25,17 +21,19 @@ namespace Wabbajack.Lib.Downloaders
             if (game == null) return null;
 
             var path = game.GameLocation();
-            var filePath = Path.Combine(path, gameFile);
+            var filePath = path?.Combine(gameFile);
             
-            if (!File.Exists(filePath))
+            
+            if (!filePath?.Exists ?? false)
                 return null;
 
-            var hash = filePath.FileHashCached();
+            var fp = filePath.Value;
+            var hash = await fp.FileHashCachedAsync();
 
             return new State
             {
                 Game = game.Game, 
-                GameFile = gameFile,
+                GameFile = (RelativePath)gameFile,
                 Hash = hash,
                 GameVersion = game.InstalledVersion
             };
@@ -45,16 +43,18 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
+        [JsonName("GameFileSourceDownloader")]
         public class State : AbstractDownloadState
         {
             public Game Game { get; set; }
-            public string GameFile { get; set; }
-            public string Hash { get; set; }
-            
+            public RelativePath GameFile { get; set; }
+            public Hash Hash { get; set; }
             public string GameVersion { get; set; }
 
-            internal string SourcePath => Path.Combine(Game.MetaData().GameLocation(), GameFile);
+            [JsonIgnore]
+            internal AbsolutePath SourcePath => Game.MetaData().GameLocation().Value.Combine(GameFile);
 
+            [JsonIgnore]
             public override object[] PrimaryKey { get => new object[] {Game, GameVersion, GameFile}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
@@ -62,20 +62,19 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
-                using(var src = File.OpenRead(SourcePath))
-                using (var dest = File.Open(destination, System.IO.FileMode.Create))
-                {
-                    var size = new FileInfo(SourcePath).Length;
-                    src.CopyToWithStatus(size, dest, "Copying from Game folder");
-                }
+                await using var src = SourcePath.OpenRead();
+                await using var dest = destination.Create();
+                var size = SourcePath.Size;
+                await src.CopyToWithStatusAsync(size, dest, "Copying from Game folder");
+
                 return true;
             }
 
             public override async Task<bool> Verify(Archive a)
             {
-                return File.Exists(SourcePath) && SourcePath.FileHashCached() == Hash;
+                return SourcePath.Exists && await SourcePath.FileHashCachedAsync() == Hash;
             }
 
             public override IDownloader GetDownloader()

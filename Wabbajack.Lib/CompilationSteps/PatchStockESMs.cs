@@ -18,10 +18,10 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            var filename = Path.GetFileName(source.Path);
-            var gameFile = Path.Combine(_mo2Compiler.GamePath, "Data", filename);
+            var filename = source.Path.FileName;
+            var gameFile = _mo2Compiler.GamePath.Combine((RelativePath)"Data", filename);
             if (!Consts.GameESMs.Contains(filename) || !source.Path.StartsWith("mods\\") ||
-                !File.Exists(gameFile)) return null;
+                !gameFile.Exists) return null;
 
             Utils.Log(
                 $"An ESM named {filename} was found in a mod that shares a name with one of the core game ESMs, it is assumed this is a cleaned ESM and it will be binary patched");
@@ -31,9 +31,9 @@ namespace Wabbajack.Lib.CompilationSteps
             Utils.Status($"Generating patch of {filename}");
             await using (var ms = new MemoryStream())
             {
-                await Utils.CreatePatch(File.ReadAllBytes(gameFile), File.ReadAllBytes(source.AbsolutePath), ms);
+                await Utils.CreatePatch(await gameFile.ReadAllBytesAsync(), await source.AbsolutePath.ReadAllBytesAsync(), ms);
                 var data = ms.ToArray();
-                result.SourceDataID = _compiler.IncludeFile(data);
+                result.SourceDataID = await _compiler.IncludeFile(data);
                 Utils.Log($"Generated a {data.Length} byte patch for {filename}");
             }
 

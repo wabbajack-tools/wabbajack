@@ -10,21 +10,17 @@ namespace Wabbajack.Common.StoreHandlers
     public class GOGGame : AStoreGame
     {
         public override Game Game { get; internal set; }
-        public override string Name { get; internal set; }
-        public override string Path { get; internal set; }
-        public override int ID { get; internal set; }
         public override StoreType Type { get; internal set; } = StoreType.GOG;
     }
 
     public class GOGHandler : AStoreHandler
     {
-        public override List<AStoreGame> Games { get; set; }
         public override StoreType Type { get; internal set; }
 
         private const string GOGRegKey = @"Software\GOG.com\Games";
         private const string GOG64RegKey = @"Software\WOW6432Node\GOG.com\Games";
 
-        private RegistryKey GOGKey { get; set; }
+        private RegistryKey? GOGKey { get; set; }
 
         public override bool Init()
         {
@@ -56,9 +52,11 @@ namespace Wabbajack.Common.StoreHandlers
 
         public override bool LoadAllGames()
         {
-            if(Games == null)
-                Games = new List<AStoreGame>();
-
+            if (GOGKey == null)
+            {
+                Utils.Error("GOGHandler could not read from registry!");
+                return false;
+            }
             try
             {
                 string[] keys = GOGKey.GetSubKeyNames();
@@ -86,7 +84,7 @@ namespace Wabbajack.Common.StoreHandlers
                         return;
                     }
 
-                    var gameName = gameNameValue.ToString();
+                    var gameName = gameNameValue.ToString() ?? string.Empty;
 
                     var pathValue = subKey.GetValue("PATH");
                     if (pathValue == null)
@@ -95,13 +93,13 @@ namespace Wabbajack.Common.StoreHandlers
                         return;
                     }
 
-                    var path = pathValue.ToString();
+                    var path = pathValue.ToString() ?? string.Empty;
 
                     var game = new GOGGame
                     {
                         ID = gameID, 
                         Name = gameName, 
-                        Path = path
+                        Path = (AbsolutePath)path
                     };
 
                     var gameMeta = GameRegistry.Games.Values.FirstOrDefault(g => (g.GOGIDs?.Contains(gameID) ?? false));

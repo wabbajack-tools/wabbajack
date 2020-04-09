@@ -28,7 +28,6 @@ using Wabbajack.BuildServer.Controllers;
 using Wabbajack.BuildServer.Models;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using Microsoft.AspNetCore.StaticFiles;
-using Wabbajack.BuildServer.Controllers;
 using Microsoft.Extensions.FileProviders;
 using Wabbajack.BuildServer.Model.Models;
 using Directory = System.IO.Directory;
@@ -36,6 +35,12 @@ using Directory = System.IO.Directory;
 
 namespace Wabbajack.BuildServer
 {
+    public class TestStartup : Startup
+    {
+        public TestStartup(IConfiguration configuration) : base(configuration)
+        {
+        }
+    }
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -66,7 +71,6 @@ namespace Wabbajack.BuildServer
                 x.MultipartBodyLengthLimit = int.MaxValue;
             });
 
-            services.AddSingleton<DBContext>();
             services.AddSingleton<JobManager>();
             services.AddSingleton<AppSettings>();
             services.AddSingleton<SqlService>();
@@ -84,13 +88,14 @@ namespace Wabbajack.BuildServer
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            SerializerSettings.Init();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+            if (!(this is TestStartup)) 
+                app.UseHttpsRedirection();
+            
             app.UseGraphiQl();
             app.UseDeveloperExceptionPage();
             

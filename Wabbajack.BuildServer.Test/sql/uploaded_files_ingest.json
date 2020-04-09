@@ -1,0 +1,4 @@
+{"_id":"90db7c47-a8ae-4a62-9c2e-b7d357a16665","Name":"file1.zip","Size":{"$numberInt":"56946233"},"Hash":"8t3PgB/J/Ps=","Uploader":"<testuser>","UploadDate":{"$date":{"$numberLong":"1579472623183"}}}
+{"_id":"63f8f868-0f4d-4997-922b-ee952984973a","Name":"file2.zip","Size":{"$numberInt":"558782831"},"Hash":"XYl4fIcAUWo=","Uploader":"<testuser>","UploadDate":{"$date":{"$numberLong":"1579650208226"}},"CDNName":"wabbajackpush"}
+{"_id":"1f18f301-67eb-46c9-928a-088f6666bf61","Name":"file2.zip","Size":{"$numberInt":"397558132"},"Hash":"uhXJw1MTdJI=","Uploader":"other","UploadDate":{"$date":{"$numberLong":"1579661152181"}},"CDNName":"wabbajackpush"}
+{"_id":"17b3e918-8409-48e6-b7ff-6af858bfd1ba","Name":"file3.zip","Size":{"$numberInt":"633419999"},"Hash":"yyDD50X2kNM=","Uploader":"other","UploadDate":{"$date":{"$numberLong":"1579662459461"}},"CDNName":"wabbajackpush"}

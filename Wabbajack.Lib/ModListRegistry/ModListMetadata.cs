@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
-using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 using Wabbajack.Common;
-using File = System.IO.File;
+using Wabbajack.Common.Serialization.Json;
 using Game = Wabbajack.Common.Game;
 
 namespace Wabbajack.Lib.ModListRegistry
 {
+    [JsonName("ModListMetadata")]
     public class ModlistMetadata
     {
         [JsonProperty("title")]
@@ -38,9 +36,9 @@ namespace Wabbajack.Lib.ModListRegistry
         public DownloadMetadata DownloadMetadata { get; set; }
 
         [JsonIgnore] 
-        public ModlistSummary ValidationSummary { get; set; } = new ModlistSummary();
+        public ModListSummary ValidationSummary { get; set; } = new ModListSummary();
 
-        [BsonIgnoreExtraElements]
+        [JsonName("Links")]
         public class LinksObject
         {
             [JsonProperty("image")]
@@ -67,25 +65,26 @@ namespace Wabbajack.Lib.ModListRegistry
             var metadataResult = client.GetStringAsync(Consts.ModlistMetadataURL);
             var summaryResult = client.GetStringAsync(Consts.ModlistSummaryURL);
 
-            var metadata = (await metadataResult).FromJSONString<List<ModlistMetadata>>();
+            var metadata = (await metadataResult).FromJsonString<List<ModlistMetadata>>();
             try
             {
-                var summaries = (await summaryResult).FromJSONString<List<ModlistSummary>>().ToDictionary(d => d.Name);
+                var summaries = (await summaryResult).FromJsonString<List<ModListSummary>>().ToDictionary(d => d.MachineURL);
 
                 foreach (var data in metadata)
-                    if (summaries.TryGetValue(data.Title, out var summary))
+                    if (summaries.TryGetValue(data.Links.MachineURL, out var summary))
                         data.ValidationSummary = summary;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
+                // ignored
             }
 
             return metadata.OrderBy(m => (m.ValidationSummary?.HasFailures ?? false ? 1 : 0, m.Title)).ToList();
         }
-
-        public bool NeedsDownload(string modlistPath)
+        
+        public bool NeedsDownload(AbsolutePath modlistPath)
         {
-            if (!File.Exists(modlistPath)) return true;
+            if (!modlistPath.Exists) return true;
             if (DownloadMetadata?.Hash == null)
             {
                 return true;
@@ -94,9 +93,10 @@ namespace Wabbajack.Lib.ModListRegistry
         }
     }
 
+    [JsonName("DownloadMetadata")]
     public class DownloadMetadata
     {
-        public string Hash { get; set; }
+        public Hash Hash { get; set; }
         public long Size { get; set; }
 
         public long NumberOfArchives { get; set; }
@@ -106,7 +106,8 @@ namespace Wabbajack.Lib.ModListRegistry
 
     }
 
-    public class ModlistSummary
+    [JsonName("ModListSummary")]
+    public class ModListSummary
     {
         [JsonProperty("name")]
         public string Name { get; set; }

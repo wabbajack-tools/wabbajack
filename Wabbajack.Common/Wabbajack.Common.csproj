@@ -4,7 +4,7 @@
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <Platforms>x64</Platforms>
         <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-        
+        <Nullable>enable</Nullable>
     </PropertyGroup>
     <ItemGroup>
         <None Remove="7z.dll.gz" />
@@ -16,19 +16,23 @@
         <None Update="7Zip\7z.exe">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="Serialization\PrimitiveHandlers.tt">
+          <Generator>TextTemplatingFileGenerator</Generator>
+          <LastGenOutput>PrimitiveHandlers.cs</LastGenOutput>
+        </None>
     </ItemGroup>
     <ItemGroup>
         <Folder Include="KnownFolders\" />
         <Folder Include="Properties\" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Ceras" Version="4.1.7" />
         <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
+        <PackageReference Include="HtmlAgilityPack" Version="1.11.23" />
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
         <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
         <PackageReference Include="Octodiff" Version="1.2.1" />
-        <PackageReference Include="ReactiveUI" Version="11.2.3" />
+        <PackageReference Include="ReactiveUI" Version="11.3.1" />
         <PackageReference Include="SharpZipLib" Version="1.2.0" />
         <PackageReference Include="System.Data.HashFunction.xxHash" Version="2.0.0" />
         <PackageReference Include="System.Net.Http" Version="4.3.4" />
@@ -38,5 +42,10 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <Compile Update="Serialization\PrimitiveHandlers.cs">
+        <DependentUpon>PrimitiveHandlers.tt</DependentUpon>
+      </Compile>
     </ItemGroup>
 </Project>

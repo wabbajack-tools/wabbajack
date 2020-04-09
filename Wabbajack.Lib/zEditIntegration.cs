@@ -16,11 +16,11 @@ namespace Wabbajack.Lib
     {
         private static MO2Compiler _mo2Compiler;
 
-        public static string FindzEditPath(ACompiler compiler)
+        public static AbsolutePath FindzEditPath(ACompiler compiler)
         {
             _mo2Compiler = (MO2Compiler) compiler;
             var executables = _mo2Compiler.MO2Ini.customExecutables;
-            if (executables.size == null) return null;
+            if (executables.size == null) return default;
 
             foreach (var idx in Enumerable.Range(1, int.Parse(executables.size)))
             {
@@ -28,38 +28,38 @@ namespace Wabbajack.Lib
                 if (path == null) continue;
 
                 if (path.EndsWith("zEdit.exe"))
-                    return Path.GetDirectoryName(path);
+                    return (AbsolutePath)path;
             }
 
-            return null;
+            return default;
         }
 
         public class IncludeZEditPatches : ACompilationStep
         {
-            private readonly Dictionary<string, zEditMerge> _mergesIndexed;
+            private readonly Dictionary<AbsolutePath, zEditMerge> _mergesIndexed;
 
             private bool _disabled = true;
 
             public IncludeZEditPatches(ACompiler compiler) : base(compiler)
             {
                 var zEditPath = FindzEditPath(compiler);
-                var havezEdit = zEditPath != null;
+                var havezEdit = zEditPath != default;
 
                 Utils.Log(havezEdit ? $"Found zEdit at {zEditPath}" : "zEdit not detected, disabling zEdit routines");
 
                 if (!havezEdit)
                 {
-                    _mergesIndexed = new Dictionary<string, zEditMerge>();
+                    _mergesIndexed = new Dictionary<AbsolutePath, zEditMerge>();
                     return;
                 }
                 _mo2Compiler = (MO2Compiler) compiler;
                 
-                var settingsFiles = Directory.EnumerateFiles(Path.Combine(zEditPath, "profiles"),
-                        DirectoryEnumerationOptions.Files | DirectoryEnumerationOptions.Recursive)
-                    .Where(f => f.EndsWith("settings.json"))
+                var settingsFiles = zEditPath.Combine("profiles").EnumerateFiles(false)
+                    .Where(f => f.IsFile)
+                    .Where(f => f.FileName == Consts.SettingsJson)
                     .Where(f =>
                     {
-                        var settings = f.FromJSON<zEditSettings>();
+                        var settings = f.FromJson<zEditSettings>();
 
                         if (settings.modManager != "Mod Organizer 2")
                         {
@@ -73,20 +73,20 @@ namespace Wabbajack.Lib
                             return false;
                         }
 
-                        if (settings.modsPath != Path.Combine(_mo2Compiler.MO2Folder, Consts.MO2ModFolderName))
+                        if (settings.modsPath != _mo2Compiler.MO2Folder.Combine(Consts.MO2ModFolderName))
                         {
                             Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.MO2Folder}\\{Consts.MO2ModFolderName} but {settings.modsPath}!");
                             return false;
                         }
 
-                        if (settings.mergePath != Path.Combine(_mo2Compiler.MO2Folder, Consts.MO2ModFolderName))
+                        if (settings.mergePath != _mo2Compiler.MO2Folder.Combine(Consts.MO2ModFolderName))
                         {
                             Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.MO2Folder}\\{Consts.MO2ModFolderName} but {settings.modsPath}!");
                             return false;
                         }
 
                         return true;
-                    });
+                    }).ToList();
 
                 if (!settingsFiles.Any())
                 {
@@ -95,19 +95,21 @@ namespace Wabbajack.Lib
                 }
                 
                 var profileFolder =
-                    settingsFiles.Where(x => File.Exists(Path.Combine(Path.GetDirectoryName(x), "merges.json")))?.Select(x => string.IsNullOrWhiteSpace(x) ? "" : Path.GetDirectoryName(x)).FirstOrDefault();
+                    settingsFiles.Where(x => x.Parent.Combine("merges.json").IsFile)
+                        .Select(x => x == default ? x : x.Parent)
+                        .FirstOrDefault();
 
-                if (string.IsNullOrWhiteSpace(profileFolder))
+                if (profileFolder == default)
                 {
                     Utils.Log("Found no acceptable profiles folder for zEdit!");
                     return;
                 }
 
-                var mergeFile = Path.Combine(profileFolder, "merges.json");
+                var mergeFile = profileFolder.Combine("merges.json");
 
                 Utils.Log($"Using merge file {mergeFile}");
 
-                var merges = mergeFile.FromJSON<List<zEditMerge>>().GroupBy(f => (f.name, f.filename)).ToArray();
+                var merges = mergeFile.FromJson<List<zEditMerge>>().GroupBy(f => (f.name, f.filename)).ToArray();
 
                 merges.Where(m => m.Count() > 1)
                     .Do(m =>
@@ -118,7 +120,7 @@ namespace Wabbajack.Lib
 
                 _mergesIndexed =
                     merges.ToDictionary(
-                        m => Path.Combine(_mo2Compiler.MO2Folder, Consts.MO2ModFolderName, m.Key.name, m.Key.filename),
+                        m => _mo2Compiler.MO2Folder.Combine((string)Consts.MO2ModFolderName, m.Key.name, m.Key.filename),
                         m => m.First());
 
                 _disabled = false;
@@ -129,50 +131,50 @@ namespace Wabbajack.Lib
                 if (_disabled) return null;
                 if (!_mergesIndexed.TryGetValue(source.AbsolutePath, out var merge))
                 {
-                    if(!source.AbsolutePath.EndsWith(".seq"))
+                    if(source.AbsolutePath.Extension != Consts.SeqExtension)
                         return null;
 
-                    var seqFolder = Path.GetDirectoryName(source.AbsolutePath);
+                    var seqFolder = source.AbsolutePath.Parent;
 
-                    if (!seqFolder.EndsWith("seq"))
+                    if (seqFolder.FileName != (RelativePath)"seq")
                         return null;
 
-                    var mergeFolder = Path.GetDirectoryName(seqFolder);
-                    var split = mergeFolder.Split("\\");
-                    var mergeName = split[^1];
+                    var mergeFolder = seqFolder.Parent;
+                    var mergeName = mergeFolder.FileName;
 
-                    if (!File.Exists(Path.Combine(mergeFolder, mergeName + ".esp")))
+                    if (!mergeFolder.Combine(mergeName + ".esp").Exists)
                         return null;
 
                     var inline = source.EvolveTo<InlineFile>();
-                    inline.SourceDataID = _compiler.IncludeFile(File.ReadAllBytes(source.AbsolutePath));
+                    inline.SourceDataID = await _compiler.IncludeFile(await source.AbsolutePath.ReadAllBytesAsync());
                     return inline;
                 }
                 var result = source.EvolveTo<MergedPatch>();
                 result.Sources = merge.plugins.Select(f =>
                 {
-                    var origPath = Path.Combine(f.dataFolder, f.filename);
+                    var origPath = (AbsolutePath)Path.Combine(f.dataFolder, f.filename);
                     var paths = new[]
                     {
                         origPath,
-                        origPath + ".mohidden",
-                        Path.Combine(Path.GetDirectoryName(origPath), "optional", Path.GetFileName(origPath))
+                        origPath.WithExtension(new Extension(".mohidden")),
+                        origPath.Parent.Combine((RelativePath)"optional", origPath.FileName)
                     };
 
-                    var absPath = paths.FirstOrDefault(File.Exists);
+                    var absPath = paths.FirstOrDefault(file => file.IsFile);
 
-                    if (absPath == null)
+                    if (absPath == default)
                         throw new InvalidDataException(
                             $"File {origPath} is required to build {merge.filename} but it doesn't exist searched in: \n" + string.Join("\n", paths));
 
-                    string hash = "";
+                    Hash hash;
 
                     try
                     {
-                        hash = _compiler.VFS.Index.ByFullPath[absPath].Hash;
+                        hash = _compiler.VFS.Index.ByRootPath[absPath].Hash;
                     } catch (KeyNotFoundException e)
                     {
                         Utils.ErrorThrow(e, $"Could not find the key {absPath} in the VFS Index dictionary!");
+                        return null;
                     }
 
                     return new SourcePatch
@@ -182,15 +184,15 @@ namespace Wabbajack.Lib
                     };
                 }).ToList();
 
-                var srcData = result.Sources.Select(f => File.ReadAllBytes(Path.Combine(_mo2Compiler.MO2Folder, f.RelativePath)))
+                var srcData = result.Sources.Select(f => _mo2Compiler.MO2Folder.Combine(f.RelativePath).ReadAllBytes())
                     .ConcatArrays();
 
-                var dstData = File.ReadAllBytes(source.AbsolutePath);
+                var dstData = await source.AbsolutePath.ReadAllBytesAsync();
 
                 await using (var ms = new MemoryStream())
                 {
                     await Utils.CreatePatch(srcData, dstData, ms);
-                    result.PatchID = _compiler.IncludeFile(ms.ToArray());
+                    result.PatchID = await _compiler.IncludeFile(ms.ToArray());
                 }
 
                 return result;
@@ -215,9 +217,9 @@ namespace Wabbajack.Lib
         public class zEditSettings
         {
             public string modManager;
-            public string managerPath;
-            public string modsPath;
-            public string mergePath;
+            public AbsolutePath managerPath;
+            public AbsolutePath modsPath;
+            public AbsolutePath mergePath;
         }
 
         public class zEditMerge
@@ -257,16 +259,16 @@ namespace Wabbajack.Lib
             await installer.ModList
                 .Directives
                 .OfType<MergedPatch>()
-                .PMap(installer.Queue, m =>
+                .PMap(installer.Queue, async m =>
                 {
                     Utils.LogStatus($"Generating zEdit merge: {m.To}");
 
-                    var srcData = m.Sources.Select(s => File.ReadAllBytes(Path.Combine(installer.OutputFolder, s.RelativePath)))
+                    var srcData = m.Sources.Select(s => installer.OutputFolder.Combine(s.RelativePath).ReadAllBytes())
                         .ConcatArrays();
 
-                    var patchData = installer.LoadBytesFromPath(m.PatchID);
+                    var patchData = await installer.LoadBytesFromPath(m.PatchID);
 
-                    using var fs = File.Open(Path.Combine(installer.OutputFolder, m.To), FileMode.Create);
+                    await using var fs = installer.OutputFolder.Combine(m.To).Create();
                     Utils.ApplyPatch(new MemoryStream(srcData), () => new MemoryStream(patchData), fs);
                 });
         }

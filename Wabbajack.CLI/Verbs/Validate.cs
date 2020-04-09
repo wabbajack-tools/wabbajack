@@ -10,9 +10,9 @@ namespace Wabbajack.CLI.Verbs
     [Verb("validate", HelpText = @"Validates a Modlist")]
     public class Validate : AVerb
     {
-        [IsFile(CustomMessage = "The modlist file %1 does not exist!", Extension = Consts.ModListExtension)]
+        [IsFile(CustomMessage = "The modlist file %1 does not exist!", Extension = Consts.ModListExtensionString)]
         [Option('i', "input", Required = true, HelpText = @"Modlist file")]
-        public string? Input { get; set; }
+        public string Input { get; set; } = "";
 
         /// <summary>
         /// Runs the Validation of a Modlist
@@ -24,7 +24,7 @@ namespace Wabbajack.CLI.Verbs
 
             try
             {
-                modlist = AInstaller.LoadFromFile(Input);
+                modlist = AInstaller.LoadFromFile((AbsolutePath)Input);
             }
             catch (Exception e)
             {
@@ -41,7 +41,7 @@ namespace Wabbajack.CLI.Verbs
 
             try
             {
-                ValidateModlist.RunValidation(queue, modlist).RunSynchronously();
+                ValidateModlist.RunValidation(modlist).RunSynchronously();
             }
             catch (Exception e)
             {

@@ -1,17 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using Wabbajack.BuildServer.Model.Models;
-using Wabbajack.BuildServer.Models;
-using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -26,7 +19,7 @@ namespace Wabbajack.BuildServer.Controllers
         }
         private static DateTime _startTime;
 
-        public Heartbeat(ILogger<Heartbeat> logger, DBContext db, SqlService sql) : base(logger, db, sql)
+        public Heartbeat(ILogger<Heartbeat> logger, SqlService sql) : base(logger, sql)
         {
         }
 
@@ -66,24 +59,6 @@ namespace Wabbajack.BuildServer.Controllers
                 lst = Log.ToArray();
             }
             return Ok(string.Join("\n", lst));
-        }
-
-        [HttpPost("export_inis")]
-        [Authorize]
-        public async Task<IActionResult> ExportInis()
-        {
-            if (!Directory.Exists("exported_inis"))
-                Directory.CreateDirectory("exported_inis");
-
-            var loaded = 0;
-            foreach (var ini in await Db.DownloadStates.AsQueryable().ToListAsync())
-            {
-                var file = Path.Combine("exported_inis", ini.Hash.FromBase64().ToHex() + "_" + ini.Key.StringSHA256Hex() + ".ini");
-                Alphaleonis.Win32.Filesystem.File.WriteAllLines(file, ini.State.GetMetaIni());
-                loaded += 1;
-            }
-
-            return Ok(loaded);
         }
     }
 }

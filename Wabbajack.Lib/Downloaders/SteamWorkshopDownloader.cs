@@ -16,7 +16,7 @@ namespace Wabbajack.Lib.Downloaders
     {
         private SteamWorkshopItem _item;
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var id = archiveINI?.General?.itemID;
             var steamID = archiveINI?.General?.steamID;
@@ -49,7 +49,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var currentLib = Item.Game.Universe;
 

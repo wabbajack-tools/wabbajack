@@ -1,14 +1,11 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reactive.Linq;
+﻿using System.IO;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Common.IO;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
-using File = System.IO.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -60,7 +57,7 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.manualURL;
             return url != null ? new State { Url = url} : null;
@@ -69,10 +66,13 @@ namespace Wabbajack.Lib.Downloaders
         public async Task Prepare()
         {
         }
-
+        
+        [JsonName("ManualDownloader")]
         public class State : AbstractDownloadState
         {
             public string Url { get; set; }
+            
+            [JsonIgnore]
             public override object[] PrimaryKey { get => new object[] {Url}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
@@ -80,7 +80,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var (uri, client) = await Utils.Log(await ManuallyDownloadFile.Create(this)).Task;
                 var state = new HTTPDownloader.State {Url = uri.ToString(), Client = client};

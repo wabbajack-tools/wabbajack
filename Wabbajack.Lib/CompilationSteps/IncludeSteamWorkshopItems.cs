@@ -20,12 +20,12 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!_regex.IsMatch(source.Path)) 
+            if (!_regex.IsMatch((string)source.Path)) 
                 return null;
 
             try
             {
-                var lines = File.ReadAllLines(source.AbsolutePath);
+                var lines = await source.AbsolutePath.ReadAllLinesAsync();
                 var id = 0;
                 lines.Where(l => l.StartsWith("itemID=")).Do(l => int.TryParse(l.Replace("itemID=", ""), out id));
                 if (id == 0)
@@ -37,7 +37,7 @@ namespace Wabbajack.Lib.CompilationSteps
                     return null;
 
                 var fromSteam = source.EvolveTo<SteamMeta>();
-                fromSteam.SourceDataID = _compiler.IncludeFile(source.AbsolutePath);
+                fromSteam.SourceDataID = await _compiler.IncludeFile(source.AbsolutePath);
                 fromSteam.ItemID = item.ItemID;
                 fromSteam.Size = item.Size;
                 return fromSteam;

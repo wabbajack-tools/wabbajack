@@ -53,10 +53,10 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!Consts.SupportedBSAs.Contains(Path.GetExtension(source.Path).ToLower())) return null;
+            if (!Consts.SupportedBSAs.Contains(source.Path.Extension)) return null;
 
             var defaultInclude = false;
-            if (source.Path.StartsWith(Consts.MO2ModFolderName))
+            if (source.Path.RelativeTo(_mo2Compiler.MO2Folder).InFolder(_mo2Compiler.MO2Folder.Combine(Consts.MO2ModFolderName)))
                 if (_includeDirectly.Any(path => source.Path.StartsWith(path)))
                     defaultInclude = true;
 
@@ -66,7 +66,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             var id = Guid.NewGuid().ToString();
 
-            var matches = await sourceFiles.PMap(_mo2Compiler.Queue, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e, Path.Combine(Consts.BSACreationDir, id, e.Name))));
+            var matches = await sourceFiles.PMap(_mo2Compiler.Queue, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e, Consts.BSACreationDir.Combine((RelativePath)id, e.Name.FileName))));
 
 
             foreach (var match in matches)
@@ -82,7 +82,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 directive = new CreateBSA
                 {
                     To = source.Path,
-                    TempID = id,
+                    TempID = (RelativePath)id,
                     State = bsa.State,
                     FileStates = bsa.Files.Select(f => f.State).ToList()
                 };

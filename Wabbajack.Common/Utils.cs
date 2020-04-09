@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data.HashFunction.xxHash;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
@@ -17,9 +17,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
-using Ceras;
 using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
+using IniParser.Model.Configuration;
+using IniParser.Parser;
 using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common.StatusFeed;
@@ -33,7 +34,7 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Common
 {
-    public static class Utils
+    public static partial class Utils
     {
         public static bool IsMO2Running(string mo2Path)
         {
@@ -41,8 +42,8 @@ namespace Wabbajack.Common
             return processList.Where(process => process.ProcessName == "ModOrganizer").Any(process => Path.GetDirectoryName(process.MainModule?.FileName) == mo2Path);
         }
 
-        public static string LogFile { get; }
-        public static string LogFolder { get; }
+        public static AbsolutePath LogFile { get; }
+        public static AbsolutePath LogFolder { get; }
 
         public enum FileEventType
         {
@@ -53,34 +54,28 @@ namespace Wabbajack.Common
 
         static Utils()
         {
-            if (!Directory.Exists(Consts.LocalAppDataPath))
-                Directory.CreateDirectory(Consts.LocalAppDataPath);
+            LogFolder = Consts.LogsFolder;
+            LogFile = Consts.LogFile;
+            Consts.LocalAppDataPath.CreateDirectory();
+            Consts.LogsFolder.CreateDirectory();
 
-            if (!Directory.Exists(Consts.LogsFolder))
-                Directory.CreateDirectory(Consts.LogsFolder);
-
-            var programName = Assembly.GetEntryAssembly()?.Location ?? "Wabbajack";
-            LogFolder = Path.Combine(Path.GetDirectoryName(programName), Consts.LogsFolder);
-            LogFile = Path.Combine(Consts.LogsFolder, Path.GetFileNameWithoutExtension(programName) + ".current.log");
             _startTime = DateTime.Now;
 
-            if (LogFile.FileExists())
+            if (LogFile.Exists)
             {
-                var newPath = Path.Combine(Consts.LogsFolder, Path.GetFileNameWithoutExtension(programName) + new FileInfo(LogFile).LastWriteTime.ToString(" yyyy-MM-dd HH_mm_ss") + ".log");
-                File.Move(LogFile, newPath, MoveOptions.ReplaceExisting);
+                var newPath = Consts.LogsFolder.Combine(Consts.EntryPoint.FileNameWithoutExtension + LogFile.LastModified.ToString(" yyyy-MM-dd HH_mm_ss") + ".log");
+                LogFile.MoveTo(newPath, true);
             }
 
-            var logFiles = Directory.GetFiles(Consts.LogsFolder);
-            if (logFiles.Length >= Consts.MaxOldLogs)
+            var logFiles = LogFolder.EnumerateFiles(false).ToList();
+            if (logFiles.Count >= Consts.MaxOldLogs)
             {
-                Log($"Maximum amount of old logs reached ({logFiles.Length} >= {Consts.MaxOldLogs})");
+                Log($"Maximum amount of old logs reached ({logFiles.Count} >= {Consts.MaxOldLogs})");
                 var filesToDelete = logFiles
-                    .Where(File.Exists)
-                    .OrderBy(f =>
-                    {
-                        var fi = new FileInfo(f);
-                        return fi.LastWriteTime;
-                    }).Take(logFiles.Length - Consts.MaxOldLogs).ToList();
+                    .Where(f => f.IsFile)
+                    .OrderBy(f => f.LastModified)
+                    .Take(logFiles.Count - Consts.MaxOldLogs)
+                    .ToList();
 
                 Log($"Found {filesToDelete.Count} old log files to delete");
 
@@ -90,7 +85,7 @@ namespace Wabbajack.Common
                 {
                     try
                     {
-                        File.Delete(f);
+                        f.Delete();
                         success++;
                     }
                     catch (Exception e)
@@ -103,7 +98,7 @@ namespace Wabbajack.Common
                 Log($"Deleted {success} log files, failed to delete {failed} logs");
             }
 
-            var watcher = new FileSystemWatcher(Consts.LocalAppDataPath);
+            var watcher = new FileSystemWatcher((string)Consts.LocalAppDataPath);
             AppLocalEvents = Observable.Merge(Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Changed += h, h => watcher.Changed -= h).Select(e => (FileEventType.Changed, e.EventArgs)),
                                                 Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Created += h, h => watcher.Created -= h).Select(e => (FileEventType.Created, e.EventArgs)),
                                                 Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Deleted += h, h => watcher.Deleted -= h).Select(e => (FileEventType.Deleted, e.EventArgs)))
@@ -138,12 +133,12 @@ namespace Wabbajack.Common
             Log(errMessage);
         }
 
-        public static void Error(Exception ex, string extraMessage = null)
+        public static void Error(Exception ex, string? extraMessage = null)
         {
             Log(new GenericException(ex, extraMessage));
         }
 
-        public static void ErrorThrow(Exception ex, string extraMessage = null)
+        public static void ErrorThrow(Exception ex, string? extraMessage = null)
         {
             Error(ex, extraMessage);
             throw ex;
@@ -163,9 +158,10 @@ namespace Wabbajack.Common
 
         public static void LogStraightToFile(string msg)
         {
+            if (LogFile == default) return;
             lock (_lock)
             {
-                File.AppendAllText(LogFile, $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n");
+                LogFile.AppendAllText($"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n");
             }
         }
 
@@ -207,135 +203,6 @@ namespace Wabbajack.Common
             }
         }
 
-        /// <summary>
-        ///     MurMur3 hashes the file pointed to by this string
-        /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        public static string FileSHA256(this string file)
-        {
-            var sha = new SHA256Managed();
-            using (var o = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write))
-            {
-                using (var i = File.OpenRead(file))
-                {
-                    i.CopyToWithStatus(new FileInfo(file).Length, o, $"Hashing {Path.GetFileName(file)}");
-                }
-            }
-
-            return sha.Hash.ToBase64();
-        }
-
-        public static string StringSHA256Hex(this string s)
-        {
-            var sha = new SHA256Managed();
-            using (var o = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write))
-            {
-                using var i = new MemoryStream(Encoding.UTF8.GetBytes(s));
-                i.CopyTo(o);
-            }
-
-            return sha.Hash.ToHex();
-        }
-
-        public static string FileHash(this string file, bool nullOnIOError = false)
-        {
-            try
-            {
-                var hash = new xxHashConfig();
-                hash.HashSizeInBits = 64;
-                hash.Seed = 0x42;
-                using (var fs = File.OpenRead(file))
-                {
-                    var config = new xxHashConfig();
-                    config.HashSizeInBits = 64;
-                    using (var f = new StatusFileStream(fs, $"Hashing {Path.GetFileName(file)}"))    
-                    {
-                        var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
-                        return value.AsBase64String();
-                    }
-                }
-            }
-            catch (IOException ex)
-            {
-                if (nullOnIOError) return null;
-                throw ex;
-            }
-        }
-        
-        public static string FileHashCached(this string file, bool nullOnIOError = false)
-        {
-            if (TryGetHashCache(file, out var foundHash)) return foundHash;
-
-            var hash = file.FileHash(nullOnIOError);
-            if (hash != null) 
-                WriteHashCache(file, hash);
-            return hash;
-        }
-
-        public static bool TryGetHashCache(string file, out string hash)
-        {
-            var hashFile = file + Consts.HashFileExtension;
-            hash = null; 
-            if (!File.Exists(hashFile)) return false;
-            
-            if (File.GetSize(hashFile) != 20) return false;
-
-            using var fs = File.OpenRead(hashFile);
-            using var br = new BinaryReader(fs);
-            var version = br.ReadUInt32();
-            if (version != HashCacheVersion) return false;
-
-            var lastModified = br.ReadUInt64();
-            if (lastModified != File.GetLastWriteTimeUtc(file).AsUnixTime()) return false;
-            hash = BitConverter.GetBytes(br.ReadUInt64()).ToBase64();
-            return true;
-        }
-
-
-        private const uint HashCacheVersion = 0x01;
-        private static void WriteHashCache(string file, string hash)
-        {
-            using var fs = File.Create(file + Consts.HashFileExtension);
-            using var bw = new BinaryWriter(fs);
-            bw.Write(HashCacheVersion);
-            var lastModified = File.GetLastWriteTimeUtc(file).AsUnixTime();
-            bw.Write(lastModified);
-            bw.Write(BitConverter.ToUInt64(hash.FromBase64()));
-        }
-
-        public static async Task<string> FileHashCachedAsync(this string file, bool nullOnIOError = false)
-        {
-            if (TryGetHashCache(file, out var foundHash)) return foundHash;
-
-            var hash = await file.FileHashAsync(nullOnIOError);
-            if (hash != null) 
-                WriteHashCache(file, hash);
-            return hash;
-        }
-
-        public static async Task<string> FileHashAsync(this string file, bool nullOnIOError = false)
-        {
-            try
-            {
-                var hash = new xxHashConfig();
-                hash.HashSizeInBits = 64;
-                hash.Seed = 0x42;
-                using (var fs = File.OpenRead(file))
-                {
-                    var config = new xxHashConfig();
-                    config.HashSizeInBits = 64;
-                    var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(fs);
-                    return value.AsBase64String();
-                }
-            }
-            catch (IOException ex)
-            {
-                if (nullOnIOError) return null;
-                throw ex;
-            }
-        }
-
         public static void CopyToWithStatus(this Stream istream, long maxSize, Stream ostream, string status)
         {
             var buffer = new byte[1024 * 64];
@@ -350,28 +217,19 @@ namespace Wabbajack.Common
                 Status(status, Percent.FactoryPutInRange(totalRead, maxSize));
             }
         }
-        public static string xxHash(this byte[] data, bool nullOnIOError = false)
+        
+        public static async Task CopyToWithStatusAsync(this Stream istream, long maxSize, Stream ostream, string status)
         {
-            try
+            var buffer = new byte[1024 * 64];
+            if (maxSize == 0) maxSize = 1;
+            long totalRead = 0;
+            while (true)
             {
-                var hash = new xxHashConfig();
-                hash.HashSizeInBits = 64;
-                hash.Seed = 0x42;
-                using (var fs = new MemoryStream(data))
-                {
-                    var config = new xxHashConfig();
-                    config.HashSizeInBits = 64;
-                    using (var f = new StatusFileStream(fs, $"Hashing memory stream"))
-                    {
-                        var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
-                        return value.AsBase64String();
-                    }
-                }
-            }
-            catch (IOException ex)
-            {
-                if (nullOnIOError) return null;
-                throw ex;
+                var read = await istream.ReadAsync(buffer, 0, buffer.Length);
+                if (read == 0) break;
+                totalRead += read;
+                await ostream.WriteAsync(buffer, 0, read);
+                Status(status, Percent.FactoryPutInRange(totalRead, maxSize));
             }
         }
 
@@ -451,6 +309,13 @@ namespace Wabbajack.Common
         }
 
 
+        private static IniDataParser IniParser()
+        {
+            var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
+            var parser = new IniDataParser(config);
+            return parser;
+        }
+
 
         /// <summary>
         ///     Loads INI data from the given filename and returns a dynamic type that
@@ -458,9 +323,9 @@ namespace Wabbajack.Common
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public static dynamic LoadIniFile(this string file)
+        public static dynamic LoadIniFile(this AbsolutePath file)
         {
-            return new DynamicIniData(new FileIniDataParser().ReadFile(file));
+            return new DynamicIniData(new FileIniDataParser(IniParser()).ReadFile((string)file));
         }
 
         /// <summary>
@@ -470,127 +335,9 @@ namespace Wabbajack.Common
         /// <returns></returns>
         public static dynamic LoadIniString(this string file)
         {
-            return new DynamicIniData(new FileIniDataParser().ReadData(new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(file)))));
+            return new DynamicIniData(new FileIniDataParser(IniParser()).ReadData(new StreamReader(new MemoryStream(Encoding.UTF8.GetBytes(file)))));
         }
 
-        public static void ToCERAS<T>(this T obj, string filename, SerializerConfig config)
-        {
-            byte[] final;
-            final = ToCERAS(obj, config);
-            File.WriteAllBytes(filename, final);
-        }
-
-        public static byte[] ToCERAS<T>(this T obj, SerializerConfig config)
-        {
-            byte[] final;
-            var ceras = new CerasSerializer(config);
-            byte[] buffer = null;
-            ceras.Serialize(obj, ref buffer);
-
-            using (var m1 = new MemoryStream(buffer))
-            using (var m2 = new MemoryStream())
-            {
-                BZip2.Compress(m1, m2, false, 9);
-                m2.Seek(0, SeekOrigin.Begin);
-                final = m2.ToArray();
-            }
-            return final;
-        }
-
-        public static T FromCERAS<T>(this Stream data, SerializerConfig config)
-        {
-            var ceras = new CerasSerializer(config);
-            byte[] bytes = data.ReadAll();
-            using (var m1 = new MemoryStream(bytes))
-            using (var m2 = new MemoryStream())
-            {
-                BZip2.Decompress(m1, m2, false);
-                m2.Seek(0, SeekOrigin.Begin);
-                return ceras.Deserialize<T>(m2.ToArray());
-            }
-        }
-
-        public static void ToJSON<T>(this T obj, string filename)
-        {
-            if (File.Exists(filename))
-                File.Delete(filename);
-            File.WriteAllText(filename,
-                JsonConvert.SerializeObject(obj, Formatting.Indented,
-                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto}));
-        }
-        /*
-        public static void ToBSON<T>(this T obj, string filename)
-        {
-            using (var fo = File.Open(filename, System.IO.FileMode.Create))
-            using (var br = new BsonDataWriter(fo))
-            {
-                fo.SetLength(0);
-                var serializer = JsonSerializer.Create(new JsonSerializerSettings
-                    {TypeNameHandling = TypeNameHandling.Auto});
-                serializer.Serialize(br, obj);
-            }
-        }*/
-
-        public static ulong ToMilliseconds(this DateTime date)
-        {
-            return (ulong) (date - new DateTime(1970, 1, 1)).TotalMilliseconds;
-        }
-
-        public static string ToJSON<T>(this T obj, 
-            TypeNameHandling handling = TypeNameHandling.All,
-            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full,
-            bool prettyPrint = false)
-        {
-            return JsonConvert.SerializeObject(obj, Formatting.Indented,
-                new JsonSerializerSettings {TypeNameHandling = handling, 
-                    TypeNameAssemblyFormatHandling = format, 
-                    Formatting = prettyPrint ? Formatting.Indented : Formatting.None});
-        }
-        
-        public static T FromJSON<T>(this string filename, 
-            TypeNameHandling handling = TypeNameHandling.All, 
-            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
-        {
-            return JsonConvert.DeserializeObject<T>(File.ReadAllText(filename),
-                new JsonSerializerSettings {TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format});
-        }
-        /*
-        public static T FromBSON<T>(this string filename, bool root_is_array = false)
-        {
-            using (var fo = File.OpenRead(filename))
-            using (var br = new BsonDataReader(fo, root_is_array, DateTimeKind.Local))
-            {
-                var serializer = JsonSerializer.Create(new JsonSerializerSettings
-                    {TypeNameHandling = TypeNameHandling.Auto});
-                return serializer.Deserialize<T>(br);
-            }
-        }*/
-
-        public static T FromJSONString<T>(this string data, 
-            TypeNameHandling handling = TypeNameHandling.All,
-            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
-        {
-            return JsonConvert.DeserializeObject<T>(data,
-                new JsonSerializerSettings {TypeNameHandling = handling, TypeNameAssemblyFormatHandling = format});
-        }
-
-        public static T FromJSON<T>(this Stream data)
-        {
-            var s = Encoding.UTF8.GetString(data.ReadAll());
-            try
-            {
-                return JsonConvert.DeserializeObject<T>(s,
-                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
-            }
-            catch (JsonSerializationException)
-            {
-                var error = JsonConvert.DeserializeObject<NexusErrorResponse>(s,
-                    new JsonSerializerSettings {TypeNameHandling = TypeNameHandling.Auto});
-                if (error != null)
-                    Log($"Exception while deserializing\nError code: {error.code}\nError message: {error.message}");
-                throw;
-            }
-        }
 
         public static bool FileExists(this string filename)
         {
@@ -760,7 +507,7 @@ namespace Wabbajack.Common
             {
                 while (remainingTasks > 0)
                 {
-                    var (got, a) = await queue.Queue.TryTake(TimeSpan.FromMilliseconds(200), CancellationToken.None);
+                    var (got, a) = await queue.Queue.TryTake(TimeSpan.FromMilliseconds(100), CancellationToken.None);
                     if (got)
                     {
                         await a();
@@ -903,7 +650,9 @@ namespace Wabbajack.Common
             return a[a.Length - 1];
         }
 
+        [return: MaybeNull]
         public static V GetOrDefault<K, V>(this IDictionary<K, V> dict, K key)
+            where K : notnull
         {
             if (dict.TryGetValue(key, out var v)) return v;
             return default;
@@ -926,20 +675,19 @@ namespace Wabbajack.Common
 
         public static async Task CreatePatch(byte[] a, byte[] b, Stream output)
         {
-            var dataA = a.xxHash().FromBase64().ToHex();
-            var dataB = b.xxHash().FromBase64().ToHex();
-            var cacheFile = Path.Combine(Consts.PatchCacheFolder, $"{dataA}_{dataB}.patch");
-            if (!Directory.Exists(Consts.PatchCacheFolder))
-                Directory.CreateDirectory(Consts.PatchCacheFolder);
+            var dataA = a.xxHash().ToHex();
+            var dataB = b.xxHash().ToHex();
+            var cacheFile = Consts.PatchCacheFolder.Combine($"{dataA}_{dataB}.patch");
+            Consts.PatchCacheFolder.CreateDirectory();
 
             while (true)
             {
-                if (File.Exists(cacheFile))
+                if (cacheFile.IsFile)
                 {
                     RETRY_OPEN:
                     try
                     {
-                        await using var f = File.OpenRead(cacheFile);
+                        await using var f = cacheFile.OpenRead();
                         await f.CopyToAsync(output);
                     }
                     catch (IOException)
@@ -952,9 +700,9 @@ namespace Wabbajack.Common
                 }
                 else
                 {
-                    var tmpName = Path.Combine(Consts.PatchCacheFolder, Guid.NewGuid() + ".tmp");
+                    var tmpName = Consts.PatchCacheFolder.Combine(Guid.NewGuid() + ".tmp");
 
-                    await using (var f = File.Open(tmpName, System.IO.FileMode.Create))
+                    await using (var f = tmpName.Create())
                     {
                         Status("Creating Patch");
                         OctoDiff.Create(a, b, f);
@@ -963,12 +711,11 @@ namespace Wabbajack.Common
                     RETRY:
                     try
                     {
-                        
-                        File.Move(tmpName, cacheFile, MoveOptions.ReplaceExisting);
+                        tmpName.MoveTo(cacheFile, true);
                     }
                     catch (UnauthorizedAccessException)
                     {
-                        if (File.Exists(cacheFile))
+                        if (cacheFile.IsFile)
                             continue;
                         await Task.Delay(1000);
                         goto RETRY;
@@ -981,15 +728,15 @@ namespace Wabbajack.Common
             }
         }
 
-        public static async Task CreatePatch(FileStream srcStream, string srcHash, FileStream destStream, string destHash,
+        public static async Task CreatePatch(FileStream srcStream, Hash srcHash, FileStream destStream, Hash destHash,
             FileStream patchStream)
         {
             await using var sigFile = new TempStream();
             OctoDiff.Create(srcStream, destStream, sigFile, patchStream);
             patchStream.Position = 0;
-            var tmpName = Path.Combine(Consts.PatchCacheFolder, Guid.NewGuid() + ".tmp");
+            var tmpName = Consts.PatchCacheFolder.Combine(Guid.NewGuid() + ".tmp");
 
-            await using (var f = File.Create(tmpName))
+            await using (var f = tmpName.Create())
             {
                 await patchStream.CopyToAsync(f);
                 patchStream.Position = 0;
@@ -997,30 +744,27 @@ namespace Wabbajack.Common
             
             try
             {
-                var cacheFile = Path.Combine(Consts.PatchCacheFolder, $"{srcHash.FromBase64().ToHex()}_{srcHash.FromBase64().ToHex()}.patch");
-                if (!Directory.Exists(Consts.PatchCacheFolder))
-                    Directory.CreateDirectory(Consts.PatchCacheFolder);
+                var cacheFile = Consts.PatchCacheFolder.Combine($"{srcHash.ToHex()}_{destHash.ToHex()}.patch");
+                Consts.PatchCacheFolder.CreateDirectory();
 
-                File.Move(tmpName, cacheFile, MoveOptions.ReplaceExisting);
+                tmpName.MoveTo(cacheFile, true);
             }
             catch (UnauthorizedAccessException)
             {
-                if (File.Exists(tmpName)) 
-                    File.Delete(tmpName);
+                tmpName.Delete();
             }
         }
 
-        public static bool TryGetPatch(string foundHash, string fileHash, out byte[] ePatch)
+        public static bool TryGetPatch(Hash foundHash, Hash fileHash, [MaybeNullWhen(false)] out byte[] ePatch)
         {
-            var patchName = Path.Combine(Consts.PatchCacheFolder,
-                $"{foundHash.FromBase64().ToHex()}_{fileHash.FromBase64().ToHex()}.patch");
-            if (File.Exists(patchName))
+            var patchName = Consts.PatchCacheFolder.Combine($"{foundHash.ToHex()}_{fileHash.ToHex()}.patch");
+            if (patchName.Exists)
             {
-                ePatch = File.ReadAllBytes(patchName);
+                ePatch = patchName.ReadAllBytes();
                 return true;
             }
 
-            ePatch = null;
+            ePatch = Array.Empty<byte>();
             return false;
         }
 
@@ -1042,17 +786,6 @@ namespace Wabbajack.Common
                     throw new Exception($"No diff dispatch for: {str}");
             }
 
-        }
-
-        /*
-        public static void Warning(string s)
-        {
-            Log($"WARNING: {s}");
-        }*/
-
-        public static TV GetOrDefault<TK, TV>(this Dictionary<TK, TV> dict, TK key)
-        {
-            return dict.TryGetValue(key, out var result) ? result : default;
         }
 
         public static IEnumerable<T> ButLast<T>(this IEnumerable<T> coll)
@@ -1082,7 +815,8 @@ namespace Wabbajack.Common
         /// <returns></returns>
         public static T ViaJSON<T>(this T tv)
         {
-            return tv.ToJSON().FromJSONString<T>();
+            var json = tv.ToJson();
+            return json.FromJsonString<T>();
         }
 
         /*
@@ -1187,15 +921,15 @@ namespace Wabbajack.Common
             return ErrorResponse.Success;
         }
 
-        public static IErrorResponse IsDirectoryPathValid(string path)
+        public static IErrorResponse IsDirectoryPathValid(AbsolutePath path)
         {
-            if (string.IsNullOrWhiteSpace(path))
+            if (path == default)
             {
                 return ErrorResponse.Fail("Path is empty");
             }
             try
             {
-                var fi = new System.IO.DirectoryInfo(path);
+                var fi = new System.IO.DirectoryInfo((string)path);
             }
             catch (ArgumentException ex)
             {
@@ -1218,12 +952,12 @@ namespace Wabbajack.Common
         /// delete a folder. If you don't like this code, it's unlikely to change without a ton of testing.
         /// </summary>
         /// <param name="path"></param>
-        public static async void DeleteDirectory(string path)
+        public static async Task DeleteDirectory(AbsolutePath path)
         {
             var process = new ProcessHelper
             {
                 Path = "cmd.exe",
-                Arguments = new object[] {"/c", "del", "/f", "/q", "/s", $"\"{path}\"", "&&", "rmdir", "/q", "/s", $"\"{path}\""},
+                Arguments = new object[] {"/c", "del", "/f", "/q", "/s", $"\"{(string)path}\"", "&&", "rmdir", "/q", "/s", $"\"{(string)path}\""},
             };
             var result = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
                 .ForEachAsync(p =>
@@ -1249,56 +983,49 @@ namespace Wabbajack.Common
         /// <param name="data"></param>
         public static void ToEcryptedJson<T>(this T data, string key)
         {
-            var bytes = Encoding.UTF8.GetBytes(data.ToJSON());
+            var bytes = Encoding.UTF8.GetBytes(data.ToJson());
             bytes.ToEcryptedData(key);
         }
 
         public static T FromEncryptedJson<T>(string key)
         {
             var decoded = FromEncryptedData(key);
-            return Encoding.UTF8.GetString(decoded).FromJSONString<T>();
+            return Encoding.UTF8.GetString(decoded).FromJsonString<T>();
         }
 
         
         public static void ToEcryptedData(this byte[] bytes, string key)
         {
             var encoded = ProtectedData.Protect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
+            Consts.LocalAppDataPath.CreateDirectory();
             
-            if (!Directory.Exists(Consts.LocalAppDataPath))
-                Directory.CreateDirectory(Consts.LocalAppDataPath);
-            
-            var path = Path.Combine(Consts.LocalAppDataPath, key);
-            File.WriteAllBytes(path, encoded);
+            Consts.LocalAppDataPath.Combine(key).WriteAllBytes(bytes);
         }
         public static byte[] FromEncryptedData(string key)
         {
-            var path = Path.Combine(Consts.LocalAppDataPath, key);
-            var bytes = File.ReadAllBytes(path);
+            var bytes = Consts.LocalAppDataPath.Combine(key).ReadAllBytes();
             return ProtectedData.Unprotect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
         }
 
         public static bool HaveEncryptedJson(string key)
         {
-            var path = Path.Combine(Consts.LocalAppDataPath, key);
-            return File.Exists(path);
+            return Consts.LocalAppDataPath.Combine(key).IsFile;
         }
 
         public static IObservable<(FileEventType, FileSystemEventArgs)> AppLocalEvents { get; }
 
         public static IObservable<bool> HaveEncryptedJsonObservable(string key)
         {
-            var path = Path.Combine(Consts.LocalAppDataPath, key).ToLower();
-            return AppLocalEvents.Where(t => t.Item2.FullPath.ToLower() == path)
-                                 .Select(_ => File.Exists(path))
-                                 .StartWith(File.Exists(path))
+            var path = Consts.LocalAppDataPath.Combine(key);
+            return AppLocalEvents.Where(t => (AbsolutePath)t.Item2.FullPath.ToLower() == path)
+                                 .Select(_ => path.Exists)
+                                 .StartWith(path.Exists)
                                  .DistinctUntilChanged();
         }
 
         public static void DeleteEncryptedJson(string key)
         {
-            var path = Path.Combine(Consts.LocalAppDataPath, key);
-            if (File.Exists(path))
-                File.Delete(path);
+            Consts.LocalAppDataPath.Combine(key).Delete();
         }
 
         public static void StartProcessFromFile(string file)
@@ -1309,7 +1036,7 @@ namespace Wabbajack.Common
             });
         }
 
-        public static void OpenWebsite(string url)
+        public static void OpenWebsite(Uri url)
         {
             Process.Start(new ProcessStartInfo("cmd.exe", $"/c start {url}")
             {
@@ -1339,7 +1066,7 @@ namespace Wabbajack.Common
         public class NexusErrorResponse
         {
             public int code;
-            public string message;
+            public string message = string.Empty;
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
@@ -1379,6 +1106,14 @@ namespace Wabbajack.Common
             random.NextBytes(bytes);
             return bytes.ToHex();
         }
+        
+        public static byte[] RandomData(int size)
+        {
+            var random = new Random();
+            byte[] bytes = new byte[size];
+            random.NextBytes(bytes);
+            return bytes;
+        }
 
         public static async Task CopyFileAsync(string src, string dest)
         {
@@ -1393,7 +1128,7 @@ namespace Wabbajack.Common
             try
             {
                 valuePtr = Marshal.SecureStringToGlobalAllocUnicode(value);
-                return Marshal.PtrToStringUni(valuePtr);
+                return Marshal.PtrToStringUni(valuePtr) ?? "";
             }
             finally
             {

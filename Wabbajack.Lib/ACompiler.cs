@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -9,6 +9,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Lib.Validation;
 using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
@@ -18,11 +19,12 @@ namespace Wabbajack.Lib
 {
     public abstract class ACompiler : ABatchProcessor
     {
-        public string ModListName, ModListAuthor, ModListDescription, ModListImage, ModListWebsite, ModListReadme;
+        public string ModListName, ModListAuthor, ModListDescription, ModListWebsite;
+        public AbsolutePath ModListImage, ModListReadme;
         public bool ReadmeIsWebsite;
-        public string WabbajackVersion;
+        protected Version WabbajackVersion;
 
-        public abstract string VFSCacheName { get; }
+        public abstract AbsolutePath VFSCacheName { get; }
         //protected string VFSCacheName => Path.Combine(Consts.LocalAppDataPath, $"vfs_compile_cache.bin");
         /// <summary>
         /// A stream of tuples of ("Update Title", 0.25) which represent the name of the current task
@@ -33,10 +35,10 @@ namespace Wabbajack.Lib
 
         public abstract ModManager ModManager { get; }
 
-        public abstract string GamePath { get; }
+        public abstract AbsolutePath GamePath { get; }
 
-        public abstract string ModListOutputFolder { get; }
-        public abstract string ModListOutputFile { get; }
+        public abstract AbsolutePath ModListOutputFolder { get; }
+        public abstract AbsolutePath ModListOutputFile { get; }
 
         public bool IgnoreMissingFiles { get; set; }
 
@@ -46,7 +48,7 @@ namespace Wabbajack.Lib
         public ModList ModList = new ModList();
 
         public List<IndexedArchive> IndexedArchives = new List<IndexedArchive>();
-        public Dictionary<string, IEnumerable<VirtualFile>> IndexedFiles = new Dictionary<string, IEnumerable<VirtualFile>>();
+        public Dictionary<Hash, IEnumerable<VirtualFile>> IndexedFiles = new Dictionary<Hash, IEnumerable<VirtualFile>>();
 
         public static void Info(string msg)
         {
@@ -64,23 +66,35 @@ namespace Wabbajack.Lib
             throw new Exception(msg);
         }
 
-        internal string IncludeFile(byte[] data)
+        internal RelativePath IncludeId()
         {
-            var id = Guid.NewGuid().ToString();
-            File.WriteAllBytes(Path.Combine(ModListOutputFolder, id), data);
+            return RelativePath.RandomFileName();
+        }
+
+        internal async Task<RelativePath> IncludeFile(byte[] data)
+        {
+            var id = IncludeId();
+            await ModListOutputFolder.Combine(id).WriteAllBytesAsync(data);
             return id;
         }
 
-        internal FileStream IncludeFile(out string id)
+        internal FileStream IncludeFile(out RelativePath id)
         {
-            id = Guid.NewGuid().ToString();
-            return File.Create(Path.Combine(ModListOutputFolder, id));
+            id = IncludeId();
+            return ModListOutputFolder.Combine(id).Create();
         }
 
-        internal string IncludeFile(string data)
+        internal async Task<RelativePath> IncludeFile(string data)
         {
-            var id = Guid.NewGuid().ToString();
-            File.WriteAllText(Path.Combine(ModListOutputFolder, id), data);
+            var id = IncludeId();
+            await ModListOutputFolder.Combine(id).WriteAllTextAsync(data);
+            return id;
+        }
+        
+        internal async Task<RelativePath> IncludeFile(AbsolutePath data)
+        {
+            var id = IncludeId();
+            await data.CopyToAsync(ModListOutputFolder.Combine(id));
             return id;
         }
 
@@ -91,7 +105,7 @@ namespace Wabbajack.Lib
             {
                 if (a.State is IMetaState metaState)
                 {
-                    if (string.IsNullOrWhiteSpace(metaState.URL))
+                    if (metaState.URL == null)
                         return;
 
                     var b = await metaState.LoadMetaData();
@@ -108,61 +122,58 @@ namespace Wabbajack.Lib
             return true;
         }
 
-        public void ExportModList()
+        public async Task ExportModList()
         {
             Utils.Log($"Exporting ModList to {ModListOutputFile}");
 
             // Modify readme and ModList image to relative paths if they exist
-            if (File.Exists(ModListImage))
+            if (ModListImage.Exists)
             {
-                ModList.Image = "modlist-image.png";
+                ModList.Image = (RelativePath)"modlist-image.png";
             }
-            if (File.Exists(ModListReadme))
+            if (ModListReadme.Exists)
             {
-                var readme = new FileInfo(ModListReadme);
-                ModList.Readme = $"readme{readme.Extension}";
+                ModList.Readme = $"readme{ModListReadme.Extension}";
             }
 
             ModList.ReadmeIsWebsite = ReadmeIsWebsite;
 
-            ModList.ToCERAS(Path.Combine(ModListOutputFolder, "modlist"), CerasConfig.Config);
+            using (var of = ModListOutputFolder.Combine("modlist").Create()) 
+                ModList.ToJson(of);
 
-            if (File.Exists(ModListOutputFile))
-                File.Delete(ModListOutputFile);
+            ModListOutputFile.Delete();
 
-            using (var fs = new FileStream(ModListOutputFile, FileMode.Create))
+            using (var fs = ModListOutputFile.Create())
             {
                 using (var za = new ZipArchive(fs, ZipArchiveMode.Create))
                 {
-                    Directory.EnumerateFiles(ModListOutputFolder, "*.*")
+                    ModListOutputFolder.EnumerateFiles()
                         .DoProgress("Compressing ModList",
                     f =>
                     {
-                        var ze = za.CreateEntry(Path.GetFileName(f));
-                        using (var os = ze.Open())
-                        using (var ins = File.OpenRead(f))
-                        {
-                            ins.CopyTo(os);
-                        }
+                        var ze = za.CreateEntry((string)f.FileName);
+                        using var os = ze.Open();
+                        using var ins = f.OpenRead();
+                        ins.CopyTo(os);
                     });
 
                     // Copy in modimage
-                    if (File.Exists(ModListImage))
+                    if (ModListImage.Exists)
                     {
-                        var ze = za.CreateEntry(ModList.Image);
+                        var ze = za.CreateEntry((string)ModList.Image);
                         using (var os = ze.Open())
-                        using (var ins = File.OpenRead(ModListImage))
+                        using (var ins = ModListImage.OpenRead())
                         {
                             ins.CopyTo(os);
                         }
                     }
 
                     // Copy in readme
-                    if (File.Exists(ModListReadme))
+                    if (ModListReadme.Exists)
                     {
                         var ze = za.CreateEntry(ModList.Readme);
                         using (var os = ze.Open())
-                        using (var ins = File.OpenRead(ModListReadme))
+                        using (var ins = ModListReadme.OpenRead())
                         {
                             ins.CopyTo(os);
                         }
@@ -173,49 +184,49 @@ namespace Wabbajack.Lib
             Utils.Log("Exporting ModList metadata");
             var metadata = new DownloadMetadata
             {
-                Size = File.GetSize(ModListOutputFile),
+                Size = ModListOutputFile.Size,
                 Hash = ModListOutputFile.FileHash(),
                 NumberOfArchives = ModList.Archives.Count,
                 SizeOfArchives = ModList.Archives.Sum(a => a.Size),
                 NumberOfInstalledFiles = ModList.Directives.Count,
                 SizeOfInstalledFiles = ModList.Directives.Sum(a => a.Size)
             };
-            metadata.ToJSON(ModListOutputFile + ".meta.json");
+            metadata.ToJson(ModListOutputFile + ".meta.json");
 
 
             Utils.Log("Removing ModList staging folder");
-            Utils.DeleteDirectory(ModListOutputFolder);
+            await Utils.DeleteDirectory(ModListOutputFolder);
         }
 
         public void GenerateManifest()
         {
             var manifest = new Manifest(ModList);
-            manifest.ToJSON(ModListOutputFile + ".manifest.json");
+            manifest.ToJson(ModListOutputFile + ".manifest.json");
         }
 
         public async Task GatherArchives()
         {
             Info("Building a list of archives based on the files required");
 
-            var shas = InstallDirectives.OfType<FromArchive>()
-                .Select(a => a.ArchiveHashPath[0])
+            var hashes = InstallDirectives.OfType<FromArchive>()
+                .Select(a => a.ArchiveHashPath.BaseHash)
                 .Distinct();
 
             var archives = IndexedArchives.OrderByDescending(f => f.File.LastModified)
                 .GroupBy(f => f.File.Hash)
                 .ToDictionary(f => f.Key, f => f.First());
 
-            SelectedArchives = await shas.PMap(Queue, sha => ResolveArchive(sha, archives));
+            SelectedArchives = await hashes.PMap(Queue, hash => ResolveArchive(hash, archives));
         }
 
-        public async Task<Archive> ResolveArchive(string sha, IDictionary<string, IndexedArchive> archives)
+        public async Task<Archive> ResolveArchive(Hash hash, IDictionary<Hash, IndexedArchive> archives)
         {
-            if (archives.TryGetValue(sha, out var found))
+            if (archives.TryGetValue(hash, out var found))
             {
                 return await ResolveArchive(found);
             }
 
-            Error($"No match found for Archive sha: {sha} this shouldn't happen");
+            Error($"No match found for Archive sha: {hash.ToBase64()} this shouldn't happen");
             return null;
         }
 

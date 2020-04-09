@@ -8,7 +8,6 @@ using System.Web;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
-using File = System.IO.File;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -22,7 +21,7 @@ namespace Wabbajack.Lib.Downloaders
         public override string SiteName { get; }
         public override Uri SiteURL { get; }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             Uri url = DownloaderUtils.GetDirectURL(archiveINI);
 
@@ -71,23 +70,35 @@ namespace Wabbajack.Lib.Downloaders
             };
         }
 
-
-        public class State<TDownloader> : AbstractDownloadState, IMetaState where TDownloader : IDownloader
+        
+        public class State<TStateDownloader> : AbstractDownloadState, IMetaState where TStateDownloader : IDownloader
         {
             public string FullURL { get; set; }
             public bool IsAttachment { get; set; }
             public string FileID { get; set; }
+            
             public string FileName { get; set; }
+            
+            // from IMetaState
+            public Uri URL => new Uri($"{Site}/files/file/{FileName}");
+            public string Name { get; set; }
+            public string Author { get; set; }
+            public string Version { get; set; }
+            public string ImageURL { get; set; }
+            public virtual bool IsNSFW { get; set; }
+            public string Description { get; set; }
 
             private static bool IsHTTPS => Downloader.SiteURL.AbsolutePath.StartsWith("https://");
             private static string URLPrefix => IsHTTPS ? "https://" : "http://";
 
+            [JsonIgnore]
             public static string Site => string.IsNullOrWhiteSpace(Downloader.SiteURL.Query)
                 ? $"{URLPrefix}{Downloader.SiteURL.Host}"
                 : Downloader.SiteURL.ToString();
 
             public static AbstractNeedsLoginDownloader Downloader => (AbstractNeedsLoginDownloader)(object)DownloadDispatcher.GetInstance<TDownloader>();
 
+            [JsonIgnore]
             public override object[] PrimaryKey
             {
                 get
@@ -105,12 +116,12 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 await using var stream = await ResolveDownloadStream();
-                await using (var file = File.Open(destination, FileMode.Create))
+                await using (var file = destination.Create())
                 {
-                    stream.CopyTo(file);
+                    await stream.CopyToAsync(file);
                 }
                 return true;
             }
@@ -156,7 +167,7 @@ namespace Wabbajack.Lib.Downloaders
                     return await streamResult.Content.ReadAsStreamAsync();
 
                 // Sometimes LL hands back a json object telling us to wait until a certain time
-                var times = (await streamResult.Content.ReadAsStringAsync()).FromJSONString<WaitResponse>();
+                var times = (await streamResult.Content.ReadAsStringAsync()).FromJsonString<WaitResponse>();
                 var secs = times.Download - times.CurrentTime;
                 for (int x = 0; x < secs; x++)
                 {
@@ -219,22 +230,6 @@ namespace Wabbajack.Lib.Downloaders
                 };
 
             }
-
-            // from IMetaState
-            public string URL
-            {
-                get
-                {
-                    return !IsAttachment ? $"{Site}/files/file/{FileName}" : "";
-                }
-            }
-
-            public string Name { get; set; }
-            public string Author { get; set; }
-            public string Version { get; set; }
-            public string ImageURL { get; set; }
-            public virtual bool IsNSFW { get; set; }
-            public string Description { get; set; }
 
             public virtual async Task<bool> LoadMetaData()
             {

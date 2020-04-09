@@ -16,10 +16,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BunnyCDN.Net.Storage" Version="1.0.2" />
-        <PackageReference Include="Dapper" Version="2.0.30" />
-        <PackageReference Include="FluentFTP" Version="32.2.2" />
-        <PackageReference Include="graphiql" Version="1.2.0" />
+        <PackageReference Include="CsvHelper" Version="15.0.4" />
+        <PackageReference Include="Dapper" Version="2.0.35" />
+        <PackageReference Include="FluentFTP" Version="32.3.1" />
+        <PackageReference Include="graphiql" Version="2.0.0" />
         <PackageReference Include="GraphQL" Version="3.0.0-preview-1352" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
@@ -27,10 +27,8 @@
         <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
         <PackageReference Include="Microsoft.OpenApi" Version="1.1.4" />
-        <PackageReference Include="MongoDB.Driver" Version="2.10.2" />
-        <PackageReference Include="MongoDB.Driver.Core" Version="2.10.2" />
         <PackageReference Include="Nettle" Version="1.3.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.1.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.3.1" />
         <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
     </ItemGroup>
 
@@ -68,6 +66,9 @@
       <None Update="public\metrics.html">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="public\files\placeholder">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -80,14 +81,11 @@
 
     <ItemGroup>
       <EmbeddedResource Remove="swiftshader\**" />
+      <None Remove="sql\wabbajack_db.sql" />
     </ItemGroup>
 
     <ItemGroup>
       <Content Remove="swiftshader\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="public\files" />
     </ItemGroup>
 
     <ItemGroup>

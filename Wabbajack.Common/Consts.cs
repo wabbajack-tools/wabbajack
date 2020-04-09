@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Alphaleonis.Win32.Filesystem;
@@ -11,25 +12,32 @@ namespace Wabbajack.Common
     {
         public static bool TestMode { get; set; } = false;
 
-        public static string GameFolderFilesDir = "Game Folder Files";
-        public static string ManualGameFilesDir = "Manual Game Files";
-        public static string LOOTFolderFilesDir = "LOOT Config Files";
-        public static string BSACreationDir = "TEMP_BSA_FILES";
+        public static RelativePath GameFolderFilesDir = (RelativePath)"Game Folder Files";
+        public static RelativePath ManualGameFilesDir = (RelativePath)"Manual Game Files";
+        public static RelativePath LOOTFolderFilesDir = (RelativePath)"LOOT Config Files";
+        public static RelativePath BSACreationDir = (RelativePath)"TEMP_BSA_FILES";
 
-        public static string ModListDownloadFolder = "downloaded_mod_lists";
+        public static AbsolutePath ModListDownloadFolder => "downloaded_mod_lists".RelativeTo(AbsolutePath.EntryPoint);
 
         public static string MegaPrefix = "https://mega.nz/#!";
 
-        public static HashSet<string> SupportedArchives = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod", ".exe", ".dat", ".gz", ".tar"};
+        public static readonly HashSet<Extension> SupportedArchives = new[]{".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod", ".exe", ".dat", ".gz", ".tar"}
+            .Select(s => new Extension(s)).ToHashSet();
 
         // HashSet with archive extensions that need to be tested before extraction
-        public static HashSet<string> TestArchivesBeforeExtraction = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".dat"};
+        public static HashSet<Extension> TestArchivesBeforeExtraction = new []{".dat"}.Select(s => new Extension(s)).ToHashSet();
 
-        public static HashSet<string> SupportedBSAs = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".bsa", ".ba2"};
+        public static readonly HashSet<Extension> SupportedBSAs = new[] {".bsa", ".ba2"}
+            .Select(s => new Extension(s)).ToHashSet();
 
-        public static HashSet<string> ConfigFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".json", ".ini", ".yml", ".xml"};
-        public static HashSet<string> ESPFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".esp", ".esm", ".esl"};
-        public static HashSet<string> AssetFileExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {".dds", ".tga", ".nif", ".psc", ".pex"};
+        public static HashSet<Extension> ConfigFileExtensions = new[]{".json", ".ini", ".yml", ".xml"}.Select(s => new Extension(s)).ToHashSet();
+        public static HashSet<Extension> ESPFileExtensions = new []{ ".esp", ".esm", ".esl"}.Select(s => new Extension(s)).ToHashSet();
+        public static HashSet<Extension> AssetFileExtensions = new[] {".dds", ".tga", ".nif", ".psc", ".pex"}.Select(s => new Extension(s)).ToHashSet();
+        
+        public static readonly Extension EXE = new Extension(".exe");
+        public static readonly Extension OMOD = new Extension(".omod");
+        public static readonly Extension ESM = new Extension(".esm");
+        public static readonly Extension ESP = new Extension(".esp");
 
         public static string NexusCacheDirectory = "nexus_link_cache";
 
@@ -53,7 +61,7 @@ namespace Wabbajack.Common
 
         public static string AppName = "Wabbajack";
 
-        public static HashSet<string> GameESMs = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        public static HashSet<RelativePath> GameESMs = new []
         {
             // Skyrim LE/SE
             "Skyrim.esm", 
@@ -71,9 +79,8 @@ namespace Wabbajack.Common
             "DLCNukaWorld.esm",
             "DLCUltraHighResolution.esm"
 
-        };
+        }.Select(s => (RelativePath)s).ToHashSet();
 
-        public static string ModPermissionsURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/NexusModPermissions.yml";
         public static string ServerWhitelistURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml";
         public static string ModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json";
         public static string ModlistSummaryURL = "http://build.wabbajack.org/lists/status.json";
@@ -87,27 +94,49 @@ namespace Wabbajack.Common
                 return headerString;
             }
         }
+        
+        public static RelativePath MetaIni = new RelativePath("meta.ini");
+        public static Extension IniExtension = new Extension(".ini");
 
-        public static string HashFileExtension => ".xxHash";
-        public static string MetaFileExtension => ".meta";
-        public const string ModListExtension = ".wabbajack";
-        public static string LocalAppDataPath => Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack");
+        public static Extension HashFileExtension = new Extension(".xxHash");
+        public static Extension MetaFileExtension = new Extension(".meta");
+        public const string ModListExtensionString = ".wabbajack";
+        public static Extension ModListExtension = new Extension(ModListExtensionString);
+        public static AbsolutePath LocalAppDataPath => new AbsolutePath(Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack"));
         public static string MetricsKeyHeader => "x-metrics-key";
 
         public static string WabbajackCacheLocation = "http://build.wabbajack.org/nexus_api_cache/";
 
         public static string WabbajackCacheHostname = "build.wabbajack.org";
+        public static Uri WabbajackBuildServerUri = new Uri("https://build.wabbajack.org");
         public static int WabbajackCachePort = 80;
         public static int MaxHTTPRetries = 4;
-        public const string MO2ModFolderName = "mods";
+        public static RelativePath MO2ModFolderName = (RelativePath)"mods";
 
-        public static string PatchCacheFolder => Path.Combine(LocalAppDataPath, "patch_cache");
+        public static AbsolutePath PatchCacheFolder => LocalAppDataPath.Combine("patch_cache");
         public static int MaxConnectionsPerServer = 4;
 
-        public static string LogsFolder = "logs";
+        public static AbsolutePath LogsFolder => ((RelativePath)"logs").RelativeToEntryPoint();
+        public static AbsolutePath EntryPoint => (AbsolutePath)(Assembly.GetEntryAssembly()?.Location ?? (string)((RelativePath)"Unknown").RelativeToWorkingDirectory());
+        public static AbsolutePath LogFile => LogsFolder.Combine(EntryPoint.FileNameWithoutExtension + ".current.log");
         public static int MaxOldLogs = 50;
+        public static Extension BSA = new Extension(".BSA");
+        public static Extension MOHIDDEN = new Extension(".mohidden");
 
-        public static string SettingsFile => Path.Combine(LocalAppDataPath, "settings.json");
+        public static AbsolutePath SettingsFile => LocalAppDataPath.Combine("settings.json");
+        public static RelativePath SettingsIni = (RelativePath)"settings.ini";
         public static byte SettingsVersion => 1;
+        public static Extension SeqExtension = new Extension(".seq");
+
+        public static RelativePath SettingsJson = (RelativePath)"settings.json";
+
+        public static Extension TempExtension = new Extension(".temp");
+
+        public static Extension OctoSig = new Extension(".octo_sig");
+
+        public static RelativePath ModListTxt = (RelativePath)"modlist.txt";
+        public static RelativePath ModOrganizer2Exe = (RelativePath)"ModOrganizer.exe";
+        public static RelativePath ModOrganizer2Ini = (RelativePath)"ModOrganizer.ini";
+        public static string AuthorAPIKeyFile = "author-api-key.txt";
     }
 }

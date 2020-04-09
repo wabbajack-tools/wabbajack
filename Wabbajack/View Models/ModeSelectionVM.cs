@@ -27,8 +27,7 @@ namespace Wabbajack
                 execute: () =>
                 {
                     var path = mainVM.Settings.Installer.LastInstalledListLocation;
-                    if (string.IsNullOrWhiteSpace(path)
-                        || !File.Exists(path))
+                    if (path == default || !path.Exists)
                     {
                         path = UIUtils.OpenFileDialog($"*{Consts.ModListExtension}|*{Consts.ModListExtension}");
                     }

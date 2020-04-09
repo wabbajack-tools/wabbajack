@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+#nullable disable
 
 namespace Wabbajack.Common.IO
 {

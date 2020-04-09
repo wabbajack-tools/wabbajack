@@ -7,38 +7,33 @@ using System.Threading.Tasks;
 
 namespace Wabbajack.Common
 {
-    public class TempFolder : IDisposable
+    public class TempFolder : IAsyncDisposable
     {
-        public DirectoryInfo Dir { get; private set; }
+        public AbsolutePath Dir { get; }
         public bool DeleteAfter = true;
 
         public TempFolder(bool deleteAfter = true)
         {
-            this.Dir = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
-            this.Dir.Create();
-            this.DeleteAfter = deleteAfter;
+            Dir = new AbsolutePath(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+            if (!Dir.Exists) 
+                Dir.CreateDirectory();
+            DeleteAfter = deleteAfter;
         }
 
-        public TempFolder(DirectoryInfo dir, bool deleteAfter = true)
+        public TempFolder(AbsolutePath dir, bool deleteAfter = true)
         {
-            this.Dir = dir;
+            Dir = dir;
             if (!dir.Exists)
             {
-                this.Dir.Create();
+                Dir.Create();
             }
-            this.DeleteAfter = deleteAfter;
+            DeleteAfter = deleteAfter;
         }
-
-        public TempFolder(string addedFolderPath, bool deleteAfter = true)
-            : this(new DirectoryInfo(Path.Combine(Path.GetTempPath(), addedFolderPath)), deleteAfter: deleteAfter)
+        public async ValueTask DisposeAsync()
         {
-        }
-
-        public void Dispose()
-        {
-            if (DeleteAfter)
+            if (DeleteAfter && Dir.Exists)
             {
-                Utils.DeleteDirectory(this.Dir.FullName);
+                await Utils.DeleteDirectory(Dir);
             }
         }
     }

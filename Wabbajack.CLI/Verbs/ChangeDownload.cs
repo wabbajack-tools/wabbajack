@@ -19,18 +19,19 @@ namespace Wabbajack.CLI.Verbs
     {
         [IsDirectory(CustomMessage = "Downloads folder %1 does not exist!")]
         [Option("input", Required = true, HelpText = "Input folder containing the downloads you want to move")]
-        public string? Input { get; set; }
+        public string Input { get; set; } = "";
 
         [IsDirectory(Create = true)]
         [Option("output", Required = true, HelpText = "Output folder the downloads should be transferred to")]
-        public string? Output { get; set; }
+        public string Output { get; set; } = "";
 
         [IsFile(CustomMessage = "Modlist file %1 does not exist!")]
         [Option("modlist", Required = true, HelpText = "The Modlist, can either be a .wabbajack or a modlist.txt file")]
-        public string? Modlist { get; set; }
+        public string Modlist { get; set; } = "";
 
-        [Option("mods", Required = false, HelpText = "Mods folder location if the provided modlist file is an MO2 modlist.txt")]
-        public string? Mods { get; set; }
+        [Option("mods", Required = false,
+            HelpText = "Mods folder location if the provided modlist file is an MO2 modlist.txt")]
+        public string Mods { get; set; } = "";
 
         [Option("copy", Default = true, HelpText = "Whether to copy the files", SetName = "copy")]
         public bool Copy { get; set; }
@@ -60,13 +61,14 @@ namespace Wabbajack.CLI.Verbs
 
         protected override async Task<ExitCode> Run()
         {
-            if (Modlist != null && (!Modlist.EndsWith(Consts.ModListExtension) && !Modlist.EndsWith("modlist.txt")))
+            var modListPath = (AbsolutePath)Modlist;
+            if (modListPath.Extension != Consts.ModListExtension && modListPath.FileName != (RelativePath)"modlist.txt")
                 return CLIUtils.Exit($"The file {Modlist} is not a valid modlist file!", ExitCode.BadArguments);
 
             if (Copy && Move)
                 return CLIUtils.Exit("You can't set both copy and move flags!", ExitCode.BadArguments);
 
-            var isModlist = Modlist != null && Modlist.EndsWith(Consts.ModListExtension);
+            var isModlist = modListPath.Extension == Consts.ModListExtension;
 
             var list = new List<TransferFile>();
 
@@ -76,7 +78,7 @@ namespace Wabbajack.CLI.Verbs
 
                 try
                 {
-                    modlist = AInstaller.LoadFromFile(Modlist);
+                    modlist = AInstaller.LoadFromFile(modListPath);
                 }
                 catch (Exception e)
                 {

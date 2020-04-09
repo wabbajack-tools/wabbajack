@@ -20,18 +20,18 @@ namespace Wabbajack.Lib
     {
         public bool IgnoreMissingFiles { get; internal set; } = false;
 
-        public string OutputFolder { get; private set; }
-        public string DownloadFolder { get; private set; }
+        public AbsolutePath OutputFolder { get; private set; }
+        public AbsolutePath DownloadFolder { get; private set; }
 
         public abstract ModManager ModManager { get; }
 
-        public string ModListArchive { get; private set; }
+        public AbsolutePath ModListArchive { get; private set; }
         public ModList ModList { get; private set; }
-        public Dictionary<string, string> HashedArchives { get; set; }
+        public Dictionary<Hash, AbsolutePath> HashedArchives { get; set; }
         
         public SystemParameters SystemParameters { get; set; }
 
-        public AInstaller(string archive, ModList modList, string outputFolder, string downloadFolder, SystemParameters parameters)
+        public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
         {
             ModList = modList;
             ModListArchive = archive;
@@ -56,54 +56,42 @@ namespace Wabbajack.Lib
             throw new Exception(msg);
         }
 
-        public byte[] LoadBytesFromPath(string path)
+        public async Task<byte[]> LoadBytesFromPath(RelativePath path)
         {
-            using (var fs = new FileStream(ModListArchive, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
-            using (var ms = new MemoryStream())
+            await using var fs = new FileStream((string)ModListArchive, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
+            await using var ms = new MemoryStream();
+            var entry = ar.GetEntry((string)path);
+            await using (var e = entry.Open())
             {
-                var entry = ar.GetEntry(path);
-                using (var e = entry.Open())
-                    e.CopyTo(ms);
-                return ms.ToArray();
+                await e.CopyToAsync(ms);
             }
+
+            return ms.ToArray();
         }
 
-        public static ModList LoadFromFile(string path)
+        public static ModList LoadFromFile(AbsolutePath path)
         {
-            using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+            using var fs = new FileStream((string)path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
+            var entry = ar.GetEntry("modlist");
+            if (entry == null)
             {
-                var entry = ar.GetEntry("modlist");
-                if (entry == null)
-                {
-                    entry = ar.GetEntry("modlist.json");
-                    using (var e = entry.Open())
-                        return e.FromJSON<ModList>();
-                }
+                entry = ar.GetEntry("modlist.json");
                 using (var e = entry.Open())
-                    return e.FromCERAS<ModList>(CerasConfig.Config);
+                    return e.FromJson<ModList>();
             }
+            using (var e = entry.Open())
+                return e.FromJson<ModList>();
         }
 
         /// <summary>
         ///     We don't want to make the installer index all the archives, that's just a waste of time, so instead
         ///     we'll pass just enough information to VFS to let it know about the files we have.
         /// </summary>
-        public async Task PrimeVFS()
+        protected async Task PrimeVFS()
         {
-            VFS.AddKnown(HashedArchives.Select(a => new KnownFile
-            {
-                Paths = new[] { a.Value },
-                Hash = a.Key
-            }));
-
-            
-            VFS.AddKnown(
-                ModList.Directives
-                    .OfType<FromArchive>()
-                    .Select(f => new KnownFile { Paths = f.ArchiveHashPath, Hash = f.Hash}));
-
+            VFS.AddKnown(ModList.Directives.OfType<FromArchive>().Select(d => d.ArchiveHashPath), HashedArchives);
             await VFS.BackfillMissing();
         }
 
@@ -111,13 +99,9 @@ namespace Wabbajack.Lib
         {
             Info("Building Folder Structure");
             ModList.Directives
-                .Select(d => Path.Combine(OutputFolder, Path.GetDirectoryName(d.To)))
+                .Select(d => OutputFolder.Combine(d.To.Parent))
                 .Distinct()
-                .Do(f =>
-                {
-                    if (Directory.Exists(f)) return;
-                    Directory.CreateDirectory(f);
-                });
+                .Do(f => f.CreateDirectory());
         }
 
         public async Task InstallArchives()
@@ -126,7 +110,7 @@ namespace Wabbajack.Lib
             Info("Grouping Install Files");
             var grouped = ModList.Directives
                 .OfType<FromArchive>()
-                .GroupBy(e => e.ArchiveHashPath[0])
+                .GroupBy(e => e.ArchiveHashPath.BaseHash)
                 .ToDictionary(k => k.Key);
             var archives = ModList.Archives
                 .Select(a => new { Archive = a, AbsolutePath = HashedArchives.GetOrDefault(a.Hash) })
@@ -137,7 +121,7 @@ namespace Wabbajack.Lib
             await archives.PMap(Queue, UpdateTracker,a => InstallArchive(Queue, a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
         }
 
-        private async Task InstallArchive(WorkQueue queue, Archive archive, string absolutePath, IGrouping<string, FromArchive> grouping)
+        private async Task InstallArchive(WorkQueue queue, Archive archive, AbsolutePath absolutePath, IGrouping<Hash, FromArchive> grouping)
         {
             Status($"Extracting {archive.Name}");
 
@@ -153,44 +137,41 @@ namespace Wabbajack.Lib
 
             Status($"Copying files for {archive.Name}");
 
-            void CopyFile(string from, string to, bool useMove)
+            async ValueTask CopyFile(AbsolutePath from, AbsolutePath to, bool useMove)
             {
-                if (File.Exists(to))
+                if (to.Exists)
                 {
-                    var fi = new FileInfo(to);
-                    if (fi.IsReadOnly)
-                        fi.IsReadOnly = false;
-                    File.Delete(to);
+                    if (to.IsReadOnly)
+                        to.IsReadOnly = false;
+                    to.Delete();
                 }
 
-                if (File.Exists(from))
+                if (from.Exists)
                 {
-                    var fi = new FileInfo(from);
-                    if (fi.IsReadOnly)
-                        fi.IsReadOnly = false;
+                    if (from.IsReadOnly)
+                        from.IsReadOnly = false;
                 }
 
 
                 if (useMove)
-                    File.Move(from, to);
+                    from.MoveTo(to);
                 else
-                    File.Copy(from, to);
+                    from.CopyTo(to);
                 // If we don't do this, the file will use the last-modified date of the file when it was compressed
                 // into an archive, which isn't really what we want in the case of files installed archives
-                File.SetLastWriteTime(to, DateTime.Now);
+                to.LastModified = DateTime.Now;
             }
 
             await vFiles.GroupBy(f => f.FromFile)
-                  .PDoIndexed(queue, (idx, group) =>
+                  .PDoIndexed(queue, async (idx, group) =>
             {
                 Utils.Status("Installing files", Percent.FactoryPutInRange(idx, vFiles.Count));
-                var firstDest = Path.Combine(OutputFolder, group.First().To);
-                CopyFile(group.Key.StagedPath, firstDest, true);
+                var firstDest = OutputFolder.Combine(group.First().To);
+                await CopyFile(group.Key.StagedPath, firstDest, true);
                 
                 foreach (var copy in group.Skip(1))
                 {
-                    var nextDest = Path.Combine(OutputFolder, copy.To);
-                    CopyFile(firstDest, nextDest, false);
+                    await CopyFile(firstDest, OutputFolder.Combine(copy.To), false);
                 }
 
             });
@@ -203,25 +184,25 @@ namespace Wabbajack.Lib
                 .PMap(queue, async toPatch =>
                 {
                     await using var patchStream = new MemoryStream();
-                    Status($"Patching {Path.GetFileName(toPatch.To)}");
+                    Status($"Patching {toPatch.To.FileName}");
                     // Read in the patch data
 
-                    byte[] patchData = LoadBytesFromPath(toPatch.PatchID);
+                    byte[] patchData = await LoadBytesFromPath(toPatch.PatchID);
 
-                    var toFile = Path.Combine(OutputFolder, toPatch.To);
-                    var oldData = new MemoryStream(File.ReadAllBytes(toFile));
+                    var toFile = OutputFolder.Combine(toPatch.To);
+                    var oldData = new MemoryStream(await toFile.ReadAllBytesAsync());
 
                     // Remove the file we're about to patch
-                    File.Delete(toFile);
+                    toFile.Delete();
 
                     // Patch it
-                    await using (var outStream = File.Open(toFile, FileMode.Create))
+                    await using (var outStream = toFile.Create())
                     {
                         Utils.ApplyPatch(oldData, () => new MemoryStream(patchData), outStream);
                     }
 
-                    Status($"Verifying Patch {Path.GetFileName(toPatch.To)}");
-                    var resultSha = toFile.FileHash();
+                    Status($"Verifying Patch {toPatch.To.FileName}");
+                    var resultSha = await toFile.FileHashAsync();
                     if (resultSha != toPatch.Hash)
                         throw new InvalidDataException($"Invalid Hash for {toPatch.To} after patching");
                 });
@@ -247,7 +228,7 @@ namespace Wabbajack.Lib
             {
                 foreach (var a in missing.Where(a => a.State.GetType() == typeof(ManualDownloader.State)))
                 {
-                    var outputPath = Path.Combine(DownloadFolder, a.Name);
+                    var outputPath = DownloadFolder.Combine(a.Name);
                     await a.State.Download(a, outputPath);
                 }
             }
@@ -256,18 +237,17 @@ namespace Wabbajack.Lib
                 .PMap(Queue, async archive =>
                 {
                     Info($"Downloading {archive.Name}");
-                    var outputPath = Path.Combine(DownloadFolder, archive.Name);
+                    var outputPath = DownloadFolder.Combine(archive.Name);
 
                     if (download)
                     {
-                        if (outputPath.FileExists())
+                        if (outputPath.Exists)
                         {
-                            var orig_name = Path.GetFileNameWithoutExtension(archive.Name);
+                            var origName = Path.GetFileNameWithoutExtension(archive.Name);
                             var ext = Path.GetExtension(archive.Name);
-                            var unique_key = archive.State.PrimaryKeyString.StringSHA256Hex();
-                            outputPath = Path.Combine(DownloadFolder, orig_name + "_" + unique_key + "_" + ext);
-                            if (outputPath.FileExists())
-                                File.Delete(outputPath);
+                            var uniqueKey = archive.State.PrimaryKeyString.StringSha256Hex();
+                            outputPath = DownloadFolder.Combine(origName + "_" + uniqueKey + "_" + ext);
+                            outputPath.Delete();
                         }
                     }
 
@@ -275,13 +255,13 @@ namespace Wabbajack.Lib
                 });
         }
 
-        public async Task<bool> DownloadArchive(Archive archive, bool download, string destination = null)
+        public async Task<bool> DownloadArchive(Archive archive, bool download, AbsolutePath? destination = null)
         {
             try
             {
                 if (destination == null) 
-                    destination = Path.Combine(DownloadFolder, archive.Name);
-                await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, destination);
+                    destination = DownloadFolder.Combine(archive.Name);
+                await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, destination.Value);
             }
             catch (Exception ex)
             {
@@ -295,11 +275,11 @@ namespace Wabbajack.Lib
 
         public async Task HashArchives()
         {
-            var hashResults = await Directory.EnumerateFiles(DownloadFolder)
-                .Where(e => !e.EndsWith(Consts.HashFileExtension))
-                .PMap(Queue, e => (e.FileHashCached(), e));
+            var hashResults = await DownloadFolder.EnumerateFiles()
+                .Where(e => e.Extension != Consts.HashFileExtension)
+                .PMap(Queue, async e => (await e.FileHashCachedAsync(), e));
             HashedArchives = hashResults
-                .OrderByDescending(e => File.GetLastWriteTime(e.Item2))
+                .OrderByDescending(e => e.Item2.LastModified)
                 .GroupBy(e => e.Item1)
                 .Select(e => e.First())
                 .ToDictionary(e => e.Item1, e => e.Item2);
@@ -351,39 +331,45 @@ namespace Wabbajack.Lib
             var indexed = ModList.Directives.ToDictionary(d => d.To);
 
             UpdateTracker.NextStep("Looking for files to delete");
-            await Directory.EnumerateFiles(OutputFolder, "*", DirectoryEnumerationOptions.Recursive)
+            await OutputFolder.EnumerateFiles()
                 .PMap(Queue, UpdateTracker, f =>
                 {
-                    var relative_to = f.RelativeTo(OutputFolder);
-                    Utils.Status($"Checking if ModList file {relative_to}");
-                    if (indexed.ContainsKey(relative_to) || f.IsInPath(DownloadFolder))
+                    var relativeTo = f.RelativeTo(OutputFolder);
+                    Utils.Status($"Checking if ModList file {relativeTo}");
+                    if (indexed.ContainsKey(relativeTo) || f.InFolder(DownloadFolder))
                         return;
 
-                    Utils.Log($"Deleting {relative_to} it's not part of this ModList");
-                    File.Delete(f);
+                    Utils.Log($"Deleting {relativeTo} it's not part of this ModList");
+                    f.Delete();
                 });
 
             Utils.Log("Cleaning empty folders");
             var expectedFolders = indexed.Keys
+                .Select(f => f.RelativeTo(OutputFolder))
                 // We ignore the last part of the path, so we need a dummy file name
-                .Append(Path.Combine(DownloadFolder, "_"))
+                .Append(DownloadFolder.Combine("_"))
+                .Where(f => f.InFolder(OutputFolder))
                 .SelectMany(path =>
                 {
                     // Get all the folders and all the folder parents
                     // so for foo\bar\baz\qux.txt this emits ["foo", "foo\\bar", "foo\\bar\\baz"]
-                    var split = path.Split('\\');
+                    var split = ((string)path.RelativeTo(OutputFolder)).Split('\\');
                     return Enumerable.Range(1, split.Length - 1).Select(t => string.Join("\\", split.Take(t)));
                 })
                .Distinct()
-               .Select(p => Path.Combine(OutputFolder, p))
+                .Select(p => OutputFolder.Combine(p))
                .ToHashSet();
 
             try
             {
-                Directory.EnumerateDirectories(OutputFolder, DirectoryEnumerationOptions.Recursive)
+                var toDelete = OutputFolder.EnumerateDirectories(true)
                     .Where(p => !expectedFolders.Contains(p))
-                    .OrderByDescending(p => p.Length)
-                    .Do(Utils.DeleteDirectory);
+                    .OrderByDescending(p => ((string)p).Length)
+                    .ToList();
+                foreach (var dir in toDelete)
+                {
+                    await dir.DeleteDirectory();
+                }
             }
             catch (Exception)
             {
@@ -392,19 +378,18 @@ namespace Wabbajack.Lib
             }
 
             UpdateTracker.NextStep("Looking for unmodified files");
-            (await indexed.Values.PMap(Queue, UpdateTracker, d =>
+            (await indexed.Values.PMap(Queue, UpdateTracker, async d =>
             {
                 // Bit backwards, but we want to return null for 
                 // all files we *want* installed. We return the files
                 // to remove from the install list.
                 Status($"Optimizing {d.To}");
-                var path = Path.Combine(OutputFolder, d.To);
-                if (!File.Exists(path)) return null;
+                var path = OutputFolder.Combine(d.To);
+                if (!path.Exists) return null;
 
-                var fi = new FileInfo(path);
-                if (fi.Length != d.Size) return null;
+                if (path.Size != d.Size) return null;
                 
-                return path.FileHash() == d.Hash ? d : null;
+                return await path.FileHashAsync() == d.Hash ? d : null;
             }))
               .Where(d => d != null)
               .Do(d => indexed.Remove(d.To));
@@ -412,7 +397,7 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Updating ModList");
             Utils.Log($"Optimized {ModList.Directives.Count} directives to {indexed.Count} required");
             var requiredArchives = indexed.Values.OfType<FromArchive>()
-                .GroupBy(d => d.ArchiveHashPath[0])
+                .GroupBy(d => d.ArchiveHashPath.BaseHash)
                 .Select(d => d.Key)
                 .ToHashSet();
             

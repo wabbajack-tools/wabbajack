@@ -4,8 +4,10 @@ using System.Reactive.Linq;
 using System.Security;
 using System.Threading.Tasks;
 using CG.Web.MegaApiClient;
+using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -72,7 +74,7 @@ namespace Wabbajack.Lib.Downloaders
                 IsLoggedIn.ObserveOnGuiThread());
         }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);
@@ -81,7 +83,7 @@ namespace Wabbajack.Lib.Downloaders
         public AbstractDownloadState GetDownloaderState(string url)
         {
             if (url != null && url.StartsWith(Consts.MegaPrefix))
-                return new State { Url = url, MegaApiClient = MegaApiClient};
+                return new State { Url = url};
             return null;
         }
 
@@ -89,14 +91,13 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
+        [JsonName("MegaDownloader")]
         public class State : HTTPDownloader.State
         {
-            public MegaApiClient MegaApiClient;
+            private static MegaApiClient MegaApiClient => DownloadDispatcher.GetInstance<MegaDownloader>().MegaApiClient;
 
             private void MegaLogin()
             {
-                MegaApiClient = new MegaApiClient();
-
                 if (MegaApiClient.IsLoggedIn)
                     return;
 
@@ -113,14 +114,13 @@ namespace Wabbajack.Lib.Downloaders
                 }
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 MegaLogin();
 
                 var fileLink = new Uri(Url);
-                var node = MegaApiClient.GetNodeFromLink(fileLink);
                 Utils.Status($"Downloading MEGA file: {a.Name}");
-                MegaApiClient.DownloadFile(fileLink, destination);
+                await MegaApiClient.DownloadFileAsync(fileLink, (string)destination, new Progress<double>(p => Utils.Status($"Downloading MEGA File: {a.Name}", Percent.FactoryPutInRange(p))));
                 return true;
             }
 

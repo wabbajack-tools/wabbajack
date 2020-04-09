@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Wabbajack.Common;
 
 namespace Wabbajack.BuildServer.Model.Models
 {
@@ -7,7 +8,7 @@ namespace Wabbajack.BuildServer.Model.Models
     {
         public long Parent { get; set; }
         public long Child { get; set; }
-        public string Path { get; set; }
+        public RelativePath Path { get; set; }
         public byte[] PathHash { get; set; }
     }
 }

@@ -15,7 +15,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (Path.GetDirectoryName(source.AbsolutePath) != _vortex.DownloadsFolder) return null;
+            if (source.AbsolutePath.Parent != _vortex.DownloadsFolder) return null;
             var result = source.EvolveTo<IgnoredDirectly>();
             result.Reason = "Ignored because it is a Vortex file";
             return result;

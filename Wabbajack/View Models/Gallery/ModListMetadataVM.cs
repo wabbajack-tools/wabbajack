@@ -31,7 +31,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<bool> _Exists;
         public bool Exists => _Exists.Value;
 
-        public string Location { get; }
+        public AbsolutePath Location { get; }
 
         [Reactive]
         public Percent ProgressPercent { get; private set; }
@@ -52,9 +52,9 @@ namespace Wabbajack
         {
             _parent = parent;
             Metadata = metadata;
-            Location = Path.Combine(Consts.ModListDownloadFolder, Metadata.Links.MachineURL + Consts.ModListExtension);
+            Location = Consts.ModListDownloadFolder.Combine(Metadata.Links.MachineURL + (string)Consts.ModListExtension);
             IsBroken = metadata.ValidationSummary.HasFailures;
-            OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite($"https://www.wabbajack.org/modlist/{Metadata.Links.MachineURL}"));
+            OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.Links.MachineURL}")));
             ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, Unit>(
                 canExecute: this.WhenAny(x => x.IsBroken).Select(x => !x),
                 execute: (unit) => 
@@ -83,7 +83,7 @@ namespace Wabbajack
                             return false;
                         }
                         // Return an updated check on exists
-                        return File.Exists(Location);
+                        return Location.Exists;
                     }
                     return exists;
                 })
@@ -92,7 +92,7 @@ namespace Wabbajack
                 .ObserveOnGuiThread()
                 .Select(_ =>
                 {
-                    _parent.MWVM.OpenInstaller(Path.GetFullPath(Location));
+                    _parent.MWVM.OpenInstaller(Location);
 
                     // Wait for modlist member to be filled, then open its readme
                     return _parent.MWVM.Installer.Value.WhenAny(x => x.ModList)

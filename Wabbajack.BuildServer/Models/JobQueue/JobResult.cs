@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MongoDB.Bson.Serialization.Attributes;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.BuildServer.Models.JobQueue
 {
+    [JsonName("JobResult")]
     public class JobResult
     {
         public JobResultType ResultType { get; set; }
-        [BsonIgnoreIfNull]
+
         public string Message { get; set; }
 
-        [BsonIgnoreIfNull]
         public string Stacktrace { get; set; }
 
         public static JobResult Success()

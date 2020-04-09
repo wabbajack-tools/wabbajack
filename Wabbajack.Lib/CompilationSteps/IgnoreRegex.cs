@@ -19,7 +19,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!_regex.IsMatch(source.Path)) return null;
+            if (!_regex.IsMatch((string)source.Path)) return null;
             var result = source.EvolveTo<IgnoredDirectly>();
             result.Reason = _reason;
             return result;

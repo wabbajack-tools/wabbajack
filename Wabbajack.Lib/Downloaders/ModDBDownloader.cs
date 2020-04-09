@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Linq;
-using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Web;
 using HtmlAgilityPack;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
     public class ModDBDownloader : IDownloader, IUrlDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);
@@ -35,9 +34,12 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
+        [JsonName("ModDBDownloader")]
         public class State : AbstractDownloadState
         {
             public string Url { get; set; }
+            
+            [JsonIgnore]
             public override object[] PrimaryKey { get => new object[]{Url}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
@@ -46,7 +48,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var urls = await GetDownloadUrls();
                 Utils.Log($"Found {urls.Length} ModDB mirrors for {a.Name}");

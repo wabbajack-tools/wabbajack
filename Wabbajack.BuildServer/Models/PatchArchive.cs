@@ -1,29 +1,23 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using FluentFTP;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.BuildServer.Models.Jobs;
 using Wabbajack.Common;
-using Wabbajack.Lib;
-using Wabbajack.Lib.Downloaders;
-using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Wabbajack.BuildServer.Models
 {
     public class PatchArchive : AJobPayload
     {
         public override string Description => "Create a archive update patch";
-        public string Src { get; set; }
+        public Hash Src { get; set; }
         public string DestPK { get; set; }
-        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
+        public override async Task<JobResult> Execute(SqlService sql, AppSettings settings)
         {
             var srcPath = settings.PathForArchive(Src);
-            var destHash = (await db.DownloadStates.AsQueryable().Where(s => s.Key == DestPK).FirstOrDefaultAsync()).Hash;
+            var destHash = (await sql.DownloadStateByPrimaryKey(DestPK)).Hash;
             var destPath = settings.PathForArchive(destHash);
             
             if (Src == destHash)
@@ -32,15 +26,14 @@ namespace Wabbajack.BuildServer.Models
             Utils.Log($"Creating Patch ({Src} -> {DestPK})");
             var cdnPath = CdnPath(Src, destHash);
             
-            if (File.Exists(cdnPath))
+            if (cdnPath.Exists)
                 return JobResult.Success();
 
             Utils.Log($"Calculating Patch ({Src} -> {DestPK})");
-            await using var fs = File.Create(cdnPath);
-            
-            await using (var srcStream = File.OpenRead(srcPath))
-            await using (var destStream = File.OpenRead(destPath))
-            await using (var sigStream = File.Create(cdnPath + ".octo_sig"))
+            await using var fs = cdnPath.Create();
+            await using (var srcStream = srcPath.OpenRead())
+            await using (var destStream = destPath.OpenRead())
+            await using (var sigStream = cdnPath.WithExtension(Consts.OctoSig).Create())
             {
                 OctoDiff.Create(destStream, srcStream, sigStream, fs);
             }
@@ -56,7 +49,7 @@ namespace Wabbajack.BuildServer.Models
                 await client.ConnectAsync();
                 try
                 {
-                    await client.UploadAsync(fs, $"updates/{Src.FromBase64().ToHex()}_{destHash.FromBase64().ToHex()}", progress: new UploadToCDN.Progress(cdnPath));
+                    await client.UploadAsync(fs, $"updates/{Src.ToHex()}_{destHash.ToHex()}", progress: new UploadToCDN.Progress(cdnPath.FileName));
                 }
                 catch (Exception ex)
                 {
@@ -72,9 +65,9 @@ namespace Wabbajack.BuildServer.Models
             
         }
 
-        public static string CdnPath(string srcHash, string destHash)
+        public static AbsolutePath CdnPath(Hash srcHash, Hash destHash)
         {
-            return $"updates/{srcHash.FromBase64().ToHex()}_{destHash.FromBase64().ToHex()}";
+            return $"updates/{srcHash.ToHex()}_{destHash.ToHex()}".RelativeTo(AbsolutePath.EntryPoint);
         }
     }
 }

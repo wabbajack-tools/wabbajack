@@ -15,27 +15,31 @@ namespace Wabbajack.BuildServer
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            CreateHostBuilder(args, false).Build().Run();
         }
         
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        public static IHostBuilder CreateHostBuilder(string[] args, bool testMode) => 
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>()
                         .UseKestrel(options =>
                         {
-                            options.Listen(IPAddress.Any, 80);
-                            options.Listen(IPAddress.Any, 443, listenOptions =>
+                            options.Listen(IPAddress.Any, testMode ? 8080 : 80);
+                            if (!testMode)
                             {
-                                using (var store = new X509Store(StoreName.My))
+                                options.Listen(IPAddress.Any, 443, listenOptions =>
                                 {
-                                    store.Open(OpenFlags.ReadOnly);
-                                    var cert = store.Certificates.Find(X509FindType.FindBySubjectName, "build.wabbajack.org", true)[0];
-                                    listenOptions.UseHttps(cert);
-                                    
-                                }
-                            });
+                                    using (var store = new X509Store(StoreName.My))
+                                    {
+                                        store.Open(OpenFlags.ReadOnly);
+                                        var cert = store.Certificates.Find(X509FindType.FindBySubjectName,
+                                            "build.wabbajack.org", true)[0];
+                                        listenOptions.UseHttps(cert);
+
+                                    }
+                                });
+                            }
                             options.Limits.MaxRequestBodySize = null;
                         });
                 });

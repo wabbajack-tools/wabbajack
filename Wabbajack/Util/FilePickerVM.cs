@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using Wabbajack.Common;
 using Wabbajack.Lib;
 
 namespace Wabbajack
@@ -35,7 +36,7 @@ namespace Wabbajack
         public ICommand SetTargetPathCommand { get; set; }
 
         [Reactive]
-        public string TargetPath { get; set; }
+        public AbsolutePath TargetPath { get; set; }
 
         [Reactive]
         public string PromptTitle { get; set; }
@@ -81,7 +82,7 @@ namespace Wabbajack
                         // Dont want to debounce the initial value, because we know it's null
                         .Skip(1)
                         .Debounce(TimeSpan.FromMilliseconds(200), RxApp.MainThreadScheduler)
-                        .StartWith(default(string)),
+                        .StartWith(default(AbsolutePath)),
                     resultSelector: (existsOption, type, path) => (ExistsOption: existsOption, Type: type, Path: path))
                 .StartWith((ExistsOption: ExistCheckOption, Type: PathType, Path: TargetPath))
                 .Replay(1)
@@ -97,7 +98,7 @@ namespace Wabbajack
                         case CheckOptions.Off:
                             return false;
                         case CheckOptions.IfPathNotEmpty:
-                            return !string.IsNullOrWhiteSpace(t.Path);
+                            return t.Path != default;
                         case CheckOptions.On:
                             return true;
                         default:
@@ -125,7 +126,7 @@ namespace Wabbajack
                     switch (t.ExistsOption)
                     {
                         case CheckOptions.IfPathNotEmpty:
-                            if (string.IsNullOrWhiteSpace(t.Path)) return false;
+                            if (t.Path == default) return false;
                             break;
                         case CheckOptions.On:
                             break;
@@ -136,11 +137,11 @@ namespace Wabbajack
                     switch (t.Type)
                     {
                         case PathTypeOptions.Either:
-                            return File.Exists(t.Path) || Directory.Exists(t.Path);
+                            return t.Path.Exists;
                         case PathTypeOptions.File:
-                            return File.Exists(t.Path);
+                            return t.Path.IsFile;
                         case PathTypeOptions.Folder:
-                            return Directory.Exists(t.Path);
+                            return t.Path.IsDirectory;
                         case PathTypeOptions.Off:
                         default:
                             return false;
@@ -171,7 +172,7 @@ namespace Wabbajack
                         case CheckOptions.Off:
                             return true;
                         case CheckOptions.IfPathNotEmpty:
-                            if (string.IsNullOrWhiteSpace(target)) return true;
+                            if (target == default) return true;
                             break;
                         case CheckOptions.On:
                             break;
@@ -181,10 +182,7 @@ namespace Wabbajack
 
                     try
                     {
-                        var extension = Path.GetExtension(target);
-                        if (extension == null || !extension.StartsWith(".")) return false;
-                        extension = extension.Substring(1);
-                        if (!query.Any(filter => filter.Extensions.Any(ext => string.Equals(ext, extension)))) return false;
+                        if (!query.Any(filter => filter.Extensions.Any(ext => new Extension("." + ext) == target.Extension))) return false;
                     }
                     catch (ArgumentException)
                     {
@@ -250,23 +248,16 @@ namespace Wabbajack
             return ReactiveCommand.Create(
                 execute: () =>
                 {
-                    string dirPath;
-                    if (File.Exists(TargetPath))
-                    {
-                        dirPath = Path.GetDirectoryName(TargetPath);
-                    }
-                    else
-                    {
-                        dirPath = TargetPath;
-                    }
+                    AbsolutePath dirPath;
+                    dirPath = TargetPath.Exists ? TargetPath.Parent : TargetPath;
                     var dlg = new CommonOpenFileDialog
                     {
                         Title = PromptTitle,
                         IsFolderPicker = PathType == PathTypeOptions.Folder,
-                        InitialDirectory = dirPath,
+                        InitialDirectory = (string)dirPath,
                         AddToMostRecentlyUsedList = false,
                         AllowNonFileSystemItems = false,
-                        DefaultDirectory = dirPath,
+                        DefaultDirectory = (string)dirPath,
                         EnsureFileExists = true,
                         EnsurePathExists = true,
                         EnsureReadOnly = false,
@@ -279,7 +270,7 @@ namespace Wabbajack
                         dlg.Filters.Add(filter);
                     }
                     if (dlg.ShowDialog() != CommonFileDialogResult.Ok) return;
-                    TargetPath = dlg.FileName;
+                    TargetPath = (AbsolutePath)dlg.FileName;
                 }, canExecute: canExecute);
         }
     }

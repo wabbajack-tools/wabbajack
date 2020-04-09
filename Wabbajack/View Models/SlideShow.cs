@@ -89,7 +89,7 @@ namespace Wabbajack
                     return modList.SourceModList.Archives
                         .Select(m => m.State)
                         .OfType<IMetaState>()
-                        .Where(x => !string.IsNullOrEmpty(x.URL) && !string.IsNullOrEmpty(x.ImageURL))
+                        .Where(x => x.URL != default && x.ImageURL != default)
                         .DistinctBy(x => x.URL)
                         // Shuffle it
                         .Shuffle(_random)
@@ -133,7 +133,7 @@ namespace Wabbajack
                     .Select(x =>
                     {
                         var regex = new Regex("^(http|https):\\/\\/");
-                        return x != null && regex.Match(x).Success;
+                        return x != null && regex.Match(x.ToString()).Success;
                     })
                     .ObserveOnGuiThread());
 

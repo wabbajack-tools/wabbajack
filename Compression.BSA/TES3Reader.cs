@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Compression.BSA
 {
@@ -13,12 +15,12 @@ namespace Compression.BSA
         private uint _fileCount;
         private TES3FileEntry[] _files;
         internal long _dataOffset;
-        internal string _filename;
+        internal AbsolutePath _filename;
 
-        public TES3Reader(string filename)
+        public TES3Reader(AbsolutePath filename)
         {
             _filename = filename;
-            using var fs = File.OpenRead(filename);
+            using var fs = filename.OpenRead();
             using var br = new BinaryReader(fs);
             _versionNumber = br.ReadUInt32();
             _hashTableOffset = br.ReadUInt32();
@@ -46,7 +48,7 @@ namespace Compression.BSA
             for (int i = 0; i < _fileCount; i++)
             {
                 br.BaseStream.Position = origPos + _files[i].NameOffset;
-                _files[i].Path = br.ReadStringTerm(VersionType.TES3);
+                _files[i].Path = new RelativePath(br.ReadStringTerm(VersionType.TES3));
             }
 
             br.BaseStream.Position = _hashTableOffset + 12;
@@ -80,6 +82,7 @@ namespace Compression.BSA
         }
     }
 
+    [JsonName("TES3Archive")]
     public class TES3ArchiveState : ArchiveStateObject
     {
         public uint FileCount { get; set; }
@@ -95,7 +98,7 @@ namespace Compression.BSA
 
     public class TES3FileEntry : IFile
     {
-        public string Path { get; set;  }
+        public RelativePath Path { get; set;  }
         public uint Size { get; set; }
         public FileStateObject State =>
             new TES3FileState
@@ -111,7 +114,7 @@ namespace Compression.BSA
 
         public void CopyDataTo(Stream output)
         {
-            using var fs = File.OpenRead(Archive._filename);
+            using var fs = Archive._filename.OpenRead();
             fs.Position = Archive._dataOffset + Offset;
             fs.CopyToLimit(output, (int)Size);
         }
@@ -126,6 +129,7 @@ namespace Compression.BSA
     }
     
     
+    [JsonName("TES3FileState")]
     public class TES3FileState : FileStateObject
     {
         public uint Offset { get; set; }

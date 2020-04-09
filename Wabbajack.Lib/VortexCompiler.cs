@@ -31,27 +31,25 @@ namespace Wabbajack.Lib
         public Game Game { get; }
         public string GameName { get; }
 
-        public string VortexFolder { get; set; }
-        public string StagingFolder { get; set; }
-        public string DownloadsFolder { get; set; }
+        public AbsolutePath VortexFolder { get; set; }
+        public AbsolutePath StagingFolder { get; set; }
+        public AbsolutePath DownloadsFolder { get; set; }
 
         public override ModManager ModManager => ModManager.Vortex;
-        public override string GamePath { get; }
-        public override string ModListOutputFolder => "output_folder";
-        public override string ModListOutputFile { get; }
+        public override AbsolutePath GamePath { get; }
+        public override AbsolutePath ModListOutputFolder => ((RelativePath)"output_folder").RelativeToEntryPoint();
+        public override AbsolutePath ModListOutputFile { get; }
 
         public const string StagingMarkerName = "__vortex_staging_folder";
         public const string DownloadMarkerName = "__vortex_downloads_folder";
 
-        private bool _isSteamGame;
+        //private bool _isSteamGame = true;
         private SteamGame _steamGame;
         private bool _hasSteamWorkshopItems;
 
-        public override string VFSCacheName => Path.Combine(
-            Consts.LocalAppDataPath, 
-            $"vfs_compile_cache-{StagingFolder?.StringSHA256Hex() ?? "Unknown"}.bin");
+        public override AbsolutePath VFSCacheName => Consts.LocalAppDataPath.Combine($"vfs_compile_cache-{((string)StagingFolder)?.StringSha256Hex() ?? "Unknown"}.bin");
 
-        public VortexCompiler(Game game, string gamePath, string vortexFolder, string downloadsFolder, string stagingFolder, string outputFile)
+        public VortexCompiler(Game game, AbsolutePath gamePath, AbsolutePath vortexFolder, AbsolutePath downloadsFolder, AbsolutePath stagingFolder, AbsolutePath outputFile)
         {
             Game = game;
 
@@ -65,7 +63,7 @@ namespace Wabbajack.Lib
             if (string.IsNullOrEmpty(ModListName))
             {
                 ModListName = $"Vortex ModList for {Game.ToString()}";
-                ModListOutputFile = $"{ModListName}{Consts.ModListExtension}";
+                ModListOutputFile = ((RelativePath)ModListName).RelativeToEntryPoint().WithExtension(Consts.ModListExtension);
             }
 
             GameName = Game.MetaData().NexusName;
@@ -73,12 +71,14 @@ namespace Wabbajack.Lib
             ActiveArchives = new List<string>();
 
             // there can be max one game after filtering
+            /*
             StoreHandler.Instance.StoreGames.Where(g => g.Game == game && g.Type == StoreType.STEAM).Do(g =>
             {
                 _isSteamGame = true;
                 _steamGame = (SteamGame)g;
                 _hasSteamWorkshopItems = _steamGame.WorkshopItems.Count > 0;
             });
+            */
         }
         
         protected override async Task<bool> _Begin(CancellationToken cancel)
@@ -103,7 +103,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             await VFS.IntegrateFromFile(VFSCacheName);
 
-            var roots = new List<string> {StagingFolder, GamePath, DownloadsFolder};
+            var roots = new List<AbsolutePath> {StagingFolder, GamePath, DownloadsFolder};
             AddExternalFolder(ref roots);
 
             if (cancel.IsCancellationRequested) return false;
@@ -113,12 +113,11 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Cleaning output folder");
-            if (Directory.Exists(ModListOutputFolder))
-                Utils.DeleteDirectory(ModListOutputFolder);
-
-            Directory.CreateDirectory(ModListOutputFolder);
+            await ModListOutputFolder.DeleteDirectory();
+            ModListOutputFolder.CreateDirectory();
 
             UpdateTracker.NextStep("Finding Install Files");
+            /* TODO
             var vortexStagingFiles = Directory.EnumerateFiles(StagingFolder, "*", SearchOption.AllDirectories)
                 .Where(p => p.FileExists() && p != StagingMarkerName && !p.Contains(Consts.ManualGameFilesDir))
                 .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(StagingFolder)));
@@ -237,7 +236,7 @@ namespace Wabbajack.Lib
                 Description = ModListDescription ?? "",
                 Readme = ModListReadme ?? "",
                 Image = ModListImage ?? "",
-                Website = ModListWebsite ?? "",
+                Website = ModListWebsite != null ? new Uri(ModListWebsite) : null,
                 Archives = SelectedArchives.ToList(),
                 ModManager = ModManager.Vortex,
                 Directives = InstallDirectives,
@@ -245,7 +244,7 @@ namespace Wabbajack.Lib
             };
             
             UpdateTracker.NextStep("Running Validation");
-            await ValidateModlist.RunValidation(Queue, ModList);
+            await ValidateModlist.RunValidation(ModList);
 
             UpdateTracker.NextStep("Generating Report");
             GenerateManifest();
@@ -256,6 +255,7 @@ namespace Wabbajack.Lib
             ResetMembers();
 
             UpdateTracker.NextStep("Done Building ModList");
+            */
 
             return true;
         }
@@ -270,19 +270,20 @@ namespace Wabbajack.Lib
             SelectedArchives = null;
         }
 
-        private void AddExternalFolder(ref List<string> roots)
+        private void AddExternalFolder(ref List<AbsolutePath> roots)
         {
             var currentGame = Game.MetaData();
             if (currentGame.AdditionalFolders == null || currentGame.AdditionalFolders.Count == 0) return;
             foreach (var path in currentGame.AdditionalFolders.Select(f => f.Replace("%documents%", KnownFolders.Documents.Path)))
             {
                 if (!Directory.Exists(path)) return;
-                roots.Add(path);
+                roots.Add((AbsolutePath)path);
             }
         }
 
         private void ParseDeploymentFile()
         {
+            /* TODO
             Info("Searching for vortex.deployment.json...");
 
             var deploymentFile = "";
@@ -321,10 +322,12 @@ namespace Wabbajack.Lib
                 Utils.Log($"Adding archive {archive} to ActiveArchives");
                 ActiveArchives.Add(archive);
             });
+            */
         }
 
         private async Task CreateMetaFiles()
         {
+            /*
             Utils.Log("Getting Nexus API key, please click authorize if a browser window appears");
             var nexusClient = await NexusApiClient.Get();
 
@@ -426,10 +429,12 @@ namespace Wabbajack.Lib
                     Utils.Error(e, $"Exception while writing to disk at {filePath}");
                 }
             });
+            */
         }
 
         public override IEnumerable<ICompilationStep> GetStack()
         {
+            /*
             var s = Consts.TestMode ? DownloadsFolder : VortexFolder;
             var userConfig = Path.Combine(s, "compilation_stack.yml");
             if (File.Exists(userConfig))
@@ -442,6 +447,8 @@ namespace Wabbajack.Lib
                 Serialization.Serialize(compilationSteps));
 
             return compilationSteps;
+            */
+            return null;
         }
 
         public override IEnumerable<ICompilationStep> MakeStack()
@@ -461,8 +468,10 @@ namespace Wabbajack.Lib
 
                 Game == Game.DarkestDungeon ? new IncludeRegex(this, "project\\.xml$") : null,
 
+                /*
                 new IgnoreStartsWith(this, StagingFolder),
                 new IgnoreEndsWith(this, StagingFolder),
+                */
 
                 new IgnoreGameFiles(this),
 
@@ -490,10 +499,14 @@ namespace Wabbajack.Lib
 
         public static string RetrieveStagingLocation(Game game, string vortexFolderPath = null)
         {
+            /*
             vortexFolderPath = vortexFolderPath ?? TypicalVortexFolder();
             var gameName = game.MetaData().NexusName;
             return Path.Combine(vortexFolderPath, gameName, Consts.MO2ModFolderName);
+            */
+            return null;
         }
+        
 
         public static IErrorResponse IsValidBaseDownloadsFolder(string path)
         {

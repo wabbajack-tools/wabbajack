@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Wabbajack.Common;
 
 namespace Compression.BSA
 {
@@ -17,7 +18,7 @@ namespace Compression.BSA
     public interface IBSABuilder : IDisposable
     {
         void AddFile(FileStateObject state, Stream src);
-        void Build(string filename);
+        void Build(AbsolutePath filename);
     }
 
     public class ArchiveStateObject
@@ -31,7 +32,7 @@ namespace Compression.BSA
     public class FileStateObject
     {
         public int Index { get; set; }
-        public string Path { get; set; }
+        public RelativePath Path { get; set; }
     }
     
     public interface IFile
@@ -39,7 +40,7 @@ namespace Compression.BSA
         /// <summary>
         /// The path of the file inside the archive
         /// </summary>
-        string Path { get; }
+        RelativePath Path { get; }
 
         /// <summary>
         /// The uncompressed file size

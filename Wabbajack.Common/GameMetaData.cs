@@ -58,49 +58,50 @@ namespace Wabbajack.Common
     public class GameMetaData
     {
         public ModManager SupportedModManager { get; internal set; }
-        public string MO2ArchiveName { get; internal set; }
+        public string? MO2ArchiveName { get; internal set; }
         public Game Game { get; internal set; }
-        public string NexusName { get; internal set; }
+        public string? NexusName { get; internal set; }
         // Nexus DB id for the game, used in some specific situations
         public long NexusGameId { get; internal set; }
-        public string MO2Name { get; internal set; }
+        public string? MO2Name { get; internal set; }
 
         public string HumanFriendlyGameName => Game.GetDescription();
         
-        public string GameLocationRegistryKey { get; internal set; }
+        public string? GameLocationRegistryKey { get; internal set; }
         // to get steam ids: https://steamdb.info
-        public List<int> SteamIDs { get; internal set; }
+        public List<int>? SteamIDs { get; internal set; }
         // to get gog ids: https://www.gogdb.org
-        public List<int> GOGIDs { get; internal set; }
+        public List<int>? GOGIDs { get; internal set; }
         // these are additional folders when a game installs mods outside the game folder
-        public List<string> AdditionalFolders { get; internal set; }
+        public List<string>? AdditionalFolders { get; internal set; }
         // file to check if the game is present, useful when steamIds and gogIds dont help
-        public List<string> RequiredFiles { get; internal set; }
+        public List<string>? RequiredFiles { get; internal set; }
         public bool Disabled { get; internal set; }
-        
+
         // Games that this game are commonly confused with, for example Skyrim SE vs Skyrim LE
-        public Game[] CommonlyConfusedWith { get; set; }
+        public Game[] CommonlyConfusedWith { get; set; } = Array.Empty<Game>();
         
         public string InstalledVersion
         {
             get
             {
-                if (GameLocation() == null)
+                AbsolutePath? gameLoc = GameLocation();
+                if (gameLoc == null)
                     throw new GameNotInstalledException(this);
                 if (MainExecutable == null)
                     throw new NotImplementedException();
 
-                return FileVersionInfo.GetVersionInfo(Path.Combine(GameLocation(), MainExecutable)).ProductVersion;
+                return FileVersionInfo.GetVersionInfo((string)gameLoc.Value.Combine(MainExecutable)).ProductVersion;
             }
         }
 
         public bool IsInstalled => GameLocation() != null;
 
-        public string MainExecutable { get; internal set; }
+        public string? MainExecutable { get; internal set; }
 
-        public string GameLocation()
+        public AbsolutePath? GameLocation()
         {
-            return Consts.TestMode ? Directory.GetCurrentDirectory() : StoreHandler.Instance.GetGamePath(Game);
+            return Consts.TestMode ? AbsolutePath.GetCurrentDirectory() : StoreHandler.Instance.GetGamePath(Game);
         }
     }
 
@@ -114,14 +115,14 @@ namespace Wabbajack.Common
     public static class EnumExtensions
     {
         public static string GetDescription<T>(this T enumerationValue)
-            where T : struct
+            where T : Enum
         {
             var type = enumerationValue.GetType();
             if(!type.IsEnum)
             {
                 throw new ArgumentException($"{nameof(enumerationValue)} must be of Enum type", nameof(enumerationValue));
             }
-            var memberInfo = type.GetMember(enumerationValue.ToString());
+            var memberInfo = type.GetMember(enumerationValue.ToString()!);
             if(memberInfo.Length > 0)
             {
                 var attrs = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
@@ -131,7 +132,7 @@ namespace Wabbajack.Common
                     return ((DescriptionAttribute)attrs[0]).Description;
                 }
             }
-            return enumerationValue.ToString();
+            return enumerationValue.ToString()!;
         }
     }
 
@@ -158,12 +159,11 @@ namespace Wabbajack.Common
         /// Tries to parse game data from an arbitrary string. Tries first via parsing as a game Enum, then by Nexus name,
         /// <param nambe="someName"></param>
         /// <returns></returns>
-        public static GameMetaData GetByFuzzyName(string someName)
+        public static GameMetaData? GetByFuzzyName(string someName)
         {
+            if (Enum.TryParse(typeof(Game), someName, true, out var metadata)) return ((Game)metadata!).MetaData();
 
-            if (Enum.TryParse(typeof(Game), someName, true, out var metadata)) return ((Game)metadata).MetaData();
-
-            GameMetaData result = null;
+            GameMetaData? result = null;
 
             result = GetByNexusName(someName);
             if (result != null) return result;

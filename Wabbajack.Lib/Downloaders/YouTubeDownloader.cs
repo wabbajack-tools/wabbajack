@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
 using YoutubeExplode;
 using YoutubeExplode.Exceptions;
@@ -19,7 +20,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class YouTubeDownloader : IDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var directURL = (Uri)DownloaderUtils.GetDirectURL(archiveINI);
             var state = (State)UriToState(directURL);
@@ -58,12 +59,17 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
+        [JsonName("YouTubeDownloader")]
         public class State : AbstractDownloadState
         {
             public string Key { get; set; }
+            
             public List<Track> Tracks { get; set; } = new List<Track>();
+            
+            [JsonIgnore]
             public override object[] PrimaryKey => new object[] {Key};
 
+            [JsonName("YouTubeTrack")]
             public class Track
             {
                 public enum FormatEnum
@@ -72,8 +78,11 @@ namespace Wabbajack.Lib.Downloaders
                     WAV
                 }
                 public FormatEnum Format { get; set; }
+                
                 public string Name { get; set; }
+                
                 public TimeSpan Start { get; set; }
+                
                 public TimeSpan End { get; set; }
             }
             
@@ -82,13 +91,13 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 try
                 {
                     using var queue = new WorkQueue();
-                    using var folder = new TempFolder();
-                    Directory.CreateDirectory(Path.Combine(folder.Dir.FullName, "tracks"));
+                    await using var folder = new TempFolder();
+                    folder.Dir.Combine("tracks").CreateDirectory();
                     var client = new YoutubeClient(Common.Http.ClientFactory.Client);
                     var meta = await client.GetVideoAsync(Key);
                     var video = await client.GetVideoMediaStreamInfosAsync(Key);
@@ -96,17 +105,17 @@ namespace Wabbajack.Lib.Downloaders
                     var stream = video.GetAll().OfType<AudioStreamInfo>().Where(f => f.AudioEncoding == AudioEncoding.Aac).OrderByDescending(a => a.Bitrate)
                         .ToArray().First();
 
-                    var initialDownload = Path.Combine(folder.Dir.FullName, "initial_download");
+                    var initialDownload = folder.Dir.Combine("initial_download");
 
-                    var trackFolder = Path.Combine(folder.Dir.FullName, "tracks");
+                    var trackFolder = folder.Dir.Combine("tracks");
 
-                    await using (var fs = File.Create(initialDownload))
+                    await using (var fs = initialDownload.Create())
                     {
                         await client.DownloadMediaStreamAsync(stream, fs, new Progress($"Downloading {a.Name}"),
                             CancellationToken.None);
                     }
 
-                    File.Copy(initialDownload, @$"c:\tmp\{Path.GetFileName(destination)}.dest_stream");
+                    initialDownload.CopyTo(destination.WithExtension(new Extension(".dest_stream")));
                     
                     await Tracks.PMap(queue, async track =>
                     {
@@ -114,21 +123,21 @@ namespace Wabbajack.Lib.Downloaders
                         await ExtractTrack(initialDownload, trackFolder, track);
                     });
 
-                    await using var dest = File.Create(destination);
+                    await using var dest = destination.Create();
                     using var ar = new ZipArchive(dest, ZipArchiveMode.Create);
-                    foreach (var track in Directory.EnumerateFiles(trackFolder).OrderBy(e => e))
+                    foreach (var track in trackFolder.EnumerateFiles().OrderBy(e => e))
                     {
-                        Utils.Status($"Adding {Path.GetFileName(track)} to archive");
-                        var entry = ar.CreateEntry(Path.Combine("Data", "tracks", track.RelativeTo(trackFolder)), CompressionLevel.NoCompression);
+                        Utils.Status($"Adding {track.FileName} to archive");
+                        var entry = ar.CreateEntry(Path.Combine("Data", "tracks", (string)track.RelativeTo(trackFolder)), CompressionLevel.NoCompression);
                         entry.LastWriteTime = meta.UploadDate;
                         await using var es = entry.Open();
-                        await using var ins = File.OpenRead(track);
+                        await using var ins = track.OpenRead();
                         await ins.CopyToAsync(es);
                     }
                         
                     return true;
                 }
-                catch (VideoUnavailableException ex)
+                catch (VideoUnavailableException)
                 {
                     return false;
                 }
@@ -137,7 +146,7 @@ namespace Wabbajack.Lib.Downloaders
 
             private const string FFMpegPath = "Downloaders/Converters/ffmpeg.exe";
             private const string xWMAEncodePath = "Downloaders/Converters/xWMAEncode.exe";
-            private async Task ExtractTrack(string source, string dest_folder, Track track)
+            private async Task ExtractTrack(AbsolutePath source, AbsolutePath dest_folder, Track track)
             {
                 var info = new ProcessStartInfo
                 {
@@ -225,7 +234,7 @@ namespace Wabbajack.Lib.Downloaders
                     var video = await client.GetVideoAsync(Key);
                     return true;
                 }
-                catch (VideoUnavailableException ex)
+                catch (VideoUnavailableException)
                 {
                     return false;
                 }

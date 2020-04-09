@@ -18,10 +18,10 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!_regex.IsMatch(source.Path)) return null;
+            if (!_regex.IsMatch((string)source.Path)) return null;
 
             var result = source.EvolveTo<InlineFile>();
-            result.SourceDataID = _compiler.IncludeFile(File.ReadAllBytes(source.AbsolutePath));
+            result.SourceDataID = await _compiler.IncludeFile(await source.AbsolutePath.ReadAllBytesAsync());
             return result;
         }
 

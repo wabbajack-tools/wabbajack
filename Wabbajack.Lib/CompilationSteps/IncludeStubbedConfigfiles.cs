@@ -17,7 +17,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            return Consts.ConfigFileExtensions.Contains(Path.GetExtension(source.Path)) ? RemapFile(source) : null;
+            return Consts.ConfigFileExtensions.Contains(source.Path.Extension) ? await RemapFile(source) : null;
         }
 
         public override IState GetState()
@@ -25,28 +25,28 @@ namespace Wabbajack.Lib.CompilationSteps
             return new State();
         }
 
-        private Directive RemapFile(RawSourceFile source)
+        private async Task<Directive> RemapFile(RawSourceFile source)
         {
-            var data = File.ReadAllText(source.AbsolutePath);
+            var data = await source.AbsolutePath.ReadAllTextAsync();
             var originalData = data;
 
-            data = data.Replace(_mo2Compiler.GamePath, Consts.GAME_PATH_MAGIC_BACK);
-            data = data.Replace(_mo2Compiler.GamePath.Replace("\\", "\\\\"), Consts.GAME_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(_mo2Compiler.GamePath.Replace("\\", "/"), Consts.GAME_PATH_MAGIC_FORWARD);
+            data = data.Replace((string)_mo2Compiler.GamePath, Consts.GAME_PATH_MAGIC_BACK);
+            data = data.Replace(((string)_mo2Compiler.GamePath).Replace("\\", "\\\\"), Consts.GAME_PATH_MAGIC_DOUBLE_BACK);
+            data = data.Replace(((string)_mo2Compiler.GamePath).Replace("\\", "/"), Consts.GAME_PATH_MAGIC_FORWARD);
 
-            data = data.Replace(_mo2Compiler.MO2Folder, Consts.MO2_PATH_MAGIC_BACK);
-            data = data.Replace(_mo2Compiler.MO2Folder.Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(_mo2Compiler.MO2Folder.Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
+            data = data.Replace((string)_mo2Compiler.MO2Folder, Consts.MO2_PATH_MAGIC_BACK);
+            data = data.Replace(((string)_mo2Compiler.MO2Folder).Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
+            data = data.Replace(((string)_mo2Compiler.MO2Folder).Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
 
-            data = data.Replace(_mo2Compiler.MO2DownloadsFolder, Consts.DOWNLOAD_PATH_MAGIC_BACK);
-            data = data.Replace(_mo2Compiler.MO2DownloadsFolder.Replace("\\", "\\\\"),
+            data = data.Replace((string)_mo2Compiler.MO2DownloadsFolder, Consts.DOWNLOAD_PATH_MAGIC_BACK);
+            data = data.Replace(((string)_mo2Compiler.MO2DownloadsFolder).Replace("\\", "\\\\"),
                 Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(_mo2Compiler.MO2DownloadsFolder.Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD);
+            data = data.Replace(((string)_mo2Compiler.MO2DownloadsFolder).Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD);
 
             if (data == originalData)
                 return null;
             var result = source.EvolveTo<RemappedInlineFile>();
-            result.SourceDataID = _compiler.IncludeFile(Encoding.UTF8.GetBytes(data));
+            result.SourceDataID = await _compiler.IncludeFile(Encoding.UTF8.GetBytes(data));
             return result;
         }
 

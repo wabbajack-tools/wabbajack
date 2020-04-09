@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using ICSharpCode.SharpZipLib.Zip.Compression;
+using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
@@ -23,7 +25,7 @@ namespace Compression.BSA
 
     public class BA2Reader : IBSAReader
     {
-        internal string _filename;
+        internal AbsolutePath _filename;
         private Stream _stream;
         internal BinaryReader _rdr;
         internal uint _version;
@@ -35,7 +37,7 @@ namespace Compression.BSA
 
         public bool HasNameTable => _nameTableOffset > 0;
 
-        public BA2Reader(string filename) : this(File.OpenRead(filename))
+        public BA2Reader(AbsolutePath filename) : this(filename.OpenRead())
         {
             _filename = filename;
         }
@@ -107,6 +109,7 @@ namespace Compression.BSA
         public ArchiveStateObject State => new BA2StateObject(this);
     }
 
+    [JsonName("BA2State")]
     public class BA2StateObject : ArchiveStateObject
     {
         public BA2StateObject()
@@ -174,7 +177,7 @@ namespace Compression.BSA
 
         public string FullPath { get; set; }
 
-        public string Path => FullPath;
+        public RelativePath Path => new RelativePath(FullPath);
         public uint Size => (uint)_chunks.Sum(f => f._fullSz) + HeaderSize + sizeof(uint);
         public FileStateObject State => new BA2DX10EntryState(this);
 
@@ -186,7 +189,7 @@ namespace Compression.BSA
 
             WriteHeader(bw);
 
-            using (var fs = File.OpenRead(_bsa._filename))
+            using (var fs = _bsa._filename.OpenRead())
             using (var br = new BinaryReader(fs))
             {
                 foreach (var chunk in _chunks)
@@ -323,12 +326,13 @@ namespace Compression.BSA
         }
     }
 
+    [JsonName("BA2DX10Entry")]
     public class BA2DX10EntryState : FileStateObject
     {
         public BA2DX10EntryState() { }
         public BA2DX10EntryState(BA2DX10Entry ba2Dx10Entry)
         {
-            Path = ba2Dx10Entry.FullPath;
+            Path = ba2Dx10Entry.Path;
             NameHash = ba2Dx10Entry._nameHash;
             Extension = ba2Dx10Entry._extension;
             DirHash = ba2Dx10Entry._dirHash;
@@ -366,6 +370,7 @@ namespace Compression.BSA
         public uint NameHash { get; set; }
     }
 
+    [JsonName("Chunk")]
     public class ChunkState
     {
         public ChunkState() {}
@@ -385,6 +390,7 @@ namespace Compression.BSA
         public uint FullSz { get; set; }
     }
 
+    [JsonName("BA2TextureChunk")]
     public class BA2TextureChunk
     {
         internal ulong _offset;
@@ -438,13 +444,13 @@ namespace Compression.BSA
 
         public string FullPath { get; set; }
 
-        public string Path => FullPath;
+        public RelativePath Path => new RelativePath(FullPath);
         public uint Size => _realSize;
         public FileStateObject State => new BA2FileEntryState(this);
 
         public void CopyDataTo(Stream output)
         {
-            using (var fs = File.OpenRead(_bsa._filename))
+            using (var fs = _bsa._filename.OpenRead())
             {
                 fs.Seek((long) _offset, SeekOrigin.Begin);
                 uint len = Compressed ? _size : _realSize;
@@ -468,6 +474,7 @@ namespace Compression.BSA
         }
     }
 
+    [JsonName("BA2FileEntryState")]
     public class BA2FileEntryState : FileStateObject
     {
         public BA2FileEntryState() { }
@@ -479,7 +486,7 @@ namespace Compression.BSA
             Flags = ba2FileEntry._flags;
             Align = ba2FileEntry._align;
             Compressed = ba2FileEntry.Compressed;
-            Path = ba2FileEntry.FullPath;
+            Path = ba2FileEntry.Path;
             Extension = ba2FileEntry._extension;
             Index = ba2FileEntry._index;
         }

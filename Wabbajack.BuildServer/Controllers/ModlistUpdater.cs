@@ -8,8 +8,6 @@ using FluentFTP;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
@@ -30,7 +28,7 @@ namespace Wabbajack.BuildServer.Controllers
         private AppSettings _settings;
         private SqlService _sql;
 
-        public ModlistUpdater(ILogger<ModlistUpdater> logger, DBContext db, SqlService sql, AppSettings settings) : base(logger, db, sql)
+        public ModlistUpdater(ILogger<ModlistUpdater> logger, SqlService sql, AppSettings settings) : base(logger, sql)
         {
             _settings = settings;
             _sql = sql;
@@ -41,9 +39,9 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("/delete_updates")]
         public async Task<IActionResult> DeleteUpdates()
         {
-            var lists = await Db.ModListStatus.AsQueryable().ToListAsync();
-            var archives = lists.SelectMany(list => list.DetailedStatus.Archives)
-                .Select(a => a.Archive.Hash.FromBase64().ToHex())
+            var lists = await SQL.GetDetailedModlistStatuses();
+            var archives = lists.SelectMany(list => list.Archives)
+                .Select(a => a.Archive.Hash.ToHex())
                 .ToHashSet();
 
             var toDelete = new List<string>();
@@ -82,35 +80,34 @@ namespace Wabbajack.BuildServer.Controllers
                 }
             }
 
-            return Ok(new {Save = toSave.ToArray(), Delete = toDelete.ToArray()}.ToJSON(prettyPrint:true));
+            return Ok(new {Save = toSave.ToArray(), Delete = toDelete.ToArray()}.ToJson());
         }
 
         [HttpGet]
         [Route("/alternative/{xxHash}")]
         public async Task<IActionResult> GetAlternative(string xxHash)
         {
-            var startingHash = xxHash.FromHex().ToBase64();
+            var startingHash = Hash.FromHex(xxHash);
             Utils.Log($"Alternative requested for {startingHash}");
-            await Metric("requested_upgrade", startingHash);
+            await Metric("requested_upgrade", startingHash.ToString());
 
-            var state = await Db.DownloadStates.AsQueryable()
+            var state = await SQL.GetNexusStateByHash(startingHash);
+                
+                /*.DownloadStates.AsQueryable()
                 .Where(s => s.Hash == startingHash)
                 .Where(s => s.State is NexusDownloader.State)
-                .OrderByDescending(s => s.LastValidationTime).FirstOrDefaultAsync();
+                .OrderByDescending(s => s.LastValidationTime).FirstOrDefaultAsync();*/
 
             if (state == null)
                 return NotFound("Original state not found");
 
             var nexusState = state.State as NexusDownloader.State;
-            var nexusGame = GameRegistry.GetByFuzzyName(nexusState.GameName).NexusName;
-            var mod_files = await Db.NexusModFiles.AsQueryable()
-                .Where(f => f.Game == nexusGame && f.ModId == nexusState.ModID)
-                .ToListAsync();
+            var nexusGame = nexusState.Game;
+            var mod_files = (await SQL.GetModFiles(nexusGame, nexusState.ModID)).files;
 
-            if (mod_files.SelectMany(f => f.Data.files)
-                .Any(f => f.category_name != null && f.file_id.ToString() == nexusState.FileID))
+            if (mod_files.Any(f => f.category_name != null && f.file_id == nexusState.FileID))
             {
-                await Metric("not_required_upgrade", startingHash);
+                await Metric("not_required_upgrade", startingHash.ToString());
                 return BadRequest("Upgrade Not Required");
             }
 
@@ -122,9 +119,9 @@ namespace Wabbajack.BuildServer.Controllers
             }
 
             Utils.Log($"Found {newArchive.State.PrimaryKeyString} {newArchive.Name} as an alternative to {startingHash}");
-            if (newArchive.Hash == null)
+            if (newArchive.Hash == Hash.Empty)
             {
-                Db.Jobs.InsertOne(new Job
+                await SQL.EnqueueJob(new Job
                 {
                     Payload = new IndexJob
                     {
@@ -145,9 +142,9 @@ namespace Wabbajack.BuildServer.Controllers
             if (startingHash == newArchive.Hash)
                 return NotFound("End hash same as old hash");
 
-            if (!AlphaFile.Exists(PatchArchive.CdnPath(startingHash, newArchive.Hash)))
+            if (!PatchArchive.CdnPath(startingHash, newArchive.Hash).Exists)
             {
-                Db.Jobs.InsertOne(new Job
+                await SQL.EnqueueJob(new Job
                 {
                     Priority = Job.JobPriority.High,
                     Payload = new PatchArchive
@@ -157,15 +154,14 @@ namespace Wabbajack.BuildServer.Controllers
                     }
                 });
             }
-            return Ok(newArchive.ToJSON());
+            return Ok(newArchive.ToJson());
         }
 
-        private async Task<Archive> FindAlternatives(NexusDownloader.State state, string srcHash)
+        private async Task<Archive> FindAlternatives(NexusDownloader.State state, Hash srcHash)
         {
-            var origSize = AlphaFile.GetSize(_settings.PathForArchive(srcHash));
+            var origSize = _settings.PathForArchive(srcHash).Size;
             var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-            var allMods = await api.GetModFiles(GameRegistry.GetByFuzzyName(state.GameName).Game,
-                int.Parse(state.ModID));
+            var allMods = await api.GetModFiles(state.Game, state.ModID);
             var archive = allMods.files.Where(m => !string.IsNullOrEmpty(m.category_name))
                 .OrderBy(s => Math.Abs((long)s.size - origSize))
                 .Select(s => new Archive {
@@ -173,9 +169,9 @@ namespace Wabbajack.BuildServer.Controllers
                     Size = (long)s.size,
                     State = new NexusDownloader.State 
                     {
-                    GameName = state.GameName, 
+                    Game = state.Game, 
                     ModID = state.ModID, 
-                    FileID = s.file_id.ToString()
+                    FileID = s.file_id
                 }}).FirstOrDefault();
 
             if (archive == null)
@@ -186,7 +182,7 @@ namespace Wabbajack.BuildServer.Controllers
             
             Utils.Log($"Found alternative for {srcHash}");
             
-            var indexed = await Db.DownloadStates.AsQueryable().Where(s => s.Key == archive.State.PrimaryKeyString).FirstOrDefaultAsync();
+            var indexed = await SQL.DownloadStateByPrimaryKey(archive.State.PrimaryKeyString);
 
             if (indexed == null)
             {
@@ -196,9 +192,6 @@ namespace Wabbajack.BuildServer.Controllers
             Utils.Log($"Pre-Indexed alternative {indexed.Hash} found for {srcHash}");
             archive.Hash = indexed.Hash;
             return archive;
-
         }
-
-
     }
 }

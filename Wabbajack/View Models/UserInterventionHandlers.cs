@@ -148,7 +148,7 @@ namespace Wabbajack
         private async Task HandleManualNexusDownload(WebBrowserVM vm, CancellationTokenSource cancel, ManuallyDownloadNexusFile manuallyDownloadNexusFile)
         {
             var state = manuallyDownloadNexusFile.State;
-            var game = GameRegistry.GetByFuzzyName(state.GameName);
+            var game = state.Game.MetaData();
             var hrefs = new[]
             {
                 $"/Core/Libs/Common/Widgets/DownloadPopUp?id={state.FileID}&game_id={game.NexusGameId}",

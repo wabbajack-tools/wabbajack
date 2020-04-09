@@ -7,19 +7,21 @@ using Alphaleonis.Win32.Filesystem;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.BuildServer.Models.Jobs
 {
+    [JsonName("ReindexArchives")]
     public class ReindexArchives : AJobPayload
     {
         public override string Description => "Reindex all files in the mod archive folder";
-        public override async Task<JobResult> Execute(DBContext db, SqlService sql, AppSettings settings)
+        public override async Task<JobResult> Execute(SqlService sql, AppSettings settings)
         {
             using (var queue = new WorkQueue())
             {
-                var files = Directory.EnumerateFiles(settings.ArchiveDir)
-                    .Where(f => !f.EndsWith(Consts.HashFileExtension))
+                var files = settings.ArchivePath.EnumerateFiles()
+                    .Where(f => f.Extension != Consts.HashFileExtension)
                     .ToList();
                 var total_count = files.Count;
                 int completed = 0;
@@ -33,18 +35,18 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
                             if (await sql.HaveIndexdFile(await file.FileHashCachedAsync()))
                             {
-                                Utils.Log($"({completed}/{total_count}) Skipping {Path.GetFileName(file)}, it's already indexed");
+                                Utils.Log($"({completed}/{total_count}) Skipping {file.FileName}, it's already indexed");
                                 return;
                             }
 
                             var sub_folder = Guid.NewGuid().ToString();
-                            string folder = Path.Combine(settings.DownloadDir, sub_folder);
+                            var folder = settings.DownloadPath.Combine(sub_folder);
                             
                             Utils.Log($"({completed}/{total_count}) Copying {file}");
-                            Directory.CreateDirectory(folder);
+                            folder.CreateDirectory();
 
                             Utils.Log($"({completed}/{total_count}) Copying {file}");
-                            File.Copy(file, Path.Combine(folder, Path.GetFileName(file)));
+                            file.CopyTo(folder.Combine(file.FileName));
 
                             Utils.Log($"({completed}/{total_count}) Analyzing {file}");
                             var vfs = new Context(queue, true);
@@ -56,7 +58,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
                             await sql.MergeVirtualFile(root);
                             Utils.Log($"({completed}/{total_count}) Cleaning up {file}");
-                            Utils.DeleteDirectory(folder);
+                            await Utils.DeleteDirectory(folder);
                         }
                         catch (Exception ex)
                         {

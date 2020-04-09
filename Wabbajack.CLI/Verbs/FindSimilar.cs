@@ -7,6 +7,7 @@ using CommandLine;
 using F23.StringSimilarity;
 using Wabbajack.Common;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
+using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.CLI.Verbs
@@ -16,16 +17,16 @@ namespace Wabbajack.CLI.Verbs
     {
         [IsDirectory(CustomMessage = "Downloads folder at %1 does not exist!")]
         [Option('i', "input", HelpText = "Downloads folder", Required = true)]
-        public string? DownloadsFolder { get; set; }
+        public string DownloadsFolder { get; set; } = "";
 
         [Option('t', "threshold", HelpText = "Set the threshold for the maximum distance", Default = 0.2, Required = false)]
         public double Threshold { get; set; }
 
         protected override async Task<ExitCode> Run()
         {
-            var downloads = Directory.EnumerateFiles(DownloadsFolder, "*", SearchOption.TopDirectoryOnly)
-                .Where(x => Consts.SupportedArchives.Contains(Path.GetExtension(x)))
-                .Select(Path.GetFileNameWithoutExtension)
+            var downloads = ((AbsolutePath)DownloadsFolder).EnumerateFiles(false)
+                .Where(x => Consts.SupportedArchives.Contains(x.Extension))
+                .Select(x => (string)x.FileNameWithoutExtension)
                 .ToList();
 
             var similar = downloads

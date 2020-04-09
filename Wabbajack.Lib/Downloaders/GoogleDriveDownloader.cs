@@ -1,7 +1,8 @@
-﻿using System.Net.Http;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.Validation;
 
@@ -9,7 +10,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class GoogleDriveDownloader : IDownloader, IUrlDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI)
+        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);
@@ -34,9 +35,12 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
+        [JsonName("GoogleDriveDownloader")]
         public class State : AbstractDownloadState
         {
             public string Id { get; set; }
+            
+            [JsonIgnore]
             public override object[] PrimaryKey { get => new object[] {Id}; }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
@@ -44,7 +48,7 @@ namespace Wabbajack.Lib.Downloaders
                 return whitelist.GoogleIDs.Contains(Id);
             }
 
-            public override async Task<bool> Download(Archive a, string destination)
+            public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var state = await ToHttpState();
                 return await state.Download(a, destination);

@@ -13,10 +13,10 @@ namespace Wabbajack.CLI.Verbs
     public class DownloadUrl : AVerb
     {
         [Option('u', "url", Required = true, HelpText = "Url to download")]
-        public Uri? Url { get; set; }
+        public Uri Url { get; set; } = new Uri("");
 
         [Option('o', "output", Required = true, HelpText = "Output file name")]
-        public string? Output { get; set; }
+        public string Output { get; set; } = "";
 
         protected override async Task<ExitCode> Run()
         {
@@ -35,7 +35,7 @@ namespace Wabbajack.CLI.Verbs
                 new[] {state}
                 .PMap(queue, async s =>
                 {
-                    await s.Download(new Archive {Name = Path.GetFileName(Output)}, Output);
+                    await s.Download(new Archive {Name = Path.GetFileName(Output)}, (AbsolutePath)Output);
                 }).Wait();
 
             File.WriteAllLines(Output + ".meta", state.GetMetaIni());

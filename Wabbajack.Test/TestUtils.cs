@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
+using Xunit;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -19,44 +20,42 @@ namespace Wabbajack.Test
         public TestUtils()
         {
             ID = RandomName();
-            WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "tmp_data");
+            WorkingDirectory = ((RelativePath)"tmp_data").RelativeToEntryPoint();
         }
 
-        public string WorkingDirectory { get;}
+        public AbsolutePath WorkingDirectory { get;}
         public string ID { get; }
         public Random RNG => _rng;
 
         public Game Game { get; set; }
 
-        public string TestFolder => Path.Combine(WorkingDirectory, ID);
-        public string GameFolder => Path.Combine(WorkingDirectory, ID, "game_folder");
+        public AbsolutePath TestFolder => WorkingDirectory.Combine(ID);
+        public AbsolutePath GameFolder => WorkingDirectory.Combine(ID, "game_folder");
 
-        public string MO2Folder => Path.Combine(WorkingDirectory, ID, "mo2_folder");
-        public string ModsFolder => Path.Combine(MO2Folder, Consts.MO2ModFolderName);
-        public string DownloadsFolder => Path.Combine(MO2Folder, "downloads");
+        public AbsolutePath MO2Folder => WorkingDirectory.Combine(ID, "mo2_folder");
+        public AbsolutePath ModsFolder => MO2Folder.Combine(Consts.MO2ModFolderName);
+        public AbsolutePath DownloadsFolder => MO2Folder.Combine("downloads");
 
-        public string InstallFolder => Path.Combine(TestFolder, "installed");
+        public AbsolutePath InstallFolder => TestFolder.Combine("installed");
 
         public HashSet<string> Profiles = new HashSet<string>();
 
         public List<string> Mods = new List<string>();
 
-        public void Configure()
+        public async Task Configure()
         {
-            File.WriteAllLines(Path.Combine(MO2Folder, "ModOrganizer.ini"), new []
-            {
-                "[General]",
-                $"gameName={Game.MetaData().MO2Name}",
-                $"gamePath={GameFolder.Replace("\\", "\\\\")}",
-                $"download_directory={DownloadsFolder}"
-            });
+            await MO2Folder.Combine("ModOrganizer.ini").WriteAllLinesAsync(
+                "[General]", 
+                $"gameName={Game.MetaData().MO2Name}", 
+                $"gamePath={((string)GameFolder).Replace("\\", "\\\\")}", 
+                $"download_directory={DownloadsFolder}");
 
-            Directory.CreateDirectory(DownloadsFolder);
-            Directory.CreateDirectory(Path.Combine(GameFolder, "Data"));
+            DownloadsFolder.CreateDirectory();
+            GameFolder.Combine("Data").CreateDirectory();
 
             Profiles.Do(profile =>
             {
-                File.WriteAllLines(Path.Combine(MO2Folder, "profiles", profile, "modlist.txt"),
+                MO2Folder.Combine("profiles", profile, "modlist.txt").WriteAllLines(
                     Mods.Select(s => $"+{s}").ToArray());
             });
         }
@@ -64,7 +63,7 @@ namespace Wabbajack.Test
         public string AddProfile(string name = null)
         {
             string profile_name = name ?? RandomName();
-            Directory.CreateDirectory(Path.Combine(MO2Folder, "profiles", profile_name));
+            MO2Folder.Combine("profiles", profile_name).CreateDirectory();
             Profiles.Add(profile_name);
             return profile_name;
         }
@@ -74,9 +73,9 @@ namespace Wabbajack.Test
             lock (this)
             {
                 string mod_name = name ?? RandomName();
-                var mod_folder = Path.Combine(MO2Folder, Consts.MO2ModFolderName, mod_name);
-                Directory.CreateDirectory(mod_folder);
-                File.WriteAllText(Path.Combine(mod_folder, "meta.ini"), "[General]");
+                var mod_folder = MO2Folder.Combine(Consts.MO2ModFolderName, (RelativePath)mod_name);
+                mod_folder.CreateDirectory();
+                mod_folder.Combine("meta.ini").WriteAllText("[General]");
                 Mods.Add(mod_name);
                 return mod_name;
             }
@@ -90,18 +89,17 @@ namespace Wabbajack.Test
         /// <param name="path"></param>
         /// <param name="random_fill"></param>
         /// <returns></returns>
-        public string AddModFile(string mod_name, string path, int random_fill=128)
+        public AbsolutePath AddModFile(string mod_name, string path, int random_fill=128)
         {
 
 
-            var full_path = Path.Combine(ModsFolder, mod_name, path);
-            Directory.CreateDirectory(Path.GetDirectoryName(full_path));
-
+            var full_path = ModsFolder.Combine(mod_name, path);
+            full_path.Parent.CreateDirectory();
             GenerateRandomFileData(full_path, random_fill);
             return full_path;
         }
 
-        public void GenerateRandomFileData(string full_path, int random_fill)
+        public void GenerateRandomFileData(AbsolutePath full_path, int random_fill)
         {
             byte[] bytes = new byte[0];
             if (random_fill != 0)
@@ -109,8 +107,7 @@ namespace Wabbajack.Test
                 bytes = new byte[random_fill];
                 RNG.NextBytes(bytes);
             }
-
-            File.WriteAllBytes(full_path, bytes);
+            full_path.WriteAllBytes(bytes);
         }
 
         public static byte[] RandomData(int? size = null, int maxSize = 1024)
@@ -125,7 +122,7 @@ namespace Wabbajack.Test
         public void Dispose()
         {
             var exts = new [] {".md", ".exe"};
-            Utils.DeleteDirectory(Path.Combine(WorkingDirectory, ID));
+            WorkingDirectory.Combine(ID).DeleteDirectory();
             Profiles.Do(p =>
             {
                 foreach (var ext in exts) {
@@ -148,121 +145,108 @@ namespace Wabbajack.Test
         {
             var name = RandomName() + ".zip";
 
-            using(FileStream fs = new FileStream(Path.Combine(DownloadsFolder, name), FileMode.Create))
-            using (ZipArchive archive = new ZipArchive(fs, ZipArchiveMode.Create))
+            using FileStream fs = DownloadsFolder.Combine(name).Create();
+            using ZipArchive archive = new ZipArchive(fs, ZipArchiveMode.Create);
+            contents.Do(kv =>
             {
-                contents.Do(kv =>
-                {
-                    var entry = archive.CreateEntry(kv.Key);
-                    using (var os = entry.Open())
-                        os.Write(kv.Value, 0, kv.Value.Length);
-                });
-            }
+                var entry = archive.CreateEntry(kv.Key);
+                using (var os = entry.Open())
+                    os.Write(kv.Value, 0, kv.Value.Length);
+            });
 
-            File.WriteAllLines(Path.Combine(DownloadsFolder, name + Consts.MetaFileExtension),
-                
-                new string[]
-                {
+            DownloadsFolder.Combine(name + Consts.MetaFileExtension).WriteAllLines(
                     "[General]",
                     "manualURL=<TESTING>"
-                });
+                );
 
             return name;
         }
 
         public void VerifyInstalledFile(string mod, string file)
         {
-            var src = Path.Combine(MO2Folder, Consts.MO2ModFolderName, mod, file);
-            Assert.IsTrue(File.Exists(src), src);
+            var src = MO2Folder.Combine((string)Consts.MO2ModFolderName, mod, file);
+            Assert.True(src.Exists);
 
-            var dest = Path.Combine(InstallFolder, Consts.MO2ModFolderName, mod, file);
-            Assert.IsTrue(File.Exists(dest), dest);
+            var dest = InstallFolder.Combine((string)Consts.MO2ModFolderName, mod, file);
+            Assert.True(dest.Exists, $"Destination {dest} doesn't exist");
 
-            var src_data = File.ReadAllBytes(src);
-            var dest_data = File.ReadAllBytes(dest);
+            var srcData = src.ReadAllBytes();
+            var destData = dest.ReadAllBytes();
 
-            Assert.AreEqual(src_data.Length, dest_data.Length);
+            Assert.Equal(srcData.Length, destData.Length);
 
-            for(int x = 0; x < src_data.Length; x++)
+            for(int x = 0; x < srcData.Length; x++)
             {
-                if (src_data[x] != dest_data[x])
-                    Assert.Fail($"Index {x} of {mod}\\{file} are not the same");
+                if (srcData[x] != destData[x])
+                    Assert.True(false, $"Index {x} of {mod}\\{file} are not the same");
             }
         }
         
         public void VerifyInstalledGameFile(string file)
         {
-            var src = Path.Combine(GameFolder, file);
-            Assert.IsTrue(File.Exists(src), src);
+            var src = GameFolder.Combine(file);
+            Assert.True(src.Exists);
 
-            var dest = Path.Combine(InstallFolder, Consts.GameFolderFilesDir, file);
-            Assert.IsTrue(File.Exists(dest), dest);
+            var dest = InstallFolder.Combine((string)Consts.GameFolderFilesDir, file);
+            Assert.True(dest.Exists);
 
-            var src_data = File.ReadAllBytes(src);
-            var dest_data = File.ReadAllBytes(dest);
+            var srcData = src.ReadAllBytes();
+            var destData = dest.ReadAllBytes();
 
-            Assert.AreEqual(src_data.Length, dest_data.Length);
+            Assert.Equal(srcData.Length, destData.Length);
 
-            for(int x = 0; x < src_data.Length; x++)
+            for(int x = 0; x < srcData.Length; x++)
             {
-                if (src_data[x] != dest_data[x])
-                    Assert.Fail($"Index {x} of {Consts.GameFolderFilesDir}\\{file} are not the same");
+                if (srcData[x] != destData[x])
+                    Assert.True(false, $"Index {x} of {Consts.GameFolderFilesDir}\\{file} are not the same");
             }
         }
-        public string PathOfInstalledFile(string mod, string file)
+        public AbsolutePath PathOfInstalledFile(string mod, string file)
         {
-            return Path.Combine(InstallFolder, Consts.MO2ModFolderName, mod, file);
+            return InstallFolder.Combine((string)Consts.MO2ModFolderName, mod, file);
         }
 
         public void VerifyAllFiles()
         {
-            var skip_files = new HashSet<string> {"portable.txt"};
-            foreach (var dest_file in Directory.EnumerateFiles(InstallFolder, "*", DirectoryEnumerationOptions.Recursive))
+            var skipFiles = new []{"portable.txt"}.Select(e => (RelativePath)e).ToHashSet();
+            foreach (var destFile in InstallFolder.EnumerateFiles())
             {
-                var rel_file = dest_file.RelativeTo(InstallFolder);
-                if (rel_file.StartsWith(Consts.LOOTFolderFilesDir) || rel_file.StartsWith(Consts.GameFolderFilesDir))
+                var relFile = destFile.RelativeTo(InstallFolder);
+                if (destFile.InFolder(Consts.LOOTFolderFilesDir.RelativeTo(MO2Folder)) || destFile.InFolder(Consts.GameFolderFilesDir.RelativeTo(MO2Folder)))
                     continue;
                 
-                if (!skip_files.Contains(rel_file)) 
-                    Assert.IsTrue(File.Exists(Path.Combine(MO2Folder, rel_file)), $"Only in Destination: {rel_file}");
+                if (!skipFiles.Contains(relFile)) 
+                    Assert.True(MO2Folder.Combine(relFile).Exists, $"Only in Destination: {relFile}");
             }
 
-            var skip_extensions = new HashSet<string> {".txt", ".ini"};
+            var skipExtensions = new []{".txt", ".ini"}.Select(e => new Extension(e)).ToHashSet();
 
-            foreach (var src_file in Directory.EnumerateFiles(MO2Folder, "*", DirectoryEnumerationOptions.Recursive))
+            foreach (var srcFile in MO2Folder.EnumerateFiles())
             {
-                var rel_file = src_file.RelativeTo(MO2Folder);
+                var relFile = srcFile.RelativeTo(MO2Folder);
 
-                if (rel_file.StartsWith("downloads\\"))
+                if (relFile.StartsWith("downloads\\"))
                     continue;
 
-                var dest_file = Path.Combine(InstallFolder, rel_file);
-                Assert.IsTrue(File.Exists(dest_file), $"Only in Source: {rel_file}");
+                var destFile = InstallFolder.Combine(relFile);
+                Assert.True(destFile.Exists, $"Only in Source: {relFile}");
 
-                var fi_src = new FileInfo(src_file);
-                var fi_dest = new FileInfo(dest_file);
-
-                if (!skip_extensions.Contains(Path.GetExtension(src_file)))
+                if (!skipExtensions.Contains(srcFile.Extension))
                 {
-                    Assert.AreEqual(fi_src.Length, fi_dest.Length, $"Differing sizes {rel_file}");
-                    Assert.AreEqual(src_file.FileHash(), dest_file.FileHash(), $"Differing content hash {rel_file}");
+                    Assert.Equal(srcFile.Size, destFile.Size);
+                    Assert.Equal(srcFile.FileHash(), destFile.FileHash());
                 }
             }
         }
 
-        public string AddGameFile(string path, int i)
+        public AbsolutePath AddGameFile(string path, int i)
         {
-            var full_path = Path.Combine(GameFolder, path);
-            var dir = Path.GetDirectoryName(full_path);
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-            GenerateRandomFileData(full_path, i);
-            return full_path;
+            var fullPath = GameFolder.Combine(path);
+            fullPath.Parent.CreateDirectory();
+            GenerateRandomFileData(fullPath, i);
+            return fullPath;
         }
 
-        public static object RandomeOne(params object[] opts)
-        {
-            return opts[_rng.Next(0, opts.Length)];
-        }
+
     }
 }

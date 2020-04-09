@@ -15,12 +15,12 @@ namespace Wabbajack
     {
         public ModList SourceModList { get; private set; }
         public Exception Error { get; }
-        public string ModListPath { get; }
+        public AbsolutePath ModListPath { get; }
         public string Name => SourceModList?.Name;
         public string Readme => SourceModList?.Readme;
         public string Author => SourceModList?.Author;
         public string Description => SourceModList?.Description;
-        public string Website => SourceModList?.Website;
+        public Uri Website => SourceModList?.Website;
         public ModManager ModManager => SourceModList?.ModManager ?? ModManager.MO2;
 
         // Image isn't exposed as a direct property, but as an observable.
@@ -28,7 +28,7 @@ namespace Wabbajack
         // and the cached image will automatically be released when the last interested party is gone.
         public IObservable<BitmapImage> ImageObservable { get; }
 
-        public ModListVM(string modListPath)
+        public ModListVM(AbsolutePath modListPath)
         {
             ModListPath = modListPath;
             try
@@ -48,18 +48,16 @@ namespace Wabbajack
                 {
                     try
                     {
-                        using (var fs = new FileStream(ModListPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-                        using (var ar = new ZipArchive(fs, ZipArchiveMode.Read))
+                        using var fs = ModListPath.OpenShared();
+                        using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
+                        var ms = new MemoryStream();
+                        var entry = ar.GetEntry("modlist-image.png");
+                        if (entry == null) return default(MemoryStream);
+                        using (var e = entry.Open())
                         {
-                            var ms = new MemoryStream();
-                            var entry = ar.GetEntry("modlist-image.png");
-                            if (entry == null) return default(MemoryStream);
-                            using (var e = entry.Open())
-                            {
-                                e.CopyTo(ms);
-                            }
-                            return ms;
+                            e.CopyTo(ms);
                         }
+                        return ms;
                     }
                     catch (Exception ex)
                     {
@@ -96,11 +94,11 @@ namespace Wabbajack
             if (string.IsNullOrEmpty(Readme)) return;
             if (SourceModList.ReadmeIsWebsite)
             {
-                Utils.OpenWebsite(Readme);
+                Utils.OpenWebsite(new Uri(Readme));
             }
             else
             {
-                using var fs = new FileStream(ModListPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using var fs = ModListPath.OpenShared();
                 using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
                 using var ms = new MemoryStream();
 

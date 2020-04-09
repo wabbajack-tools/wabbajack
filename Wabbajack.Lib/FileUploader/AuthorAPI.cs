@@ -19,35 +19,35 @@ namespace Wabbajack.Lib.FileUploader
 {
     public class AuthorAPI
     {
-        public static IObservable<bool> HaveAuthorAPIKey => Utils.HaveEncryptedJsonObservable("author-api-key.txt");
+        public static IObservable<bool> HaveAuthorAPIKey => Utils.HaveEncryptedJsonObservable(Consts.AuthorAPIKeyFile);
 
-        public static IObservable<string> AuthorAPIKey => HaveAuthorAPIKey.Where(h => h)
-            .Select(_ => File.ReadAllText(Path.Combine(Consts.LocalAppDataPath, "author-api-key.txt")));
+        public static string ApiKeyOverride = null;
 
-
-        public static string GetAPIKey()
+        public static async Task<string> GetAPIKey(string apiKey = null)
         {
-            return File.ReadAllText(Path.Combine(Consts.LocalAppDataPath, "author-api-key.txt")).Trim();
+            if (ApiKeyOverride != null) return ApiKeyOverride;
+            return apiKey ?? (await Consts.LocalAppDataPath.Combine(Consts.AuthorAPIKeyFile).ReadAllTextAsync()).Trim();
         }
-        public static bool HasAPIKey => File.Exists(Path.Combine(Consts.LocalAppDataPath, "author-api-key.txt"));
         
-        
-        public static readonly Uri UploadURL = new Uri("https://build.wabbajack.org/upload_file");
+        public static Uri UploadURL => new Uri($"{Consts.WabbajackBuildServerUri}upload_file");
         public static long BLOCK_SIZE = (long)1024 * 1024 * 2;
         public static int MAX_CONNECTIONS = 8;
-        public static Task<string> UploadFile(WorkQueue queue, string filename, Action<double> progressFn)
+        public static Task<string> UploadFile(AbsolutePath filename, Action<double> progressFn, string apikey=null)
         {
             var tcs = new TaskCompletionSource<string>();
             Task.Run(async () =>
             {
-                var client = GetAuthorizedClient();
+                var client = await GetAuthorizedClient(apikey);
 
-                var fsize = new FileInfo(filename).Length;
-                var hash_task = filename.FileHashAsync();
+                var fsize = filename.Size;
+                var hashTask = filename.FileHashAsync();
 
-                var response = await client.PutAsync(UploadURL+$"/{Path.GetFileName(filename)}/start", new StringContent(""));
+                Utils.Log($"{UploadURL}/{filename.FileName.ToString()}/start");
+                using var response = await client.PutAsync($"{UploadURL}/{filename.FileName.ToString()}/start", new StringContent(""));
                 if (!response.IsSuccessStatusCode)
                 {
+                    Utils.Log("Error starting upload");
+                    Utils.Log(await response.Content.ReadAsStringAsync());
                     tcs.SetException(new Exception($"Start Error: {response.StatusCode} {response.ReasonPhrase}"));
                     return;
                 }
@@ -64,40 +64,39 @@ namespace Wabbajack.Lib.FileUploader
                 {
                     iqueue.Report("Starting Upload", Percent.One);
                 await Blocks(fsize)
-                    .PMap(iqueue, async block_idx =>
+                    .PMap(iqueue, async blockIdx =>
                     {
                         if (tcs.Task.IsFaulted) return;
-                        var block_offset = block_idx * BLOCK_SIZE;
-                        var block_size = block_offset + BLOCK_SIZE > fsize
-                            ? fsize - block_offset
+                        var blockOffset = blockIdx * BLOCK_SIZE;
+                        var blockSize = blockOffset + BLOCK_SIZE > fsize
+                            ? fsize - blockOffset
                             : BLOCK_SIZE;
-                        Interlocked.Add(ref sent, block_size);
+                        Interlocked.Add(ref sent, blockSize);
                         progressFn((double)sent / fsize);
 
-                        int retries = 0;
-                        
-                        using (var fs = File.OpenRead(filename))
+                        var data = new byte[blockSize];
+                        await using (var fs = filename.OpenRead())
                         {
-                            fs.Position = block_offset;
-                            var data = new byte[block_size];
+                            fs.Position = blockOffset;
                             await fs.ReadAsync(data, 0, data.Length);
+                        }
 
-                            
-                            var putResponse = await client.PutAsync(UploadURL + $"/{key}/data/{block_offset}",
-                                new ByteArrayContent(data));
 
-                            if (!putResponse.IsSuccessStatusCode)
-                            {
-                                tcs.SetException(new Exception($"Put Error: {putResponse.StatusCode} {putResponse.ReasonPhrase}"));
-                                return;
-                            }
+                        var offsetResponse = await client.PutAsync(UploadURL + $"/{key}/data/{blockOffset}",
+                            new ByteArrayContent(data));
 
-                            var val = long.Parse(await putResponse.Content.ReadAsStringAsync());
-                            if (val != block_offset + data.Length)
-                            {
-                                tcs.SetResult($"Sync Error {val} vs {block_offset + data.Length}");
-                                tcs.SetException(new Exception($"Sync Error {val} vs {block_offset + data.Length}"));
-                            }
+                        if (!offsetResponse.IsSuccessStatusCode)
+                        {
+                            Utils.Log(await offsetResponse.Content.ReadAsStringAsync());
+                            tcs.SetException(new Exception($"Put Error: {offsetResponse.StatusCode} {offsetResponse.ReasonPhrase}"));
+                            return;
+                        }
+
+                        var val = long.Parse(await offsetResponse.Content.ReadAsStringAsync());
+                        if (val != blockOffset + data.Length)
+                        {
+                            tcs.SetResult($"Sync Error {val} vs {blockOffset + data.Length} Offset {blockOffset} Size {data.Length}");
+                            tcs.SetException(new Exception($"Sync Error {val} vs {blockOffset + data.Length}"));
                         }
                     });
                 }
@@ -105,12 +104,17 @@ namespace Wabbajack.Lib.FileUploader
                 if (!tcs.Task.IsFaulted)
                 {
                     progressFn(1.0);
-                    var hash = (await hash_task).FromBase64().ToHex();
-                    response = await client.PutAsync(UploadURL + $"/{key}/finish/{hash}", new StringContent(""));
-                    if (response.IsSuccessStatusCode)
-                        tcs.SetResult(await response.Content.ReadAsStringAsync());
+                    var hash = (await hashTask).ToHex();
+                    using var finalResponse = await client.PutAsync(UploadURL + $"/{key}/finish/{hash}", new StringContent(""));
+                    if (finalResponse.IsSuccessStatusCode)
+                        tcs.SetResult(await finalResponse.Content.ReadAsStringAsync());
                     else
-                        tcs.SetException(new Exception($"Finalization Error: {response.StatusCode} {response.ReasonPhrase}"));
+                    {
+                        Utils.Log("Finalization Error: ");
+                        Utils.Log(await finalResponse.Content.ReadAsStringAsync());
+                        tcs.SetException(new Exception(
+                            $"Finalization Error: {finalResponse.StatusCode} {finalResponse.ReasonPhrase}"));
+                    }
                 }
 
                 progressFn(0.0);
@@ -119,17 +123,17 @@ namespace Wabbajack.Lib.FileUploader
             return tcs.Task;
         }
 
-        public static Common.Http.Client GetAuthorizedClient()
+        public static async Task<Common.Http.Client> GetAuthorizedClient(string apiKey=null)
         {
             var client = new Common.Http.Client();
-            client.Headers.Add(("X-API-KEY", GetAPIKey()));
+            client.Headers.Add(("X-API-KEY", await GetAPIKey(apiKey)));
             return client;
         }
         
         public static async Task<string> RunJob(string jobtype)
         {
-            var client = GetAuthorizedClient();
-            return await client.GetStringAsync($"https://{Consts.WabbajackCacheHostname}/jobs/enqueue_job/{jobtype}");
+            var client = await GetAuthorizedClient();
+            return await client.GetStringAsync($"{Consts.WabbajackBuildServerUri}jobs/enqueue_job/{jobtype}");
             
         }
 
@@ -143,7 +147,7 @@ namespace Wabbajack.Lib.FileUploader
             return await RunJob("UpdateModLists");
         }
 
-        public static async Task UploadPackagedInis(WorkQueue queue, IEnumerable<Archive> archives)
+        public static async Task<bool> UploadPackagedInis(IEnumerable<Archive> archives)
         {
             archives = archives.ToArray(); // defensive copy
             Utils.Log($"Packaging {archives.Count()} inis");
@@ -161,29 +165,36 @@ namespace Wabbajack.Lib.FileUploader
                     }
                 }
 
-                var webClient = new WebClient();
-                await webClient.UploadDataTaskAsync($"https://{Consts.WabbajackCacheHostname}/indexed_files/notify",
-                    "POST", ms.ToArray());
+                var client = new Common.Http.Client();
+                var response = await client.PostAsync($"{Consts.WabbajackBuildServerUri}indexed_files/notify", new ByteArrayContent(ms.ToArray()));
+                
+                if (response.IsSuccessStatusCode) return true;
+
+                Utils.Log("Error sending Inis");
+                Utils.Log(await response.Content.ReadAsStringAsync());
+                return false;
+
             }
             catch (Exception ex)
             {
                 Utils.Log(ex.ToString());
+                return false;
             }
         }
 
         public static async Task<string> GetServerLog()
         {
-            return await GetAuthorizedClient().GetStringAsync($"https://{Consts.WabbajackCacheHostname}/heartbeat/logs");
+            return await (await GetAuthorizedClient()).GetStringAsync($"https://{Consts.WabbajackCacheHostname}/heartbeat/logs");
         }
 
         public static async Task<IEnumerable<string>> GetMyFiles()
         {
-            return (await GetAuthorizedClient().GetStringAsync($"https://{Consts.WabbajackCacheHostname}/uploaded_files/list")).FromJSONString<string[]>();
+            return (await (await GetAuthorizedClient()).GetStringAsync($"https://{Consts.WabbajackCacheHostname}/uploaded_files/list")).FromJsonString<string[]>();
         }
 
         public static async Task<string> DeleteFile(string name)
         {
-            var result = await GetAuthorizedClient()
+            var result = await (await GetAuthorizedClient())
                 .DeleteStringAsync($"https://{Consts.WabbajackCacheHostname}/uploaded_files/{name}");
             return result;
         }

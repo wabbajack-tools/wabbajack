@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Wabbajack.Common;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
@@ -22,9 +23,9 @@ namespace Compression.BSA
             _files[state.Index] = (cstate, src);
         }
 
-        public void Build(string filename)
+        public void Build(AbsolutePath filename)
         {
-            using var fs = File.Create(filename);
+            using var fs = filename.Create();
             using var bw = new BinaryWriter(fs);
             
             bw.Write(_state.VersionNumber);
@@ -48,7 +49,7 @@ namespace Compression.BSA
             {
                 if (bw.BaseStream.Position != orgPos + state.NameOffset)
                     throw new InvalidDataException("Offsets don't match when writing TES3 BSA");
-                bw.Write(Encoding.ASCII.GetBytes(state.Path));
+                bw.Write(Encoding.ASCII.GetBytes((string)state.Path));
                 bw.Write((byte)0);
             }
 

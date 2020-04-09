@@ -16,7 +16,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive> Run(RawSourceFile source)
         {
-            if (!source.Path.EndsWith(_postfix)) return null;
+            if (!((string)source.Path).EndsWith(_postfix)) return null;
             var result = source.EvolveTo<IgnoredDirectly>();
             result.Reason = _reason;
             return result;

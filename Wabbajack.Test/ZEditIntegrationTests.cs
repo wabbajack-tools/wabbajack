@@ -36,7 +36,7 @@ namespace Wabbajack.Test
                 mergePath = Path.Combine(utils.MO2Folder, Consts.MO2ModFolderName)
             };
 
-            settings.ToJSON(Path.Combine(utils.MO2Folder, "tools", "mator", "bleh", "profiles", "myprofile",
+            settings.ToJson(Path.Combine(utils.MO2Folder, "tools", "mator", "bleh", "profiles", "myprofile",
                 "settings.json"));
 
             new List<zEditIntegration.zEditMerge>()
@@ -64,7 +64,7 @@ namespace Wabbajack.Test
                         }
                     }
                 }
-            }.ToJSON(Path.Combine(utils.MO2Folder, "tools", "mator", "bleh", "profiles", "myprofile", "merges.json"));
+            }.ToJson(Path.Combine(utils.MO2Folder, "tools", "mator", "bleh", "profiles", "myprofile", "merges.json"));
 
             utils.Configure();
 

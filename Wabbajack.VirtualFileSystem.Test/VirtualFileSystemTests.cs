@@ -3,209 +3,175 @@ using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Wabbajack.Common;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Wabbajack.VirtualFileSystem.Test
 {
-    [TestClass]
     public class VFSTests
     {
-        private const string VFS_TEST_DIR = "vfs_test_dir";
-        private static readonly string VFS_TEST_DIR_FULL = Path.Combine(Directory.GetCurrentDirectory(), VFS_TEST_DIR);
+        private static readonly AbsolutePath VFS_TEST_DIR = "vfs_test_dir".ToPath().RelativeToEntryPoint();
+        private static readonly AbsolutePath TEST_ZIP = "test.zip".RelativeTo(VFS_TEST_DIR);
+        private static readonly AbsolutePath TEST_TXT = "test.txt".RelativeTo(VFS_TEST_DIR);
+        private static readonly AbsolutePath ARCHIVE_TEST_TXT = "archive/test.txt".RelativeTo(VFS_TEST_DIR);
         private Context context;
 
-        public TestContext TestContext { get; set; }
-        public WorkQueue Queue { get; set; }
+        private readonly ITestOutputHelper _helper;
+        private WorkQueue Queue { get; }
 
-        [TestInitialize]
-        public void Setup()
+        public VFSTests(ITestOutputHelper helper)
         {
-            Utils.LogMessages.Subscribe(f => TestContext.WriteLine(f.ShortDescription));
-            if (Directory.Exists(VFS_TEST_DIR))
-                Utils.DeleteDirectory(VFS_TEST_DIR);
-            Directory.CreateDirectory(VFS_TEST_DIR);
+            _helper = helper;
+            Utils.LogMessages.Subscribe(f => _helper.WriteLine(f.ShortDescription));
+            VFS_TEST_DIR.DeleteDirectory();
+            VFS_TEST_DIR.CreateDirectory();
             Queue = new WorkQueue();
             context = new Context(Queue);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task FilesAreIndexed()
         {
-            AddFile("test.txt", "This is a test");
+            await AddFile(TEST_TXT, "This is a test");
             await AddTestRoot();
 
-            var file = context.Index.ByFullPath[Path.Combine(VFS_TEST_DIR_FULL, "test.txt")];
-            Assert.IsNotNull(file);
+            var file = context.Index.ByRootPath["test.txt".ToPath().RelativeTo(VFS_TEST_DIR)];
+            Assert.NotNull(file);
 
-            Assert.AreEqual(file.Size, 14);
-            Assert.AreEqual(file.Hash, "qX0GZvIaTKM=");
+            Assert.Equal(14, file.Size);
+            Assert.Equal(file.Hash, Hash.FromBase64("qX0GZvIaTKM="));
         }
 
+        
         private async Task AddTestRoot()
         {
-            await context.AddRoot(VFS_TEST_DIR_FULL);
-            await context.WriteToFile(Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
-            await context.IntegrateFromFile(Path.Combine(VFS_TEST_DIR_FULL, "vfs_cache.bin"));
+            await context.AddRoot(VFS_TEST_DIR);
+            await context.WriteToFile("vfs_cache.bin".RelativeTo(VFS_TEST_DIR));
+            await context.IntegrateFromFile( "vfs_cache.bin".RelativeTo(VFS_TEST_DIR));
         }
 
 
-        [TestMethod]
+        [Fact]
         public async Task ArchiveContentsAreIndexed()
         {
-            AddFile("archive/test.txt", "This is a test");
-            ZipUpFolder("archive", "test.zip");
+            await AddFile(ARCHIVE_TEST_TXT, "This is a test");
+            ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
             await AddTestRoot();
 
-            var abs_path = Path.Combine(VFS_TEST_DIR_FULL, "test.zip");
-            var file = context.Index.ByFullPath[abs_path];
-            Assert.IsNotNull(file);
+            var absPath = "test.zip".RelativeTo(VFS_TEST_DIR);
+            var file = context.Index.ByRootPath[absPath];
+            Assert.NotNull(file);
 
-            Assert.AreEqual(128, file.Size);
-            Assert.AreEqual(abs_path.FileHash(), file.Hash);
+            Assert.Equal(128, file.Size);
+            Assert.Equal(absPath.FileHash(), file.Hash);
 
-            Assert.IsTrue(file.IsArchive);
-            var inner_file = file.Children.First();
-            Assert.AreEqual(14, inner_file.Size);
-            Assert.AreEqual("qX0GZvIaTKM=", inner_file.Hash);
-            Assert.AreSame(file, file.Children.First().Parent);
+            Assert.True(file.IsArchive);
+            var innerFile = file.Children.First();
+            Assert.Equal(14, innerFile.Size);
+            Assert.Equal(Hash.FromBase64("qX0GZvIaTKM="), innerFile.Hash);
+            Assert.Same(file, file.Children.First().Parent);
         }
+        
 
-        [TestMethod]
+        [Fact]
         public async Task DuplicateFileHashes()
         {
-            AddFile("archive/test.txt", "This is a test");
-            ZipUpFolder("archive", "test.zip");
+            await AddFile(ARCHIVE_TEST_TXT, "This is a test");
+            ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
 
-            AddFile("test.txt", "This is a test");
+            await AddFile(TEST_TXT, "This is a test");
             await AddTestRoot();
 
 
-            var files = context.Index.ByHash["qX0GZvIaTKM="];
-            Assert.AreEqual(files.Count(), 2);
+            var files = context.Index.ByHash[Hash.FromBase64("qX0GZvIaTKM=")];
+            Assert.Equal(2, files.Count());
         }
 
-        [TestMethod]
+        [Fact]
         public async Task DeletedFilesAreRemoved()
         {
-            AddFile("test.txt", "This is a test");
+            await AddFile(TEST_TXT, "This is a test");
             await AddTestRoot();
 
-            var file = context.Index.ByFullPath[Path.Combine(VFS_TEST_DIR_FULL, "test.txt")];
-            Assert.IsNotNull(file);
+            var file = context.Index.ByRootPath[TEST_TXT];
+            Assert.NotNull(file);
 
-            Assert.AreEqual(file.Size, 14);
-            Assert.AreEqual(file.Hash, "qX0GZvIaTKM=");
+            Assert.Equal(14, file.Size);
+            Assert.Equal(Hash.FromBase64("qX0GZvIaTKM="), file.Hash);
 
-            File.Delete(Path.Combine(VFS_TEST_DIR_FULL, "test.txt"));
+            TEST_TXT.Delete();
 
             await AddTestRoot();
 
-            CollectionAssert.DoesNotContain(context.Index.ByFullPath, Path.Combine(VFS_TEST_DIR_FULL, "test.txt"));
+            Assert.DoesNotContain(TEST_TXT, context.Index.AllFiles.Select(f => f.AbsoluteName));
         }
 
-        [TestMethod]
+        [Fact]
         public async Task UnmodifiedFilesAreNotReIndexed()
         {
-            AddFile("test.txt", "This is a test");
+            await AddFile(TEST_TXT, "This is a test");
             await AddTestRoot();
 
-            var old_file = context.Index.ByFullPath[Path.Combine(VFS_TEST_DIR_FULL, "test.txt")];
+            var old_file = context.Index.ByRootPath[TEST_TXT];
             var old_time = old_file.LastAnalyzed;
 
             await AddTestRoot();
 
-            var new_file = context.Index.ByFullPath[Path.Combine(VFS_TEST_DIR_FULL, "test.txt")];
+            var new_file = context.Index.ByRootPath[TEST_TXT];
 
-            Assert.AreEqual(old_time, new_file.LastAnalyzed);
+            Assert.Equal(old_time, new_file.LastAnalyzed);
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CanStageSimpleArchives()
         {
-            AddFile("archive/test.txt", "This is a test");
-            ZipUpFolder("archive", "test.zip");
+            await AddFile(ARCHIVE_TEST_TXT, "This is a test");
+            ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
             await AddTestRoot();
 
-            var abs_path = Path.Combine(VFS_TEST_DIR_FULL, "test.zip");
-            var file = context.Index.ByFullPath[abs_path + "|test.txt"];
+            var res = new FullPath(TEST_ZIP, new[] {(RelativePath)"test.txt"});
+            var file = context.Index.ByFullPath[res];
 
             var cleanup = await context.Stage(new List<VirtualFile> {file});
-            Assert.AreEqual("This is a test", File.ReadAllText(file.StagedPath));
+            Assert.Equal("This is a test", await file.StagedPath.ReadAllTextAsync());
 
             cleanup();
         }
 
-        [TestMethod]
+        [Fact]
         public async Task CanStageNestedArchives()
         {
-            AddFile("archive/test.txt", "This is a test");
-            ZipUpFolder("archive", "test.zip");
+            await AddFile(ARCHIVE_TEST_TXT, "This is a test");
+            ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
 
-            Directory.CreateDirectory(Path.Combine(VFS_TEST_DIR_FULL, @"archive\other\dir"));
-            File.Move(Path.Combine(VFS_TEST_DIR_FULL, "test.zip"),
-                Path.Combine(VFS_TEST_DIR_FULL, @"archive\other\dir\nested.zip"));
-            ZipUpFolder("archive", "test.zip");
+            var inner_dir = @"archive\other\dir".RelativeTo(VFS_TEST_DIR);
+            inner_dir.CreateDirectory();
+            TEST_ZIP.MoveTo( @"archive\other\dir\nested.zip".RelativeTo(VFS_TEST_DIR));
+            ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
 
             await AddTestRoot();
 
-            var files = context.Index.ByHash["qX0GZvIaTKM="];
+            var files = context.Index.ByHash[Hash.FromBase64("qX0GZvIaTKM=")];
 
             var cleanup = await context.Stage(files);
 
             foreach (var file in files)
-                Assert.AreEqual("This is a test", File.ReadAllText(file.StagedPath));
+                Assert.Equal("This is a test", await file.StagedPath.ReadAllTextAsync());
 
             cleanup();
         }
 
-        [TestMethod]
-        public async Task CanRequestPortableFileTrees()
+        private static async Task AddFile(AbsolutePath filename, string text)
         {
-            AddFile("archive/test.txt", "This is a test");
-            ZipUpFolder("archive", "test.zip");
-
-            Directory.CreateDirectory(Path.Combine(VFS_TEST_DIR_FULL, @"archive\other\dir"));
-            File.Move(Path.Combine(VFS_TEST_DIR_FULL, "test.zip"),
-                Path.Combine(VFS_TEST_DIR_FULL, @"archive\other\dir\nested.zip"));
-            ZipUpFolder("archive", "test.zip");
-
-            await AddTestRoot();
-
-            var files = context.Index.ByHash["qX0GZvIaTKM="];
-            var archive = context.Index.ByRootPath[Path.Combine(VFS_TEST_DIR_FULL, "test.zip")];
-
-            var state = context.GetPortableState(files);
-
-            var new_context = new Context(Queue);
-
-            await new_context.IntegrateFromPortable(state,
-                new Dictionary<string, string> {{archive.Hash, archive.FullPath}});
-
-            var new_files = new_context.Index.ByHash["qX0GZvIaTKM="];
-
-            var close = await new_context.Stage(new_files);
-
-            foreach (var file in new_files)
-                Assert.AreEqual("This is a test", File.ReadAllText(file.StagedPath));
-
-            close();
+            filename.Parent.CreateDirectory();
+            await filename.WriteAllTextAsync(text);
         }
 
-        private static void AddFile(string filename, string thisIsATest)
+        private static void ZipUpFolder(AbsolutePath folder, AbsolutePath output)
         {
-            var fullpath = Path.Combine(VFS_TEST_DIR, filename);
-            if (!Directory.Exists(Path.GetDirectoryName(fullpath)))
-                Directory.CreateDirectory(Path.GetDirectoryName(fullpath));
-            File.WriteAllText(fullpath, thisIsATest);
-        }
-
-        private static void ZipUpFolder(string folder, string output)
-        {
-            var path = Path.Combine(VFS_TEST_DIR, folder);
-            ZipFile.CreateFromDirectory(path, Path.Combine(VFS_TEST_DIR, output));
-            Utils.DeleteDirectory(path);
+            ZipFile.CreateFromDirectory((string)folder, (string)output);
+            folder.DeleteDirectory();
         }
     }
 }
