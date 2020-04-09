@@ -43,9 +43,9 @@ namespace Wabbajack.Lib
 
         public bool IgnoreMissingFiles { get; set; }
 
-        public ICollection<Archive> SelectedArchives = new List<Archive>();
-        public List<Directive> InstallDirectives = new List<Directive>();
-        public List<RawSourceFile> AllFiles = new List<RawSourceFile>();
+        public readonly List<Archive> SelectedArchives = new List<Archive>();
+        public readonly List<Directive> InstallDirectives = new List<Directive>();
+        public readonly List<RawSourceFile> AllFiles = new List<RawSourceFile>();
         public ModList ModList = new ModList();
 
         public List<IndexedArchive> IndexedArchives = new List<IndexedArchive>();
@@ -222,7 +222,7 @@ namespace Wabbajack.Lib
                 .GroupBy(f => f.File.Hash)
                 .ToDictionary(f => f.Key, f => f.First());
 
-            SelectedArchives = await hashes.PMap(Queue, hash => ResolveArchive(hash, archives));
+            SelectedArchives.SetTo(await hashes.PMap(Queue, hash => ResolveArchive(hash, archives)));
         }
 
         public async Task<Archive> ResolveArchive(Hash hash, IDictionary<Hash, IndexedArchive> archives)
