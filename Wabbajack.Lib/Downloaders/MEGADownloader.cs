@@ -44,12 +44,10 @@ namespace Wabbajack.Lib.Downloaders
             }
             catch (ApiException e)
             {
-                if ((int)e.ApiResultCode == -26)
-                {
-                    return new LoginReturnMessage("Two-Factor Authentication needs to be disabled before login!", true);
-                }
                 return e.ApiResultCode switch
                 {
+                    ApiResultCode.TwoFactorAuthenticationError => new LoginReturnMessage(
+                        $"Two-Factor Authentication needs to be disabled before login! {e.Message}", true),
                     ApiResultCode.InternalError => new LoginReturnMessage(
                         $"Internal error occured! Please report this to the Wabbajack Team! {e.Message}", true),
                     _ => new LoginReturnMessage($"Error during login: {e.Message}", true)
