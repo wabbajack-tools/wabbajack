@@ -58,7 +58,7 @@ namespace Wabbajack.Lib.Downloaders
         public static T GetInstance<T>() where T : IDownloader
         {
             var inst = (T)IndexedDownloaders[typeof(T)];
-            inst.Prepare();
+            inst.Prepare().FireAndForget();
             return inst;
         }
 
@@ -79,11 +79,11 @@ namespace Wabbajack.Lib.Downloaders
             return Downloaders.OfType<IUrlDownloader>().Select(d => d.GetDownloaderState(url)).FirstOrDefault(result => result != null);
         }
 
-        public static void PrepareAll(IEnumerable<AbstractDownloadState> states)
+        public static async Task PrepareAll(IEnumerable<AbstractDownloadState> states)
         {
-            states.Select(s => s.GetDownloader().GetType())
+            await Task.WhenAll(states.Select(s => s.GetDownloader().GetType())
                   .Distinct()
-                  .Do(t => Downloaders.First(d => d.GetType() == t).Prepare());
+                  .Select(t => Downloaders.First(d => d.GetType() == t).Prepare()));
         }
 
         public static async Task<bool> DownloadWithPossibleUpgrade(Archive archive, AbsolutePath destination)
