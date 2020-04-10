@@ -6,9 +6,11 @@ using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.BuildServer.Models.Jobs;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.BuildServer.Models
 {
+    [JsonName("PatchArchive")]
     public class PatchArchive : AJobPayload
     {
         public override string Description => "Create a archive update patch";
@@ -25,6 +27,7 @@ namespace Wabbajack.BuildServer.Models
 
             Utils.Log($"Creating Patch ({Src} -> {DestPK})");
             var cdnPath = CdnPath(Src, destHash);
+            cdnPath.Parent.CreateDirectory();
             
             if (cdnPath.Exists)
                 return JobResult.Success();
@@ -42,6 +45,12 @@ namespace Wabbajack.BuildServer.Models
             Utils.Log($"Uploading Patch ({Src} -> {DestPK})");
 
             int retries = 0;
+            
+            if (settings.BunnyCDN_User == "TEST" && settings.BunnyCDN_Password == "TEST")
+            {
+                return JobResult.Success();
+            }
+            
             TOP:
             using (var client = new FtpClient("storage.bunnycdn.com"))
             {

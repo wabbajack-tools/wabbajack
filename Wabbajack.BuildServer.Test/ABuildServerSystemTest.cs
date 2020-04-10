@@ -28,6 +28,7 @@ namespace Wabbajack.BuildServer.Test
         public AbsolutePath ServerPublicFolder => "public".RelativeTo(AbsolutePath.EntryPoint);
 
         public AbsolutePath ServerArchivesFolder => "archives".RelativeTo(AbsolutePath.EntryPoint);
+        public AbsolutePath ServerUpdatesFolder => "updates".RelativeTo(AbsolutePath.EntryPoint);
 
 
         public BuildServerFixture()

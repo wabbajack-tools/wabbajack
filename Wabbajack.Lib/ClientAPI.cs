@@ -17,8 +17,15 @@ namespace Wabbajack.Lib
         public static async Task<Archive> GetModUpgrade(Hash hash)
         {
             using var response = await GetClient()
-                .GetAsync($"https://{Consts.WabbajackCacheHostname}/alternative/{hash.ToHex()}");
-            return !response.IsSuccessStatusCode ? null : (await response.Content.ReadAsStringAsync()).FromJsonString<Archive>();
+                .GetAsync($"{Consts.WabbajackBuildServerUri}alternative/{hash.ToHex()}");
+            if (response.IsSuccessStatusCode)
+            {
+                return (await response.Content.ReadAsStringAsync()).FromJsonString<Archive>();
+            }
+
+            Utils.Log($"No Upgrade for {hash}");
+            Utils.Log(await response.Content.ReadAsStringAsync());
+            return null;
         }
 
         /// <summary>

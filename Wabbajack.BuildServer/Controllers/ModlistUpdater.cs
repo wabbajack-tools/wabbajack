@@ -99,14 +99,24 @@ namespace Wabbajack.BuildServer.Controllers
                 .OrderByDescending(s => s.LastValidationTime).FirstOrDefaultAsync();*/
 
             if (state == null)
+            {
+                Utils.Log($"No original state for {startingHash}");
                 return NotFound("Original state not found");
+            }
 
             var nexusState = state.State as NexusDownloader.State;
             var nexusGame = nexusState.Game;
-            var mod_files = (await SQL.GetModFiles(nexusGame, nexusState.ModID)).files;
+            var nexusModFiles = await SQL.GetModFiles(nexusGame, nexusState.ModID);
+            if (nexusModFiles == null)
+            {
+                Utils.Log($"No nexus mod files for {startingHash}");
+                return NotFound("No nexus info");
+            }
+            var mod_files = nexusModFiles.files;
 
             if (mod_files.Any(f => f.category_name != null && f.file_id == nexusState.FileID))
             {
+                Utils.Log($"No available upgrade required for {nexusState.PrimaryKey}");
                 await Metric("not_required_upgrade", startingHash.ToString());
                 return BadRequest("Upgrade Not Required");
             }
@@ -115,6 +125,7 @@ namespace Wabbajack.BuildServer.Controllers
             var newArchive = await FindAlternatives(nexusState, startingHash);
             if (newArchive == null)
             {
+                Utils.Log($"No available upgrade for {nexusState.PrimaryKey}");
                 return NotFound("No alternative available");
             }
 
