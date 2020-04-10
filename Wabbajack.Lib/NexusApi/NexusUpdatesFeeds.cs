@@ -12,13 +12,13 @@ namespace Wabbajack.Lib.NexusApi
     public class NexusUpdatesFeeds
     {
 
-        public static async Task<IEnumerable<UpdateRecord>> GetUpdates()
+        public static async Task<List<UpdateRecord>> GetUpdates()
         {
             var updated = GetFeed(new Uri("https://www.nexusmods.com/rss/updatedtoday"));
             var newToday = GetFeed(new Uri("https://www.nexusmods.com/rss/newtoday"));
 
             var sorted = (await updated).Concat(await newToday).OrderByDescending(f => f.TimeStamp);
-            var deduped = sorted.GroupBy(g => (g.Game, g.ModId)).Select(g => g.First());
+            var deduped = sorted.GroupBy(g => (g.Game, g.ModId)).Select(g => g.First()).ToList();
             return deduped;
         }
 
