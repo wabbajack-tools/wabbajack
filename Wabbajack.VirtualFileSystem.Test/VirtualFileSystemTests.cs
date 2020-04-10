@@ -141,7 +141,7 @@ namespace Wabbajack.VirtualFileSystem.Test
             var cleanup = await context.Stage(new List<VirtualFile> {file});
             Assert.Equal("This is a test", await file.StagedPath.ReadAllTextAsync());
 
-            cleanup();
+            await cleanup();
         }
 
         [Fact]
@@ -164,7 +164,7 @@ namespace Wabbajack.VirtualFileSystem.Test
             foreach (var file in files)
                 Assert.Equal("This is a test", await file.StagedPath.ReadAllTextAsync());
 
-            cleanup();
+            await cleanup();
         }
 
         private static async Task AddFile(AbsolutePath filename, string text)
