@@ -998,7 +998,7 @@ namespace Wabbajack.Common
             var encoded = ProtectedData.Protect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
             Consts.LocalAppDataPath.CreateDirectory();
             
-            Consts.LocalAppDataPath.Combine(key).WriteAllBytes(bytes);
+            Consts.LocalAppDataPath.Combine(key).WriteAllBytes(encoded);
         }
         public static byte[] FromEncryptedData(string key)
         {
