@@ -78,7 +78,10 @@ namespace Wabbajack.Common
             using var tr = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
             using var reader = new JsonTextReader(tr);
             var ser = JsonSerializer.Create(JsonSettings);
-            return ser.Deserialize<T>(reader);
+            var result = ser.Deserialize<T>(reader);
+            if (result == null)
+                throw new JsonException("Type deserialized into null");
+            return result;
         }
       
 
