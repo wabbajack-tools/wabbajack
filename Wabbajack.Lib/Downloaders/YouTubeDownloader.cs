@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -144,71 +145,46 @@ namespace Wabbajack.Lib.Downloaders
 
             }
 
-            private const string FFMpegPath = "Downloaders/Converters/ffmpeg.exe";
-            private const string xWMAEncodePath = "Downloaders/Converters/xWMAEncode.exe";
-            private async Task ExtractTrack(AbsolutePath source, AbsolutePath dest_folder, Track track)
+            private AbsolutePath FFMpegPath => "Downloaders/Converters/ffmpeg.exe".RelativeTo(AbsolutePath.EntryPoint);
+            private AbsolutePath xWMAEncodePath = "Downloaders/Converters/xWMAEncode.exe".RelativeTo(AbsolutePath.EntryPoint);
+            private Extension WAVExtension = new Extension(".wav");
+            private Extension XWMExtension = new Extension(".xwm");
+            private async Task ExtractTrack(AbsolutePath source, AbsolutePath destFolder, Track track)
             {
-                var info = new ProcessStartInfo
+                var process = new ProcessHelper
                 {
-                    FileName = FFMpegPath,
-                    Arguments =
-                        $"-threads 1 -i \"{source}\" -ss {track.Start} -t {track.End - track.Start} \"{dest_folder}\\{track.Name}.wav\"",
-                    RedirectStandardError = true,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
+                    Path = FFMpegPath,
+                    Arguments = new object[] {"-threads", 1, "-i", source, "-ss", track.Start, "-t", track.End - track.Start, track.Name.RelativeTo(destFolder).WithExtension(WAVExtension)},
+                    ThrowOnNonZeroExitCode = true
                 };
+
+                var ffmpegLogs = process.Output.Where(arg => arg.Type == ProcessHelper.StreamType.Output)
+                    .ForEachAsync(val =>
+                    {
+                        Utils.Status($"Extracting {track.Name} - {val.Line}");
+                    });
                 
-                var p = new Process {StartInfo = info};
-                p.Start();
-                ChildProcessTracker.AddProcess(p);
-
-                var output = await p.StandardError.ReadToEndAsync();
-
-                try
-                {
-                    p.PriorityClass = ProcessPriorityClass.BelowNormal;
-                }
-                catch (Exception e)
-                {
-                    Utils.Error(e, "Error while setting process priority level for ffmpeg.exe");
-                }
-                p.WaitForExit();
+                await process.Start();
 
                 if (track.Format == Track.FormatEnum.WAV) return;
                 
-                info = new ProcessStartInfo
+                process = new ProcessHelper()
                 {
-                    FileName = xWMAEncodePath,
-                    Arguments =
-                        $"-b 192000 \"{dest_folder}\\{track.Name}.wav\" \"{dest_folder}\\{track.Name}.xwm\"",
-                    RedirectStandardError = true,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
+                    Path = xWMAEncodePath,
+                    Arguments = new object[] {"-b", 192000, track.Name.RelativeTo(destFolder).WithExtension(WAVExtension), track.Name.RelativeTo(destFolder).WithExtension(XWMExtension)},
+                    ThrowOnNonZeroExitCode = true
                 };
                 
-                p = new Process {StartInfo = info};
+                var xwmLogs = process.Output.Where(arg => arg.Type == ProcessHelper.StreamType.Output)
+                    .ForEachAsync(val =>
+                    {
+                        Utils.Status($"Encoding {track.Name} - {val.Line}");
+                    });
 
-                p.Start();
-                ChildProcessTracker.AddProcess(p);
-
-                var output2 = await p.StandardError.ReadToEndAsync();
-
-                try
-                {
-                    p.PriorityClass = ProcessPriorityClass.BelowNormal;
-                }
-                catch (Exception e)
-                {
-                    Utils.Error(e, "Error while setting process priority level for ffmpeg.exe");
-                }
-                p.WaitForExit();
+                await process.Start();
                 
-                if (File.Exists($"{dest_folder}\\{track.Name}.wav"))
-                    File.Delete($"{dest_folder}\\{track.Name}.wav");
+                if (File.Exists($"{destFolder}\\{track.Name}.wav"))
+                    File.Delete($"{destFolder}\\{track.Name}.wav");
                 
             }
 

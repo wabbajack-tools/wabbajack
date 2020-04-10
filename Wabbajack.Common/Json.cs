@@ -78,7 +78,10 @@ namespace Wabbajack.Common
             using var tr = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
             using var reader = new JsonTextReader(tr);
             var ser = JsonSerializer.Create(JsonSettings);
-            return ser.Deserialize<T>(reader)!;
+            var result = ser.Deserialize<T>(reader);
+            if (result == null)
+                throw new JsonException("Type deserialized into null");
+            return result;
         }
 
         private class HashJsonConverter : JsonConverter<Hash>
@@ -236,7 +239,7 @@ namespace Wabbajack.Common
 
 
         
-        public class JsonNameSerializationBinder : ISerializationBinder
+        public class JsonNameSerializationBinder : DefaultSerializationBinder
         {
             private static Dictionary<string, Type> _nameToType = new Dictionary<string, Type>();
             private static Dictionary<Type, string> _typeToName = new Dictionary<Type, string>();
@@ -278,7 +281,7 @@ namespace Wabbajack.Common
 
             }
 
-            public Type BindToType(string? assemblyName, string typeName)
+            public override Type BindToType(string? assemblyName, string typeName)
             {
                 if (typeName.EndsWith("[]"))
                 {
@@ -293,22 +296,17 @@ namespace Wabbajack.Common
                 if (val != null)
                     return val;
 
-                if (assemblyName != null)
-                {
-                    var assembly = AppDomain.CurrentDomain.Load(assemblyName);
-                    if (assembly != null)
-                    {
-                        var result =  assembly.GetType(typeName);
-                        if (result != null) return result;
-                    }
-                }
-                
-
-                throw new InvalidDataException($"No Binding name for {typeName}");
+                return base.BindToType(assemblyName, typeName);
             }
 
-            public void BindToName(Type serializedType, out string? assemblyName, out string? typeName)
+            public override void BindToName(Type serializedType, out string? assemblyName, out string? typeName)
             {
+                if (serializedType.FullName?.StartsWith("System.") ?? false)
+                {
+                    base.BindToName(serializedType, out assemblyName, out typeName);
+                    return;
+                }
+
                 if (!_typeToName.ContainsKey(serializedType))
                 {
                     throw new InvalidDataException($"No Binding name for {serializedType}");
