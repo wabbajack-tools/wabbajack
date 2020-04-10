@@ -20,14 +20,19 @@ namespace Wabbajack.VirtualFileSystem.Test
         private readonly ITestOutputHelper _helper;
         private WorkQueue Queue { get; }
 
-        public VFSTests(ITestOutputHelper helper)
+        private VFSTests(ITestOutputHelper helper)
         {
             _helper = helper;
             Utils.LogMessages.Subscribe(f => _helper.WriteLine(f.ShortDescription));
-            VFS_TEST_DIR.DeleteDirectory();
-            VFS_TEST_DIR.CreateDirectory();
             Queue = new WorkQueue();
             context = new Context(Queue);
+        }
+
+        public static async Task<VFSTests> Factory(ITestOutputHelper helper)
+        {
+            await VFS_TEST_DIR.DeleteDirectory();
+            VFS_TEST_DIR.CreateDirectory();
+            return new VFSTests(helper);
         }
 
         [Fact]
