@@ -28,7 +28,7 @@ namespace Wabbajack.Test
 
         public override void Dispose()
         {
-            utils.Dispose();
+            utils.DisposeAsync().AsTask().Wait();
             _unsub.Dispose();
             base.Dispose();
         }

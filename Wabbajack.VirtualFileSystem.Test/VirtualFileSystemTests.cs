@@ -56,7 +56,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         public async Task ArchiveContentsAreIndexed()
         {
             await AddFile(ARCHIVE_TEST_TXT, "This is a test");
-            ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
+            await ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
             await AddTestRoot();
 
             var absPath = "test.zip".RelativeTo(VFS_TEST_DIR);
@@ -78,7 +78,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         public async Task DuplicateFileHashes()
         {
             await AddFile(ARCHIVE_TEST_TXT, "This is a test");
-            ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
+            await ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
 
             await AddFile(TEST_TXT, "This is a test");
             await AddTestRoot();
@@ -127,7 +127,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         public async Task CanStageSimpleArchives()
         {
             await AddFile(ARCHIVE_TEST_TXT, "This is a test");
-            ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
+            await ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
             await AddTestRoot();
 
             var res = new FullPath(TEST_ZIP, new[] {(RelativePath)"test.txt"});
@@ -143,12 +143,12 @@ namespace Wabbajack.VirtualFileSystem.Test
         public async Task CanStageNestedArchives()
         {
             await AddFile(ARCHIVE_TEST_TXT, "This is a test");
-            ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
+            await ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
 
             var inner_dir = @"archive\other\dir".RelativeTo(VFS_TEST_DIR);
             inner_dir.CreateDirectory();
             TEST_ZIP.MoveTo( @"archive\other\dir\nested.zip".RelativeTo(VFS_TEST_DIR));
-            ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
+            await ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
 
             await AddTestRoot();
 
@@ -168,10 +168,10 @@ namespace Wabbajack.VirtualFileSystem.Test
             await filename.WriteAllTextAsync(text);
         }
 
-        private static void ZipUpFolder(AbsolutePath folder, AbsolutePath output)
+        private static async Task ZipUpFolder(AbsolutePath folder, AbsolutePath output)
         {
             ZipFile.CreateFromDirectory((string)folder, (string)output);
-            folder.DeleteDirectory();
+            await folder.DeleteDirectory();
         }
     }
 }

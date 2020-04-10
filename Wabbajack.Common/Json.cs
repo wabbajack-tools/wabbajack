@@ -78,10 +78,8 @@ namespace Wabbajack.Common
             using var tr = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
             using var reader = new JsonTextReader(tr);
             var ser = JsonSerializer.Create(JsonSettings);
-            return ser.Deserialize<T>(reader);
+            return ser.Deserialize<T>(reader)!;
         }
-      
-
 
         private class HashJsonConverter : JsonConverter<Hash>
         {
