@@ -16,24 +16,35 @@ namespace Wabbajack.Common
             Error,
         }
 
-        public string Path { get; set; } = string.Empty;
+        public AbsolutePath Path { get; set; }
         public IEnumerable<object> Arguments { get; set; } = Enumerable.Empty<object>();
 
         public bool LogError { get; set; } = true;
         
-        public readonly Subject<(StreamType Type, string Line)> Output = new Subject<(StreamType Type, string)>(); 
-        
-        
+        public readonly Subject<(StreamType Type, string Line)> Output = new Subject<(StreamType Type, string)>();
+
+        public bool ThrowOnNonZeroExitCode { get; set; } = false;
+
+
         public ProcessHelper()
         {
         }
 
         public async Task<int> Start()
         {
+            var args = Arguments.Select(arg =>
+            {
+                return arg switch
+                {
+                    AbsolutePath abs => $"\"{abs}\"",
+                    RelativePath rel => $"\"{rel}\"",
+                    _ => arg.ToString()
+                };
+            });
             var info = new ProcessStartInfo
             {
                 FileName = (string)Path,
-                Arguments = string.Join(" ", Arguments),
+                Arguments = string.Join(" ", args),
                 RedirectStandardError = true,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -65,7 +76,7 @@ namespace Wabbajack.Common
                 if (string.IsNullOrEmpty(data.Data)) return;
                 Output.OnNext((StreamType.Error, data.Data));
                 if (LogError)
-                    Utils.Log($"{AlphaPath.GetFileName(Path)} ({p.Id}) StdErr: {data.Data}");
+                    Utils.Log($"{Path.FileName} ({p.Id}) StdErr: {data.Data}");
             };
             p.ErrorDataReceived += ErrorEventHandler;
 
@@ -92,6 +103,9 @@ namespace Wabbajack.Common
             p.Exited -= Exited;
             
             Output.OnCompleted();
+
+            if (result != 0 && ThrowOnNonZeroExitCode)
+                throw new Exception($"Error executing {Path} - Exit Code {result} - Check the log for more information");
             return result;
         }
         
