@@ -155,7 +155,7 @@ namespace Wabbajack
                     try
                     {
                         var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
-                        var result = await downloader.Download(new Archive { Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0 }, Location);
+                        var result = await downloader.Download(new Archive(state: null!) { Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0 }, Location);
                         // Want to rehash to current file, even if failed?
                         Location.FileHashCached();
                         tcs.SetResult(result);

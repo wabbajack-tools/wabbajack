@@ -48,15 +48,15 @@ namespace Wabbajack.Test
                 GameType = Game.Skyrim,
                 Archives = new List<Archive>
                 {
-                    new Archive
-                    {
-                        State = new NexusDownloader.State                    
+                    new Archive(
+                        new NexusDownloader.State
                         {
                             Game = Game.Skyrim,
                             Author = "bill",
                             ModID = 42,
                             FileID = 33,
-                        },
+                        })
+                    {
                         Hash = Hash.FromLong(42)
                     }
                 },
@@ -71,9 +71,8 @@ namespace Wabbajack.Test
             };
             // Error due to file downloaded from 3rd party
             modlist.GameType = Game.Skyrim;
-            modlist.Archives[0] = new Archive()
+            modlist.Archives[0] = new Archive(new HTTPDownloader.State("https://somebadplace.com"))
             {
-                State = new HTTPDownloader.State("https://somebadplace.com"),
                 Hash = Hash.FromLong(42)
             };
             var errors = await validate.Validate(modlist);
@@ -81,9 +80,8 @@ namespace Wabbajack.Test
 
             // Ok due to file downloaded from whitelisted 3rd party
             modlist.GameType = Game.Skyrim;
-            modlist.Archives[0] = new Archive
+            modlist.Archives[0] = new Archive(new HTTPDownloader.State("https://somegoodplace.com/baz.7z"))
             {
-                State = new HTTPDownloader.State("https://somegoodplace.com/baz.7z"),
                 Hash = Hash.FromLong(42)
             };
             errors = await validate.Validate(modlist);
@@ -92,9 +90,8 @@ namespace Wabbajack.Test
 
             // Error due to file downloaded from bad 3rd party
             modlist.GameType = Game.Skyrim;
-            modlist.Archives[0] = new Archive
+            modlist.Archives[0] = new Archive(new GoogleDriveDownloader.State("bleg"))
             {
-                State = new GoogleDriveDownloader.State("bleg"),
                 Hash = Hash.FromLong(42)
             };
             errors = await validate.Validate(modlist);
@@ -102,9 +99,8 @@ namespace Wabbajack.Test
 
             // Ok due to file downloaded from good google site
             modlist.GameType = Game.Skyrim;
-            modlist.Archives[0] = new Archive
+            modlist.Archives[0] = new Archive(new GoogleDriveDownloader.State("googleDEADBEEF"))
             {
-                State = new GoogleDriveDownloader.State("googleDEADBEEF"),
                 Hash = Hash.FromLong(42)
             };
             errors = await validate.Validate(modlist);

@@ -15,7 +15,6 @@ using YoutubeExplode.Exceptions;
 using YoutubeExplode.Models.MediaStreams;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {

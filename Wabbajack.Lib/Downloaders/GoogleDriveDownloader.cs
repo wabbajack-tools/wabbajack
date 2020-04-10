@@ -5,7 +5,6 @@ using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.Validation;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {

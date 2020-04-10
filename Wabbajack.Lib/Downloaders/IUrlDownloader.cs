@@ -2,6 +2,6 @@
 {
     public interface IUrlDownloader : IDownloader
     {
-        AbstractDownloadState GetDownloaderState(string url);
+        AbstractDownloadState? GetDownloaderState(string url);
     }
 }

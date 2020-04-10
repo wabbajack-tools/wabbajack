@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
 using Wabbajack.Lib.WebAutomation;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {

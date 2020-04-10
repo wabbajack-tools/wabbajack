@@ -35,7 +35,7 @@ namespace Wabbajack.CLI.Verbs
                 new[] {state}
                 .PMap(queue, async s =>
                 {
-                    await s.Download(new Archive {Name = Path.GetFileName(Output)}, (AbsolutePath)Output);
+                    await s.Download(new Archive(state: null!) {Name = Path.GetFileName(Output)}, (AbsolutePath)Output);
                 }).Wait();
 
             File.WriteAllLines(Output + ".meta", state.GetMetaIni());

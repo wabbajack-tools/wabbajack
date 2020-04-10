@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {

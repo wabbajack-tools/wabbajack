@@ -10,7 +10,7 @@ namespace Wabbajack.Lib
     public class ConfirmUpdateOfExistingInstall : ConfirmationIntervention
     {
         public AbsolutePath OutputFolder { get; set; }
-        public string ModListName { get; set; }
+        public string ModListName { get; set; } = string.Empty;
 
         public override string ShortDescription { get; } = "Do you want to overwrite existing files?";
 

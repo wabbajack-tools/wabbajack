@@ -27,12 +27,11 @@ namespace Wabbajack.Lib.NexusApi
 
         #region Authentication
 
-        public string ApiKey { get; }
+        public string? ApiKey { get; }
 
         public bool IsAuthenticated => ApiKey != null;
 
-        private Task<UserStatus> _userStatus;
-
+        private Task<UserStatus>? _userStatus;
         public Task<UserStatus> UserStatus
         {
             get
@@ -214,7 +213,7 @@ namespace Wabbajack.Lib.NexusApi
 
         #endregion
 
-        private NexusApiClient(string apiKey = null)
+        private NexusApiClient(string? apiKey = null)
         {
             ApiKey = apiKey;
 
@@ -230,9 +229,9 @@ namespace Wabbajack.Lib.NexusApi
                 Directory.CreateDirectory(Consts.NexusCacheDirectory);
         }
 
-        public static async Task<NexusApiClient> Get(string apiKey = null)
+        public static async Task<NexusApiClient> Get(string? apiKey = null)
         {
-            apiKey = apiKey ?? await GetApiKey();
+            apiKey ??= await GetApiKey();
             return new NexusApiClient(apiKey);
         }
 
@@ -316,9 +315,10 @@ namespace Wabbajack.Lib.NexusApi
                 throw;
             }
         }
+
         public class GetModFilesResponse
         {
-            public List<NexusFileInfo> files { get; set; }
+            public List<NexusFileInfo> files { get; set; } = new List<NexusFileInfo>();
         }
 
         public async Task<GetModFilesResponse> GetModFiles(Game game, long modid)
@@ -344,18 +344,18 @@ namespace Wabbajack.Lib.NexusApi
 
         private class DownloadLink
         {
-            public string URI { get; set; }
+            public string URI { get; set; } = string.Empty;
         }
 
-        public static MethodInfo CacheMethod { get; set; }
-
-        private static string _localCacheDir;
+        private static string? _localCacheDir;
         public static string LocalCacheDir
         {
             get
             {
                 if (_localCacheDir == null)
                     _localCacheDir = Environment.GetEnvironmentVariable("NEXUSCACHEDIR");
+                if (_localCacheDir == null)
+                    throw new ArgumentNullException($"Enviornment variable could not be located: NEXUSCACHEDIR");
                 return _localCacheDir;
             }
             set => _localCacheDir = value;

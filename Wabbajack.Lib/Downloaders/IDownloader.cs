@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {

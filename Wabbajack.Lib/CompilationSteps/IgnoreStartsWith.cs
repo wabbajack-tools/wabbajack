@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Newtonsoft.Json;
-#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {

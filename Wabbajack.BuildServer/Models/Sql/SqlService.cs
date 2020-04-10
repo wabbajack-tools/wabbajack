@@ -519,9 +519,8 @@ namespace Wabbajack.BuildServer.Model.Models
             var result = await conn.QueryFirstOrDefaultAsync<string>(@"SELECT JsonState FROM dbo.DownloadStates  
                                                                WHERE Hash = @hash AND PrimaryKey like 'NexusDownloader+State|%'",
                 new {Hash = (long)startingHash});
-            return result == null ? null : new Archive
+            return result == null ? null : new Archive(result.FromJsonString<AbstractDownloadState>())
             {
-                State = result.FromJsonString<AbstractDownloadState>(),
                 Hash = startingHash
             };
         }
@@ -531,9 +530,8 @@ namespace Wabbajack.BuildServer.Model.Models
             await using var conn = await Open();
             var result = await conn.QueryFirstOrDefaultAsync<(long Hash, string State)>(@"SELECT Hash, JsonState FROM dbo.DownloadStates WHERE PrimaryKey = @PrimaryKey",
                 new {PrimaryKey = primaryKey});
-            return result == default ? null : new Archive
+            return result == default ? null : new Archive(result.State.FromJsonString<AbstractDownloadState>())
             {
-                State = result.State.FromJsonString<AbstractDownloadState>(),
                 Hash = Hash.FromLong(result.Hash)
             };
         }

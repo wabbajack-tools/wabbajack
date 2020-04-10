@@ -24,7 +24,6 @@ using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
 using Path = Alphaleonis.Win32.Filesystem.Path;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {

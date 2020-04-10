@@ -8,7 +8,6 @@ using System.Web;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {

@@ -8,7 +8,6 @@ using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.VirtualFileSystem;
-#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -80,12 +79,12 @@ namespace Wabbajack.Lib.CompilationSteps
             CreateBSA directive;
             using (var bsa = BSADispatch.OpenRead(source.AbsolutePath))
             {
-                directive = new CreateBSA
+                directive = new CreateBSA(
+                    state: bsa.State, 
+                    items: bsa.Files.Select(f => f.State).ToList())
                 {
                     To = source.Path,
                     TempID = (RelativePath)id,
-                    State = bsa.State,
-                    FileStates = bsa.Files.Select(f => f.State).ToList()
                 };
             }
 

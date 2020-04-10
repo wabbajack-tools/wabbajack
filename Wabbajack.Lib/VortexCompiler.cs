@@ -15,7 +15,6 @@ using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Game = Wabbajack.Common.Game;
-#nullable enable
 
 namespace Wabbajack.Lib
 {

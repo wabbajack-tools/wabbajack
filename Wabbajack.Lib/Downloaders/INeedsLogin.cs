@@ -2,7 +2,6 @@
 using System.Reactive;
 using System.Security;
 using ReactiveUI;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -12,7 +11,7 @@ namespace Wabbajack.Lib.Downloaders
         ReactiveCommand<Unit, Unit> ClearLogin { get; }
         IObservable<bool> IsLoggedIn { get; }
         string SiteName { get; }
-        IObservable<string> MetaInfo { get; }
+        IObservable<string>? MetaInfo { get; }
         Uri SiteURL { get; }
         Uri? IconUri { get; }
     }

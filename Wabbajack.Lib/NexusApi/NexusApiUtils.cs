@@ -19,15 +19,10 @@ namespace Wabbajack.Lib.NexusApi
 
         public static string FixupSummary(string argSummary)
         {
-            if (argSummary != null)
-            {
-                return argSummary.Replace("&#39;", "'")
-                                 .Replace("<br/>", "\n\n")
-                                 .Replace("<br />", "\n\n")
-                                 .Replace("&#33;", "!");
-            }
-
-            return argSummary;
+            return argSummary.Replace("&#39;", "'")
+                             .Replace("<br/>", "\n\n")
+                             .Replace("<br />", "\n\n")
+                             .Replace("&#33;", "!");
         }
     }
 }

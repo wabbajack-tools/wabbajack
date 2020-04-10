@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using Wabbajack.Common;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
-#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {

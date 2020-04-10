@@ -1,7 +1,6 @@
 ﻿using System;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {

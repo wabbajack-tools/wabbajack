@@ -21,7 +21,17 @@ namespace Wabbajack.Lib.Downloaders
         private readonly string _encryptedKeyName;
         private readonly string _cookieDomain;
         private readonly string _cookieName;
-        internal Common.Http.Client AuthedClient;
+        // ToDo
+        // Remove null assignment.  Either add nullability to type, or figure way to prepare it safely
+        public Common.Http.Client AuthedClient { get; private set; } = null!;
+
+        public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
+        public ReactiveCommand<Unit, Unit> ClearLogin { get; }
+        public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable(_encryptedKeyName);
+        public abstract string SiteName { get; }
+        public virtual IObservable<string>? MetaInfo { get; }
+        public abstract Uri SiteURL { get; }
+        public virtual Uri? IconUri { get; }
 
         /// <summary>
         /// Sets up all the login facilites needed for a INeedsLogin downloader based on having the user log
@@ -48,14 +58,6 @@ namespace Wabbajack.Lib.Downloaders
                 execute: () => Utils.CatchAndLog(() => Utils.DeleteEncryptedJson(_encryptedKeyName)),
                 canExecute: IsLoggedIn.ObserveOnGuiThread());
         }
-        
-        public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
-        public ReactiveCommand<Unit, Unit> ClearLogin { get; }
-        public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable(_encryptedKeyName);
-        public abstract string SiteName { get; }
-        public virtual IObservable<string> MetaInfo { get; }
-        public abstract Uri SiteURL { get; }
-        public virtual Uri IconUri { get; }
 
         protected virtual async Task WhileWaiting(IWebDriver browser)
         {
@@ -120,7 +122,7 @@ namespace Wabbajack.Lib.Downloaders
                 Downloader = downloader;
             }
             public override string ShortDescription => $"Getting {Downloader.SiteName} Login";
-            public override string ExtendedDescription { get; }
+            public override string ExtendedDescription { get; } = string.Empty;
 
             private readonly TaskCompletionSource<Helpers.Cookie[]> _source = new TaskCompletionSource<Helpers.Cookie[]>();
             public Task<Helpers.Cookie[]> Task => _source.Task;

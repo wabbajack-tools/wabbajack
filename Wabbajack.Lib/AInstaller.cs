@@ -13,7 +13,6 @@ using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
-#nullable enable
 
 namespace Wabbajack.Lib
 {
@@ -30,9 +29,9 @@ namespace Wabbajack.Lib
         public ModList ModList { get; private set; }
         public Dictionary<Hash, AbsolutePath> HashedArchives { get; } = new Dictionary<Hash, AbsolutePath>();
         
-        public SystemParameters SystemParameters { get; set; }
+        public SystemParameters? SystemParameters { get; set; }
 
-        public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters, int steps)
+        public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters? parameters, int steps)
             : base(steps)
         {
             ModList = modList;
@@ -168,6 +167,10 @@ namespace Wabbajack.Lib
                   .PDoIndexed(queue, async (idx, group) =>
             {
                 Utils.Status("Installing files", Percent.FactoryPutInRange(idx, vFiles.Count));
+                if (group.Key == null)
+                {
+                    throw new ArgumentNullException("FromFile was null");
+                }
                 var firstDest = OutputFolder.Combine(group.First().To);
                 await CopyFile(group.Key.StagedPath, firstDest, true);
                 
@@ -175,7 +178,6 @@ namespace Wabbajack.Lib
                 {
                     await CopyFile(firstDest, OutputFolder.Combine(copy.To), false);
                 }
-
             });
 
             Status("Unstaging files");

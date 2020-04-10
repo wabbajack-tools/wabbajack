@@ -21,7 +21,6 @@ using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 using SectionData = Wabbajack.Common.SectionData;
-#nullable enable
 
 namespace Wabbajack.Lib
 {
@@ -332,6 +331,10 @@ namespace Wabbajack.Lib
 
         private void SetScreenSizeInPrefs()
         {
+            if (SystemParameters == null)
+            {
+                throw new ArgumentNullException("System Parameters was null.  Cannot set screen size prefs");
+            }
             var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
             foreach (var file in OutputFolder.Combine("profiles").EnumerateFiles()
                 .Where(f => ((string)f.FileName).EndsWith("refs.ini")))

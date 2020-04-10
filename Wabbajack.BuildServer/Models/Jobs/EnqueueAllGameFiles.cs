@@ -53,7 +53,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
                 var with_hash = states.Where(state => state.Hash != default).ToList();
                 Utils.Log($"Inserting {with_hash.Count} jobs.");
-                var jobs = states.Select(state => new IndexJob {Archive = new Archive {Name = state.GameFile.FileName.ToString(), State = state}})
+                var jobs = states.Select(state => new IndexJob {Archive = new Archive(state) { Name = state.GameFile.FileName.ToString()}})
                     .Select(j => new Job {Payload = j, RequiresNexus = j.UsesNexus})
                     .ToList();
 

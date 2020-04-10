@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {
@@ -84,7 +83,9 @@ namespace Wabbajack.Lib.Downloaders
         public async Task<bool> Download(AbsolutePath destination)
         {
             destination.Parent.CreateDirectory();
-            return await Download(new Archive {Name = (string)destination.FileName}, destination);
+            // ToDo
+            // Is this null override needed?  Why is state allowed to be null here?
+            return await Download(new Archive(state: null!) {Name = (string)destination.FileName}, destination);
         }
 
         /// <summary>

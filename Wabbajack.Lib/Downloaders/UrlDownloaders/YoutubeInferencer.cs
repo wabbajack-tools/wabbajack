@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using YoutubeExplode;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders.UrlDownloaders
 {

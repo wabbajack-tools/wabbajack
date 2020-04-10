@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Exceptions;
-#nullable enable
 
 namespace Wabbajack.Lib
 {

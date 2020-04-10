@@ -4,7 +4,6 @@ using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
 using Game = Wabbajack.Common.Game;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {

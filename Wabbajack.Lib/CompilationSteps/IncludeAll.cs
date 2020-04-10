@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
-#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {

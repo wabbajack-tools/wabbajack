@@ -10,33 +10,32 @@ namespace Wabbajack.Lib.Validation
         public bool? CanUseInOtherGames { get; set; }
     }
 
-    public class Author
-    {
-        public Permissions Permissions { get; set; }
-        public Dictionary<string, Game> Games;
-    }
+    //public class Author
+    //{
+    //    public Permissions Permissions { get; set; }
+    //    public Dictionary<string, Game> Games;
+    //}
 
-    public class Game
-    {
-        public Permissions Permissions;
-        public Dictionary<string, Mod> Mods;
-    }
+    //public class Game
+    //{
+    //    public Permissions Permissions;
+    //    public Dictionary<string, Mod> Mods;
+    //}
 
-    public class Mod
-    {
-        public Permissions Permissions;
-        public Dictionary<string, File> Files;
-    }
+    //public class Mod
+    //{
+    //    public Permissions Permissions;
+    //    public Dictionary<string, File> Files;
+    //}
 
-    public class File
-    {
-        public Permissions Permissions;
-    }
-
+    //public class File
+    //{
+    //    public Permissions Permissions;
+    //}
 
     public class ServerWhitelist
     {
-        public List<string> GoogleIDs;
-        public List<string> AllowedPrefixes;
+        public List<string> GoogleIDs = new List<string>();
+        public List<string> AllowedPrefixes = new List<string>();
     }
 }

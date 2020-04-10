@@ -14,7 +14,6 @@ using Wabbajack.VirtualFileSystem;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
-#nullable enable
 
 namespace Wabbajack.Lib
 {
@@ -243,10 +242,7 @@ namespace Wabbajack.Lib
                 Error(
                     $"No download metadata found for {archive.Name}, please use MO2 to query info or add a .meta file and try again.");
 
-            var result = new Archive
-            {
-                State = await DownloadDispatcher.ResolveArchive(archive.IniData)
-            };
+            var result = new Archive(await DownloadDispatcher.ResolveArchive(archive.IniData));
 
             if (result.State == null)
                 Error($"{archive.Name} could not be handled by any of the downloaders");

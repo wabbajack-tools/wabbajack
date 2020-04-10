@@ -38,10 +38,9 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 {
                     Payload = new IndexJob
                     {
-                        Archive = new Archive
+                        Archive = new Archive(new MegaDownloader.State(url.ToString()))
                         {
                             Name = Guid.NewGuid() + ".7z",
-                            State = new MegaDownloader.State(url.ToString())
                         }
                     }
                 })

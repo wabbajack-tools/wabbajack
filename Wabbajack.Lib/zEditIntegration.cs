@@ -9,7 +9,6 @@ using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 using System.Threading.Tasks;
-#nullable enable
 
 namespace Wabbajack.Lib
 {
@@ -151,7 +150,7 @@ namespace Wabbajack.Lib
                     return inline;
                 }
                 var result = source.EvolveTo<MergedPatch>();
-                result.Sources = merge.plugins.Select(f =>
+                result.Sources.SetTo(merge.plugins.Select(f =>
                 {
                     var origPath = (AbsolutePath)Path.Combine(f.dataFolder, f.filename);
                     var paths = new[]
@@ -172,10 +171,11 @@ namespace Wabbajack.Lib
                     try
                     {
                         hash = _compiler.VFS.Index.ByRootPath[absPath].Hash;
-                    } catch (KeyNotFoundException e)
+                    }
+                    catch (KeyNotFoundException e)
                     {
-                        Utils.ErrorThrow(e, $"Could not find the key {absPath} in the VFS Index dictionary!");
-                        return null;
+                        Utils.Error(e, $"Could not find the key {absPath} in the VFS Index dictionary!");
+                        throw;
                     }
 
                     return new SourcePatch
@@ -183,7 +183,7 @@ namespace Wabbajack.Lib
                         RelativePath = absPath.RelativeTo(_mo2Compiler.MO2Folder),
                         Hash = hash
                     };
-                }).ToList();
+                }));
 
                 var srcData = result.Sources.Select(f => _mo2Compiler.MO2Folder.Combine(f.RelativePath).ReadAllBytes())
                     .ConcatArrays();

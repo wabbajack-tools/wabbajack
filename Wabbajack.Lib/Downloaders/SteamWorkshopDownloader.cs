@@ -14,20 +14,21 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class SteamWorkshopDownloader : IUrlDownloader
     {
-        private SteamWorkshopItem _item;
-
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var id = archiveINI?.General?.itemID;
             var steamID = archiveINI?.General?.steamID;
             var size = archiveINI?.General?.itemSize;
-            _item = new SteamWorkshopItem
+            if (steamID == null)
+            {
+                throw new ArgumentException("Steam workshop item had no steam ID.");
+            }
+            var item = new SteamWorkshopItem(GameRegistry.GetBySteamID(int.Parse(steamID)))
             {
                 ItemID = id != null ? int.Parse(id) : 0,
                 Size = size != null ? int.Parse(size) : 0,
-                Game = steamID != null ? GameRegistry.GetBySteamID(int.Parse(steamID)) : null
             };
-            return new State {Item = _item};
+            return new State(item);
         }
 
         public async Task Prepare()
@@ -41,8 +42,14 @@ namespace Wabbajack.Lib.Downloaders
 
         public class State : AbstractDownloadState
         {
-            public SteamWorkshopItem Item { get; set; }
-            public override object[] PrimaryKey { get => new object[] {Item.Game, Item.ItemID}; }
+            public SteamWorkshopItem Item { get; }
+
+            public override object[] PrimaryKey => new object[] { Item.Game, Item.ItemID };
+
+            public State(SteamWorkshopItem item)
+            {
+                Item = item;
+            }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {

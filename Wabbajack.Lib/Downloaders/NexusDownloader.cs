@@ -12,7 +12,6 @@ using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
 using Game = Wabbajack.Common.Game;
-#nullable enable
 
 namespace Wabbajack.Lib.Downloaders
 {

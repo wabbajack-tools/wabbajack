@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Common.StoreHandlers;
-#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {

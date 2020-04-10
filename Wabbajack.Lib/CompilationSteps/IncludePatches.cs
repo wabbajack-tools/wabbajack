@@ -6,7 +6,6 @@ using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.VirtualFileSystem;
-#nullable enable
 
 namespace Wabbajack.Lib.CompilationSteps
 {

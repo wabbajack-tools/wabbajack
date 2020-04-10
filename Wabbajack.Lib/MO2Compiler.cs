@@ -20,7 +20,6 @@ using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Game = Wabbajack.Common.Game;
 using Path = Alphaleonis.Win32.Filesystem.Path;
-#nullable enable
 
 namespace Wabbajack.Lib
 {
@@ -175,9 +174,8 @@ namespace Wabbajack.Lib
 
             IndexedArchives = (await MO2DownloadsFolder.EnumerateFiles()
                 .Where(f => f.WithExtension(Consts.MetaFileExtension).Exists)
-                .PMap(Queue, async f => new IndexedArchive
+                .PMap(Queue, async f => new IndexedArchive(VFS.Index.ByRootPath[f])
                 {
-                    File = VFS.Index.ByRootPath[f],
                     Name = (string)f.FileName,
                     IniData = f.WithExtension(Consts.MetaFileExtension).LoadIniFile(),
                     Meta = await f.WithExtension(Consts.MetaFileExtension).ReadAllTextAsync()

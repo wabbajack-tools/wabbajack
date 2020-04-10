@@ -2,7 +2,6 @@
 using System.Linq;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
-#nullable enable
 
 namespace Wabbajack.Lib
 {
@@ -42,12 +41,11 @@ namespace Wabbajack.Lib
             InstallSize = modlist.InstallSize;
 
             // meta is being omitted due to it being useless and not very space friendly
-            Archives = modlist.Archives.Select(a => new Archive
+            Archives = modlist.Archives.Select(a => new Archive(a.State)
             {
                 Hash = a.Hash,
                 Name = a.Name,
                 Size = a.Size,
-                State = a.State
             }).ToList();
         }
     }

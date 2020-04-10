@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.VirtualFileSystem;
-#nullable enable
 
 namespace Wabbajack.Lib
 {
