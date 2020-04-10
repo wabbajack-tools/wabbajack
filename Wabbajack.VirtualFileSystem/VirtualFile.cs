@@ -180,7 +180,7 @@ namespace Wabbajack.VirtualFileSystem
             if (context.UseExtendedHashes)
                 self.ExtendedHashes = ExtendedHashes.FromFile(absPath);
 
-            if (FileExtractor.CanExtract(absPath))
+            if (await FileExtractor.CanExtract(absPath))
             {
                 await using var tempFolder = Context.GetTemporaryFolder();
                 await FileExtractor.ExtractAll(context.Queue, absPath, tempFolder.FullName);

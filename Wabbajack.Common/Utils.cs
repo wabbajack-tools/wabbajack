@@ -517,7 +517,6 @@ namespace Wabbajack.Common
 
             return await Task.WhenAll(tasks);
         }
-
         public static async Task<TR[]> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue,
             Func<TI, Task<TR>> f)
         {
@@ -956,7 +955,7 @@ namespace Wabbajack.Common
         {
             var process = new ProcessHelper
             {
-                Path = "cmd.exe",
+                Path = ((RelativePath)"cmd.exe").RelativeToSystemDirectory(),
                 Arguments = new object[] {"/c", "del", "/f", "/q", "/s", $"\"{(string)path}\"", "&&", "rmdir", "/q", "/s", $"\"{(string)path}\""},
             };
             var result = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
