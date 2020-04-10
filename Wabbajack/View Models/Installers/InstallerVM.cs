@@ -302,7 +302,7 @@ namespace Wabbajack
                             .Select(x => x?.Name),
                     resultSelector: (err, name) =>
                     {
-                        if (err) return "Corrupted Modlist";
+                        if (err) return "Corrupted or Outdated Modlist";
                         return name;
                     })
                 .ToGuiProperty(this, nameof(ModListName));

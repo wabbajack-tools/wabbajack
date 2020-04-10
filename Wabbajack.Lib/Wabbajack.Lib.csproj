@@ -92,12 +92,6 @@
       <None Update="concrt140.dll">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <Compile Remove="VortexCompiler.cs" />
-      <None Include="VortexCompiler.cs" />
-      <Compile Remove="CompilationSteps\IgnoreDisabledVortexMods.cs" />
-      <None Include="CompilationSteps\IgnoreDisabledVortexMods.cs" />
-      <Compile Remove="CompilationSteps\IgnoreVortex.cs" />
-      <None Include="CompilationSteps\IgnoreVortex.cs" />
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Downloaders\BethesdaNet" />

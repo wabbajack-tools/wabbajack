@@ -20,8 +20,7 @@ namespace Wabbajack.BuildServer.Test
     {
         private static string CONN_STR = @"Data Source=.\SQLEXPRESS;Integrated Security=True;";
         public string PublicConnStr => CONN_STR + $";Initial Catalog={DBName}";
-        private AppSettings _appSettings;
-        protected SqlService _sqlService;
+        protected SqlService SqlService;
         private bool _finishedSchema;
         private string DBName { get; }
 

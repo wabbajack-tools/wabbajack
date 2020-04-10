@@ -50,7 +50,6 @@ namespace Wabbajack.BuildServer.Test
         {
             var sqlService = Fixture.GetService<SqlService>();
             var modId = long.MaxValue >> 1;
-            var fileId = long.MaxValue >> 2;
             await sqlService.AddNexusModFiles(Game.SkyrimSpecialEdition, modId,  DateTime.Now, 
                 new NexusApiClient.GetModFilesResponse {files = new List<NexusFileInfo>
                 {

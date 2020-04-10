@@ -115,7 +115,7 @@ namespace Wabbajack.Lib.NexusApi
                     key = await browser.EvaluateJavaScript(
                         "document.querySelector(\"input[value=wabbajack]\").parentElement.parentElement.querySelector(\"textarea.application-key\").innerHTML");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // ignored
                 }
