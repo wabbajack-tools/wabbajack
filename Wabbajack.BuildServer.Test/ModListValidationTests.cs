@@ -93,8 +93,9 @@ namespace Wabbajack.BuildServer.Test
             Assert.IsType<UpdateModLists>(job.Payload);
 
 
-            var jobResult = await job.Payload.Execute(sql, settings);
-            Assert.Equal(JobResultType.Success, jobResult.ResultType);
+            job.Result = await job.Payload.Execute(sql, settings);
+            await sql.FinishJob(job);
+            Assert.Equal(JobResultType.Success, job.Result.ResultType);
         }
 
         private async Task CheckListFeeds(int failed, int passed)

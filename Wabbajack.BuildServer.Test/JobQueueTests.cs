@@ -23,11 +23,14 @@ namespace Wabbajack.BuildServer.Test
             var found = await sqlService.GetJob();
             Assert.NotNull(found);
             Assert.IsAssignableFrom<GetNexusUpdatesJob>(found.Payload);
+            found.Result = JobResult.Success();
+            await sqlService.FinishJob(found);
         }
         
         [Fact]
         public async Task PriorityMatters()
         {
+            await ClearJobQueue();
             var sqlService = Fixture.GetService<SqlService>();
             var priority = new List<Job.JobPriority>
             {
