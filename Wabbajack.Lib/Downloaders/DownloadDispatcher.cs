@@ -58,7 +58,6 @@ namespace Wabbajack.Lib.Downloaders
         public static T GetInstance<T>() where T : IDownloader
         {
             var inst = (T)IndexedDownloaders[typeof(T)];
-            inst.Prepare().FireAndForget();
             return inst;
         }
 
