@@ -204,6 +204,7 @@ GO
 CREATE TABLE [dbo].[Jobs](
                              [Id] [bigint] IDENTITY(1,1) NOT NULL,
                              [Priority] [int] NOT NULL,
+                             [PrimaryKeyString] [nvarchar](max) NULL,
                              [Started] [datetime] NULL,
                              [Ended] [datetime] NULL,
                              [Created] [datetime] NOT NULL,

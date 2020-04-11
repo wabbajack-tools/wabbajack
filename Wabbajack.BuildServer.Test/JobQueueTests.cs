@@ -41,6 +41,10 @@ namespace Wabbajack.BuildServer.Test
                 var found = await sqlService.GetJob();
                 Assert.NotNull(found);
                 Assert.Equal(pri, found.Priority);
+                found.Result = JobResult.Success();
+                
+                // Finish the job so the next can run
+                await sqlService.FinishJob(found);
             }
         }
 

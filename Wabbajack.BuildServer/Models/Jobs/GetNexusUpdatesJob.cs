@@ -71,6 +71,8 @@ namespace Wabbajack.BuildServer.Models.Jobs
             return JobResult.Success();
         }
 
+        protected override IEnumerable<object> PrimaryKey => new object[0];
+
         public static DateTime LastNexusSync { get; set; } = DateTime.Now;
         public static async Task<long> UpdateNexusCacheFast(SqlService sql)
         {

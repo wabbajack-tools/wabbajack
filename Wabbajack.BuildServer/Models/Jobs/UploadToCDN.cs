@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
@@ -71,6 +72,8 @@ namespace Wabbajack.BuildServer.Models.Jobs
             }
             return JobResult.Success();
         }
+
+        protected override IEnumerable<object> PrimaryKey => new object[] {FileId};
 
         public class Progress : IProgress<FluentFTP.FtpProgress>
         {

@@ -181,9 +181,10 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             await using var conn = await Open();
             await conn.ExecuteAsync(
-                @"INSERT INTO dbo.Jobs (Created, Priority, Payload, OnSuccess) VALUES (GETDATE(), @Priority, @Payload, @OnSuccess)",
+                @"INSERT INTO dbo.Jobs (Created, Priority, PrimaryKeyString, Payload, OnSuccess) VALUES (GETDATE(), @Priority, @PrimaryKeyString, @Payload, @OnSuccess)",
                 new {
                     job.Priority,
+                    PrimaryKeyString = job.Payload.PrimaryKeyString,
                     Payload = job.Payload.ToJson(), 
                     OnSuccess = job.OnSuccess?.ToJson() ?? null});
         }
@@ -217,7 +218,11 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             await using var conn = await Open();
             var result = await conn.QueryAsync<Job>(
-                @"UPDATE jobs SET Started = GETDATE(), RunBy = @RunBy WHERE ID in (SELECT TOP(1) ID FROM Jobs WHERE Started is NULL ORDER BY Priority DESC, Created);
+                @"UPDATE jobs SET Started = GETDATE(), RunBy = @RunBy 
+                        WHERE ID in (SELECT TOP(1) ID FROM Jobs 
+                                       WHERE Started is NULL
+                                       AND PrimaryKeyString NOT IN (SELECT PrimaryKeyString from jobs WHERE Started IS NOT NULL and Ended IS NULL)
+                                       ORDER BY Priority DESC, Created);
                       SELECT TOP(1) * FROM jobs WHERE RunBy = @RunBy ORDER BY Started DESC",
                 new {RunBy = Guid.NewGuid().ToString()});
             return result.FirstOrDefault();

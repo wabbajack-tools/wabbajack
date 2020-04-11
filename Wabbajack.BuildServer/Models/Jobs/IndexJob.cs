@@ -63,6 +63,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             return JobResult.Success();
         }
 
+        protected override IEnumerable<object> PrimaryKey => Archive.State.PrimaryKey;
     }
     
 }

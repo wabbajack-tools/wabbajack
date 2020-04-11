@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using FluentFTP;
@@ -73,6 +74,8 @@ namespace Wabbajack.BuildServer.Models
             return JobResult.Success();
             
         }
+
+        protected override IEnumerable<object> PrimaryKey => new object[] {Src, DestPK};
 
         public static AbsolutePath CdnPath(Hash srcHash, Hash destHash)
         {

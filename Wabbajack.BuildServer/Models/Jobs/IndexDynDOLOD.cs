@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -64,5 +65,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             return JobResult.Success();
 
         }
+
+        protected override IEnumerable<object> PrimaryKey => new object[0];
     }
 }

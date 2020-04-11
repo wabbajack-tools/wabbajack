@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.BuildServer.Model.Models;
@@ -43,7 +44,9 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
             return JobResult.Success();
         }
-        
+
+        protected override IEnumerable<object> PrimaryKey => new object[0];
+
         private async Task ValidateList(SqlService sql, ModlistMetadata list, WorkQueue queue, ValidateModlist whitelists)
         {
             var modlistPath = Consts.ModListDownloadFolder.Combine(list.Links.MachineURL + Consts.ModListExtension);
