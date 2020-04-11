@@ -20,7 +20,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         private readonly ITestOutputHelper _helper;
         private WorkQueue Queue { get; }
 
-        private VFSTests(ITestOutputHelper helper)
+        public VFSTests(ITestOutputHelper helper)
         {
             _helper = helper;
             Utils.LogMessages.Subscribe(f => _helper.WriteLine(f.ShortDescription));
