@@ -47,7 +47,15 @@ namespace Wabbajack.BuildServer.Test
                 Assert.Null(await sql.GetModFiles(record.Game, record.ModId));
                 Assert.Null(await sql.GetNexusModInfoString(record.Game, record.ModId));
             }
+        }
 
+        [Fact]
+        public async Task CanPrimeTheNexusCache()
+        {
+            var sql = Fixture.GetService<SqlService>();
+
+            Assert.True(await GetNexusUpdatesJob.UpdateNexusCacheFast(sql) > 0);
+            Assert.True(await GetNexusUpdatesJob.UpdateNexusCacheFast(sql) == 0);
         }
     }
 }

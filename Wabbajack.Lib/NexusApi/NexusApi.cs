@@ -252,7 +252,7 @@ namespace Wabbajack.Lib.NexusApi
 
 
                 await using var stream = await response.Content.ReadAsStreamAsync();
-                return stream.FromJson<T>();
+                return stream.FromJson<T>(genericReader:true);
             }
             catch (TimeoutException)
             {
@@ -321,10 +321,11 @@ namespace Wabbajack.Lib.NexusApi
             public List<NexusFileInfo> files { get; set; }
         }
 
-        public async Task<GetModFilesResponse> GetModFiles(Game game, long modid)
+        public async Task<GetModFilesResponse> GetModFiles(Game game, long modid, bool useCache = true)
+        
         {
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modid}/files.json";
-            var result = await GetCached<GetModFilesResponse>(url);
+            var result = useCache ? await GetCached<GetModFilesResponse>(url) : await Get<GetModFilesResponse>(url);
             if (result.files == null)
                 throw new InvalidOperationException("Got Null data from the Nexus while finding mod files");
             return result;
@@ -336,10 +337,15 @@ namespace Wabbajack.Lib.NexusApi
             return await Get<List<MD5Response>>(url);
         }
 
-        public async Task<ModInfo> GetModInfo(Game game, long modId)
+        public async Task<ModInfo> GetModInfo(Game game, long modId, bool useCache = true)
         {
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modId}.json";
-            return await GetCached<ModInfo>(url);
+            if (useCache)
+            {
+                return await GetCached<ModInfo>(url);
+            }
+
+            return await Get<ModInfo>(url);
         }
 
         private class DownloadLink

@@ -27,11 +27,14 @@ namespace Wabbajack.Common
         };
         
         public static JsonSerializerSettings JsonSettings  =>
-                    new JsonSerializerSettings {
-            TypeNameHandling = TypeNameHandling.Objects,
-            SerializationBinder = new JsonNameSerializationBinder(),
-            Converters = Converters};
-        
+            new JsonSerializerSettings {
+                TypeNameHandling = TypeNameHandling.Objects,
+                SerializationBinder = new JsonNameSerializationBinder(),
+                Converters = Converters};
+
+        public static JsonSerializerSettings GenericJsonSettings =>
+            new JsonSerializerSettings { };
+
 
         public static void ToJson<T>(this T obj, string filename)
         {
@@ -73,11 +76,11 @@ namespace Wabbajack.Common
             return JsonConvert.DeserializeObject<T>(data, JsonSettings)!;
         }
 
-        public static T FromJson<T>(this Stream stream)
+        public static T FromJson<T>(this Stream stream, bool genericReader = false)
         {
             using var tr = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
             using var reader = new JsonTextReader(tr);
-            var ser = JsonSerializer.Create(JsonSettings);
+            var ser = JsonSerializer.Create(genericReader ? GenericJsonSettings : JsonSettings);
             return ser.Deserialize<T>(reader);
         }
       
