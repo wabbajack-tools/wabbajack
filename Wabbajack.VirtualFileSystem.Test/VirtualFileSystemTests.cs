@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace Wabbajack.VirtualFileSystem.Test
 {
-    public class VFSTests
+    public class VFSTests : IAsyncLifetime
     {
         private static readonly AbsolutePath VFS_TEST_DIR = "vfs_test_dir".ToPath().RelativeToEntryPoint();
         private static readonly AbsolutePath TEST_ZIP = "test.zip".RelativeTo(VFS_TEST_DIR);
@@ -18,21 +18,24 @@ namespace Wabbajack.VirtualFileSystem.Test
         private Context context;
 
         private readonly ITestOutputHelper _helper;
-        private WorkQueue Queue { get; }
+        private WorkQueue Queue { get; } = new WorkQueue();
 
         public VFSTests(ITestOutputHelper helper)
         {
             _helper = helper;
             Utils.LogMessages.Subscribe(f => _helper.WriteLine(f.ShortDescription));
-            Queue = new WorkQueue();
             context = new Context(Queue);
         }
 
-        public static async Task<VFSTests> Factory(ITestOutputHelper helper)
+        public async Task InitializeAsync()
         {
             await VFS_TEST_DIR.DeleteDirectory();
             VFS_TEST_DIR.CreateDirectory();
-            return new VFSTests(helper);
+        }
+
+        public async Task DisposeAsync()
+        {
+            await VFS_TEST_DIR.DeleteDirectory();
         }
 
         [Fact]
@@ -55,7 +58,6 @@ namespace Wabbajack.VirtualFileSystem.Test
             await context.WriteToFile("vfs_cache.bin".RelativeTo(VFS_TEST_DIR));
             await context.IntegrateFromFile( "vfs_cache.bin".RelativeTo(VFS_TEST_DIR));
         }
-
 
         [Fact]
         public async Task ArchiveContentsAreIndexed()
