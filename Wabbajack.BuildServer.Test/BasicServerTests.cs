@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Wabbajack.BuildServer.Controllers;
 using Wabbajack.Common;
 using Xunit;
 using Xunit.Abstractions;
@@ -15,8 +16,8 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanGetHeartbeat()
         {
-            var heartbeat = (await _client.GetStringAsync(MakeURL("heartbeat"))).FromJsonString<string>();
-            Assert.True(TimeSpan.Parse(heartbeat) > TimeSpan.Zero);
+            var heartbeat = (await _client.GetStringAsync(MakeURL("heartbeat"))).FromJsonString<Heartbeat.HeartbeatResult>();
+            Assert.True(heartbeat.Uptime > TimeSpan.Zero);
         }
 
         [Fact]

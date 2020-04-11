@@ -4,7 +4,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.Asn1.Cms;
 using Wabbajack.BuildServer.Model.Models;
+using Wabbajack.BuildServer.Models.Jobs;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Common.StatusFeed;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -36,9 +39,20 @@ namespace Wabbajack.BuildServer.Controllers
         }
 
         [HttpGet]
-        public async Task<TimeSpan> GetHeartbeat()
+        public async Task<IActionResult> GetHeartbeat()
         {
-            return DateTime.Now - _startTime;
+            return Ok(new HeartbeatResult
+            {
+                Uptime = DateTime.Now - _startTime,
+                LastNexusUpdate = DateTime.Now - GetNexusUpdatesJob.LastNexusSync
+            });
+        }
+
+        [JsonName("HeartbeatResult")]
+        public class HeartbeatResult
+        {
+            public TimeSpan Uptime { get; set; }
+            public TimeSpan LastNexusUpdate { get; set; }
         }
 
         [HttpGet("only-authenticated")]

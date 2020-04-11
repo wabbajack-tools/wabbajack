@@ -575,7 +575,7 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             await using var conn = await Open();
             var deleted = await conn.ExecuteScalarAsync<long>(
-                @"DELETE FROM dbo.NexusModInfos WHERE Game = @Game AND ModID = @ModId AND LastChecked <= @Date
+                @"DELETE FROM dbo.NexusModInfos WHERE Game = @Game AND ModID = @ModId AND LastChecked < @Date
                       SELECT @@ROWCOUNT AS Deleted",
                 new {Game = game.MetaData().NexusGameId, ModId = modId, @Date = date});
             return deleted;
@@ -585,9 +585,9 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             await using var conn = await Open();
             var deleted = await conn.ExecuteScalarAsync<long>(
-                @"DELETE FROM dbo.NexusModFiles WHERE Game = @Game AND ModID = @ModId AND LastChecked <= @Date
+                @"DELETE FROM dbo.NexusModFiles WHERE Game = @Game AND ModID = @ModId AND LastChecked < @Date
                       SELECT @@ROWCOUNT AS Deleted",
-                new {Game = game.MetaData().NexusGameId, ModId = modId, @Date = date});
+                new {Game = game.MetaData().NexusGameId, ModId = modId, Date = date});
             return deleted;
         }
 

@@ -10,6 +10,7 @@ using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
 using Wabbajack.BuildServer.Models.Jobs;
 using Wabbajack.Common;
+using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack.BuildServer
 {
@@ -74,6 +75,9 @@ namespace Wabbajack.BuildServer
             Utils.LogMessages.Subscribe(Heartbeat.AddToLog);
             Utils.LogMessages.OfType<IUserIntervention>().Subscribe(u => u.Cancel());
             if (!Settings.JobScheduler) return;
+
+            var task = RunNexusCacheLoop();
+            
             while (true)
             {
                 await KillOrphanedJobs();
@@ -83,6 +87,15 @@ namespace Wabbajack.BuildServer
                 await ScheduledJob<EnqueueAllGameFiles>(TimeSpan.FromHours(24), Job.JobPriority.High);
                 await ScheduledJob<IndexDynDOLOD>(TimeSpan.FromHours(1), Job.JobPriority.Normal);
                 await Task.Delay(10000);
+            }
+        }
+
+        private async Task RunNexusCacheLoop()
+        {
+            while (true)
+            {
+                await GetNexusUpdatesJob.UpdateNexusCacheFast(Sql);
+                await Task.Delay(TimeSpan.FromMinutes(1));
             }
         }
 
