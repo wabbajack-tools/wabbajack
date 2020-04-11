@@ -96,8 +96,9 @@ namespace Wabbajack.Lib.Downloaders
                 result.ToEcryptedJson(DataName);
                 return result;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Utils.Error(ex, "Could not save Bethesda.NET login info");
                 return null;
             }
         }
@@ -363,6 +364,7 @@ namespace Wabbajack.Lib.Downloaders
 
     }
 
+    [JsonName("BethesdaNetData")]
     public class BethesdaNetData
     {
         public string body { get; set; }

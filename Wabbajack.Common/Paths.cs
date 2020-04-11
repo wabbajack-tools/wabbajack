@@ -145,13 +145,16 @@ namespace Wabbajack.Common
             }
         }
 
+        /// <summary>
+        /// Returns the full path the folder that contains Wabbajack.Common. This will almost always be
+        /// where all the binaries for the project reside.
+        /// </summary>
+        /// <exception cref="ArgumentException"></exception>
         public static AbsolutePath EntryPoint
         {
             get
             {
-                var location = Assembly.GetEntryAssembly()?.Location ?? null;
-                if (location == null)
-                    location = Assembly.GetExecutingAssembly().Location ?? null;
+                var location = Assembly.GetExecutingAssembly().Location ?? null;
                 if (location == null)
                     throw new ArgumentException("Could not find entry point.");
                 return ((AbsolutePath)location).Parent;
