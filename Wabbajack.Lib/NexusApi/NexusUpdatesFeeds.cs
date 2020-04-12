@@ -65,7 +65,8 @@ namespace Wabbajack.Lib.NexusApi
                     }
 
                     return null;
-                }).Where(v => v != null);
+                })
+                .NotNull();
         }
 
 
