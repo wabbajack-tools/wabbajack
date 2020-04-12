@@ -42,9 +42,9 @@ namespace Wabbajack.Lib
 
         public bool IgnoreMissingFiles { get; set; }
 
-        public readonly List<Archive> SelectedArchives = new List<Archive>();
-        public readonly List<Directive> InstallDirectives = new List<Directive>();
-        public readonly List<RawSourceFile> AllFiles = new List<RawSourceFile>();
+        public List<Archive> SelectedArchives { get; protected set; } = new List<Archive>();
+        public List<Directive> InstallDirectives { get; protected set; } = new List<Directive>();
+        public List<RawSourceFile> AllFiles { get; protected set; } = new List<RawSourceFile>();
         public ModList ModList = new ModList();
 
         public List<IndexedArchive> IndexedArchives = new List<IndexedArchive>();

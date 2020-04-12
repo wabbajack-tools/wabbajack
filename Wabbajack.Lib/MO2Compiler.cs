@@ -53,7 +53,7 @@ namespace Wabbajack.Lib
 
         public AbsolutePath MO2ProfileDir => MO2Folder.Combine("profiles", MO2Profile);
 
-        public ConcurrentBag<Directive> ExtraFiles { get; } = new ConcurrentBag<Directive>();
+        public ConcurrentBag<Directive> ExtraFiles { get; private set; } = new ConcurrentBag<Directive>();
         public Dictionary<AbsolutePath, dynamic> ModInis { get; } = new Dictionary<AbsolutePath, dynamic>();
 
         public HashSet<string> SelectedProfiles { get; set; } = new HashSet<string>();
@@ -409,10 +409,10 @@ namespace Wabbajack.Lib
         /// </summary>
         private void ResetMembers()
         {
-            AllFiles.Clear();
-            InstallDirectives.Clear();
-            SelectedArchives.Clear();
-            ExtraFiles.Clear();
+            AllFiles = new List<RawSourceFile>();
+            InstallDirectives = new List<Directive>();
+            SelectedArchives = new List<Archive>();
+            ExtraFiles = new ConcurrentBag<Directive>();
         }
 
         /// <summary>
