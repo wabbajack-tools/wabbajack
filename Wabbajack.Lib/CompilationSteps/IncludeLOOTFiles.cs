@@ -14,7 +14,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _prefix = Consts.LOOTFolderFilesDir + "\\";
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!source.Path.StartsWith(_prefix)) return null;
             var result = source.EvolveTo<InlineFile>();

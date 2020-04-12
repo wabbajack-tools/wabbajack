@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -19,10 +19,10 @@ namespace Wabbajack.Lib
 {
     public abstract class ACompiler : ABatchProcessor
     {
-        public string ModListName, ModListAuthor, ModListDescription, ModListWebsite;
+        public string? ModListName, ModListAuthor, ModListDescription, ModListWebsite;
         public AbsolutePath ModListImage, ModListReadme;
         public bool ReadmeIsWebsite;
-        protected Version WabbajackVersion;
+        protected Version? WabbajackVersion;
 
         public abstract AbsolutePath VFSCacheName { get; }
         //protected string VFSCacheName => Path.Combine(Consts.LocalAppDataPath, $"vfs_compile_cache.bin");
@@ -42,13 +42,18 @@ namespace Wabbajack.Lib
 
         public bool IgnoreMissingFiles { get; set; }
 
-        public ICollection<Archive> SelectedArchives = new List<Archive>();
-        public List<Directive> InstallDirectives = new List<Directive>();
-        public List<RawSourceFile> AllFiles = new List<RawSourceFile>();
+        public List<Archive> SelectedArchives { get; protected set; } = new List<Archive>();
+        public List<Directive> InstallDirectives { get; protected set; } = new List<Directive>();
+        public List<RawSourceFile> AllFiles { get; protected set; } = new List<RawSourceFile>();
         public ModList ModList = new ModList();
 
         public List<IndexedArchive> IndexedArchives = new List<IndexedArchive>();
         public Dictionary<Hash, IEnumerable<VirtualFile>> IndexedFiles = new Dictionary<Hash, IEnumerable<VirtualFile>>();
+
+        public ACompiler(int steps)
+            : base(steps)
+        {
+        }
 
         public static void Info(string msg)
         {
@@ -216,7 +221,7 @@ namespace Wabbajack.Lib
                 .GroupBy(f => f.File.Hash)
                 .ToDictionary(f => f.Key, f => f.First());
 
-            SelectedArchives = await hashes.PMap(Queue, hash => ResolveArchive(hash, archives));
+            SelectedArchives.SetTo(await hashes.PMap(Queue, hash => ResolveArchive(hash, archives)));
         }
 
         public async Task<Archive> ResolveArchive(Hash hash, IDictionary<Hash, IndexedArchive> archives)
@@ -226,8 +231,7 @@ namespace Wabbajack.Lib
                 return await ResolveArchive(found);
             }
 
-            Error($"No match found for Archive sha: {hash.ToBase64()} this shouldn't happen");
-            return null;
+            throw new ArgumentException($"No match found for Archive sha: {hash.ToBase64()} this shouldn't happen");
         }
 
         public async Task<Archive> ResolveArchive(IndexedArchive archive)
@@ -238,10 +242,7 @@ namespace Wabbajack.Lib
                 Error(
                     $"No download metadata found for {archive.Name}, please use MO2 to query info or add a .meta file and try again.");
 
-            var result = new Archive
-            {
-                State = await DownloadDispatcher.ResolveArchive(archive.IniData)
-            };
+            var result = new Archive(await DownloadDispatcher.ResolveArchive(archive.IniData));
 
             if (result.State == null)
                 Error($"{archive.Name} could not be handled by any of the downloaders");

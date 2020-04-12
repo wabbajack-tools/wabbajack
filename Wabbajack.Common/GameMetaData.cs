@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.Win32;
@@ -85,23 +86,44 @@ namespace Wabbajack.Common
         {
             get
             {
-                AbsolutePath? gameLoc = GameLocation();
-                if (gameLoc == null)
+                if (!TryGetGameLocation(out var gameLoc))
                     throw new GameNotInstalledException(this);
                 if (MainExecutable == null)
                     throw new NotImplementedException();
 
-                return FileVersionInfo.GetVersionInfo((string)gameLoc.Value.Combine(MainExecutable)).ProductVersion;
+                return FileVersionInfo.GetVersionInfo((string)gameLoc.Combine(MainExecutable)).ProductVersion;
             }
         }
 
-        public bool IsInstalled => GameLocation() != null;
+        public bool IsInstalled => TryGetGameLocation() != null;
 
         public string? MainExecutable { get; internal set; }
 
-        public AbsolutePath? GameLocation()
+        public AbsolutePath? TryGetGameLocation()
         {
-            return Consts.TestMode ? AbsolutePath.GetCurrentDirectory() : StoreHandler.Instance.GetGamePath(Game);
+            return Consts.TestMode ? AbsolutePath.GetCurrentDirectory() : StoreHandler.Instance.TryGetGamePath(Game);
+        }
+
+        public bool TryGetGameLocation(out AbsolutePath path)
+        {
+            var ret = TryGetGameLocation();
+            if (ret != null)
+            {
+                path = ret.Value;
+                return true;
+            }
+            else
+            {
+                path = default;
+                return false;
+            }
+        }
+
+        public AbsolutePath GameLocation()
+        {
+            var ret = TryGetGameLocation();
+            if (ret == null) throw new ArgumentNullException();
+            return ret.Value;
         }
     }
 
@@ -156,22 +178,36 @@ namespace Wabbajack.Common
         }
 
         /// <summary>
-        /// Tries to parse game data from an arbitrary string. Tries first via parsing as a game Enum, then by Nexus name,
-        /// <param nambe="someName"></param>
-        /// <returns></returns>
-        public static GameMetaData? GetByFuzzyName(string someName)
+        /// Parse game data from an arbitrary string. Tries first via parsing as a game Enum, then by Nexus name.
+        /// <param nambe="someName">Name to query</param>
+        /// <returns>GameMetaData found</returns>
+        /// <exception cref="ArgumentNullException">If string could not be translated to a game</exception>
+        public static GameMetaData GetByFuzzyName(string someName)
+        {
+            return TryGetByFuzzyName(someName) ?? throw new ArgumentNullException($"{someName} could not be translated to a game");
+        }
+
+        /// <summary>
+        /// Tries to parse game data from an arbitrary string. Tries first via parsing as a game Enum, then by Nexus name.
+        /// <param nambe="someName">Name to query</param>
+        /// <returns>GameMetaData if found, otherwise null</returns>
+        public static GameMetaData? TryGetByFuzzyName(string someName)
         {
             if (Enum.TryParse(typeof(Game), someName, true, out var metadata)) return ((Game)metadata!).MetaData();
 
-            GameMetaData? result = null;
-
-            result = GetByNexusName(someName);
+            GameMetaData? result = GetByNexusName(someName);
             if (result != null) return result;
 
             result = GetByMO2ArchiveName(someName);
             if (result != null) return result;
 
             return int.TryParse(someName, out int id) ? GetBySteamID(id) : null;
+        }
+
+        public static bool TryGetByFuzzyName(string someName, [MaybeNullWhen(false)] out GameMetaData gameMetaData)
+        {
+            gameMetaData = TryGetByFuzzyName(someName);
+            return gameMetaData != null;
         }
 
         public static IReadOnlyDictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>

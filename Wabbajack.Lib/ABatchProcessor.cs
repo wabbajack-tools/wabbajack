@@ -15,9 +15,9 @@ namespace Wabbajack.Lib
     {
         public WorkQueue Queue { get; } = new WorkQueue();
 
-        public Context VFS { get; private set; }
+        public Context VFS { get; }
 
-        protected StatusUpdateTracker UpdateTracker { get; private set; }
+        protected StatusUpdateTracker UpdateTracker { get; }
 
         private Subject<Percent> _percentCompleted { get; } = new Subject<Percent>();
 
@@ -42,7 +42,6 @@ namespace Wabbajack.Lib
         private Subject<bool> _isRunning { get; } = new Subject<bool>();
         public IObservable<bool> IsRunning => _isRunning;
 
-        private int _configured;
         private int _started;
         private readonly CancellationTokenSource _cancel = new CancellationTokenSource();
 
@@ -53,21 +52,16 @@ namespace Wabbajack.Lib
         public BehaviorSubject<byte> MaxCores = new BehaviorSubject<byte>(byte.MaxValue);
         public BehaviorSubject<Percent> TargetUsagePercent = new BehaviorSubject<Percent>(Percent.One);
 
-        protected void ConfigureProcessor(int steps, IObservable<int> numThreads = null)
+        public ABatchProcessor(int steps)
         {
-            if (1 == Interlocked.CompareExchange(ref _configured, 1, 1))
-            {
-                throw new InvalidDataException("Can't configure a processor twice");
-            }
-            Queue.SetActiveThreadsObservable(numThreads);
             UpdateTracker = new StatusUpdateTracker(steps);
+            VFS = new Context(Queue) { UpdateTracker = UpdateTracker };
             Queue.Status.Subscribe(_queueStatus)
                 .DisposeWith(_subs);
             Queue.LogMessages.Subscribe(_logMessages)
                 .DisposeWith(_subs);
             UpdateTracker.Progress.Subscribe(_percentCompleted);
             UpdateTracker.StepName.Subscribe(_textStatus);
-            VFS = new Context(Queue) { UpdateTracker = UpdateTracker };
         }
 
         /// <summary>

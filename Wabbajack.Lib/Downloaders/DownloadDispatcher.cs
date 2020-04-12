@@ -43,7 +43,7 @@ namespace Wabbajack.Lib.Downloaders
             IndexedDownloaders = Downloaders.ToDictionary(d => d.GetType());
         }
 
-        public static async Task<AbstractDownloadState> Infer(Uri uri)
+        public static async Task<AbstractDownloadState?> Infer(Uri uri)
         {
             foreach (var inf in Inferencers)
             {
@@ -73,7 +73,7 @@ namespace Wabbajack.Lib.Downloaders
         /// </summary>
         /// <param name="ini"></param>
         /// <returns></returns>
-        public static AbstractDownloadState ResolveArchive(string url)
+        public static AbstractDownloadState? ResolveArchive(string url)
         {
             return Downloaders.OfType<IUrlDownloader>().Select(d => d.GetDownloaderState(url)).FirstOrDefault(result => result != null);
         }
@@ -111,13 +111,9 @@ namespace Wabbajack.Lib.Downloaders
             var patchName = $"{archive.Hash.ToHex()}_{upgrade.Hash.ToHex()}";
             var patchPath = destination.Parent.Combine("_Patch_" + patchName);
 
-            var patchState = new Archive
+            var patchState = new Archive(new HTTPDownloader.State($"https://wabbajackcdn.b-cdn.net/updates/{patchName}"))
             {
                 Name = patchName,
-                State = new HTTPDownloader.State
-                {
-                    Url = $"https://wabbajackcdn.b-cdn.net/updates/{patchName}"
-                }
             };
 
             var patchResult = await Download(patchState, patchPath);

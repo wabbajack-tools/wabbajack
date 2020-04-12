@@ -33,5 +33,32 @@ namespace Wabbajack
             yield return next;
             foreach (var itm in coll) yield return itm;
         }
+
+        /// <summary>
+        /// Converts and filters a nullable enumerable to a non-nullable enumerable
+        /// </summary>
+        public static IEnumerable<T> NotNull<T>(this IEnumerable<T?> e)
+            where T : class
+        {
+            // Filter out nulls
+            return e.Where(e => e != null)
+                // Cast to non nullable type
+                .Select(e => e!);
+        }
+
+        /// <summary>
+        /// Selects items that are castable to the desired type
+        /// </summary>
+        /// <typeparam name="T">Type of the original enumerable to cast from</typeparam>
+        /// <typeparam name="R">Type to attempt casting to</typeparam>
+        /// <param name="e">Enumerable to process</param>
+        /// <returns>Enumerable with only objects that were castable</returns>
+        public static IEnumerable<R> WhereCastable<T, R>(this IEnumerable<T> e)
+            where T : class
+            where R : T
+        {
+            return e.Where(e => e is R)
+                .Select(e => (R)e);
+        }
     }
 }

@@ -9,9 +9,9 @@ namespace Wabbajack.Lib
     public class ManuallyDownloadNexusFile : AUserIntervention
     {
         public  NexusDownloader.State State { get; }
-        public override string ShortDescription { get; }
-        public override string ExtendedDescription { get; }
-        
+        public override string ShortDescription { get; } = string.Empty;
+        public override string ExtendedDescription { get; } = string.Empty;
+
         private TaskCompletionSource<Uri> _tcs = new TaskCompletionSource<Uri>();
         public Task<Uri> Task => _tcs.Task;
 

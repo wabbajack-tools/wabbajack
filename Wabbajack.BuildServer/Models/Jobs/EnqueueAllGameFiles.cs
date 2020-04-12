@@ -21,13 +21,12 @@ namespace Wabbajack.BuildServer.Models.Jobs
             {
                 Utils.Log($"Indexing game files");
                 var states = GameRegistry.Games.Values
-                    .Where(game => game.GameLocation() != null && game.MainExecutable != null)
-                    .SelectMany(game => game.GameLocation().Value.EnumerateFiles()
-                        .Select(file => new GameFileSourceDownloader.State
+                    .Where(game => game.TryGetGameLocation() != null && game.MainExecutable != null)
+                    .SelectMany(game => game.GameLocation().EnumerateFiles()
+                        .Select(file => new GameFileSourceDownloader.State(game.InstalledVersion)
                         {
                             Game = game.Game,
-                            GameVersion = game.InstalledVersion,
-                            GameFile = file.RelativeTo(game.GameLocation().Value),
+                            GameFile = file.RelativeTo(game.GameLocation()),
                         }))
                     .ToList();
                 
@@ -41,7 +40,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
                 await states.PMap(queue, async state =>
                 {
-                    var path = state.Game.MetaData().GameLocation().Value.Combine(state.GameFile);
+                    var path = state.Game.MetaData().GameLocation().Combine(state.GameFile);
                     Utils.Log($"Hashing Game file {path}");
                     try
                     {
@@ -55,16 +54,15 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
                 var with_hash = states.Where(state => state.Hash != default).ToList();
                 Utils.Log($"Inserting {with_hash.Count} jobs.");
-                var jobs = states.Select(state => new IndexJob {Archive = new Archive {Name = state.GameFile.FileName.ToString(), State = state}})
+                var jobs = states.Select(state => new IndexJob {Archive = new Archive(state) { Name = state.GameFile.FileName.ToString()}})
                     .Select(j => new Job {Payload = j, RequiresNexus = j.UsesNexus})
                     .ToList();
 
                 foreach (var job in jobs)
-                    await sql.EnqueueJob(job);                
+                    await sql.EnqueueJob(job);
                 
                 return JobResult.Success();
             }
-            
         }
 
         protected override IEnumerable<object> PrimaryKey => new object[0];

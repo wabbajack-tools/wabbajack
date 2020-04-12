@@ -21,9 +21,9 @@ namespace Wabbajack.Lib.FileUploader
     {
         public static IObservable<bool> HaveAuthorAPIKey => Utils.HaveEncryptedJsonObservable(Consts.AuthorAPIKeyFile);
 
-        public static string ApiKeyOverride = null;
+        public static string? ApiKeyOverride = null;
 
-        public static async Task<string> GetAPIKey(string apiKey = null)
+        public static async Task<string> GetAPIKey(string? apiKey = null)
         {
             if (ApiKeyOverride != null) return ApiKeyOverride;
             return apiKey ?? (await Consts.LocalAppDataPath.Combine(Consts.AuthorAPIKeyFile).ReadAllTextAsync()).Trim();
@@ -32,7 +32,7 @@ namespace Wabbajack.Lib.FileUploader
         public static Uri UploadURL => new Uri($"{Consts.WabbajackBuildServerUri}upload_file");
         public static long BLOCK_SIZE = (long)1024 * 1024 * 2;
         public static int MAX_CONNECTIONS = 8;
-        public static Task<string> UploadFile(AbsolutePath filename, Action<double> progressFn, string apikey=null)
+        public static Task<string> UploadFile(AbsolutePath filename, Action<double> progressFn, string? apikey = null)
         {
             var tcs = new TaskCompletionSource<string>();
             Task.Run(async () =>
@@ -123,7 +123,7 @@ namespace Wabbajack.Lib.FileUploader
             return tcs.Task;
         }
 
-        public static async Task<Common.Http.Client> GetAuthorizedClient(string apiKey=null)
+        public static async Task<Common.Http.Client> GetAuthorizedClient(string? apiKey = null)
         {
             var client = new Common.Http.Client();
             client.Headers.Add(("X-API-KEY", await GetAPIKey(apiKey)));

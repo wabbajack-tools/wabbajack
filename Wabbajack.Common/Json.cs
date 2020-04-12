@@ -62,16 +62,12 @@ namespace Wabbajack.Common
             return JsonConvert.SerializeObject(obj, JsonSettings);
         }
 
-        public static T FromJson<T>(this AbsolutePath filename,
-            TypeNameHandling handling = TypeNameHandling.All,
-            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
+        public static T FromJson<T>(this AbsolutePath filename)
         {
             return JsonConvert.DeserializeObject<T>(filename.ReadAllText(), JsonSettings)!;
         }
 
-        public static T FromJsonString<T>(this string data,
-            TypeNameHandling handling = TypeNameHandling.Objects,
-            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
+        public static T FromJsonString<T>(this string data)
         {
             return JsonConvert.DeserializeObject<T>(data, JsonSettings)!;
         }
@@ -230,8 +226,7 @@ namespace Wabbajack.Common
                     return (Game)i;
                 }
 
-                GameMetaData? game = GameRegistry.GetByFuzzyName(str);
-                if (game == null)
+                if (!GameRegistry.TryGetByFuzzyName(str, out var game))
                 {
                     throw new ArgumentException($"Could not convert {str} to a Game type.");
                 }

@@ -18,8 +18,8 @@ namespace Wabbajack.Lib.Downloaders
 
         class FileEvent
         {
-            public string FullPath { get; set; }
-            public string Name { get; set; }
+            public string FullPath { get; set; } = string.Empty;
+            public string Name { get; set; } = string.Empty;
             public long Size { get; set; }
         }
 
@@ -57,10 +57,10 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.manualURL;
-            return url != null ? new State { Url = url} : null;
+            return url != null ? new State(url) : null;
         }
 
         public async Task Prepare()
@@ -70,10 +70,15 @@ namespace Wabbajack.Lib.Downloaders
         [JsonName("ManualDownloader")]
         public class State : AbstractDownloadState
         {
-            public string Url { get; set; }
+            public string Url { get; }
             
             [JsonIgnore]
-            public override object[] PrimaryKey { get => new object[] {Url}; }
+            public override object[] PrimaryKey => new object[] { Url };
+
+            public State(string url)
+            {
+                Url = url;
+            }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -83,7 +88,7 @@ namespace Wabbajack.Lib.Downloaders
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var (uri, client) = await Utils.Log(await ManuallyDownloadFile.Create(this)).Task;
-                var state = new HTTPDownloader.State {Url = uri.ToString(), Client = client};
+                var state = new HTTPDownloader.State(uri.ToString()) { Client = client };
                 return await state.Download(a, destination);
             }
 
@@ -104,10 +109,10 @@ namespace Wabbajack.Lib.Downloaders
 
             public override string[] GetMetaIni()
             {
-                return new [] {
+                return new [] 
+                {
                     "[General]",
-                    $"manualURL={Url}"
-                    
+                    $"manualURL={Url}",
                 };
             }
         }

@@ -32,14 +32,18 @@ namespace Wabbajack.Lib
 
         public AbsolutePath? GameFolder { get; set; }
 
+        public GameMetaData Game { get; }
+
         public MO2Installer(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
             : base(
                   archive: archive,
                   modList: modList,
                   outputFolder: outputFolder, 
                   downloadFolder: downloadFolder,
-                  parameters: parameters)
+                  parameters: parameters,
+                  steps: 20)
         {
+            Game = ModList.GameType.MetaData();
         }
 
         protected override async Task<bool> _Begin(CancellationToken cancel)
@@ -48,28 +52,27 @@ namespace Wabbajack.Lib
             var metric = Metrics.Send(Metrics.BeginInstall, ModList.Name);
             Utils.Log("Configuring Processor");
 
-            ConfigureProcessor(20, ConstructDynamicNumThreads(await RecommendQueueSize()));
-            var game = ModList.GameType.MetaData();
+            Queue.SetActiveThreadsObservable(ConstructDynamicNumThreads(await RecommendQueueSize()));
 
             if (GameFolder == null)
-                GameFolder = game.GameLocation();
+                GameFolder = Game.TryGetGameLocation();
 
             if (GameFolder == null)
             {
-                var otherGame = game.CommonlyConfusedWith.Where(g => g.MetaData().IsInstalled).Select(g => g.MetaData()).FirstOrDefault();
+                var otherGame = Game.CommonlyConfusedWith.Where(g => g.MetaData().IsInstalled).Select(g => g.MetaData()).FirstOrDefault();
                 if (otherGame != null)
                 {
                     await Utils.Log(new CriticalFailureIntervention(
-                            $"In order to do a proper install Wabbajack needs to know where your {game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed, we did however find a installed " +
+                            $"In order to do a proper install Wabbajack needs to know where your {Game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed, we did however find a installed " +
                             $"copy of {otherGame.HumanFriendlyGameName}, did you install the wrong game?",
-                            $"Could not locate {game.HumanFriendlyGameName}"))
+                            $"Could not locate {Game.HumanFriendlyGameName}"))
                         .Task;
                 }
                 else
                 {
                     await Utils.Log(new CriticalFailureIntervention(
-                            $"In order to do a proper install Wabbajack needs to know where your {game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed",
-                            $"Could not locate {game.HumanFriendlyGameName}"))
+                            $"In order to do a proper install Wabbajack needs to know where your {Game.HumanFriendlyGameName} folder resides. However this game doesn't seem to be installed",
+                            $"Could not locate {Game.HumanFriendlyGameName}"))
                         .Task;
                 }
 
@@ -169,7 +172,6 @@ namespace Wabbajack.Lib
 
         private void CreateOutputMods()
         {
-            
             OutputFolder.Combine("profiles")
                 .EnumerateFiles(true)
                 .Where(f => f.FileName == Consts.SettingsIni)
@@ -235,7 +237,7 @@ namespace Wabbajack.Lib
             foreach (var esm in ModList.Directives.OfType<CleanedESM>().ToList())
             {
                 var filename = esm.To.FileName;
-                var gameFile = GameFolder.Value.Combine((RelativePath)"Data", filename);
+                var gameFile = GameFolder!.Value.Combine((RelativePath)"Data", filename);
                 Utils.Log($"Validating {filename}");
                 var hash = gameFile.FileHash();
                 if (hash != esm.SourceESMHash)
@@ -310,7 +312,7 @@ namespace Wabbajack.Lib
         private async Task GenerateCleanedESM(CleanedESM directive)
         {
             var filename = directive.To.FileName;
-            var gameFile = GameFolder.Value.Combine((RelativePath)"Data", filename);
+            var gameFile = GameFolder!.Value.Combine((RelativePath)"Data", filename);
             Info($"Generating cleaned ESM for {filename}");
             if (!gameFile.Exists) throw new InvalidDataException($"Missing {filename} at {gameFile}");
             Status($"Hashing game version of {filename}");
@@ -329,6 +331,10 @@ namespace Wabbajack.Lib
 
         private void SetScreenSizeInPrefs()
         {
+            if (SystemParameters == null)
+            {
+                throw new ArgumentNullException("System Parameters was null.  Cannot set screen size prefs");
+            }
             var config = new IniParserConfiguration {AllowDuplicateKeys = true, AllowDuplicateSections = true};
             foreach (var file in OutputFolder.Combine("profiles").EnumerateFiles()
                 .Where(f => ((string)f.FileName).EndsWith("refs.ini")))
@@ -375,8 +381,8 @@ namespace Wabbajack.Lib
         {
             var data = Encoding.UTF8.GetString(await LoadBytesFromPath(directive.SourceDataID));
 
-            data = data.Replace(Consts.GAME_PATH_MAGIC_BACK, (string)GameFolder);
-            data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, ((string)GameFolder).Replace("\\", "\\\\"));
+            data = data.Replace(Consts.GAME_PATH_MAGIC_BACK, (string)GameFolder!);
+            data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, ((string)GameFolder!).Replace("\\", "\\\\"));
             data = data.Replace(Consts.GAME_PATH_MAGIC_FORWARD, ((string)GameFolder).Replace("\\", "/"));
 
             data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, (string)OutputFolder);

@@ -102,10 +102,9 @@ namespace Wabbajack.BuildServer.Controllers
                     Priority = Job.JobPriority.Low,
                     Payload = new IndexJob
                     {
-                        Archive = new Archive
+                        Archive = new Archive(data)
                         {
                             Name = entry.Name,
-                            State = data
                         }
                     }
                 });

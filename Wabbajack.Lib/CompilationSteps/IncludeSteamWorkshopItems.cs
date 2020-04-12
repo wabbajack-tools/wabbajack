@@ -18,7 +18,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _game = steamGame;
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!_regex.IsMatch((string)source.Path)) 
                 return null;
@@ -31,7 +31,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 if (id == 0)
                     return null;
 
-                SteamWorkshopItem item = null;
+                SteamWorkshopItem? item = null;
                 _game.WorkshopItems.Where(i => i.ItemID == id).Do(i => item = i);
                 if (item == null)
                     return null;

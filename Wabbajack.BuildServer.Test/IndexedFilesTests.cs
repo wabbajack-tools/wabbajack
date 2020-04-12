@@ -53,14 +53,14 @@ namespace Wabbajack.BuildServer.Test
         public async Task CanNotifyOfInis()
         {
             var archive =
-                new Archive
-                {
-                    State = new NexusDownloader.State
+                new Archive(
+                    new NexusDownloader.State
                     {
                         Game = Game.SkyrimSpecialEdition,
                         ModID = long.MaxValue >> 3,
                         FileID = long.MaxValue >> 3,
-                    },
+                    })
+                {
                     Name = Guid.NewGuid().ToString()
                 };
             Assert.True(await AuthorAPI.UploadPackagedInis(new[] {archive}));

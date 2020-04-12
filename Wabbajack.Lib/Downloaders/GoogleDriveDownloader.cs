@@ -10,22 +10,19 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class GoogleDriveDownloader : IDownloader, IUrlDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);
         }
 
-        public AbstractDownloadState GetDownloaderState(string url)
+        public AbstractDownloadState? GetDownloaderState(string url)
         {
             if (url != null && url.StartsWith("https://drive.google.com"))
             {
                 var regex = new Regex("((?<=id=)[a-zA-Z0-9_-]*)|(?<=\\/file\\/d\\/)[a-zA-Z0-9_-]*");
                 var match = regex.Match(url);
-                return new State
-                {
-                    Id = match.ToString()
-                };
+                return new State(match.ToString());
             }
 
             return null;
@@ -38,10 +35,15 @@ namespace Wabbajack.Lib.Downloaders
         [JsonName("GoogleDriveDownloader")]
         public class State : AbstractDownloadState
         {
-            public string Id { get; set; }
+            public string Id { get; }
             
             [JsonIgnore]
-            public override object[] PrimaryKey { get => new object[] {Id}; }
+            public override object[] PrimaryKey => new object[] { Id };
+
+            public State(string id)
+            {
+                Id = id;
+            }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -64,7 +66,7 @@ namespace Wabbajack.Lib.Downloaders
                 var regex = new Regex("(?<=/uc\\?export=download&amp;confirm=).*(?=;id=)");
                 var confirm = regex.Match(await response.Content.ReadAsStringAsync());
                 var url = $"https://drive.google.com/uc?export=download&confirm={confirm}&id={Id}";
-                var httpState = new HTTPDownloader.State {Url = url, Client = client};
+                var httpState = new HTTPDownloader.State(url) { Client = client };
                 return httpState;
             }
 

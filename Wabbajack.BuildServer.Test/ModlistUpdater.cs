@@ -42,13 +42,9 @@ namespace Wabbajack.BuildServer.Test
             {
                 Payload = new IndexJob
                 {
-                    Archive = new Archive
+                    Archive = new Archive(new HTTPDownloader.State(MakeURL("old_file_data.random")))
                     {
                         Name = "Oldfile",
-                        State = new HTTPDownloader.State
-                        {
-                            Url = MakeURL("old_file_data.random"),
-                        }
                     }
                 }
             });
@@ -57,13 +53,9 @@ namespace Wabbajack.BuildServer.Test
             {
                 Payload = new IndexJob
                 {
-                    Archive = new Archive
+                    Archive = new Archive(new HTTPDownloader.State(MakeURL("new_file_data.random")))
                     {
                         Name = "Newfile",
-                        State = new HTTPDownloader.State
-                        {
-                            Url = MakeURL("new_file_data.random"),
-                        }
                     }
                 }
             });
@@ -126,6 +118,5 @@ namespace Wabbajack.BuildServer.Test
             Assert.True($"{oldDataHash.ToHex()}_{newDataHash.ToHex()}".RelativeTo(Fixture.ServerUpdatesFolder).IsFile);
 
         }
-        
     }
 }

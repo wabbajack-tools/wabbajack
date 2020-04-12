@@ -11,6 +11,7 @@ using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using DirectoryInfo = Alphaleonis.Win32.Filesystem.DirectoryInfo;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+#nullable disable
 
 namespace Wabbajack.Lib
 {
@@ -26,7 +27,8 @@ namespace Wabbajack.Lib
                   modList: modList,
                   outputFolder: outputFolder,
                   downloadFolder: downloadFolder,
-                  parameters: parameters)
+                  parameters: parameters,
+                  steps: 10)
         {
             #if DEBUG
             // TODO: only for testing
@@ -51,7 +53,7 @@ namespace Wabbajack.Lib
             }
 
             if (cancel.IsCancellationRequested) return false;
-            ConfigureProcessor(10, ConstructDynamicNumThreads(await RecommendQueueSize()));
+            Queue.SetActiveThreadsObservable(ConstructDynamicNumThreads(await RecommendQueueSize()));
             DownloadFolder.CreateDirectory();
 
             if (cancel.IsCancellationRequested) return false;
@@ -122,7 +124,7 @@ namespace Wabbajack.Lib
 
             var manualFilesDir = OutputFolder.Combine(Consts.ManualGameFilesDir);
 
-            var gameFolder = GameInfo.GameLocation();
+            var gameFolder = GameInfo.TryGetGameLocation();
 
             Info($"Copying files from {manualFilesDir} " +
                  $"to the game folder at {gameFolder}");

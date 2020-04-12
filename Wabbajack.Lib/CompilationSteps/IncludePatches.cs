@@ -12,11 +12,11 @@ namespace Wabbajack.Lib.CompilationSteps
     public class IncludePatches : ACompilationStep
     {
         private readonly Dictionary<RelativePath, IGrouping<RelativePath, VirtualFile>> _indexed;
-        private VirtualFile _bsa;
+        private VirtualFile? _bsa;
         private Dictionary<RelativePath, VirtualFile> _indexedByName;
         private MO2Compiler _mo2Compiler;
 
-        public IncludePatches(ACompiler compiler, VirtualFile constructingFromBSA = null) : base(compiler)
+        public IncludePatches(ACompiler compiler, VirtualFile? constructingFromBSA = null) : base(compiler)
         {
             _bsa = constructingFromBSA;
             _mo2Compiler = (MO2Compiler)compiler;
@@ -30,9 +30,8 @@ namespace Wabbajack.Lib.CompilationSteps
                                      .ToDictionary(f => f.FullPath.FileName);
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
-            
             var name = source.File.Name.FileName;
             RelativePath nameWithoutExt = name;
             if (name.Extension == Consts.MOHIDDEN)
@@ -41,7 +40,7 @@ namespace Wabbajack.Lib.CompilationSteps
             if (!_indexed.TryGetValue(name, out var choices))
                 _indexed.TryGetValue(nameWithoutExt, out choices);
 
-            dynamic modIni = null;
+            dynamic? modIni = null;
             if (source.AbsolutePath.InFolder(_mo2Compiler.MO2ModsFolder))
             {
                 if (_bsa == null)
@@ -55,7 +54,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             var installationFile = (RelativePath)modIni?.General?.installationFile;
 
-            VirtualFile found = null;
+            VirtualFile? found = null;
             
             // Find based on exact file name + ext
             if (choices != null)

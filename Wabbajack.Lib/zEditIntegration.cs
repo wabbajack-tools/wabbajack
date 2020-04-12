@@ -14,34 +14,17 @@ namespace Wabbajack.Lib
 {
     public class zEditIntegration
     {
-        private static MO2Compiler _mo2Compiler;
-
-        public static AbsolutePath FindzEditPath(ACompiler compiler)
-        {
-            _mo2Compiler = (MO2Compiler) compiler;
-            var executables = _mo2Compiler.MO2Ini.customExecutables;
-            if (executables.size == null) return default;
-
-            foreach (var idx in Enumerable.Range(1, int.Parse(executables.size)))
-            {
-                var path = (string)executables[$"{idx}\\binary"];
-                if (path == null) continue;
-
-                if (path.EndsWith("zEdit.exe"))
-                    return (AbsolutePath)path;
-            }
-
-            return default;
-        }
-
         public class IncludeZEditPatches : ACompilationStep
         {
-            private readonly Dictionary<AbsolutePath, zEditMerge> _mergesIndexed;
+            private readonly Dictionary<AbsolutePath, zEditMerge> _mergesIndexed = new Dictionary<AbsolutePath, zEditMerge>();
 
             private bool _disabled = true;
 
-            public IncludeZEditPatches(ACompiler compiler) : base(compiler)
+            private MO2Compiler _mo2Compiler;
+
+            public IncludeZEditPatches(MO2Compiler compiler) : base(compiler)
             {
+                _mo2Compiler = compiler;
                 var zEditPath = FindzEditPath(compiler);
                 var havezEdit = zEditPath != default;
 
@@ -126,7 +109,24 @@ namespace Wabbajack.Lib
                 _disabled = false;
             }
 
-            public override async ValueTask<Directive> Run(RawSourceFile source)
+            public static AbsolutePath FindzEditPath(MO2Compiler compiler)
+            {
+                var executables = compiler.MO2Ini.customExecutables;
+                if (executables.size == null) return default;
+
+                foreach (var idx in Enumerable.Range(1, int.Parse(executables.size)))
+                {
+                    var path = (string)executables[$"{idx}\\binary"];
+                    if (path == null) continue;
+
+                    if (path.EndsWith("zEdit.exe"))
+                        return (AbsolutePath)path;
+                }
+
+                return default;
+            }
+
+            public override async ValueTask<Directive?> Run(RawSourceFile source)
             {
                 if (_disabled) return null;
                 if (!_mergesIndexed.TryGetValue(source.AbsolutePath, out var merge))
@@ -150,7 +150,7 @@ namespace Wabbajack.Lib
                     return inline;
                 }
                 var result = source.EvolveTo<MergedPatch>();
-                result.Sources = merge.plugins.Select(f =>
+                result.Sources.SetTo(merge.plugins.Select(f =>
                 {
                     var origPath = (AbsolutePath)Path.Combine(f.dataFolder, f.filename);
                     var paths = new[]
@@ -171,10 +171,11 @@ namespace Wabbajack.Lib
                     try
                     {
                         hash = _compiler.VFS.Index.ByRootPath[absPath].Hash;
-                    } catch (KeyNotFoundException e)
+                    }
+                    catch (KeyNotFoundException e)
                     {
-                        Utils.ErrorThrow(e, $"Could not find the key {absPath} in the VFS Index dictionary!");
-                        return null;
+                        Utils.Error(e, $"Could not find the key {absPath} in the VFS Index dictionary!");
+                        throw;
                     }
 
                     return new SourcePatch
@@ -182,7 +183,7 @@ namespace Wabbajack.Lib
                         RelativePath = absPath.RelativeTo(_mo2Compiler.MO2Folder),
                         Hash = hash
                     };
-                }).ToList();
+                }));
 
                 var srcData = result.Sources.Select(f => _mo2Compiler.MO2Folder.Combine(f.RelativePath).ReadAllBytes())
                     .ConcatArrays();
@@ -209,14 +210,14 @@ namespace Wabbajack.Lib
             {
                 public ICompilationStep CreateStep(ACompiler compiler)
                 {
-                    return new IncludeZEditPatches(compiler);
+                    return new IncludeZEditPatches((MO2Compiler)compiler);
                 }
             }
         }
 
         public class zEditSettings
         {
-            public string modManager;
+            public string modManager = string.Empty;
             public AbsolutePath managerPath;
             public AbsolutePath modsPath;
             public AbsolutePath mergePath;
@@ -224,16 +225,16 @@ namespace Wabbajack.Lib
 
         public class zEditMerge
         {
-            public string name;
-            public string filename;
-            public List<zEditMergePlugin> plugins;
+            public string name = string.Empty;
+            public string filename = string.Empty;
+            public List<zEditMergePlugin> plugins = new List<zEditMergePlugin>();
 
         }
 
         public class zEditMergePlugin
         {
-            public string filename;
-            public string dataFolder;
+            public string? filename;
+            public string? dataFolder;
         }
 
         public static void VerifyMerges(MO2Compiler compiler)

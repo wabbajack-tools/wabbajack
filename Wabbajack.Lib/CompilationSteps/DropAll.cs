@@ -10,7 +10,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             var result = source.EvolveTo<NoMatch>();
             result.Reason = "No Match in Stack";

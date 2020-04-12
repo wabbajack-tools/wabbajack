@@ -9,9 +9,9 @@ namespace Wabbajack.Lib
     public class ManuallyDownloadFile : AUserIntervention
     {
         public ManualDownloader.State State { get; }
-        public override string ShortDescription { get; }
-        public override string ExtendedDescription { get; }
-        
+        public override string ShortDescription { get; } = string.Empty;
+        public override string ExtendedDescription { get; } = string.Empty;
+
         private TaskCompletionSource<(Uri, Common.Http.Client)> _tcs = new TaskCompletionSource<(Uri, Common.Http.Client)>();
         public Task<(Uri, Common.Http.Client)> Task => _tcs.Task;
 

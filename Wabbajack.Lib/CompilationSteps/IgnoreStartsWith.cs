@@ -14,7 +14,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _reason = string.Format("Ignored because path starts with {0}", _prefix);
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!((string)source.Path).StartsWith(_prefix))
             {
@@ -35,16 +35,12 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IgnoreStartsWith")]
         public class State : IState
         {
-            public State()
-            {
-            }
+            public string Prefix { get; set; }
 
             public State(string prefix)
             {
                 Prefix = prefix;
             }
-
-            public string Prefix { get; set; }
 
             public ICompilationStep CreateStep(ACompiler compiler)
             {

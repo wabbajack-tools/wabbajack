@@ -11,7 +11,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _compiler = compiler;
         }
 
-        public abstract ValueTask<Directive> Run(RawSourceFile source);
+        public abstract ValueTask<Directive?> Run(RawSourceFile source);
         public abstract IState GetState();
     }
 }

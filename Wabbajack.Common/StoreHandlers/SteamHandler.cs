@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security;
 using DynamicData;
 using Microsoft.Win32;
+#nullable enable
 
 namespace Wabbajack.Common.StoreHandlers
 {
@@ -21,9 +22,14 @@ namespace Wabbajack.Common.StoreHandlers
 
     public class SteamWorkshopItem
     {
-        public SteamGame? Game;
+        public readonly SteamGame Game;
         public int ItemID;
         public int Size;
+
+        public SteamWorkshopItem(SteamGame game)
+        {
+            Game = game;
+        }
     }
 
     public class SteamHandler : AStoreHandler
@@ -202,14 +208,14 @@ namespace Wabbajack.Common.StoreHandlers
                 var bracketStart = 0;
                 var bracketEnd = 0;
 
-                SteamWorkshopItem? currentItem = new SteamWorkshopItem();
+                SteamWorkshopItem? currentItem = new SteamWorkshopItem(game);
 
                 lines.Do(l =>
                 {
                     if (end)
                         return;
                     if (currentItem == null)
-                        currentItem = new SteamWorkshopItem();
+                        currentItem = new SteamWorkshopItem(game);
 
                     var currentLine = lines.IndexOf(l);
                     if (l.ContainsCaseInsensitive("\"appid\"") && !foundAppID)
@@ -271,7 +277,6 @@ namespace Wabbajack.Common.StoreHandlers
 
                     bracketStart = 0;
                     bracketEnd = 0;
-                    currentItem.Game = game;
                     game.WorkshopItems.Add(currentItem);
 
                     Utils.Log($"Found Steam Workshop item {currentItem.ItemID}");

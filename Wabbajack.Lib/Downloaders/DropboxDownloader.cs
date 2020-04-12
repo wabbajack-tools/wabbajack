@@ -7,13 +7,13 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class DropboxDownloader : IDownloader, IUrlDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var urlstring = archiveINI?.General?.directURL;
             return GetDownloaderState(urlstring);
         }
 
-        public AbstractDownloadState GetDownloaderState(string url)
+        public AbstractDownloadState? GetDownloaderState(string url)
         {
             try
             {
@@ -29,10 +29,7 @@ namespace Wabbajack.Lib.Downloaders
 
                 uri.Query = query.ToString();
 
-                return new HTTPDownloader.State()
-                {
-                    Url = uri.ToString().Replace("dropbox.com:443/", "dropbox.com/")
-                };
+                return new HTTPDownloader.State(uri.ToString().Replace("dropbox.com:443/", "dropbox.com/"));
             }
             catch (Exception)
             {

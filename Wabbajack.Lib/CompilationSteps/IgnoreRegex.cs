@@ -17,7 +17,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _regex = new Regex(pattern);
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!_regex.IsMatch((string)source.Path)) return null;
             var result = source.EvolveTo<IgnoredDirectly>();
@@ -33,16 +33,12 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IgnorePattern")]
         public class State : IState
         {
-            public State()
-            {
-            }
+            public string Pattern { get; set; }
 
             public State(string pattern)
             {
                 Pattern = pattern;
             }
-
-            public string Pattern { get; set; }
 
             public ICompilationStep CreateStep(ACompiler compiler)
             {

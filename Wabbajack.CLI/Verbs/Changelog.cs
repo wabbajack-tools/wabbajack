@@ -318,7 +318,7 @@ namespace Wabbajack.CLI.Verbs
 
         private static async Task<string> GetTextFileFromModlist(AbsolutePath archive, ModList modlist, RelativePath sourceID)
         {
-            var installer = new MO2Installer(archive, modlist, default, default, null);
+            var installer = new MO2Installer(archive, modlist, default, default, parameters: null!);
             byte[] bytes = await installer.LoadBytesFromPath(sourceID);
             return Encoding.Default.GetString(bytes);
         }
@@ -328,9 +328,9 @@ namespace Wabbajack.CLI.Verbs
             return header.Trim().Replace(" ", "").Replace(".", "");
         }
 
-        private static string GetModName(Archive a)
+        private static string? GetModName(Archive a)
         {
-            var result = a.Name;
+            string? result = a.Name;
 
             if (a.State is IMetaState metaState)
             {

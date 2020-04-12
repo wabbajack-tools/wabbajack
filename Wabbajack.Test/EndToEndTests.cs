@@ -98,7 +98,7 @@ namespace Wabbajack.Test
             if (!src.Exists)
             {
                 var state = DownloadDispatcher.ResolveArchive(url);
-                await state.Download(new Archive { Name = "Unknown"}, src);
+                await state.Download(new Archive(state: null!) { Name = "Unknown"}, src);
             }
 
             utils.DownloadsFolder.CreateDirectory();

@@ -23,7 +23,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 .ToList();
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!source.AbsolutePath.InFolder(_modProfilesFolder)) return null;
             if (_profiles.Any(profile => source.AbsolutePath.InFolder(profile))) return null;

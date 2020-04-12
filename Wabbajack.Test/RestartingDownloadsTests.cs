@@ -72,8 +72,8 @@ namespace Wabbajack.Test
         {
             using var testFile = new TempFile();
             using var server = new CrappyRandomServer();
-            var state = new HTTPDownloader.State {Url = $"http://localhost:{server.Port}/foo"};
-                
+            var state = new HTTPDownloader.State($"http://localhost:{server.Port}/foo");
+
             await state.Download(testFile.Path);
 
             Assert.Equal(server.Data, await testFile.Path.ReadAllBytesAsync());
@@ -87,8 +87,4 @@ namespace Wabbajack.Test
             _unsubIntevention?.Dispose();
         }
     }
-
-
-
-
 }

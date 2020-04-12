@@ -51,7 +51,7 @@ namespace Wabbajack.Lib.CompilationSteps
             return new State();
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!Consts.SupportedBSAs.Contains(source.Path.Extension)) return null;
 
@@ -79,12 +79,12 @@ namespace Wabbajack.Lib.CompilationSteps
             CreateBSA directive;
             using (var bsa = BSADispatch.OpenRead(source.AbsolutePath))
             {
-                directive = new CreateBSA
+                directive = new CreateBSA(
+                    state: bsa.State, 
+                    items: bsa.Files.Select(f => f.State).ToList())
                 {
                     To = source.Path,
                     TempID = (RelativePath)id,
-                    State = bsa.State,
-                    FileStates = bsa.Files.Select(f => f.State).ToList()
                 };
             }
 

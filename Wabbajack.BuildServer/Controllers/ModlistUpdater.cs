@@ -175,15 +175,19 @@ namespace Wabbajack.BuildServer.Controllers
             var allMods = await api.GetModFiles(state.Game, state.ModID);
             var archive = allMods.files.Where(m => !string.IsNullOrEmpty(m.category_name))
                 .OrderBy(s => Math.Abs((long)s.size - origSize))
-                .Select(s => new Archive {
-                    Name = s.file_name,
-                    Size = (long)s.size,
-                    State = new NexusDownloader.State 
+                .Select(s =>
+                    new Archive(
+                        new NexusDownloader.State
+                        {
+                            Game = state.Game,
+                            ModID = state.ModID,
+                            FileID = s.file_id
+                        })
                     {
-                    Game = state.Game, 
-                    ModID = state.ModID, 
-                    FileID = s.file_id
-                }}).FirstOrDefault();
+                        Name = s.file_name,
+                        Size = (long)s.size,
+                    })
+                .FirstOrDefault();
 
             if (archive == null)
             {
