@@ -85,7 +85,7 @@ namespace Wabbajack.Common
         {
             get
             {
-                AbsolutePath? gameLoc = GameLocation();
+                AbsolutePath? gameLoc = TryGetGameLocation();
                 if (gameLoc == null)
                     throw new GameNotInstalledException(this);
                 if (MainExecutable == null)
@@ -95,7 +95,7 @@ namespace Wabbajack.Common
             }
         }
 
-        public bool IsInstalled => GameLocation() != null;
+        public bool IsInstalled => TryGetGameLocation() != null;
 
         public string? MainExecutable { get; internal set; }
 

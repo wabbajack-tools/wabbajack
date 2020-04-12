@@ -55,7 +55,7 @@ namespace Wabbajack.Lib
             Queue.SetActiveThreadsObservable(ConstructDynamicNumThreads(await RecommendQueueSize()));
 
             if (GameFolder == null)
-                GameFolder = Game.GameLocation();
+                GameFolder = Game.TryGetGameLocation();
 
             if (GameFolder == null)
             {

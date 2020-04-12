@@ -17,7 +17,7 @@ namespace Wabbajack.Lib.Downloaders
             if (gameName == null || gameFile == null)
                 return null;
 
-            var game = GameRegistry.GetByFuzzyName(gameName);
+            var game = GameRegistry.TryGetByFuzzyName(gameName);
             if (game == null) return null;
 
             var path = game.TryGetGameLocation();

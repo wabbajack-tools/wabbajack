@@ -226,7 +226,7 @@ namespace Wabbajack.Common
                     return (Game)i;
                 }
 
-                GameMetaData? game = GameRegistry.GetByFuzzyName(str);
+                GameMetaData? game = GameRegistry.TryGetByFuzzyName(str);
                 if (game == null)
                 {
                     throw new ArgumentException($"Could not convert {str} to a Game type.");

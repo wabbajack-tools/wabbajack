@@ -21,7 +21,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             {
                 Utils.Log($"Indexing game files");
                 var states = GameRegistry.Games.Values
-                    .Where(game => game.GameLocation() != null && game.MainExecutable != null)
+                    .Where(game => game.TryGetGameLocation() != null && game.MainExecutable != null)
                     .SelectMany(game => game.GameLocation().EnumerateFiles()
                         .Select(file => new GameFileSourceDownloader.State(game.InstalledVersion)
                         {

@@ -124,7 +124,7 @@ namespace Wabbajack.Lib
 
             var manualFilesDir = OutputFolder.Combine(Consts.ManualGameFilesDir);
 
-            var gameFolder = GameInfo.GameLocation();
+            var gameFolder = GameInfo.TryGetGameLocation();
 
             Info($"Copying files from {manualFilesDir} " +
                  $"to the game folder at {gameFolder}");
