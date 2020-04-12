@@ -24,7 +24,7 @@ namespace Wabbajack.CLI.Verbs
             if (state == null)
                 return CLIUtils.Exit($"Could not find download source for URL {Url}", ExitCode.Error);
 
-            DownloadDispatcher.PrepareAll(new []{state});
+            await DownloadDispatcher.PrepareAll(new []{state});
 
             using var queue = new WorkQueue();
             queue.Status

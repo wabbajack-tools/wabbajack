@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 using Wabbajack.BuildServer.Model.Models;
@@ -37,6 +38,8 @@ namespace Wabbajack.BuildServer.Models.Jobs
 
             return JobResult.Success();
         }
+
+        protected override IEnumerable<object> PrimaryKey => new object[0];
 
         private static async Task EnqueueFromList(SqlService sql, ModlistMetadata list, WorkQueue queue)
         {

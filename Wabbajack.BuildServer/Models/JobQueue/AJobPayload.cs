@@ -30,6 +30,10 @@ namespace Wabbajack.BuildServer.Models.JobQueue
         public virtual bool UsesNexus { get; } = false;
 
         public abstract Task<JobResult> Execute(SqlService sql,AppSettings settings);
+        
+        protected abstract IEnumerable<object> PrimaryKey { get; }
+
+        public string PrimaryKeyString => string.Join("|", PrimaryKey.Cons(this.GetType().Name).Select(i => i.ToString()));
 
         static AJobPayload()
         {

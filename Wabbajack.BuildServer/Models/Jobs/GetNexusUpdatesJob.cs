@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.BuildServer.Models.JobQueue;
@@ -68,6 +69,45 @@ namespace Wabbajack.BuildServer.Models.Jobs
             }
 
             return JobResult.Success();
+        }
+
+        protected override IEnumerable<object> PrimaryKey => new object[0];
+
+        public static DateTime LastNexusSync { get; set; } = DateTime.Now;
+        public static async Task<long> UpdateNexusCacheFast(SqlService sql)
+        {
+            var results = await NexusUpdatesFeeds.GetUpdates();
+            NexusApiClient client = null;
+            long updated = 0;
+            foreach (var result in results)
+            {
+                var purgedMods = await sql.DeleteNexusModFilesUpdatedBeforeDate(result.Game, result.ModId, result.TimeStamp);
+                var purgedFiles = await sql.DeleteNexusModInfosUpdatedBeforeDate(result.Game, result.ModId, result.TimeStamp);
+
+                var totalPurged = purgedFiles + purgedMods;
+                if (totalPurged > 0)
+                    Utils.Log($"Purged {totalPurged} cache items");
+
+                if (await sql.GetNexusModInfoString(result.Game, result.ModId) != null) continue;
+
+                // Lazily create the client
+                client ??= await NexusApiClient.Get();
+                
+                // Cache the info
+                var files = await client.GetModFiles(result.Game, result.ModId, false);
+                await sql.AddNexusModFiles(result.Game, result.ModId, result.TimeStamp, files);
+                
+                var modInfo = await client.GetModInfo(result.Game, result.ModId);
+                await sql.AddNexusModInfo(result.Game, result.ModId, result.TimeStamp, modInfo);
+                updated++;
+
+            }
+
+            if (updated > 0) 
+                Utils.Log($"Primed {updated} nexus cache entries");
+
+            LastNexusSync = DateTime.Now;
+            return updated;
         }
         
 

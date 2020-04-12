@@ -181,7 +181,7 @@ namespace Wabbajack.Lib
             });
 
             Status("Unstaging files");
-            onFinish();
+            await onFinish();
 
             // Now patch all the files from this archive
             await grouping.OfType<PatchedFromArchive>()

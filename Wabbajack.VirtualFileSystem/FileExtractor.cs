@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Compression.BSA;
@@ -25,9 +26,9 @@ namespace Wabbajack.VirtualFileSystem
                 else if (source.Extension == Consts.OMOD)
                     ExtractAllWithOMOD(source, dest);
                 else if (source.Extension == Consts.EXE)
-                    ExtractAllEXE(source, dest);
+                    await ExtractAllExe(source, dest);
                 else
-                    ExtractAllWith7Zip(source, dest);
+                    await ExtractAllWith7Zip(source, dest);
             }
             catch (Exception ex)
             {
@@ -35,71 +36,40 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        private static void ExtractAllEXE(AbsolutePath source, AbsolutePath dest)
+        private static async Task ExtractAllExe(AbsolutePath source, AbsolutePath dest)
         {
-            var isArchive = TestWith7z(source);
+            var isArchive = await TestWith7z(source);
 
             if (isArchive)
             {
-                ExtractAllWith7Zip(source, dest);
+                await ExtractAllWith7Zip(source, dest);
                 return;
             }
 
             Utils.Log($"Extracting {(string)source.FileName}");
 
-            var info = new ProcessStartInfo
+            var process = new ProcessHelper
             {
-                FileName = @"Extractors\innounp.exe",
-                Arguments = $"-x -y -b -d\"{(string)dest}\" \"{(string)source}\"",
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
+                Path = @"Extractors\innounp.exe".RelativeTo(AbsolutePath.EntryPoint),
+                Arguments = new object[] {"-x", "-y", "-b", $"-d\"{dest}\"", source}
             };
 
-            var p = new Process {StartInfo = info};
-
-            p.Start();
-            ChildProcessTracker.AddProcess(p);
-
-            try
-            {
-                p.PriorityClass = ProcessPriorityClass.BelowNormal;
-            }
-            catch (Exception e)
-            {
-                Utils.Error(e, "Error while setting process priority level for innounp.exe");
-            }
-
-            var name = source.FileName;
-            try
-            {
-                while (!p.HasExited)
+            
+            var result = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
+                .ForEachAsync(p =>
                 {
-                    var line = p.StandardOutput.ReadLine();
+                    var (_, line) = p;
                     if (line == null)
-                        break;
+                        return;
 
                     if (line.Length <= 4 || line[3] != '%')
-                        continue;
+                        return;
 
                     int.TryParse(line.Substring(0, 3), out var percentInt);
-                    Utils.Status($"Extracting {(string)name} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
-                }
-            }
-            catch (Exception e)
-            {
-                Utils.Error(e, "Error while reading StandardOutput for innounp.exe");
-            }
-
-            p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Extracting {(string)name}");
-            if (p.ExitCode == 0)
-                return;
-
-            Utils.Log(p.StandardOutput.ReadToEnd());
-            Utils.Log($"Extraction error extracting {source}");
-        }
+                    Utils.Status($"Extracting {source.FileName} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
+                });
+            await process.Start();
+           }
 
         private class OMODProgress : ICodeProgress
         {
@@ -159,60 +129,42 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        private static void ExtractAllWith7Zip(AbsolutePath source, AbsolutePath dest)
+        private static async Task ExtractAllWith7Zip(AbsolutePath source, AbsolutePath dest)
         {
             Utils.Log(new GenericInfo($"Extracting {(string)source.FileName}", $"The contents of {(string)source.FileName} are being extracted to {(string)source.FileName} using 7zip.exe"));
 
-            var info = new ProcessStartInfo
+            
+            var process = new ProcessHelper
             {
-                FileName = @"Extractors\7z.exe",
-                Arguments = $"x -bsp1 -y -o\"{(string)dest}\" \"{(string)source}\" -mmt=off",
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
+                Path = @"Extractors\7z.exe".RelativeTo(AbsolutePath.EntryPoint),
+                Arguments = new object[] {"x", "-bsp1", "-y", $"-o\"{dest}\"", source, "-mmt=off"}
             };
+            
 
-            var p = new Process {StartInfo = info};
-
-            p.Start();
-            ChildProcessTracker.AddProcess(p);
-            try
-            {
-                p.PriorityClass = ProcessPriorityClass.BelowNormal;
-            }
-            catch (Exception)
-            {
-            }
-
-            var name = source.FileName;
-            try
-            {
-                while (!p.HasExited)
+            var result = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
+                .ForEachAsync(p =>
                 {
-                    var line = p.StandardOutput.ReadLine();
+                    var (_, line) = p;
                     if (line == null)
-                        break;
+                        return;
 
-                    if (line.Length <= 4 || line[3] != '%') continue;
+                    if (line.Length <= 4 || line[3] != '%') return;
 
                     int.TryParse(line.Substring(0, 3), out var percentInt);
-                    Utils.Status($"Extracting {(string)name} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
-                }
-            }
-            catch (Exception)
-            {
-            }
+                    Utils.Status($"Extracting {(string)source.FileName} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
+                });
 
-            p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Extracting {name}");
+            var exitCode = await process.Start();
 
-            if (p.ExitCode == 0)
+            
+            if (exitCode != 0)
             {
-                Utils.Status($"Extracting {name} - 100%", Percent.One, alsoLog: true);
-                return;
+                Utils.Error(new _7zipReturnError(exitCode, source, dest, ""));
             }
-            Utils.Error(new _7zipReturnError(p.ExitCode, source, dest, p.StandardOutput.ReadToEnd()));
+            else
+            {
+                Utils.Status($"Extracting {source.FileName} - done", Percent.One, alsoLog: true);
+            }
         }
 
         /// <summary>
@@ -220,92 +172,35 @@ namespace Wabbajack.VirtualFileSystem
         /// </summary>
         /// <param name="v"></param>
         /// <returns></returns>
-        public static bool CanExtract(AbsolutePath v)
+        public static async Task<bool> CanExtract(AbsolutePath v)
         {
             var ext = v.Extension;
             if(ext != _exeExtension && !Consts.TestArchivesBeforeExtraction.Contains(ext))
                 return Consts.SupportedArchives.Contains(ext) || Consts.SupportedBSAs.Contains(ext);
 
-            var isArchive = TestWith7z(v);
+            var isArchive = await TestWith7z(v);
 
             if (isArchive)
                 return true;
 
-            var info = new ProcessStartInfo
+            var process = new ProcessHelper
             {
-                FileName = @"Extractors\innounp.exe",
-                Arguments = $"-t \"{v}\" ",
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
+                Path = @"Extractors\innounp.exe".RelativeTo(AbsolutePath.EntryPoint),
+                Arguments = new object[] {"-t", v},
             };
 
-            var p = new Process {StartInfo = info};
-
-            p.Start();
-            ChildProcessTracker.AddProcess(p);
-
-            var name = v.FileName;
-            while (!p.HasExited)
-            {
-                var line = p.StandardOutput.ReadLine();
-                if (line == null)
-                    break;
-
-                if (line[0] != '#')
-                    continue;
-
-                Utils.Status($"Testing {(string)name} - {line.Trim()}");
-            }
-
-            p.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Testing {name}");
-            return p.ExitCode == 0;
+            return await process.Start() == 0;
         }
 
-        public static bool TestWith7z(AbsolutePath file)
+        public static async Task<bool> TestWith7z(AbsolutePath file)
         {
-            var testInfo = new ProcessStartInfo
+            var process = new ProcessHelper()
             {
-                FileName = @"Extractors\7z.exe",
-                Arguments = $"t \"{file}\"",
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
+                Path = @"Extractors\7z.exe".RelativeTo(AbsolutePath.EntryPoint),
+                Arguments = new object[] {"t", file},
             };
 
-            var testP = new Process {StartInfo = testInfo};
-
-            testP.Start();
-            ChildProcessTracker.AddProcess(testP);
-            try
-            {
-                testP.PriorityClass = ProcessPriorityClass.BelowNormal;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            try
-            {
-                while (!testP.HasExited)
-                {
-                    var line = testP.StandardOutput.ReadLine();
-                    if (line == null)
-                        break;
-                }
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            testP.WaitForExitAndWarn(TimeSpan.FromSeconds(30), $"Can Extract Check {file}");
-            return testP.ExitCode == 0;
+            return await process.Start() == 0;
         }
         
         private static Extension _exeExtension = new Extension(".exe");
