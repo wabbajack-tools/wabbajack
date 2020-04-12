@@ -282,7 +282,7 @@ namespace Wabbajack.Lib
             var hashResults = await DownloadFolder.EnumerateFiles()
                 .Where(e => e.Extension != Consts.HashFileExtension)
                 .PMap(Queue, async e => (await e.FileHashCachedAsync(), e));
-            HashedArchives.Add(hashResults
+            HashedArchives.SetTo(hashResults
                 .OrderByDescending(e => e.Item2.LastModified)
                 .GroupBy(e => e.Item1)
                 .Select(e => e.First())
