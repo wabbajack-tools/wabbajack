@@ -26,8 +26,7 @@ namespace Wabbajack.Lib.NexusApi
         {
             var parts = link.Uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
 
-            var foundGame = GameRegistry.TryGetByFuzzyName(parts[0]);
-            if (foundGame == null)
+            if (!GameRegistry.TryGetByFuzzyName(parts[0], out var foundGame))
             {
                 game = Game.Oblivion;
                 modId = 0;

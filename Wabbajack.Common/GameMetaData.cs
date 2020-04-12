@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Alphaleonis.Win32.Filesystem;
 using Microsoft.Win32;
@@ -85,13 +86,12 @@ namespace Wabbajack.Common
         {
             get
             {
-                AbsolutePath? gameLoc = TryGetGameLocation();
-                if (gameLoc == null)
+                if (!TryGetGameLocation(out var gameLoc))
                     throw new GameNotInstalledException(this);
                 if (MainExecutable == null)
                     throw new NotImplementedException();
 
-                return FileVersionInfo.GetVersionInfo((string)gameLoc.Value.Combine(MainExecutable)).ProductVersion;
+                return FileVersionInfo.GetVersionInfo((string)gameLoc.Combine(MainExecutable)).ProductVersion;
             }
         }
 
@@ -102,6 +102,21 @@ namespace Wabbajack.Common
         public AbsolutePath? TryGetGameLocation()
         {
             return Consts.TestMode ? AbsolutePath.GetCurrentDirectory() : StoreHandler.Instance.TryGetGamePath(Game);
+        }
+
+        public bool TryGetGameLocation(out AbsolutePath path)
+        {
+            var ret = TryGetGameLocation();
+            if (ret != null)
+            {
+                path = ret.Value;
+                return true;
+            }
+            else
+            {
+                path = default;
+                return false;
+            }
         }
 
         public AbsolutePath GameLocation()
@@ -187,6 +202,12 @@ namespace Wabbajack.Common
             if (result != null) return result;
 
             return int.TryParse(someName, out int id) ? GetBySteamID(id) : null;
+        }
+
+        public static bool TryGetByFuzzyName(string someName, [MaybeNullWhen(false)] out GameMetaData gameMetaData)
+        {
+            gameMetaData = TryGetByFuzzyName(someName);
+            return gameMetaData != null;
         }
 
         public static IReadOnlyDictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>
