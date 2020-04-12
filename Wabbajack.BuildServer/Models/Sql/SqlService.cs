@@ -598,20 +598,89 @@ namespace Wabbajack.BuildServer.Model.Models
 
         public async Task UpdateModListStatus(ModListStatus dto)
         {
-            await using var conn = await Open();
-            await conn.ExecuteAsync(@"MERGE dbo.ModLists AS Target
-                USING (SELECT @MachineUrl MachineUrl, @Metadata Metadata, @Summary Summary, @DetailedStatus DetailedStatus) AS Source
-            ON Target.MachineUrl = Source.MachineUrl
-            WHEN MATCHED THEN UPDATE SET Target.Summary = Source.Summary, Target.Metadata = Source.Metadata, Target.DetailedStatus = Source.DetailedStatus
-            WHEN NOT MATCHED THEN INSERT (MachineUrl, Summary, Metadata, DetailedStatus) VALUES (@MachineUrl, @Summary, @Metadata, @DetailedStatus);",
-                new
-                {
-                    MachineUrl = dto.Metadata.Links.MachineURL,
-                    Metadata = dto.Metadata.ToJson(),
-                    Summary = dto.Summary.ToJson(),
-                    DetailedStatus = dto.DetailedStatus.ToJson()
-                });
+
         }
 
+        public async Task IngestModList(Hash hash, ModlistMetadata metadata, ModList modlist)
+        {
+            await using var conn = await Open();
+            await using var tran = await conn.BeginTransactionAsync();
+
+            await conn.ExecuteAsync(@"DELETE FROM dbo.ModLists Where MachineUrl = @MachineUrl",
+                new {MachineUrl = metadata.Links.MachineURL}, tran);
+
+            await conn.ExecuteAsync(
+                @"INSERT INTO dbo.ModLists (MachineUrl, Hash, Metadata, ModList) VALUES (@MachineUrl, @Hash, @Metadata, @ModList)",
+                new
+                {
+                    MachineUrl = metadata.Links.MachineURL,
+                    Hash = hash,
+                    MetaData = metadata.ToJson(),
+                    ModList = modlist.ToJson()
+                }, tran);
+            
+            var entries = modlist.Archives.Select(a =>
+                new
+                {
+                    MachineUrl = metadata.Links.MachineURL,
+                    Hash = a.Hash,
+                    Size = a.Size,
+                    State = a.State.ToJson(),
+                    PrimaryKeyString = a.State.PrimaryKeyString
+                }).ToArray();
+
+            await conn.ExecuteAsync(@"DELETE FROM dbo.ModListArchives WHERE MachineURL = @machineURL",
+                new {MachineUrl = metadata.Links.MachineURL}, tran);
+            
+            foreach (var entry in entries)
+            {
+                await conn.ExecuteAsync(
+                    "INSERT INTO dbo.ModListArchives (MachineURL, Hash, Size, PrimaryKeyString, State) VALUES (@MachineURL, @Hash, @Size, @PrimaryKeyString, @State)",
+                    entry, tran);
+            }
+            
+            await tran.CommitAsync();
+        }
+
+        public async Task<bool> HaveIndexedModlist(string machineUrl, Hash hash)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryFirstOrDefaultAsync<string>(
+                "SELECT MachineURL from dbo.Modlists WHERE MachineURL = @MachineUrl AND Hash = @Hash",
+                new {MachineUrl = machineUrl, Hash = hash});
+            return result != null;
+        }
+
+        public async Task<List<Archive>> GetNonNexusModlistArchives()
+        {
+            await using var conn = await Open();
+            var results = await conn.QueryAsync<(Hash Hash, long Size, string State)>(
+                @"SELECT Hash, Size, State FROM dbo.ModListArchives WHERE PrimaryKeyString NOT LIKE 'NexusDownloader+State|%'");
+            return results.Select(r => new Archive {
+                Size = r.Size,
+                Hash = r.Hash,
+                State = r.State.FromJsonString<AbstractDownloadState>()
+                }).ToList();}
+
+        public async Task UpdateNonNexusModlistArchivesStatus(IEnumerable<(Archive Archive, bool IsValid)> results)
+        {
+            await using var conn = await Open();
+            var trans = await conn.BeginTransactionAsync();
+            await conn.ExecuteAsync("DELETE FROM dbo.ModlistArchiveStatus;", transaction:trans);
+            
+            foreach (var itm in results.DistinctBy(itm => (itm.Archive.Hash, itm.Archive.State.PrimaryKeyString)))
+            {
+                await conn.ExecuteAsync(
+                    @"INSERT INTO dbo.ModlistArchiveStatus (PrimaryKeyStringHash, PrimaryKeyString, Hash, IsValid) 
+               VALUES (HASHBYTES('SHA2_256', @PrimaryKeyString), @PrimaryKeyString, @Hash, @IsValid)", new
+                    {
+                        PrimaryKeyString = itm.Archive.State.PrimaryKeyString,
+                        Hash = itm.Archive.Hash,
+                        IsValid = itm.IsValid
+                    }, trans);
+            }
+
+            await trans.CommitAsync();
+        }
     }
 }

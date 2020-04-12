@@ -320,15 +320,47 @@ GO
 /****** Object:  Table [dbo].[ModLists]    Script Date: 4/2/2020 3:59:19 PM ******/
 CREATE TABLE [dbo].[ModLists](
  [MachineURL] [nvarchar](50) NOT NULL,
- [Summary] [nvarchar](max) NOT NULL,
+ [Hash] [bigint] NOT NULL,
  [Metadata] [nvarchar](max) NOT NULL,
- [DetailedStatus] [nvarchar](max) NOT NULL,
+ [Modlist] [nvarchar](max) NOT NULL,
  CONSTRAINT [PK_ModLists] PRIMARY KEY CLUSTERED
      (
       [MachineURL] ASC
          )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
+
+/****** Object:  Table [dbo].[ModListArchive]    Script Date: 4/11/2020 10:33:20 AM ******/
+
+CREATE TABLE [dbo].[ModListArchives](
+[MachineUrl] [nvarchar](50) NOT NULL,
+[Hash] [bigint] NOT NULL,
+[PrimaryKeyString] [nvarchar](max) NOT NULL,
+[Size] [bigint] NOT NULL,
+[State] [nvarchar](max) NOT NULL,
+CONSTRAINT [PK_ModListArchive] PRIMARY KEY CLUSTERED
+   (
+    [MachineUrl] ASC,
+    [Hash] ASC
+       )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [dbo].[ModListArchiveStatus]    Script Date: 4/11/2020 9:44:25 PM ******/
+
+CREATE TABLE [dbo].[ModListArchiveStatus](
+ [PrimaryKeyStringHash] [binary](32) NOT NULL,
+ [Hash] [bigint] NOT NULL,
+ [PrimaryKeyString] [nvarchar](max) NOT NULL,
+ [IsValid] [tinyint] NOT NULL,
+ CONSTRAINT [PK_ModListArchiveStatus] PRIMARY KEY CLUSTERED
+     (
+      [PrimaryKeyStringHash] ASC,
+      [Hash] ASC
+         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
 
 /****** Object:  Table [dbo].[Metrics]    Script Date: 3/28/2020 4:58:59 PM ******/
 SET ANSI_NULLS ON

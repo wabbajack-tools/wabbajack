@@ -21,7 +21,7 @@ namespace Wabbajack
         {
             State = state;
 
-            ImageObservable = Observable.Return(State.ImageURL)
+            ImageObservable = Observable.Return(State.ImageURL.ToString())
                 .ObserveOn(RxApp.TaskpoolScheduler)
                 .DownloadBitmapImage((ex) => Utils.Log($"Skipping slide for mod {State.Name}"))
                 .Replay(1)

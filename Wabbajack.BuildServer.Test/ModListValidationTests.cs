@@ -6,6 +6,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using Wabbajack.BuildServer.BackendServices;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
@@ -34,6 +35,21 @@ namespace Wabbajack.BuildServer.Test
             var data = await ModlistMetadata.LoadFromGithub();
             Assert.Single(data);
             Assert.Equal("test_list", data.First().Links.MachineURL);
+        }
+
+        [Fact]
+        public async Task CanIngestModLists()
+        {
+            var modlist = await MakeModList();
+            Consts.ModlistMetadataURL = modlist.ToString();
+            var sql = Fixture.GetService<SqlService>();
+            var service = new ListIngest(sql, Fixture.GetService<AppSettings>());
+            await service.Execute();
+
+            foreach (var list in ModListMetaData)
+            {
+                Assert.True(await sql.HaveIndexedModlist(list.Links.MachineURL, list.DownloadMetadata.Hash));
+            }
         }
 
         [Fact]
@@ -146,7 +162,7 @@ namespace Wabbajack.BuildServer.Test
                 modListData.ToJson(es);
             }
 
-            var modListMetaData = new List<ModlistMetadata>
+            ModListMetaData = new List<ModlistMetadata>
             {
                 new ModlistMetadata
                 {
@@ -168,9 +184,11 @@ namespace Wabbajack.BuildServer.Test
 
             var metadataPath = "test_mod_list_metadata.json".RelativeTo(Fixture.ServerPublicFolder);
 
-            modListMetaData.ToJson(metadataPath);
+            ModListMetaData.ToJson(metadataPath);
             
             return new Uri(MakeURL("test_mod_list_metadata.json"));
         }
+
+        public List<ModlistMetadata> ModListMetaData { get; set; }
     }
 }

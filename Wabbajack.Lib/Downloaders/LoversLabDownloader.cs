@@ -63,20 +63,25 @@ namespace Wabbajack.Lib.Downloaders
                     ?
                     .First().InnerHtml);
                 
-                ImageURL = HttpUtility.HtmlDecode(node
+                var url = HttpUtility.HtmlDecode(node
                     .SelectNodes(
                         "//div[@class='ipsBox ipsSpacer_top ipsSpacer_double']/section/div[@class='ipsPad ipsAreaBackground']/div[@class='ipsCarousel ipsClearfix']/div[@class='ipsCarousel_inner']/ul[@class='cDownloadsCarousel ipsClearfix']/li[@class='ipsCarousel_item ipsAreaBackground_reset ipsPad_half']/span[@class='ipsThumb ipsThumb_medium ipsThumb_bg ipsCursor_pointer']")
                     ?.First().GetAttributeValue("data-fullurl", "none"));
 
-                if (!string.IsNullOrWhiteSpace(ImageURL))
+                if (!string.IsNullOrWhiteSpace(url))
+                {
+                    ImageURL = new Uri(url);
                     return true;
+                }
 
-                ImageURL = HttpUtility.HtmlDecode(node
+                url = HttpUtility.HtmlDecode(node
                     .SelectNodes(
                         "//article[@class='ipsColumn ipsColumn_fluid']/div[@class='ipsPad']/section/div[@class='ipsType_richText ipsContained ipsType_break']/p/a/img[@class='ipsImage ipsImage_thumbnailed']")
                     ?.First().GetAttributeValue("src", ""));
-                if (string.IsNullOrWhiteSpace(ImageURL))
-                    ImageURL = "";
+                if (!string.IsNullOrWhiteSpace(url))
+                {
+                    ImageURL = new Uri(url);
+                }
 
                 return true;
             }

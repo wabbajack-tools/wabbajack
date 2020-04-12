@@ -84,7 +84,7 @@ namespace Wabbajack.Lib.Downloaders
             public string Name { get; set; }
             public string Author { get; set; }
             public string Version { get; set; }
-            public string ImageURL { get; set; }
+            public Uri ImageURL { get; set; }
             public virtual bool IsNSFW { get; set; }
             public string Description { get; set; }
 

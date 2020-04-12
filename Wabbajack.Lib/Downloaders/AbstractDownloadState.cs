@@ -14,7 +14,7 @@ namespace Wabbajack.Lib.Downloaders
         string Name { get; set; }
         string Author { get; set; }
         string Version { get; set; }
-        string ImageURL { get; set; }
+        Uri ImageURL { get; set; }
         bool IsNSFW { get; set; }
         string Description { get; set; }
 
@@ -55,7 +55,6 @@ namespace Wabbajack.Lib.Downloaders
         [JsonIgnore]
         public abstract object[] PrimaryKey { get; }
         
-        [JsonIgnore]
         public string PrimaryKeyString
         {
             get
