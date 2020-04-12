@@ -86,8 +86,6 @@ namespace Wabbajack.Common
                 throw new JsonException("Type deserialized into null");
             return result;
         }
-      
-
 
         private class HashJsonConverter : JsonConverter<Hash>
         {

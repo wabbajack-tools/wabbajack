@@ -39,6 +39,7 @@ namespace Wabbajack.Test
         {
             Queue.Dispose();
             _unsub.Dispose();
+            utils.DisposeAsync().AsTask().Wait();
             base.Dispose();
         }
 

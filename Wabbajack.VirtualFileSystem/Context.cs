@@ -195,7 +195,7 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        public async Task<Action> Stage(IEnumerable<VirtualFile> files)
+        public async Task<Func<Task>> Stage(IEnumerable<VirtualFile> files)
         {
             var grouped = files.SelectMany(f => f.FilesInFullPath)
                 .Distinct()
@@ -215,18 +215,18 @@ namespace Wabbajack.VirtualFileSystem
                     file.StagedPath = file.RelativeName.RelativeTo(tmpPath);
             }
 
-            return () =>
+            return async () =>
             {
-                paths.Do(p =>
+                foreach (var p in paths)
                 {
-                    p.DeleteDirectory();
-                });
+                    await p.DeleteDirectory();
+                }
             };
         }
 
-        public async Task<DisposableList<VirtualFile>> StageWith(IEnumerable<VirtualFile> files)
+        public async Task<AsyncDisposableList<VirtualFile>> StageWith(IEnumerable<VirtualFile> files)
         {
-            return new DisposableList<VirtualFile>(await Stage(files), files);
+            return new AsyncDisposableList<VirtualFile>(await Stage(files), files);
         }
 
 
@@ -275,7 +275,7 @@ namespace Wabbajack.VirtualFileSystem
             _knownFiles = new List<HashRelativePath>();
 
         }
-        
+
         #endregion
     }
 
@@ -291,6 +291,21 @@ namespace Wabbajack.VirtualFileSystem
         public void Dispose()
         {
             _unstage();
+        }
+    }
+
+    public class AsyncDisposableList<T> : List<T>, IAsyncDisposable
+    {
+        private Func<Task> _unstage;
+
+        public AsyncDisposableList(Func<Task> unstage, IEnumerable<T> files) : base(files)
+        {
+            _unstage = unstage;
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _unstage();
         }
     }
 

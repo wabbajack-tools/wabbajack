@@ -450,7 +450,7 @@ namespace Wabbajack.Lib
         private async Task BuildArchivePatches(Hash archiveSha, IEnumerable<PatchedFromArchive> group,
             Dictionary<RelativePath, AbsolutePath> absolutePaths)
         {
-            using var files = await VFS.StageWith(@group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath)));
+            await using var files = await VFS.StageWith(@group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath)));
             var byPath = files.GroupBy(f => string.Join("|", f.FilesInFullPath.Skip(1).Select(i => i.Name)))
                 .ToDictionary(f => f.Key, f => f.First());
             // Now Create the patches
