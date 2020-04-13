@@ -21,6 +21,7 @@ namespace Wabbajack.Common
         FalloutNewVegas,
         [Description("Skyrim Legendary Edition")]
         Skyrim,
+        Enderal,
         [Description("Skyrim Special Edition")]
         SkyrimSpecialEdition,
         [Description("Fallout 4")]
@@ -532,6 +533,22 @@ namespace Wabbajack.Common
                     {
                         "Stardew Valley.exe"
                     }
+                }
+            },
+            {
+                Game.Enderal, new GameMetaData
+                {
+                    SupportedModManager = ModManager.MO2,
+                    Game = Game.Enderal,
+                    NexusName = "enderal",
+                    MO2Name = "Enderal",
+                    MO2ArchiveName = "enderal",
+                    SteamIDs = new List<int>{1027920},
+                    RequiredFiles = new List<string>
+                    {
+                        "TESV.exe"
+                    },
+                    MainExecutable = "TESV.exe"
                 }
             }
         };
