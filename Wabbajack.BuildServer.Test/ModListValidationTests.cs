@@ -73,8 +73,18 @@ namespace Wabbajack.BuildServer.Test
             var archive = "test_archive.txt".RelativeTo(Fixture.ServerPublicFolder);
             await archive.MoveToAsync(archive.WithExtension(new Extension(".moved")), true);
 
+            // We can revalidate but the non-nexus archives won't be checked yet since the list didn't change
             await RevalidateLists();
             
+            data = await ModlistMetadata.LoadFromGithub();
+            Assert.Single(data);
+            Assert.Equal(0, data.First().ValidationSummary.Failed);
+            Assert.Equal(1, data.First().ValidationSummary.Passed);
+
+            // Run the non-nexus validator
+            var evalService = new ValidateNonNexusArchives(Fixture.GetService<SqlService>(), Fixture.GetService<AppSettings>());
+            await evalService.Execute();
+
             data = await ModlistMetadata.LoadFromGithub();
             Assert.Single(data);
             Assert.Equal(1, data.First().ValidationSummary.Failed);
@@ -86,6 +96,9 @@ namespace Wabbajack.BuildServer.Test
             await archive.WithExtension(new Extension(".moved")).MoveToAsync(archive, false);
 
             await RevalidateLists();
+            // Rerun the validation service to fix the list
+            await evalService.Execute();
+
             
             data = await ModlistMetadata.LoadFromGithub();
             Assert.Single(data);
@@ -98,20 +111,11 @@ namespace Wabbajack.BuildServer.Test
 
         private async Task RevalidateLists()
         {
-            var result = await AuthorAPI.UpdateServerModLists();
-            Assert.NotNull(result);
-            
             var sql = Fixture.GetService<SqlService>();
             var settings = Fixture.GetService<AppSettings>();
-            var job = await sql.GetJob();
 
-            Assert.NotNull(job);
-            Assert.IsType<UpdateModLists>(job.Payload);
-
-
-            job.Result = await job.Payload.Execute(sql, settings);
-            await sql.FinishJob(job);
-            Assert.Equal(JobResultType.Success, job.Result.ResultType);
+            var jobService = new ListIngest(sql, settings);
+            await jobService.Execute();
         }
 
         private async Task CheckListFeeds(int failed, int passed)

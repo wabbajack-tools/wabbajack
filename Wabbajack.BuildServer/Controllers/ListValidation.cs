@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
 using Wabbajack.BuildServer.Model.Models;
+using Wabbajack.BuildServer.Models;
 using Wabbajack.Common;
+using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -19,12 +21,75 @@ namespace Wabbajack.BuildServer.Controllers
         public ListValidation(ILogger<ListValidation> logger, SqlService sql) : base(logger, sql)
         {
         }
+
+        public async Task<IEnumerable<(ModListSummary Summary, DetailedStatus Detailed)>> GetSummaries()
+        {
+            var data = await SQL.GetValidationData();
+            
+            using var queue = new WorkQueue();
+
+            var results = data.ModLists.PMap(queue, list =>
+            {
+                var archives = list.ModList.Archives.Select(archive =>
+                {
+                    switch (archive.State)
+                    {
+                        case NexusDownloader.State nexusState when data.NexusFiles.Contains((
+                            nexusState.Game.MetaData().NexusGameId, nexusState.ModID, nexusState.FileID)):
+                            return (archive, true);
+                        case NexusDownloader.State nexusState:
+                            return (archive, false);
+                        case ManualDownloader.State _:
+                            return (archive, true);
+                        default:
+                        {
+                            if (data.ArchiveStatus.TryGetValue((archive.State.PrimaryKeyString, archive.Hash),
+                                out var isValid))
+                            {
+                                return (archive, isValid);
+                            }
+
+                            return (archive, false);
+                        }
+                    }
+                }).ToList();
+
+                var failedCount = archives.Count(f => !f.Item2);
+                var passCount = archives.Count(f => f.Item2);
+
+                var summary =  new ModListSummary
+                {
+                    Checked = DateTime.UtcNow,
+                    Failed = failedCount,
+                    MachineURL = list.Metadata.Links.MachineURL,
+                    Name = list.Metadata.Title,
+                    Passed = passCount
+                };
+
+                var detailed = new DetailedStatus
+                {
+                    Name = list.Metadata.Title,
+                    Checked = DateTime.UtcNow,
+                    DownloadMetaData = list.Metadata.DownloadMetadata,
+                    HasFailures = failedCount > 0,
+                    MachineName = list.Metadata.Links.MachineURL,
+                    Archives = archives.Select(a => new DetailedStatusItem
+                    {
+                        Archive = a.archive, IsFailing = !a.Item2
+                    }).ToList()
+                };
+
+                return (summary, detailed);
+            });
+
+            return await results;
+        }
         
         [HttpGet]
         [Route("status.json")]
         public async Task<IEnumerable<ModListSummary>> HandleGetLists()
         {
-            return await SQL.GetModListSummaries();
+            return (await GetSummaries()).Select(d => d.Summary);
         }
 
         private static readonly Func<object, string> HandleGetRssFeedTemplate = NettleEngine.GetCompiler().Compile(@"
@@ -48,7 +113,7 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("status/{Name}/broken.rss")]
         public async Task<ContentResult> HandleGetRSSFeed(string Name)
         {
-            var lst = await SQL.GetDetailedModlistStatus(Name);
+            var lst = await DetailedStatus(Name);
             var response = HandleGetRssFeedTemplate(new
             {
                 lst,
@@ -86,7 +151,7 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<ContentResult> HandleGetListHtml(string Name)
         {
 
-            var lst = await SQL.GetDetailedModlistStatus(Name);
+            var lst = await DetailedStatus(Name);
             var response = HandleGetListTemplate(new
             {
                 lst,
@@ -104,19 +169,16 @@ namespace Wabbajack.BuildServer.Controllers
         
         [HttpGet]
         [Route("status/{Name}.json")]
-        public async Task<ContentResult> HandleGetListJson(string Name)
+        public async Task<IActionResult> HandleGetListJson(string Name)
         {
-
-            var lst = await SQL.GetDetailedModlistStatus(Name);
-            lst.Archives.Do(a => a.Archive.Meta = null);
-            return new ContentResult
-            {
-                ContentType = "application/json",
-                StatusCode = (int) HttpStatusCode.OK,
-                Content = lst.ToJson()
-            };
+            return Ok((await DetailedStatus(Name)).ToJson());
         }
 
-
+        private async Task<DetailedStatus> DetailedStatus(string Name)
+        {
+            return (await GetSummaries())
+                .Select(d => d.Detailed)
+                .FirstOrDefault(d => d.MachineName == Name);
+        }
     }
 }

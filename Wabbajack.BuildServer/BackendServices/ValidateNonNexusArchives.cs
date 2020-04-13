@@ -17,8 +17,16 @@ namespace Wabbajack.BuildServer.BackendServices
             using var queue = new WorkQueue();
             var results = await archives.PMap(queue, async archive =>
             {
-                var isValid = await archive.State.Verify(archive);
-                return (Archive: archive, IsValid: isValid);
+                try
+                {
+                    var isValid = await archive.State.Verify(archive);
+                    return (Archive: archive, IsValid: isValid);
+                }
+                catch (Exception)
+                {
+                    return (Archive: archive, IsValid: false);
+                }
+
             });
 
             await Sql.UpdateNonNexusModlistArchivesStatus(results);
