@@ -20,6 +20,8 @@ namespace Wabbajack.BuildServer.Models.Jobs
         public Archive Archive { get; set; }
         public override string Description => $"Index ${Archive.State.PrimaryKeyString} and save the download/file state";
         public override bool UsesNexus { get => Archive.State is NexusDownloader.State; }
+        public Hash DownloadedHash { get; set; }
+
         public override async Task<JobResult> Execute(SqlService sql, AppSettings settings)
         {
             if (Archive.State is ManualDownloader.State)
@@ -46,6 +48,8 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 await vfs.AddRoot(settings.DownloadPath.Combine(folder));
                 var archive = vfs.Index.ByRootPath.First().Value;
 
+                DownloadedHash = archive.Hash;
+                
                 await sql.MergeVirtualFile(archive);
 
                 await sql.AddDownloadState(archive.Hash, Archive.State);
@@ -62,6 +66,7 @@ namespace Wabbajack.BuildServer.Models.Jobs
             }
             return JobResult.Success();
         }
+
 
         protected override IEnumerable<object> PrimaryKey => Archive.State.PrimaryKey;
     }

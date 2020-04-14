@@ -256,20 +256,35 @@ namespace Wabbajack.BuildServer.Model.Models
 
         static SqlService()
         {
-            SqlMapper.AddTypeHandler(new PayloadMapper());
             SqlMapper.AddTypeHandler(new HashMapper());
+            SqlMapper.AddTypeHandler(new RelativePathMapper());
+            SqlMapper.AddTypeHandler(new JsonMapper<AbstractDownloadState>());
+            SqlMapper.AddTypeHandler(new JsonMapper<AJobPayload>());
         }
 
-        public class PayloadMapper : SqlMapper.TypeHandler<AJobPayload>
+        public class JsonMapper<T> : SqlMapper.TypeHandler<T>
         {
-            public override void SetValue(IDbDataParameter parameter, AJobPayload value)
+            public override void SetValue(IDbDataParameter parameter, T value)
             {
                 parameter.Value = value.ToJson();
             }
 
-            public override AJobPayload Parse(object value)
+            public override T Parse(object value)
             {
-                return ((string)value).FromJsonString<AJobPayload>();
+                return ((string)value).FromJsonString<T>();
+            }
+        }
+        
+        public class RelativePathMapper : SqlMapper.TypeHandler<RelativePath>
+        {
+            public override void SetValue(IDbDataParameter parameter, RelativePath value)
+            {
+                parameter.Value = value.ToJson();
+            }
+
+            public override RelativePath Parse(object value)
+            {
+                return (RelativePath)(string)value;
             }
         }
         
@@ -690,12 +705,14 @@ namespace Wabbajack.BuildServer.Model.Models
             var nexusFiles = AllNexusFiles();
             var archiveStatus = AllModListArchivesStatus();
             var modLists = AllModLists();
+            var archivePatches = AllArchivePatches();
 
             return new ValidationData
             {
                 NexusFiles = await nexusFiles,
                 ArchiveStatus = await archiveStatus,
-                ModLists = await modLists
+                ModLists = await modLists,
+                ArchivePatches = await archivePatches
             };
         }
 
@@ -731,6 +748,86 @@ namespace Wabbajack.BuildServer.Model.Models
             public HashSet<(long Game, long ModId, long FileId)> NexusFiles { get; set; }
             public Dictionary<(string PrimaryKeyString, Hash Hash), bool> ArchiveStatus { get; set; }
             public List<(ModlistMetadata Metadata, ModList ModList)> ModLists { get; set; }
+            public List<ArchivePatch> ArchivePatches { get; set; }
         }
+
+
+        #region ArchivePatches
+
+        public class ArchivePatch
+        {
+            public Hash SrcHash { get; set; }
+            public AbstractDownloadState SrcState { get; set; }
+            public Hash DestHash { get; set; }
+            public AbstractDownloadState DestState { get; set; }
+            
+            public RelativePath DestDownload { get; set; }
+            public RelativePath SrcDownload { get; set; }
+            public Uri CDNPath { get; set; }
+        }
+
+        public async Task UpsertArchivePatch(ArchivePatch patch)
+        {
+            await using var conn = await Open();
+
+            await using var trans = conn.BeginTransaction();
+            await conn.ExecuteAsync(@"DELETE FROM dbo.ArchivePatches 
+                  WHERE SrcHash = @SrcHash 
+                    AND DestHash = @DestHash 
+                    AND SrcPrimaryKeyStringHash = HASHBYTES('SHA2-256', @SrcPrimaryKeyString)
+                    AND DestPrimaryKeyStringHash = HASHBYTES('SHA2-256', @DestPrimaryKeyString)",
+                new
+                {
+                    SrcHash = patch.SrcHash,
+                    DestHash = patch.DestHash,
+                    SrcPrimaryKeyString = patch.SrcState.PrimaryKeyString,
+                    DestPrimaryKeyString = patch.DestState.PrimaryKeyString
+                }, trans);
+
+            await conn.ExecuteAsync(@"INSERT INTO dbo.ArchivePatches 
+                     (SrcHash, SrcPrimaryKeyString, SrcPrimaryKeyStringHash, SrcState,
+                     DestHash, DestPrimaryKeyString, DestPrimaryKeyStringHash, DestState,
+                      
+                      SrcDownload, DestDownload, CDNPath)
+                      VALUES (@SrcHash, @SrcPrimaryKeyString, HASHBYTES('SHA2-256', @SrcPrimaryKeyString), @SrcState,
+                              @DestHash, @DestPrimaryKeyString, HASHBYTES('SHA2-256', @DestPrimaryKeyString), @DestState,
+                              @SrcDownload, @DestDownload, @CDNPAth)",
+            new
+            {
+                SrcHash = patch.SrcHash,
+                DestHash = patch.DestHash,
+                SrcPrimaryKeyString = patch.SrcState.PrimaryKeyString,
+                DestPrimaryKeyString = patch.DestState.PrimaryKeyString,
+                SrcState = patch.SrcState.ToJson(),
+                DestState = patch.DestState.ToString(),
+                DestDownload = patch.DestDownload,
+                SrcDownload = patch.SrcDownload,
+                CDNPath = patch.CDNPath
+            }, trans);
+
+            await trans.CommitAsync();
+        }
+
+        public async Task<List<ArchivePatch>> AllArchivePatches()
+        {
+            await using var conn = await Open();
+
+            var results =
+                await conn.QueryAsync<(Hash, AbstractDownloadState, Hash, AbstractDownloadState, RelativePath, RelativePath, Uri)>(
+                    @"SELECT SrcHash, SrcState, DestHash, DestState, SrcDownload, DestDownload, CDNPath FROM dbo.ArchivePatches");
+            return results.Select(a => new ArchivePatch
+            {
+                SrcHash = a.Item1,
+                SrcState = a.Item2,
+                DestHash = a.Item3,
+                DestState = a.Item4,
+                SrcDownload = a.Item5,
+                DestDownload = a.Item6,
+                CDNPath = a.Item7
+            }).ToList();
+        }
+        
+
+        #endregion
     }
 }

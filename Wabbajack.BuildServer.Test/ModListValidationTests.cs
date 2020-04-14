@@ -18,6 +18,7 @@ using Wabbajack.Lib.FileUploader;
 using Wabbajack.Lib.ModListRegistry;
 using Xunit;
 using Xunit.Abstractions;
+using IndexedFile = Wabbajack.BuildServer.Models.IndexedFile;
 
 namespace Wabbajack.BuildServer.Test
 {
@@ -109,6 +110,51 @@ namespace Wabbajack.BuildServer.Test
 
         }
 
+        [Fact]
+        public async Task CanUpgradeHttpDownloads()
+        {
+            await ClearJobQueue();
+            var modlists = await MakeModList();
+
+            await IndexFile(ModListData.Archives.First());
+            
+            Consts.ModlistMetadataURL = modlists.ToString();
+            Utils.Log("Updating modlists");
+            await RevalidateLists();
+
+            Utils.Log("Checking validated results");
+            var data = await ModlistMetadata.LoadFromGithub();
+            Assert.Single(data);
+            Assert.Equal(0, data.First().ValidationSummary.Failed);
+            Assert.Equal(1, data.First().ValidationSummary.Passed);
+
+            await CheckListFeeds(0, 1);
+            
+            var archive = "test_archive.txt".RelativeTo(Fixture.ServerPublicFolder);
+            archive.Delete();
+            await archive.WriteAllBytesAsync(Encoding.UTF8.GetBytes("More Cheese for Everyone!"));
+
+            var evalService = new ValidateNonNexusArchives(Fixture.GetService<SqlService>(), Fixture.GetService<AppSettings>());
+            await evalService.Execute();
+            await RevalidateLists();
+            
+            
+            Utils.Log("Checking updated results");
+            data = await ModlistMetadata.LoadFromGithub();
+            Assert.Single(data);
+            Assert.Equal(0, data.First().ValidationSummary.Failed);
+            Assert.Equal(1, data.First().ValidationSummary.Passed);
+
+            await CheckListFeeds(0, 1);
+
+        }
+
+        private async Task IndexFile(Archive archive)
+        {
+            var job = new IndexJob {Archive = archive};
+            await job.Execute(Fixture.GetService<SqlService>(), Fixture.GetService<AppSettings>());
+        }
+
         private async Task RevalidateLists()
         {
             var sql = Fixture.GetService<SqlService>();
@@ -142,7 +188,7 @@ namespace Wabbajack.BuildServer.Test
 
 
 
-            var modListData = new ModList
+            ModListData = new ModList
             {
                 Archives = new List<Archive>
                 {
@@ -163,7 +209,7 @@ namespace Wabbajack.BuildServer.Test
                 using var za = new ZipArchive(fs, ZipArchiveMode.Create);
                 var entry = za.CreateEntry("modlist.json");
                 await using var es = entry.Open();
-                modListData.ToJson(es);
+                ModListData.ToJson(es);
             }
 
             ModListMetaData = new List<ModlistMetadata>
@@ -192,6 +238,8 @@ namespace Wabbajack.BuildServer.Test
             
             return new Uri(MakeURL("test_mod_list_metadata.json"));
         }
+
+        public ModList ModListData { get; set; }
 
         public List<ModlistMetadata> ModListMetaData { get; set; }
     }

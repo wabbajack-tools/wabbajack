@@ -361,6 +361,29 @@ CREATE TABLE [dbo].[ModListArchiveStatus](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
+/****** Object:  Table [dbo].[ArchivePatches]    Script Date: 4/13/2020 9:39:25 PM ******/
+CREATE TABLE [dbo].[ArchivePatches](
+[SrcPrimaryKeyStringHash] [binary](32) NOT NULL,
+[SrcPrimaryKeyString] [nvarchar](max) NOT NULL,
+[SrcHash] [bigint] NOT NULL,
+[DestPrimaryKeyStringHash] [binary](32) NOT NULL,
+[DestPrimaryKeyString] [nvarchar](max) NOT NULL,
+[DestHash] [bigint] NOT NULL,
+[SrcState] [nvarchar](max) NOT NULL,
+[DestState] [nvarchar](max) NOT NULL,
+[SrcDownload] [nvarchar](max) NULL,
+[DestDownload] [nvarchar](max) NULL,
+[CDNPath] [nvarchar](max) NULL,
+CONSTRAINT [PK_ArchivePatches] PRIMARY KEY CLUSTERED
+   (
+    [SrcPrimaryKeyStringHash] ASC,
+    [SrcHash] ASC,
+    [DestPrimaryKeyStringHash] ASC,
+    [DestHash] ASC
+       )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
 
 /****** Object:  Table [dbo].[Metrics]    Script Date: 3/28/2020 4:58:59 PM ******/
 SET ANSI_NULLS ON
