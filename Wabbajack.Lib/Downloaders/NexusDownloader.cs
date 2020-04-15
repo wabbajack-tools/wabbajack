@@ -141,7 +141,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public string? Version { get; set; }
             
-            public string? ImageURL { get; set; }
+            public Uri? ImageURL { get; set; }
             
             public bool IsNSFW { get; set; }
 

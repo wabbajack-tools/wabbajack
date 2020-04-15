@@ -17,7 +17,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 source.AbsolutePath.Extension != Consts.ESM) return null;
 
             var bsa = source.AbsolutePath.ReplaceExtension(Consts.BSA);
-            var bsaTextures = source.AbsolutePath.AppendToName(" - Textures");
+            var bsaTextures = source.AbsolutePath.AppendToName(" - Textures").ReplaceExtension(Consts.BSA);
 
             if (source.AbsolutePath.Size > 250 || !bsa.IsFile && !bsaTextures.IsFile) return null;
 

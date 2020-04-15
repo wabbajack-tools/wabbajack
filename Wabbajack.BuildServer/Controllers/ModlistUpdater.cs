@@ -91,43 +91,34 @@ namespace Wabbajack.BuildServer.Controllers
             Utils.Log($"Alternative requested for {startingHash}");
             await Metric("requested_upgrade", startingHash.ToString());
 
-            var state = await SQL.GetNexusStateByHash(startingHash);
-                
-                /*.DownloadStates.AsQueryable()
-                .Where(s => s.Hash == startingHash)
-                .Where(s => s.State is NexusDownloader.State)
-                .OrderByDescending(s => s.LastValidationTime).FirstOrDefaultAsync();*/
+            var archive = await SQL.GetStateByHash(startingHash);
 
-            if (state == null)
+            if (archive == null)
             {
                 Utils.Log($"No original state for {startingHash}");
                 return NotFound("Original state not found");
             }
 
-            var nexusState = state.State as NexusDownloader.State;
-            var nexusGame = nexusState.Game;
-            var nexusModFiles = await SQL.GetModFiles(nexusGame, nexusState.ModID);
-            if (nexusModFiles == null)
+            Archive newArchive;
+            IActionResult result;
+            switch (archive.State)
             {
-                Utils.Log($"No nexus mod files for {startingHash}");
-                return NotFound("No nexus info");
+                case NexusDownloader.State _:
+                {
+                    (result, newArchive) = await FindNexusAlternative(archive);
+                    if (newArchive == null)
+                        return result;
+                    break;
+                }
+                case HTTPDownloader.State _:
+                    (result, newArchive) = await FindHttpAlternative(archive);
+                    if (newArchive == null)
+                        return result;
+                    break;
+                default:
+                    return NotFound("No alternative");
             }
-            var mod_files = nexusModFiles.files;
 
-            if (mod_files.Any(f => f.category_name != null && f.file_id == nexusState.FileID))
-            {
-                Utils.Log($"No available upgrade required for {nexusState.PrimaryKey}");
-                await Metric("not_required_upgrade", startingHash.ToString());
-                return BadRequest("Upgrade Not Required");
-            }
-
-            Utils.Log($"Found original, looking for alternatives to {startingHash}");
-            var newArchive = await FindAlternatives(nexusState, startingHash);
-            if (newArchive == null)
-            {
-                Utils.Log($"No available upgrade for {nexusState.PrimaryKey}");
-                return NotFound("No alternative available");
-            }
 
             Utils.Log($"Found {newArchive.State.PrimaryKeyString} {newArchive.Name} as an alternative to {startingHash}");
             if (newArchive.Hash == Hash.Empty)
@@ -168,7 +159,61 @@ namespace Wabbajack.BuildServer.Controllers
             return Ok(newArchive.ToJson());
         }
 
-        private async Task<Archive> FindAlternatives(NexusDownloader.State state, Hash srcHash)
+
+        private async Task<(IActionResult, Archive)> FindHttpAlternative(Archive archive)
+        {
+            try
+            {
+                var valid = await archive.State.Verify(archive);
+
+                if (valid)
+                {
+                    Utils.Log($"Http file {archive.Hash} is still valid");
+                    return (NotFound("Http file still valid"), null);
+                }
+
+                archive.Hash = default;
+                archive.Size = 0;
+                return (Ok("Index"), archive);
+            }
+            catch
+            {
+                Utils.Log($"Http file {archive.Hash} no longer exists");
+                return (NotFound("Http file no longer exists"), null);
+            }
+        }
+        private async Task<(IActionResult, Archive)> FindNexusAlternative(Archive archive)
+        {
+            var nexusState = (NexusDownloader.State)archive.State;
+            var nexusGame = nexusState.Game;
+            var nexusModFiles = await SQL.GetModFiles(nexusGame, nexusState.ModID);
+            if (nexusModFiles == null)
+            {
+                Utils.Log($"No nexus mod files for {archive.Hash}");
+                return (NotFound("No nexus info"), null);
+            }
+            var mod_files = nexusModFiles.files;
+
+            if (mod_files.Any(f => f.category_name != null && f.file_id == nexusState.FileID))
+            {
+                Utils.Log($"No available upgrade required for {nexusState.PrimaryKey}");
+                await Metric("not_required_upgrade", archive.Hash.ToString());
+                return (BadRequest("Upgrade Not Required"), null);
+            }
+
+            Utils.Log($"Found original, looking for alternatives to {archive.Hash}");
+            var newArchive = await FindNexusAlternative(nexusState, archive.Hash);
+            if (newArchive != null)
+            {
+                return (Ok(newArchive), newArchive);
+            }
+
+            Utils.Log($"No available upgrade for {nexusState.PrimaryKey}");
+            return (NotFound("No alternative available"), null);
+
+        }
+
+        private async Task<Archive> FindNexusAlternative(NexusDownloader.State state, Hash srcHash)
         {
             var origSize = _settings.PathForArchive(srcHash).Size;
             var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());

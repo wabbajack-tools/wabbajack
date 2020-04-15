@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.BuildServer.Models.JobQueue
 { 
+    [JsonName("Job")]
     public class Job
     {
         public enum JobPriority : int

@@ -14,7 +14,7 @@ namespace Wabbajack.Lib.Downloaders
         string? Name { get; set; }
         string? Author { get; set; }
         string? Version { get; set; }
-        string? ImageURL { get; set; }
+        Uri? ImageURL { get; set; }
         bool IsNSFW { get; set; }
         string? Description { get; set; }
 
@@ -54,7 +54,6 @@ namespace Wabbajack.Lib.Downloaders
         [JsonIgnore]
         public abstract object[] PrimaryKey { get; }
         
-        [JsonIgnore]
         public string PrimaryKeyString
         {
             get
@@ -83,9 +82,7 @@ namespace Wabbajack.Lib.Downloaders
         public async Task<bool> Download(AbsolutePath destination)
         {
             destination.Parent.CreateDirectory();
-            // ToDo
-            // Is this null override needed?  Why is state allowed to be null here?
-            return await Download(new Archive(state: null!) {Name = (string)destination.FileName}, destination);
+            return await Download(new Archive(this) {Name = (string)destination.FileName}, destination);
         }
 
         /// <summary>

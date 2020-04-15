@@ -207,8 +207,15 @@ namespace Wabbajack.Common
 
         public static bool TryGetByFuzzyName(string someName, [MaybeNullWhen(false)] out GameMetaData gameMetaData)
         {
-            gameMetaData = TryGetByFuzzyName(someName);
-            return gameMetaData != null;
+            var result = TryGetByFuzzyName(someName);
+            if (result == null)
+            {
+                gameMetaData = Games.Values.First();
+                return false;
+            }
+
+            gameMetaData = result;
+            return true;
         }
 
         public static IReadOnlyDictionary<Game, GameMetaData> Games = new Dictionary<Game, GameMetaData>
