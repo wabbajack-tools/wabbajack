@@ -102,7 +102,7 @@ namespace Wabbajack
                         {
                             try
                             {
-                                modList.OpenReadmeWindow();
+                                modList.OpenReadme();
                             }
                             catch (Exception ex)
                             {

@@ -9,19 +9,14 @@ using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
-using Wabbajack.Lib.Validation;
 using Wabbajack.VirtualFileSystem;
-using Directory = Alphaleonis.Win32.Filesystem.Directory;
-using File = Alphaleonis.Win32.Filesystem.File;
-using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
 {
     public abstract class ACompiler : ABatchProcessor
     {
-        public string? ModListName, ModListAuthor, ModListDescription, ModListWebsite;
-        public AbsolutePath ModListImage, ModListReadme;
-        public bool ReadmeIsWebsite;
+        public string? ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModlistReadme;
+        public AbsolutePath ModListImage;
         protected Version? WabbajackVersion;
 
         public abstract AbsolutePath VFSCacheName { get; }
@@ -136,12 +131,6 @@ namespace Wabbajack.Lib
             {
                 ModList.Image = (RelativePath)"modlist-image.png";
             }
-            if (ModListReadme.Exists)
-            {
-                ModList.Readme = $"readme{ModListReadme.Extension}";
-            }
-
-            ModList.ReadmeIsWebsite = ReadmeIsWebsite;
 
             using (var of = ModListOutputFolder.Combine("modlist").Create()) 
                 ModList.ToJson(of);
@@ -168,17 +157,6 @@ namespace Wabbajack.Lib
                         var ze = za.CreateEntry((string)ModList.Image);
                         using (var os = ze.Open())
                         using (var ins = ModListImage.OpenRead())
-                        {
-                            ins.CopyTo(os);
-                        }
-                    }
-
-                    // Copy in readme
-                    if (ModListReadme.Exists)
-                    {
-                        var ze = za.CreateEntry(ModList.Readme);
-                        using (var os = ze.Open())
-                        using (var ins = ModListReadme.OpenRead())
                         {
                             ins.CopyTo(os);
                         }

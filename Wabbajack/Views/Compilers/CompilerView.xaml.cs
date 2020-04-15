@@ -72,25 +72,7 @@ namespace Wabbajack
                     .DisposeWith(dispose);
                 this.BindStrict(this.ViewModel, x => x.CurrentModlistSettings.Website, x => x.WebsiteSetting.Text)
                     .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.CurrentModlistSettings.ReadmeFilePath)
-                    .BindToStrict(this, x => x.ReadmeFilePickerSetting.PickerVM)
-                    .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.CurrentModlistSettings.ReadmeIsWebsite)
-                    .Select(isWebsite => isWebsite ? Visibility.Collapsed : Visibility.Visible)
-                    .BindToStrict(this, x => x.ReadmeFilePickerSetting.Visibility)
-                    .DisposeWith(dispose);
-                this.BindStrict(this.ViewModel, x => x.CurrentModlistSettings.ReadmeWebsite, x => x.ReadmeWebsiteSetting.Text)
-                    .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.CurrentModlistSettings.ReadmeIsWebsite)
-                    .Select(isWebsite => isWebsite ? Visibility.Visible : Visibility.Collapsed)
-                    .BindToStrict(this, x => x.ReadmeWebsiteSetting.Visibility)
-                    .DisposeWith(dispose);
-                this.MarkAsNeeded<CompilerView, CompilerVM, bool>(this.ViewModel, x => x.CurrentModlistSettings.ReadmeIsWebsite);
-                this.WhenAny(x => x.ViewModel.CurrentModlistSettings.SwapToWebsiteReadmeCommand)
-                    .BindToStrict(this, x => x.SwapToReadmeWebsiteButton.Command)
-                    .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.CurrentModlistSettings.SwapToTextReadmeCommand)
-                    .BindToStrict(this, x => x.SwapToReadmeFileButton.Command)
+                this.BindStrict(this.ViewModel, x => x.CurrentModlistSettings.Readme, x => x.ReadmeSetting.Text)
                     .DisposeWith(dispose);
 
                 // Bottom Compiler Settings

@@ -1,6 +1,5 @@
 ﻿using ReactiveUI;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Reactive;
@@ -89,37 +88,10 @@ namespace Wabbajack
                 .RefCount();
         }
 
-        public void OpenReadmeWindow()
+        public void OpenReadme()
         {
             if (string.IsNullOrEmpty(Readme)) return;
-            if (SourceModList.ReadmeIsWebsite)
-            {
-                Utils.OpenWebsite(new Uri(Readme));
-            }
-            else
-            {
-                using var fs = ModListPath.OpenShared();
-                using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
-                using var ms = new MemoryStream();
-
-                var entry = ar.GetEntry(Readme);
-                if (entry == null)
-                {
-                    Utils.Log($"Tried to open a non-existent readme: {Readme}");
-                    return;
-                }
-
-                using (var e = entry.Open())
-                {
-                    e.CopyTo(ms);
-                }
-                ms.Seek(0, SeekOrigin.Begin);
-
-                using var reader = new StreamReader(ms);
-
-                var viewer = new TextViewer(reader.ReadToEnd(), Name);
-                viewer.Show();
-            }
+            Utils.OpenWebsite(new Uri(Readme));
         }
 
         public override void Dispose()
@@ -127,7 +99,7 @@ namespace Wabbajack
             base.Dispose();
             // Just drop reference explicitly, as it's large, so it can be GCed
             // Even if someone is holding a stale reference to the VM
-            this.SourceModList = null;
+            SourceModList = null;
         }
     }
 }
