@@ -953,6 +953,9 @@ namespace Wabbajack.Common
         /// <param name="path"></param>
         public static async Task DeleteDirectory(AbsolutePath path)
         {
+            if (!path.Exists)
+                return;
+
             var process = new ProcessHelper
             {
                 Path = ((RelativePath)"cmd.exe").RelativeToSystemDirectory(),
