@@ -538,13 +538,28 @@ namespace Wabbajack.BuildServer.Model.Models
         public async Task<Archive> GetNexusStateByHash(Hash startingHash)
         {
             await using var conn = await Open();
-            var result = await conn.QueryFirstOrDefaultAsync<string>(@"SELECT JsonState FROM dbo.DownloadStates  
+            var result = await conn.QueryFirstOrDefaultAsync<string>(@"SELECT JsonState, Size FROM dbo.DownloadStates  
                                                                WHERE Hash = @hash AND PrimaryKey like 'NexusDownloader+State|%'",
                 new {Hash = (long)startingHash});
             return result == null ? null : new Archive
             {
                 State = result.FromJsonString<AbstractDownloadState>(),
                 Hash = startingHash
+            };
+        }
+        
+        public async Task<Archive> GetStateByHash(Hash startingHash)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryFirstOrDefaultAsync<(string, long)>(@"SELECT JsonState, indexed.Size FROM dbo.DownloadStates state
+                                                       LEFT JOIN dbo.IndexedFile indexed ON indexed.Hash = state.Hash
+                                                       WHERE state.Hash = @hash",
+                new {Hash = (long)startingHash});
+            return result == default ? null : new Archive
+            {
+                State = result.Item1.FromJsonString<AbstractDownloadState>(),
+                Hash = startingHash,
+                Size = result.Item2
             };
         }
         

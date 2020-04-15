@@ -26,6 +26,7 @@ namespace Wabbajack.BuildServer.Test
     {
         public ModListValidationTests(ITestOutputHelper output, SingletonAdaptor<BuildServerFixture> fixture) : base(output, fixture)
         {
+            
         }
 
         [Fact]
@@ -143,9 +144,10 @@ namespace Wabbajack.BuildServer.Test
             data = await ModlistMetadata.LoadFromGithub();
             Assert.Single(data);
             Assert.Equal(0, data.First().ValidationSummary.Failed);
-            Assert.Equal(1, data.First().ValidationSummary.Passed);
+            Assert.Equal(0, data.First().ValidationSummary.Passed);
+            Assert.Equal(1, data.First().ValidationSummary.Updating);
 
-            await CheckListFeeds(0, 1);
+            await CheckListFeeds(1, 0);
 
         }
 

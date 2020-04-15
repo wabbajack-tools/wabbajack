@@ -26,7 +26,7 @@ namespace Wabbajack.BuildServer.Controllers
         {
             await SQL.IngestMetric(new Metric
             {
-                MetricsKey = Request.Headers[Consts.MetricsKeyHeader].FirstOrDefault(),
+                MetricsKey = Request?.Headers[Consts.MetricsKeyHeader].FirstOrDefault() ?? "",
                 Subject = subject,
                 Action = verb,
                 Timestamp = DateTime.UtcNow

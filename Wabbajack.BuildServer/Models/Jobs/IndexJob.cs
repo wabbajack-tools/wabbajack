@@ -18,6 +18,8 @@ namespace Wabbajack.BuildServer.Models.Jobs
     public class IndexJob : AJobPayload, IBackEndJob
     {
         public Archive Archive { get; set; }
+        
+        public bool ForceIndex { get; set; }
         public override string Description => $"Index ${Archive.State.PrimaryKeyString} and save the download/file state";
         public override bool UsesNexus { get => Archive.State is NexusDownloader.State; }
         public Hash DownloadedHash { get; set; }
@@ -33,10 +35,10 @@ namespace Wabbajack.BuildServer.Models.Jobs
             var pkStr = string.Join("|",pk.Select(p => p.ToString()));
 
             var found = await sql.DownloadStateByPrimaryKey(pkStr);
-            if (found != null)
+            if (found != null && !ForceIndex)
                 return JobResult.Success();
             
-            string fileName = Archive.Name;
+            string fileName = Archive.Name ?? Guid.NewGuid().ToString();
             string folder = Guid.NewGuid().ToString();
             Utils.Log($"Indexer is downloading {fileName}");
             var downloadDest = settings.DownloadPath.Combine(folder, fileName);
