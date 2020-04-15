@@ -280,7 +280,7 @@ namespace Compression.BSA
                 case VersionType.SSE:
                 {
                     var r = new MemoryStream();
-                    using (var w = LZ4Stream.Encode(r, new LZ4EncoderSettings {CompressionLevel = LZ4Level.L10_OPT}, true))
+                    using (var w = LZ4Stream.Encode(r, new LZ4EncoderSettings {CompressionLevel = LZ4Level.L12_MAX}, true))
                     {
                         _srcData.CopyTo(w);
                     }

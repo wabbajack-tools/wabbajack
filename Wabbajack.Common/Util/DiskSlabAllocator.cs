@@ -30,8 +30,12 @@ namespace Wabbajack.Common
         {
             lock (this)
             {
+                // This can happen at times due to differences in compression sizes
                 if (_head + size >= _size)
-                    throw new InvalidDataException($"Size out of range. Declared {_size} used {_head + size}");
+                {
+                    return new MemoryStream();
+                }
+
                 var startAt = _head;
                 _head += size;
                 var stream =  _mmap.CreateViewStream(startAt, size, MemoryMappedFileAccess.ReadWrite);

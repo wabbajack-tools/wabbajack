@@ -314,7 +314,18 @@ namespace Wabbajack.Common
 
                 if (!_typeToName.ContainsKey(serializedType))
                 {
-                    throw new InvalidDataException($"No Binding name for {serializedType}");
+                    var custom = serializedType.GetCustomAttributes(false)
+                        .OfType<JsonNameAttribute>().FirstOrDefault();
+                    if (custom == null)
+                    {
+                        throw new InvalidDataException($"No Binding name for {serializedType}");
+                    }
+
+                    _nameToType[custom.Name] = serializedType;
+                    _typeToName[serializedType] = custom.Name;
+                    assemblyName = null;
+                    typeName = custom.Name;
+                    return;
                 }
 
                 var name = _typeToName[serializedType];
