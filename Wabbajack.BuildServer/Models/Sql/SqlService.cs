@@ -204,14 +204,14 @@ namespace Wabbajack.BuildServer.Model.Models
                 new {
                     job.Id,
                     Success = job.Result.ResultType == JobResultType.Success,
-                    ResultContent = job.Result.ToJson()
+                    ResultContent = job.Result
                 });
             
             if (job.OnSuccess != null)
                 await EnqueueJob(job.OnSuccess);
         }
 
-        
+
         /// <summary>
         /// Get a Job from the Job queue to run. 
         /// </summary>
@@ -219,16 +219,24 @@ namespace Wabbajack.BuildServer.Model.Models
         public async Task<Job> GetJob()
         {
             await using var conn = await Open();
-            var result = await conn.QueryAsync<Job>(
+            var result = await conn.QueryAsync<(long, DateTime, DateTime, DateTime, AJobPayload, int)>(
                 @"UPDATE jobs SET Started = GETDATE(), RunBy = @RunBy 
                         WHERE ID in (SELECT TOP(1) ID FROM Jobs 
                                        WHERE Started is NULL
                                        AND PrimaryKeyString NOT IN (SELECT PrimaryKeyString from jobs WHERE Started IS NOT NULL and Ended IS NULL)
                                        ORDER BY Priority DESC, Created);
-                      SELECT TOP(1) * FROM jobs WHERE RunBy = @RunBy ORDER BY Started DESC",
+                      SELECT TOP(1) Id, Started, Ended, Created, Payload, Priority FROM jobs WHERE RunBy = @RunBy ORDER BY Started DESC",
                 new {RunBy = Guid.NewGuid().ToString()});
-            return result.FirstOrDefault();
-        }
+            return result.Select(k =>
+            new Job {
+                Id = k.Item1,
+                Started = k.Item2,
+                Ended = k.Item3,
+                Created = k.Item4,
+                Payload = k.Item5,
+                Priority = (Job.JobPriority)k.Item6
+            }).FirstOrDefault();
+    }
         
         
         public async Task<IEnumerable<Job>> GetRunningJobs()
@@ -260,6 +268,8 @@ namespace Wabbajack.BuildServer.Model.Models
             SqlMapper.AddTypeHandler(new RelativePathMapper());
             SqlMapper.AddTypeHandler(new JsonMapper<AbstractDownloadState>());
             SqlMapper.AddTypeHandler(new JsonMapper<AJobPayload>());
+            SqlMapper.AddTypeHandler(new JsonMapper<JobResult>());
+            SqlMapper.AddTypeHandler(new JsonMapper<Job>());
         }
 
         public class JsonMapper<T> : SqlMapper.TypeHandler<T>
