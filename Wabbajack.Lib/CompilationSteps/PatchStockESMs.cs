@@ -16,7 +16,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _mo2Compiler = (MO2Compiler) compiler;
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             var filename = source.Path.FileName;
             var gameFile = _mo2Compiler.GamePath.Combine((RelativePath)"Data", filename);

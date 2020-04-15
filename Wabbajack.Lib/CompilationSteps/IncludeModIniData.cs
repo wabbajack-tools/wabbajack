@@ -11,7 +11,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!source.Path.StartsWith("mods\\") || source.Path.FileName != Consts.MetaIni) return null;
             var e = source.EvolveTo<InlineFile>();

@@ -13,13 +13,13 @@ namespace Wabbajack.Lib.ModListRegistry
     public class ModlistMetadata
     {
         [JsonProperty("title")]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         [JsonProperty("description")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [JsonProperty("author")]
-        public string Author { get; set; }
+        public string Author { get; set; } = string.Empty;
 
         [JsonProperty("game")]
         public Game Game { get; set; }
@@ -33,7 +33,7 @@ namespace Wabbajack.Lib.ModListRegistry
         public LinksObject Links { get; set; } = new LinksObject();
 
         [JsonProperty("download_metadata")]
-        public DownloadMetadata DownloadMetadata { get; set; }
+        public DownloadMetadata? DownloadMetadata { get; set; }
 
         [JsonIgnore] 
         public ModListSummary ValidationSummary { get; set; } = new ModListSummary();
@@ -42,21 +42,17 @@ namespace Wabbajack.Lib.ModListRegistry
         public class LinksObject
         {
             [JsonProperty("image")]
-            public string ImageUri { get; set; }
+            public string ImageUri { get; set; } = string.Empty;
 
             [JsonProperty("readme")]
-            public string Readme { get; set; }
+            public string Readme { get; set; } = string.Empty;
 
             [JsonProperty("download")]
-            public string Download { get; set; }
-            
+            public string Download { get; set; } = string.Empty;
+
             [JsonProperty("machineURL")]
-            public string MachineURL { get; set; }
+            public string MachineURL { get; set; } = string.Empty;
         }
-
-
-
-
 
         public static async Task<List<ModlistMetadata>> LoadFromGithub()
         {
@@ -103,18 +99,17 @@ namespace Wabbajack.Lib.ModListRegistry
         public long SizeOfArchives { get; set; }
         public long NumberOfInstalledFiles { get; set; }
         public long SizeOfInstalledFiles { get; set; }
-
     }
 
     [JsonName("ModListSummary")]
     public class ModListSummary
     {
         [JsonProperty("name")]
-        public string Name { get; set; }
-        
+        public string Name { get; set; } = string.Empty;
+
         [JsonProperty("machineURL")]
-        public string MachineURL { get; set; }
-        
+        public string MachineURL { get; set; } = string.Empty;
+
         [JsonProperty("checked")]
         public DateTime Checked { get; set; }
         [JsonProperty("failed")]

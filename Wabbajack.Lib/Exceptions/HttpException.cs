@@ -12,6 +12,5 @@ namespace Wabbajack.Lib.Exceptions
             Code = code;
             Reason = reason;
         }
-
     }
 }

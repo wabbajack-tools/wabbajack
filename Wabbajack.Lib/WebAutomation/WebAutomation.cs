@@ -24,13 +24,13 @@ namespace Wabbajack.Lib.WebAutomation
             return driver;
         }
 
-        public async Task<Uri> NavigateTo(Uri uri)
+        public async Task<Uri?> NavigateTo(Uri uri)
         {
             await _driver.NavigateTo(uri);
             return await GetLocation();
         }
 
-        public async ValueTask<Uri> GetLocation()
+        public async ValueTask<Uri?> GetLocation()
         {
             try
             {

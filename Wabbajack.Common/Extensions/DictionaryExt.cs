@@ -21,6 +21,9 @@ namespace Wabbajack
             return ret;
         }
 
+        /// <summary>
+        /// Adds the given values to the dictionary.  If a key already exists, it will throw an exception
+        /// </summary>
         public static void Add<K, V>(this IDictionary<K, V> dict, IEnumerable<KeyValuePair<K, V>> vals)
             where K : notnull
         {
@@ -30,6 +33,9 @@ namespace Wabbajack
             }
         }
 
+        /// <summary>
+        /// Adds the given values to the dictionary.  If a key already exists, it will be replaced
+        /// </summary>
         public static void Set<K, V>(this IDictionary<K, V> dict, IEnumerable<KeyValuePair<K, V>> vals)
             where K : notnull
         {
@@ -37,6 +43,16 @@ namespace Wabbajack
             {
                 dict[val.Key] = val.Value;
             }
+        }
+
+        /// <summary>
+        /// Clears the dictionary and adds the given values
+        /// </summary>
+        public static void SetTo<K, V>(this IDictionary<K, V> dict, IEnumerable<KeyValuePair<K, V>> vals)
+            where K : notnull
+        {
+            dict.Clear();
+            dict.Set(vals);
         }
     }
 }

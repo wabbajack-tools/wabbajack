@@ -15,7 +15,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _gameFolder = compiler.GamePath;
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (_gameFolderFilesExists)
             {

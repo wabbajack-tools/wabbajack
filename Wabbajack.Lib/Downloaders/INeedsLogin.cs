@@ -11,9 +11,9 @@ namespace Wabbajack.Lib.Downloaders
         ReactiveCommand<Unit, Unit> ClearLogin { get; }
         IObservable<bool> IsLoggedIn { get; }
         string SiteName { get; }
-        IObservable<string> MetaInfo { get; }
+        IObservable<string>? MetaInfo { get; }
         Uri SiteURL { get; }
-        Uri IconUri { get; }
+        Uri? IconUri { get; }
     }
 
     public struct LoginReturnMessage

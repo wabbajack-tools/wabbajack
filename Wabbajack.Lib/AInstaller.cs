@@ -27,11 +27,12 @@ namespace Wabbajack.Lib
 
         public AbsolutePath ModListArchive { get; private set; }
         public ModList ModList { get; private set; }
-        public Dictionary<Hash, AbsolutePath> HashedArchives { get; set; }
+        public Dictionary<Hash, AbsolutePath> HashedArchives { get; } = new Dictionary<Hash, AbsolutePath>();
         
-        public SystemParameters SystemParameters { get; set; }
+        public SystemParameters? SystemParameters { get; set; }
 
-        public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
+        public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters? parameters, int steps)
+            : base(steps)
         {
             ModList = modList;
             ModListArchive = archive;
@@ -166,6 +167,10 @@ namespace Wabbajack.Lib
                   .PDoIndexed(queue, async (idx, group) =>
             {
                 Utils.Status("Installing files", Percent.FactoryPutInRange(idx, vFiles.Count));
+                if (group.Key == null)
+                {
+                    throw new ArgumentNullException("FromFile was null");
+                }
                 var firstDest = OutputFolder.Combine(group.First().To);
                 await CopyFile(group.Key.StagedPath, firstDest, true);
                 
@@ -173,11 +178,10 @@ namespace Wabbajack.Lib
                 {
                     await CopyFile(firstDest, OutputFolder.Combine(copy.To), false);
                 }
-
             });
 
             Status("Unstaging files");
-            onFinish();
+            await onFinish();
 
             // Now patch all the files from this archive
             await grouping.OfType<PatchedFromArchive>()
@@ -278,11 +282,11 @@ namespace Wabbajack.Lib
             var hashResults = await DownloadFolder.EnumerateFiles()
                 .Where(e => e.Extension != Consts.HashFileExtension)
                 .PMap(Queue, async e => (await e.FileHashCachedAsync(), e));
-            HashedArchives = hashResults
+            HashedArchives.SetTo(hashResults
                 .OrderByDescending(e => e.Item2.LastModified)
                 .GroupBy(e => e.Item1)
                 .Select(e => e.First())
-                .ToDictionary(e => e.Item1, e => e.Item2);
+                .Select(e => new KeyValuePair<Hash, AbsolutePath>(e.Item1, e.Item2)));
         }
 
         /// <summary>
@@ -391,8 +395,13 @@ namespace Wabbajack.Lib
                 
                 return await path.FileHashAsync() == d.Hash ? d : null;
             }))
-              .Where(d => d != null)
-              .Do(d => indexed.Remove(d.To));
+              .Do(d =>
+              {
+                  if (d != null)
+                  {
+                      indexed.Remove(d.To);
+                  }
+              });
 
             UpdateTracker.NextStep("Updating ModList");
             Utils.Log($"Optimized {ModList.Directives.Count} directives to {indexed.Count} required");

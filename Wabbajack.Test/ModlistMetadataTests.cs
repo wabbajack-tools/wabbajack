@@ -26,7 +26,7 @@ namespace Wabbajack.Test
             {
                 var logoState = DownloadDispatcher.ResolveArchive(modlist.ImageUri);
                 Assert.NotNull(logoState);
-                Assert.True(await logoState.Verify(new Archive{Size = 0}), $"{modlist.ImageUri} is not valid");
+                Assert.True(await logoState.Verify(new Archive(state: null){Size = 0}), $"{modlist.ImageUri} is not valid");
             }
         }
 

@@ -26,7 +26,7 @@ namespace Wabbajack.Lib.CompilationSteps
             }).Select(kv => $"mods\\{kv.Key}\\");
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!source.Path.StartsWith(Consts.MO2ModFolderName)) return null;
             foreach (var modpath in _includeDirectly)
@@ -48,16 +48,12 @@ namespace Wabbajack.Lib.CompilationSteps
         [JsonObject("IncludeTaggedMods")]
         public class State : IState
         {
-            public State()
-            {
-            }
+            public string Tag { get; set; }
 
             public State(string tag)
             {
                 Tag = tag;
             }
-
-            public string Tag { get; set; }
 
             public ICompilationStep CreateStep(ACompiler compiler)
             {

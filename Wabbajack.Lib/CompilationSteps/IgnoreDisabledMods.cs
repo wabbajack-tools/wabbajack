@@ -25,7 +25,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 .ToList();
         }
 
-        public override async ValueTask<Directive> Run(RawSourceFile source)
+        public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!source.AbsolutePath.InFolder(_mo2Compiler.MO2ModsFolder)) return null;
             if (_allEnabledMods.Any(mod => source.AbsolutePath.InFolder(mod)))

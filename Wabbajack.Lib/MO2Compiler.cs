@@ -25,7 +25,6 @@ namespace Wabbajack.Lib
 {
     public class MO2Compiler : ACompiler
     {
-
         private AbsolutePath _mo2DownloadsFolder;
         
         public AbsolutePath MO2Folder;
@@ -38,7 +37,7 @@ namespace Wabbajack.Lib
 
         public override AbsolutePath GamePath { get; }
 
-        public GameMetaData CompilingGame { get; set; }
+        public GameMetaData CompilingGame { get; }
 
         public override AbsolutePath ModListOutputFolder => ((RelativePath)"output_folder").RelativeToEntryPoint();
 
@@ -48,7 +47,19 @@ namespace Wabbajack.Lib
             Consts.LocalAppDataPath.Combine( 
             $"vfs_compile_cache-{Path.Combine((string)MO2Folder ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
 
+        public dynamic MO2Ini { get; }
+
+        public static AbsolutePath GetTypicalDownloadsFolder(AbsolutePath mo2Folder) => mo2Folder.Combine("downloads");
+
+        public AbsolutePath MO2ProfileDir => MO2Folder.Combine("profiles", MO2Profile);
+
+        public ConcurrentBag<Directive> ExtraFiles { get; private set; } = new ConcurrentBag<Directive>();
+        public Dictionary<AbsolutePath, dynamic> ModInis { get; } = new Dictionary<AbsolutePath, dynamic>();
+
+        public HashSet<string> SelectedProfiles { get; set; } = new HashSet<string>();
+
         public MO2Compiler(AbsolutePath mo2Folder, string mo2Profile, AbsolutePath outputFile)
+            : base(steps: 20)
         {
             MO2Folder = mo2Folder;
             MO2Profile = mo2Profile;
@@ -58,8 +69,6 @@ namespace Wabbajack.Lib
             GamePath = new AbsolutePath((string)MO2Ini.General.gamePath.Replace("\\\\", "\\"));
             ModListOutputFile = outputFile;
         }
-
-        public dynamic MO2Ini { get; }
 
         public AbsolutePath MO2DownloadsFolder
         {
@@ -75,20 +84,10 @@ namespace Wabbajack.Lib
             set => _mo2DownloadsFolder = value;
         }
 
-        public static AbsolutePath GetTypicalDownloadsFolder(AbsolutePath mo2Folder) => mo2Folder.Combine("downloads");
-
-        public AbsolutePath MO2ProfileDir => MO2Folder.Combine("profiles", MO2Profile);
-
-        internal UserStatus User { get; private set; }
-        public ConcurrentBag<Directive> ExtraFiles { get; private set; }
-        public Dictionary<AbsolutePath, dynamic> ModInis { get; private set; }
-
-        public HashSet<string> SelectedProfiles { get; set; } = new HashSet<string>();
-
         protected override async Task<bool> _Begin(CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested) return false;
-            ConfigureProcessor(20, ConstructDynamicNumThreads(await RecommendQueueSize()));
+            Queue.SetActiveThreadsObservable(ConstructDynamicNumThreads(await RecommendQueueSize()));
             UpdateTracker.Reset();
             UpdateTracker.NextStep("Gathering information");
             Info("Looking for other profiles");
@@ -126,6 +125,11 @@ namespace Wabbajack.Lib
             
             if (lootPath.Exists)
             {
+                if (CompilingGame.MO2Name == null)
+                {
+                    throw new ArgumentException("Compiling game had no MO2 name specified.");
+                }
+
                 var lootGameDirs = new []
                 {
                     CompilingGame.MO2Name, // most of the games use the MO2 name
@@ -170,9 +174,8 @@ namespace Wabbajack.Lib
 
             IndexedArchives = (await MO2DownloadsFolder.EnumerateFiles()
                 .Where(f => f.WithExtension(Consts.MetaFileExtension).Exists)
-                .PMap(Queue, async f => new IndexedArchive
+                .PMap(Queue, async f => new IndexedArchive(VFS.Index.ByRootPath[f])
                 {
-                    File = VFS.Index.ByRootPath[f],
                     Name = (string)f.FileName,
                     IniData = f.WithExtension(Consts.MetaFileExtension).LoadIniFile(),
                     Meta = await f.WithExtension(Consts.MetaFileExtension).ReadAllTextAsync()
@@ -216,10 +219,9 @@ namespace Wabbajack.Lib
                 .GroupBy(f => f.Hash)
                 .ToDictionary(f => f.Key, f => f.AsEnumerable());
 
-            AllFiles = mo2Files.Concat(gameFiles)
+            AllFiles.SetTo(mo2Files.Concat(gameFiles)
                 .Concat(lootFiles)
-                .DistinctBy(f => f.Path)
-                .ToList();
+                .DistinctBy(f => f.Path));
 
             Info($"Found {AllFiles.Count} files to build into mod list");
 
@@ -239,13 +241,10 @@ namespace Wabbajack.Lib
                 Error($"Found {dups.Count} duplicates, exiting");
             }
 
-            ExtraFiles = new ConcurrentBag<Directive>();
-
-
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Loading INIs");
 
-            ModInis = MO2Folder.Combine(Consts.MO2ModFolderName)
+            ModInis.SetTo(MO2Folder.Combine(Consts.MO2ModFolderName)
                 .EnumerateDirectories()
                 .Select(f =>
                 {
@@ -254,7 +253,7 @@ namespace Wabbajack.Lib
                     return metaPath.Exists ? (mod_name: f, metaPath.LoadIniFile()) : default;
                 })
                 .Where(f => f.Item1 != default)
-                .ToDictionary(f => f.Item1, f => f.Item2);
+                .Select(f => new KeyValuePair<AbsolutePath, dynamic>(f.Item1, f.Item2)));
 
             if (cancel.IsCancellationRequested) return false;
             var stack = MakeStack();
@@ -270,7 +269,7 @@ namespace Wabbajack.Lib
             PrintNoMatches(noMatch);
             if (CheckForNoMatchExit(noMatch)) return false;
 
-            InstallDirectives = results.Where(i => !(i is IgnoredDirectly)).ToList();
+            InstallDirectives.SetTo(results.Where(i => !(i is IgnoredDirectly)));
 
             Info("Getting Nexus api_key, please click authorize if a browser window appears");
 
@@ -337,7 +336,7 @@ namespace Wabbajack.Lib
                 {
                     return a;
                 }
-            })).Where(a => a != null).ToHashSet();
+            })).NotNull().ToHashSet();
 
             if (remove.Count == 0)
                 return;
@@ -389,7 +388,6 @@ namespace Wabbajack.Lib
             });
         }
 
-
         private async Task IncludeArchiveMetadata()
         {
             Utils.Log($"Including {SelectedArchives.Count} .meta files for downloads");
@@ -411,12 +409,11 @@ namespace Wabbajack.Lib
         /// </summary>
         private void ResetMembers()
         {
-            AllFiles = null;
-            InstallDirectives = null;
-            SelectedArchives = null;
-            ExtraFiles = null;
+            AllFiles = new List<RawSourceFile>();
+            InstallDirectives = new List<Directive>();
+            SelectedArchives = new List<Archive>();
+            ExtraFiles = new ConcurrentBag<Directive>();
         }
-
 
         /// <summary>
         ///     Fills in the Patch fields in files that require them
@@ -450,7 +447,7 @@ namespace Wabbajack.Lib
         private async Task BuildArchivePatches(Hash archiveSha, IEnumerable<PatchedFromArchive> group,
             Dictionary<RelativePath, AbsolutePath> absolutePaths)
         {
-            using var files = await VFS.StageWith(@group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath)));
+            await using var files = await VFS.StageWith(@group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath)));
             var byPath = files.GroupBy(f => string.Join("|", f.FilesInFullPath.Skip(1).Select(i => i.Name)))
                 .ToDictionary(f => f.Key, f => f.First());
             // Now Create the patches
@@ -487,8 +484,7 @@ namespace Wabbajack.Lib
                 return returnStream;
             }
 
-            Error($"Couldn't load data for {to}");
-            return null;
+            throw new ArgumentException($"Couldn't load data for {to}");
         }
 
         public override IEnumerable<ICompilationStep> GetStack()
@@ -566,13 +562,6 @@ namespace Wabbajack.Lib
 
                 new DropAll(this)
             };
-        }
-
-        public class IndexedFileMatch
-        {
-            public IndexedArchive Archive;
-            public IndexedArchiveEntry Entry;
-            public DateTime LastModified;
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Wabbajack.Lib
             return client;
         }
 
-        public static async Task<Archive> GetModUpgrade(Hash hash)
+        public static async Task<Archive?> GetModUpgrade(Hash hash)
         {
             using var response = await GetClient()
                 .GetAsync($"{Consts.WabbajackBuildServerUri}alternative/{hash.ToHex()}");
@@ -33,7 +33,7 @@ namespace Wabbajack.Lib
         /// </summary>
         /// <param name="hash"></param>
         /// <returns></returns>
-        public static async Task<string> GetModIni(Hash hash)
+        public static async Task<string?> GetModIni(Hash hash)
         {
             var client = new Common.Http.Client();
             try

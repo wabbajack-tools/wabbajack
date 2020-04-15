@@ -11,20 +11,17 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class ModDBDownloader : IDownloader, IUrlDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var url = archiveINI?.General?.directURL;
             return GetDownloaderState(url);
         }
 
-        public AbstractDownloadState GetDownloaderState(string url)
+        public AbstractDownloadState? GetDownloaderState(string url)
         {
             if (url != null && url.StartsWith("https://www.moddb.com/downloads/start"))
             {
-                return new State
-                {
-                    Url = url
-                };
+                return new State(url);
             }
 
             return null;
@@ -37,10 +34,15 @@ namespace Wabbajack.Lib.Downloaders
         [JsonName("ModDBDownloader")]
         public class State : AbstractDownloadState
         {
-            public string Url { get; set; }
+            public string Url { get; }
             
             [JsonIgnore]
-            public override object[] PrimaryKey { get => new object[]{Url}; }
+            public override object[] PrimaryKey => new object[] { Url };
+
+            public State(string url)
+            {
+                Url = url;
+            }
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
@@ -56,7 +58,7 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     try
                     {
-                        await new HTTPDownloader.State {Url = url}.Download(a, destination);
+                        await new HTTPDownloader.State(url).Download(a, destination);
                         return true;
                     }
                     catch (Exception)

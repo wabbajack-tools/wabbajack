@@ -190,19 +190,14 @@ namespace Wabbajack.BuildServer.Test
 
 
 
-            ModListData = new ModList
-            {
-                Archives = new List<Archive>
+            ModListData = new ModList();
+            ModListData.Archives.Add(
+                new Archive(new HTTPDownloader.State(MakeURL("test_archive.txt")))
                 {
-                    new Archive
-                    {
-                        Hash = await test_archive_path.FileHashAsync(),
-                        Name = "test_archive",
-                        Size = test_archive_path.Size,
-                        State = new HTTPDownloader.State {Url = MakeURL("test_archive.txt")}
-                    }
-                }
-            };
+                    Hash = await test_archive_path.FileHashAsync(),
+                    Name = "test_archive",
+                    Size = test_archive_path.Size,
+                });
             
             var modListPath = "test_modlist.wabbajack".RelativeTo(Fixture.ServerPublicFolder);
 

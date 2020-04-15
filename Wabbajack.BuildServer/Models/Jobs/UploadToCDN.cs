@@ -57,15 +57,11 @@ namespace Wabbajack.BuildServer.Models.Jobs
                     Priority = Job.JobPriority.High,
                     Payload = new IndexJob
                     {
-                        Archive = new Archive
+                        Archive = new Archive(new HTTPDownloader.State(file.Uri))
                         {
                             Name = file.MungedName,
                             Size = file.Size,
                             Hash = file.Hash,
-                            State = new HTTPDownloader.State
-                            {
-                                Url = file.Uri
-                            }
                         }
                     }
                 });

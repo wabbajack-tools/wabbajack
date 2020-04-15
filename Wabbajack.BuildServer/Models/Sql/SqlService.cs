@@ -541,9 +541,8 @@ namespace Wabbajack.BuildServer.Model.Models
             var result = await conn.QueryFirstOrDefaultAsync<string>(@"SELECT JsonState, Size FROM dbo.DownloadStates  
                                                                WHERE Hash = @hash AND PrimaryKey like 'NexusDownloader+State|%'",
                 new {Hash = (long)startingHash});
-            return result == null ? null : new Archive
+            return result == null ? null : new Archive(result.FromJsonString<AbstractDownloadState>())
             {
-                State = result.FromJsonString<AbstractDownloadState>(),
                 Hash = startingHash
             };
         }
@@ -555,9 +554,8 @@ namespace Wabbajack.BuildServer.Model.Models
                                                        LEFT JOIN dbo.IndexedFile indexed ON indexed.Hash = state.Hash
                                                        WHERE state.Hash = @hash",
                 new {Hash = (long)startingHash});
-            return result == default ? null : new Archive
+            return result == default ? null : new Archive(result.Item1.FromJsonString<AbstractDownloadState>())
             {
-                State = result.Item1.FromJsonString<AbstractDownloadState>(),
                 Hash = startingHash,
                 Size = result.Item2
             };
@@ -568,9 +566,8 @@ namespace Wabbajack.BuildServer.Model.Models
             await using var conn = await Open();
             var result = await conn.QueryFirstOrDefaultAsync<(long Hash, string State)>(@"SELECT Hash, JsonState FROM dbo.DownloadStates WHERE PrimaryKey = @PrimaryKey",
                 new {PrimaryKey = primaryKey});
-            return result == default ? null : new Archive
+            return result == default ? null : new Archive(result.State.FromJsonString<AbstractDownloadState>())
             {
-                State = result.State.FromJsonString<AbstractDownloadState>(),
                 Hash = Hash.FromLong(result.Hash)
             };
         }
@@ -688,10 +685,11 @@ namespace Wabbajack.BuildServer.Model.Models
             await using var conn = await Open();
             var results = await conn.QueryAsync<(Hash Hash, long Size, string State)>(
                 @"SELECT Hash, Size, State FROM dbo.ModListArchives WHERE PrimaryKeyString NOT LIKE 'NexusDownloader+State|%'");
-            return results.Select(r => new Archive {
+            return results.Select(r => new Archive (r.State.FromJsonString<AbstractDownloadState>()) 
+            {
                 Size = r.Size,
                 Hash = r.Hash,
-                State = r.State.FromJsonString<AbstractDownloadState>()
+                
                 }).ToList();}
 
         public async Task UpdateNonNexusModlistArchivesStatus(IEnumerable<(Archive Archive, bool IsValid)> results)

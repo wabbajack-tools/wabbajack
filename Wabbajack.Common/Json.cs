@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Wabbajack.Common.Serialization.Json;
@@ -19,7 +17,7 @@ namespace Wabbajack.Common
         {
             new HashJsonConverter(),
             new RelativePathConverter(),
-            new AbolutePathConverter(),
+            new AbsolutePathConverter(),
             new HashRelativePathConverter(),
             new FullPathConverter(),
             new GameConverter(),
@@ -33,7 +31,7 @@ namespace Wabbajack.Common
                 Converters = Converters};
 
         public static JsonSerializerSettings GenericJsonSettings =>
-            new JsonSerializerSettings { };
+            new JsonSerializerSettings();
 
 
         public static void ToJson<T>(this T obj, string filename)
@@ -62,16 +60,12 @@ namespace Wabbajack.Common
             return JsonConvert.SerializeObject(obj, JsonSettings);
         }
 
-        public static T FromJson<T>(this AbsolutePath filename,
-            TypeNameHandling handling = TypeNameHandling.All,
-            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
+        public static T FromJson<T>(this AbsolutePath filename)
         {
             return JsonConvert.DeserializeObject<T>(filename.ReadAllText(), JsonSettings)!;
         }
 
-        public static T FromJsonString<T>(this string data,
-            TypeNameHandling handling = TypeNameHandling.Objects,
-            TypeNameAssemblyFormatHandling format = TypeNameAssemblyFormatHandling.Full)
+        public static T FromJsonString<T>(this string data)
         {
             return JsonConvert.DeserializeObject<T>(data, JsonSettings)!;
         }
@@ -86,8 +80,6 @@ namespace Wabbajack.Common
                 throw new JsonException("Type deserialized into null");
             return result;
         }
-      
-
 
         private class HashJsonConverter : JsonConverter<Hash>
         {
@@ -118,7 +110,7 @@ namespace Wabbajack.Common
             }
         }
 
-        private class AbolutePathConverter : JsonConverter<AbsolutePath>
+        private class AbsolutePathConverter : JsonConverter<AbsolutePath>
         {
             public override void WriteJson(JsonWriter writer, AbsolutePath value, JsonSerializer serializer)
             {
@@ -232,8 +224,7 @@ namespace Wabbajack.Common
                     return (Game)i;
                 }
 
-                GameMetaData? game = GameRegistry.GetByFuzzyName(str);
-                if (game == null)
+                if (!GameRegistry.TryGetByFuzzyName(str, out var game))
                 {
                     throw new ArgumentException($"Could not convert {str} to a Game type.");
                 }
@@ -248,11 +239,11 @@ namespace Wabbajack.Common
         {
             private static Dictionary<string, Type> _nameToType = new Dictionary<string, Type>();
             private static Dictionary<Type, string> _typeToName = new Dictionary<Type, string>();
-            private static bool _inited = false;
+            private static bool _init;
 
             public JsonNameSerializationBinder()
             {
-                if (_inited)
+                if (_init)
                     return;
                 
                 var customDisplayNameTypes =
@@ -282,7 +273,7 @@ namespace Wabbajack.Common
                 _typeToName = _nameToType.ToDictionary(
                     t => t.Value,
                     t => t.Key);
-                _inited = true;
+                _init = true;
 
             }
 

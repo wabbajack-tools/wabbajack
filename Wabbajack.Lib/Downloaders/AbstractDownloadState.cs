@@ -11,19 +11,18 @@ namespace Wabbajack.Lib.Downloaders
     public interface IMetaState
     {
         Uri URL { get; }
-        string Name { get; set; }
-        string Author { get; set; }
-        string Version { get; set; }
-        Uri ImageURL { get; set; }
+        string? Name { get; set; }
+        string? Author { get; set; }
+        string? Version { get; set; }
+        Uri? ImageURL { get; set; }
         bool IsNSFW { get; set; }
-        string Description { get; set; }
+        string? Description { get; set; }
 
         Task<bool> LoadMetaData();
     }
 
     public abstract class AbstractDownloadState
     {
-
         public static List<Type> KnownSubTypes = new List<Type>
         {
             typeof(HTTPDownloader.State),
@@ -48,7 +47,7 @@ namespace Wabbajack.Lib.Downloaders
 
         static AbstractDownloadState()
         {
-            NameToType = KnownSubTypes.ToDictionary(t => t.FullName.Substring(t.Namespace.Length + 1), t => t);
+            NameToType = KnownSubTypes.ToDictionary(t => t.FullName!.Substring(t.Namespace!.Length + 1), t => t);
             TypeToName = NameToType.ToDictionary(k => k.Value, k => k.Key);
         }
 
@@ -67,7 +66,6 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-
         /// <summary>
         /// Returns true if this file is allowed to be downloaded via whitelist
         /// </summary>
@@ -84,7 +82,7 @@ namespace Wabbajack.Lib.Downloaders
         public async Task<bool> Download(AbsolutePath destination)
         {
             destination.Parent.CreateDirectory();
-            return await Download(new Archive {Name = (string)destination.FileName}, destination);
+            return await Download(new Archive(this) {Name = (string)destination.FileName}, destination);
         }
 
         /// <summary>
@@ -95,7 +93,7 @@ namespace Wabbajack.Lib.Downloaders
 
         public abstract IDownloader GetDownloader();
 
-        public abstract string GetManifestURL(Archive a);
+        public abstract string? GetManifestURL(Archive a);
         public abstract string[] GetMetaIni();
     }
 }

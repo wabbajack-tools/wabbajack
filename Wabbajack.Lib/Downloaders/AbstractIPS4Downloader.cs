@@ -18,10 +18,12 @@ namespace Wabbajack.Lib.Downloaders
         where TState : AbstractIPS4Downloader<TDownloader, TState>.State<TDownloader>, new()
         where TDownloader : IDownloader
     {
-        public override string SiteName { get; }
-        public override Uri SiteURL { get; }
+        protected AbstractIPS4Downloader(Uri loginUri, string encryptedKeyName, string cookieDomain)
+            : base(loginUri, encryptedKeyName, cookieDomain, "ips4_member_id")
+        {
+        }
 
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             Uri url = DownloaderUtils.GetDirectURL(archiveINI);
 
@@ -70,23 +72,23 @@ namespace Wabbajack.Lib.Downloaders
             };
         }
 
-        
-        public class State<TStateDownloader> : AbstractDownloadState, IMetaState where TStateDownloader : IDownloader
+        public class State<TStateDownloader> : AbstractDownloadState, IMetaState 
+            where TStateDownloader : IDownloader
         {
-            public string FullURL { get; set; }
+            public string FullURL { get; set; } = string.Empty;
             public bool IsAttachment { get; set; }
-            public string FileID { get; set; }
-            
-            public string FileName { get; set; }
+            public string FileID { get; set; } = string.Empty;
+
+            public string FileName { get; set; } = string.Empty;
             
             // from IMetaState
             public Uri URL => new Uri($"{Site}/files/file/{FileName}");
-            public string Name { get; set; }
-            public string Author { get; set; }
-            public string Version { get; set; }
-            public Uri ImageURL { get; set; }
+            public string? Name { get; set; }
+            public string? Author { get; set; }
+            public string? Version { get; set; }
+            public Uri? ImageURL { get; set; }
             public virtual bool IsNSFW { get; set; }
-            public string Description { get; set; }
+            public string? Description { get; set; }
 
             private static bool IsHTTPS => Downloader.SiteURL.AbsolutePath.StartsWith("https://");
             private static string URLPrefix => IsHTTPS ? "https://" : "http://";
@@ -119,6 +121,7 @@ namespace Wabbajack.Lib.Downloaders
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 await using var stream = await ResolveDownloadStream();
+                if (stream == null) return false;
                 await using (var file = destination.Create())
                 {
                     await stream.CopyToAsync(file);
@@ -126,7 +129,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            private async Task<Stream> ResolveDownloadStream()
+            private async Task<Stream?> ResolveDownloadStream()
             {
                 TOP:
                 string url;
@@ -236,12 +239,5 @@ namespace Wabbajack.Lib.Downloaders
                 return false;
             }
         }
-
-        protected AbstractIPS4Downloader(Uri loginUri, string encryptedKeyName, string cookieDomain) : 
-            base(loginUri, encryptedKeyName, cookieDomain, "ips4_member_id")
-        {
-        }
-
-
     }
 }

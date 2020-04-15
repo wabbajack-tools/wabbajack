@@ -14,7 +14,7 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Test
 {
-    public class TestUtils : IDisposable
+    public class TestUtils : IAsyncDisposable
     {
         private static Random _rng = new Random();
         public TestUtils()
@@ -119,13 +119,14 @@ namespace Wabbajack.Test
             return arr;
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            var exts = new [] {".md", ".exe"};
-            WorkingDirectory.Combine(ID).DeleteDirectory();
+            var exts = new[] { ".md", ".exe" };
+            await WorkingDirectory.Combine(ID).DeleteDirectory();
             Profiles.Do(p =>
             {
-                foreach (var ext in exts) {
+                foreach (var ext in exts)
+                {
                     var path = Path.Combine(Directory.GetCurrentDirectory(), p + ext);
                     if (File.Exists(path))
                         File.Delete(path);
@@ -246,7 +247,5 @@ namespace Wabbajack.Test
             GenerateRandomFileData(fullPath, i);
             return fullPath;
         }
-
-
     }
 }

@@ -11,7 +11,7 @@ namespace Wabbajack.Common.Http
 {
     public class Client
     {
-        public List<(string, string)> Headers = new List<(string, string)>();
+        public List<(string, string?)> Headers = new List<(string, string?)>();
         public List<Cookie> Cookies = new List<Cookie>();
         public async Task<HttpResponseMessage> GetAsync(string url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
         {

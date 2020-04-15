@@ -13,8 +13,8 @@ namespace Wabbajack.Lib.WebAutomation
 {
     public class CefSharpWrapper : IWebDriver
     {
-        private IWebBrowser _browser;
-        public Action<Uri> DownloadHandler { get; set; }
+        private readonly IWebBrowser _browser;
+        public Action<Uri>? DownloadHandler { get; set; }
         public CefSharpWrapper(IWebBrowser browser)
         {
             _browser = browser;
@@ -24,7 +24,7 @@ namespace Wabbajack.Lib.WebAutomation
         {
             var tcs = new TaskCompletionSource<bool>();
 
-            EventHandler<LoadingStateChangedEventArgs> handler = null;
+            EventHandler<LoadingStateChangedEventArgs>? handler = null;
             handler = (sender, e) =>
             {
                 if (!e.IsLoading)
@@ -68,7 +68,7 @@ namespace Wabbajack.Lib.WebAutomation
 
     public class PopupBlocker : ILifeSpanHandler
     {
-        private CefSharpWrapper _wrapper;
+        private readonly CefSharpWrapper _wrapper;
 
         public PopupBlocker(CefSharpWrapper cefSharpWrapper)
         {
@@ -77,7 +77,7 @@ namespace Wabbajack.Lib.WebAutomation
 
         public bool OnBeforePopup(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, string targetUrl,
             string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures,
-            IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser)
+            IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser? newBrowser)
         {
             // Block popups
             newBrowser = null;
@@ -86,7 +86,6 @@ namespace Wabbajack.Lib.WebAutomation
 
         public void OnAfterCreated(IWebBrowser chromiumWebBrowser, IBrowser browser)
         {
-            
         }
 
         public bool DoClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
@@ -96,7 +95,6 @@ namespace Wabbajack.Lib.WebAutomation
 
         public void OnBeforeClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
         {
-            
         }
     }
 
@@ -112,7 +110,7 @@ namespace Wabbajack.Lib.WebAutomation
         public void OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
             IBeforeDownloadCallback callback)
         {
-            _wrapper.DownloadHandler(new Uri(downloadItem.Url));
+            _wrapper.DownloadHandler?.Invoke(new Uri(downloadItem.Url));
         }
 
         public void OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,

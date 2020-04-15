@@ -43,22 +43,22 @@ namespace Wabbajack.Lib
         /// <summary>
         ///     Archives required by this modlist
         /// </summary>
-        public List<Archive> Archives;
+        public List<Archive> Archives = new List<Archive>();
 
         /// <summary>
         ///     Author of the ModList
         /// </summary>
-        public string Author;
+        public string Author = string.Empty;
 
         /// <summary>
         ///     Description of the ModList
         /// </summary>
-        public string Description;
+        public string Description = string.Empty;
 
         /// <summary>
         ///     Install directives
         /// </summary>
-        public List<Directive> Directives;
+        public List<Directive> Directives = new List<Directive>();
 
         /// <summary>
         ///     The game variant to which this game applies
@@ -78,12 +78,12 @@ namespace Wabbajack.Lib
         /// <summary>
         ///     Name of the ModList
         /// </summary>
-        public string Name;
+        public string Name = string.Empty;
 
         /// <summary>
         ///     readme path or website
         /// </summary>
-        public string Readme;
+        public string Readme = string.Empty;
 
         /// <summary>
         ///     Whether readme is a website
@@ -93,12 +93,12 @@ namespace Wabbajack.Lib
         /// <summary>
         ///     The build version of Wabbajack used when compiling the Modlist
         /// </summary>
-        public Version WabbajackVersion;
+        public Version? WabbajackVersion;
 
         /// <summary>
         ///     Website of the ModList
         /// </summary>
-        public Uri Website;
+        public Uri? Website;
 
         /// <summary>
         ///     The size of all the archives once they're downloaded
@@ -134,7 +134,7 @@ namespace Wabbajack.Lib
 
     public class IgnoredDirectly : Directive
     {
-        public string Reason;
+        public string Reason = string.Empty;
     }
 
     public class NoMatch : IgnoredDirectly
@@ -190,12 +190,12 @@ namespace Wabbajack.Lib
     [JsonName("FromArchive")]
     public class FromArchive : Directive
     {
-        private string _fullPath;
+        private string? _fullPath;
 
         public HashRelativePath ArchiveHashPath { get; set; }
 
         [JsonIgnore]
-        public VirtualFile FromFile { get; set; }
+        public VirtualFile? FromFile { get; set; }
 
         [JsonIgnore]
         public string FullPath => _fullPath ??= string.Join("|", ArchiveHashPath);
@@ -205,8 +205,17 @@ namespace Wabbajack.Lib
     public class CreateBSA : Directive
     {
         public RelativePath TempID { get; set; }
-        public ArchiveStateObject State { get; set; }
-        public List<FileStateObject> FileStates { get; set; }
+        public ArchiveStateObject State { get; }
+        public List<FileStateObject> FileStates { get; set; } = new List<FileStateObject>();
+
+        public CreateBSA(ArchiveStateObject state, IEnumerable<FileStateObject>? items = null)
+        {
+            State = state;
+            if (items != null)
+            {
+                FileStates.AddRange(items);
+            }
+        }
     }
 
     [JsonName("PatchedFromArchive")]
@@ -231,7 +240,7 @@ namespace Wabbajack.Lib
     public class MergedPatch : Directive
     {
         public RelativePath PatchID { get; set; }
-        public List<SourcePatch> Sources { get; set; }
+        public List<SourcePatch> Sources { get; set; } = new List<SourcePatch>();
     }
 
     [JsonName("Archive")]
@@ -245,49 +254,33 @@ namespace Wabbajack.Lib
         /// <summary>
         ///     Meta INI for the downloaded archive
         /// </summary>
-        public string Meta { get; set; }
+        public string? Meta { get; set; }
 
         /// <summary>
         ///     Human friendly name of this archive
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         public long Size { get; set; }
         
-        public AbstractDownloadState State { get; set; }
+        public AbstractDownloadState State { get; }
+
+        public Archive(AbstractDownloadState state)
+        {
+            State = state;
+        }
     }
 
     public class IndexedArchive
     {
-        public dynamic IniData;
-        public string Meta;
-        public string Name;
-        public VirtualFile File { get; internal set; }
-    }
+        public dynamic? IniData;
+        public string Meta = string.Empty;
+        public string Name = string.Empty;
+        public VirtualFile File { get; }
 
-    /// <summary>
-    ///     A archive entry
-    /// </summary>
-    public class IndexedEntry
-    {
-        /// <summary>
-        ///     MurMur3 hash of this file
-        /// </summary>
-        public string Hash;
-
-        /// <summary>
-        ///     Path in the archive to this file
-        /// </summary>
-        public string Path;
-
-        /// <summary>
-        ///     Size of the file (uncompressed)
-        /// </summary>
-        public long Size;
-    }
-
-    public class IndexedArchiveEntry : IndexedEntry
-    {
-        public string[] HashPath;
+        public IndexedArchive(VirtualFile file)
+        {
+            File = file;
+        }
     }
 }

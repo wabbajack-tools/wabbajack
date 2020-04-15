@@ -9,33 +9,30 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class GameFileSourceDownloader : IDownloader
     {
-        public async Task<AbstractDownloadState> GetDownloaderState(dynamic archiveINI, bool quickMode)
+        public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
-            var gameName = (string)archiveINI?.General?.gameName;
-            var gameFile = (string)archiveINI?.General?.gameFile;
+            var gameName = (string?)archiveINI?.General?.gameName;
+            var gameFile = (string?)archiveINI?.General?.gameFile;
 
-            if (gameFile == null || gameFile == null)
+            if (gameName == null || gameFile == null)
                 return null;
 
-            var game = GameRegistry.GetByFuzzyName(gameName);
-            if (game == null) return null;
+            if (!GameRegistry.TryGetByFuzzyName(gameName, out var game)) return null;
 
-            var path = game.GameLocation();
+            var path = game.TryGetGameLocation();
             var filePath = path?.Combine(gameFile);
             
-            
-            if (!filePath?.Exists ?? false)
+            if (!(filePath?.Exists ?? false))
                 return null;
 
             var fp = filePath.Value;
             var hash = await fp.FileHashCachedAsync();
 
-            return new State
+            return new State(game.InstalledVersion)
             {
                 Game = game.Game, 
                 GameFile = (RelativePath)gameFile,
-                Hash = hash,
-                GameVersion = game.InstalledVersion
+                Hash = hash
             };
         }
 
@@ -49,10 +46,15 @@ namespace Wabbajack.Lib.Downloaders
             public Game Game { get; set; }
             public RelativePath GameFile { get; set; }
             public Hash Hash { get; set; }
-            public string GameVersion { get; set; }
+            public string GameVersion { get; }
+
+            public State(string gameVersion)
+            {
+                GameVersion = gameVersion;
+            }
 
             [JsonIgnore]
-            internal AbsolutePath SourcePath => Game.MetaData().GameLocation().Value.Combine(GameFile);
+            internal AbsolutePath SourcePath => Game.MetaData().GameLocation().Combine(GameFile);
 
             [JsonIgnore]
             public override object[] PrimaryKey { get => new object[] {Game, GameVersion, GameFile}; }
@@ -82,7 +84,7 @@ namespace Wabbajack.Lib.Downloaders
                 return DownloadDispatcher.GetInstance<GameFileSourceDownloader>();
             }
 
-            public override string GetManifestURL(Archive a)
+            public override string? GetManifestURL(Archive a)
             {
                 return null;
             }
