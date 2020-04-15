@@ -186,8 +186,7 @@ namespace Wabbajack
                     ModListDescription = ModlistSettings.Description,
                     ModListImage = ModlistSettings.ImagePath.TargetPath,
                     ModListWebsite = ModlistSettings.Website,
-                    //ModListReadme = ModlistSettings.ReadmeIsWebsite ? ModlistSettings.ReadmeWebsite : ModlistSettings.ReadmeFilePath.TargetPath,
-                    ReadmeIsWebsite = ModlistSettings.ReadmeIsWebsite,
+                    ModlistReadme = ModlistSettings.Readme,
                     MO2DownloadsFolder = DownloadLocation.TargetPath,
                 })
                 {

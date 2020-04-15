@@ -313,7 +313,7 @@ namespace Wabbajack
                 new ManifestWindow(ModList.SourceModList).Show();
             });
             OpenReadmeCommand = ReactiveCommand.Create(
-                execute: () => this.ModList?.OpenReadmeWindow(),
+                execute: () => this.ModList?.OpenReadme(),
                 canExecute: this.WhenAny(x => x.ModList)
                     .Select(modList => !string.IsNullOrEmpty(modList?.Readme))
                     .ObserveOnGuiThread());
@@ -367,7 +367,7 @@ namespace Wabbajack
                         Completed = ErrorResponse.Create(success);
                         try
                         {
-                            this.ModList?.OpenReadmeWindow();
+                            this.ModList?.OpenReadme();
                         }
                         catch (Exception ex)
                         {

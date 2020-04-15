@@ -301,7 +301,7 @@ namespace Wabbajack.Lib
                 Name = ModListName ?? MO2Profile,
                 Author = ModListAuthor ?? "",
                 Description = ModListDescription ?? "",
-                Readme = (string)ModListReadme,
+                Readme = ModlistReadme ?? "",
                 Image = ModListImage != default ? ModListImage.FileName : default,
                 Website = ModListWebsite != null ? new Uri(ModListWebsite) : null
             };

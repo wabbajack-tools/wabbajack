@@ -18,7 +18,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             var files = new HashSet<AbsolutePath>
             {
-                _compiler.ModListImage, _compiler.ModListReadme
+                _compiler.ModListImage
             };
             if (!files.Any(f => source.AbsolutePath.Equals(f))) return null;
             if (!source.AbsolutePath.Exists) return null;
@@ -30,11 +30,6 @@ namespace Wabbajack.Lib.CompilationSteps
             {
                 result.Type = PropertyType.Banner;
                 _compiler.ModListImage = result.SourceDataID.RelativeTo(_compiler.ModListOutputFolder);
-            }
-            else
-            {
-                result.Type = PropertyType.Readme;
-                _compiler.ModListReadme = result.SourceDataID.RelativeTo(_compiler.ModListOutputFolder);
             }
 
             return result;

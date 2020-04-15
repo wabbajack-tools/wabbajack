@@ -81,14 +81,9 @@ namespace Wabbajack.Lib
         public string Name = string.Empty;
 
         /// <summary>
-        ///     readme path or website
+        ///     URL to the readme
         /// </summary>
         public string Readme = string.Empty;
-
-        /// <summary>
-        ///     Whether readme is a website
-        /// </summary>
-        public bool ReadmeIsWebsite;
 
         /// <summary>
         ///     The build version of Wabbajack used when compiling the Modlist
