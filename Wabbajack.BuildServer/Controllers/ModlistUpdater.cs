@@ -205,7 +205,7 @@ namespace Wabbajack.BuildServer.Controllers
             var newArchive = await FindNexusAlternative(nexusState, archive.Hash);
             if (newArchive != null)
             {
-                return (Ok(archive), archive);
+                return (Ok(newArchive), newArchive);
             }
 
             Utils.Log($"No available upgrade for {nexusState.PrimaryKey}");
