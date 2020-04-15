@@ -37,7 +37,7 @@ namespace Wabbajack.Lib.NexusApi
         public string name { get; set; } = string.Empty;
         public string summary { get; set; } = string.Empty;
         public string description { get; set; } = string.Empty;
-        public Uri picture_url { get; set; } = new Uri(string.Empty);
+        public Uri? picture_url { get; set; }
         public string mod_id { get; set; } = string.Empty;
         public long game_id { get; set; }
         public bool allow_rating { get; set; }
@@ -51,7 +51,7 @@ namespace Wabbajack.Lib.NexusApi
         public DateTime updated_time { get; set; }
         public string author { get; set; } = string.Empty;
         public string uploaded_by { get; set; } = string.Empty;
-        public Uri uploaded_users_profile_url { get; set; } = new Uri(string.Empty);
+        public Uri? uploaded_users_profile_url { get; set; }
         public bool contains_adult_content { get; set; }
         public string status { get; set; } = string.Empty;
         public bool available { get; set; } = true;
