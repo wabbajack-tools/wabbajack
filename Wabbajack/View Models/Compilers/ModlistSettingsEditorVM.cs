@@ -20,6 +20,9 @@ namespace Wabbajack
         [Reactive]
         public string VersionText { get; set; }
 
+        private ObservableAsPropertyHelper<Version> _version;
+        public Version Version => _version.Value;
+
         [Reactive]
         public string AuthorText { get; set; }
 
@@ -46,18 +49,21 @@ namespace Wabbajack
             };
             ImagePath.Filters.Add(new CommonFileDialogFilter("Banner image", "*.png"));
 
+            _version = this.WhenAny(x => x.VersionText)
+                .Select(x =>
+                {
+                    if (string.IsNullOrWhiteSpace(x))
+                        return new Version(0, 0);
+
+                    return !Version.TryParse(x, out var version) ? new Version(0, 0) : version;
+                }).ObserveOnGuiThread()
+                .ToProperty(this, x => x.Version);
+
             InError = this.WhenAny(x => x.ImagePath.ErrorState)
                 .Select(err => err.Failed)
                 .CombineLatest(
                     this.WhenAny(x => x.VersionText)
-                    .Select(x =>
-                    {
-                        if (string.IsNullOrWhiteSpace(x))
-                            return false;
-
-                        var match = Consts.VersionRegex.Match(x);
-                        return match.Success;
-                    }), 
+                    .Select(x => Version.TryParse(x, out _)), 
                     (image, version) => !image && !version)
                 .Publish()
                 .RefCount();

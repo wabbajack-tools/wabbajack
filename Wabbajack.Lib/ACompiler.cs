@@ -16,6 +16,7 @@ namespace Wabbajack.Lib
     public abstract class ACompiler : ABatchProcessor
     {
         public string? ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModlistReadme;
+        public Version? ModlistVersion;
         public AbsolutePath ModListImage;
         protected Version? WabbajackVersion;
 
