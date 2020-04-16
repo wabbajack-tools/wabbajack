@@ -96,6 +96,11 @@ namespace Wabbajack.Lib
         public Uri? Website;
 
         /// <summary>
+        ///     Current Version of the Modlist
+        /// </summary>
+        public Version Version = new Version(1, 0, 0, 0);
+
+        /// <summary>
         ///     The size of all the archives once they're downloaded
         /// </summary>
         [JsonIgnore]
