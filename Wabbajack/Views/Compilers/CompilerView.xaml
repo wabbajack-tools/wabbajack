@@ -121,6 +121,8 @@
                 </StackPanel.Resources>
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="ModList Name" />
                 <TextBox x:Name="ModListNameSetting" Style="{StaticResource ValueStyle}" />
+                <TextBlock Margin="{StaticResource TitleMargin}" Text="Version" />
+                <TextBox x:Name="VersionSetting" Style="{StaticResource ValueStyle}" MaxLength="9" />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
                 <TextBox x:Name="AuthorNameSetting" Style="{StaticResource ValueStyle}" />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />

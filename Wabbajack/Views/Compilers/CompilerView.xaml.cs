@@ -63,6 +63,8 @@ namespace Wabbajack
                     .DisposeWith(dispose);
                 this.BindStrict(this.ViewModel, x => x.CurrentModlistSettings.ModListName, x => x.ModListNameSetting.Text)
                     .DisposeWith(dispose);
+                this.BindStrict(ViewModel, x => x.CurrentModlistSettings.VersionText, x => x.VersionSetting.Text)
+                    .DisposeWith(dispose);
                 this.BindStrict(this.ViewModel, x => x.CurrentModlistSettings.AuthorText, x => x.AuthorNameSetting.Text)
                     .DisposeWith(dispose);
                 this.BindStrict(this.ViewModel, x => x.CurrentModlistSettings.Description, x => x.DescriptionSetting.Text)
