@@ -19,11 +19,13 @@ namespace Wabbajack.VirtualFileSystem
 {
     public class Context
     {
+        private static Task _cleanupTask; 
         static Context()
         {
             Utils.Log("Cleaning VFS, this may take a bit of time");
-            Utils.DeleteDirectory(StagingFolder).Wait();
+            _cleanupTask = Utils.DeleteDirectory(StagingFolder);
         }
+        
         public const ulong FileVersion = 0x03;
         public const string Magic = "WABBAJACK VFS FILE";
 
@@ -54,6 +56,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public async Task<IndexRoot> AddRoot(AbsolutePath root)
         {
+            await _cleanupTask;
             var filtered = Index.AllFiles.Where(file => file.IsNative && ((AbsolutePath) file.Name).Exists).ToList();
 
             var byPath = filtered.ToImmutableDictionary(f => f.Name);
@@ -86,6 +89,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public async Task<IndexRoot> AddRoots(List<AbsolutePath> roots)
         {
+            await _cleanupTask;
             var native = Index.AllFiles.Where(file => file.IsNative).ToDictionary(file => file.StagedPath);
 
             var filtered = Index.AllFiles.Where(file => ((AbsolutePath)file.Name).Exists).ToList();
@@ -197,6 +201,8 @@ namespace Wabbajack.VirtualFileSystem
 
         public async Task<Func<Task>> Stage(IEnumerable<VirtualFile> files)
         {
+            await _cleanupTask;
+
             var grouped = files.SelectMany(f => f.FilesInFullPath)
                 .Distinct()
                 .Where(f => f.Parent != null)

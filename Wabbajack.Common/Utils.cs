@@ -123,7 +123,7 @@ namespace Wabbajack.Common
 
         public static T Log<T>(T msg) where T : IStatusMessage
         {
-            LogStraightToFile(msg.ExtendedDescription);
+            LogStraightToFile(string.IsNullOrWhiteSpace(msg.ExtendedDescription) ? msg.ShortDescription : msg.ExtendedDescription);
             LoggerSubj.OnNext(msg);
             return msg;
         }
