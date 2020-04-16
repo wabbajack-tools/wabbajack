@@ -20,14 +20,15 @@ namespace Wabbajack
             Modlist = modlist;
 
             var manifest = new Manifest(modlist);
-            if(ViewModel == null)
-                ViewModel = new ManifestVM(manifest);
+            ViewModel ??= new ManifestVM(manifest);
 
             InitializeComponent();
 
             this.WhenActivated(disposable =>
             {
                 this.OneWayBind(ViewModel, x => x.Name, x => x.Name.Text)
+                    .DisposeWith(disposable);
+                this.OneWayBind(ViewModel, x => x.Manifest.Version, x => x.Version.Text)
                     .DisposeWith(disposable);
                 this.OneWayBind(ViewModel, x => x.Author, x => x.Author.Text)
                     .DisposeWith(disposable);

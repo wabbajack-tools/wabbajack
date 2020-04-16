@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
@@ -9,6 +10,7 @@ namespace Wabbajack.Lib
     public class Manifest
     {
         public string Name;
+        public Version Version;
         public string Author;
         public string Description;
 
@@ -28,6 +30,7 @@ namespace Wabbajack.Lib
         public Manifest(ModList modlist)
         {
             Name = modlist.Name;
+            Version = modlist.Version;
             Author = modlist.Author;
             Description = modlist.Description;
 
