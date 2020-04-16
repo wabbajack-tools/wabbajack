@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using CommandLine;
@@ -38,7 +37,7 @@ namespace Wabbajack.CLI.Verbs
 
         protected override async Task<ExitCode> Run()
         {
-            var orignalPath = (AbsolutePath)Original;
+            var originalPath = (AbsolutePath)Original;
             var updatePath = (AbsolutePath)Update;
             if (Original == null)
                 return ExitCode.BadArguments;
@@ -49,7 +48,7 @@ namespace Wabbajack.CLI.Verbs
 
             try
             {
-                original = AInstaller.LoadFromFile(orignalPath);
+                original = AInstaller.LoadFromFile(originalPath);
             }
             catch (Exception e)
             {
@@ -74,22 +73,8 @@ namespace Wabbajack.CLI.Verbs
             var downloadSizeChanges = original.DownloadSize - update.DownloadSize;
             var installSizeChanges = original.InstallSize - update.InstallSize;
 
-            var versionRegex = new Regex(@"\s([0-9](\.|\s)?){1,4}");
-            var matchOriginal = versionRegex.Match(original.Name);
-            var matchUpdated = versionRegex.Match(update.Name);
-
-            if (!matchOriginal.Success || !matchUpdated.Success)
-            {
-                return CLIUtils.Exit(
-                    !matchOriginal.Success
-                        ? "The name of the original modlist did not match the version check regex!"
-                        : "The name of the updated modlist did not match the version check regex!", ExitCode.Error);
-            }
-
-            var version = matchUpdated.Value.Trim();
-
             var mdText =
-                $"## {version}\n\n" +
+                $"## {update.Version}\n\n" +
                 $"**Build at:** `{File.GetCreationTime(Update)}`\n\n" +
                 "**Info**:\n\n" +
                 $"- Download Size change: {downloadSizeChanges.ToFileSizeString()} (Total: {update.DownloadSize.ToFileSizeString()})\n" +
@@ -153,20 +138,20 @@ namespace Wabbajack.CLI.Verbs
 
             if (IncludeLoadOrderChanges)
             {
-                var loadorder_txt = (RelativePath)"loadorder.txt";
+                var loadorderTxt = (RelativePath)"loadorder.txt";
                 var originalLoadOrderFile = original.Directives
                     .Where(d => d is InlineFile)
-                    .Where(d => d.To.FileName == loadorder_txt)
+                    .Where(d => d.To.FileName == loadorderTxt)
                     .Cast<InlineFile>()
                     .First();
 
                 var updatedLoadOrderFile = update.Directives
                     .Where(d => d is InlineFile)
-                    .Where(d => d.To.FileName == loadorder_txt)
+                    .Where(d => d.To.FileName == loadorderTxt)
                     .Cast<InlineFile>()
                     .First();
 
-                var originalLoadOrder = GetTextFileFromModlist(orignalPath, original, originalLoadOrderFile.SourceDataID).Result.Split("\n");
+                var originalLoadOrder = GetTextFileFromModlist(originalPath, original, originalLoadOrderFile.SourceDataID).Result.Split("\n");
                 var updatedLoadOrder = GetTextFileFromModlist(updatePath, update, updatedLoadOrderFile.SourceDataID).Result.Split("\n");
                 
                 var addedPlugins = updatedLoadOrder
@@ -208,7 +193,7 @@ namespace Wabbajack.CLI.Verbs
                     .Cast<InlineFile>()
                     .First();
 
-                var originalModlist = GetTextFileFromModlist(orignalPath, original, originalModlistFile.SourceDataID).Result.Split("\n");
+                var originalModlist = GetTextFileFromModlist(originalPath, original, originalModlistFile.SourceDataID).Result.Split("\n");
                 var updatedModlist = GetTextFileFromModlist(updatePath, update, updatedModlistFile.SourceDataID).Result.Split("\n");
 
                 var removedMods = originalModlist
@@ -294,7 +279,7 @@ namespace Wabbajack.CLI.Verbs
 
                 if (hasToc)
                 {
-                    markdown.Insert(tocLine, $"- [{version}](#{ToTocLink(version)})");
+                    markdown.Insert(tocLine, $"- [{update.Version}](#{ToTocLink(update.Version.ToString())})");
                     line++;
                 }
 
@@ -307,7 +292,7 @@ namespace Wabbajack.CLI.Verbs
             }
 
             var text = "# Changelog\n\n" +
-                       $"- [{version}](#{ToTocLink(version)})\n\n" +
+                       $"- [{update.Version}](#{ToTocLink(update.Version.ToString())})\n\n" +
                        $"{mdText}";
 
             File.WriteAllText(output, text);

@@ -24,7 +24,8 @@
         </ScrollViewer.Resources>
         <StackPanel Margin="8" x:Name="DynamicStackPanel">
             <TextBlock x:Name="Name" FontSize="32" HorizontalAlignment="Center" Style="{StaticResource HeaderStyle}"/>
-            <TextBlock x:Name="Author" FontSize="14" Padding="0 12 0 3"/>
+            <TextBlock x:Name="Version" FontSize="14" Padding="0 12 0 3"/>
+            <TextBlock x:Name="Author" FontSize="14" Padding="0 3 0 3"/>
             <TextBlock x:Name="Description" FontSize="18" TextWrapping="Wrap"/>
 
             <TextBlock x:Name="InstallSize" Padding="0 24 0 0" FontSize="24"/>

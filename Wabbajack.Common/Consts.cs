@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common.IO;
 
