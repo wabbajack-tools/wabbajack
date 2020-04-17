@@ -140,7 +140,7 @@ namespace Wabbajack.VirtualFileSystem
             if (onlyFiles != null)
             {
                 tmpFile = new TempFile();
-                await tmpFile.Path.WriteAllLinesAsync(onlyFiles.Select(f => (string)f).ToArray());
+                await tmpFile.Path.WriteAllLinesAsync(onlyFiles.Select(f => "\\"+(string)f).ToArray());
                 process.Arguments = new object[]
                 {
                     "x", "-bsp1", "-y", $"-o\"{dest.Dir}\"", source, $"@\"{tmpFile.Path}\"", "-mmt=off"
