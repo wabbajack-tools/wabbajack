@@ -139,8 +139,15 @@ namespace Wabbajack.VirtualFileSystem
             
             if (onlyFiles != null)
             {
+                //It's stupid that we have to do this, but 7zip's file pattern matching isn't very fuzzy
+                IEnumerable<string> AllVariants(string input)
+                {
+                    yield return input;
+                    yield return "\\" + input;
+                }
+                
                 tmpFile = new TempFile();
-                await tmpFile.Path.WriteAllLinesAsync(onlyFiles.Select(f => "\\"+(string)f).ToArray());
+                await tmpFile.Path.WriteAllLinesAsync(onlyFiles.SelectMany(f => AllVariants((string)f)).ToArray());
                 process.Arguments = new object[]
                 {
                     "x", "-bsp1", "-y", $"-o\"{dest.Dir}\"", source, $"@\"{tmpFile.Path}\"", "-mmt=off"
