@@ -100,7 +100,7 @@ namespace Wabbajack.Lib.Downloaders
         {
             if (!_prepared)
             {
-                using var _ = await _lock.Wait();
+                using var _ = await _lock.WaitAsync();
                 // Could have become prepared while we waited for the lock
                 if (!_prepared)
                 {

@@ -81,7 +81,8 @@ namespace Compression.BSA.Test
             var folder = _bsaFolder.Combine(game.ToString(), modid.ToString());
             await folder.DeleteDirectory();
             folder.CreateDirectory();
-            await FileExtractor.ExtractAll(Queue, filename, folder);
+            await using var files = await FileExtractor.ExtractAll(Queue, filename);
+            await files.MoveAllTo(folder);
 
             foreach (var bsa in folder.EnumerateFiles().Where(f => Consts.SupportedBSAs.Contains(f.Extension)))
             {
@@ -94,7 +95,7 @@ namespace Compression.BSA.Test
                 var tempFile = ((RelativePath)"tmp.bsa").RelativeToEntryPoint();
                 var size = bsa.Size;
                 
-                using var a = BSADispatch.OpenRead(bsa);
+                await using var a = BSADispatch.OpenRead(bsa);
                 await a.Files.PMap(Queue, file =>
                 {
                     var absName = _tempDir.Combine(file.Path);
@@ -111,7 +112,7 @@ namespace Compression.BSA.Test
 
                 TestContext.WriteLine($"Building {bsa}");
 
-                using (var w = ViaJson(a.State).MakeBuilder(size))
+                await using (var w = ViaJson(a.State).MakeBuilder(size))
                 {
                     var streams = await a.Files.PMap(Queue, file =>
                     {
@@ -125,7 +126,7 @@ namespace Compression.BSA.Test
                 }
 
                 TestContext.WriteLine($"Verifying {bsa}");
-                using var b = BSADispatch.OpenRead(tempFile);
+                await using var b = BSADispatch.OpenRead(tempFile);
                 TestContext.WriteLine($"Performing A/B tests on {bsa}");
                 Assert.Equal(a.State.ToJson(), b.State.ToJson());
 

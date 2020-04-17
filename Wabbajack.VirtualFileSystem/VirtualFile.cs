@@ -38,22 +38,21 @@ namespace Wabbajack.VirtualFileSystem
 
         public Context Context { get; set; }
 
-        public AbsolutePath StagedPath
+        private IExtractedFile _stagedFile = null;
+        public IExtractedFile StagedFile  
         {
             get
             {
-                if (IsNative)
-                    return (AbsolutePath)Name;
-                if (_stagedPath == null)
-                    throw new UnstagedFileException(FullPath);
-                return _stagedPath;
+                if (IsNative) return new ExtractedDiskFile(AbsoluteName);
+                if (_stagedFile == null)
+                    throw new InvalidDataException("File is unstaged");
+                return _stagedFile;
             }
-            internal set
+            set
             {
-                if (IsNative)
-                    throw new CannotStageNativeFile("Cannot stage a native file");
-                _stagedPath = value;
+                _stagedFile = value;
             }
+            
         }
 
         /// <summary>
@@ -129,18 +128,18 @@ namespace Wabbajack.VirtualFileSystem
                 itm.ThisAndAllChildrenReduced(fn);
         }
 
-        public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, AbsolutePath absPath,
+        public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, IExtractedFile extractedFile,
             IPath relPath, int depth = 0)
         {
-            var hash = absPath.FileHash();
+            var hash = await extractedFile.HashAsync();
 
-            if (!context.UseExtendedHashes && FileExtractor.MightBeArchive(absPath))
+            if (!context.UseExtendedHashes && FileExtractor.MightBeArchive(relPath.FileName.Extension))
             {
                 var result = await TryGetContentsFromServer(hash);
 
                 if (result != null)
                 {
-                    Utils.Log($"Downloaded VFS data for {(string)absPath}");
+                    Utils.Log($"Downloaded VFS data for {relPath.FileName}");
 
                     VirtualFile Convert(IndexedVirtualFile file, IPath path, VirtualFile vparent)
                     {
@@ -150,7 +149,7 @@ namespace Wabbajack.VirtualFileSystem
                             Name = path,
                             Parent = vparent,
                             Size = file.Size,
-                            LastModified = absPath.LastModifiedUtc.AsUnixTime(),
+                            LastModified = extractedFile.LastModifiedUtc.AsUnixTime(),
                             LastAnalyzed = DateTime.Now.AsUnixTime(),
                             Hash = file.Hash
                         };
@@ -169,8 +168,8 @@ namespace Wabbajack.VirtualFileSystem
                 Context = context,
                 Name = relPath,
                 Parent = parent,
-                Size = absPath.Size,
-                LastModified = absPath.LastModifiedUtc.AsUnixTime(),
+                Size = extractedFile.Size,
+                LastModified = extractedFile.LastModifiedUtc.AsUnixTime(),
                 LastAnalyzed = DateTime.Now.AsUnixTime(),
                 Hash = hash
             };
@@ -178,19 +177,17 @@ namespace Wabbajack.VirtualFileSystem
             self.FillFullPath(depth);
             
             if (context.UseExtendedHashes)
-                self.ExtendedHashes = ExtendedHashes.FromFile(absPath);
+                self.ExtendedHashes = ExtendedHashes.FromFile(extractedFile);
 
-            if (await FileExtractor.CanExtract(absPath))
-            {
-                await using var tempFolder = Context.GetTemporaryFolder();
-                await FileExtractor.ExtractAll(context.Queue, absPath, tempFolder.FullName);
+            if (!await extractedFile.CanExtract()) return self;
 
-                var list = await tempFolder.FullName.EnumerateFiles()
-                    .PMap(context.Queue,
-                        absSrc => Analyze(context, self, absSrc, absSrc.RelativeTo(tempFolder.FullName), depth + 1));
+            await using var extracted = await extractedFile.ExtractAll(context.Queue);
 
-                self.Children = list.ToImmutableList();
-            }
+            var list = await extracted
+                .PMap(context.Queue,
+                    file => Analyze(context, self, file.Value, file.Key, depth + 1));
+
+            self.Children = list.ToImmutableList();
 
             return self;
         }
@@ -320,9 +317,9 @@ namespace Wabbajack.VirtualFileSystem
             return path;
         }
 
-        public FileStream OpenRead()
+        public Stream OpenRead()
         {
-            return StagedPath.OpenRead();
+            return StagedFile.OpenRead();
         }
     }
 
@@ -333,7 +330,7 @@ namespace Wabbajack.VirtualFileSystem
         public string MD5 { get; set; }
         public string CRC { get; set; }
 
-        public static ExtendedHashes FromFile(AbsolutePath file)
+        public static ExtendedHashes FromFile(IExtractedFile file)
         {
             var hashes = new ExtendedHashes();
             using (var stream = file.OpenRead())

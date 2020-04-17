@@ -28,7 +28,7 @@ namespace Wabbajack.Common
             return sigStream;
         }
         
-        private static void CreateSignature(FileStream oldData, FileStream sigStream)
+        private static void CreateSignature(Stream oldData, FileStream sigStream)
         {
             Utils.Status("Creating Patch Signature");
             var signatureBuilder = new SignatureBuilder();
@@ -36,7 +36,7 @@ namespace Wabbajack.Common
             sigStream.Position = 0;
         }
         
-        public static void Create(FileStream oldData, FileStream newData, FileStream signature, FileStream output)
+        public static void Create(Stream oldData, FileStream newData, FileStream signature, FileStream output)
         {
             CreateSignature(oldData, signature);
             var db = new DeltaBuilder {ProgressReporter = reporter};

@@ -32,11 +32,11 @@ namespace Wabbajack.CLI.Verbs
                 .Debounce(TimeSpan.FromSeconds(1))
                 .Subscribe(s => Console.WriteLine($"Downloading {s.ProgressPercent}"));
 
-                new[] {state}
+                await new[] {state}
                 .PMap(queue, async s =>
                 {
                     await s.Download(new Archive(state: null!) {Name = Path.GetFileName(Output)}, (AbsolutePath)Output);
-                }).Wait();
+                });
 
             File.WriteAllLines(Output + ".meta", state.GetMetaIni());
             return 0;

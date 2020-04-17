@@ -74,7 +74,7 @@ namespace Wabbajack.VirtualFileSystem
                                         return found;
                                 }
 
-                                return await VirtualFile.Analyze(this, null, f, f, 0);
+                                return await VirtualFile.Analyze(this, null, new ExtractedDiskFile(f), f, 0);
                             });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
@@ -90,7 +90,7 @@ namespace Wabbajack.VirtualFileSystem
         public async Task<IndexRoot> AddRoots(List<AbsolutePath> roots)
         {
             await _cleanupTask;
-            var native = Index.AllFiles.Where(file => file.IsNative).ToDictionary(file => file.StagedPath);
+            var native = Index.AllFiles.Where(file => file.IsNative).ToDictionary(file => file.FullPath.Base);
 
             var filtered = Index.AllFiles.Where(file => ((AbsolutePath)file.Name).Exists).ToList();
 
@@ -106,7 +106,7 @@ namespace Wabbajack.VirtualFileSystem
                             return found;
                     }
 
-                    return await VirtualFile.Analyze(this, null, f, f, 0);
+                    return await VirtualFile.Analyze(this, null, new ExtractedDiskFile(f), f, 0);
                 });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
@@ -210,22 +210,22 @@ namespace Wabbajack.VirtualFileSystem
                 .OrderBy(f => f.Key?.NestingFactor ?? 0)
                 .ToList();
 
-            var paths = new List<AbsolutePath>();
+            var paths = new List<IAsyncDisposable>();
 
             foreach (var group in grouped)
             {
-                var tmpPath = ((RelativePath)Guid.NewGuid().ToString()).RelativeTo(StagingFolder);
-                await FileExtractor.ExtractAll(Queue, group.Key.StagedPath, tmpPath);
-                paths.Add(tmpPath);
+                var only = group.Select(f => f.RelativeName);
+                var extracted = await group.Key.StagedFile.ExtractAll(Queue, only);
+                paths.Add(extracted);
                 foreach (var file in group)
-                    file.StagedPath = file.RelativeName.RelativeTo(tmpPath);
+                    file.StagedFile = extracted[file.RelativeName];
             }
 
             return async () =>
             {
                 foreach (var p in paths)
                 {
-                    await p.DeleteDirectory();
+                    await p.DisposeAsync();
                 }
             };
         }

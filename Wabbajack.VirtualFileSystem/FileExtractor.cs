@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
@@ -16,42 +17,43 @@ namespace Wabbajack.VirtualFileSystem
 {
     public class FileExtractor
     {
-
-        public static async Task ExtractAll(WorkQueue queue, AbsolutePath source, AbsolutePath dest)
+        
+        public static async Task<ExtractedFiles> ExtractAll(WorkQueue queue, AbsolutePath source, IEnumerable<RelativePath> OnlyFiles = null)
         {
             try
             {
                 if (Consts.SupportedBSAs.Contains(source.Extension))
-                    await ExtractAllWithBSA(queue, source, dest);
+                    return await ExtractAllWithBSA(queue, source);
                 else if (source.Extension == Consts.OMOD)
-                    ExtractAllWithOMOD(source, dest);
+                    return ExtractAllWithOMOD(source);
                 else if (source.Extension == Consts.EXE)
-                    await ExtractAllExe(source, dest);
+                    return await ExtractAllExe(source);
                 else
-                    await ExtractAllWith7Zip(source, dest);
+                    return await ExtractAllWith7Zip(source, OnlyFiles);
             }
             catch (Exception ex)
             {
                 Utils.ErrorThrow(ex, $"Error while extracting {source}");
+                throw new Exception();
             }
         }
 
-        private static async Task ExtractAllExe(AbsolutePath source, AbsolutePath dest)
+        private static async Task<ExtractedFiles> ExtractAllExe(AbsolutePath source)
         {
             var isArchive = await TestWith7z(source);
 
             if (isArchive)
             {
-                await ExtractAllWith7Zip(source, dest);
-                return;
+                return await ExtractAllWith7Zip(source, null);
             }
 
+            var dest = new TempFolder();
             Utils.Log($"Extracting {(string)source.FileName}");
 
             var process = new ProcessHelper
             {
                 Path = @"Extractors\innounp.exe".RelativeTo(AbsolutePath.EntryPoint),
-                Arguments = new object[] {"-x", "-y", "-b", $"-d\"{dest}\"", source}
+                Arguments = new object[] {"-x", "-y", "-b", $"-d\"{dest.Dir}\"", source}
             };
 
             
@@ -69,7 +71,8 @@ namespace Wabbajack.VirtualFileSystem
                     Utils.Status($"Extracting {source.FileName} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
                 });
             await process.Start();
-           }
+            return new ExtractedFiles(dest);
+        }
 
         private class OMODProgress : ICodeProgress
         {
@@ -91,55 +94,70 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        private static void ExtractAllWithOMOD(AbsolutePath source, AbsolutePath dest)
+        private static ExtractedFiles ExtractAllWithOMOD(AbsolutePath source)
         {
+            var dest = new TempFolder();
             Utils.Log($"Extracting {(string)source.FileName}");
 
-            Framework.Settings.TempPath = (string)dest;
+            Framework.Settings.TempPath = (string)dest.Dir;
             Framework.Settings.CodeProgress = new OMODProgress();
 
             var omod = new OMOD((string)source);
             omod.GetDataFiles();
             omod.GetPlugins();
+            
+            return new ExtractedFiles(dest);
         }
 
 
-        private static async Task ExtractAllWithBSA(WorkQueue queue, AbsolutePath source, AbsolutePath dest)
+        private static async Task<ExtractedFiles> ExtractAllWithBSA(WorkQueue queue, AbsolutePath source)
         {
             try
             {
-                using var arch = BSADispatch.OpenRead(source);
-                await arch.Files
-                    .PMap(queue, f =>
-                    {
-                        Utils.Status($"Extracting {(string)f.Path}");
-                        var outPath = f.Path.RelativeTo(dest);
-                        var parent = outPath.Parent;
-
-                        if (!parent.IsDirectory)
-                            parent.CreateDirectory();
-
-                        using var fs = outPath.Create();
-                        f.CopyDataTo(fs);
-                    });
+                await using var arch = BSADispatch.OpenRead(source);
+                var files = arch.Files.ToDictionary(f => f.Path, f => (IExtractedFile)new ExtractedBSAFile(f));
+                return new ExtractedFiles(files, arch);
             }
             catch (Exception ex)
             {
                 Utils.ErrorThrow(ex, $"While Extracting {source}");
+                throw new Exception();
             }
         }
 
-        private static async Task ExtractAllWith7Zip(AbsolutePath source, AbsolutePath dest)
+        private static async Task<ExtractedFiles> ExtractAllWith7Zip(AbsolutePath source, IEnumerable<RelativePath> onlyFiles)
         {
+            TempFile tmpFile = null;
+            var dest = new TempFolder();
             Utils.Log(new GenericInfo($"Extracting {(string)source.FileName}", $"The contents of {(string)source.FileName} are being extracted to {(string)source.FileName} using 7zip.exe"));
 
-            
             var process = new ProcessHelper
             {
                 Path = @"Extractors\7z.exe".RelativeTo(AbsolutePath.EntryPoint),
-                Arguments = new object[] {"x", "-bsp1", "-y", $"-o\"{dest}\"", source, "-mmt=off"}
+                
             };
             
+            if (onlyFiles != null)
+            {
+                //It's stupid that we have to do this, but 7zip's file pattern matching isn't very fuzzy
+                IEnumerable<string> AllVariants(string input)
+                {
+                    yield return input;
+                    yield return "\\" + input;
+                }
+                
+                tmpFile = new TempFile();
+                await tmpFile.Path.WriteAllLinesAsync(onlyFiles.SelectMany(f => AllVariants((string)f)).ToArray());
+                process.Arguments = new object[]
+                {
+                    "x", "-bsp1", "-y", $"-o\"{dest.Dir}\"", source, $"@\"{tmpFile.Path}\"", "-mmt=off"
+                };
+            }
+            else
+            {
+                process.Arguments = new object[] {"x", "-bsp1", "-y", $"-o\"{dest.Dir}\"", source, "-mmt=off"};
+            }
+
 
             var result = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
                 .ForEachAsync(p =>
@@ -159,12 +177,15 @@ namespace Wabbajack.VirtualFileSystem
             
             if (exitCode != 0)
             {
-                Utils.Error(new _7zipReturnError(exitCode, source, dest, ""));
+                Utils.Error(new _7zipReturnError(exitCode, source, dest.Dir, ""));
             }
             else
             {
                 Utils.Status($"Extracting {source.FileName} - done", Percent.One, alsoLog: true);
             }
+
+            tmpFile?.Dispose();
+            return new ExtractedFiles(dest);
         }
 
         /// <summary>
@@ -205,9 +226,8 @@ namespace Wabbajack.VirtualFileSystem
         
         private static Extension _exeExtension = new Extension(".exe");
         
-        public static bool MightBeArchive(AbsolutePath path)
+        public static bool MightBeArchive(Extension ext)
         {
-            var ext = path.Extension;
             return ext == _exeExtension || Consts.SupportedArchives.Contains(ext) || Consts.SupportedBSAs.Contains(ext);
         }
     }

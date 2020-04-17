@@ -52,7 +52,7 @@ namespace Wabbajack.Lib.NexusApi
         private static AsyncLock _getAPIKeyLock = new AsyncLock();
         private static async Task<string> GetApiKey()
         {
-            using (await _getAPIKeyLock.Wait())
+            using (await _getAPIKeyLock.WaitAsync())
             {
                 // Clean up old location
                 if (File.Exists(API_KEY_CACHE_FILE))
@@ -114,7 +114,7 @@ namespace Wabbajack.Lib.NexusApi
                     key = await browser.EvaluateJavaScript(
                         "document.querySelector(\"input[value=wabbajack]\").parentElement.parentElement.querySelector(\"textarea.application-key\").innerHTML");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // ignored
                 }

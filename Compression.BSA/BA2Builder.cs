@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Wabbajack.Common;
@@ -34,7 +35,7 @@ namespace Compression.BSA
             _slab = new DiskSlabAllocator(size);
         }
         
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             _slab.Dispose();
         }

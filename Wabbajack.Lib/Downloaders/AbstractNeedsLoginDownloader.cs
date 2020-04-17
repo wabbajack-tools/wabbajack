@@ -21,6 +21,9 @@ namespace Wabbajack.Lib.Downloaders
         private readonly string _encryptedKeyName;
         private readonly string _cookieDomain;
         private readonly string _cookieName;
+
+        private bool _isPrepared;
+
         // ToDo
         // Remove null assignment.  Either add nullability to type, or figure way to prepare it safely
         public Common.Http.Client AuthedClient { get; private set; } = null!;
@@ -100,7 +103,9 @@ namespace Wabbajack.Lib.Downloaders
         
         public async Task Prepare()
         {
+            if (_isPrepared) return;
             AuthedClient = (await GetAuthedClient()) ?? throw new NotLoggedInError(this);
+            _isPrepared = true;
         }
 
         public class NotLoggedInError : Exception

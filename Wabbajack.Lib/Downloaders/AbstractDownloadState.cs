@@ -37,7 +37,6 @@ namespace Wabbajack.Lib.Downloaders
             typeof(SteamWorkshopDownloader.State),
             typeof(VectorPlexusDownloader.State),
             typeof(DeadlyStreamDownloader.State),
-            typeof(AFKModsDownloader.State),
             typeof(TESAllianceDownloader.State),
             typeof(BethesdaNetDownloader.State),
             typeof(YouTubeDownloader.State)

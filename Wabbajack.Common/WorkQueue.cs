@@ -93,7 +93,7 @@ namespace Wabbajack.Common
 
         private async Task AddNewThreadsIfNeeded(int desired)
         {
-            using (await _lock.Wait())
+            using (await _lock.WaitAsync())
             {
                 DesiredNumWorkers = desired;
                 while (DesiredNumWorkers > _tasks.Count)
@@ -141,7 +141,7 @@ namespace Wabbajack.Common
                     if (DesiredNumWorkers >= _tasks.Count) continue;
 
                     // Noticed that we may need to shut down, lock and check again
-                    using (await _lock.Wait())
+                    using (await _lock.WaitAsync())
                     {
                         // Check if another thread shut down before this one and got us back to the desired amount already
                         if (DesiredNumWorkers >= _tasks.Count) continue;

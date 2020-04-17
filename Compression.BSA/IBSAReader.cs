@@ -5,7 +5,7 @@ using Wabbajack.Common;
 
 namespace Compression.BSA
 {
-    public interface IBSAReader : IDisposable
+    public interface IBSAReader : IAsyncDisposable
     {
         /// <summary>
         /// The files defined by the archive
@@ -15,7 +15,7 @@ namespace Compression.BSA
         ArchiveStateObject State { get; }
     }
 
-    public interface IBSABuilder : IDisposable
+    public interface IBSABuilder : IAsyncDisposable
     {
         void AddFile(FileStateObject state, Stream src);
         void Build(AbsolutePath filename);
