@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Compression.LZ4.Streams;
 using Wabbajack.Common;
@@ -49,7 +50,7 @@ namespace Compression.BSA
         Miscellaneous = 0x100
     }
 
-    public class BSAReader : IDisposable, IBSAReader
+    public class BSAReader : IAsyncDisposable, IBSAReader
     {
         internal uint _archiveFlags;
         internal uint _fileCount;
@@ -113,7 +114,7 @@ namespace Compression.BSA
             }
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             _stream.Close();
         }

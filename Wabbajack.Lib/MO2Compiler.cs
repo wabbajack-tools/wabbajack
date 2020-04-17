@@ -459,13 +459,13 @@ namespace Wabbajack.Lib
                 await using var srcStream = srcFile.OpenRead();
                 await using var outputStream = IncludeFile(out var id);
                 entry.PatchID = id;
-                await using var destStream = LoadDataForTo(entry.To, absolutePaths);
+                await using var destStream = await LoadDataForTo(entry.To, absolutePaths);
                 await Utils.CreatePatch(srcStream, srcFile.Hash, destStream, entry.Hash, outputStream);
                 Info($"Patch size {outputStream.Length} for {entry.To}");
             });
         }
 
-        private FileStream LoadDataForTo(RelativePath to, Dictionary<RelativePath, AbsolutePath> absolutePaths)
+        private async Task<FileStream> LoadDataForTo(RelativePath to, Dictionary<RelativePath, AbsolutePath> absolutePaths)
         {
             if (absolutePaths.TryGetValue(to, out var absolute))
                 return absolute.OpenRead();
@@ -475,7 +475,7 @@ namespace Wabbajack.Lib
                 var bsaId = (RelativePath)((string)to).Split('\\')[1];
                 var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsaId);
 
-                using var a = BSADispatch.OpenRead(MO2Folder.Combine(bsa.To));
+                await using var a = BSADispatch.OpenRead(MO2Folder.Combine(bsa.To));
                 var find = (RelativePath)Path.Combine(((string)to).Split('\\').Skip(2).ToArray());
                 var file = a.Files.First(e => e.Path == find);
                 var returnStream = new TempStream();

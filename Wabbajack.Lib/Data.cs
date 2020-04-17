@@ -21,7 +21,15 @@ namespace Wabbajack.Lib
             Path = path;
         }
 
-        public AbsolutePath AbsolutePath => File.StagedPath;
+        public AbsolutePath AbsolutePath
+        {
+            get
+            {
+                if (!File.IsNative)
+                    throw new InvalidDataException("Can't get the absolute path of a non-native file");
+                return File.FullPath.Base;
+            }
+        }
 
         public VirtualFile File { get; }
 

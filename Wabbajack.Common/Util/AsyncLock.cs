@@ -12,7 +12,7 @@ namespace Wabbajack.Common
     {
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
 
-        public async Task<IDisposable> Wait()
+        public async Task<IDisposable> WaitAsync()
         {
             await _lock.WaitAsync();
             return Disposable.Create(() => _lock.Release());

@@ -29,6 +29,7 @@ namespace Wabbajack.Lib.Downloaders
 {
     public class BethesdaNetDownloader : IUrlDownloader, INeedsLogin
     {
+        private bool _isPrepared;
         public const string DataName = "bethesda-net-data";
 
         public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
@@ -70,8 +71,14 @@ namespace Wabbajack.Lib.Downloaders
 
         public async Task Prepare()
         {
-            if (Utils.HaveEncryptedJson(DataName)) return;
+            if (_isPrepared) return;
+            if (Utils.HaveEncryptedJson(DataName))
+            {
+                _isPrepared = true;
+                return;
+            }
             await Utils.Log(new RequestBethesdaNetLogin()).Task;
+            _isPrepared = true;
         }
 
         public static async Task<BethesdaNetData?> Login(Game game)

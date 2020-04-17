@@ -63,7 +63,7 @@ namespace Wabbajack.BuildServer.Controllers
             Utils.Log($"Writing {ms.Length} at position {Offset} in ingest file {Key}");
 
             long position;
-            using (var _ = await _writeLocks[Key].Wait())
+            using (var _ = await _writeLocks[Key].WaitAsync())
             {
                 await using var file = _settings.TempPath.Combine(Key).WriteShared();
                 file.Position = Offset;

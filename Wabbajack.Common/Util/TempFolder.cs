@@ -14,7 +14,7 @@ namespace Wabbajack.Common
 
         public TempFolder(bool deleteAfter = true)
         {
-            Dir = new AbsolutePath(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
+            Dir = Path.Combine("tmp_files", Guid.NewGuid().ToString()).RelativeTo(AbsolutePath.EntryPoint);
             if (!Dir.Exists) 
                 Dir.CreateDirectory();
             DeleteAfter = deleteAfter;

@@ -46,7 +46,8 @@ namespace Wabbajack.Test
         [Fact]
         public async Task TestAllPrepares()
         {
-            await Task.WhenAll(DownloadDispatcher.Downloaders.Select(d => d.Prepare()));
+            foreach (var downloader in DownloadDispatcher.Downloaders)
+                await downloader.Prepare();
         }
 
         [Fact]

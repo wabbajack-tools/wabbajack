@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 
@@ -61,7 +62,7 @@ namespace Compression.BSA
             _dataOffset = br.BaseStream.Position;
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
         }
 

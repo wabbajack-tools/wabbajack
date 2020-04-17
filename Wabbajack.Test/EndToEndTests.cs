@@ -105,8 +105,8 @@ namespace Wabbajack.Test
 
             await src.CopyToAsync(utils.DownloadsFolder.Combine(filename));
 
-            await FileExtractor.ExtractAll(Queue, src,
-                modName == null ? utils.MO2Folder : utils.ModsFolder.Combine(modName));
+            await using var dest = await FileExtractor.ExtractAll(Queue, src);
+            await dest.MoveAllTo(modName == null ? utils.MO2Folder : utils.ModsFolder.Combine(modName));
         }
 
         private async Task<(AbsolutePath Download, AbsolutePath ModFolder)> DownloadAndInstall(Game game, int modId, string modName)
@@ -140,7 +140,8 @@ namespace Wabbajack.Test
             await src.CopyToAsync(dest);
 
             var modFolder = utils.ModsFolder.Combine(modName);
-            await FileExtractor.ExtractAll(Queue, src, modFolder);
+            await using var files = await FileExtractor.ExtractAll(Queue, src);
+            await files.MoveAllTo(modFolder);
 
             await dest.WithExtension(Consts.MetaFileExtension).WriteAllTextAsync(ini);
             return (dest, modFolder);

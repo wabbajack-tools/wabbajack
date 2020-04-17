@@ -172,7 +172,8 @@ namespace Wabbajack.Lib
                     throw new ArgumentNullException("FromFile was null");
                 }
                 var firstDest = OutputFolder.Combine(group.First().To);
-                await CopyFile(group.Key.StagedPath, firstDest, true);
+
+                await group.Key.StagedFile.MoveTo(firstDest);
                 
                 foreach (var copy in group.Skip(1))
                 {

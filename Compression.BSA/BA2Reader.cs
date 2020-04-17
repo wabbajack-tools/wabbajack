@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
@@ -99,7 +100,7 @@ namespace Compression.BSA
 
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             _stream?.Dispose();
             _rdr?.Dispose();

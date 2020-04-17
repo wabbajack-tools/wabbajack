@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Compression.LZ4;
 using K4os.Compression.LZ4.Streams;
@@ -75,7 +76,7 @@ namespace Compression.BSA
 
         public bool HasNameBlobs => (_archiveFlags & 0x100) > 0;
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             _slab.Dispose();
         }

@@ -117,7 +117,7 @@ namespace Wabbajack.BuildServer.Controllers
         private static AsyncLock _findPatchLock = new AsyncLock();
         private async Task<(Archive, ArchiveStatus)> TryToFix(SqlService.ValidationData data, Archive archive)
         {
-            using var _ = await _findPatchLock.Wait();
+            using var _ = await _findPatchLock.WaitAsync();
 
             var result = await _updater.GetAlternative(archive.Hash.ToHex());
             return result switch

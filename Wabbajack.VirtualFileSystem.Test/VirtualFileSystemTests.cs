@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Xunit;
@@ -141,7 +142,10 @@ namespace Wabbajack.VirtualFileSystem.Test
             var file = context.Index.ByFullPath[res];
 
             var cleanup = await context.Stage(new List<VirtualFile> {file});
-            Assert.Equal("This is a test", await file.StagedPath.ReadAllTextAsync());
+            
+            await using var stream = file.StagedFile.OpenRead();
+           
+            Assert.Equal("This is a test", await stream.ReadAllTextAsync());
 
             await cleanup();
         }
@@ -164,7 +168,11 @@ namespace Wabbajack.VirtualFileSystem.Test
             var cleanup = await context.Stage(files);
 
             foreach (var file in files)
-                Assert.Equal("This is a test", await file.StagedPath.ReadAllTextAsync());
+            {
+                await using var stream = file.StagedFile.OpenRead();
+                
+                Assert.Equal("This is a test", await stream.ReadAllTextAsync());
+            }
 
             await cleanup();
         }

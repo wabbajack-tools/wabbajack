@@ -84,7 +84,7 @@ namespace Wabbajack
                 .ObserveOnGuiThread()
                 .SelectTask(async msg =>
                 {
-                    using var _ = await singleton_lock.Wait();
+                    using var _ = await singleton_lock.WaitAsync();
                     try
                     {
                         await UserInterventionHandlers.Handle(msg);

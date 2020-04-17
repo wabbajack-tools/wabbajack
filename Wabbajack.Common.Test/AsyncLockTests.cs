@@ -13,7 +13,7 @@ namespace Wabbajack.Common.Test
             bool firstRun = false;
             var first = Task.Run(async () =>
             {
-                using (await asyncLock.Wait())
+                using (await asyncLock.WaitAsync())
                 {
                     await Task.Delay(500);
                     firstRun = true;
@@ -22,7 +22,7 @@ namespace Wabbajack.Common.Test
             var second = Task.Run(async () =>
             {
                 await Task.Delay(200);
-                using (await asyncLock.Wait())
+                using (await asyncLock.WaitAsync())
                 {
                     Assert.True(firstRun);
                 }
@@ -41,7 +41,7 @@ namespace Wabbajack.Common.Test
             {
                 return Task.Run(async () =>
                 {
-                    using (await asyncLock.Wait())
+                    using (await asyncLock.WaitAsync())
                     {
                         await Task.Delay(500);
                         firstRun = true;
@@ -55,7 +55,7 @@ namespace Wabbajack.Common.Test
                 Task.Run(async () =>
                 {
                     await Task.Delay(200);
-                    using (await asyncLock.Wait())
+                    using (await asyncLock.WaitAsync())
                     {
                         Assert.True(firstRun);
                         secondRun = true;

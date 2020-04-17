@@ -427,6 +427,13 @@ namespace Wabbajack.Common
             await ins.CopyToAsync(ms);
             return ms.ToArray();
         }
+        
+        public static async Task<string> ReadAllTextAsync(this Stream ins)
+        {
+            await using var ms = new MemoryStream();
+            await ins.CopyToAsync(ms);
+            return Encoding.UTF8.GetString(ms.ToArray());
+        }
 
         public static async Task<TR[]> PMap<TI, TR>(this IEnumerable<TI> coll, WorkQueue queue, StatusUpdateTracker updateTracker,
             Func<TI, TR> f)
@@ -727,7 +734,7 @@ namespace Wabbajack.Common
             }
         }
 
-        public static async Task CreatePatch(FileStream srcStream, Hash srcHash, FileStream destStream, Hash destHash,
+        public static async Task CreatePatch(Stream srcStream, Hash srcHash, FileStream destStream, Hash destHash,
             FileStream patchStream)
         {
             await using var sigFile = new TempStream();
@@ -967,7 +974,7 @@ namespace Wabbajack.Common
                     Status($"Deleting: {p.Line}");
                 });
 
-            process.Start().Wait();
+            await process.Start();
             await result;
         }
 
