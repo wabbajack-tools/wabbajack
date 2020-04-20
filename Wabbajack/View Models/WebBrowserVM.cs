@@ -14,7 +14,7 @@ using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack
 {
-    public class WebBrowserVM : ViewModel, IBackNavigatingVM
+    public class WebBrowserVM : ViewModel, IBackNavigatingVM, IDisposable
     {
         [Reactive]
         public string Instructions { get; set; }
@@ -37,6 +37,11 @@ namespace Wabbajack
         {
             // Make sure libraries are extracted first
             return new WebBrowserVM(url);
+        }
+
+        public void Dispose()
+        {
+            Browser.Dispose();
         }
     }
 }
