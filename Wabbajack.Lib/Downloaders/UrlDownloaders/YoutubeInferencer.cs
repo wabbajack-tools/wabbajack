@@ -14,7 +14,7 @@ namespace Wabbajack.Lib.Downloaders.UrlDownloaders
             if (state == null) return null;
             
             var client = new YoutubeClient(Common.Http.ClientFactory.Client);
-            var video = await client.GetVideoAsync(state.Key);
+            var video = await client.Videos.GetAsync(state.Key);
 
             var desc = video.Description;
 

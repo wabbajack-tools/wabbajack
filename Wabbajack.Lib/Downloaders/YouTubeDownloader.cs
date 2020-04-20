@@ -13,7 +13,7 @@ using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
 using YoutubeExplode;
 using YoutubeExplode.Exceptions;
-using YoutubeExplode.Models.MediaStreams;
+using YoutubeExplode.Videos.Streams;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -105,10 +105,9 @@ namespace Wabbajack.Lib.Downloaders
                     await using var folder = new TempFolder();
                     folder.Dir.Combine("tracks").CreateDirectory();
                     var client = new YoutubeClient(Common.Http.ClientFactory.Client);
-                    var meta = await client.GetVideoAsync(Key);
-                    var video = await client.GetVideoMediaStreamInfosAsync(Key);
-                    var all = video.GetAll();
-                    var stream = video.GetAll().OfType<AudioStreamInfo>().Where(f => f.AudioEncoding == AudioEncoding.Aac).OrderByDescending(a => a.Bitrate)
+                    var meta = await client.Videos.GetAsync(Key);
+                    var video = await client.Videos.Streams.GetManifestAsync(Key);
+                    var stream = video.Streams.OfType<AudioOnlyStreamInfo>().Where(f => f.AudioCodec.StartsWith("mp4a")).OrderByDescending(a => a.Bitrate)
                         .ToArray().First();
 
                     var initialDownload = folder.Dir.Combine("initial_download");
@@ -117,11 +116,11 @@ namespace Wabbajack.Lib.Downloaders
 
                     await using (var fs = initialDownload.Create())
                     {
-                        await client.DownloadMediaStreamAsync(stream, fs, new Progress($"Downloading {a.Name}"),
+                        await client.Videos.Streams.CopyToAsync(stream, fs, new Progress($"Downloading {a.Name}"),
                             CancellationToken.None);
                     }
 
-                    initialDownload.CopyTo(destination.WithExtension(new Extension(".dest_stream")));
+                    await initialDownload.CopyToAsync(destination.WithExtension(new Extension(".dest_stream")));
                     
                     await Tracks.PMap(queue, async track =>
                     {
@@ -212,7 +211,7 @@ namespace Wabbajack.Lib.Downloaders
                 try
                 {
                     var client = new YoutubeClient(Common.Http.ClientFactory.Client);
-                    var video = await client.GetVideoAsync(Key);
+                    var video = await client.Videos.GetAsync(Key);
                     return true;
                 }
                 catch (VideoUnavailableException)
