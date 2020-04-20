@@ -31,7 +31,7 @@ namespace Wabbajack
         {
             var cancel = new CancellationTokenSource();
             var oldPane = MainWindow.ActivePane;
-            var vm = await WebBrowserVM.GetNew();
+            using var vm = await WebBrowserVM.GetNew();
             MainWindow.NavigateTo(vm);
             vm.BackCommand = ReactiveCommand.Create(() =>
             {
