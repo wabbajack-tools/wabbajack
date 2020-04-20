@@ -6,6 +6,7 @@ namespace Wabbajack.Common.Test
 {
     public class TaskExtTests
     {
+        /* TODO: this is flakey
         [Fact]
         public async Task TimeoutButContinue_Typical()
         {
@@ -13,6 +14,7 @@ namespace Wabbajack.Common.Test
             await Task.Delay(100).TimeoutButContinue(TimeSpan.FromSeconds(1), () => timedOut = true);
             Assert.False(timedOut);
         }
+        */
 
         [Fact]
         public async Task TimeoutButContinue_TimedOut()
