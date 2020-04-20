@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -237,8 +238,8 @@ namespace Wabbajack.Common
         
         public class JsonNameSerializationBinder : DefaultSerializationBinder
         {
-            private static Dictionary<string, Type> _nameToType = new Dictionary<string, Type>();
-            private static Dictionary<Type, string> _typeToName = new Dictionary<Type, string>();
+            private static ConcurrentDictionary<string, Type> _nameToType = new ConcurrentDictionary<string, Type>();
+            private static ConcurrentDictionary<Type, string> _typeToName = new ConcurrentDictionary<Type, string>();
             private static bool _init;
 
             public JsonNameSerializationBinder()
@@ -266,15 +267,13 @@ namespace Wabbajack.Common
                             .GetCustomAttributes(false)
                             .Any(y => y is JsonNameAttribute));
 
-                _nameToType = customDisplayNameTypes.ToDictionary(
-                    t => t.GetCustomAttributes(false).OfType<JsonNameAttribute>().First().Name,
-                    t => t);
-
-                _typeToName = _nameToType.ToDictionary(
-                    t => t.Value,
-                    t => t.Key);
+                foreach (var type in customDisplayNameTypes)
+                {
+                    var strName = type.GetCustomAttributes(false).OfType<JsonNameAttribute>().First().Name;
+                    _typeToName.TryAdd(type, strName);
+                    _nameToType.TryAdd(strName, type);
+                }
                 _init = true;
-
             }
 
             public override Type BindToType(string? assemblyName, string typeName)
@@ -287,6 +286,22 @@ namespace Wabbajack.Common
 
                 if (_nameToType.ContainsKey(typeName))
                     return _nameToType[typeName];
+
+                if (assemblyName != null)
+                {
+                    var assembly = Assembly.Load(assemblyName);
+                    var tp = assembly
+                        .GetTypes()
+                        .FirstOrDefault(tp => Enumerable.OfType<JsonNameAttribute>(tp.GetCustomAttributes(false))
+                            .Any(a => a.Name == typeName));
+
+                    if (tp != null)
+                    {
+                        _typeToName.TryAdd(tp, typeName);
+                        _nameToType.TryAdd(typeName, tp);
+                        return tp;
+                    }
+                }
 
                 var val = Type.GetType(typeName);
                 if (val != null)
@@ -312,16 +327,16 @@ namespace Wabbajack.Common
                         throw new InvalidDataException($"No Binding name for {serializedType}");
                     }
 
-                    _nameToType[custom.Name] = serializedType;
-                    _typeToName[serializedType] = custom.Name;
-                    assemblyName = null;
+                    _nameToType.TryAdd(custom.Name, serializedType);
+                    _typeToName.TryAdd(serializedType, custom.Name);
+                    assemblyName = serializedType.Assembly.FullName;
                     typeName = custom.Name;
                     return;
                 }
 
                 var name = _typeToName[serializedType];
 
-                assemblyName = null;
+                assemblyName = serializedType.Assembly.FullName;
                 typeName = name;
             }
         }

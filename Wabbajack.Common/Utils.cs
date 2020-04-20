@@ -223,14 +223,19 @@ namespace Wabbajack.Common
             var buffer = new byte[1024 * 64];
             if (maxSize == 0) maxSize = 1;
             long totalRead = 0;
+            long remain = maxSize; 
             while (true)
             {
-                var read = await istream.ReadAsync(buffer, 0, buffer.Length);
+                var toRead = Math.Min(buffer.Length, remain);
+                var read = await istream.ReadAsync(buffer, 0, (int)toRead);
+                remain -= read;
                 if (read == 0) break;
                 totalRead += read;
                 await ostream.WriteAsync(buffer, 0, read);
                 Status(status, Percent.FactoryPutInRange(totalRead, maxSize));
             }
+
+            await ostream.FlushAsync();
         }
 
         /// <summary>
@@ -298,6 +303,16 @@ namespace Wabbajack.Common
             foreach (var i in coll)
             {
                 f(idx, i);
+                idx += 1;
+            }
+        }
+        
+        public static async Task DoIndexed<T>(this IEnumerable<T> coll, Func<int, T, Task> f)
+        {
+            var idx = 0;
+            foreach (var i in coll)
+            {
+                await f(idx, i);
                 idx += 1;
             }
         }
@@ -623,6 +638,16 @@ namespace Wabbajack.Common
             {
                 Status(msg, Percent.FactoryPutInRange(idx, lst.Count));
                 f(i);
+            });
+        }
+        
+        public static async Task DoProgress<T>(this IEnumerable<T> coll, string msg, Func<T, Task> f)
+        {
+            var lst = coll.ToList();
+            await lst.DoIndexed(async (idx, i) =>
+            {
+                Status(msg, Percent.FactoryPutInRange(idx, lst.Count));
+                await f(i);
             });
         }
 

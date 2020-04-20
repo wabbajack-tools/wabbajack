@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -174,6 +175,22 @@ namespace Compression.BSA
             }
 
             tw.Flush();
+        }
+        
+        public static async Task CopyToLimitAsync(this Stream frm, Stream tw, int limit)
+        {
+            var buff = new byte[1024];
+            while (limit > 0)
+            {
+                var to_read = Math.Min(buff.Length, limit);
+                var read = await frm.ReadAsync(buff, 0, to_read);
+                if (read == 0)
+                    throw new Exception("End of stream before end of limit");
+                await tw.WriteAsync(buff, 0, read);
+                limit -= read;
+            }
+
+            await tw.FlushAsync();
         }
     }
 }

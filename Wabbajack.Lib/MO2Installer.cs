@@ -259,20 +259,18 @@ namespace Wabbajack.Lib
 
                 var bsaSize = bsa.FileStates.Select(state => sourceDir.Combine(state.Path).Size).Sum();
 
-                await using (var a = bsa.State.MakeBuilder(bsaSize))
+                await using var a = bsa.State.MakeBuilder(bsaSize);
+                var streams = await bsa.FileStates.PMap(Queue, async state =>
                 {
-                    var streams = await bsa.FileStates.PMap(Queue, state =>
-                    {
-                        Status($"Adding {state.Path} to BSA");
-                        var fs = sourceDir.Combine(state.Path).OpenRead();
-                        a.AddFile(state, fs);
-                        return fs;
-                    });
+                    Status($"Adding {state.Path} to BSA");
+                    var fs = sourceDir.Combine(state.Path).OpenRead();
+                    await a.AddFile(state, fs);
+                    return fs;
+                });
 
-                    Info($"Writing {bsa.To}");
-                    a.Build(OutputFolder.Combine(bsa.To));
-                    streams.Do(s => s.Dispose());
-                }
+                Info($"Writing {bsa.To}");
+                await a.Build(OutputFolder.Combine(bsa.To));
+                streams.Do(s => s.Dispose());
             }
 
             var bsaDir = OutputFolder.Combine(Consts.BSACreationDir);

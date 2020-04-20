@@ -60,6 +60,17 @@ namespace Wabbajack.Lib.CompilationSteps
                 if (_includeDirectly.Any(path => source.Path.StartsWith(path)))
                     defaultInclude = true;
 
+            if (source.AbsolutePath.Size > 2_000_000_000)
+            {
+                await using var bsa = BSADispatch.OpenRead(source.AbsolutePath);
+                if (bsa.State is BSAStateObject)
+                {
+                    Utils.Error(
+                        $"BSA {source.AbsolutePath.FileName} is over 2GB in size, very few programs (Including Wabbajack) can create BSA files this large without causing CTD issues." +
+                        $"Please re-compress this BSA into a more manageable size.");
+                }
+            }
+
             var sourceFiles = source.File.Children;
 
             var stack = defaultInclude ? _microstackWithInclude(source.File) : _microstack(source.File);

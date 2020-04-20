@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 
 namespace Compression.BSA
@@ -17,8 +18,8 @@ namespace Compression.BSA
 
     public interface IBSABuilder : IAsyncDisposable
     {
-        void AddFile(FileStateObject state, Stream src);
-        void Build(AbsolutePath filename);
+        Task AddFile(FileStateObject state, Stream src);
+        Task Build(AbsolutePath filename);
     }
 
     public class ArchiveStateObject
