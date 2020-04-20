@@ -18,16 +18,16 @@ namespace Compression.BSA
             _files = new (TES3FileState state, Stream data)[_state.FileCount];
         }
 
-        public void AddFile(FileStateObject state, Stream src)
+        public async Task AddFile(FileStateObject state, Stream src)
         {
             var cstate = (TES3FileState)state;
             _files[state.Index] = (cstate, src);
         }
 
-        public void Build(AbsolutePath filename)
+        public async Task Build(AbsolutePath filename)
         {
-            using var fs = filename.Create();
-            using var bw = new BinaryWriter(fs);
+            await using var fs = filename.Create();
+            await using var bw = new BinaryWriter(fs);
             
             bw.Write(_state.VersionNumber);
             bw.Write(_state.HashOffset);
@@ -67,8 +67,8 @@ namespace Compression.BSA
             foreach (var (state, data) in _files)
             {
                 bw.BaseStream.Position = _state.DataOffset + state.Offset;
-                data.CopyTo(bw.BaseStream);
-                data.Dispose();
+                await data.CopyToAsync(bw.BaseStream);
+                await data.DisposeAsync();
             }
         }
 

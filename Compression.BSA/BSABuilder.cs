@@ -80,11 +80,11 @@ namespace Compression.BSA
         {
             _slab.Dispose();
         }
-        public void AddFile(FileStateObject state, Stream src)
+        public async Task AddFile(FileStateObject state, Stream src)
         {
             var ostate = (BSAFileStateObject) state;
 
-            var r = FileEntry.Create(this, ostate.Path, src, ostate.FlipCompression);
+            var r = await FileEntry.Create(this, ostate.Path, src, ostate.FlipCompression);
 
             lock (this)
             {
@@ -92,39 +92,38 @@ namespace Compression.BSA
             }
         }
 
-        public void Build(AbsolutePath outputName)
+        public async Task Build(AbsolutePath outputName)
         {
             RegenFolderRecords();
-            using (var fs = outputName.Create())
-            using (var wtr = new BinaryWriter(fs))
+            await using var fs = outputName.Create();
+            await using var wtr = new BinaryWriter(fs);
+            
+            wtr.Write(_fileId);
+            wtr.Write(_version);
+            wtr.Write(_offset);
+            wtr.Write(_archiveFlags);
+            var folders = FolderNames.ToList();
+            wtr.Write((uint) folders.Count);
+            wtr.Write((uint) _files.Count);
+            wtr.Write((uint) _folders.Select(f => f._nameBytes.Count() - 1).Sum()); // totalFolderNameLength
+            var s = _files.Select(f => f._pathBytes.Count()).Sum();
+            _totalFileNameLength = (uint) _files.Select(f => f._nameBytes.Count()).Sum();
+            wtr.Write(_totalFileNameLength); // totalFileNameLength
+            wtr.Write(_fileFlags);
+
+            foreach (var folder in _folders) folder.WriteFolderRecord(wtr);
+
+            foreach (var folder in _folders)
             {
-                wtr.Write(_fileId);
-                wtr.Write(_version);
-                wtr.Write(_offset);
-                wtr.Write(_archiveFlags);
-                var folders = FolderNames.ToList();
-                wtr.Write((uint) folders.Count);
-                wtr.Write((uint) _files.Count);
-                wtr.Write((uint) _folders.Select(f => f._nameBytes.Count() - 1).Sum()); // totalFolderNameLength
-                var s = _files.Select(f => f._pathBytes.Count()).Sum();
-                _totalFileNameLength = (uint) _files.Select(f => f._nameBytes.Count()).Sum();
-                wtr.Write(_totalFileNameLength); // totalFileNameLength
-                wtr.Write(_fileFlags);
-
-                foreach (var folder in _folders) folder.WriteFolderRecord(wtr);
-
-                foreach (var folder in _folders)
-                {
-                    if (HasFolderNames)
-                        wtr.Write(folder._nameBytes);
-                    foreach (var file in folder._files) file.WriteFileRecord(wtr);
-                }
-
-                foreach (var file in _files) wtr.Write(file._nameBytes);
-
-                foreach (var file in _files) 
-                    file.WriteData(wtr);
+                if (HasFolderNames)
+                    wtr.Write(folder._nameBytes);
+                foreach (var file in folder._files) file.WriteFileRecord(wtr);
             }
+
+            foreach (var file in _files) wtr.Write(file._nameBytes);
+
+            await _files.DoProgress("Writing BSA Body", async file => 
+                await file.WriteData(wtr));
         }
 
         public void RegenFolderRecords()
@@ -236,7 +235,7 @@ namespace Compression.BSA
         internal byte[] _pathBytes;
         private Stream _srcData;
 
-        public static FileEntry Create(BSABuilder bsa, RelativePath path, Stream src, bool flipCompression)
+        public static async Task<FileEntry> Create(BSABuilder bsa, RelativePath path, Stream src, bool flipCompression)
         {
             var entry = new FileEntry();
             entry._bsa = bsa;
@@ -252,7 +251,7 @@ namespace Compression.BSA
             entry._originalSize = (int)entry._srcData.Length;
 
             if (entry.Compressed)
-                entry.CompressData();
+                await entry.CompressData();
             return entry;
         }
 
@@ -274,20 +273,20 @@ namespace Compression.BSA
 
         public FolderRecordBuilder Folder => _folder;
 
-        private void CompressData()
+        private async Task CompressData()
         {
             switch (_bsa.HeaderType)
             {
                 case VersionType.SSE:
                 {
                     var r = new MemoryStream();
-                    using (var w = LZ4Stream.Encode(r, new LZ4EncoderSettings {CompressionLevel = LZ4Level.L12_MAX}, true))
+                    await using (var w = LZ4Stream.Encode(r, new LZ4EncoderSettings {CompressionLevel = LZ4Level.L12_MAX}, true))
                     {
-                        _srcData.CopyTo(w);
+                        await _srcData.CopyToWithStatusAsync(_srcData.Length, w, $"Compressing {_path}");
                     }
                     _srcData = _bsa._slab.Allocate(r.Length);
                     r.Position = 0;
-                    r.CopyTo(_srcData);
+                    await r.CopyToWithStatusAsync(r.Length, _srcData, $"Writing {_path}");
                     _srcData.Position = 0;
                     break;
                 }
@@ -298,11 +297,11 @@ namespace Compression.BSA
                     using (var w = new DeflaterOutputStream(r))
                     {
                         w.IsStreamOwner = false;
-                        _srcData.CopyTo(w);
+                        await _srcData.CopyToWithStatusAsync(_srcData.Length, w, $"Compressing {_path}");
                     }
                     _srcData = _bsa._slab.Allocate(r.Length);
                     r.Position = 0;
-                    r.CopyTo(_srcData);
+                    await r.CopyToWithStatusAsync(r.Length, _srcData, $"Writing {_path}");
                     _srcData.Position = 0;
                     break;
                 }
@@ -327,7 +326,7 @@ namespace Compression.BSA
             wtr.Write(0xDEADBEEF);
         }
 
-        internal void WriteData(BinaryWriter wtr)
+        internal async Task WriteData(BinaryWriter wtr)
         {
             var offset = (uint) wtr.BaseStream.Position;
             wtr.BaseStream.Position = _offsetOffset;
@@ -340,14 +339,14 @@ namespace Compression.BSA
             {
                 wtr.Write((uint) _originalSize);
                 _srcData.Position = 0;
-                _srcData.CopyToLimit(wtr.BaseStream, (int)_srcData.Length);
-                _srcData.Dispose();
+                await _srcData.CopyToLimitAsync(wtr.BaseStream, (int)_srcData.Length);
+                await _srcData.DisposeAsync();
             }
             else
             {
                 _srcData.Position = 0;
-                _srcData.CopyToLimit(wtr.BaseStream, (int)_srcData.Length);
-                _srcData.Dispose();
+                await _srcData.CopyToLimitAsync(wtr.BaseStream, (int)_srcData.Length);
+                await _srcData.DisposeAsync();
             }
         }
     }

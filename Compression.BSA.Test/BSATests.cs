@@ -114,14 +114,14 @@ namespace Compression.BSA.Test
 
                 await using (var w = ViaJson(a.State).MakeBuilder(size))
                 {
-                    var streams = await a.Files.PMap(Queue, file =>
+                    var streams = await a.Files.PMap(Queue, async file =>
                     {
                         var absPath = _tempDir.Combine(file.Path);
                         var str = absPath.OpenRead();
-                        w.AddFile(ViaJson(file.State), str);
+                        await w.AddFile(ViaJson(file.State), str);
                         return str;
                     });
-                    w.Build(tempFile);
+                    await w.Build(tempFile);
                     streams.Do(s => s.Dispose());
                 }
 
