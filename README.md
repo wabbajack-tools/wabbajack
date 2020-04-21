@@ -108,6 +108,11 @@ or any sort of other quid-pro-quo monitization structure. The Wabbajack team res
 Absolutely! As long as the act of donating does not entitle the donator to access to the installer. The installer must be free, 
 donations must be a "thank you" not a purchase of services or content. 
 
+### License & Copyright
+
+All original code in Wabbajack is given freely via the GPL3 license. Parts of Wabbajack use libraries that carry their own Open Sources licenses, those parts retain their original copyrights. Selling of ModList files is strictly forbidden. As is hosting the files behind any sort of paywall. You recieved this tool free of charge, respect this by giving freely as you were given.
+
+
 ## Thanks to
 
 Our testers and Discord members who encourage development and help test the builds.
@@ -134,7 +139,14 @@ Our testers and Discord members who encourage development and help test the buil
 - Roy Martinez
 - Bob Bob
 - yreeFJ
-
+- Rob
+- Jessica Frost
+- Andrew Johnson
+- John D Ford
+- Cybel
+- Zack McMurtry
+- Fermin Ayucar
+- Antoine Arcand
 
 #### Chicken and Mudcrab level Supporters
 
@@ -155,7 +167,51 @@ Our testers and Discord members who encourage development and help test the buil
 - sorrydaijin
 - William Chudziak
 - N Kalim
-
-### License & Copyright
-
-All original code in Wabbajack is given freely via the GPL3 license. Parts of Wabbajack use libraries that carry their own Open Sources licenses, those parts retain their original copyrights. Selling of ModList files is strictly forbidden. As is hosting the files behind any sort of paywall. You recieved this tool free of charge, respect this by giving freely as you were given.
+- Miguel Conde Gallastegui
+- Flawedspirit
+- rainslave
+- Brandon Alanskas
+- Nordwulf
+- John Mallett
+- Chris LaGrange
+- Aleksandar Ljubičić
+- LegitRob95
+- LND
+- Parks
+- Hiyoko Yoko
+- MarkEE Mark
+- Absolute Phoenix
+- SirLach
+- Will Thrash
+- Doug H
+- Aymerick
+- Ryan Nuckolls
+- Tyler Long
+- Kyle Rector
+- KarMagick
+- IEatASS
+- Jasagna
+- Jeffrey B Eppes
+- daniel gonzalez
+- Luke Szabolcsky
+- Alex Lewis
+- Lisa Croxford
+- Mattloki
+- Aaaron Wagner
+- Ronald Bishop
+- BigSandwhich
+- Cal Wheeler
+- King Joffrey
+- Jack Hayden
+- Alxariam
+- doomstove
+- Tate Chambers
+- Nechrion
+- Salvatore Aliberti
+- Kevin Smith
+- Joko
+- Antoine Arcand
+- Kyle Reynolds
+- Pascal
+- Jake D Hagood
+- Kyle McCall
