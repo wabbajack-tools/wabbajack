@@ -52,15 +52,16 @@ namespace Wabbajack.Lib.CompilationSteps
                 }
             }
 
-            var installationFile = (RelativePath)modIni?.General?.installationFile;
+            var installationFile = (string?)modIni?.General?.installationFile;
 
             VirtualFile? found = null;
             
             // Find based on exact file name + ext
-            if (choices != null)
+            if (choices != null && installationFile != null)
             {
+                var relName = (RelativePath)Path.GetFileName(installationFile);
                 found = choices.FirstOrDefault(
-                    f => f.FilesInFullPath.First().Name.FileName == installationFile);
+                    f => f.FilesInFullPath.First().Name.FileName == relName);
             }
 
             // Find based on file name only (not ext)
@@ -72,10 +73,11 @@ namespace Wabbajack.Lib.CompilationSteps
             }
 
             // Find based on matchAll=<archivename> in [General] in meta.ini
-            var matchAllName = (RelativePath?)modIni?.General?.matchAll;
+            var matchAllName = (string?)modIni?.General?.matchAll;
             if (matchAllName != null)
             {
-                if (_indexedByName.TryGetValue(matchAllName.Value, out var arch))
+                var relName = (RelativePath)Path.GetFileName(matchAllName);
+                if (_indexedByName.TryGetValue(relName, out var arch))
                 {
                     // Just match some file in the archive based on the smallest delta difference
                     found = arch.ThisAndAllChildren
