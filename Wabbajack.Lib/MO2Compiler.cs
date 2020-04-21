@@ -45,7 +45,7 @@ namespace Wabbajack.Lib
 
         public override AbsolutePath VFSCacheName => 
             Consts.LocalAppDataPath.Combine( 
-            $"vfs_compile_cache-{Path.Combine((string)MO2Folder ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
+            $"vfs_compile_cache-2-{Path.Combine((string)MO2Folder ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
 
         public dynamic MO2Ini { get; }
 
