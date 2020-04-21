@@ -13,9 +13,7 @@
   <ItemGroup>
     <None Remove="Readme.md" />
     <Compile Remove="AVortexCompilerTest.cs" />
-    <None Include="AVortexCompilerTest.cs" />
     <Compile Remove="VortexTests.cs" />
-    <None Include="VortexTests.cs" />
     <Compile Remove="WebAutomationTests.cs" />
     <Compile Remove="ZEditIntegrationTests.cs" />
     <None Include="ZEditIntegrationTests.cs" />

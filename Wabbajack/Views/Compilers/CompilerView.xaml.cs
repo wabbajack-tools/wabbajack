@@ -82,13 +82,6 @@ namespace Wabbajack
                     .Select(started => started ? Visibility.Hidden : Visibility.Visible)
                     .BindToStrict(this, x => x.BottomCompilerSettingsGrid.Visibility)
                     .DisposeWith(dispose);
-                // Seems to go into an infinite loop between each other.  Need to research a better radio button style pattern
-                //this.BindStrict(this.ViewModel, x => x.SelectedCompilerType, x => x.MO2CompilerButton.IsChecked,
-                //    vmToViewConverter: type => type == ModManager.MO2,
-                //    viewToVmConverter: isChecked => isChecked ? ModManager.MO2 : ModManager.Vortex);
-                //this.BindStrict(this.ViewModel, x => x.SelectedCompilerType, x => x.MO2CompilerButton.IsChecked,
-                //    vmToViewConverter: type => type == ModManager.Vortex,
-                //    viewToVmConverter: isChecked => isChecked ? ModManager.Vortex : ModManager.MO2);
                 this.WhenAny(x => x.ViewModel.Compiler)
                     .BindToStrict(this, x => x.CustomCompilerSettingsPresenter.Content)
                     .DisposeWith(dispose);

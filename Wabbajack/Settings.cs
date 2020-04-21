@@ -87,7 +87,6 @@ namespace Wabbajack
         public ModManager LastCompiledModManager { get; set; }
         public AbsolutePath OutputLocation { get; set; }
         public MO2CompilationSettings MO2Compilation { get; } = new MO2CompilationSettings();
-        public VortexCompilationSettings VortexCompilation { get; } = new VortexCompilationSettings();
     }
 
     [JsonObject(MemberSerialization.OptOut)]
@@ -134,17 +133,4 @@ namespace Wabbajack
         public Dictionary<AbsolutePath, CompilationModlistSettings> ModlistSettings { get; } = new Dictionary<AbsolutePath, CompilationModlistSettings>();
     }
 
-    public class VortexCompilationSettings
-    {
-        public Game LastCompiledGame { get; set; }
-        public Dictionary<Game, VortexGameSettings> ModlistSettings { get; } = new Dictionary<Game, VortexGameSettings>();
-    }
-
-    public class VortexGameSettings
-    {
-        public string GameLocation { get; set; }
-        public string DownloadLocation { get; set; }
-        public string StagingLocation { get; set; }
-        public CompilationModlistSettings ModlistSettings { get; } = new CompilationModlistSettings();
-    }
 }

@@ -128,8 +128,6 @@ namespace Wabbajack
                     {
                         case ModManager.MO2:
                             return new MO2InstallerVM(this);
-                        /*case ModManager.Vortex:
-                            return new VortexInstallerVM(this);*/
                         default:
                             return null;
                     }

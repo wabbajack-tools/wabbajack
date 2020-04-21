@@ -102,10 +102,6 @@ namespace Wabbajack
                     {
                         case ModManager.MO2:
                             return new MO2CompilerVM(this);
-                        /*
-                        case ModManager.Vortex:
-                            return new VortexCompilerVM(this);
-                            */
                         default:
                             return null;
                     }

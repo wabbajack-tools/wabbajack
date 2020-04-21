@@ -197,16 +197,6 @@
                             <BitmapImage UriSource="../../Resources/MO2Button.png" />
                         </local:ImageRadioButtonView.Image>
                     </local:ImageRadioButtonView>
-                    <local:ImageRadioButtonView
-                        x:Name="VortexCompilerButton"
-                        Grid.Row="1"
-                        Height="35"
-                        Margin="4"
-                        IsChecked="{Binding SelectedCompilerType, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter={x:Static wabbacommon:ModManager.Vortex}}">
-                        <local:ImageRadioButtonView.Image>
-                            <BitmapImage UriSource="../../Resources/VortexButton.png" />
-                        </local:ImageRadioButtonView.Image>
-                    </local:ImageRadioButtonView>
                 </Grid>
                 <ContentPresenter
                     x:Name="CustomCompilerSettingsPresenter"
@@ -216,11 +206,6 @@
                         <DataTemplate DataType="{x:Type local:MO2CompilerVM}">
                             <local:MO2CompilerConfigView />
                         </DataTemplate>
-                        <!--
-                        <DataTemplate DataType="{x:Type local:VortexCompilerVM}">
-                            <local:VortexCompilerConfigView />
-                        </DataTemplate>
-                        -->
                     </ContentPresenter.Resources>
                 </ContentPresenter>
                 <local:BeginButton

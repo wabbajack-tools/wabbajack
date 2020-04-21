@@ -22,29 +22,12 @@ Wabbajack is an automated ModList installer that can recreate contents of a fold
 | Skyrim Special Edition    | Steam     | MO2           |       |
 | Fallout 4                 | Steam     | MO2           |       |
 | Skyrim VR                 | Steam     | MO2           |       |
-| Darkest Dungeon           | Steam, GOG| Vortex        |       |
-| Divinity Original Sin 2   | Steam, GOG| Vortex        | Normal and Definitive Edition      |
-| Starbound                 | Steam, GOG| Vortex        |       |
-| Stardew Valley            | Steam, GOG| Vortex        |       |
-| SW: KotOR                 | Steam, GOG| Vortex        |       |
-| SW: KotOR 2               | Steam, GOG| Vortex        |       |
-| The Witcher               | Steam, GOG| Vortex        | Enhanced Edition      |
-| The Witcher 2             | Steam, GOG| Vortex        |       |
-| The Witcher 3             | Steam, GOG| Vortex        | Normal and GotY Edition      |
-
-### Note about Vortex Support
-
-As you can probably guess from the table above: You will not be able to create ModLists from a Vortex installation for TES/Fallout games. The Vortex Support we're offering is designed for smaller games like Darkest Dungeon where you simply install mods, rearrange load order and be done. You do not need external tools like xEdit, DynDOLOD, CAO, FNIS and what not to mod these smaller games.
-
-It is also important to note that Vortex Support is still in **early beta** meaning that stuff can go wrong, very fast. If you encounter such problems be sure to join our [Discord](https://discord.gg/zgbrkmA) and message `erri120#2285` about the error.
 
 ## Installing a ModList
 
 Every ModList comes with its own set of instructions which you **should** read before doing anything. The following steps are the general steps you would take, but every ModList is different from one another so don't rely on those.
 
 A ModList comes as a `.wabbajack` file. You might have a `.zip`, `.7z` or `.rar` file which contains the ModList so extract the archive using [7zip](https://www.7-zip.org/) before starting Wabbajack. Once extracted, start Wabbajack and click on the _Install a ModList from Disk_ button and select the extracted `.wabbajack` file.
-
-Wabbajack will know if this ModList was compiled from an MO2 profile or a Vortex installation. For the former it downloads MO2 for you but for the latter you need an existing Vortex installation.
 
 On the installation screen, configure the installation/staging and downloads folder before clicking the begin button. Once everything is correctly setup, the button will be clickable and you can proceed with the installation.
 
@@ -97,18 +80,6 @@ Once you have everything setup, launch Wabbajack and click the _Create a ModList
 You now also have the option to change some properties for your ModList. Users will see those information when they select your ModList before installation. **You can not change these properties during/after compilation!**
 
 When everything is correctly set up, click the begin button and wait for Wabbajack to finish. Depeding on your hardware, size of your MO2 folder and game of choice, this can take up anything from a few minutes to hours. Do note that whenever Wabbajack has an error you can restart the compilation and Wabbajack will resume at the exact position.
-
-Wabbajack is finished when you see _Done Building ModList_ in the log. At that point you can close Wabbajack and the `.wabbajack` file will be located in the same folder as `Wabbajack.exe`.
-
-### Creating a ModList from an Vortex installation
-
-**THIS IS STILL IN BETA** for more info see [this](#note-about-vortex-support) section.
-
-Before you start compiling a ModList, make sure that the Vortex download folder for your game of choice only contains mods downloaded from the Nexus. The `VortexCompiler` will create an MD5 hash for the archive and search the Nexus using said hash.
-
-Open Wabbajack and click on _Create a ModList_. Select Vortex and your game of choice. The _Staging_ and _Downloads_ folder will be filled automatically if they are at the default location. If you have changed these folders, be sure to change the paths in Wabbajack.
-
-When everything is correctly set up, click the begin button and wait for Wabbajack to finish. Depeding on your hardware, size of your Vortex staging folder and game of choice, this can take up anything from a few minutes to hours. Do note that whenever Wabbajack has an error you can restart the compilation and Wabbajack will resume at the exact position.
 
 Wabbajack is finished when you see _Done Building ModList_ in the log. At that point you can close Wabbajack and the `.wabbajack` file will be located in the same folder as `Wabbajack.exe`.
 

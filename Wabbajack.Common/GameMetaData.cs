@@ -386,7 +386,6 @@ namespace Wabbajack.Common
             {
                 Game.DarkestDungeon, new GameMetaData
                 {
-                    SupportedModManager = ModManager.Vortex,
                     Game = Game.DarkestDungeon,
                     NexusName = "darkestdungeon",
                     NexusGameId = 804,
@@ -401,7 +400,6 @@ namespace Wabbajack.Common
             {
                 Game.DivinityOriginalSin2DE, new GameMetaData
                 {
-                    SupportedModManager = ModManager.Vortex,
                     Game = Game.DivinityOriginalSin2DE,
                     NexusName = "divinityoriginalsin2definitiveedition",
                     NexusGameId = 2569,
@@ -420,7 +418,6 @@ namespace Wabbajack.Common
             {
                 Game.DivinityOriginalSin2, new GameMetaData
                 {
-                    SupportedModManager = ModManager.Vortex,
                     Game = Game.DivinityOriginalSin2,
                     NexusName = "divinityoriginalsin2",
                     NexusGameId = 1661,
@@ -439,7 +436,6 @@ namespace Wabbajack.Common
             {
                 Game.Starbound, new GameMetaData
                 {
-                    SupportedModManager = ModManager.Vortex,
                     Game = Game.Starbound,
                     NexusName = "starbound",
                     NexusGameId = 242,
@@ -454,7 +450,6 @@ namespace Wabbajack.Common
             {
                 Game.SWKOTOR, new GameMetaData
                 {
-                    SupportedModManager = ModManager.Vortex,
                     Game = Game.SWKOTOR,
                     NexusName = "kotor",
                     NexusGameId = 234,
@@ -469,7 +464,6 @@ namespace Wabbajack.Common
             {
                 Game.SWKOTOR2, new GameMetaData
                 {
-                    SupportedModManager = ModManager.Vortex,
                     Game = Game.SWKOTOR2,
                     NexusName = "kotor2",
                     NexusGameId = 198,
@@ -484,7 +478,6 @@ namespace Wabbajack.Common
             {
                 Game.Witcher, new GameMetaData
                 {
-                    SupportedModManager = ModManager.Vortex,
                     Game = Game.Witcher,
                     NexusName = "witcher",
                     NexusGameId = 150,
@@ -499,7 +492,6 @@ namespace Wabbajack.Common
             {
                 Game.Witcher2, new GameMetaData
                 {
-                    SupportedModManager = ModManager.Vortex,
                     Game = Game.Witcher2,
                     NexusName = "witcher2",
                     NexusGameId = 153,
@@ -515,7 +507,6 @@ namespace Wabbajack.Common
             {
                 Game.Witcher3, new GameMetaData
                 {
-                    SupportedModManager = ModManager.Vortex,
                     Game = Game.Witcher3,
                     NexusName = "witcher3",
                     NexusGameId = 952,
@@ -530,7 +521,6 @@ namespace Wabbajack.Common
             {
                 Game.StardewValley, new GameMetaData
                 {
-                    SupportedModManager = ModManager.Vortex,
                     Game = Game.StardewValley,
                     NexusName = "stardewvalley",
                     NexusGameId = 1303,
