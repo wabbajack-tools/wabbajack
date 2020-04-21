@@ -68,7 +68,7 @@
                 <icon:PackIconMaterial
                     Width="17"
                     Height="17"
-                    Kind="Settings" />
+                    Kind="Cog" />
             </Button>
             <Button
                 Grid.Column="1"

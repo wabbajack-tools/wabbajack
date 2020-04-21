@@ -22,7 +22,7 @@
             <icon:PackIconMaterial
                 Width="25"
                 Height="25"
-                Kind="GithubCircle" />
+                Kind="GitHub" />
         </Button>
         <Button
             Grid.Column="1"
