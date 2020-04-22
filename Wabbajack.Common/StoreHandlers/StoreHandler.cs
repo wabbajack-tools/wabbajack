@@ -13,8 +13,8 @@ namespace Wabbajack.Common.StoreHandlers
 
     public class StoreHandler
     {
-        private static readonly Lazy<StoreHandler> instance = new Lazy<StoreHandler>(() => new StoreHandler(), true);
-        public static StoreHandler Instance => instance.Value;
+        private static readonly Lazy<StoreHandler> _instance = new Lazy<StoreHandler>(() => new StoreHandler(), true);
+        public static StoreHandler Instance => _instance.Value;
 
         private static readonly Lazy<SteamHandler> _steamHandler = new Lazy<SteamHandler>(() => new SteamHandler());
         public SteamHandler SteamHandler = _steamHandler.Value;

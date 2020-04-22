@@ -1,9 +1,7 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security;
-using DynamicData;
 using Microsoft.Win32;
 #nullable enable
 
@@ -14,7 +12,7 @@ namespace Wabbajack.Common.StoreHandlers
         public override Game Game { get; internal set; }
         public override StoreType Type { get; internal set; } = StoreType.STEAM;
 
-        public string Universe = string.Empty;
+        public AbsolutePath Universe;
 
         public readonly List<SteamWorkshopItem> WorkshopItems = new List<SteamWorkshopItem>();
         public int WorkshopItemsSizeOnDisk;
@@ -38,10 +36,9 @@ namespace Wabbajack.Common.StoreHandlers
 
         private const string SteamRegKey = @"Software\Valve\Steam";
 
-        public string SteamPath { get; set; } = string.Empty;
-        private List<string>? SteamUniverses { get; set; }
-
-        private string SteamConfig => Path.Combine(SteamPath, "config", "config.vdf");
+        public AbsolutePath SteamPath { get; set; }
+        private AbsolutePath SteamConfig => new RelativePath("config//config.vdf").RelativeTo(SteamPath);
+        private List<AbsolutePath>? SteamUniverses { get; set; }
 
         public override bool Init()
         {
@@ -56,20 +53,22 @@ namespace Wabbajack.Common.StoreHandlers
                     return false;
                 }
 
-                SteamPath = steamPathKey.ToString() ?? string.Empty;
-                if (string.IsNullOrWhiteSpace(SteamPath))
+                var steamPath = steamPathKey.ToString() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(steamPath))
                 {
                     Utils.Error(new StoreException("Path to the Steam Directory from registry is Null or Empty!"));
                     return false;
                 }
 
-                if (!Directory.Exists(SteamPath))
+                SteamPath = new AbsolutePath(steamPath);
+
+                if (!SteamPath.Exists)
                 {
                     Utils.Error(new StoreException($"Path to the Steam Directory from registry does not exists: {SteamPath}"));
                     return false;
                 }
 
-                if (File.Exists(SteamConfig))
+                if (SteamConfig.Exists)
                     return true;
 
                 Utils.Error(new StoreException($"The Steam config file could not be read: {SteamConfig}"));
@@ -88,38 +87,39 @@ namespace Wabbajack.Common.StoreHandlers
             return false;
         }
 
-        private List<string> LoadUniverses()
+        private List<AbsolutePath> LoadUniverses()
         {
-            var ret = new List<string>();
+            var ret = new List<AbsolutePath>();
 
-            File.ReadAllLines(SteamConfig).Do(l =>
+            SteamConfig.ReadAllLines().Do(l =>
             {
                 if (!l.ContainsCaseInsensitive("BaseInstallFolder_")) return;
-                var s = GetVdfValue(l);
-                s = Path.Combine(s, "steamapps");
-                if (!Directory.Exists(s))
+                var s = new AbsolutePath(GetVdfValue(l));
+                var path = new RelativePath("steamapps").RelativeTo(s);
+
+                if (!path.Exists)
                 {
-                    Utils.Log($"Directory {s} does not exist, skipping");
+                    Utils.Log($"Directory {path} does not exist, skipping");
                     return;
                 }
 
-                ret.Add(s);
-                Utils.Log($"Steam Library found at {s}");
+                ret.Add(path);
+                Utils.Log($"Steam Library found at {path}");
             });
 
             Utils.Log($"Total number of Steam Libraries found: {ret.Count}");
 
             // Default path in the Steam folder isn't in the configs
-            if (Directory.Exists(Path.Combine(SteamPath, "steamapps")))
-                ret.Add(Path.Combine(SteamPath, "steamapps"));
+            var defaultPath = new RelativePath("steamapps").RelativeTo(SteamPath);
+            if(defaultPath.Exists)
+                ret.Add(defaultPath);
 
             return ret;
         }
 
         public override bool LoadAllGames()
         {
-            if (SteamUniverses == null)
-                SteamUniverses = LoadUniverses();
+            SteamUniverses ??= LoadUniverses();
 
             if (SteamUniverses.Count == 0)
             {
@@ -131,12 +131,15 @@ namespace Wabbajack.Common.StoreHandlers
             {
                 Utils.Log($"Searching for Steam Games in {u}");
 
-                Directory.EnumerateFiles(u, "*.acf", SearchOption.TopDirectoryOnly).Where(File.Exists).Do(f =>
+                u.EnumerateFiles(false, "*.acf")
+                    .Where(a => a.Exists)
+                    .Where(a => a.IsFile)
+                    .Do(f =>
                 {
                     var game = new SteamGame();
                     var gotID = false;
 
-                    File.ReadAllLines(f).Do(l =>
+                    f.ReadAllLines().Do(l =>
                     {
                         if (l.ContainsCaseInsensitive("\"appid\""))
                         {
@@ -152,9 +155,9 @@ namespace Wabbajack.Common.StoreHandlers
                         if (!l.ContainsCaseInsensitive("\"installdir\""))
                             return;
 
-                        var path = Path.Combine(u, "common", GetVdfValue(l));
-                        if (Directory.Exists(path))
-                            game.Path = (AbsolutePath)path;
+                        var path = new RelativePath($"common//{GetVdfValue(l)}").RelativeTo(u);
+                        if (path.Exists)
+                            game.Path = path;
                     });
 
                     if (!gotID || !game.Path.IsDirectory) return;
@@ -189,18 +192,21 @@ namespace Wabbajack.Common.StoreHandlers
 
         private static void LoadWorkshopItems(SteamGame game)
         {
-            var workshop = Path.Combine(game.Universe, "workshop");
-            if (!Directory.Exists(workshop))
+            var workshop = new RelativePath("workshop").RelativeTo(game.Universe);
+            if (!workshop.Exists)
                 return;
 
-            Directory.EnumerateFiles(workshop, "*.acf", SearchOption.TopDirectoryOnly).Where(File.Exists).Do(f =>
+            workshop.EnumerateFiles(false, "*.acf")
+                .Where(f => f.Exists)
+                .Where(f => f.IsFile)
+                .Do(f =>
             {
-                if (Path.GetFileName(f) != $"appworkshop{game.ID}.acf")
+                if (f.FileName.ToString() != $"appworkshop{game.ID}.acf")
                     return;
 
                 Utils.Log($"Found Steam Workshop item file {f} for \"{game.Name}\"");
 
-                var lines = File.ReadAllLines(f);
+                var lines = f.ReadAllLines().ToList();
                 var end = false;
                 var foundAppID = false;
                 var workshopItemsInstalled = 0;
@@ -214,8 +220,8 @@ namespace Wabbajack.Common.StoreHandlers
                 {
                     if (end)
                         return;
-                    if (currentItem == null)
-                        currentItem = new SteamWorkshopItem(game);
+
+                    currentItem ??= new SteamWorkshopItem(game);
 
                     var currentLine = lines.IndexOf(l);
                     if (l.ContainsCaseInsensitive("\"appid\"") && !foundAppID)

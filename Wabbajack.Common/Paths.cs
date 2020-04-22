@@ -220,12 +220,13 @@ namespace Wabbajack.Common
         ///     Assuming the path is a folder, enumerate all the files in the folder
         /// </summary>
         /// <param name="recursive">if true, also returns files in sub-folders</param>
+        /// <param name="pattern">pattern to match against</param>
         /// <returns></returns>
-        public IEnumerable<AbsolutePath> EnumerateFiles(bool recursive = true)
+        public IEnumerable<AbsolutePath> EnumerateFiles(bool recursive = true, string pattern = "*")
         {
             if (!IsDirectory) return new AbsolutePath[0];
             return Directory
-                .EnumerateFiles(_path, "*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+                .EnumerateFiles(_path, pattern, recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
                 .Select(path => new AbsolutePath(path, true));
         }
 
