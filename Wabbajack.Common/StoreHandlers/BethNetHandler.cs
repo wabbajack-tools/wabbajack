@@ -106,7 +106,7 @@ namespace Wabbajack.Common.StoreHandlers
                     }
                     else
                     {
-                        Utils.Log($"Game at {d} is not supported!");
+                        Utils.Log($"BethNet Game at {d} is not supported!");
                     }
                 });
             }
