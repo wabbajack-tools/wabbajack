@@ -38,7 +38,7 @@
         <PackageReference Include="System.Net.Http" Version="4.3.4" />
         <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="4.7.0" />
         <PackageReference Include="System.Security.Principal.Windows" Version="4.7.0" />
-        <PackageReference Include="YamlDotNet" Version="8.1.0" />
+        <PackageReference Include="YamlDotNet" Version="8.1.1" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj" />
