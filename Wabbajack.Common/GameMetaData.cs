@@ -12,6 +12,7 @@ namespace Wabbajack.Common
 {
     public enum Game 
     {
+        FalloutShelter,
         //MO2 GAMES
         Morrowind,
         Oblivion,
@@ -74,6 +75,9 @@ namespace Wabbajack.Common
         public List<int>? SteamIDs { get; internal set; }
         // to get gog ids: https://www.gogdb.org
         public List<int>? GOGIDs { get; internal set; }
+        public int BethNetID { get; internal set; }
+        //for BethNet games only!
+        public string RegString { get; internal set; } = string.Empty;
         // these are additional folders when a game installs mods outside the game folder
         public List<string>? AdditionalFolders { get; internal set; }
         // file to check if the game is present, useful when steamIds and gogIds dont help
@@ -232,6 +236,8 @@ namespace Wabbajack.Common
                     NexusGameId = 100,
                     MO2Name = "Morrowind",
                     MO2ArchiveName = "morrowind",
+                    BethNetID = 31,
+                    RegString = @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\The Elder Scrolls III: Morrowind Game of the Year Edition",
                     RequiredFiles = new List<string>
                     {
                         "Morrowind.exe"
