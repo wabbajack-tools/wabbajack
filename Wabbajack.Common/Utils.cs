@@ -891,7 +891,7 @@ namespace Wabbajack.Common
             Log(s);
         }
 
-        private static async Task<long> TestDiskSpeedInner(WorkQueue queue, string path)
+        private static async Task<long> TestDiskSpeedInner(WorkQueue queue, AbsolutePath path)
         {
             var startTime = DateTime.Now;
             var seconds = 2;
@@ -900,11 +900,11 @@ namespace Wabbajack.Common
                 {
                     var random = new Random();
 
-                    var file = Path.Combine(path, $"size_test{idx}.bin");
+                    var file = path.Combine($"size_test{idx}.bin");
                     long size = 0;
                     byte[] buffer = new byte[1024 * 8];
                     random.NextBytes(buffer);
-                    using (var fs = File.Open(file, System.IO.FileMode.Create))
+                    using (var fs = file.Create())
                     {
                         while (DateTime.Now < startTime + new TimeSpan(0, 0, seconds))
                         {
@@ -914,19 +914,29 @@ namespace Wabbajack.Common
                             size += buffer.Length;
                         }
                     }
-                    File.Delete(file);
+                    file.Delete();
                     return size;
                 });
             return results.Sum() / seconds;
         }
 
-        private static Dictionary<string, long> _cachedDiskSpeeds = new Dictionary<string, long>();
-        public static async Task<long> TestDiskSpeed(WorkQueue queue, string path)
+        public static async Task<long> TestDiskSpeed(WorkQueue queue, AbsolutePath path)
         {
-            if (_cachedDiskSpeeds.TryGetValue(path, out long speed))
-                return speed;
-            speed = await TestDiskSpeedInner(queue, path);
-            _cachedDiskSpeeds[path] = speed;
+            var benchmarkFile = path.Combine("disk_benchmark.bin");
+            if (benchmarkFile.Exists)
+            {
+                try
+                {
+                    return benchmarkFile.FromJson<long>();
+                }
+                catch (Exception ex)
+                {
+                    // ignored
+                }
+            }
+            var speed = await TestDiskSpeedInner(queue, path);
+            speed.ToJson(benchmarkFile);
+           
             return speed;
         }
 

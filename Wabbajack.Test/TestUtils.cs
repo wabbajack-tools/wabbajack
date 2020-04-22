@@ -142,6 +142,15 @@ namespace Wabbajack.Test
             return Guid.NewGuid().ToString();
         }
 
+        public byte[] RandomData(int size = 0)
+        {
+            if (size == 0)
+                size = _rng.Next(256);
+            var data = new byte[size];
+            _rng.NextBytes(data);
+            return data;
+        }
+
         public string AddManualDownload(Dictionary<string, byte[]> contents)
         {
             var name = RandomName() + ".zip";

@@ -41,15 +41,13 @@ namespace Wabbajack.Lib.CompilationSteps
                 _indexed.TryGetValue(nameWithoutExt, out choices);
 
             dynamic? modIni = null;
-            if (source.AbsolutePath.InFolder(_mo2Compiler.MO2ModsFolder))
+            
+            if (_bsa == null && source.File.IsNative && source.AbsolutePath.InFolder(_mo2Compiler.MO2ModsFolder))
+                ((MO2Compiler)_compiler).ModInis.TryGetValue(ModForFile(source.AbsolutePath), out modIni);
+            else if (_bsa != null)
             {
-                if (_bsa == null)
-                    ((MO2Compiler)_compiler).ModInis.TryGetValue(ModForFile(source.AbsolutePath), out modIni);
-                else
-                {
-                    var bsaPath = _bsa.FullPath.Paths.Last().RelativeTo(((MO2Compiler)_compiler).MO2Folder);
-                    ((MO2Compiler)_compiler).ModInis.TryGetValue(ModForFile(bsaPath), out modIni);
-                }
+                var bsaPath = _bsa.FullPath.Base;
+                ((MO2Compiler)_compiler).ModInis.TryGetValue(ModForFile(bsaPath), out modIni);
             }
 
             var installationFile = (string?)modIni?.General?.installationFile;

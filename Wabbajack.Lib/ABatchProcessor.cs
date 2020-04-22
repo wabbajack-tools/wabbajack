@@ -76,7 +76,7 @@ namespace Wabbajack.Lib
             var memory = Utils.GetMemoryStatus();
             // Assume roughly 2GB of ram needed to extract each 7zip archive, and then leave 2GB for the OS. If calculation is lower or equal to 1 GB, use 1GB
             var based_on_memory = Math.Max((memory.ullTotalPhys - (2 * GB)) / (2 * GB), 1);
-            var scratch_size = await RecommendQueueSize(Directory.GetCurrentDirectory());
+            var scratch_size = await RecommendQueueSize(AbsolutePath.EntryPoint);
             var result = Math.Min((int)based_on_memory, (int)scratch_size);
             Utils.Log($"Recommending a queue size of {result} based on disk performance, number of cores, and {((long)memory.ullTotalPhys).ToFileSizeString()} of system RAM");
             return result;
@@ -90,21 +90,17 @@ namespace Wabbajack.Lib
         /// </summary>
         /// <param name="folder"></param>
         /// <returns>Recommended maximum number of threads to use</returns>
-        public static async Task<int> RecommendQueueSize(string folder)
+        public static async Task<int> RecommendQueueSize(AbsolutePath folder)
         {
-            if (!Directory.Exists(folder))
-                Directory.CreateDirectory(folder);
+            using var queue = new WorkQueue();
+            
+            Utils.Log($"Benchmarking {folder}");
+            var raw_speed = await Utils.TestDiskSpeed(queue, folder);
+            Utils.Log($"{raw_speed.ToFileSizeString()}/sec for {folder}");
+            int speed = (int)(raw_speed / 1024 / 1024);
 
-            using (var queue = new WorkQueue())
-            {
-                Utils.Log($"Benchmarking {folder}");
-                var raw_speed = await Utils.TestDiskSpeed(queue, folder);
-                Utils.Log($"{raw_speed.ToFileSizeString()}/sec for {folder}");
-                int speed = (int)(raw_speed / 1024 / 1024);
-
-                // Less than 100MB/sec, stick with two threads.
-                return speed < 100 ? 2 : Math.Min(Environment.ProcessorCount, speed / 100 * 2);
-            }
+            // Less than 100MB/sec, stick with two threads.
+            return speed < 100 ? 2 : Math.Min(Environment.ProcessorCount, speed / 100 * 2);
         }
 
         /// <summary>
