@@ -1,15 +1,71 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
+using Splat;
+using Wabbajack;
+using Wabbajack.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Wabbajack.Common.Test
 {
-    public class WorkQueueTests
+    public class WorkQueueTests : IAsyncLifetime
     {
+        private ITestOutputHelper _output;
+        private IDisposable _sub;
+
+        #region OrderTests
+
+        [Fact]
+        public async Task WorkerQueuesRunDepthFirst()
+        {
+            ConcurrentQueue<int> list = new ConcurrentQueue<int>();
+            
+            using var queue = new WorkQueue(1);
+
+            await Enumerable.Range(1, 2).PMap(queue, async i =>
+            {
+                Utils.Log(i.ToString());
+                list.Enqueue(i);
+                await Enumerable.Range(i * 10, 2).PMap(queue, i2 =>
+                {
+                    Utils.Log(i2.ToString());
+                    list.Enqueue(i2);
+                });
+            });
+
+            Assert.Equal(6,list.Count);
+            Assert.Equal(new List<int> {2, 21, 20, 1, 11, 10}, list.ToArray());
+        }
+
+        [Fact]
+        public async Task TasksRunOnce()
+        {
+            ConcurrentQueue<int> list = new ConcurrentQueue<int>();
+            
+            using var queue = new WorkQueue(1);
+
+            await Enumerable.Range(1, 2).PMap(queue, async i =>
+            {
+                Utils.Log($"A {i}");
+                list.Enqueue(i);
+                await Enumerable.Range(i * 10, 2).PMap(queue, i2 =>
+                {
+                    Utils.Log($"B {i2}");
+                    list.Enqueue(i2);
+                });
+            });
+            
+            Assert.Equal(list.ToArray(), list.Distinct().ToArray());
+        }
+
+        #endregion
+        
         #region DynamicNumThreads
         const int Large = 8;
         const int Medium = 6;
@@ -186,5 +242,20 @@ namespace Wabbajack.Common.Test
             Assert.Equal(completed, task);
         }
         #endregion
+
+
+        public WorkQueueTests(ITestOutputHelper output)
+        {
+            _output = output;
+        }
+        public async Task InitializeAsync()
+        {
+            _sub = Utils.LogMessages.Subscribe(msg => _output.WriteLine(msg.ToString()));
+        }
+
+        public async Task DisposeAsync()
+        {
+            _sub.Dispose();
+        }
     }
 }

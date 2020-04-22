@@ -9,12 +9,14 @@ namespace Wabbajack.Common
 {
     public class AsyncBlockingCollection<T> : IDisposable
     {
-        private readonly ConcurrentQueue<T> _collection = new ConcurrentQueue<T>();
+        private readonly ConcurrentStack<T> _collection = new ConcurrentStack<T>();
         private bool isDisposed = false;
+
+        public int Count => _collection.Count;
         
         public void Add(T val)
         {
-            _collection.Enqueue(val);
+            _collection.Push(val);
         }
 
         public async ValueTask<(bool found, T val)> TryTake(TimeSpan timeout, CancellationToken token)
@@ -22,7 +24,7 @@ namespace Wabbajack.Common
             var startTime = DateTime.Now;
             while (true)
             {
-                if (_collection.TryDequeue(out T result))
+                if (_collection.TryPop(out T result))
                 {
                     return (true, result);
                 }
