@@ -193,7 +193,7 @@ namespace Wabbajack.Test
             //Assert.Equal(File.ReadAllText(filename.Path), "Cheese for Everyone!");
         }
 
-        /*
+        
         [Fact]
         public async Task MediaFireDownload()
         {
@@ -211,18 +211,18 @@ namespace Wabbajack.Test
                 ((MediaFireDownloader.State) url_state).Url);
 
             var converted = RoundTripState(state);
-            Assert.True(await converted.Verify());
+            Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20 }));
             using var filename = new TempFile();
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist
                 {AllowedPrefixes = new List<string> {"http://www.mediafire.com/file/agiqzm1xwebczpx/"}}));
             Assert.False(converted.IsWhitelisted(new ServerWhitelist {AllowedPrefixes = new List<string>()}));
 
-            await converted.Download(new Archive {Name = "Media Fire Test.txt"}, filename.Path);
+            await converted.Download(new Archive(state: null!) { Name = "Media Fire Test.zip" }, filename.Path);
 
-            Assert.Equal(File.ReadAllText(filename.Path), "Cheese for Everyone!");
+            Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
 
-        }*/
+        }
 
         [Fact]
         public async Task NexusDownload()
