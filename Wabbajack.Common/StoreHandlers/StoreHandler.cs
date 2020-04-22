@@ -7,19 +7,23 @@ namespace Wabbajack.Common.StoreHandlers
     public enum StoreType
     {
         STEAM,
-        GOG
+        GOG,
+        BethNet
     }
 
     public class StoreHandler
     {
-        private static readonly Lazy<StoreHandler> instance = new Lazy<StoreHandler>(() => new StoreHandler(), true);
-        public static StoreHandler Instance => instance.Value;
+        private static readonly Lazy<StoreHandler> _instance = new Lazy<StoreHandler>(() => new StoreHandler(), true);
+        public static StoreHandler Instance => _instance.Value;
 
         private static readonly Lazy<SteamHandler> _steamHandler = new Lazy<SteamHandler>(() => new SteamHandler());
         public SteamHandler SteamHandler = _steamHandler.Value;
 
         private static readonly Lazy<GOGHandler> _gogHandler = new Lazy<GOGHandler>(() => new GOGHandler());
         public GOGHandler GOGHandler = _gogHandler.Value;
+
+        private static readonly Lazy<BethNetHandler> _bethNetHandler = new Lazy<BethNetHandler>(() => new BethNetHandler());
+        public BethNetHandler BethNetHandler = _bethNetHandler.Value;
 
         public List<AStoreGame> StoreGames;
 
@@ -49,6 +53,18 @@ namespace Wabbajack.Common.StoreHandlers
             else
             {
                 Utils.Error(new StoreException("Could not Init the GOGHandler, check previous error messages!"));
+            }
+
+            if (BethNetHandler.Init())
+            {
+                if (BethNetHandler.LoadAllGames())
+                    StoreGames.AddRange(BethNetHandler.Games);
+                else
+                    Utils.Error(new StoreException("Could not load all Games from the BethNetHandler, check previous error messages!"));
+            }
+            else
+            {
+                Utils.Error(new StoreException("Could not Init the BethNetHandler, check previous error messages!"));
             }
         }
 

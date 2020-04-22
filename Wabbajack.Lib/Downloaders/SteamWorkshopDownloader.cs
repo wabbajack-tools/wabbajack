@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
@@ -60,13 +57,13 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var currentLib = Item.Game.Universe;
 
-                var downloadFolder = Path.Combine(currentLib, "workshop", "downloads", Item.Game.ID.ToString());
-                var contentFolder = Path.Combine(currentLib, "workshop", "content", Item.Game.ID.ToString());
+                var downloadFolder = new RelativePath($"workshop//downloads//{Item.Game.ID}").RelativeTo(currentLib);
+                var contentFolder = new RelativePath($"workshop//content//{Item.Game.ID}").RelativeTo(currentLib);
                 var p = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = Path.Combine(StoreHandler.Instance.SteamHandler.SteamPath, "steam.exe"),
+                        FileName = new RelativePath("steam.exe").RelativeTo(StoreHandler.Instance.SteamHandler.SteamPath).ToString(),
                         CreateNoWindow = true,
                         Arguments = $"console +workshop_download_item {Item.Game.ID} {Item.ItemID}"
                     }
@@ -76,10 +73,12 @@ namespace Wabbajack.Lib.Downloaders
 
                 //TODO: async
                 var finished = false;
+                var itemDownloadPath = new RelativePath(Item.ItemID.ToString()).RelativeTo(downloadFolder);
+                var itemContentPath = new RelativePath(Item.ItemID.ToString()).RelativeTo(contentFolder);
                 while (!finished)
                 {
-                    if(!Directory.Exists(Path.Combine(downloadFolder, Item.ItemID.ToString())))
-                        if (Directory.Exists(Path.Combine(contentFolder, Item.ItemID.ToString())))
+                    if(!itemDownloadPath.Exists)
+                        if(itemContentPath.Exists)
                             finished = true;
 
                     Thread.Sleep(1000);
