@@ -81,25 +81,34 @@ namespace Wabbajack.BuildServer.Models.Jobs
             long updated = 0;
             foreach (var result in results)
             {
-                var purgedMods = await sql.DeleteNexusModFilesUpdatedBeforeDate(result.Game, result.ModId, result.TimeStamp);
-                var purgedFiles = await sql.DeleteNexusModInfosUpdatedBeforeDate(result.Game, result.ModId, result.TimeStamp);
+                try
+                {
+                    var purgedMods =
+                        await sql.DeleteNexusModFilesUpdatedBeforeDate(result.Game, result.ModId, result.TimeStamp);
+                    var purgedFiles =
+                        await sql.DeleteNexusModInfosUpdatedBeforeDate(result.Game, result.ModId, result.TimeStamp);
 
-                var totalPurged = purgedFiles + purgedMods;
-                if (totalPurged > 0)
-                    Utils.Log($"Purged {totalPurged} cache items");
+                    var totalPurged = purgedFiles + purgedMods;
+                    if (totalPurged > 0)
+                        Utils.Log($"Purged {totalPurged} cache items");
 
-                if (await sql.GetNexusModInfoString(result.Game, result.ModId) != null) continue;
+                    if (await sql.GetNexusModInfoString(result.Game, result.ModId) != null) continue;
 
-                // Lazily create the client
-                client ??= await NexusApiClient.Get();
-                
-                // Cache the info
-                var files = await client.GetModFiles(result.Game, result.ModId, false);
-                await sql.AddNexusModFiles(result.Game, result.ModId, result.TimeStamp, files);
-                
-                var modInfo = await client.GetModInfo(result.Game, result.ModId);
-                await sql.AddNexusModInfo(result.Game, result.ModId, result.TimeStamp, modInfo);
-                updated++;
+                    // Lazily create the client
+                    client ??= await NexusApiClient.Get();
+
+                    // Cache the info
+                    var files = await client.GetModFiles(result.Game, result.ModId, false);
+                    await sql.AddNexusModFiles(result.Game, result.ModId, result.TimeStamp, files);
+
+                    var modInfo = await client.GetModInfo(result.Game, result.ModId);
+                    await sql.AddNexusModInfo(result.Game, result.ModId, result.TimeStamp, modInfo);
+                    updated++;
+                }
+                catch (Exception ex)
+                {
+                    Utils.Log($"Failed Nexus update for {result.Game} - {result.ModId} - {result.TimeStamp}");
+                }
 
             }
 
