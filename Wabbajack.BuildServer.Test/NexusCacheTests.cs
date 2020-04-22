@@ -25,7 +25,7 @@ namespace Wabbajack.BuildServer.Test
             await @"sql\nexus_export.json".RelativeTo(AbsolutePath.EntryPoint).CopyToAsync("nexus_export.json".RelativeTo(Fixture.ServerTempFolder));
             var result = await _authedClient.GetStringAsync(MakeURL("nexus_cache/ingest"));
             
-            Assert.Equal("15237", result);
+            Assert.Equal("15024", result);
         }
 
         [Fact]
