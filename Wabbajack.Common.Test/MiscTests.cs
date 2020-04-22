@@ -11,7 +11,7 @@ namespace Wabbajack.Common.Test
         {
             using (var queue = new WorkQueue())
             {
-                var speed = Utils.TestDiskSpeed(queue, @".\");
+                var speed = Utils.TestDiskSpeed(queue, AbsolutePath.EntryPoint);
             }
         }
 
