@@ -1,5 +1,26 @@
 ### Changelog
 
+#### Version - 2.0.0.0 - ?
+* Reworked all internal routines to use Relative/Absolute path values instead of strings
+* Reworked all internal routines to use Hash values instead of strings
+* Reworked all internal routines to use Game values instead of strings
+* Vortex support has been removed, it wasn't well tested, and wasn't used by enough people to justify further support
+* Modlists are no longer saved in a binary format, everything uses Json
+* Json type names are now a bit more human friendly
+* All server-side code that used MongoDB now uses SQL (unifying the database)
+* All Nexus validation code has been reworked to leverage RSS feeds for faster response times to updates
+* All non-Nexus validation code has been reworked for better performance
+* Feeds are now validated on demand, this is possible due to having a SQL backend and improved Nexus support
+* Jobs in the job queue no long clobber each other so much
+* BSA routines are now mostly async
+* During installation, only the bare minimum number of files are extracted from a 7zip
+* During indexing/extraction BSA files are not extracted, instead they are opened and files are read on-demand
+* File extraction is now mostly async
+* Modlists now only support website readmes (file readmes weren't used much and were a pain to read)
+* Modlists now require a machine-readable version field 
+* Added support for games installed via the Bethesda Launcher
+* Cache disk benchmarking results to save startup time of compilation/install
+
 #### Version - 1.1.5.0 - 4/6/2020
 * Included LOOT configs are no longer Base64 encoded
 * Reworked Wabbajack-cli

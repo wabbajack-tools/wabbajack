@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Compression.BSA;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.CompilationSteps.CompilationErrors;
@@ -259,6 +260,84 @@ namespace Wabbajack.Test
 
             Assert.NotNull(directive);
             Assert.IsAssignableFrom<PatchedFromArchive>(directive);
+        }
+
+        [Fact]
+        public async Task CanPatchFilesSourcedFromBSAs()
+        {
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var file = utils.AddModFile(mod, @"baz.bin", 10);
+            
+            await utils.Configure();
+
+            
+            using var tempFile = new TempFile();
+            var bsaState = new BSAStateObject
+            {
+                Magic = "BSA\0", Version = 0x69, ArchiveFlags = 0x107, FileFlags = 0x0,
+            };
+
+            await using (var bsa = bsaState.MakeBuilder(1024 * 1024))
+            {
+                await bsa.AddFile(new BSAFileStateObject
+                {
+                    Path = (RelativePath)@"foo\bar\baz.bin", Index = 0, FlipCompression = false
+                }, new MemoryStream(utils.RandomData()));
+                await bsa.Build(tempFile.Path);
+            }
+            
+            var archive = utils.AddManualDownload(
+                new Dictionary<string, byte[]> { { "/stuff/files.bsa", await tempFile.Path.ReadAllBytesAsync() } });
+            
+            await CompileAndInstall(profile);
+            utils.VerifyInstalledFile(mod, @"baz.bin");
+            
+        }
+        
+        [Fact]
+        public async Task CanRecreateBSAsFromFilesSourcedInOtherBSAs()
+        {
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var file = utils.AddModFile(mod, @"baz.bsa", 10);
+            
+            await utils.Configure();
+
+            
+            var bsaState = new BSAStateObject
+            {
+                Magic = "BSA\0", Version = 0x69, ArchiveFlags = 0x107, FileFlags = 0x0,
+            };
+
+            // Create the download
+            using var tempFile = new TempFile();
+            await using (var bsa = bsaState.MakeBuilder(1024 * 1024))
+            {
+                await bsa.AddFile(new BSAFileStateObject
+                {
+                    Path = (RelativePath)@"foo\bar\baz.bin", Index = 0, FlipCompression = false
+                }, new MemoryStream(utils.RandomData()));
+                await bsa.Build(tempFile.Path);
+            }
+            var archive = utils.AddManualDownload(
+                new Dictionary<string, byte[]> { { "/stuff/baz.bsa", await tempFile.Path.ReadAllBytesAsync() } });
+
+            
+            // Create the result
+            await using (var bsa = bsaState.MakeBuilder(1024 * 1024))
+            {
+                await bsa.AddFile(new BSAFileStateObject
+                {
+                    Path = (RelativePath)@"foo\bar\baz.bin", Index = 0, FlipCompression = false
+                }, new MemoryStream(utils.RandomData()));
+                await bsa.Build(file);
+            }
+
+            
+            await CompileAndInstall(profile);
+            utils.VerifyInstalledFile(mod, @"baz.bsa");
+            
         }
         
         [Fact]
