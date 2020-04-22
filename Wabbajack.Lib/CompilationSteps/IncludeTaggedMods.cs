@@ -9,7 +9,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class IncludeTaggedMods : ACompilationStep
     {
-        private readonly IEnumerable<string> _includeDirectly;
+        private readonly IEnumerable<AbsolutePath> _includeDirectly;
         private readonly string _tag;
         private readonly MO2Compiler _mo2Compiler;
 
@@ -23,7 +23,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 if (general.notes != null && general.notes.Contains(_tag))
                     return true;
                 return general.comments != null && general.comments.Contains(_tag);
-            }).Select(kv => $"mods\\{kv.Key}\\");
+            }).Select(kv => kv.Key);
         }
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)
@@ -31,7 +31,7 @@ namespace Wabbajack.Lib.CompilationSteps
             if (!source.Path.StartsWith(Consts.MO2ModFolderName)) return null;
             foreach (var modpath in _includeDirectly)
             {
-                if (!source.Path.StartsWith(modpath)) continue;
+                if (!source.AbsolutePath.InFolder(modpath)) continue;
                 var result = source.EvolveTo<InlineFile>();
                 result.SourceDataID = await _compiler.IncludeFile(source.AbsolutePath);
                 return result;

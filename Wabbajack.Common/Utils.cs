@@ -527,12 +527,16 @@ namespace Wabbajack.Common
             // To avoid thread starvation, we'll start to help out in the work queue
             if (WorkQueue.WorkerThread)
             {
-                while (remainingTasks > 0)
+                while (true)
                 {
                     var (got, a) = await queue.Queue.TryTake(TimeSpan.FromMilliseconds(100), CancellationToken.None);
                     if (got)
                     {
                         await a();
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
             }
@@ -605,7 +609,7 @@ namespace Wabbajack.Common
                 });
                 return tc.Task;
             }).ToList();
-
+            
             // To avoid thread starvation, we'll start to help out in the work queue
             if (WorkQueue.WorkerThread)
             {
@@ -999,7 +1003,7 @@ namespace Wabbajack.Common
                     Status($"Deleting: {p.Line}");
                 });
 
-            await process.Start();
+            var exitCode = await process.Start();
             await result;
         }
 

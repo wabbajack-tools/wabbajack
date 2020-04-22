@@ -260,6 +260,25 @@ namespace Wabbajack.Test
             Assert.NotNull(directive);
             Assert.IsAssignableFrom<PatchedFromArchive>(directive);
         }
+        
+        [Fact]
+        public async Task NoMatchIncludeIncludesNonMatchingFiles() 
+        {
+
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var testPex = utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
+
+            await utils.Configure();
+
+            await utils.AddModFile(mod, "meta.ini").WriteAllLinesAsync(new[]
+            {
+                "[General]", "notes= fsdaf WABBAJACK_NOMATCH_INCLUDE fadsfsad",
+            });
+            await CompileAndInstall(profile);
+
+            utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
+        }
 
     }
 }
