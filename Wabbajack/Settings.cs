@@ -5,14 +5,16 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Subjects;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib;
 
 namespace Wabbajack
 {
+    [JsonName("MainSettings")]
     [JsonObject(MemberSerialization.OptOut)]
     public class MainSettings
     {
-        public byte Version { get; set; }
+        public byte Version { get; set; } = Consts.SettingsVersion;
 
         public double PosX { get; set; }
         public double PosY { get; set; }
@@ -65,16 +67,18 @@ namespace Wabbajack
             //settings._saveSignal.OnCompleted();
             //await settings._saveSignal;
 
-            Consts.SettingsFile.WriteAllText(JsonConvert.SerializeObject(settings, Formatting.Indented));
+            settings.ToJson(Consts.SettingsFile);
         }
     }
 
+    [JsonName("InstallerSettings")]
     public class InstallerSettings
     {
         public AbsolutePath LastInstalledListLocation { get; set; }
         public Dictionary<AbsolutePath, Mo2ModlistInstallationSettings> Mo2ModlistSettings { get; } = new Dictionary<AbsolutePath, Mo2ModlistInstallationSettings>();
     }
 
+    [JsonName("Mo2ModListInstallerSettings")]
     public class Mo2ModlistInstallationSettings
     {
         public AbsolutePath InstallationLocation { get; set; }
@@ -82,6 +86,7 @@ namespace Wabbajack
         public bool AutomaticallyOverrideExistingInstall { get; set; }
     }
 
+    [JsonName("CompilerSettings")]
     public class CompilerSettings
     {
         public ModManager LastCompiledModManager { get; set; }
@@ -89,6 +94,7 @@ namespace Wabbajack
         public MO2CompilationSettings MO2Compilation { get; } = new MO2CompilationSettings();
     }
 
+    [JsonName("PerformanceSettings")]
     [JsonObject(MemberSerialization.OptOut)]
     public class PerformanceSettings : ViewModel
     {
@@ -115,6 +121,7 @@ namespace Wabbajack
         }
     }
 
+    [JsonName("CompilationModlistSettings")]
     public class CompilationModlistSettings
     {
         public string ModListName { get; set; }
@@ -126,6 +133,7 @@ namespace Wabbajack
         public AbsolutePath SplashScreen { get; set; }
     }
 
+    [JsonName("MO2CompilationSettings")]
     public class MO2CompilationSettings
     {
         public AbsolutePath DownloadLocation { get; set; }
