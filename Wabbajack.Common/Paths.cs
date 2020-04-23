@@ -119,7 +119,7 @@ namespace Wabbajack.Common
             }
         }
 
-        public long Size => new FileInfo(_path).Length;
+        public long Size => Exists ? new FileInfo(_path).Length : 0;
 
         public DateTime LastModified
         {
