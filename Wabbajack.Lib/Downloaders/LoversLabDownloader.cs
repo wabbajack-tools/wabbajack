@@ -78,6 +78,7 @@ namespace Wabbajack.Lib.Downloaders
                     .SelectNodes(
                         "//article[@class='ipsColumn ipsColumn_fluid']/div[@class='ipsPad']/section/div[@class='ipsType_richText ipsContained ipsType_break']/p/a/img[@class='ipsImage ipsImage_thumbnailed']")
                     ?.First().GetAttributeValue("src", ""));
+
                 if (!string.IsNullOrWhiteSpace(url))
                 {
                     ImageURL = new Uri(url);
