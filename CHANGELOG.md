@@ -20,6 +20,7 @@
 * Modlists now require a machine-readable version field 
 * Added support for games installed via the Bethesda Launcher
 * Cache disk benchmarking results to save startup time of compilation/install
+* Added VectorPlexus mods to the slideshow
 
 #### Version - 1.1.5.0 - 4/6/2020
 * Included LOOT configs are no longer Base64 encoded
