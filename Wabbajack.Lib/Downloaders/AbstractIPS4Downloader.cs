@@ -82,7 +82,7 @@ namespace Wabbajack.Lib.Downloaders
             public string FileName { get; set; } = string.Empty;
             
             // from IMetaState
-            public Uri URL => new Uri($"{Site}/files/file/{FileName}");
+            public Uri URL => IsAttachment ? new Uri("https://www.wabbajack.org/") : new Uri($"{Site}/files/file/{FileName}");
             public string? Name { get; set; }
             public string? Author { get; set; }
             public string? Version { get; set; }

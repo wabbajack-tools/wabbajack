@@ -139,5 +139,7 @@ namespace Wabbajack.Common
         public static RelativePath ModOrganizer2Exe = (RelativePath)"ModOrganizer.exe";
         public static RelativePath ModOrganizer2Ini = (RelativePath)"ModOrganizer.ini";
         public static string AuthorAPIKeyFile = "author-api-key.txt";
+
+        public static Uri WabbajackOrg = new Uri("https://www.wabbajack.org/");
     }
 }

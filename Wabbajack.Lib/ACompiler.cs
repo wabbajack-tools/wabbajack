@@ -106,7 +106,7 @@ namespace Wabbajack.Lib
             {
                 if (a.State is IMetaState metaState)
                 {
-                    if (metaState.URL == null)
+                    if (metaState.URL == null || metaState.URL == Consts.WabbajackOrg)
                         return;
 
                     var b = await metaState.LoadMetaData();
@@ -230,6 +230,8 @@ namespace Wabbajack.Lib
             result.Hash = archive.File.Hash;
             result.Meta = archive.Meta;
             result.Size = archive.File.Size;
+
+            await result.State!.GetDownloader().Prepare();
 
             if (result.State != null && !await result.State.Verify(result))
                 Error(
