@@ -153,6 +153,8 @@ namespace Wabbajack.VirtualFileSystem
                             LastAnalyzed = DateTime.Now.AsUnixTime(),
                             Hash = file.Hash
                         };
+                        
+                        vself.FillFullPath();
 
                         vself.Children = file.Children.Select(f => Convert(f, f.Name, vself)).ToImmutableList();
 
@@ -192,11 +194,24 @@ namespace Wabbajack.VirtualFileSystem
             return self;
         }
 
-        private void FillFullPath(in int depth)
+        internal void FillFullPath()
+        {
+            int depth = 0;
+            var self = this;
+            while (self.Parent != null)
+            {
+                depth += 1;
+                self = self.Parent;
+            }
+
+            FillFullPath(depth);
+        }
+        
+        internal void FillFullPath(int depth)
         {
             if (depth == 0)
             {
-                FullPath = new FullPath((AbsolutePath)Name, new RelativePath[0]);
+                FullPath = new FullPath((AbsolutePath)Name);
             }
             else
             {
@@ -333,26 +348,24 @@ namespace Wabbajack.VirtualFileSystem
         public static ExtendedHashes FromFile(IExtractedFile file)
         {
             var hashes = new ExtendedHashes();
-            using (var stream = file.OpenRead())
+            using var stream = file.OpenRead();
+            hashes.SHA256 = System.Security.Cryptography.SHA256.Create().ComputeHash(stream).ToHex();
+            stream.Position = 0;
+            hashes.SHA1 = System.Security.Cryptography.SHA1.Create().ComputeHash(stream).ToHex();
+            stream.Position = 0;
+            hashes.MD5 = System.Security.Cryptography.MD5.Create().ComputeHash(stream).ToHex();
+            stream.Position = 0;
+
+            var bytes = new byte[1024 * 8];
+            var crc = new Crc32();
+            while (true)
             {
-                hashes.SHA256 = System.Security.Cryptography.SHA256.Create().ComputeHash(stream).ToHex();
-                stream.Position = 0;
-                hashes.SHA1 = System.Security.Cryptography.SHA1.Create().ComputeHash(stream).ToHex();
-                stream.Position = 0;
-                hashes.MD5 = System.Security.Cryptography.MD5.Create().ComputeHash(stream).ToHex();
-                stream.Position = 0;
-
-                var bytes = new byte[1024 * 8];
-                var crc = new Crc32();
-                while (true)
-                {
-                    var read = stream.Read(bytes, 0, bytes.Length);
-                    if (read == 0) break;
-                    crc.Update(bytes, 0, read);
-                }
-
-                hashes.CRC = crc.DigestBytes().ToHex();
+                var read = stream.Read(bytes, 0, bytes.Length);
+                if (read == 0) break;
+                crc.Update(bytes, 0, read);
             }
+
+            hashes.CRC = crc.DigestBytes().ToHex();
 
             return hashes;
         }

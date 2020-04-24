@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Wabbajack.Common.Serialization.Json;
 using File = Alphaleonis.Win32.Filesystem.File;
+using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Common
 {
@@ -23,6 +24,7 @@ namespace Wabbajack.Common
             new FullPathConverter(),
             new GameConverter(),
             new PercentConverter(),
+            new IPathConverter(),
         };
         
         public static JsonSerializerSettings JsonSettings  =>
@@ -231,6 +233,28 @@ namespace Wabbajack.Common
                 }
 
                 return game.Game;
+            }
+        }
+        
+        public class IPathConverter : JsonConverter<IPath>
+        {
+            public override void WriteJson(JsonWriter writer, IPath value, JsonSerializer serializer)
+            {
+                writer.WriteValue(Enum.GetName(typeof(Game), value));
+            }
+
+            public override IPath ReadJson(JsonReader reader, Type objectType, IPath existingValue,
+                bool hasExistingValue,
+                JsonSerializer serializer)
+            {
+                // Backwards compatibility support
+                var str = reader.Value?.ToString();
+                if (string.IsNullOrWhiteSpace(str)) return default(RelativePath);
+
+                if (Path.IsPathRooted(str))
+                    return (AbsolutePath)str;
+                return (RelativePath)str;
+
             }
         }
 
