@@ -17,8 +17,10 @@ namespace Wabbajack.Lib.NexusApi
             return $"https://nexusmods.com/{game.MetaData().NexusName}/mods/{argModId}";
         }
 
-        public static string FixupSummary(string argSummary)
+        public static string FixupSummary(string? argSummary)
         {
+            if (argSummary == null)
+                return "";
             return argSummary.Replace("&#39;", "'")
                              .Replace("<br/>", "\n\n")
                              .Replace("<br />", "\n\n")
