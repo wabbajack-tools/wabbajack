@@ -120,7 +120,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
-                await using var stream = await ResolveDownloadStream();
+                await using var stream = await ResolveDownloadStream(a);
                 if (stream == null) return false;
                 await using (var file = destination.Create())
                 {
@@ -129,7 +129,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            private async Task<Stream?> ResolveDownloadStream()
+            private async Task<Stream?> ResolveDownloadStream(Archive a)
             {
                 TOP:
                 string url;
@@ -167,7 +167,22 @@ namespace Wabbajack.Lib.Downloaders
                 var contentType = streamResult.Content.Headers.ContentType;
 
                 if (contentType.MediaType != "application/json")
+                {
+                    var headerVar = a.Size == 0 ? "1" : a.Size.ToString();
+                    long headerContentSize = 0;
+                    if (streamResult.Content.Headers.Contains("Content-Length"))
+                    {
+                        headerVar = streamResult.Content.Headers.GetValues("Content-Length").FirstOrDefault();
+                        if (headerVar != null)
+                            long.TryParse(headerVar, out headerContentSize);
+                    }
+
+
+                    if (a.Size != 0 && headerContentSize != 0 && a.Size != headerContentSize) 
+                        return null;
+                    
                     return await streamResult.Content.ReadAsStreamAsync();
+                }
 
                 // Sometimes LL hands back a json object telling us to wait until a certain time
                 var times = (await streamResult.Content.ReadAsStringAsync()).FromJsonString<WaitResponse>();
@@ -192,7 +207,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive a)
             {
-                var stream = await ResolveDownloadStream();
+                var stream = await ResolveDownloadStream(a);
                 if (stream == null)
                     return false;
 

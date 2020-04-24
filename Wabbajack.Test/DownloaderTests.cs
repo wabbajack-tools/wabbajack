@@ -292,10 +292,15 @@ namespace Wabbajack.Test
             Assert.Equal("http://build.wabbajack.org/WABBAJACK_TEST_FILE.txt",
                 ((HTTPDownloader.State)url_state).Url);
                 */
+
             var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20}));
-            using var filename = new TempFile();
 
+            // Verify with different Size
+            Assert.False(await converted.Verify(new Archive(state: null!) { Size = 15}));
+
+            
+            using var filename = new TempFile();
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
             await converted.Download(new Archive(state: null!) { Name = "LoversLab Test.txt" }, filename.Path);
