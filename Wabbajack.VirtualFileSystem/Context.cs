@@ -250,7 +250,14 @@ namespace Wabbajack.VirtualFileSystem
         public async Task BackfillMissing()
         {
             var newFiles = _knownArchives.ToDictionary(kv => kv.Key,
-                kv => new VirtualFile {Name = kv.Value, Size = kv.Value.Size, Hash = kv.Key});
+                kv => new VirtualFile
+                {
+                    Name = kv.Value, 
+                    Size = kv.Value.Size, 
+                    Hash = kv.Key,
+                });
+            
+            newFiles.Values.Do(f => f.FillFullPath(0));
 
             var parentchild = new Dictionary<(VirtualFile, RelativePath), VirtualFile>();
 
@@ -266,6 +273,7 @@ namespace Wabbajack.VirtualFileSystem
                     }
 
                     var nf = new VirtualFile {Name = path, Parent = parent};
+                    nf.FillFullPath();
                     parent.Children = parent.Children.Add(nf);
                     parentchild.Add((parent, path), nf);
                     parent = nf;
