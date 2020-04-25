@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Wabbajack.BuildServer.BackendServices;
+using Wabbajack.BuildServer.Controllers;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
 using Wabbajack.BuildServer.Models.JobQueue;
@@ -62,6 +63,8 @@ namespace Wabbajack.BuildServer.Test
             Consts.ModlistMetadataURL = modlists.ToString();
             Utils.Log("Updating modlists");
             await RevalidateLists();
+            
+            ListValidation.ResetCache();
 
             Utils.Log("Checking validated results");
             var data = await ModlistMetadata.LoadFromGithub();
@@ -87,6 +90,8 @@ namespace Wabbajack.BuildServer.Test
             var evalService = new ValidateNonNexusArchives(Fixture.GetService<SqlService>(), Fixture.GetService<AppSettings>());
             await evalService.Execute();
 
+            ListValidation.ResetCache();
+
             data = await ModlistMetadata.LoadFromGithub();
             Assert.Single(data);
             Assert.Equal(1, data.First().ValidationSummary.Failed);
@@ -101,7 +106,8 @@ namespace Wabbajack.BuildServer.Test
             // Rerun the validation service to fix the list
             await evalService.Execute();
 
-            
+            ListValidation.ResetCache();
+
             data = await ModlistMetadata.LoadFromGithub();
             Assert.Single(data);
             Assert.Equal(0, data.First().ValidationSummary.Failed);
@@ -139,7 +145,8 @@ namespace Wabbajack.BuildServer.Test
             await evalService.Execute();
             await RevalidateLists();
             
-            
+            ListValidation.ResetCache();
+
             Utils.Log("Checking updated results");
             data = await ModlistMetadata.LoadFromGithub();
             Assert.Single(data);

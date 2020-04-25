@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentFTP;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Nettle;
 using Wabbajack.BuildServer.Model.Models;
@@ -31,14 +32,30 @@ namespace Wabbajack.BuildServer.Controllers
             Updated,
         }
         
-        public ListValidation(ILogger<ListValidation> logger, SqlService sql, AppSettings settings) : base(logger, sql)
+        public ListValidation(ILogger<ListValidation> logger, SqlService sql, IMemoryCache cache, AppSettings settings) : base(logger, sql)
         {
             _updater = new ModlistUpdater(null, sql, settings);
             _settings = settings;
+            Cache = cache;
+        }
+
+        public static IMemoryCache Cache { get; set; }
+        public const string ModListSummariesKey = "ModListSummaries";
+
+        public static void ResetCache()
+        {
+            Cache?.Remove(ModListSummariesKey);
         }
 
         public async Task<IEnumerable<(ModListSummary Summary, DetailedStatus Detailed)>> GetSummaries()
         {
+            
+            if (Cache.TryGetValue(ModListSummariesKey, out object result))
+            {
+                return (IEnumerable<(ModListSummary Summary, DetailedStatus Detailed)>)result;
+            }
+
+            
             var data = await SQL.GetValidationData();
             
             using var queue = new WorkQueue();
@@ -87,6 +104,9 @@ namespace Wabbajack.BuildServer.Controllers
                 return (summary, detailed);
             });
 
+            
+            var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(1));
+            Cache.Set(ModListSummariesKey, results, cacheOptions);
             return results;
         }
 
@@ -221,6 +241,8 @@ namespace Wabbajack.BuildServer.Controllers
             return Ok((await DetailedStatus(Name)).ToJson());
         }
 
+
+        
         private async Task<DetailedStatus> DetailedStatus(string Name)
         {
             return (await GetSummaries())

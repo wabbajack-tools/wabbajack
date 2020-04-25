@@ -167,6 +167,7 @@ namespace Wabbajack.BuildServer.Model.Models
                         AND DATEADD(DAY, number+1, dbo.MinMetricDate()) < dbo.MaxMetricDate()) as d
                         ON m.Date = d.Date AND m.GroupingSubject = d.GroupingSubject AND m.Action = d.Action
                         WHERE d.Action = @action
+                        AND d.Date >= DATEADD(month, -1, GETDATE())
                         group by d.Date, d.GroupingSubject, d.Action
                         ORDER BY d.Date, d.GroupingSubject, d.Action", new {Action = action}))
                 .ToList();
