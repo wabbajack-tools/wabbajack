@@ -28,6 +28,9 @@ namespace Wabbajack.Lib
                 var zEditPath = FindzEditPath(compiler);
                 var havezEdit = zEditPath != default;
 
+                if (zEditPath.IsFile)
+                    zEditPath = zEditPath.Parent;
+
                 Utils.Log(havezEdit ? $"Found zEdit at {zEditPath}" : "zEdit not detected, disabling zEdit routines");
 
                 if (!havezEdit)
