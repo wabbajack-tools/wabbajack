@@ -316,7 +316,7 @@ namespace Compression.BSA
                 {
                     if (Compressed)
                     {
-                        var r = LZ4Stream.Decode(rdr.BaseStream);
+                        using var r = LZ4Stream.Decode(rdr.BaseStream);
                         r.CopyToLimit(output, (int) _originalSize);
                     }
                     else
@@ -327,10 +327,10 @@ namespace Compression.BSA
                 else
                 {
                     if (Compressed)
-                        using (var z = new InflaterInputStream(rdr.BaseStream))
-                        {
-                            z.CopyToLimit(output, (int) _originalSize);
-                        }
+                    {
+                        using var z = new InflaterInputStream(rdr.BaseStream);
+                        z.CopyToLimit(output, (int) _originalSize);
+                    }
                     else
                         rdr.BaseStream.CopyToLimit(output, (int) _onDiskSize);
                 }
