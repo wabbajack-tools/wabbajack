@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using System.Security;
 using System.Threading.Tasks;
 using CG.Web.MegaApiClient;
-using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
@@ -97,7 +96,7 @@ namespace Wabbajack.Lib.Downloaders
 
             private static MegaApiClient MegaApiClient => DownloadDispatcher.GetInstance<MegaDownloader>().MegaApiClient;
 
-            private void MegaLogin()
+            private static void MegaLogin()
             {
                 if (MegaApiClient.IsLoggedIn)
                     return;
@@ -132,7 +131,7 @@ namespace Wabbajack.Lib.Downloaders
                 var fileLink = new Uri(Url);
                 try
                 {
-                    var node = MegaApiClient.GetNodeFromLink(fileLink);
+                    var node = await MegaApiClient.GetNodeFromLinkAsync(fileLink);
                     return true;
                 }
                 catch (Exception)
