@@ -34,6 +34,12 @@ namespace Wabbajack
 
         public void Login(SecureString password)
         {
+            if (password == null || password.Length == 0)
+            {
+                ReturnMessage = new LoginReturnMessage("You need to input a password!", true);
+                return;
+            }
+
             ReturnMessage = _downloader.LoginWithCredentials(Username, password);
             password.Clear();
         }
