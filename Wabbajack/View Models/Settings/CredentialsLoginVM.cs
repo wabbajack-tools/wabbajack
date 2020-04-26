@@ -1,4 +1,5 @@
-﻿using System.Reactive;
+﻿using System;
+using System.Net.Mail;
 using System.Reactive.Linq;
 using System.Security;
 using ReactiveUI;
@@ -26,7 +27,7 @@ namespace Wabbajack
             _downloader = downloader;
 
             _loginEnabled = this.WhenAny(x => x.Username)
-                .Select(username => !string.IsNullOrWhiteSpace(username))
+                .Select(IsValidAddress)
                 .ToGuiProperty(this,
                     nameof(LoginEnabled));
         }
@@ -35,6 +36,23 @@ namespace Wabbajack
         {
             ReturnMessage = _downloader.LoginWithCredentials(Username, password);
             password.Clear();
+        }
+
+        private static bool IsValidAddress(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                return false;
+
+            try
+            {
+                var _ = new MailAddress(s);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
