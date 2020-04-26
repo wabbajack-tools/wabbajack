@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using Newtonsoft.Json;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -405,6 +406,7 @@ namespace Wabbajack.Common
         }
     }
 
+    [JsonConverter(typeof(Utils.RelativePathConverter))]
     public struct RelativePath : IPath, IEquatable<RelativePath>, IComparable<RelativePath>
     {
         private readonly string? _nullable_path;

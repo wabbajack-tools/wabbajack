@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer.GraphQL;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
+using Wabbajack.Common;
 
 namespace Wabbajack.BuildServer.Controllers
 {
@@ -35,7 +36,7 @@ namespace Wabbajack.BuildServer.Controllers
 
             if (result.Errors?.Count > 0)
             {
-                return BadRequest();
+                return BadRequest(result.Errors);
             }
 
             return Ok(result);

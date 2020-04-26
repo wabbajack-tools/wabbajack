@@ -68,7 +68,10 @@ namespace Wabbajack.BuildServer.Controllers
                     var (_, result) = ValidateArchive(data, archive);
                     if (result == ArchiveStatus.InValid)
                     {
-                        return await TryToFix(data, archive);
+                        var fixResult = await TryToFix(data, archive);
+                        
+                        return fixResult;
+
                     }
 
                     return (archive, result);
@@ -105,7 +108,7 @@ namespace Wabbajack.BuildServer.Controllers
             });
 
             
-            var cacheOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(1));
+            var cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(1));
             Cache.Set(ModListSummariesKey, results, cacheOptions);
             return results;
         }
@@ -142,6 +145,7 @@ namespace Wabbajack.BuildServer.Controllers
             var result = await _updater.GetAlternative(archive.Hash.ToHex());
             return result switch
             {
+                OkObjectResult ok => (archive, ArchiveStatus.Updated),
                 OkResult ok => (archive, ArchiveStatus.Updated),
                 AcceptedResult accept => (archive, ArchiveStatus.Updating),
                 _ => (archive, ArchiveStatus.InValid)

@@ -41,7 +41,6 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("{GameName}/mods/{ModId}.json")]
         public async Task<ModInfo> GetModInfo(string GameName, long ModId)
         {
-            Utils.Log($"Nexus Mod Info {GameName} {ModId}");
             var game = GameRegistry.GetByFuzzyName(GameName).Game;
             var result = await SQL.GetNexusModInfoString(game, ModId);
             
@@ -69,8 +68,6 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("{GameName}/mods/{ModId}/files.json")]
         public async Task<NexusApiClient.GetModFilesResponse> GetModFiles(string GameName, long ModId)
         {
-            Utils.Log($"Nexus Mod Files {GameName} {ModId}");
-
             var game = GameRegistry.GetByFuzzyName(GameName).Game;
             var result = await SQL.GetModFiles(game, ModId);
 

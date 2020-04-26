@@ -167,7 +167,7 @@ namespace Wabbajack.BuildServer.Model.Models
                         AND DATEADD(DAY, number+1, dbo.MinMetricDate()) < dbo.MaxMetricDate()) as d
                         ON m.Date = d.Date AND m.GroupingSubject = d.GroupingSubject AND m.Action = d.Action
                         WHERE d.Action = @action
-                        AND d.Date >= DATEADD(month, -1, GETDATE())
+                        AND d.Date >= DATEADD(month, -1, GETUTCDATE())
                         group by d.Date, d.GroupingSubject, d.Action
                         ORDER BY d.Date, d.GroupingSubject, d.Action", new {Action = action}))
                 .ToList();
@@ -184,7 +184,7 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             await using var conn = await Open();
             await conn.ExecuteAsync(
-                @"INSERT INTO dbo.Jobs (Created, Priority, PrimaryKeyString, Payload, OnSuccess) VALUES (GETDATE(), @Priority, @PrimaryKeyString, @Payload, @OnSuccess)",
+                @"INSERT INTO dbo.Jobs (Created, Priority, PrimaryKeyString, Payload, OnSuccess) VALUES (GETUTCDATE(), @Priority, @PrimaryKeyString, @Payload, @OnSuccess)",
                 new {
                     job.Priority,
                     PrimaryKeyString = job.Payload.PrimaryKeyString,
@@ -201,7 +201,7 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             await using var conn = await Open();
             await conn.ExecuteAsync(
-                @"UPDATE dbo.Jobs SET Ended = GETDATE(), Success = @Success, ResultContent = @ResultContent WHERE Id = @Id",
+                @"UPDATE dbo.Jobs SET Ended = GETUTCDATE(), Success = @Success, ResultContent = @ResultContent WHERE Id = @Id",
                 new {
                     job.Id,
                     Success = job.Result.ResultType == JobResultType.Success,
@@ -221,7 +221,7 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             await using var conn = await Open();
             var result = await conn.QueryAsync<(long, DateTime, DateTime, DateTime, AJobPayload, int)>(
-                @"UPDATE jobs SET Started = GETDATE(), RunBy = @RunBy 
+                @"UPDATE jobs SET Started = GETUTCDATE(), RunBy = @RunBy 
                         WHERE ID in (SELECT TOP(1) ID FROM Jobs 
                                        WHERE Started is NULL
                                        AND PrimaryKeyString NOT IN (SELECT PrimaryKeyString from jobs WHERE Started IS NOT NULL and Ended IS NULL)
@@ -229,14 +229,14 @@ namespace Wabbajack.BuildServer.Model.Models
                       SELECT TOP(1) Id, Started, Ended, Created, Payload, Priority FROM jobs WHERE RunBy = @RunBy ORDER BY Started DESC",
                 new {RunBy = Guid.NewGuid().ToString()});
             return result.Select(k =>
-            new Job {
-                Id = k.Item1,
-                Started = k.Item2,
-                Ended = k.Item3,
-                Created = k.Item4,
-                Payload = k.Item5,
-                Priority = (Job.JobPriority)k.Item6
-            }).FirstOrDefault();
+                new Job {
+                    Id = k.Item1,
+                    Started = k.Item2,
+                    Ended = k.Item3,
+                    Created = k.Item4,
+                    Payload = k.Item5,
+                    Priority = (Job.JobPriority)k.Item6
+                }).FirstOrDefault();
     }
         
         
@@ -244,8 +244,16 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             await using var conn = await Open();
             var results =
-                await conn.QueryAsync<Job>("SELECT * from dbo.Jobs WHERE Started IS NOT NULL AND Ended IS NULL ");
-            return results;
+                await conn.QueryAsync<(long, DateTime, DateTime, DateTime, AJobPayload, int)>("SELECT Id, Started, Ended, Created, Payload, Priority FROM dbo.Jobs WHERE Started IS NOT NULL AND Ended IS NULL ");
+            return results.Select(k =>
+                new Job {
+                    Id = k.Item1,
+                    Started = k.Item2,
+                    Ended = k.Item3,
+                    Created = k.Item4,
+                    Payload = k.Item5,
+                    Priority = (Job.JobPriority)k.Item6
+                });
         }
 
 
@@ -253,8 +261,16 @@ namespace Wabbajack.BuildServer.Model.Models
         {
             await using var conn = await Open();
             var results =
-                await conn.QueryAsync<Job>("SELECT * from dbo.Jobs WHERE Ended IS NULL ");
-            return results;
+                await conn.QueryAsync<(long, DateTime, DateTime, DateTime, AJobPayload, int)>("SELECT Id, Started, Ended, Created, Payload, Priority from dbo.Jobs WHERE Ended IS NULL ");
+            return results.Select(k =>
+                new Job {
+                    Id = k.Item1,
+                    Started = k.Item2,
+                    Ended = k.Item3,
+                    Created = k.Item4,
+                    Payload = k.Item5,
+                    Priority = (Job.JobPriority)k.Item6
+                });
         }
 
         
@@ -353,7 +369,7 @@ namespace Wabbajack.BuildServer.Model.Models
         public async Task<IEnumerable<UploadedFile>> AllUploadedFiles()
         {
             await using var conn = await Open();
-            return await conn.QueryAsync<UploadedFile>("SELECT * FROM dbo.UploadedFiles ORDER BY UploadDate DESC");
+            return await conn.QueryAsync<UploadedFile>("SELECT Id, Name, Size, UploadedBy as Uploader, Hash, UploadDate, CDNName FROM dbo.UploadedFiles ORDER BY UploadDate DESC");
         }
         
         public async Task DeleteUploadedFile(Guid dupId)
@@ -853,5 +869,22 @@ namespace Wabbajack.BuildServer.Model.Models
         
 
         #endregion
+
+        public async Task<IEnumerable<Job>> GetAllJobs(TimeSpan from)
+        {
+            await using var conn = await Open();
+            var results =
+                await conn.QueryAsync<(long, DateTime, DateTime, DateTime, AJobPayload, int)>("SELECT Id, Started, Ended, Created, Payload, Priority from dbo.Jobs WHERE Created >= @FromTime ",
+                    new {FromTime = DateTime.UtcNow - from});
+            return results.Select(k =>
+                new Job {
+                    Id = k.Item1,
+                    Started = k.Item2,
+                    Ended = k.Item3,
+                    Created = k.Item4,
+                    Payload = k.Item5,
+                    Priority = (Job.JobPriority)k.Item6
+                });
+        }
     }
 }

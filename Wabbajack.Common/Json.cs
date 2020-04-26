@@ -98,7 +98,7 @@ namespace Wabbajack.Common
             }
         }
 
-        private class RelativePathConverter : JsonConverter<RelativePath>
+        public class RelativePathConverter : JsonConverter<RelativePath>
         {
             public override void WriteJson(JsonWriter writer, RelativePath value, JsonSerializer serializer)
             {

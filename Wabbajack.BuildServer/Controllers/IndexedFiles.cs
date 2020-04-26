@@ -52,19 +52,25 @@ namespace Wabbajack.BuildServer.Controllers
             var fullPath = folder.RelativeTo((AbsolutePath)_settings.TempFolder);
             Utils.Log($"Ingesting Inis from {fullPath}");
             int loadCount = 0;
-            foreach (var file in fullPath.EnumerateFiles().Where(f => f.Extension == Consts.IniExtension))
-            {
-                var loaded = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(file.LoadIniFile(), true));
-                if (loaded == null)
+            using var queue = new WorkQueue();
+            await fullPath.EnumerateFiles().Where(f => f.Extension == Consts.IniExtension)
+                    .PMap(queue, async file => {
+            
+                try
                 {
-                    Utils.Log($"Unsupported Ini {file}");
-                    continue;
+                    var loaded =
+                        (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(file.LoadIniFile(), true));
+
+                    var hash = Hash.FromHex(((string)file.FileNameWithoutExtension).Split("_").First());
+                    await SQL.AddDownloadState(hash, loaded);
+                }
+                catch (Exception ex)
+                {
+                    Utils.Log($"Failure for {file}");
                 }
 
-                var hash = Hash.FromHex(((string)file.FileNameWithoutExtension).Split("_").First()); 
-                await SQL.AddDownloadState(hash, loaded);
                 loadCount += 1;
-            }
+            });
 
             return Ok(loadCount);
         }
@@ -82,7 +88,6 @@ namespace Wabbajack.BuildServer.Controllers
             {
                 await using var ins = entry.Open();
                 var iniString = Encoding.UTF8.GetString(await ins.ReadAllAsync());
-                Utils.Log(iniString);
                 var data = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(iniString.LoadIniString(), true));
                 
                 if (data == null)

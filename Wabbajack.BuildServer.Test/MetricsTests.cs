@@ -30,5 +30,12 @@ namespace Wabbajack.BuildServer.Test
 
             Assert.Equal(subject, result);
         }
+
+        [Fact]
+        public async Task CanLoadMetricsFromSQL()
+        {
+            var sql = Fixture.GetService<SqlService>();
+            var results = await sql.MetricsReport("finish_install");
+        }
     }
 }
