@@ -84,7 +84,7 @@ namespace Wabbajack.Common
             return result;
         }
 
-        private class HashJsonConverter : JsonConverter<Hash>
+        public class HashJsonConverter : JsonConverter<Hash>
         {
             public override void WriteJson(JsonWriter writer, Hash value, JsonSerializer serializer)
             {
