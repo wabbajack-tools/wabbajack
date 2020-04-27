@@ -56,10 +56,12 @@ namespace Wabbajack
                     .BindToStrict(this, x => x.ErrorIcon.Visibility)
                     .DisposeWith(dispose);
 
-                this.BindStrict(this.ViewModel, vm => vm.Search, x => x.SearchBox.Text)
+                this.BindStrict(ViewModel, vm => vm.Search, x => x.SearchBox.Text)
                     .DisposeWith(dispose);
 
-                this.BindStrict(this.ViewModel, vm => vm.OnlyInstalled, x => x.OnlyInstalledCheckbox.IsChecked)
+                this.BindStrict(ViewModel, vm => vm.OnlyInstalled, x => x.OnlyInstalledCheckbox.IsChecked)
+                    .DisposeWith(dispose);
+                this.BindStrict(ViewModel, vm => vm.ShowNSFW, x => x.ShowNSFW.IsChecked)
                     .DisposeWith(dispose);
 
                 this.WhenAny(x => x.ViewModel.ClearFiltersCommand)
