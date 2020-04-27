@@ -66,16 +66,16 @@ namespace Compression.BSA
         internal uint _totalFolderNameLength;
         internal uint _version;
 
-        public BSAReader(AbsolutePath filename) : this(filename.OpenRead())
+        public BSAReader(AbsolutePath filename)
         {
             _fileName = filename;
-        }
-
-        public BSAReader(Stream stream)
-        {
+            using var stream = filename.OpenRead();
+            using var br = new BinaryReader(stream);
+            _rdr = br;
             _stream = stream;
-            _rdr = new BinaryReader(_stream);
             LoadHeaders();
+            _rdr = null;
+            _stream = null;
         }
 
         public IEnumerable<IFile> Files
@@ -116,7 +116,6 @@ namespace Compression.BSA
 
         public async ValueTask DisposeAsync()
         {
-            _stream.Close();
         }
 
         private void LoadHeaders()
