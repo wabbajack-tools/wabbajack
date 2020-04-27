@@ -52,7 +52,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 using (var d = await Driver.Create())
                 {
-                    await d.NavigateTo(new Uri("http://www.mediafire.com/file/agiqzm1xwebczpx/WABBAJACK_TEST_FILE.tx"));
+                    await d.NavigateTo(new Uri(Url));
                     // MediaFire creates the link after all the JS loads
                     await Task.Delay(1000);
                     var newURL = await d.GetAttr("a.input", "href");
