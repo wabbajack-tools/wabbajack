@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.0.1.1 - 4/27/2020
+* Fixed mediafire links not getting resolved
+* Fixed new mega links not being accepted
+
 #### Version - 2.0.1.0 - 4/27/2020
 * Fixed "FileNotFound" and "File is open by another process" bugs during installation
 * Raised the BSA limit from 2,000,000,000 bytes to 2 ^ 31 bytes
