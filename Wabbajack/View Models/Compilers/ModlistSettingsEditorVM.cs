@@ -20,7 +20,7 @@ namespace Wabbajack
         [Reactive]
         public string VersionText { get; set; }
 
-        private ObservableAsPropertyHelper<Version> _version;
+        private readonly ObservableAsPropertyHelper<Version> _version;
         public Version Version => _version.Value;
 
         [Reactive]
@@ -36,6 +36,9 @@ namespace Wabbajack
 
         [Reactive]
         public string Website { get; set; }
+
+        [Reactive]
+        public bool IsNSFW { get; set; }
 
         public IObservable<bool> InError { get; }
 
@@ -81,6 +84,7 @@ namespace Wabbajack
             ImagePath.TargetPath = _settings.SplashScreen;
             Website = _settings.Website;
             VersionText = _settings.Version;
+            IsNSFW = _settings.IsNSFW;
         }
 
         public void Save()
@@ -92,6 +96,7 @@ namespace Wabbajack
             _settings.Readme = Readme;
             _settings.SplashScreen = ImagePath.TargetPath;
             _settings.Website = Website;
+            _settings.IsNSFW = IsNSFW;
         }
     }
 }

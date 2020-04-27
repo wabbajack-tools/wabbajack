@@ -130,6 +130,7 @@ namespace Wabbajack
         public string Description { get; set; }
         public string Website { get; set; }
         public string Readme { get; set; }
+        public bool IsNSFW { get; set; }
         public AbsolutePath SplashScreen { get; set; }
     }
 

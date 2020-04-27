@@ -18,6 +18,7 @@ namespace Wabbajack.Lib
         public string? ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModlistReadme;
         public Version? ModlistVersion;
         public AbsolutePath ModListImage;
+        public bool ModlistIsNSFW;
         protected Version? WabbajackVersion;
 
         public abstract AbsolutePath VFSCacheName { get; }
