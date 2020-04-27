@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Wabbajack.Common
 {
@@ -7,12 +8,14 @@ namespace Wabbajack.Common
         private string _message;
         private Stream _inner;
         private WorkQueue? _queue;
+        private DateTime _lastUpdate;
 
         public StatusFileStream(Stream fs, string message, WorkQueue? queue = null)
         {
             _queue = queue;
             _inner = fs;
             _message = message;
+            _lastUpdate = DateTime.UnixEpoch;
         }
 
         public override void Flush()
@@ -38,6 +41,13 @@ namespace Wabbajack.Common
 
         private void UpdateStatus()
         {
+            if (DateTime.Now - _lastUpdate < TimeSpan.FromMilliseconds(500))
+            {
+                return;
+            }
+            
+            _lastUpdate = DateTime.Now;
+
             if (_inner.Length == 0)
             {
                 return;
