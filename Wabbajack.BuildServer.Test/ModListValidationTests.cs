@@ -211,7 +211,7 @@ namespace Wabbajack.BuildServer.Test
             await using (var fs = modListPath.Create())
             {
                 using var za = new ZipArchive(fs, ZipArchiveMode.Create);
-                var entry = za.CreateEntry("modlist.json");
+                var entry = za.CreateEntry("modlist");
                 await using var es = entry.Open();
                 ModListData.ToJson(es);
             }
