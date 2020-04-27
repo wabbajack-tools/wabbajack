@@ -142,8 +142,8 @@ namespace Wabbajack.VirtualFileSystem
                 //It's stupid that we have to do this, but 7zip's file pattern matching isn't very fuzzy
                 IEnumerable<string> AllVariants(string input)
                 {
-                    yield return input;
-                    yield return "\\" + input;
+                    yield return $"\"{input}\"";
+                    yield return $"\"\\{input}\"";
                 }
                 
                 tmpFile = new TempFile();
