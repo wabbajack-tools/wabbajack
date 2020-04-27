@@ -58,6 +58,7 @@ namespace Wabbajack
                 }
                 finally
                 {
+                    FinalUrl = FinalUrl.Replace(" ", "%20");
                     _isUploading.OnNext(false);
                 }
             }, IsUploading.StartWith(false).Select(u => !u)
