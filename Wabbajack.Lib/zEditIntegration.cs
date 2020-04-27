@@ -18,26 +18,26 @@ namespace Wabbajack.Lib
         {
             private readonly Dictionary<AbsolutePath, zEditMerge> _mergesIndexed = new Dictionary<AbsolutePath, zEditMerge>();
 
-            private bool _disabled = true;
+            private readonly bool _disabled = true;
 
-            private MO2Compiler _mo2Compiler;
+            private readonly MO2Compiler _mo2Compiler;
 
             public IncludeZEditPatches(MO2Compiler compiler) : base(compiler)
             {
                 _mo2Compiler = compiler;
                 var zEditPath = FindzEditPath(compiler);
-                var havezEdit = zEditPath != default;
+                var found = zEditPath != default;
 
-                Utils.Log(havezEdit ? $"Found zEdit at {zEditPath}" : "zEdit not detected, disabling zEdit routines");
+                Utils.Log(found ? $"Found zEdit at {zEditPath}" : "zEdit not detected, disabling zEdit routines");
 
-                if (!havezEdit)
+                if (!found)
                 {
                     _mergesIndexed = new Dictionary<AbsolutePath, zEditMerge>();
                     return;
                 }
-                _mo2Compiler = (MO2Compiler) compiler;
-                
-                var settingsFiles = zEditPath.Combine("profiles").EnumerateFiles(false)
+                _mo2Compiler = compiler;
+
+                var settingsFiles = zEditPath.Parent.Combine("profiles").EnumerateFiles()
                     .Where(f => f.IsFile)
                     .Where(f => f.FileName == Consts.SettingsJson)
                     .Where(f =>
