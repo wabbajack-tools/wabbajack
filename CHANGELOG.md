@@ -1,8 +1,11 @@
 ### Changelog
 
-#### Version - 2.0.1.1 - 4/27/2020
+#### Version - 2.0.2.0 - 4/27/2020
 * Fixed mediafire links not getting resolved
 * Fixed new mega links not being accepted
+* Fixed cannot delete readonly file issue
+* Fixed WABBAJACK_NOMATCH_INCLUDE with files inside BSAs
+* Removed software rendering mode in the GUI...that should never had made it into master
 
 #### Version - 2.0.1.0 - 4/27/2020
 * Fixed "FileNotFound" and "File is open by another process" bugs during installation
