@@ -146,6 +146,11 @@ namespace Wabbajack.Common
             }
         }
 
+        public void SetReadOnly(bool val)
+        {
+            IsReadOnly = true;
+        }
+
         /// <summary>
         /// Returns the full path the folder that contains Wabbajack.Common. This will almost always be
         /// where all the binaries for the project reside.
@@ -263,10 +268,11 @@ namespace Wabbajack.Common
 
         public void Delete()
         {
-            if (IsFile)
-            {
-                File.Delete(_path);
-            }
+            if (!IsFile) return;
+
+            if (IsReadOnly) IsReadOnly = false;
+            
+            File.Delete(_path);
         }
 
         public bool InFolder(AbsolutePath folder)
