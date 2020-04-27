@@ -60,7 +60,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 if (_includeDirectly.Any(path => source.Path.StartsWith(path)))
                     defaultInclude = true;
 
-            if (source.AbsolutePath.Size > 2_000_000_000)
+            if (source.AbsolutePath.Size >= (long) 2 << 31)
             {
                 await using var bsa = BSADispatch.OpenRead(source.AbsolutePath);
                 if (bsa.State is BSAStateObject)

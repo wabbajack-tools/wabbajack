@@ -117,10 +117,13 @@ namespace Wabbajack.BuildServer.Controllers
         {
             switch (archive.State)
             {
+                case GoogleDriveDownloader.State _:
+                    // Disabled for now due to GDrive rate-limiting the build server
+                    return (archive, ArchiveStatus.Valid);
                 case NexusDownloader.State nexusState when data.NexusFiles.Contains((
                     nexusState.Game.MetaData().NexusGameId, nexusState.ModID, nexusState.FileID)):
                     return (archive, ArchiveStatus.Valid);
-                case NexusDownloader.State nexusState:
+                case NexusDownloader.State _:
                     return (archive, ArchiveStatus.InValid);
                 case ManualDownloader.State _:
                     return (archive, ArchiveStatus.Valid);
