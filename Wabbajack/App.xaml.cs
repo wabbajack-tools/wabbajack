@@ -21,7 +21,6 @@ namespace Wabbajack
         public App()
         {
             TempFolder.EnsureInited();
-            RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
             CLIOld.ParseOptions(Environment.GetCommandLineArgs());
             if (CLIArguments.Help)
                 CLIOld.DisplayHelpText();

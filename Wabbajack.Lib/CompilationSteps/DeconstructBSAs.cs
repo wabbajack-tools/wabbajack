@@ -13,7 +13,7 @@ namespace Wabbajack.Lib.CompilationSteps
 {
     public class DeconstructBSAs : ACompilationStep
     {
-        private readonly IEnumerable<string> _includeDirectly;
+        private readonly IEnumerable<RelativePath> _includeDirectly;
         private readonly Func<VirtualFile, List<ICompilationStep>> _microstack;
         private readonly Func<VirtualFile, List<ICompilationStep>> _microstackWithInclude;
         private readonly MO2Compiler _mo2Compiler;
@@ -24,11 +24,11 @@ namespace Wabbajack.Lib.CompilationSteps
             _includeDirectly = _mo2Compiler.ModInis.Where(kv =>
                 {
                     var general = kv.Value.General;
-                    if (general.notes != null && general.notes.Contains(Consts.WABBAJACK_INCLUDE)) return true;
-                    if (general.comments != null && general.comments.Contains(Consts.WABBAJACK_INCLUDE)) return true;
+                    if (general.notes != null && (general.notes.Contains(Consts.WABBAJACK_INCLUDE) || general.notes.Contains(Consts.WABBAJACK_NOMATCH_INCLUDE))) return true;
+                    if (general.comments != null && (general.notes.Contains(Consts.WABBAJACK_INCLUDE) || general.notes.Contains(Consts.WABBAJACK_NOMATCH_INCLUDE))) return true;
                     return false;
                 })
-                .Select(kv => $"mods\\{kv.Key}\\")
+                .Select(kv => kv.Key.RelativeTo(_mo2Compiler.MO2Folder))
                 .ToList();
 
             _microstack = bsa => new List<ICompilationStep>
@@ -77,6 +77,13 @@ namespace Wabbajack.Lib.CompilationSteps
 
             var id = Guid.NewGuid().ToString();
 
+
+            Func<Task>? _cleanup = null;
+            if (defaultInclude)
+            {
+                _cleanup = await source.File.Context.Stage(source.File.Children);
+            }
+            
             var matches = await sourceFiles.PMap(_mo2Compiler.Queue, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e, Consts.BSACreationDir.Combine((RelativePath)id, (RelativePath)e.Name))));
 
 
@@ -99,6 +106,8 @@ namespace Wabbajack.Lib.CompilationSteps
                 };
             }
 
+            if (_cleanup != null)
+                await _cleanup();
             return directive;
         }
 

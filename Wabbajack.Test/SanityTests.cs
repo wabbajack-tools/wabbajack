@@ -296,6 +296,53 @@ namespace Wabbajack.Test
         }
         
         [Fact]
+        public async Task CanNoMatchIncludeFilesFromBSAs()
+        {
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var file = utils.AddModFile(mod, @"baz.bsa", 10);
+
+            await file.Parent.Combine("meta.ini").WriteAllLinesAsync(new[]
+            {
+                "[General]", 
+                "notes= asdf WABBAJACK_NOMATCH_INCLUDE asdfa"
+            });
+            
+            await utils.Configure();
+
+            
+            using var tempFile = new TempFile();
+            var bsaState = new BSAStateObject
+            {
+                Magic = "BSA\0", Version = 0x69, ArchiveFlags = 0x107, FileFlags = 0x0,
+            };
+
+
+            var tempFileData = utils.RandomData(1024);
+            
+            await using (var bsa = bsaState.MakeBuilder(1024 * 1024))
+            {
+                await bsa.AddFile(new BSAFileStateObject
+                {
+                    Path = (RelativePath)@"matching_file.bin", Index = 0, FlipCompression = false
+                }, new MemoryStream(tempFileData));
+                await bsa.AddFile(
+                    new BSAFileStateObject()
+                    {
+                        Path = (RelativePath)@"unmatching_file.bin", Index = 1, FlipCompression = false
+                    }, new MemoryStream(utils.RandomData(1024)));
+                await bsa.Build(file);
+            }
+            
+            var archive = utils.AddManualDownload(
+                new Dictionary<string, byte[]> { { "/stuff/matching_file_data.bin", tempFileData } });
+            
+            await CompileAndInstall(profile);
+            utils.VerifyInstalledFile(mod, @"baz.bsa");
+            
+        }
+        
+        [Fact]
         public async Task CanInstallFilesFromBSAAndBSA()
         {
             var profile = utils.AddProfile();
