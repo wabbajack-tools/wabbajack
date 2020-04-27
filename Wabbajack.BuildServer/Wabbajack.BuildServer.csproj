@@ -7,8 +7,8 @@
         <PublishReadyToRun>true</PublishReadyToRun>
         <PublishSingleFile>true</PublishSingleFile>
         <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-        <AssemblyVersion>2.0.0.0</AssemblyVersion>
-        <FileVersion>2.0.0.0</FileVersion>
+        <AssemblyVersion>2.0.1.0</AssemblyVersion>
+        <FileVersion>2.0.1.0</FileVersion>
         <Copyright>Copyright © 2019-2020</Copyright>
         <Description>Server component for Wabbajack</Description>
         <AssemblyName>BuildServer</AssemblyName>

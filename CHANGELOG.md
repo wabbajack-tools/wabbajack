@@ -1,6 +1,12 @@
 ### Changelog
 
-#### Version - 2.0.0.0 - ?
+#### Version - 2.0.1.0 - 4/27/2020
+* Fixed "FileNotFound" and "File is open by another process" bugs during installation
+* Raised the BSA limit from 2,000,000,000 bytes to 2 ^ 31 bytes
+* Added NSFW flags for modlists/gallery
+* Fixed zEdit settings integration
+
+#### Version - 2.0.0.0 - 4/25/2020
 * Reworked all internal routines to use Relative/Absolute path values instead of strings
 * Reworked all internal routines to use Hash values instead of strings
 * Reworked all internal routines to use Game values instead of strings
