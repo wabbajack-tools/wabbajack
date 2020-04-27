@@ -303,7 +303,8 @@ namespace Wabbajack.Lib
                 Description = ModListDescription ?? "",
                 Readme = ModlistReadme ?? "",
                 Image = ModListImage != default ? ModListImage.FileName : default,
-                Website = ModListWebsite != null ? new Uri(ModListWebsite) : null
+                Website = !string.IsNullOrWhiteSpace(ModListWebsite) ? new Uri(ModListWebsite) : null,
+                IsNSFW = ModlistIsNSFW
             };
 
             UpdateTracker.NextStep("Running Validation");

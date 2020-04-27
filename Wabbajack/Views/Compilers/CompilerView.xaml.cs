@@ -61,20 +61,22 @@ namespace Wabbajack
                     .Select(x => !x)
                     .BindToStrict(this, x => x.SettingsScrollViewer.IsEnabled)
                     .DisposeWith(dispose);
-                this.BindStrict(this.ViewModel, x => x.CurrentModlistSettings.ModListName, x => x.ModListNameSetting.Text)
+                this.BindStrict(ViewModel, x => x.CurrentModlistSettings.ModListName, x => x.ModListNameSetting.Text)
                     .DisposeWith(dispose);
                 this.BindStrict(ViewModel, x => x.CurrentModlistSettings.VersionText, x => x.VersionSetting.Text)
                     .DisposeWith(dispose);
-                this.BindStrict(this.ViewModel, x => x.CurrentModlistSettings.AuthorText, x => x.AuthorNameSetting.Text)
+                this.BindStrict(ViewModel, x => x.CurrentModlistSettings.AuthorText, x => x.AuthorNameSetting.Text)
                     .DisposeWith(dispose);
-                this.BindStrict(this.ViewModel, x => x.CurrentModlistSettings.Description, x => x.DescriptionSetting.Text)
+                this.BindStrict(ViewModel, x => x.CurrentModlistSettings.Description, x => x.DescriptionSetting.Text)
                     .DisposeWith(dispose);
                 this.WhenAny(x => x.ViewModel.CurrentModlistSettings.ImagePath)
                     .BindToStrict(this, x => x.ImageFilePicker.PickerVM)
                     .DisposeWith(dispose);
-                this.BindStrict(this.ViewModel, x => x.CurrentModlistSettings.Website, x => x.WebsiteSetting.Text)
+                this.BindStrict(ViewModel, x => x.CurrentModlistSettings.Website, x => x.WebsiteSetting.Text)
                     .DisposeWith(dispose);
-                this.BindStrict(this.ViewModel, x => x.CurrentModlistSettings.Readme, x => x.ReadmeSetting.Text)
+                this.BindStrict(ViewModel, x => x.CurrentModlistSettings.Readme, x => x.ReadmeSetting.Text)
+                    .DisposeWith(dispose);
+                this.BindStrict(ViewModel, x => x.CurrentModlistSettings.IsNSFW, x => x.NSFWSetting.IsChecked)
                     .DisposeWith(dispose);
 
                 // Bottom Compiler Settings

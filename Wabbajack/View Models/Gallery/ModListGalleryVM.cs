@@ -34,6 +34,9 @@ namespace Wabbajack
 
         [Reactive]
         public bool OnlyInstalled { get; set; }
+        
+        [Reactive]
+        public bool ShowNSFW { get; set; }
 
         private readonly ObservableAsPropertyHelper<bool> _Loaded;
         public bool Loaded => _Loaded.Value;
@@ -49,6 +52,7 @@ namespace Wabbajack
                 () =>
                 {
                     OnlyInstalled = false;
+                    ShowNSFW = false;
                     Search = string.Empty;
                 });
 
@@ -91,7 +95,7 @@ namespace Wabbajack
                 .Transform(m => new ModListMetadataVM(this, m))
                 .DisposeMany()
                 // Filter only installed
-                .Filter(predicateChanged: this.WhenAny(x => x.OnlyInstalled)
+                .Filter(this.WhenAny(x => x.OnlyInstalled)
                     .Select<bool, Func<ModListMetadataVM, bool>>(onlyInstalled => (vm) =>
                     {
                         if (!onlyInstalled) return true;
@@ -99,12 +103,18 @@ namespace Wabbajack
                         return gameMeta.IsInstalled;
                     }))
                 // Filter on search box
-                .Filter(predicateChanged: this.WhenAny(x => x.Search)
+                .Filter(this.WhenAny(x => x.Search)
                     .Debounce(TimeSpan.FromMilliseconds(150), RxApp.MainThreadScheduler)
                     .Select<string, Func<ModListMetadataVM, bool>>(search => (vm) =>
                     {
                         if (string.IsNullOrWhiteSpace(search)) return true;
                         return vm.Metadata.Title.ContainsCaseInsensitive(search);
+                    }))
+                .Filter(this.WhenAny(x => x.ShowNSFW)
+                    .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
+                    {
+                        if (!vm.Metadata.NSFW) return true;
+                        return vm.Metadata.NSFW && showNSFW;
                     }))
                 // Put broken lists at bottom
                 .Sort(Comparer<ModListMetadataVM>.Create((a, b) => a.IsBroken.CompareTo(b.IsBroken)))

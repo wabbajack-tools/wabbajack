@@ -147,6 +147,9 @@
                     Text="Readme"
                     ToolTip="Link to the Readme." />
                 <TextBox x:Name="ReadmeSetting" Style="{StaticResource ValueStyle}"/>
+                <CheckBox x:Name="NSFWSetting"
+                          Content="NSFW"
+                          ToolTip="Select this if your Modlist has adult themed content such as SexLab or other mods involving sexual acts. Nude body replacer do not fall under this category neither do revealing outfits or gore."/>
             </StackPanel>
         </ScrollViewer>
         <Border

@@ -109,6 +109,11 @@ namespace Wabbajack.Lib
         public Version Version = new Version(1, 0, 0, 0);
 
         /// <summary>
+        ///     Whether the Modlist is NSFW or not
+        /// </summary>
+        public bool IsNSFW;
+
+        /// <summary>
         ///     The size of all the archives once they're downloaded
         /// </summary>
         [JsonIgnore]

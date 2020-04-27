@@ -107,6 +107,12 @@
                 Width="160"
                 VerticalContentAlignment="Center" />
             <CheckBox
+                x:Name="ShowNSFW"
+                Margin="20,0,10,0"
+                VerticalAlignment="Center"
+                Content="Show NSFW"
+                Foreground="{StaticResource ForegroundBrush}"/>
+            <CheckBox
                 x:Name="OnlyInstalledCheckbox"
                 Margin="20,0,10,0"
                 VerticalAlignment="Center"
