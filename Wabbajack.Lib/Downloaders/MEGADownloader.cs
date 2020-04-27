@@ -77,7 +77,7 @@ namespace Wabbajack.Lib.Downloaders
 
         public AbstractDownloadState? GetDownloaderState(string url)
         {
-            if (url != null && url.StartsWith(Consts.MegaPrefix))
+            if (url != null && (url.StartsWith(Consts.MegaPrefix) || url.StartsWith(Consts.MegaFilePrefix)))
                 return new State(url);
             return null;
         }
@@ -132,7 +132,7 @@ namespace Wabbajack.Lib.Downloaders
                 try
                 {
                     var node = await MegaApiClient.GetNodeFromLinkAsync(fileLink);
-                    return true;
+                    return node != null;
                 }
                 catch (Exception)
                 {

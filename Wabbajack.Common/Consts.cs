@@ -21,6 +21,7 @@ namespace Wabbajack.Common
         public static AbsolutePath ModListDownloadFolder => "downloaded_mod_lists".RelativeTo(AbsolutePath.EntryPoint);
 
         public static string MegaPrefix = "https://mega.nz/#!";
+        public static string MegaFilePrefix = "https://mega.nz/file/";
 
         public static readonly HashSet<Extension> SupportedArchives = new[]{".zip", ".rar", ".7z", ".7zip", ".fomod", ".omod", ".exe", ".dat", ".gz", ".tar"}
             .Select(s => new Extension(s)).ToHashSet();
