@@ -5,6 +5,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -15,6 +16,7 @@ namespace Wabbajack.Common
     /// Struct representing a xxHash64 value. It's a struct with a ulong in it, but wrapped so we don't confuse
     /// it with other longs in the system.
     /// </summary>
+    [JsonConverter(typeof(Utils.HashJsonConverter))]
     public struct Hash
     {
         private readonly ulong _code;

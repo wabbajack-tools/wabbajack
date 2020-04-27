@@ -296,6 +296,41 @@ namespace Wabbajack.Test
         }
         
         [Fact]
+        public async Task CanInstallFilesFromBSAAndBSA()
+        {
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var file = utils.AddModFile(mod, @"baz.bin", 128);
+            
+            await utils.Configure();
+
+            
+            using var tempFile = new TempFile();
+            var bsaState = new BSAStateObject
+            {
+                Magic = "BSA\0", Version = 0x69, ArchiveFlags = 0x107, FileFlags = 0x0,
+            };
+
+            await using (var bsa = bsaState.MakeBuilder(1024 * 1024))
+            {
+                await bsa.AddFile(new BSAFileStateObject
+                {
+                    Path = (RelativePath)@"foo\bar\baz.bin", Index = 0, FlipCompression = false
+                }, new MemoryStream(await file.ReadAllBytesAsync()));
+                await bsa.Build(tempFile.Path);
+            }
+            tempFile.Path.CopyTo(file.Parent.Combine("bsa_data.bsa"));
+            
+            var archive = utils.AddManualDownload(
+                new Dictionary<string, byte[]> { { "/stuff/files.bsa", await tempFile.Path.ReadAllBytesAsync() } });
+            
+            await CompileAndInstall(profile);
+            utils.VerifyInstalledFile(mod, @"baz.bin");
+            utils.VerifyInstalledFile(mod, @"bsa_data.bsa");
+            
+        }
+        
+        [Fact]
         public async Task CanRecreateBSAsFromFilesSourcedInOtherBSAs()
         {
             var profile = utils.AddProfile();

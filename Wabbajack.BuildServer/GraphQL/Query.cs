@@ -8,6 +8,7 @@ namespace Wabbajack.BuildServer.GraphQL
     {
         public Query(SqlService sql)
         {
+            /*
             FieldAsync<ListGraphType<ModListStatusType>>("modLists",
                 arguments: new QueryArguments(new QueryArgument<ArchiveEnumFilterType>
                 {
@@ -28,7 +29,7 @@ namespace Wabbajack.BuildServer.GraphQL
                     }
 
                 });
-
+*/
             FieldAsync<ListGraphType<MetricResultType>>("dailyUniqueMetrics",
                 arguments: new QueryArguments(
                     new QueryArgument<MetricEnum> {Name = "metric_type", Description = "The grouping of metric data to query"}

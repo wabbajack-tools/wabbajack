@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Nettle;
+using Wabbajack.BuildServer.BackendServices;
 using Wabbajack.BuildServer.Controllers;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.BuildServer.Models;
@@ -77,6 +79,7 @@ namespace Wabbajack.BuildServer
             if (!Settings.JobScheduler) return;
 
             var task = RunNexusCacheLoop();
+            var listIngest = (new ListIngest(Sql, Settings)).RunLoop(CancellationToken.None);
             
             while (true)
             {
@@ -98,6 +101,7 @@ namespace Wabbajack.BuildServer
                 await Task.Delay(TimeSpan.FromMinutes(1));
             }
         }
+
 
         private async Task KillOrphanedJobs()
         {
@@ -126,7 +130,7 @@ namespace Wabbajack.BuildServer
             if (!Settings.RunFrontEndJobs && typeof(T).ImplementsInterface(typeof(IFrontEndJob))) return;
             try
             {
-                var jobs = (await Sql.GetUnfinishedJobs())
+                var jobs = (await Sql.GetAllJobs(span))
                     .Where(j => j.Payload is T)
                     .OrderByDescending(j => j.Created)
                     .Take(10);
@@ -134,7 +138,7 @@ namespace Wabbajack.BuildServer
                 foreach (var job in jobs)
                 {
                     if (job.Started == null || job.Ended == null) return;
-                    if (DateTime.Now - job.Ended < span) return;
+                    if (DateTime.UtcNow - job.Ended < span) return;
                 }
                 await Sql.EnqueueJob(new Job
                 {

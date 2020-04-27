@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO.Compression;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.Common;
 using Wabbajack.Lib;
@@ -42,14 +43,23 @@ namespace Wabbajack.BuildServer.BackendServices
                 ModList modlist;
                 await using (var fs = modlistPath.OpenRead())
                 using (var zip = new ZipArchive(fs, ZipArchiveMode.Read))
-                await using (var entry = zip.GetEntry("modlist.json")?.Open())
+                await using (var entry = zip.GetEntry("modlist")?.Open())
                 {
                     if (entry == null)
                     {
                         Utils.Log($"Bad Modlist {list.Links.MachineURL}");
                         continue;
                     }
-                    modlist = entry.FromJson<ModList>();
+
+                    try
+                    {
+                        modlist = entry.FromJson<ModList>();
+                    }
+                    catch (JsonReaderException ex)
+                    {
+                        Utils.Log($"Bad JSON format for {list.Links.MachineURL}");
+                        continue;
+                    }
                 }
 
                 newData = true;

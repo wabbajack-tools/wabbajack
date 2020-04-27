@@ -216,7 +216,7 @@ namespace Wabbajack.BuildServer.Controllers
         private async Task<Archive> FindNexusAlternative(NexusDownloader.State state, Hash srcHash)
         {
             var origSize = _settings.PathForArchive(srcHash).Size;
-            var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
+            var api = await NexusApiClient.Get(Request?.Headers["apikey"].FirstOrDefault());
             var allMods = await api.GetModFiles(state.Game, state.ModID);
             var archive = allMods.files.Where(m => !string.IsNullOrEmpty(m.category_name))
                 .OrderBy(s => Math.Abs((long)s.size - origSize))

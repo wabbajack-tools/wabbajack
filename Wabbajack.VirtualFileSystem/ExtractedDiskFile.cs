@@ -40,6 +40,12 @@ namespace Wabbajack.VirtualFileSystem
 
         public async Task MoveTo(AbsolutePath path)
         {
+            if (FileExtractor.MightBeArchive(_path.Extension))
+            {
+                path.Parent.CreateDirectory();
+                await _path.CopyToAsync(path);
+                return;
+            }
             await _path.MoveToAsync(path, true);
             _path = path;
         }
