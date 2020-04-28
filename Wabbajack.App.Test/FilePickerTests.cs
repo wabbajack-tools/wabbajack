@@ -191,7 +191,7 @@ namespace Wabbajack.Test
         public async Task FolderIfNotEmptyCheck_Exists()
         {
             var vm = new FilePickerVM();
-            await using (CreateSetFolder(vm))
+            await using (await CreateSetFolder(vm))
             {
                 vm.PathType = FilePickerVM.PathTypeOptions.Folder;
                 vm.ExistCheckOption = FilePickerVM.CheckOptions.IfPathNotEmpty;
@@ -220,7 +220,7 @@ namespace Wabbajack.Test
         public async Task FolderOnExistsCheck_Exists()
         {
             var vm = new FilePickerVM();
-            await using (CreateSetFolder(vm))
+            await using (await CreateSetFolder(vm))
             {
                 vm.PathType = FilePickerVM.PathTypeOptions.Folder;
                 vm.ExistCheckOption = FilePickerVM.CheckOptions.On;
@@ -275,7 +275,7 @@ namespace Wabbajack.Test
         public async Task FolderExistsButSetToFile()
         {
             var vm = new FilePickerVM();
-            await using (CreateSetFolder(vm))
+            await using (await CreateSetFolder(vm))
             {
                 vm.PathType = FilePickerVM.PathTypeOptions.File;
                 vm.ExistCheckOption = FilePickerVM.CheckOptions.On;
@@ -353,9 +353,9 @@ namespace Wabbajack.Test
             Assert.True(string.IsNullOrEmpty(vm.ErrorTooltip));
         }
 
-        private static TempFolder CreateSetFolder(FilePickerVM vm)
+        private static async Task<TempFolder> CreateSetFolder(FilePickerVM vm)
         {
-            var temp = new TempFolder();
+            var temp = await TempFolder.Create();
             vm.TargetPath = temp.Dir;
             return temp;
         }

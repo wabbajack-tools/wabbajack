@@ -531,7 +531,7 @@ namespace Wabbajack.Test
         [Fact]
         public async Task TestUpgrading()
         {
-            await using var folder = new TempFolder();
+            await using var folder = await TempFolder.Create();
             var dest = folder.Dir.Combine("Cori.7z");
             var archive = new Archive(
                 new NexusDownloader.State

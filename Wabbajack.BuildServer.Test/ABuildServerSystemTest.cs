@@ -21,7 +21,7 @@ namespace Wabbajack.BuildServer.Test
         private CancellationTokenSource _token;
         private Task _task;
 
-        public readonly TempFolder _severTempFolder = new TempFolder();
+        public readonly TempFolder _severTempFolder = TempFolder.Create().Result;
         private bool _disposed = false;
         public AbsolutePath ServerTempFolder => _severTempFolder.Dir;
 
