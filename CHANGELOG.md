@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - next
+* Updated the Credentials Login form with more UI elements
+
 #### Version - 2.0.2.0 - 4/27/2020
 * Fixed mediafire links not getting resolved
 * Fixed new mega links not being accepted
