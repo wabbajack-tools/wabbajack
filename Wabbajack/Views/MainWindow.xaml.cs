@@ -23,6 +23,7 @@ namespace Wabbajack
 
         public MainWindow()
         {
+            TempFolder.Init();
             Helpers.Init();
             // Wire any unhandled crashing exceptions to log before exiting
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>

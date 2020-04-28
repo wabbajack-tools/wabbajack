@@ -25,7 +25,7 @@ namespace Wabbajack.VirtualFileSystem
                 if (Consts.SupportedBSAs.Contains(source.Extension))
                     return await ExtractAllWithBSA(queue, source);
                 else if (source.Extension == Consts.OMOD)
-                    return ExtractAllWithOMOD(source);
+                    return await ExtractAllWithOMOD(source);
                 else if (source.Extension == Consts.EXE)
                     return await ExtractAllExe(source);
                 else
@@ -47,7 +47,7 @@ namespace Wabbajack.VirtualFileSystem
                 return await ExtractAllWith7Zip(source, null);
             }
 
-            var dest = new TempFolder();
+            var dest = await TempFolder.Create();
             Utils.Log($"Extracting {(string)source.FileName}");
 
             var process = new ProcessHelper
@@ -94,9 +94,9 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        private static ExtractedFiles ExtractAllWithOMOD(AbsolutePath source)
+        private static async Task<ExtractedFiles> ExtractAllWithOMOD(AbsolutePath source)
         {
-            var dest = new TempFolder();
+            var dest = await TempFolder.Create();
             Utils.Log($"Extracting {(string)source.FileName}");
 
             Framework.Settings.TempPath = (string)dest.Dir;
@@ -128,7 +128,7 @@ namespace Wabbajack.VirtualFileSystem
         private static async Task<ExtractedFiles> ExtractAllWith7Zip(AbsolutePath source, IEnumerable<RelativePath> onlyFiles)
         {
             TempFile tmpFile = null;
-            var dest = new TempFolder();
+            var dest = await TempFolder.Create();
             Utils.Log(new GenericInfo($"Extracting {(string)source.FileName}", $"The contents of {(string)source.FileName} are being extracted to {(string)source.FileName} using 7zip.exe"));
 
             var process = new ProcessHelper

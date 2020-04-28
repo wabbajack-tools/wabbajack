@@ -15,22 +15,26 @@ namespace Wabbajack.Common
 
         static TempFolder()
         {
-            _cleanTask = "tmp_files".RelativeTo(AbsolutePath.EntryPoint).DeleteDirectory();
+            _cleanTask = Task.Run(() => "tmp_files".RelativeTo(AbsolutePath.EntryPoint).DeleteDirectory());
         }
 
-        public static async Task EnsureInited()
+        public static void Init()
         {
-            Utils.Log("Cleaning temp files");
-            await _cleanTask;
+            // Nothing to do, as work is done in static ctor
         }
 
-        public TempFolder(bool deleteAfter = true)
+        private TempFolder(bool deleteAfter = true)
         {
-            _cleanTask.Wait();
             Dir = Path.Combine("tmp_files", Guid.NewGuid().ToString()).RelativeTo(AbsolutePath.EntryPoint);
             if (!Dir.Exists) 
                 Dir.CreateDirectory();
             DeleteAfter = deleteAfter;
+        }
+
+        public static async Task<TempFolder> Create(bool deleteAfter = true)
+        {
+            await _cleanTask;
+            return new TempFolder(deleteAfter: deleteAfter);
         }
 
         public TempFolder(AbsolutePath dir, bool deleteAfter = true)
@@ -42,6 +46,7 @@ namespace Wabbajack.Common
             }
             DeleteAfter = deleteAfter;
         }
+
         public async ValueTask DisposeAsync()
         {
             Utils.Log($"Deleting {Dir}");
