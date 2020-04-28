@@ -78,8 +78,10 @@ namespace Wabbajack.BuildServer
             Utils.LogMessages.OfType<IUserIntervention>().Subscribe(u => u.Cancel());
             if (!Settings.JobScheduler) return;
 
+            var token = new CancellationTokenSource();
             var task = RunNexusCacheLoop();
-            var listIngest = (new ListIngest(Sql, Settings)).RunLoop(CancellationToken.None);
+            var listIngest = (new ListIngest(Sql, Settings)).RunLoop(token.Token);
+            var nonNexus = (new ValidateNonNexusArchives(Sql, Settings)).RunLoop(token.Token);
             
             while (true)
             {

@@ -19,6 +19,7 @@ namespace Wabbajack.BuildServer.BackendServices
 
         public async Task RunLoop(CancellationToken token)
         {
+            Utils.Log($"Starting loop for {GetType()}");
             while (!token.IsCancellationRequested)
             {
                 try
@@ -27,7 +28,7 @@ namespace Wabbajack.BuildServer.BackendServices
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log($"Error executing {this}");
+                    Utils.Log($"Error executing {GetType()}");
                     Utils.Log(ex.ToString());
                 }
 
