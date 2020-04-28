@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Security;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 
@@ -34,14 +35,22 @@ namespace Wabbajack
 
         public void Login(SecureString password)
         {
-            if (password == null || password.Length == 0)
+            try
             {
-                ReturnMessage = new LoginReturnMessage("You need to input a password!", true);
-                return;
-            }
+                if (password == null || password.Length == 0)
+                {
+                    ReturnMessage = new LoginReturnMessage("You need to input a password!", true);
+                    return;
+                }
 
-            ReturnMessage = _downloader.LoginWithCredentials(Username, password);
-            password.Clear();
+                ReturnMessage = _downloader.LoginWithCredentials(Username, password);
+                password.Clear();
+            }
+            catch (Exception e)
+            {
+                Utils.Error(e, "Exception while trying to login");
+                ReturnMessage = new LoginReturnMessage($"Unhandled exception: {e.Message}", true);
+            }
         }
 
         private static bool IsValidAddress(string s)
