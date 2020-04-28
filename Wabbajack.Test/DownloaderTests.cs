@@ -311,34 +311,6 @@ namespace Wabbajack.Test
         }
         
         [Fact]
-        public async Task LoversLabDownloadWithKnownDelay()
-        {
-            await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
-            var ini = @"[General]
-                        directURL=https://www.loverslab.com/files/file/8567-ds3-weapon-pack-se/?do=download&r=692238&confirm=1&t=1";
-
-            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
-
-            Assert.NotNull(state);
-
-            var converted = RoundTripState(state);
-            Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20}));
-
-            // Verify with different Size
-            Assert.False(await converted.Verify(new Archive(state: null!) { Size = 15}));
-
-            
-            using var filename = new TempFile();
-            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
-
-            await converted.Download(new Archive(state: null!) { Name = "Known Loverslab delay" }, filename.Path);
-
-            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
-
-            Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
-        }
-        
-        [Fact]
         public async Task VectorPlexusDownload()
         {
             await DownloadDispatcher.GetInstance<VectorPlexusDownloader>().Prepare();
