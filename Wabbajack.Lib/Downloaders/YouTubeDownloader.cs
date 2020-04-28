@@ -102,7 +102,7 @@ namespace Wabbajack.Lib.Downloaders
                 try
                 {
                     using var queue = new WorkQueue();
-                    await using var folder = new TempFolder();
+                    await using var folder = await TempFolder.Create();
                     folder.Dir.Combine("tracks").CreateDirectory();
                     var client = new YoutubeClient(Common.Http.ClientFactory.Client);
                     var meta = await client.Videos.GetAsync(Key);

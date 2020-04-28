@@ -20,7 +20,6 @@ namespace Wabbajack
     {
         public App()
         {
-            TempFolder.EnsureInited();
             CLIOld.ParseOptions(Environment.GetCommandLineArgs());
             if (CLIArguments.Help)
                 CLIOld.DisplayHelpText();
