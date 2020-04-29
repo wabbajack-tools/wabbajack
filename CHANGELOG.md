@@ -1,7 +1,11 @@
 ### Changelog
 
-#### Version - next
-* Updated the Credentials Login form with more UI elements
+#### Version - 2.0.3.0 - 4/29/2020
+* Updated the MEGA Credentials Login form with more UI elements
+* Switch LZ4 compression to L8 (vs L12) for much faster SSE BSA creation
+* Several other internal code tweaks to improve performance and code quality
+* Fixed Mediafire pop-up ads, they are no longer shown
+* Updated 3rd party libraries to latest versions
 
 #### Version - 2.0.2.0 - 4/27/2020
 * Fixed mediafire links not getting resolved
