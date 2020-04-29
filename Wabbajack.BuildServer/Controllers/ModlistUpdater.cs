@@ -88,14 +88,12 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<IActionResult> GetAlternative(string xxHash)
         {
             var startingHash = Hash.FromHex(xxHash);
-            Utils.Log($"Alternative requested for {startingHash}");
             await Metric("requested_upgrade", startingHash.ToString());
 
             var archive = await SQL.GetStateByHash(startingHash);
 
             if (archive == null)
             {
-                Utils.Log($"No original state for {startingHash}");
                 return NotFound("Original state not found");
             }
 
@@ -120,7 +118,6 @@ namespace Wabbajack.BuildServer.Controllers
             }
 
 
-            Utils.Log($"Found {newArchive.State.PrimaryKeyString} {newArchive.Name} as an alternative to {startingHash}");
             if (newArchive.Hash == Hash.Empty)
             {
                 await SQL.EnqueueJob(new Job
@@ -138,6 +135,7 @@ namespace Wabbajack.BuildServer.Controllers
                         }
                     }
                 });
+                Utils.Log($"Enqueued Index and Upgrade for {startingHash} -> {newArchive.State.PrimaryKeyString}");
                 return Accepted("Enqueued for Processing");
             }
 
@@ -155,6 +153,7 @@ namespace Wabbajack.BuildServer.Controllers
                         DestPK = newArchive.State.PrimaryKeyString
                     }
                 });
+                Utils.Log($"Enqueued Upgrade for {startingHash} -> {newArchive.State.PrimaryKeyString}");
             }
             return Ok(newArchive.ToJson());
         }

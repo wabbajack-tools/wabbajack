@@ -57,7 +57,7 @@
 
   <ItemGroup>
     <PackageReference Include="CefSharp.Wpf" Version="79.1.360" />
-    <PackageReference Include="DynamicData" Version="6.14.10" />
+    <PackageReference Include="DynamicData" Version="6.14.14" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="3.8.1" />
     <PackageReference Include="Fody" Version="6.1.1">
       <PrivateAssets>all</PrivateAssets>
@@ -72,9 +72,9 @@
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.0.0" />
     <PackageReference Include="PInvoke.Gdi32" Version="0.6.6" />
     <PackageReference Include="PInvoke.User32" Version="0.6.6" />
-    <PackageReference Include="ReactiveUI" Version="11.3.1" />
-    <PackageReference Include="ReactiveUI.Fody" Version="11.3.1" />
-    <PackageReference Include="ReactiveUI.WPF" Version="11.3.1" />
+    <PackageReference Include="ReactiveUI" Version="11.3.8" />
+    <PackageReference Include="ReactiveUI.Fody" Version="11.3.8" />
+    <PackageReference Include="ReactiveUI.WPF" Version="11.3.8" />
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
     <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />

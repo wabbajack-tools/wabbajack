@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Wabbajack.Common.StoreHandlers
 {
@@ -13,7 +14,7 @@ namespace Wabbajack.Common.StoreHandlers
 
     public class StoreHandler
     {
-        private static readonly Lazy<StoreHandler> _instance = new Lazy<StoreHandler>(() => new StoreHandler(), true);
+        private static readonly Lazy<StoreHandler> _instance = new Lazy<StoreHandler>(() => new StoreHandler(), isThreadSafe: true);
         public static StoreHandler Instance => _instance.Value;
 
         private static readonly Lazy<SteamHandler> _steamHandler = new Lazy<SteamHandler>(() => new SteamHandler());
@@ -71,6 +72,11 @@ namespace Wabbajack.Common.StoreHandlers
         public AbsolutePath? TryGetGamePath(Game game)
         {
             return StoreGames.FirstOrDefault(g => g.Game == game)?.Path;
+        }
+
+        public static void Warmup()
+        {
+            Task.Run(() => _instance.Value).FireAndForget();
         }
     }
 
