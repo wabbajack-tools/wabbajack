@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using Wabbajack.BuildServer.Controllers;
 using Wabbajack.BuildServer.Model.Models;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
@@ -24,7 +26,18 @@ namespace Wabbajack.BuildServer.BackendServices
             {
                 try
                 {
-                    var isValid = await archive.State.Verify(archive);
+                    bool isValid;
+                    switch (archive.State)
+                    {
+                        case GoogleDriveDownloader.State _:
+                        case ManualDownloader.State _:
+                        case HTTPDownloader.State s when new Uri(s.Url).Host.StartsWith("wabbajackpush"):
+                            isValid = true;
+                            break;
+                        default:
+                            isValid = await archive.State.Verify(archive);
+                            break;
+                    }
                     return (Archive: archive, IsValid: isValid);
                 }
                 catch (Exception ex)

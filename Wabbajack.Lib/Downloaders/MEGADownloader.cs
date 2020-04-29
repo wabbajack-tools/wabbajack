@@ -96,27 +96,30 @@ namespace Wabbajack.Lib.Downloaders
 
             private static MegaApiClient MegaApiClient => DownloadDispatcher.GetInstance<MegaDownloader>().MegaApiClient;
 
-            private static void MegaLogin()
+            private static AsyncLock _loginLock = new AsyncLock();
+            private static async Task MegaLogin()
             {
+                using var _ = await _loginLock.WaitAsync();
+
                 if (MegaApiClient.IsLoggedIn)
                     return;
 
                 if (!Utils.HaveEncryptedJson(DataName))
                 {
                     Utils.Status("Logging into MEGA (as anonymous)");
-                    MegaApiClient.LoginAnonymous();
+                    await MegaApiClient.LoginAnonymousAsync();
                 }
                 else
                 {
                     Utils.Status("Logging into MEGA with saved credentials.");
                     var authInfo = Utils.FromEncryptedJson<MegaApiClient.AuthInfos>(DataName);
-                    MegaApiClient.Login(authInfo);
+                    await MegaApiClient.LoginAsync(authInfo);
                 }
             }
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
-                MegaLogin();
+                await MegaLogin();
 
                 var fileLink = new Uri(Url);
                 Utils.Status($"Downloading MEGA file: {a.Name}");
@@ -126,7 +129,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive a)
             {
-                MegaLogin();
+                await MegaLogin();
 
                 var fileLink = new Uri(Url);
                 try

@@ -44,7 +44,8 @@ namespace Wabbajack.BuildServer.Controllers
             return Ok(new HeartbeatResult
             {
                 Uptime = DateTime.Now - _startTime,
-                LastNexusUpdate = DateTime.Now - GetNexusUpdatesJob.LastNexusSync
+                LastNexusUpdate = DateTime.Now - GetNexusUpdatesJob.LastNexusSync,
+                LastListValidation = DateTime.UtcNow - ListValidation.SummariesLastChecked
             });
         }
 
@@ -53,6 +54,8 @@ namespace Wabbajack.BuildServer.Controllers
         {
             public TimeSpan Uptime { get; set; }
             public TimeSpan LastNexusUpdate { get; set; }
+            
+            public TimeSpan LastListValidation { get; set; }
         }
 
         [HttpGet("only-authenticated")]
