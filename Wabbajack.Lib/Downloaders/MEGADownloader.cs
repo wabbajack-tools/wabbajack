@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Security;
 using System.Threading.Tasks;
 using CG.Web.MegaApiClient;
+using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
@@ -14,6 +15,39 @@ namespace Wabbajack.Lib.Downloaders
     {
         public MegaApiClient MegaApiClient;
         private const string DataName = "mega-cred";
+
+        [JsonName("MEGAAuthInfos")]
+        //https://github.com/gpailler/MegaApiClient/blob/master/MegaApiClient/MegaApiClient.cs#L1242
+        internal class MEGAAuthInfos
+        {
+            [JsonProperty] 
+            public string Email { get; private set; } = string.Empty;
+
+            [JsonProperty]
+            public string Hash { get; private set; } = string.Empty;
+
+            [JsonProperty]
+            public byte[]? PasswordAesKey { get; private set; }
+
+            [JsonProperty]
+            public string MFAKey { get; private set; } = string.Empty;
+
+            public static MEGAAuthInfos ToMEGAAuthInfos(MegaApiClient.AuthInfos infos)
+            {
+                return new MEGAAuthInfos
+                {
+                    Email = infos.Email,
+                    Hash = infos.Hash,
+                    PasswordAesKey = infos.PasswordAesKey
+                };
+            }
+
+            public MegaApiClient.AuthInfos ToAuthInfos()
+            {
+                //TODO: MFAKey in the update
+                return new MegaApiClient.AuthInfos(Email, Hash, PasswordAesKey);
+            }
+        }
 
         public LoginReturnMessage LoginWithCredentials(string username, SecureString password)
         {
@@ -51,8 +85,11 @@ namespace Wabbajack.Lib.Downloaders
                 };
             }
 
-            if(MegaApiClient.IsLoggedIn)
-                authInfos.ToEcryptedJson(DataName);
+            if (MegaApiClient.IsLoggedIn)
+            {
+                var infos = MEGAAuthInfos.ToMEGAAuthInfos(authInfos);
+                infos.ToEcryptedJson(DataName);
+            }
 
             return new LoginReturnMessage("Logged in successfully, you can now close this window.",
                 !MegaApiClient.IsLoggedIn || !Utils.HaveEncryptedJson(DataName));
@@ -109,7 +146,8 @@ namespace Wabbajack.Lib.Downloaders
                 else
                 {
                     Utils.Status("Logging into MEGA with saved credentials.");
-                    var authInfo = Utils.FromEncryptedJson<MegaApiClient.AuthInfos>(DataName);
+                    var infos = Utils.FromEncryptedJson<MEGAAuthInfos>(DataName);
+                    var authInfo = infos.ToAuthInfos();
                     MegaApiClient.Login(authInfo);
                 }
             }
