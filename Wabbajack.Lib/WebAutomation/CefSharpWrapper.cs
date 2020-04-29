@@ -18,6 +18,9 @@ namespace Wabbajack.Lib.WebAutomation
         public CefSharpWrapper(IWebBrowser browser)
         {
             _browser = browser;
+
+            _browser.DownloadHandler = new DownloadHandler(this);
+            _browser.LifeSpanHandler = new PopupBlocker(this);
         }
 
         public Task NavigateTo(Uri uri)
@@ -33,11 +36,9 @@ namespace Wabbajack.Lib.WebAutomation
                     tcs.SetResult(true);
                 }
             };
-
             _browser.LoadingStateChanged += handler;
             _browser.Load(uri.ToString());
-            _browser.DownloadHandler = new DownloadHandler(this);
-            _browser.LifeSpanHandler = new PopupBlocker(this);
+
             return tcs.Task;
         }
 
@@ -80,7 +81,7 @@ namespace Wabbajack.Lib.WebAutomation
             IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser? newBrowser)
         {
             // Block popups
-            newBrowser = null;
+            newBrowser = chromiumWebBrowser;
             return true;
         }
 
@@ -90,7 +91,7 @@ namespace Wabbajack.Lib.WebAutomation
 
         public bool DoClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
         {
-            return true;
+            return false;
         }
 
         public void OnBeforeClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
