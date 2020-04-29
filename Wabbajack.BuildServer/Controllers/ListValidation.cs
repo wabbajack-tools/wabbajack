@@ -17,6 +17,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Lib.NexusApi;
 
 namespace Wabbajack.BuildServer.Controllers
 {
@@ -24,7 +25,7 @@ namespace Wabbajack.BuildServer.Controllers
     [Route("/lists")]
     public class ListValidation : AControllerBase<ListValidation>
     {
-        enum ArchiveStatus
+        public enum ArchiveStatus
         {
             Valid,
             InValid,
@@ -37,6 +38,8 @@ namespace Wabbajack.BuildServer.Controllers
             _updater = new ModlistUpdater(null, sql, settings);
             _settings = settings;
             Cache = cache;
+            _nexusClient = NexusApiClient.Get();
+
         }
 
         public static IMemoryCache Cache { get; set; }
@@ -44,76 +47,97 @@ namespace Wabbajack.BuildServer.Controllers
 
         public static void ResetCache()
         {
-            Cache?.Remove(ModListSummariesKey);
+            SummariesLastChecked = DateTime.UnixEpoch;
+            ModListSummaries = null;
         }
 
+        private static IEnumerable<(ModListSummary Summary, DetailedStatus Detailed)> ModListSummaries = null;
+        public static DateTime SummariesLastChecked = DateTime.UnixEpoch;
+        private static AsyncLock UpdateLock = new AsyncLock();
         public async Task<IEnumerable<(ModListSummary Summary, DetailedStatus Detailed)>> GetSummaries()
         {
-            
-            if (Cache.TryGetValue(ModListSummariesKey, out object result))
+            static bool TimesUp()
             {
-                return (IEnumerable<(ModListSummary Summary, DetailedStatus Detailed)>)result;
+                return DateTime.UtcNow - SummariesLastChecked > TimeSpan.FromMinutes(5);
+            }
+            
+            if (ModListSummaries != null && !TimesUp())
+            {
+                return ModListSummaries;
             }
 
-            
-            var data = await SQL.GetValidationData();
-            
-            using var queue = new WorkQueue();
-
-            var results = await data.ModLists.PMap(queue, async list =>
+            var task = Task.Run(async () =>
             {
-                var (metadata, modList) = list;
-                var archives = await modList.Archives.PMap(queue, async archive =>
+                using var _ = await UpdateLock.WaitAsync();
+                if (ModListSummaries != null && !TimesUp())
                 {
-                    var (_, result) = ValidateArchive(data, archive);
-                    if (result == ArchiveStatus.InValid)
+                    return ModListSummaries;
+                }
+                SummariesLastChecked = DateTime.UtcNow;
+
+                
+                var data = await SQL.GetValidationData();
+
+                using var queue = new WorkQueue();
+
+                var results = await data.ModLists.PMap(queue, async list =>
+                {
+                    var (metadata, modList) = list;
+                    var archives = await modList.Archives.PMap(queue, async archive =>
                     {
-                        var fixResult = await TryToFix(data, archive);
-                        
-                        return fixResult;
+                        var (_, result) = await ValidateArchive(data, archive);
+                        if (result != ArchiveStatus.InValid) return (archive, result);
 
-                    }
+                        return await TryToFix(data, archive);
 
-                    return (archive, result);
+                    });
+
+                    var failedCount = archives.Count(f => f.Item2 == ArchiveStatus.InValid);
+                    var passCount = archives.Count(f =>
+                        f.Item2 == ArchiveStatus.Valid || f.Item2 == ArchiveStatus.Updated);
+                    var updatingCount = archives.Count(f => f.Item2 == ArchiveStatus.Updating);
+
+                    var summary = new ModListSummary
+                    {
+                        Checked = DateTime.UtcNow,
+                        Failed = failedCount,
+                        Passed = passCount,
+                        Updating = updatingCount,
+                        MachineURL = metadata.Links.MachineURL,
+                        Name = metadata.Title,
+                    };
+
+                    var detailed = new DetailedStatus
+                    {
+                        Name = metadata.Title,
+                        Checked = DateTime.UtcNow,
+                        DownloadMetaData = metadata.DownloadMetadata,
+                        HasFailures = failedCount > 0,
+                        MachineName = metadata.Links.MachineURL,
+                        Archives = archives.Select(a => new DetailedStatusItem
+                        {
+                            Archive = a.Item1,
+                            IsFailing = a.Item2 == ArchiveStatus.InValid || a.Item2 == ArchiveStatus.Updating
+                        }).ToList()
+                    };
+
+                    return (summary, detailed);
                 });
 
-                var failedCount = archives.Count(f => f.Item2 == ArchiveStatus.InValid);
-                var passCount = archives.Count(f => f.Item2 == ArchiveStatus.Valid || f.Item2 == ArchiveStatus.Updated);
-                var updatingCount = archives.Count(f => f.Item2 == ArchiveStatus.Updating);
 
-                var summary =  new ModListSummary
-                {
-                    Checked = DateTime.UtcNow,
-                    Failed = failedCount,
-                    Passed = passCount,
-                    Updating = updatingCount,
-                    MachineURL = metadata.Links.MachineURL,
-                    Name = metadata.Title,
-                };
-
-                var detailed = new DetailedStatus
-                {
-                    Name = metadata.Title,
-                    Checked = DateTime.UtcNow,
-                    DownloadMetaData = metadata.DownloadMetadata,
-                    HasFailures = failedCount > 0,
-                    MachineName = metadata.Links.MachineURL,
-                    Archives = archives.Select(a => new DetailedStatusItem
-                    {
-                        Archive = a.Item1, IsFailing = a.Item2 == ArchiveStatus.InValid || a.Item2 == ArchiveStatus.Updating
-                    }).ToList()
-                };
-
-                return (summary, detailed);
+                var cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(1));
+                Cache.Set(ModListSummariesKey, results, cacheOptions);
+                
+                ModListSummaries = results;
+                return results;
             });
-
-            
-            var cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(1));
-            Cache.Set(ModListSummariesKey, results, cacheOptions);
-            return results;
+            var data = ModListSummaries;
+            if (data == null)
+                return await task;
+            return data;
         }
 
-        private static (Archive archive, ArchiveStatus) ValidateArchive(SqlService.ValidationData data, Archive archive)
+        private async Task<(Archive archive, ArchiveStatus)> ValidateArchive(SqlService.ValidationData data, Archive archive)
         {
             switch (archive.State)
             {
@@ -123,8 +147,10 @@ namespace Wabbajack.BuildServer.Controllers
                 case NexusDownloader.State nexusState when data.NexusFiles.Contains((
                     nexusState.Game.MetaData().NexusGameId, nexusState.ModID, nexusState.FileID)):
                     return (archive, ArchiveStatus.Valid);
-                case NexusDownloader.State _:
-                    return (archive, ArchiveStatus.InValid);
+                case NexusDownloader.State ns:
+                    return (archive, await FastNexusModStats(ns));
+                case HTTPDownloader.State s when new Uri(s.Url).Host.StartsWith("wabbajackpush"):
+                    return (archive, ArchiveStatus.Valid);
                 case ManualDownloader.State _:
                     return (archive, ArchiveStatus.Valid);
                 default:
@@ -138,6 +164,47 @@ namespace Wabbajack.BuildServer.Controllers
                     return (archive, ArchiveStatus.InValid);
                 }
             }
+        }
+
+        private async Task<ArchiveStatus> FastNexusModStats(NexusDownloader.State ns)
+        {
+            
+            var mod = await SQL.GetNexusModInfoString(ns.Game, ns.ModID);
+            var files = await SQL.GetModFiles(ns.Game, ns.ModID);
+
+            if (mod == null)
+            {
+                Utils.Log($"Found missing Nexus mod info {ns.Game} {ns.ModID}");
+                mod = await (await _nexusClient).GetModInfo(ns.Game, ns.ModID, false);
+                try
+                {
+                    await SQL.AddNexusModInfo(ns.Game, ns.ModID, mod.updated_time, mod);
+                }
+                catch (Exception _)
+                {
+                    // Could be a PK constraint failure
+                }
+            }
+
+            if (files == null)
+            {
+                Utils.Log($"Found missing Nexus mod file infos {ns.Game} {ns.ModID}");
+                files = await (await _nexusClient).GetModFiles(ns.Game, ns.ModID, false);
+
+                try
+                {
+                    await SQL.AddNexusModFiles(ns.Game, ns.ModID, mod.updated_time, files);
+                }
+                catch (Exception _)
+                {
+                    // Could be a PK constraint failure
+                }
+            }
+
+            if (mod.available && files.files.Any(f => !string.IsNullOrEmpty(f.category_name) && f.file_id == ns.FileID))
+                return ArchiveStatus.Valid;
+            return ArchiveStatus.InValid;
+
         }
 
         private static AsyncLock _findPatchLock = new AsyncLock();
@@ -219,6 +286,7 @@ namespace Wabbajack.BuildServer.Controllers
 
         private AppSettings _settings;
         private ModlistUpdater _updater;
+        private Task<NexusApiClient> _nexusClient;
 
         [HttpGet]
         [Route("status/{Name}.html")]
