@@ -6,6 +6,7 @@ using System.Windows;
 using MahApps.Metro.Controls;
 using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.StoreHandlers;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Util;
 using Application = System.Windows.Application;
@@ -23,8 +24,6 @@ namespace Wabbajack
 
         public MainWindow()
         {
-            TempFolder.Init();
-            Helpers.Init();
             // Wire any unhandled crashing exceptions to log before exiting
             AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
             {
@@ -44,22 +43,7 @@ namespace Wabbajack
             Utils.Log(
                 $"System settings - ({p.SystemMemorySize.ToFileSizeString()} RAM), Display: {p.ScreenWidth} x {p.ScreenHeight} ({p.VideoMemorySize.ToFileSizeString()} VRAM - VideoMemorySizeMb={p.EnbLEVRAMSize})");
 
-            // Run logic to associate wabbajack lists with this app in the background
-            Task.Run(async () =>
-            {
-                var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                try
-                {
-                    if (!ModListAssociationManager.IsAssociated() || ModListAssociationManager.NeedsUpdating(appPath))
-                    {
-                        ModListAssociationManager.Associate(appPath);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Utils.Log($"ExtensionManager had an exception:\n{e}");
-                }
-            }).FireAndForget();
+            Warmup();
 
             // Load settings
             if (CLIArguments.NoSettings || !MainSettings.TryLoadTypicalSettings(out var settings))
@@ -98,6 +82,40 @@ namespace Wabbajack
             DataContext = vm;
             _mwvm = vm;
             _settings = settings;
+        }
+
+        /// <summary>
+        /// Starts some background initialization tasks spinning so they're already prepped when actually needed
+        /// </summary>
+        private void Warmup()
+        {
+            TempFolder.Warmup();
+            // ToDo
+            // Currently this is a blocking call.  Perhaps upgrade to be run in a background task.
+            // Would first need to ensure users of CEF properly await the background initialization before use
+            Helpers.Init();
+            StoreHandler.Warmup();
+
+            Task.Run(AssociateListsWithWabbajack).FireAndForget();
+        }
+
+        /// <summary>
+        /// Run logic to associate wabbajack lists with this app in the background
+        /// </summary>
+        private void AssociateListsWithWabbajack()
+        {
+            var appPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            try
+            {
+                if (!ModListAssociationManager.IsAssociated() || ModListAssociationManager.NeedsUpdating(appPath))
+                {
+                    ModListAssociationManager.Associate(appPath);
+                }
+            }
+            catch (Exception e)
+            {
+                Utils.Log($"ExtensionManager had an exception:\n{e}");
+            }
         }
 
         private void RunWhenLoaded(Action a)

@@ -18,7 +18,10 @@ namespace Wabbajack.Common
             _cleanTask = Task.Run(() => "tmp_files".RelativeTo(AbsolutePath.EntryPoint).DeleteDirectory());
         }
 
-        public static void Init()
+        /// <summary>
+        /// Starts the initialization in a background task
+        /// </summary>
+        public static void Warmup()
         {
             // Nothing to do, as work is done in static ctor
         }
