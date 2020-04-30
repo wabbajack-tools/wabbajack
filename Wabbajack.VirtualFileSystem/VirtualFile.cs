@@ -183,13 +183,22 @@ namespace Wabbajack.VirtualFileSystem
 
             if (!await extractedFile.CanExtract()) return self;
 
-            await using var extracted = await extractedFile.ExtractAll(context.Queue);
+            try
+            {
 
-            var list = await extracted
-                .PMap(context.Queue,
-                    file => Analyze(context, self, file.Value, file.Key, depth + 1));
+                await using var extracted = await extractedFile.ExtractAll(context.Queue);
 
-            self.Children = list.ToImmutableList();
+                var list = await extracted
+                    .PMap(context.Queue,
+                        file => Analyze(context, self, file.Value, file.Key, depth + 1));
+
+                self.Children = list.ToImmutableList();
+            }
+            catch (Exception ex)
+            {
+                Utils.Log($"Error while examining the contents of {relPath.FileName}");
+                throw;
+            }
 
             return self;
         }
