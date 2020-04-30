@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Exceptions;
 
@@ -58,6 +60,12 @@ namespace Wabbajack.Lib
         {
             return await GetClient()
                 .GetJsonAsync<NexusCacheStats>($"{Consts.WabbajackBuildServerUri}nexus_cache/stats");
+        }
+
+        public static async Task<Dictionary<RelativePath, Hash>> GetGameFiles(Game game, Version version)
+        {
+            return await GetClient()
+                .GetJsonAsync<Dictionary<RelativePath, Hash>>($"{Consts.WabbajackBuildServerUri}game_files/{game}/{version}");
         }
     }
 }

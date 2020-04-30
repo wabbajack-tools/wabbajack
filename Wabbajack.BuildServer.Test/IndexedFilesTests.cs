@@ -86,6 +86,52 @@ namespace Wabbajack.BuildServer.Test
             Assert.Null(await SQL.GetJob());
         }
 
+        [Fact]
+        public async Task CanGetGameFiles()
+        {
+            var sql = Fixture.GetService<SqlService>();
+            await sql.AddDownloadState(Hash.FromLong(1),
+                new GameFileSourceDownloader.State("1.2.3.4")
+                {
+                    Game = Game.SkyrimSpecialEdition, 
+                    Hash = Hash.FromLong(1),
+                    GameFile = (RelativePath)@"Data\foo.bsa",
+                });
+            await sql.AddDownloadState(Hash.FromLong(2),
+                new GameFileSourceDownloader.State("1.2.3.4")
+                {
+                    Game = Game.SkyrimSpecialEdition, 
+                    Hash = Hash.FromLong(2),
+                    GameFile = (RelativePath)@"Data\foo - Textures.bsa",
+                });
+
+            
+            await sql.AddDownloadState(Hash.FromLong(3),
+                new GameFileSourceDownloader.State("1.2.3.4")
+                {
+                    Game = Game.Skyrim, 
+                    Hash = Hash.FromLong(3),
+                    GameFile = (RelativePath)@"Data\foo - Textures.bsa",
+                });
+
+            await sql.AddDownloadState(Hash.FromLong(4),
+                new GameFileSourceDownloader.State("1.9.3.4")
+                {
+                    Game = Game.SkyrimSpecialEdition, 
+                    Hash = Hash.FromLong(4),
+                    GameFile = (RelativePath)@"Data\foo - Textures.bsa",
+                });
+
+            var results = await ClientAPI.GetGameFiles(Game.SkyrimSpecialEdition, Version.Parse("1.2.3.4"));
+            
+            Assert.Equal(new Dictionary<RelativePath, Hash>
+            {
+                {(RelativePath)@"Data\foo.bsa", Hash.FromLong(1)},
+                {(RelativePath)@"Data\foo - Textures.bsa", Hash.FromLong(2)},
+            }, results);
+
+        }
+
         public IndexedFilesTests(ITestOutputHelper output, SingletonAdaptor<BuildServerFixture> fixture) : base(output, fixture)
         {
             
