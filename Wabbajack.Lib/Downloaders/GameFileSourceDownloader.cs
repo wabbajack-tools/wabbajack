@@ -46,11 +46,16 @@ namespace Wabbajack.Lib.Downloaders
             public Game Game { get; set; }
             public RelativePath GameFile { get; set; }
             public Hash Hash { get; set; }
-            public string GameVersion { get; }
+            public string GameVersion { get; set; } = "";
 
             public State(string gameVersion)
             {
                 GameVersion = gameVersion;
+            }
+
+            public State()
+            {
+                
             }
 
             [JsonIgnore]
@@ -93,6 +98,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 return new[] {"[General]", $"gameName={Game.MetaData().MO2ArchiveName}", $"gameFile={GameFile}"};
             }
+
         }
     }
 }

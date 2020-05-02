@@ -1,24 +1,17 @@
 ﻿using Compression.BSA;
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.FileUploader;
-using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
-using Directory = Alphaleonis.Win32.Filesystem.Directory;
-using File = Alphaleonis.Win32.Filesystem.File;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
-using Game = Wabbajack.Common.Game;
+using Wabbajack.VirtualFileSystem;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
@@ -105,7 +98,7 @@ namespace Wabbajack.Lib
 
             var roots = new List<AbsolutePath>
             {
-                MO2Folder, GamePath, MO2DownloadsFolder
+                MO2Folder, GamePath, MO2DownloadsFolder, CompilingGame.GameLocation()
             };
             
             // TODO: make this generic so we can add more paths
@@ -172,6 +165,7 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Pre-validating Archives");
             
 
+            // Find all Downloads
             IndexedArchives = (await MO2DownloadsFolder.EnumerateFiles()
                 .Where(f => f.WithExtension(Consts.MetaFileExtension).Exists)
                 .PMap(Queue, async f => new IndexedArchive(VFS.Index.ByRootPath[f])
@@ -180,9 +174,37 @@ namespace Wabbajack.Lib
                     IniData = f.WithExtension(Consts.MetaFileExtension).LoadIniFile(),
                     Meta = await f.WithExtension(Consts.MetaFileExtension).ReadAllTextAsync()
                 })).ToList();
+
+
+            var stockGameFolder = CompilingGame.GameLocation();
             
+            foreach (var (relativePath, hash) in await ClientAPI.GetGameFiles(CompilingGame.Game, Version.Parse(CompilingGame.InstalledVersion)))
+            {
+                if (!VFS.Index.ByRootPath.TryGetValue(relativePath.RelativeTo(stockGameFolder), out var virtualFile))
+                    continue;
+                if (virtualFile.Hash != hash)
+                {
+                    Utils.Log(
+                        $"File {relativePath} int the game folder appears to be modified, it will not be used during compilation");
+                    continue;
+                }
 
+                var state = new GameFileSourceDownloader.State
+                {
+                    Game = CompilingGame.Game, GameVersion = CompilingGame.InstalledVersion, GameFile = relativePath
+                };
 
+                Utils.Log($"Adding Game file: {relativePath}");
+                IndexedArchives.Add(new IndexedArchive(virtualFile)
+                {
+                    Name = (string)relativePath.FileName,
+                    IniData = state.GetMetaIniString().LoadIniString(),
+                    Meta = state.GetMetaIniString()
+                });
+            }
+            
+            
+            
             await CleanInvalidArchives();
 
             UpdateTracker.NextStep("Finding Install Files");
@@ -395,11 +417,13 @@ namespace Wabbajack.Lib
             await SelectedArchives.PMap(Queue, async a =>
             {
                 var source = MO2DownloadsFolder.Combine(a.Name + Consts.MetaFileExtension);
+                var ini = a.State.GetMetaIniString();
+                var (id, fullPath) = await IncludeString(ini);
                 InstallDirectives.Add(new ArchiveMeta
                 {
-                    SourceDataID = await IncludeFile(source),
+                    SourceDataID = id,
                     Size = source.Size,
-                    Hash = await source.FileHashAsync(),
+                    Hash = await fullPath.FileHashAsync(),
                     To = source.FileName
                 });
             });

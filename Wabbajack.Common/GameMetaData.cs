@@ -85,7 +85,7 @@ namespace Wabbajack.Common
 
         public AbsolutePath? TryGetGameLocation()
         {
-            return Consts.TestMode ? AbsolutePath.GetCurrentDirectory() : StoreHandler.Instance.TryGetGamePath(Game);
+            return StoreHandler.Instance.TryGetGamePath(Game);
         }
 
         public bool TryGetGameLocation(out AbsolutePath path)

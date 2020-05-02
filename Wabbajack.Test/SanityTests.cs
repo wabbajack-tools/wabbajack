@@ -421,6 +421,27 @@ namespace Wabbajack.Test
             utils.VerifyInstalledFile(mod, @"baz.bsa");
             
         }
+
+        [Fact]
+        public async Task CanSourceFilesFromStockGameFiles()
+        {
+            Consts.TestMode = false;
+
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var skyrimExe = utils.AddModFile(mod, @"Data\test.exe", 10);
+
+            await Game.SkyrimSpecialEdition.MetaData().GameLocation().Combine("SkyrimSE.exe").CopyToAsync(skyrimExe);
+            
+            await utils.Configure();
+            
+            await CompileAndInstall(profile);
+
+            utils.VerifyInstalledFile(mod, @"Data\test.exe");
+
+            Consts.TestMode = true;
+
+        }
         
         [Fact]
         public async Task NoMatchIncludeIncludesNonMatchingFiles() 

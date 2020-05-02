@@ -94,5 +94,10 @@ namespace Wabbajack.Lib.Downloaders
 
         public abstract string? GetManifestURL(Archive a);
         public abstract string[] GetMetaIni();
+
+        public string GetMetaIniString()
+        {
+            return string.Join("\n", GetMetaIni());
+        }
     }
 }
