@@ -64,6 +64,28 @@ namespace Wabbajack.BuildServer.Test
             }
 
         }
+        
+        [Fact]
+        public async Task CanDeleteFilesUsingClientApi()
+        {
+            using (var file = new TempFile())
+            {
+                var data = new byte[1024];
+                await using (var fs = file.Path.Create())
+                {
+                    await fs.WriteAsync(data);
+                }
+
+                Utils.Log($"Uploading {file.Path.Size.ToFileSizeString()} file");
+                var result = await AuthorAPI.UploadFile(file.Path,
+                    progress => Utils.Log($"Uploading : {progress * 100}%"), Fixture.APIKey);
+
+                Utils.Log($"Delete {result}");
+                await AuthorAPI.DeleteFile((string)((RelativePath)new Uri(result).AbsolutePath).FileName);
+
+            }
+
+        }
 
         public UploadedFilesTest(ITestOutputHelper output, SingletonAdaptor<BuildServerFixture> fixture) : base(output, fixture)
         {

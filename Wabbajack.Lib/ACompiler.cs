@@ -229,7 +229,6 @@ namespace Wabbajack.Lib
 
             result.Name = archive.Name;
             result.Hash = archive.File.Hash;
-            result.Meta = archive.Meta;
             result.Size = archive.File.Size;
 
             await result.State!.GetDownloader().Prepare();
@@ -238,6 +237,9 @@ namespace Wabbajack.Lib
                 Error(
                     $"Unable to resolve link for {archive.Name}. If this is hosted on the Nexus the file may have been removed.");
 
+            result.Meta = string.Join("\n", result.State!.GetMetaIni());
+
+            
             return result;
         }
 

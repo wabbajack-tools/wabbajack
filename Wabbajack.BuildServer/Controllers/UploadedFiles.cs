@@ -214,20 +214,24 @@ namespace Wabbajack.BuildServer.Controllers
         {
             var user = User.FindFirstValue(ClaimTypes.Name);
             Utils.Log($"Delete Uploaded File {user} {name}");
-            var files = await SQL.AllUploadedFilesForUser(name);
+            var files = await SQL.AllUploadedFilesForUser(user);
             
             var to_delete = files.First(f => f.MungedName == name);
             
             if (AlphaFile.Exists(Path.Combine("public", "files", to_delete.MungedName)))
                 AlphaFile.Delete(Path.Combine("public", "files", to_delete.MungedName));
 
-            using (var client = new FtpClient("storage.bunnycdn.com"))
-            {
-                client.Credentials = new NetworkCredential(_settings.BunnyCDN_User, _settings.BunnyCDN_Password);
-                await client.ConnectAsync();
-                if (await client.FileExistsAsync(to_delete.MungedName))
-                    await client.DeleteFileAsync(to_delete.MungedName);
 
+            if (_settings.BunnyCDN_User != "TEST" || _settings.BunnyCDN_Password != "TEST")
+            {
+                using (var client = new FtpClient("storage.bunnycdn.com"))
+                {
+                    client.Credentials = new NetworkCredential(_settings.BunnyCDN_User, _settings.BunnyCDN_Password);
+                    await client.ConnectAsync();
+                    if (await client.FileExistsAsync(to_delete.MungedName))
+                        await client.DeleteFileAsync(to_delete.MungedName);
+
+                }
             }
 
             await SQL.DeleteUploadedFile(to_delete.Id);
@@ -263,12 +267,7 @@ namespace Wabbajack.BuildServer.Controllers
                 files.Add(uf);
                 await SQL.AddUploadedFile(uf);
             }
-            
-
             return Ok(files.Count);
         }
-
-
-
     }
 }

@@ -114,10 +114,14 @@ namespace Wabbajack.BuildServer.Controllers
                         DownloadMetaData = metadata.DownloadMetadata,
                         HasFailures = failedCount > 0,
                         MachineName = metadata.Links.MachineURL,
-                        Archives = archives.Select(a => new DetailedStatusItem
+                        Archives = archives.Select(a =>
                         {
-                            Archive = a.Item1,
-                            IsFailing = a.Item2 == ArchiveStatus.InValid || a.Item2 == ArchiveStatus.Updating
+                            a.Item1.Meta = "";
+                            return new DetailedStatusItem
+                            {
+                                Archive = a.Item1,
+                                IsFailing = a.Item2 == ArchiveStatus.InValid || a.Item2 == ArchiveStatus.Updating
+                            };
                         }).ToList()
                     };
 
@@ -172,33 +176,59 @@ namespace Wabbajack.BuildServer.Controllers
             var mod = await SQL.GetNexusModInfoString(ns.Game, ns.ModID);
             var files = await SQL.GetModFiles(ns.Game, ns.ModID);
 
-            if (mod == null)
+            try
             {
-                Utils.Log($"Found missing Nexus mod info {ns.Game} {ns.ModID}");
-                mod = await (await _nexusClient).GetModInfo(ns.Game, ns.ModID, false);
-                try
+                if (mod == null)
                 {
-                    await SQL.AddNexusModInfo(ns.Game, ns.ModID, mod.updated_time, mod);
+                    Utils.Log($"Found missing Nexus mod info {ns.Game} {ns.ModID}");
+                    try
+                    {
+                        mod = await (await _nexusClient).GetModInfo(ns.Game, ns.ModID, false);
+                    }
+                    catch
+                    {
+                        mod = new ModInfo
+                        {
+                            mod_id = ns.ModID.ToString(), game_id = ns.Game.MetaData().NexusGameId, available = false
+                        };
+                    }
+
+                    try
+                    {
+                        await SQL.AddNexusModInfo(ns.Game, ns.ModID, mod.updated_time, mod);
+                    }
+                    catch (Exception _)
+                    {
+                        // Could be a PK constraint failure
+                    }
+
                 }
-                catch (Exception _)
+
+                if (files == null)
                 {
-                    // Could be a PK constraint failure
+                    Utils.Log($"Found missing Nexus mod file infos {ns.Game} {ns.ModID}");
+                    try
+                    {
+                        files = await (await _nexusClient).GetModFiles(ns.Game, ns.ModID, false);
+                    }
+                    catch
+                    {
+                        files = new NexusApiClient.GetModFilesResponse {files = new List<NexusFileInfo>()};
+                    }
+
+                    try
+                    {
+                        await SQL.AddNexusModFiles(ns.Game, ns.ModID, mod.updated_time, files);
+                    }
+                    catch (Exception _)
+                    {
+                        // Could be a PK constraint failure
+                    }
                 }
             }
-
-            if (files == null)
+            catch (Exception ex)
             {
-                Utils.Log($"Found missing Nexus mod file infos {ns.Game} {ns.ModID}");
-                files = await (await _nexusClient).GetModFiles(ns.Game, ns.ModID, false);
-
-                try
-                {
-                    await SQL.AddNexusModFiles(ns.Game, ns.ModID, mod.updated_time, files);
-                }
-                catch (Exception _)
-                {
-                    // Could be a PK constraint failure
-                }
+                return ArchiveStatus.InValid;
             }
 
             if (mod.available && files.files.Any(f => !string.IsNullOrEmpty(f.category_name) && f.file_id == ns.FileID))

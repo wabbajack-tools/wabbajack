@@ -138,6 +138,17 @@ namespace Wabbajack.BuildServer.Model.Models
             return Build(0).FirstOrDefault();
         }
 
+        public async Task<IEnumerable<(RelativePath, Hash)>> GameFiles(Game game, Version version)
+        {
+            await using var conn = await Open();
+            var files = await conn.QueryAsync<(RelativePath, Hash)>(
+                @"SELECT Path, Hash FROM dbo.GameFiles where Game = @Game AND GameVersion = @GameVersion",
+                new {Game = game.ToString(), GameVersion = version});
+
+            return files;
+
+        }
+
         public async Task IngestAllMetrics(IEnumerable<Metric> allMetrics)
         {
             await using var conn = await Open();
@@ -287,6 +298,8 @@ namespace Wabbajack.BuildServer.Model.Models
             SqlMapper.AddTypeHandler(new JsonMapper<AJobPayload>());
             SqlMapper.AddTypeHandler(new JsonMapper<JobResult>());
             SqlMapper.AddTypeHandler(new JsonMapper<Job>());
+            SqlMapper.AddTypeHandler(new VersionMapper());
+            SqlMapper.AddTypeHandler(new GameMapper());
         }
 
         public class JsonMapper<T> : SqlMapper.TypeHandler<T>
@@ -325,6 +338,32 @@ namespace Wabbajack.BuildServer.Model.Models
             public override Hash Parse(object value)
             {
                 return Hash.FromLong((long)value);
+            }
+        }
+        
+        class VersionMapper : SqlMapper.TypeHandler<Version>
+        {
+            public override void SetValue(IDbDataParameter parameter, Version value)
+            {
+                parameter.Value = value.ToString();
+            }
+
+            public override Version Parse(object value)
+            {
+                return Version.Parse((string)value);
+            }
+        }
+        
+        class GameMapper : SqlMapper.TypeHandler<Game>
+        {
+            public override void SetValue(IDbDataParameter parameter, Game value)
+            {
+                parameter.Value = value.ToString();
+            }
+
+            public override Game Parse(object value)
+            {
+                return GameRegistry.GetByFuzzyName((string)value).Game;
             }
         }
         

@@ -131,6 +131,14 @@ namespace Wabbajack.BuildServer.Controllers
             return Ok(result);
         }
 
+        [HttpGet]
+        [Route("/game_files/{game}/{version}")]
+        public async Task<IActionResult> GetGameFiles(string game, string version)
+        {
+            var result = await _sql.GameFiles(GameRegistry.GetByFuzzyName(game).Game, Version.Parse(version));
+            return Ok(result.ToDictionary(k => k.Item1, k => k.Item2));
+        }
+
         public class TreeResult : IndexedFile
         {
             public List<TreeResult> ChildFiles { get; set; }
