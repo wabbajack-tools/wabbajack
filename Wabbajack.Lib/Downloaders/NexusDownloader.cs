@@ -196,6 +196,16 @@ namespace Wabbajack.Lib.Downloaders
 
                     var found = modFiles.files
                         .FirstOrDefault(file => file.file_id == FileID && file.category_name != null);
+
+                    if (found != null)
+                        return true;
+
+                    Utils.Log($"Could not validate {URL} with cache, validating manually");
+                    modFiles = await client.GetModFiles(Game, ModID, false);
+
+                    found = modFiles.files
+                        .FirstOrDefault(file => file.file_id == FileID && file.category_name != null);
+
                     return found != null;
                 }
                 catch (Exception ex)
