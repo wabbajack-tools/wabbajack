@@ -29,9 +29,11 @@ namespace Wabbajack.Lib
         public ModList ModList { get; private set; }
         public Dictionary<Hash, AbsolutePath> HashedArchives { get; } = new Dictionary<Hash, AbsolutePath>();
         
+        public GameMetaData Game { get; }
+
         public SystemParameters? SystemParameters { get; set; }
 
-        public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters? parameters, int steps)
+        public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters? parameters, int steps, Game game)
             : base(steps)
         {
             ModList = modList;
@@ -39,6 +41,7 @@ namespace Wabbajack.Lib
             OutputFolder = outputFolder;
             DownloadFolder = downloadFolder;
             SystemParameters = parameters;
+            Game = game.MetaData();
         }
 
         public void Info(string msg)
@@ -280,7 +283,9 @@ namespace Wabbajack.Lib
 
         public async Task HashArchives()
         {
-            var hashResults = await DownloadFolder.EnumerateFiles()
+            var hashResults = await 
+                DownloadFolder.EnumerateFiles()
+                .Concat(Game.GameLocation().EnumerateFiles())
                 .Where(e => e.Extension != Consts.HashFileExtension)
                 .PMap(Queue, async e => (await e.FileHashCachedAsync(), e));
             HashedArchives.SetTo(hashResults

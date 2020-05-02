@@ -32,8 +32,6 @@ namespace Wabbajack.Lib
 
         public AbsolutePath? GameFolder { get; set; }
 
-        public GameMetaData Game { get; }
-
         public MO2Installer(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
             : base(
                   archive: archive,
@@ -41,10 +39,14 @@ namespace Wabbajack.Lib
                   outputFolder: outputFolder, 
                   downloadFolder: downloadFolder,
                   parameters: parameters,
-                  steps: 20)
+                  steps: 20,
+                  game: modList.GameType)
         {
-            Game = ModList.GameType.MetaData();
+            var gameExe = Consts.GameFolderFilesDir.Combine(modList.GameType.MetaData().MainExecutable!);
+            RedirectGamePath = modList.Directives.Any(d => d.To == gameExe);
         }
+
+        public bool RedirectGamePath { get; }
 
         protected override async Task<bool> _Begin(CancellationToken cancel)
         {
@@ -379,9 +381,12 @@ namespace Wabbajack.Lib
         {
             var data = Encoding.UTF8.GetString(await LoadBytesFromPath(directive.SourceDataID));
 
-            data = data.Replace(Consts.GAME_PATH_MAGIC_BACK, (string)GameFolder!);
-            data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, ((string)GameFolder!).Replace("\\", "\\\\"));
-            data = data.Replace(Consts.GAME_PATH_MAGIC_FORWARD, ((string)GameFolder).Replace("\\", "/"));
+            var gameFolder = (string)(RedirectGamePath ? Consts.GameFolderFilesDir.RelativeTo(OutputFolder) : GameFolder!);
+
+
+            data = data.Replace(Consts.GAME_PATH_MAGIC_BACK, gameFolder);
+            data = data.Replace(Consts.GAME_PATH_MAGIC_DOUBLE_BACK, gameFolder.Replace("\\", "\\\\"));
+            data = data.Replace(Consts.GAME_PATH_MAGIC_FORWARD, gameFolder.Replace("\\", "/"));
 
             data = data.Replace(Consts.MO2_PATH_MAGIC_BACK, (string)OutputFolder);
             data = data.Replace(Consts.MO2_PATH_MAGIC_DOUBLE_BACK, ((string)OutputFolder).Replace("\\", "\\\\"));

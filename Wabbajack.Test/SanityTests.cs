@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -431,7 +432,12 @@ namespace Wabbajack.Test
             var mod = utils.AddMod();
             var skyrimExe = utils.AddModFile(mod, @"Data\test.exe", 10);
 
-            await Game.SkyrimSpecialEdition.MetaData().GameLocation().Combine("SkyrimSE.exe").CopyToAsync(skyrimExe);
+            var gameFolder = Consts.GameFolderFilesDir.RelativeTo(utils.MO2Folder);
+            gameFolder.CreateDirectory();
+
+            var gameMeta = Game.SkyrimSpecialEdition.MetaData();
+            await gameMeta.GameLocation().Combine(gameMeta.MainExecutable!).CopyToAsync(skyrimExe);
+            await gameMeta.GameLocation().Combine(gameMeta.MainExecutable!).CopyToAsync(gameFolder.Combine(gameMeta.MainExecutable!));
             
             await utils.Configure();
             
@@ -439,8 +445,16 @@ namespace Wabbajack.Test
 
             utils.VerifyInstalledFile(mod, @"Data\test.exe");
 
-            Consts.TestMode = true;
+            Assert.False("SkyrimSE.exe".RelativeTo(utils.DownloadsFolder).Exists, "File should not appear in the download folder because it should be copied from the game folder");
 
+            var file = "ModOrganizer.ini".RelativeTo(utils.InstallFolder);
+            Assert.True(file.Exists);
+
+            var ini = file.LoadIniFile();
+            Assert.Equal(((AbsolutePath)(string)ini?.General?.gamePath).Combine(gameMeta.MainExecutable), 
+                Consts.GameFolderFilesDir.Combine(gameMeta.MainExecutable).RelativeTo(utils.InstallFolder));
+            
+            Consts.TestMode = true;
         }
         
         [Fact]

@@ -551,7 +551,7 @@ namespace Wabbajack.Test
         class TestInstaller : AInstaller
         {
             public TestInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
-                : base(archive, modList, outputFolder, downloadFolder, parameters, steps: 1)
+                : base(archive, modList, outputFolder, downloadFolder, parameters, steps: 1, modList.GameType)
             {
                 Queue.SetActiveThreadsObservable(Observable.Return(1));
             }

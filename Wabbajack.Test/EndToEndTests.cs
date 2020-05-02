@@ -61,7 +61,6 @@ namespace Wabbajack.Test
                 DownloadAndInstall(Game.SkyrimSpecialEdition, 12604, "SkyUI"), 
                 DownloadAndInstall(Game.Fallout4, 11925, "Anti-Tank Rifle"), 
                 DownloadAndInstall(Game.SkyrimSpecialEdition, 4783, "Frost Armor UNP"), 
-                DownloadAndInstall(Game.Fallout4, 43474, "EM 2 Rifle No.9 Mk1"),
                 DownloadAndInstall(Game.SkyrimSpecialEdition, 32359, "Frost Armor HDT"));
             
             // We're going to fully patch this mod from another source.
