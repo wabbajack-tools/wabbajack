@@ -108,6 +108,18 @@ namespace Compression.BSA
 
         public IEnumerable<IFile> Files { get; private set; }
         public ArchiveStateObject State => new BA2StateObject(this);
+        public void Dump(Action<string> print)
+        {
+            print($"HeaderMagic: {_headerMagic}");
+            print($"Number of Files: {_numFiles}");
+            print($"----------------------------");
+            
+            foreach (var file in Files)
+            {
+                print("\n");
+                file.Dump(print);
+            }
+        }
     }
 
     [JsonName("BA2State")]
@@ -218,6 +230,12 @@ namespace Compression.BSA
             }
 
         }
+
+        public void Dump(Action<string> print)
+        {
+            throw new NotImplementedException();
+        }
+
         private void WriteHeader(BinaryWriter bw)
         {
             var ddsHeader = new DDS_HEADER();
@@ -426,6 +444,17 @@ namespace Compression.BSA
         internal int _index;
 
         public bool Compressed => _size != 0;
+        
+        public void Dump(Action<string> print)
+        {
+            print($"FullPath: {FullPath}");
+            print($"Name Hash: {_nameHash}");
+            print($"Offset: {_offset}");
+            print($"Flags: {_flags:x}");
+            print($"Real Size: {_realSize}");
+            print($"Index: {_index}");
+        }
+
 
         public BA2FileEntry(BA2Reader ba2Reader, int index)
         {
@@ -442,6 +471,8 @@ namespace Compression.BSA
             _realSize = _rdr.ReadUInt32();
             _align = _rdr.ReadUInt32();
         }
+        
+        
 
         public string FullPath { get; set; }
 
@@ -473,6 +504,7 @@ namespace Compression.BSA
                 }
             }
         }
+
     }
 
     [JsonName("BA2FileEntryState")]

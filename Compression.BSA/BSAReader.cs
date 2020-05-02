@@ -65,6 +65,20 @@ namespace Compression.BSA
         internal uint _totalFileNameLength;
         internal uint _totalFolderNameLength;
         internal uint _version;
+        
+        public void Dump(Action<string> print)
+        {
+            print($"File Name: {_fileName}");
+            print($"File Count: {_fileCount}");
+            print($"Magic: {_magic}");
+
+            foreach (var file in Files)
+            {
+                print("\n");
+                file.Dump(print);
+            }
+        }
+
 
         public BSAReader(AbsolutePath filename)
         {
@@ -225,6 +239,18 @@ namespace Compression.BSA
         private readonly uint _originalSize;
         private readonly uint _size;
         internal readonly int _index;
+        
+        
+        public void Dump(Action<string> print)
+        {
+            print($"Name: {_name}");
+            print($"Offset: {_offset}");
+            print($"On Disk Size: {_onDiskSize}");
+            print($"Original Size: {_originalSize}");
+            print($"Size: {_size}");
+            print($"Index: {_index}");
+        }
+
 
         public FileRecord(BSAReader bsa, FolderRecord folderRecord, BinaryReader src, int index)
         {

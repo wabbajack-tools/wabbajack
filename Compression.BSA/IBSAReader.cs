@@ -14,6 +14,8 @@ namespace Compression.BSA
         IEnumerable<IFile> Files { get; }
 
         ArchiveStateObject State { get; }
+
+        void Dump(Action<string> print);
     }
 
     public interface IBSABuilder : IAsyncDisposable
@@ -59,5 +61,7 @@ namespace Compression.BSA
         /// </summary>
         /// <param name="output"></param>
         void CopyDataTo(Stream output);
+
+        void Dump(Action<string> print);
     }
 }

@@ -75,6 +75,7 @@ namespace Compression.BSA.Test
         [InlineData(Game.Fallout4, 22223)] // 10mm SMG
         [InlineData(Game.Fallout4, 4472)] // True Storms
         [InlineData(Game.Morrowind, 44537)]
+        [InlineData(Game.Fallout4, 43474)] // EM 2 Rifle
         public async Task BSACompressionRecompression(Game game, int modid)
         {
             var filename = await DownloadMod(game, modid);
@@ -109,6 +110,11 @@ namespace Compression.BSA.Test
 
                     Assert.Equal(file.Size, absName.Size);
                 });
+                
+                
+                // Check Files should be case insensitive
+                Assert.Equal(a.Files.Count(), a.Files.Select(f => f.Path).ToHashSet().Count);
+                Assert.Equal(a.Files.Count(), a.Files.Select(f => f.Path.ToString().ToLowerInvariant()).ToHashSet().Count);
 
                 TestContext.WriteLine($"Building {bsa}");
 
@@ -132,6 +138,7 @@ namespace Compression.BSA.Test
 
                 // Check same number of files
                 Assert.Equal(a.Files.Count(), b.Files.Count());
+                
 
                 await a.Files.Zip(b.Files, (ai, bi) => (ai, bi))
                     .PMap(Queue, pair =>
