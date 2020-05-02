@@ -359,7 +359,7 @@ namespace Wabbajack.VirtualFileSystem
         public async Task<IndexRoot> Integrate(ICollection<VirtualFile> files)
         {
             Utils.Log($"Integrating {files.Count} files");
-            var allFiles = AllFiles.Concat(files).GroupBy(f => f.Name).Select(g => g.Last()).ToImmutableList();
+            var allFiles = AllFiles.Concat(files).GroupBy(f => f.FullPath).Select(g => g.Last()).ToImmutableList();
 
             var byFullPath = Task.Run(() => allFiles.SelectMany(f => f.ThisAndAllChildren)
                                      .ToDictionary(f => f.FullPath));

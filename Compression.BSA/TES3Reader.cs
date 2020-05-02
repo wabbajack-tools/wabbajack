@@ -81,6 +81,11 @@ namespace Compression.BSA
                 };
             }
         }
+
+        public void Dump(Action<string> print)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     [JsonName("TES3Archive")]
@@ -118,6 +123,11 @@ namespace Compression.BSA
             using var fs = Archive._filename.OpenRead();
             fs.Position = Archive._dataOffset + Offset;
             fs.CopyToLimit(output, (int)Size);
+        }
+
+        public void Dump(Action<string> print)
+        {
+            throw new NotImplementedException();
         }
 
         public uint Offset { get; set; }

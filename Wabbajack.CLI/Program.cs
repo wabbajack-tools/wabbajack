@@ -21,6 +21,7 @@ namespace Wabbajack.CLI
                     (DeleteFile opts) => opts.Execute(),
                     (Changelog opts) => opts.Execute(),
                     (FindSimilar opts) => opts.Execute(),
+                    (BSADump opts) => opts.Execute(),
                     errs => 1);
         }
     }
