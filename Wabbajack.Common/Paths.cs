@@ -410,6 +410,11 @@ namespace Wabbajack.Common
                 await file.CopyToAsync(dest);
             }
         }
+
+        public async Task CopyOrLinkIfOverSizeAsync(AbsolutePath newFile)
+        {
+            await CopyToAsync(newFile);
+        }
     }
 
     [JsonConverter(typeof(Utils.RelativePathConverter))]
