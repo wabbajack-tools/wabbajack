@@ -353,14 +353,12 @@ namespace Wabbajack.Common
             return CreateHardLink((string)destination, (string)this, IntPtr.Zero);
         }
 
-        public static long HARDLINK_THRESHOLD = 2 ^ 29; // 512 MB
-
         public async ValueTask HardLinkIfOversize(AbsolutePath destination)
         {
             if (!destination.Parent.Exists) 
                 destination.Parent.CreateDirectory();
             
-            if (Root == destination.Root && Size >= HARDLINK_THRESHOLD)
+            if (Root == destination.Root && Consts.SupportedBSAs.Contains(Extension))
             {
                 if (HardLinkTo(destination))
                     return;

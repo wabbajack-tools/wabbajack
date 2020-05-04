@@ -141,7 +141,7 @@ namespace Wabbajack.Lib
 
             Status($"Copying files for {archive.Name}");
 
-            async ValueTask CopyFile(VirtualFile? vf, AbsolutePath from, AbsolutePath to, bool useMove)
+            async ValueTask CopyFile(AbsolutePath from, AbsolutePath to)
             {
                 if (to.Exists)
                 {
@@ -156,16 +156,7 @@ namespace Wabbajack.Lib
                         from.IsReadOnly = false;
                 }
 
-                if (vf!.IsNative)
-                {
-                    await from.HardLinkIfOversize(to);
-                    return;
-                }
-
-                if (useMove)
-                    await @from.MoveToAsync(to);
-                else
-                    await @from.CopyToAsync(to);
+                await @from.CopyToAsync(to);
                 // If we don't do this, the file will use the last-modified date of the file when it was compressed
                 // into an archive, which isn't really what we want in the case of files installed archives
                 to.LastModified = DateTime.Now;
@@ -181,11 +172,18 @@ namespace Wabbajack.Lib
                 }
                 var firstDest = OutputFolder.Combine(group.First().To);
 
-                await group.Key.StagedFile.MoveTo(firstDest);
-                
+                if (group.Key.IsNative)
+                {
+                    await group.Key.AbsoluteName.HardLinkIfOversize(firstDest);
+                }
+                else
+                {
+                    await group.Key.StagedFile.MoveTo(firstDest);
+                }
+
                 foreach (var copy in group.Skip(1))
                 {
-                    await CopyFile(group.Key, firstDest, OutputFolder.Combine(copy.To), false);
+                    await CopyFile(firstDest, OutputFolder.Combine(copy.To));
                 }
             });
 
