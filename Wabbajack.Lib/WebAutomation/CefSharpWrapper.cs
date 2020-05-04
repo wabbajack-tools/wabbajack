@@ -81,7 +81,7 @@ namespace Wabbajack.Lib.WebAutomation
             IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser? newBrowser)
         {
             // Block popups
-            newBrowser = chromiumWebBrowser;
+            newBrowser = null;
             return true;
         }
 

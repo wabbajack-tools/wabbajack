@@ -156,16 +156,16 @@ namespace Wabbajack.Lib
                         from.IsReadOnly = false;
                 }
 
-                if (vf!.IsNative && vf.AbsoluteName == from)
+                if (vf!.IsNative)
                 {
                     await from.HardLinkIfOversize(to);
                     return;
                 }
 
                 if (useMove)
-                    from.MoveTo(to);
+                    await @from.MoveToAsync(to);
                 else
-                    from.CopyTo(to);
+                    await @from.CopyToAsync(to);
                 // If we don't do this, the file will use the last-modified date of the file when it was compressed
                 // into an archive, which isn't really what we want in the case of files installed archives
                 to.LastModified = DateTime.Now;
