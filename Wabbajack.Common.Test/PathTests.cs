@@ -24,5 +24,20 @@ namespace Wabbajack.Common.Test
             
             tempFile.Path.MoveTo(tempFile2.Path);
         }
+
+        [Fact]
+        public void CanGetTopParentOfPath()
+        {
+            var path = (RelativePath)"foo/bar";
+            Assert.Equal((RelativePath)"foo", path.TopParent);
+            
+        }
+        
+        [Fact]
+        public void CanGetTopParentOfSinglePath()
+        {
+            var path = (RelativePath)"foo";
+            Assert.Equal((RelativePath)"foo", path.TopParent);
+        }
     }
 }

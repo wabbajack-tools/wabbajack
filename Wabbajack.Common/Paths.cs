@@ -208,12 +208,10 @@ namespace Wabbajack.Common
 
         public RelativePath RelativeTo(AbsolutePath p)
         {
-            if (_path.Substring(0, p._path.Length + 1) != p._path + "\\")
-            {
-                throw new InvalidDataException("Not a parent path");
-            }
-
-            return new RelativePath(_path.Substring(p._path.Length + 1));
+            var relPath = Path.GetRelativePath(p._path, _path);
+            if (relPath == _path) 
+                throw new ArgumentException($"{_path} is not a subpath of {p._path}");
+            return new RelativePath(relPath);
         }
 
         public async Task<string> ReadAllTextAsync()
@@ -413,6 +411,8 @@ namespace Wabbajack.Common
 
         public async Task CopyOrLinkIfOverSizeAsync(AbsolutePath newFile)
         {
+            if (newFile.Parent != default)
+                newFile.Parent.CreateDirectory();
             await CopyToAsync(newFile);
         }
     }

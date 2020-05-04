@@ -8,7 +8,7 @@ namespace Wabbajack.Lib.Tasks
         public static async Task<bool> Execute(AbsolutePath mo2Folder)
         {
             var iniPath = mo2Folder.Combine(Consts.ModOrganizer2Ini);
-            if (iniPath.Exists)
+            if (!iniPath.Exists)
             {
                 Utils.Log($"Game folder conversion failed, {Consts.ModOrganizer2Ini} does not exist in {mo2Folder}");
                 return false;

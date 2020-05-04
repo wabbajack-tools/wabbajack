@@ -180,8 +180,18 @@ namespace Wabbajack.Common
 
             result = GetByMO2ArchiveName(someName);
             if (result != null) return result;
+            
+            result = GetByMO2Name(someName);
+            if (result != null) return result;
+
 
             return int.TryParse(someName, out int id) ? GetBySteamID(id) : null;
+        }
+
+        private static GameMetaData? GetByMO2Name(string gameName)
+        {
+            gameName = gameName.ToLower();
+            return Games.Values.FirstOrDefault(g => g.MO2Name?.ToLower() == gameName);
         }
 
         public static bool TryGetByFuzzyName(string someName, [MaybeNullWhen(false)] out GameMetaData gameMetaData)
