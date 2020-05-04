@@ -141,7 +141,7 @@ namespace Wabbajack.Lib
 
             Status($"Copying files for {archive.Name}");
 
-            async ValueTask CopyFile(AbsolutePath from, AbsolutePath to, bool useMove)
+            async ValueTask CopyFile(VirtualFile? vf, AbsolutePath from, AbsolutePath to, bool useMove)
             {
                 if (to.Exists)
                 {
@@ -156,6 +156,11 @@ namespace Wabbajack.Lib
                         from.IsReadOnly = false;
                 }
 
+                if (vf!.IsNative && vf.AbsoluteName == from)
+                {
+                    await from.HardLinkIfOversize(to);
+                    return;
+                }
 
                 if (useMove)
                     from.MoveTo(to);
@@ -180,7 +185,7 @@ namespace Wabbajack.Lib
                 
                 foreach (var copy in group.Skip(1))
                 {
-                    await CopyFile(firstDest, OutputFolder.Combine(copy.To), false);
+                    await CopyFile(group.Key, firstDest, OutputFolder.Combine(copy.To), false);
                 }
             });
 

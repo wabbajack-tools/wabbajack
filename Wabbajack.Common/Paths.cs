@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
@@ -339,6 +340,29 @@ namespace Wabbajack.Common
         public void CopyTo(AbsolutePath dest)
         {
             File.Copy(_path, dest._path);
+        }
+        
+        
+
+        [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Auto)]
+        private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+
+        public bool HardLinkTo(AbsolutePath destination)
+        {
+            return CreateHardLink((string)destination, (string)this, IntPtr.Zero);
+        }
+
+        public static long HARDLINK_THRESHOLD = 2 ^ 29; // 512 MB
+
+        public async ValueTask HardLinkIfOversize(AbsolutePath destination)
+        {
+            if (Root == destination.Root || Size >= HARDLINK_THRESHOLD)
+            {
+                if (HardLinkTo(destination))
+                    return;
+            }
+
+            await CopyToAsync(destination);
         }
 
         public async Task<IEnumerable<string>> ReadAllLinesAsync()

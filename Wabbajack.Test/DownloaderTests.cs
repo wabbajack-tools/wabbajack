@@ -505,7 +505,7 @@ namespace Wabbajack.Test
             await folder.DeleteDirectory();
             folder.CreateDirectory();
            
-            var inst = new TestInstaller(default, null, default, folder, null);
+            var inst = new TestInstaller(default, new ModList {GameType = Game.SkyrimSpecialEdition}, default, folder, null);
 
             await inst.DownloadMissingArchives(archivesa, true);
             await inst.DownloadMissingArchives(archivesb, true);

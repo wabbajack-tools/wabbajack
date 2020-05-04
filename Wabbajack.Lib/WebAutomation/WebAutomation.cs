@@ -15,6 +15,7 @@ namespace Wabbajack.Lib.WebAutomation
         public Driver()
         {
             _browser = new ChromiumWebBrowser();
+
             _driver = new CefSharpWrapper(_browser);
         }
         public static async Task<Driver> Create()
