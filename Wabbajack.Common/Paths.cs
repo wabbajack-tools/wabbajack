@@ -349,6 +349,7 @@ namespace Wabbajack.Common
 
         public bool HardLinkTo(AbsolutePath destination)
         {
+            Utils.Log($"Hard Linking {_path} to {destination}");
             return CreateHardLink((string)destination, (string)this, IntPtr.Zero);
         }
 
@@ -356,7 +357,10 @@ namespace Wabbajack.Common
 
         public async ValueTask HardLinkIfOversize(AbsolutePath destination)
         {
-            if (Root == destination.Root || Size >= HARDLINK_THRESHOLD)
+            if (!destination.Parent.Exists) 
+                destination.Parent.CreateDirectory();
+            
+            if (Root == destination.Root && Size >= HARDLINK_THRESHOLD)
             {
                 if (HardLinkTo(destination))
                     return;
@@ -431,13 +435,6 @@ namespace Wabbajack.Common
                 var dest = file.RelativeTo(this).RelativeTo(destination);
                 await file.CopyToAsync(dest);
             }
-        }
-
-        public async Task CopyOrLinkIfOverSizeAsync(AbsolutePath newFile)
-        {
-            if (newFile.Parent != default)
-                newFile.Parent.CreateDirectory();
-            await CopyToAsync(newFile);
         }
     }
 

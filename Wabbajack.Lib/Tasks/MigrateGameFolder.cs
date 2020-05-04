@@ -37,7 +37,7 @@ namespace Wabbajack.Lib.Tasks
                 }
 
                 Utils.Log($"Copying/Linking {relPath}");
-                await file.CopyOrLinkIfOverSizeAsync(newFile);
+                await file.HardLinkIfOversize(newFile);
             }
 
             Utils.Log("Remapping INI");
