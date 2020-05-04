@@ -19,7 +19,8 @@ namespace Wabbajack.CLI
             typeof(DeleteFile),
             typeof(Changelog),
             typeof(FindSimilar),
-            typeof(BSADump)
+            typeof(BSADump),
+            typeof(MigrateGameFolderFiles)
         };
     }
 }
