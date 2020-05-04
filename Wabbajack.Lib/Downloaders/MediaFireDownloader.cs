@@ -50,18 +50,11 @@ namespace Wabbajack.Lib.Downloaders
 
             private async Task<HTTPDownloader.State?> Resolve()
             {
-                using (var d = await Driver.Create())
-                {
-                    await d.NavigateTo(new Uri(Url));
-                    // MediaFire creates the link after all the JS loads
-                    await Task.Delay(1000);
-                    var newURL = await d.GetAttr("a.input", "href");
-                    if (newURL == null || !newURL.StartsWith("http")) return null;
-                    return new HTTPDownloader.State(newURL)
-                    {
-                        Client = new Common.Http.Client(),
-                    };
-                }
+                var client = new Common.Http.Client();
+                var body = await client.GetHtmlAsync(Url);
+                var node = body.DocumentNode.DescendantsAndSelf().First(d => d.HasClass("input") && d.HasClass("popsok") &&
+                                                                             d.GetAttributeValue("aria-label", "") == "Download file");
+                return new HTTPDownloader.State(node.GetAttributeValue("href", "not-found"));
             }
 
             public override IDownloader GetDownloader()
