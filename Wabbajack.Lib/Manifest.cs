@@ -25,6 +25,8 @@ namespace Wabbajack.Lib
         public long DownloadSize;
         public long InstallSize;
 
+        public bool IsNSFW;
+
         public List<Archive> Archives;
 
         public Manifest(ModList modlist)
@@ -42,6 +44,8 @@ namespace Wabbajack.Lib
 
             DownloadSize = modlist.DownloadSize;
             InstallSize = modlist.InstallSize;
+
+            IsNSFW = modlist.IsNSFW;
 
             // meta is being omitted due to it being useless and not very space friendly
             Archives = modlist.Archives.Select(a => new Archive(a.State)
