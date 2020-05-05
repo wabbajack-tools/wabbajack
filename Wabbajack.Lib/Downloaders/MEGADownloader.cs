@@ -38,34 +38,34 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     Email = infos.Email,
                     Hash = infos.Hash,
-                    PasswordAesKey = infos.PasswordAesKey
+                    PasswordAesKey = infos.PasswordAesKey,
+                    MFAKey = infos.MFAKey
                 };
             }
 
             public MegaApiClient.AuthInfos ToAuthInfos()
             {
-                //TODO: MFAKey in the update
-                return new MegaApiClient.AuthInfos(Email, Hash, PasswordAesKey);
+                return new MegaApiClient.AuthInfos(Email, Hash, PasswordAesKey, MFAKey);
             }
         }
 
-        public LoginReturnMessage LoginWithCredentials(string username, SecureString password)
+        public LoginReturnMessage LoginWithCredentials(string username, SecureString password, string? mfa)
         {
             MegaApiClient.AuthInfos authInfos;
 
             try
             {
-                authInfos = MegaApiClient.GenerateAuthInfos(username, password.ToNormalString());
+                authInfos = MegaApiClient.GenerateAuthInfos(username, password.ToNormalString(), mfa);
             }
             catch (ApiException e)
             {
                 return e.ApiResultCode switch
                 {
                     ApiResultCode.BadArguments => new LoginReturnMessage($"Email or password was wrong! {e.Message}",
-                        true),
+                        LoginReturnCode.BadCredentials),
                     ApiResultCode.InternalError => new LoginReturnMessage(
-                        $"Internal error occured! Please report this to the Wabbajack Team! {e.Message}", true),
-                    _ => new LoginReturnMessage($"Error generating authentication information! {e.Message}", true)
+                        $"Internal error occured! Please report this to the Wabbajack Team! {e.Message}", LoginReturnCode.InternalError),
+                    _ => new LoginReturnMessage($"Error generating authentication information! {e.Message}", LoginReturnCode.InternalError)
                 };
             }
             
@@ -78,10 +78,14 @@ namespace Wabbajack.Lib.Downloaders
                 return e.ApiResultCode switch
                 {
                     ApiResultCode.TwoFactorAuthenticationError => new LoginReturnMessage(
-                        $"Two-Factor Authentication needs to be disabled before login! {e.Message}", true),
+                        $"Two-Factor Authentication is enabled. Input your TFA key above and try again! {e.Message}", LoginReturnCode.NeedsMFA),
                     ApiResultCode.InternalError => new LoginReturnMessage(
-                        $"Internal error occured! Please report this to the Wabbajack Team! {e.Message}", true),
-                    _ => new LoginReturnMessage($"Error during login: {e.Message}", true)
+                        $"Internal error occured! Please report this to the Wabbajack Team! {e.Message}", LoginReturnCode.InternalError),
+                    ApiResultCode.RequestIncomplete => new LoginReturnMessage(
+                        $"Bad credentials! {e.Message}", LoginReturnCode.BadCredentials),
+                    ApiResultCode.ResourceNotExists => new LoginReturnMessage(
+                        $"Bad credentials! {e.Message}", LoginReturnCode.BadCredentials),
+                    _ => new LoginReturnMessage($"Error during login: {e.Message}", LoginReturnCode.InternalError)
                 };
             }
 
@@ -92,7 +96,7 @@ namespace Wabbajack.Lib.Downloaders
             }
 
             return new LoginReturnMessage("Logged in successfully, you can now close this window.",
-                !MegaApiClient.IsLoggedIn || !Utils.HaveEncryptedJson(DataName));
+                !MegaApiClient.IsLoggedIn || !Utils.HaveEncryptedJson(DataName) ? LoginReturnCode.Success : LoginReturnCode.InternalError);
         }
 
         public MegaDownloader()
@@ -133,7 +137,7 @@ namespace Wabbajack.Lib.Downloaders
 
             private static MegaApiClient MegaApiClient => DownloadDispatcher.GetInstance<MegaDownloader>().MegaApiClient;
 
-            private static AsyncLock _loginLock = new AsyncLock();
+            private static readonly AsyncLock _loginLock = new AsyncLock();
             private static async Task MegaLogin()
             {
                 using var _ = await _loginLock.WaitAsync();
