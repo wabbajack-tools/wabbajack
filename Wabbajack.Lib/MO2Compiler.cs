@@ -326,6 +326,7 @@ namespace Wabbajack.Lib
                 Readme = ModlistReadme ?? "",
                 Image = ModListImage != default ? ModListImage.FileName : default,
                 Website = !string.IsNullOrWhiteSpace(ModListWebsite) ? new Uri(ModListWebsite) : null,
+                Version = ModlistVersion ?? new Version(1,0,0,0),
                 IsNSFW = ModlistIsNSFW
             };
 
