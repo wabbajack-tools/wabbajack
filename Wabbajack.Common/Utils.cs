@@ -1183,5 +1183,21 @@ namespace Wabbajack.Common
                 Marshal.ZeroFreeGlobalAllocUnicode(valuePtr);
             }
         }
+
+        public static IEnumerable<IEnumerable<T>> Partition<T>(this IEnumerable<T> coll, int size)
+        {
+            var lst = new List<T>();
+            foreach (var itm in coll)
+            {
+                lst.Add(itm);
+                if (lst.Count != size) continue;
+
+                yield return lst;
+                lst = new List<T>();
+            }
+
+            if (lst.Count > 0 && lst.Count != size)
+                yield return lst;
+        }
     }
 }
