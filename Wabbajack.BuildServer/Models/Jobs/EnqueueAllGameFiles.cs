@@ -19,9 +19,9 @@ namespace Wabbajack.BuildServer.Models.Jobs
         {
             using (var queue = new WorkQueue(4))
             {
-                Utils.Log($"Indexing game files");
+                Utils.Log($"Finding game files to Index game files");
                 var states = GameRegistry.Games.Values
-                    .Where(game => game.TryGetGameLocation() != null && game.MainExecutable != null)
+                    .Where(game => game.TryGetGameLocation() != default && game.MainExecutable != null)
                     .SelectMany(game => game.GameLocation().EnumerateFiles()
                         .Select(file => new GameFileSourceDownloader.State(game.InstalledVersion)
                         {
@@ -33,9 +33,9 @@ namespace Wabbajack.BuildServer.Models.Jobs
                 var pks = states.Select(s => s.PrimaryKeyString).ToHashSet();
                 Utils.Log($"Found {pks.Count} archives to cross-reference with the database");
 
-                var found = await sql.FilterByExistingPrimaryKeys(pks);
+                var notFound = await sql.FilterByExistingPrimaryKeys(pks);
                 
-                states = states.Where(s => !found.Contains(s.PrimaryKeyString)).ToList();
+                states = states.Where(s => notFound.Contains(s.PrimaryKeyString)).ToList();
                 Utils.Log($"Found {states.Count} archives to index");
 
                 await states.PMap(queue, async state =>

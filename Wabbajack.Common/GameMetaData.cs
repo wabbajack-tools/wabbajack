@@ -363,7 +363,7 @@ namespace Wabbajack.Common
                     NexusName = "enderal",
                     MO2Name = "Enderal",
                     MO2ArchiveName = "enderal",
-                    SteamIDs = new List<int>{1027920},
+                    SteamIDs = new List<int>{1027920, 933480},
                     RequiredFiles = new List<string>
                     {
                         "TESV.exe"

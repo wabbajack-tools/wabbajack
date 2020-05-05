@@ -175,7 +175,7 @@ namespace Wabbajack.BuildServer.Model.Models
                           AND Subject != 'Default'
                           AND TRY_CONVERT(uniqueidentifier, Subject) is null) as keys
                         WHERE type = 'P'
-                        AND DATEADD(DAY, number+1, dbo.MinMetricDate()) < dbo.MaxMetricDate()) as d
+                        AND DATEADD(DAY, number+1, dbo.MinMetricDate()) <= dbo.MaxMetricDate()) as d
                         ON m.Date = d.Date AND m.GroupingSubject = d.GroupingSubject AND m.Action = d.Action
                         WHERE d.Action = @action
                         AND d.Date >= DATEADD(month, -1, GETUTCDATE())
@@ -666,9 +666,17 @@ namespace Wabbajack.BuildServer.Model.Models
         public async Task<HashSet<string>> FilterByExistingPrimaryKeys(HashSet<string> pks)
         {
             await using var conn = await Open();
-            var found = await conn.QueryAsync<string>("SELECT Hash from dbo.IndexedFile WHERE PrimaryKey in @PrimaryKeys",
-                new {PrimaryKeys = pks.ToList()});
-            return pks.Except(found.ToHashSet()).ToHashSet();
+            var results = new List<string>();
+
+            foreach (var partition in pks.Partition(512))
+            {
+                var found = await conn.QueryAsync<string>(
+                    "SELECT Hash from dbo.DownloadStates WHERE PrimaryKey in @PrimaryKeys",
+                    new {PrimaryKeys = partition.ToList()});
+                results.AddRange(found);
+            }
+
+            return pks.Except(results.ToHashSet()).ToHashSet();
         }
 
         public async Task<long> DeleteNexusModInfosUpdatedBeforeDate(Game game, long modId, DateTime date)

@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -82,7 +83,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
-                return true;
+                return Url == "<TESTING>" || whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
             }
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)

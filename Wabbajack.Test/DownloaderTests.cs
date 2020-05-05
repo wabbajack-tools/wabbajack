@@ -544,6 +544,7 @@ namespace Wabbajack.Test
                 Name = "Cori.7z",
                 Hash = Hash.FromBase64("gCRVrvzDNH0="),
             };
+            Utils.Log($"Getting Hash for {(long)archive.Hash}");
             Assert.True(await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, dest));
             Assert.Equal(Hash.FromBase64("gCRVrvzDNH0="), await dest.FileHashCachedAsync());
         }

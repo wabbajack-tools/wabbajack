@@ -167,7 +167,6 @@ namespace Wabbajack.BuildServer.Controllers
 
                 if (valid)
                 {
-                    Utils.Log($"Http file {archive.Hash} is still valid");
                     return (NotFound("Http file still valid"), null);
                 }
 
