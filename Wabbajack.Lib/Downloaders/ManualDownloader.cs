@@ -83,7 +83,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override bool IsWhitelisted(ServerWhitelist whitelist)
             {
-                return whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
+                return Url == "<TESTING>" || whitelist.AllowedPrefixes.Any(p => Url.StartsWith(p));
             }
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
