@@ -160,31 +160,6 @@ namespace Wabbajack.Test
             Assert.False(extraFolder.Exists);
         }
 
-
-        [Fact]
-        public async Task CleanedESMTest()
-        {
-            var profile = utils.AddProfile();
-            var mod = utils.AddMod("Cleaned ESMs");
-            var updateEsm = utils.AddModFile(mod, @"Update.esm", 10);
-
-            await utils.Configure();
-
-            var gameFile = utils.GameFolder.Combine("Data", "Update.esm");
-            utils.GenerateRandomFileData(gameFile, 20);
-
-            var modlist = await CompileAndInstall(profile);
-
-            utils.VerifyInstalledFile(mod, @"Update.esm");
-
-            var compiler = await ConfigureAndRunCompiler(profile);
-
-            // Update the file and verify that it throws an error.
-            utils.GenerateRandomFileData(gameFile, 20);
-            var exception = await Assert.ThrowsAsync<InvalidGameESMError>(async () => await Install(compiler));
-            Assert.IsAssignableFrom<InvalidGameESMError>(exception);
-        }
-
         [Fact]
         public async Task SetScreenSizeTest()
         {

@@ -374,7 +374,8 @@ namespace Wabbajack.Common
 
         public byte[] ReadAllBytes()
         {
-            return File.ReadAllBytes(_path);
+            using var file = OpenShared();
+            return file.ReadAll();
         }
 
         public static AbsolutePath GetCurrentDirectory()
@@ -417,7 +418,7 @@ namespace Wabbajack.Common
 
         public FileStream OpenShared()
         {
-            return File.Open(_path, FileMode.Open, FileAccess.Read);
+            return File.Open(_path, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
         public FileStream WriteShared()
