@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reactive.Subjects;
+using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
@@ -98,6 +99,15 @@ namespace Wabbajack.Lib
             var id = IncludeId();
             await data.CopyToAsync(ModListOutputFolder.Combine(id));
             return id;
+        }
+
+        
+        internal async Task<(RelativePath, AbsolutePath)> IncludeString(string str)
+        {
+            var id = IncludeId();
+            var fullPath = ModListOutputFolder.Combine(id);
+            await fullPath.WriteAllTextAsync(str);
+            return (id, fullPath);
         }
 
         public async Task<bool> GatherMetaData()

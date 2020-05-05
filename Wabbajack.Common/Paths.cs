@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
@@ -208,12 +209,10 @@ namespace Wabbajack.Common
 
         public RelativePath RelativeTo(AbsolutePath p)
         {
-            if (_path.Substring(0, p._path.Length + 1) != p._path + "\\")
-            {
-                throw new InvalidDataException("Not a parent path");
-            }
-
-            return new RelativePath(_path.Substring(p._path.Length + 1));
+            var relPath = Path.GetRelativePath(p._path, _path);
+            if (relPath == _path) 
+                throw new ArgumentException($"{_path} is not a subpath of {p._path}");
+            return new RelativePath(relPath);
         }
 
         public async Task<string> ReadAllTextAsync()
@@ -342,6 +341,31 @@ namespace Wabbajack.Common
         {
             File.Copy(_path, dest._path);
         }
+        
+        
+
+        [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Auto)]
+        private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
+
+        public bool HardLinkTo(AbsolutePath destination)
+        {
+            Utils.Log($"Hard Linking {_path} to {destination}");
+            return CreateHardLink((string)destination, (string)this, IntPtr.Zero);
+        }
+
+        public async ValueTask HardLinkIfOversize(AbsolutePath destination)
+        {
+            if (!destination.Parent.Exists) 
+                destination.Parent.CreateDirectory();
+            
+            if (Root == destination.Root && Consts.SupportedBSAs.Contains(Extension))
+            {
+                if (HardLinkTo(destination))
+                    return;
+            }
+
+            await CopyToAsync(destination);
+        }
 
         public async Task<IEnumerable<string>> ReadAllLinesAsync()
         {
@@ -350,7 +374,8 @@ namespace Wabbajack.Common
 
         public byte[] ReadAllBytes()
         {
-            return File.ReadAllBytes(_path);
+            using var file = OpenShared();
+            return file.ReadAll();
         }
 
         public static AbsolutePath GetCurrentDirectory()
@@ -393,7 +418,7 @@ namespace Wabbajack.Common
 
         public FileStream OpenShared()
         {
-            return File.Open(_path, FileMode.Open, FileAccess.Read);
+            return File.Open(_path, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
         public FileStream WriteShared()

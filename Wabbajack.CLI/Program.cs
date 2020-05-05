@@ -22,6 +22,7 @@ namespace Wabbajack.CLI
                     (Changelog opts) => opts.Execute(),
                     (FindSimilar opts) => opts.Execute(),
                     (BSADump opts) => opts.Execute(),
+                    (MigrateGameFolderFiles opts) => opts.Execute(),
                     errs => 1);
         }
     }

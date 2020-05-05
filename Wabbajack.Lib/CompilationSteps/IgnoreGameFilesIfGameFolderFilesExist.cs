@@ -17,17 +17,14 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
-            if (_gameFolderFilesExists)
-            {
-                if (source.AbsolutePath.InFolder(_gameFolder))
-                {
-                    var result = source.EvolveTo<IgnoredDirectly>();
-                    result.Reason = $"Ignoring game files because {Consts.GameFolderFilesDir} exists";
-                    return result;
-                }
-            }
+            if (!_gameFolderFilesExists) return null;
 
-            return null;
+            if (!source.AbsolutePath.InFolder(_gameFolder)) return null;
+
+            var result = source.EvolveTo<IgnoredDirectly>();
+            result.Reason = $"Ignoring game files because {Consts.GameFolderFilesDir} exists";
+            return result;
+
         }
 
         public override IState GetState()

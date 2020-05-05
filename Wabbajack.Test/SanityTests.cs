@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -157,31 +158,6 @@ namespace Wabbajack.Test
             Assert.NotEqual(modifiedModified, modifiedPath.LastModified);
             Assert.False(extraPath.Exists);
             Assert.False(extraFolder.Exists);
-        }
-
-
-        [Fact]
-        public async Task CleanedESMTest()
-        {
-            var profile = utils.AddProfile();
-            var mod = utils.AddMod("Cleaned ESMs");
-            var updateEsm = utils.AddModFile(mod, @"Update.esm", 10);
-
-            await utils.Configure();
-
-            var gameFile = utils.GameFolder.Combine("Data", "Update.esm");
-            utils.GenerateRandomFileData(gameFile, 20);
-
-            var modlist = await CompileAndInstall(profile);
-
-            utils.VerifyInstalledFile(mod, @"Update.esm");
-
-            var compiler = await ConfigureAndRunCompiler(profile);
-
-            // Update the file and verify that it throws an error.
-            utils.GenerateRandomFileData(gameFile, 20);
-            var exception = await Assert.ThrowsAsync<InvalidGameESMError>(async () => await Install(compiler));
-            Assert.IsAssignableFrom<InvalidGameESMError>(exception);
         }
 
         [Fact]
@@ -420,6 +396,40 @@ namespace Wabbajack.Test
             await CompileAndInstall(profile);
             utils.VerifyInstalledFile(mod, @"baz.bsa");
             
+        }
+
+        [Fact]
+        public async Task CanSourceFilesFromStockGameFiles()
+        {
+            Consts.TestMode = false;
+
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var skyrimExe = utils.AddModFile(mod, @"Data\test.exe", 10);
+
+            var gameFolder = Consts.GameFolderFilesDir.RelativeTo(utils.MO2Folder);
+            gameFolder.CreateDirectory();
+
+            var gameMeta = Game.SkyrimSpecialEdition.MetaData();
+            await gameMeta.GameLocation().Combine(gameMeta.MainExecutable!).CopyToAsync(skyrimExe);
+            await gameMeta.GameLocation().Combine(gameMeta.MainExecutable!).CopyToAsync(gameFolder.Combine(gameMeta.MainExecutable!));
+            
+            await utils.Configure();
+            
+            await CompileAndInstall(profile);
+
+            utils.VerifyInstalledFile(mod, @"Data\test.exe");
+
+            Assert.False("SkyrimSE.exe".RelativeTo(utils.DownloadsFolder).Exists, "File should not appear in the download folder because it should be copied from the game folder");
+
+            var file = "ModOrganizer.ini".RelativeTo(utils.InstallFolder);
+            Assert.True(file.Exists);
+
+            var ini = file.LoadIniFile();
+            Assert.Equal(((AbsolutePath)(string)ini?.General?.gamePath).Combine(gameMeta.MainExecutable), 
+                Consts.GameFolderFilesDir.Combine(gameMeta.MainExecutable).RelativeTo(utils.InstallFolder));
+            
+            Consts.TestMode = true;
         }
         
         [Fact]

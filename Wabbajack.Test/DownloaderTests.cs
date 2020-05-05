@@ -505,7 +505,7 @@ namespace Wabbajack.Test
             await folder.DeleteDirectory();
             folder.CreateDirectory();
            
-            var inst = new TestInstaller(default, null, default, folder, null);
+            var inst = new TestInstaller(default, new ModList {GameType = Game.SkyrimSpecialEdition}, default, folder, null);
 
             await inst.DownloadMissingArchives(archivesa, true);
             await inst.DownloadMissingArchives(archivesb, true);
@@ -551,7 +551,7 @@ namespace Wabbajack.Test
         class TestInstaller : AInstaller
         {
             public TestInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
-                : base(archive, modList, outputFolder, downloadFolder, parameters, steps: 1)
+                : base(archive, modList, outputFolder, downloadFolder, parameters, steps: 1, modList.GameType)
             {
                 Queue.SetActiveThreadsObservable(Observable.Return(1));
             }

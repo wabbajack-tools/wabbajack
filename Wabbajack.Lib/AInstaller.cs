@@ -29,9 +29,11 @@ namespace Wabbajack.Lib
         public ModList ModList { get; private set; }
         public Dictionary<Hash, AbsolutePath> HashedArchives { get; } = new Dictionary<Hash, AbsolutePath>();
         
+        public GameMetaData Game { get; }
+
         public SystemParameters? SystemParameters { get; set; }
 
-        public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters? parameters, int steps)
+        public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters? parameters, int steps, Game game)
             : base(steps)
         {
             ModList = modList;
@@ -39,6 +41,7 @@ namespace Wabbajack.Lib
             OutputFolder = outputFolder;
             DownloadFolder = downloadFolder;
             SystemParameters = parameters;
+            Game = game.MetaData();
         }
 
         public void Info(string msg)
@@ -138,7 +141,7 @@ namespace Wabbajack.Lib
 
             Status($"Copying files for {archive.Name}");
 
-            async ValueTask CopyFile(AbsolutePath from, AbsolutePath to, bool useMove)
+            async ValueTask CopyFile(AbsolutePath from, AbsolutePath to)
             {
                 if (to.Exists)
                 {
@@ -153,11 +156,7 @@ namespace Wabbajack.Lib
                         from.IsReadOnly = false;
                 }
 
-
-                if (useMove)
-                    from.MoveTo(to);
-                else
-                    from.CopyTo(to);
+                await @from.CopyToAsync(to);
                 // If we don't do this, the file will use the last-modified date of the file when it was compressed
                 // into an archive, which isn't really what we want in the case of files installed archives
                 to.LastModified = DateTime.Now;
@@ -173,11 +172,18 @@ namespace Wabbajack.Lib
                 }
                 var firstDest = OutputFolder.Combine(group.First().To);
 
-                await group.Key.StagedFile.MoveTo(firstDest);
-                
+                if (group.Key.IsNative)
+                {
+                    await group.Key.AbsoluteName.HardLinkIfOversize(firstDest);
+                }
+                else
+                {
+                    await group.Key.StagedFile.MoveTo(firstDest);
+                }
+
                 foreach (var copy in group.Skip(1))
                 {
-                    await CopyFile(firstDest, OutputFolder.Combine(copy.To), false);
+                    await CopyFile(firstDest, OutputFolder.Combine(copy.To));
                 }
             });
 
@@ -280,7 +286,9 @@ namespace Wabbajack.Lib
 
         public async Task HashArchives()
         {
-            var hashResults = await DownloadFolder.EnumerateFiles()
+            var hashResults = await 
+                DownloadFolder.EnumerateFiles()
+                .Concat(Game.GameLocation().EnumerateFiles())
                 .Where(e => e.Extension != Consts.HashFileExtension)
                 .PMap(Queue, async e => (await e.FileHashCachedAsync(), e));
             HashedArchives.SetTo(hashResults

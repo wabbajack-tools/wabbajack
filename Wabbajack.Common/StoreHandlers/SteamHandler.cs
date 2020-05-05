@@ -155,7 +155,7 @@ namespace Wabbajack.Common.StoreHandlers
                         if (!l.ContainsCaseInsensitive("\"installdir\""))
                             return;
 
-                        var path = new RelativePath($"common//{GetVdfValue(l)}").RelativeTo(u);
+                        var path =  new RelativePath("common").Combine(GetVdfValue(l)).RelativeTo(u);
                         if (path.Exists)
                             game.Path = path;
                     });
