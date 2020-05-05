@@ -26,7 +26,7 @@
         <Version>1.11.23</Version>
       </PackageReference>
       <PackageReference Include="MegaApiClient">
-        <Version>1.8.0</Version>
+        <Version>1.8.1</Version>
       </PackageReference>
       <PackageReference Include="Microsoft.CSharp">
         <Version>4.7.0</Version>

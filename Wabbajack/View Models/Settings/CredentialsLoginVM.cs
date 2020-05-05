@@ -16,10 +16,16 @@ namespace Wabbajack
         public string Username { get; set; }
 
         [Reactive]
+        public string MFAKey { get; set; }
+
+        [Reactive]
         public LoginReturnMessage ReturnMessage { get; set; }
 
         private readonly ObservableAsPropertyHelper<bool> _loginEnabled;
         public bool LoginEnabled => _loginEnabled.Value;
+
+        private readonly ObservableAsPropertyHelper<bool> _mfaVisible;
+        public bool MFAVisible => _mfaVisible.Value;
 
         private readonly INeedsLoginCredentials _downloader;
 
@@ -31,6 +37,10 @@ namespace Wabbajack
                 .Select(IsValidAddress)
                 .ToGuiProperty(this,
                     nameof(LoginEnabled));
+
+            _mfaVisible = this.WhenAny(x => x.ReturnMessage)
+                .Select(x => x.ReturnCode == LoginReturnCode.NeedsMFA)
+                .ToGuiProperty(this, nameof(MFAVisible));
         }
 
         public void Login(SecureString password)
@@ -39,17 +49,17 @@ namespace Wabbajack
             {
                 if (password == null || password.Length == 0)
                 {
-                    ReturnMessage = new LoginReturnMessage("You need to input a password!", true);
+                    ReturnMessage = new LoginReturnMessage("You need to input a password!", LoginReturnCode.BadInput);
                     return;
                 }
 
-                ReturnMessage = _downloader.LoginWithCredentials(Username, password);
+                ReturnMessage = _downloader.LoginWithCredentials(Username, password, string.IsNullOrWhiteSpace(MFAKey) ? null : MFAKey);
                 password.Clear();
             }
             catch (Exception e)
             {
                 Utils.Error(e, "Exception while trying to login");
-                ReturnMessage = new LoginReturnMessage($"Unhandled exception: {e.Message}", true);
+                ReturnMessage = new LoginReturnMessage($"Unhandled exception: {e.Message}", LoginReturnCode.InternalError);
             }
         }
 

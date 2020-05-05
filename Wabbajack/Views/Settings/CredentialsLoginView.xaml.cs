@@ -24,6 +24,12 @@ namespace Wabbajack
                     .DisposeWith(disposable);
                 this.Bind(ViewModel, x => x.LoginEnabled, x => x.LoginButton.IsEnabled)
                     .DisposeWith(disposable);
+                this.Bind(ViewModel, x => x.MFAKey, x => x.MFA.Text)
+                    .DisposeWith(disposable);
+                this.OneWayBind(ViewModel, x => x.MFAVisible, x => x.MFA.Visibility)
+                    .DisposeWith(disposable);
+                this.OneWayBind(ViewModel, x => x.MFAVisible, x => x.MFAText.Visibility)
+                    .DisposeWith(disposable);
                 this.OneWayBind(ViewModel, x => x.ReturnMessage.Message, x => x.Message.Text)
                     .DisposeWith(disposable);
             });
