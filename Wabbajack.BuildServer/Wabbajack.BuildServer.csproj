@@ -20,7 +20,7 @@
         <PackageReference Include="Dapper" Version="2.0.35" />
         <PackageReference Include="FluentFTP" Version="32.4.0" />
         <PackageReference Include="graphiql" Version="2.0.0" />
-        <PackageReference Include="GraphQL" Version="3.0.0-preview-1352" />
+        <PackageReference Include="GraphQL" Version="3.0.0-preview-1648" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.1" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
