@@ -10,7 +10,7 @@
     xmlns:rxui="http://reactiveui.net"
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     d:DesignHeight="450"
-    d:DesignWidth="800"
+    d:DesignWidth="900"
     x:TypeArguments="local:ModListGalleryVM"
     mc:Ignorable="d">
     <Grid>
@@ -97,6 +97,18 @@
             Margin="5,5,5,10"
             HorizontalAlignment="Right"
             Orientation="Horizontal">
+            <Label
+                Margin="0,0,0,0"
+                VerticalAlignment="Center"
+                Content="Game" />
+            <ComboBox
+                Margin="0,0,10,0" 
+                VerticalAlignment="Center"
+                Foreground="{StaticResource ForegroundBrush}"
+                ItemsSource="{Binding Path=GameTypeEntries}"
+                SelectedItem="{Binding GameType, Mode=TwoWay}"
+                ToolTip="Select a game"
+                Width="130" />
             <TextBlock
                 Margin="0,0,5,0"
                 VerticalAlignment="Center"
@@ -104,17 +116,17 @@
                 Text="Search" />
             <TextBox
                 x:Name="SearchBox"
-                Width="160"
+                Width="95"
                 VerticalContentAlignment="Center" />
             <CheckBox
                 x:Name="ShowNSFW"
-                Margin="20,0,10,0"
+                Margin="10,0,10,0"
                 VerticalAlignment="Center"
                 Content="Show NSFW"
                 Foreground="{StaticResource ForegroundBrush}"/>
             <CheckBox
                 x:Name="OnlyInstalledCheckbox"
-                Margin="20,0,10,0"
+                Margin="10,0,10,0"
                 VerticalAlignment="Center"
                 Content="Only Installed"
                 Foreground="{StaticResource ForegroundBrush}" />

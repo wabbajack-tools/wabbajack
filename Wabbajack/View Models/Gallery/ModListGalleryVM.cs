@@ -34,9 +34,14 @@ namespace Wabbajack
 
         [Reactive]
         public bool OnlyInstalled { get; set; }
-        
+
         [Reactive]
         public bool ShowNSFW { get; set; }
+
+        [Reactive]
+        public string GameType { get; set; }
+
+        public List<string> GameTypeEntries { get { return GetGameTypeEntries(); } }
 
         private readonly ObservableAsPropertyHelper<bool> _Loaded;
         public bool Loaded => _Loaded.Value;
@@ -47,6 +52,7 @@ namespace Wabbajack
             : base(mainWindowVM)
         {
             MWVM = mainWindowVM;
+            GameType = "All";
 
             ClearFiltersCommand = ReactiveCommand.Create(
                 () =>
@@ -54,6 +60,7 @@ namespace Wabbajack
                     OnlyInstalled = false;
                     ShowNSFW = false;
                     Search = string.Empty;
+                    GameType = "All";
                 });
 
             var random = new Random();
@@ -116,6 +123,25 @@ namespace Wabbajack
                         if (!vm.Metadata.NSFW) return true;
                         return vm.Metadata.NSFW && showNSFW;
                     }))
+                // Filter by Game
+                .Filter(this.WhenAny(x => x.GameType)
+                    .Debounce(TimeSpan.FromMilliseconds(150), RxApp.MainThreadScheduler)
+                    .Select<string, Func<ModListMetadataVM, bool>>(GameType => (vm) =>
+                    {
+                        if (Enum.TryParse(GameType, out Game gameFilter))
+                        {
+                            return gameFilter == vm.Metadata.Game;
+                        }
+                        else if (GameType == "All")
+                            return true;
+                        return false;
+                    }))
+                .Filter(this.WhenAny(x => x.ShowNSFW)
+                    .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
+                    {
+                        if (!vm.Metadata.NSFW) return true;
+                        return vm.Metadata.NSFW && showNSFW;
+                    }))
                 // Put broken lists at bottom
                 .Sort(Comparer<ModListMetadataVM>.Create((a, b) => a.IsBroken.CompareTo(b.IsBroken)))
                 .Bind(ModLists)
@@ -137,6 +163,13 @@ namespace Wabbajack
         public override void Unload()
         {
             Error = null;
+        }
+
+        private List<string> GetGameTypeEntries()
+        {
+            List<string> gameEntries = new List<string> { "All" };
+            gameEntries.AddRange(Enum.GetNames(typeof(Game)));
+            return gameEntries;
         }
     }
 }
