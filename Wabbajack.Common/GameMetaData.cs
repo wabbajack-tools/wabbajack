@@ -134,6 +134,11 @@ namespace Wabbajack.Common
 
             return attrs.Length > 0 ? ((DescriptionAttribute)attrs[0]).Description : enumerationValue.ToString();
         }
+
+        public static IEnumerable<T> GetAllItems<T>() where T : struct
+        {
+           return Enum.GetValues(typeof(T)).Cast<T>();
+        }
     }
 
     public class GameRegistry

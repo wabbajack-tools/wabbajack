@@ -26,6 +26,8 @@ namespace Wabbajack
 
         private int missingHashFallbackCounter;
 
+        private const string ALL_GAME_TYPE = "All";
+
         [Reactive]
         public IErrorResponse Error { get; set; }
 
@@ -52,7 +54,7 @@ namespace Wabbajack
             : base(mainWindowVM)
         {
             MWVM = mainWindowVM;
-            GameType = "All";
+            GameType = ALL_GAME_TYPE;
 
             ClearFiltersCommand = ReactiveCommand.Create(
                 () =>
@@ -60,7 +62,7 @@ namespace Wabbajack
                     OnlyInstalled = false;
                     ShowNSFW = false;
                     Search = string.Empty;
-                    GameType = "All";
+                    GameType = ALL_GAME_TYPE;
                 });
 
             var random = new Random();
@@ -128,13 +130,9 @@ namespace Wabbajack
                     .Debounce(TimeSpan.FromMilliseconds(150), RxApp.MainThreadScheduler)
                     .Select<string, Func<ModListMetadataVM, bool>>(GameType => (vm) =>
                     {
-                        if (Enum.TryParse(GameType, out Game gameFilter))
-                        {
-                            return gameFilter == vm.Metadata.Game;
-                        }
-                        else if (GameType == "All")
+                        if (GameType == ALL_GAME_TYPE)
                             return true;
-                        return false;
+                        return GameType == EnumExtensions.GetDescription<Game>(vm.Metadata.Game).ToString();
                     }))
                 .Filter(this.WhenAny(x => x.ShowNSFW)
                     .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
@@ -167,8 +165,11 @@ namespace Wabbajack
 
         private List<string> GetGameTypeEntries()
         {
-            List<string> gameEntries = new List<string> { "All" };
-            gameEntries.AddRange(Enum.GetNames(typeof(Game)));
+            List<string> gameEntries = new List<string> { ALL_GAME_TYPE };
+            foreach (var gameType in EnumExtensions.GetAllItems<Game>() )
+            {
+                gameEntries.Add(EnumExtensions.GetDescription<Game>(gameType));
+            }
             return gameEntries;
         }
     }
