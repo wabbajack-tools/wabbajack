@@ -258,6 +258,7 @@ namespace Wabbajack.Common
                     MO2Name = "fallout3",
                     MO2ArchiveName = "fallout3",
                     SteamIDs = new List<int> {22300, 22370}, // base game and GotY
+                    GOGIDs = new List<int>{1454315831}, // GotY edition
                     RequiredFiles = new List<string>
                     {
                         "falloutlauncher.exe",
