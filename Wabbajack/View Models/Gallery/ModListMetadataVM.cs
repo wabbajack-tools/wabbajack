@@ -40,6 +40,12 @@ namespace Wabbajack
         public bool IsBroken { get; private set; }
 
         [Reactive]
+        public string DownloadSizeText { get; private set; }
+
+        [Reactive]
+        public string InstallSizeText { get; private set; }
+
+        [Reactive]
         public IErrorResponse Error { get; private set; }
 
         private readonly ObservableAsPropertyHelper<BitmapImage> _Image;
@@ -49,10 +55,12 @@ namespace Wabbajack
         public bool LoadingImage => _LoadingImage.Value;
 
         public ModListMetadataVM(ModListGalleryVM parent, ModlistMetadata metadata)
-        {
+        {            
             _parent = parent;
             Metadata = metadata;
             Location = Consts.ModListDownloadFolder.Combine(Metadata.Links.MachineURL + (string)Consts.ModListExtension);
+            DownloadSizeText = "Download size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
+            InstallSizeText = "Installation size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
             IsBroken = metadata.ValidationSummary.HasFailures;
             OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.Links.MachineURL}")));
             ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, Unit>(
