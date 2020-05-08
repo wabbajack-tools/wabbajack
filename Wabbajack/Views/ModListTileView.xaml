@@ -146,7 +146,12 @@
                             </Style>
                         </Ellipse.Style>
                     </Ellipse>
-                    <Label Content="{Binding DownloadSizeText}" HorizontalAlignment="Left" Margin="10,289,0,0" VerticalAlignment="Top">
+                    <Label 
+                        Content="{Binding DownloadSizeText}" 
+                        HorizontalAlignment="Left" 
+                        Margin="10,289,0,0" 
+                        VerticalAlignment="Top"
+                        Opacity="0" >
                         <Label.Style>
                             <Style TargetType="Label">
                                 <Style.Triggers>
@@ -176,7 +181,12 @@
                             </Style>
                         </Label.Style>
                     </Label>
-                    <Label Content="{Binding InstallSizeText}" HorizontalAlignment="Left" Margin="10,305,0,0" VerticalAlignment="Top">
+                    <Label 
+                        Content="{Binding InstallSizeText}" 
+                        HorizontalAlignment="Left" 
+                        Margin="10,305,0,0" 
+                        VerticalAlignment="Top"
+                        Opacity="0" >
                         <Label.Style>
                             <Style TargetType="Label">
                                 <Style.Triggers>
