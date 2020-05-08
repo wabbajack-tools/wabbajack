@@ -129,6 +129,7 @@
                 Margin="10,0,10,0"
                 VerticalAlignment="Center"
                 Content="Only Installed"
+                Command="{Binding OnlyInstalledCheckedCommand}"
                 Foreground="{StaticResource ForegroundBrush}" />
             <Button
                 x:Name="ClearFiltersButton"

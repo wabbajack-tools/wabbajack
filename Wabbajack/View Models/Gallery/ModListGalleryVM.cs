@@ -28,6 +28,8 @@ namespace Wabbajack
 
         private const string ALL_GAME_TYPE = "All";
 
+        public ICommand OnlyInstalledCheckedCommand { get; }
+
         [Reactive]
         public IErrorResponse Error { get; set; }
 
@@ -97,6 +99,11 @@ namespace Wabbajack
             _Loaded = sourceList.CollectionCount()
                 .Select(c => c > 0)
                 .ToProperty(this, nameof(Loaded));
+
+            OnlyInstalledCheckedCommand = ReactiveCommand.Create(() =>
+            {
+                GameType = ALL_GAME_TYPE;
+            });
 
             // Convert to VM and bind to resulting list
             sourceList
