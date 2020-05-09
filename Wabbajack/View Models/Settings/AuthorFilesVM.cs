@@ -6,6 +6,7 @@ using System.Windows.Input;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
+using Wabbajack.Lib.AuthorApi;
 using Wabbajack.Lib.FileUploader;
 
 namespace Wabbajack
@@ -49,8 +50,14 @@ namespace Wabbajack
                 _isUploading.OnNext(true);
                 try
                 {
-                    FinalUrl = await AuthorAPI.UploadFile(Picker.TargetPath,
-                        progress => UploadProgress = progress);
+                    using var queue = new WorkQueue();
+                    var result = await (await Client.Create()).UploadFile(queue, Picker.TargetPath,
+                        (msg, progress) =>
+                        {
+                            FinalUrl = msg;
+                            UploadProgress = (double)progress;
+                        });
+                    FinalUrl = result.ToString();
                 }
                 catch (Exception ex)
                 {

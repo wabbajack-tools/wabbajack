@@ -26,7 +26,7 @@ namespace Wabbajack.BuildServer.Test
         {
             DBName = "test_db" + Guid.NewGuid().ToString().Replace("-", "_");
             User = Guid.NewGuid().ToString().Replace("-", "");
-            //APIKey = SqlService.NewAPIKey();
+            APIKey = SqlService.NewAPIKey();
         }
 
         public string APIKey { get; }

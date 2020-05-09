@@ -25,8 +25,7 @@ namespace Wabbajack.BuildServer
         public bool RunFrontEndJobs { get; set; }
         public bool RunBackEndJobs { get; set; }
         
-        public string BunnyCDN_User { get; set; }
-        public string BunnyCDN_Password { get; set; }
+        public string BunnyCDN_StorageZone { get; set; }
         public string SqlConnection { get; set; }
 
         public int MaxJobs { get; set; } = 2;

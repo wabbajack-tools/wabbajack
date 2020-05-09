@@ -120,6 +120,8 @@ namespace Wabbajack.Server.Services
             });
 
             _logger.Log(LogLevel.Information, $"Purged {purged.Sum()} cache entries");
+            _globalInformation.LastNexusSyncUTC = DateTime.UtcNow;
+
         }
 
         public void Start()

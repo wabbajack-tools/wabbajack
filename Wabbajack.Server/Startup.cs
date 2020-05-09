@@ -40,6 +40,13 @@ namespace Wabbajack.Server
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "Wabbajack Build API", Version = "v1"});
             });
             
+            services.AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = ApiKeyAuthenticationOptions.DefaultScheme;
+                    options.DefaultChallengeScheme = ApiKeyAuthenticationOptions.DefaultScheme;
+                })
+                .AddApiKeySupport(options => {});
+            
             services.Configure<FormOptions>(x =>
             {
                 x.ValueLengthLimit = int.MaxValue;

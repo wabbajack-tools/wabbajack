@@ -403,6 +403,20 @@ CREATE TABLE [dbo].[Metrics](
                                         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
+
+/****** Object:  Table [dbo].[AuthoredFiles]    Script Date: 5/9/2020 2:22:00 PM ******/
+CREATE TABLE [dbo].[AuthoredFiles](
+                                      [ServerAssignedUniqueId] [uniqueidentifier] NOT NULL,
+                                      [LastTouched] [datetime] NOT NULL,
+                                      [CDNFileDefinition] [nvarchar](max) NOT NULL,
+                                      [Finalized] [datetime] NULL,
+                                      CONSTRAINT [PK_AuthoredFiles] PRIMARY KEY CLUSTERED
+                                          (
+                                           [ServerAssignedUniqueId] ASC
+                                              )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
 /****** Uploaded Files [UploadedFiles] *************/
 
 CREATE TABLE [dbo].[UploadedFiles](

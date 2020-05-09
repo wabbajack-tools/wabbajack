@@ -161,9 +161,9 @@ namespace Wabbajack.BuildServer.Test
         }
 
 
-        protected byte[] RandomData()
+        protected byte[] RandomData(long? size = null)
         {
-            var arr = new byte[_random.Next(1024)];
+            var arr = new byte[size ?? _random.Next(1024)];
             _random.NextBytes(arr);
             return arr;
         }
