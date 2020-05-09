@@ -33,7 +33,7 @@ This is where the fun begins. Wabbajack is programmed in C# so having a decent a
 You can download it [here](https://visualstudio.microsoft.com/vs/) but make sure to select the Community Edition as the other ones come at a cost. When installing Visual Studio you will be prompted to select a Workload and components. You will need the following:
 
 * **.NET desktop development** from the Workload tab
-* **.NET Framework 4.7.2 SDK and targeting pack** from the .NET section
+* **[.NET Framework 4.7.2 SDK and targeting pack](https://dotnet.microsoft.com/download/dotnet-framework/net472)** from the .NET section
 * **NuGet package manager** from the Code Tools section
 * **C# and Visual Basic** from the Development activities
 
@@ -44,12 +44,13 @@ The installer may have selected other options as well but these are the most imp
 1) **Fork and clone the project:** go to the GitHub repo page, click the fork button, copy the url from the forked repo, navigate to your project folder, open Git Bash or normal command prompt and type `git clone url name` and replace url with the copied URL and name with the folder name.
 2) **Open Wabbajack.sln** in Visual Studio 2019.
 3) **Download NuGet Packages** by selecting the solution and *Right Click* -> *Restore NuGet Packages*.
+4) Set the **Wabbajack** project as the **Startup Project**
 
 It may take a while for Visual Studio to download all packages and update all References so be patient. Once all packages are downloaded go and try building Wabbajack. If the build is successful then good job. If not, head over to the *#wabbajack-development* channel on the discord and talk about your build error.
 
 #### Coding Style
 
-As a  C# project, you should follow the [C# Coding Style](https://github.com/dotnet/corefx/blob/master/Documentation/coding-guidelines/coding-style.md). Further more you should never submit commits to your *master* branch, even if it's just a fork. Create a new branch with a meaningful name or the name of your issue/request and commit to that.
+As a  C# project, you should follow the C# Coding Style. Further more you should never submit commits to your *master* branch, even if it's just a fork. Create a new branch with a meaningful name or the name of your issue/request and commit to that.
 
 Your commits should also be elegant. Check out [this](https://github.com/git-for-windows/git/wiki/Good-commits) post for good practices.
 
