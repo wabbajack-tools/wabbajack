@@ -64,8 +64,12 @@ namespace Wabbajack.Lib
 
         public static async Task<Dictionary<RelativePath, Hash>> GetGameFiles(Game game, Version version)
         {
+            // TODO: Disabled for now
+            return new Dictionary<RelativePath, Hash>();
+            /*
             return await GetClient()
                 .GetJsonAsync<Dictionary<RelativePath, Hash>>($"{Consts.WabbajackBuildServerUri}game_files/{game}/{version}");
+                */
         }
     }
 }
