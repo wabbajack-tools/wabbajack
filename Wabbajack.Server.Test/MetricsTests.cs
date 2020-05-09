@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Dapper;
 using Wabbajack.Common;
 using Wabbajack.Server.DataLayer;
+using Wabbajack.Server.DTOs;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,7 +16,7 @@ namespace Wabbajack.BuildServer.Test
         }
 
         [Fact]
-        public async Task CanSendMetrics()
+        public async Task CanSendAndGetMetrics()
         {
             var action = "action_" + Guid.NewGuid().ToString();
             var subject = "subject_" + Guid.NewGuid().ToString();
@@ -27,6 +28,11 @@ namespace Wabbajack.BuildServer.Test
                 new {Action = action});
 
             Assert.Equal(subject, result);
+
+
+            var report = await _client.GetJsonAsync<MetricResult[]>(MakeURL($"metrics/report/{action}"));
+            // we'll just make sure this doesn't error, with limited data that's about all we can do atm
+           
         }
     }
 }

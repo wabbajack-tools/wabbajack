@@ -43,6 +43,8 @@ namespace Wabbajack.BuildServer.Test
                     $"WabbajackSettings:BunnyCDN_Password=TEST",
                     "WabbajackSettings:JobScheduler=false",
                     "WabbajackSettings:JobRunner=false",
+                    "WabbajackSettings:RunBackEndJobs=false",
+                    "WabbajackSettings:RunFrontEndJobs=false",
                     "WabbajackSettinss:DisableNexusForwarding=true"
                 }, true);
             _host = builder.Build();
