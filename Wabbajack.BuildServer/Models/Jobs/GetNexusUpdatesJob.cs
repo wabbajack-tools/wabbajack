@@ -118,7 +118,5 @@ namespace Wabbajack.BuildServer.Models.Jobs
             LastNexusSync = DateTime.Now;
             return updated;
         }
-        
-
     }
 }

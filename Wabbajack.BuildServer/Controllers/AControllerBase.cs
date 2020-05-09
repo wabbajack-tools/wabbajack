@@ -32,7 +32,5 @@ namespace Wabbajack.BuildServer.Controllers
                 Timestamp = DateTime.UtcNow
             });
         }
-
-
     }
 }
