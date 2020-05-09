@@ -79,6 +79,7 @@ namespace Wabbajack.Lib
 
         protected override async Task<bool> _Begin(CancellationToken cancel)
         {
+            var _ = Metrics.Send("begin_compiling", ModListName ?? "unknown");
             if (cancel.IsCancellationRequested) return false;
             Queue.SetActiveThreadsObservable(ConstructDynamicNumThreads(await RecommendQueueSize()));
             UpdateTracker.Reset();

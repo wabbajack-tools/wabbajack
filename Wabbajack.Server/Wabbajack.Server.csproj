@@ -3,6 +3,14 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp3.1</TargetFramework>
+        <AssemblyVersion>2.0.4.0</AssemblyVersion>
+        <FileVersion>2.0.4.0</FileVersion>
+        <Copyright>Copyright © 2019-2020</Copyright>
+        <Description>Wabbajack Server</Description>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <AssemblyName>Wabbajack.Server</AssemblyName>
+        <RootNamespace>Wabbajack.Server</RootNamespace>
+
     </PropertyGroup>
 
     <ItemGroup>

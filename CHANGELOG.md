@@ -1,5 +1,15 @@
 ### Changelog
 
+#### Version - 2.0.4.0 - 5/9/2020
+* Several visual improvements to the gallery thanks to the hard work of Khamûl
+* Rewrote most of the server-side code for better stability and performance
+* Wabbajack CDN uploads/downloads now use a much more stable segmented interface
+* Fixed support for Fallout 3
+* Added support for Fallout 3 via GoG
+* Several fixes to MEGA support
+* Mediafire no longer uses Cef should stop popups (since we no longer run the JS)
+* Fallback to the normal Nexus APIs if the WJ cache server is dead
+
 #### Version - 2.0.3.0 - 4/29/2020
 * Updated the MEGA Credentials Login form with more UI elements
 * Switch LZ4 compression to L8 (vs L12) for much faster SSE BSA creation
