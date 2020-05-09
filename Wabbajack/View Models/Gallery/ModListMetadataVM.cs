@@ -20,6 +20,17 @@ using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack
 {
+
+    public struct ModListTag
+    {
+        public ModListTag(string name)
+        {
+            Name = name;
+        }
+
+        public string Name { get; }
+    }
+
     public class ModListMetadataVM : ViewModel
     {
         public ModlistMetadata Metadata { get; }
@@ -34,10 +45,19 @@ namespace Wabbajack
         public AbsolutePath Location { get; }
 
         [Reactive]
+        public List<ModListTag> ModListTagList { get; private set; }
+
+        [Reactive]
         public Percent ProgressPercent { get; private set; }
 
         [Reactive]
         public bool IsBroken { get; private set; }
+
+        [Reactive]
+        public string DownloadSizeText { get; private set; }
+
+        [Reactive]
+        public string InstallSizeText { get; private set; }
 
         [Reactive]
         public IErrorResponse Error { get; private set; }
@@ -49,10 +69,17 @@ namespace Wabbajack
         public bool LoadingImage => _LoadingImage.Value;
 
         public ModListMetadataVM(ModListGalleryVM parent, ModlistMetadata metadata)
-        {
+        {            
             _parent = parent;
             Metadata = metadata;
             Location = Consts.ModListDownloadFolder.Combine(Metadata.Links.MachineURL + (string)Consts.ModListExtension);
+            ModListTagList = new List<ModListTag>();
+            Metadata.tags.ForEach(tag =>
+            {
+                ModListTagList.Add(new ModListTag(tag));
+            });
+            DownloadSizeText = "Download size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
+            InstallSizeText = "Installation size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
             IsBroken = metadata.ValidationSummary.HasFailures;
             OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.Links.MachineURL}")));
             ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, Unit>(

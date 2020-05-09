@@ -146,6 +146,100 @@
                             </Style>
                         </Ellipse.Style>
                     </Ellipse>
+                    <ItemsControl ItemsSource="{Binding ModListTagList}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border 
+                                    BorderThickness="1" 
+                                    Grid.Row="0" 
+                                    Grid.ColumnSpan="2"
+                                    CornerRadius="7,7,7,7"
+                                    Opacity="0.90"
+                                    Background="{StaticResource Analogous1Brush}"
+                                    Margin="10,5,0,5">
+                                    <TextBlock 
+                                        Margin="5,5,5,5"
+                                        FontSize="15"
+                                        Text="{Binding Name}"/>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Label 
+                        Content="{Binding DownloadSizeText}" 
+                        HorizontalAlignment="Left" 
+                        Margin="10,257,0,0" 
+                        VerticalAlignment="Top"
+                        Opacity="0" >
+                        <Label.Style>
+                            <Style TargetType="Label">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
+                                        <DataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="Opacity"
+                                                        To="1"
+                                                        Duration="0:0:0.08" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.EnterActions>
+                                        <DataTrigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="Opacity"
+                                                        To="0"
+                                                        Duration="0:0:0.08" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.ExitActions>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Label.Style>
+                    </Label>
+                    <Label 
+                        Content="{Binding InstallSizeText}" 
+                        HorizontalAlignment="Left" 
+                        Margin="10,272,0,0" 
+                        VerticalAlignment="Top"
+                        Opacity="0" >
+                        <Label.Style>
+                            <Style TargetType="Label">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsMouseOver, ElementName=ModListTile}" Value="True">
+                                        <DataTrigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="Opacity"
+                                                        To="1"
+                                                        Duration="0:0:0.08" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.EnterActions>
+                                        <DataTrigger.ExitActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation
+                                                        Storyboard.TargetProperty="Opacity"
+                                                        To="0"
+                                                        Duration="0:0:0.08" />
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </DataTrigger.ExitActions>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Label.Style>
+                    </Label>
                 </Grid>
             </Border>
             <local:UnderMaintenanceOverlay
