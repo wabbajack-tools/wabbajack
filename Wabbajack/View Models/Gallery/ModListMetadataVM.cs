@@ -20,6 +20,17 @@ using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack
 {
+
+    public struct ModListTag
+    {
+        public ModListTag(string name)
+        {
+            Name = name;
+        }
+
+        public string Name { get; }
+    }
+
     public class ModListMetadataVM : ViewModel
     {
         public ModlistMetadata Metadata { get; }
@@ -32,6 +43,9 @@ namespace Wabbajack
         public bool Exists => _Exists.Value;
 
         public AbsolutePath Location { get; }
+
+        [Reactive]
+        public List<ModListTag> ModListTagList { get; private set; }
 
         [Reactive]
         public Percent ProgressPercent { get; private set; }
@@ -59,6 +73,11 @@ namespace Wabbajack
             _parent = parent;
             Metadata = metadata;
             Location = Consts.ModListDownloadFolder.Combine(Metadata.Links.MachineURL + (string)Consts.ModListExtension);
+            ModListTagList = new List<ModListTag>();
+            Metadata.tags.ForEach(tag =>
+            {
+                ModListTagList.Add(new ModListTag(tag));
+            });
             DownloadSizeText = "Download size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
             InstallSizeText = "Installation size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
             IsBroken = metadata.ValidationSummary.HasFailures;

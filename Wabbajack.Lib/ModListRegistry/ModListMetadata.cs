@@ -29,6 +29,9 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonProperty("official")]
         public bool Official { get; set; }
 
+        [JsonProperty("tags")]
+        public List<string> tags { get; set; } = new List<string>();
+
         [JsonProperty("nsfw")]
         public bool NSFW { get; set; }
 
