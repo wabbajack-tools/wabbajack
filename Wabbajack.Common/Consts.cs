@@ -142,5 +142,8 @@ namespace Wabbajack.Common
         public static string AuthorAPIKeyFile = "author-api-key.txt";
 
         public static Uri WabbajackOrg = new Uri("https://www.wabbajack.org/");
+        
+        public static long UPLOADED_FILE_BLOCK_SIZE = (long)1024 * 1024 * 2;
+
     }
 }

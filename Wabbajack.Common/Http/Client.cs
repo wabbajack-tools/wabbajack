@@ -74,7 +74,9 @@ namespace Wabbajack.Common.Http
             try
             {
                 var response = await ClientFactory.Client.SendAsync(msg, responseHeadersRead);
-                return response;
+                if (response.IsSuccessStatusCode) return response;
+
+                throw new HttpRequestException($"Http Exception {response.StatusCode} - {response.ReasonPhrase} - {msg.RequestUri}");;
             }
             catch (Exception)
             {
