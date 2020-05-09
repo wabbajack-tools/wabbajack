@@ -26,6 +26,10 @@ namespace Wabbajack
 
         private int missingHashFallbackCounter;
 
+        private const string ALL_GAME_TYPE = "All";
+
+        public ICommand OnlyInstalledCheckedCommand { get; }
+
         [Reactive]
         public IErrorResponse Error { get; set; }
 
@@ -34,9 +38,14 @@ namespace Wabbajack
 
         [Reactive]
         public bool OnlyInstalled { get; set; }
-        
+
         [Reactive]
         public bool ShowNSFW { get; set; }
+
+        [Reactive]
+        public string GameType { get; set; }
+
+        public List<string> GameTypeEntries { get { return GetGameTypeEntries(); } }
 
         private readonly ObservableAsPropertyHelper<bool> _Loaded;
         public bool Loaded => _Loaded.Value;
@@ -47,6 +56,7 @@ namespace Wabbajack
             : base(mainWindowVM)
         {
             MWVM = mainWindowVM;
+            GameType = ALL_GAME_TYPE;
 
             ClearFiltersCommand = ReactiveCommand.Create(
                 () =>
@@ -54,6 +64,7 @@ namespace Wabbajack
                     OnlyInstalled = false;
                     ShowNSFW = false;
                     Search = string.Empty;
+                    GameType = ALL_GAME_TYPE;
                 });
 
             var random = new Random();
@@ -89,6 +100,11 @@ namespace Wabbajack
                 .Select(c => c > 0)
                 .ToProperty(this, nameof(Loaded));
 
+            OnlyInstalledCheckedCommand = ReactiveCommand.Create(() =>
+            {
+                GameType = ALL_GAME_TYPE;
+            });
+
             // Convert to VM and bind to resulting list
             sourceList
                 .ObserveOnGuiThread()
@@ -109,6 +125,21 @@ namespace Wabbajack
                     {
                         if (string.IsNullOrWhiteSpace(search)) return true;
                         return vm.Metadata.Title.ContainsCaseInsensitive(search);
+                    }))
+                .Filter(this.WhenAny(x => x.ShowNSFW)
+                    .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
+                    {
+                        if (!vm.Metadata.NSFW) return true;
+                        return vm.Metadata.NSFW && showNSFW;
+                    }))
+                // Filter by Game
+                .Filter(this.WhenAny(x => x.GameType)
+                    .Debounce(TimeSpan.FromMilliseconds(150), RxApp.MainThreadScheduler)
+                    .Select<string, Func<ModListMetadataVM, bool>>(GameType => (vm) =>
+                    {
+                        if (GameType == ALL_GAME_TYPE)
+                            return true;
+                        return GameType == EnumExtensions.GetDescription<Game>(vm.Metadata.Game).ToString();
                     }))
                 .Filter(this.WhenAny(x => x.ShowNSFW)
                     .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
@@ -137,6 +168,16 @@ namespace Wabbajack
         public override void Unload()
         {
             Error = null;
+        }
+
+        private List<string> GetGameTypeEntries()
+        {
+            List<string> gameEntries = new List<string> { ALL_GAME_TYPE };
+            foreach (var gameType in EnumExtensions.GetAllItems<Game>() )
+            {
+                gameEntries.Add(EnumExtensions.GetDescription<Game>(gameType));
+            }
+            return gameEntries;
         }
     }
 }
