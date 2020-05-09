@@ -1,0 +1,102 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Wabbajack Metrics</title>
+    <script
+            src="https://code.jquery.com/jquery-3.5.1.min.js"
+            integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-colorschemes"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js"></script>
+</head>
+<body>
+
+<h2>Finished Install Counts</h2>
+<canvas id="finished_install_count" width="800" height="600"></canvas>
+<hr/>
+
+<h2>Begin Download</h2>
+<canvas id="begin_download_chart" width="800" height="600"></canvas>
+<hr/>
+
+<h2>Begin Install</h2>
+<canvas id="begin_install_chart" width="800" height="600"></canvas>
+<hr/>
+
+<h2>Finished Install</h2>
+<canvas id="finished_install_chart" width="800" height="600"></canvas>
+<hr/>
+
+
+
+
+<script>
+    
+    var getReport = function(subject, callback) {
+        $.getJSON("/metrics/report/"+subject, callback)
+    }
+    
+    var makeChart = function(ele, group) {
+
+        var result_fn = function (data) {
+                    var data = _.filter(data, series => _.some(series.values, v => v > 1));
+                    var labels = _.uniq(_.flatten(_.map(data, series => series.labels)));
+                    var datasets = _.map(data, series => {
+                        return {
+                            label: series.seriesName,
+                            fill: false,
+                            data: _.last(series.values, 30)
+                        }});
+                    var ctx = document.getElementById(ele).getContext('2d');
+                    var chart = new Chart(ctx, {
+                        // The type of chart we want to create
+                        type: 'line',
+
+                        // The data for our dataset
+                        data: {
+                            labels: _.last(labels, 30),
+                            datasets: datasets},
+
+                        // Configuration options go here
+                        options: {}
+                    });
+                };
+        getReport(group, result_fn);
+    };
+
+
+    var makePieChart = function(ele, group) {
+
+        var result_fn = function (data) {
+                    var data = _.filter(data, series => _.some(series.values, v => v > 2));
+                    var labels = _.map(data, series => series.seriesName);
+                    var datasets = {data : _.map(data, series => {
+                            return _.reduce(series.values, (x, y) => x + y, 0)})};
+                    console.log(datasets);
+                    console.log(labels);
+                    var ctx = document.getElementById(ele).getContext('2d');
+                    var chart = new Chart(ctx, {
+                        // The type of chart we want to create
+                        type: 'pie',
+
+                        // The data for our dataset
+                        data: {
+                            labels: labels,
+                            datasets: [datasets]},
+
+                        // Configuration options go here
+                        options: {}
+                    });
+                };
+        getReport(group, result_fn)
+    };
+
+    makeChart("begin_download_chart", "downloading");
+    makeChart("begin_install_chart", "begin_install");
+    makeChart("finished_install_chart", "finish_install");
+    makePieChart("finished_install_count", "finish_install");
+</script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -25,12 +26,27 @@ namespace Wabbajack.BuildServer.Controllers
         }
 
         [HttpGet]
-        [Route("{Subject}/{Value}")]
-        public async Task<Result> LogMetricAsync(string Subject, string Value)
+        [Route("{subject}/{value}")]
+        public async Task<Result> LogMetricAsync(string subject, string value)
         {
             var date = DateTime.UtcNow;
-            await Log(date, Subject, Value, Request.Headers[Consts.MetricsKeyHeader].FirstOrDefault());
+            await Log(date, subject, value, Request.Headers[Consts.MetricsKeyHeader].FirstOrDefault());
             return new Result { Timestamp = date};
+        }
+
+        [HttpGet]
+        [Route("report/{subject}")]
+        public async Task<IActionResult> MetricsReport(string subject)
+        {
+            var results = (await _sql.MetricsReport(subject))
+                .GroupBy(m => m.Subject)
+                .Select(g => new MetricResult
+                {
+                    SeriesName = g.Key,
+                    Labels = g.Select(m => m.Date.ToString(CultureInfo.InvariantCulture)).ToList(),
+                    Values = g.Select(m => m.Count).ToList()
+                });
+            return Ok(results.ToList());
         }
 
         private async Task Log(DateTime timestamp, string action, string subject, string metricsKey = null)

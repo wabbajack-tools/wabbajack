@@ -46,7 +46,7 @@ namespace Wabbajack.Server.Services
 
                     var totalPurged = purgedFiles + purgedMods;
                     if (totalPurged > 0)
-                        _logger.Log(LogLevel.Information, $"Purged {totalPurged} cache items");
+                        _logger.Log(LogLevel.Information, $"Purged {totalPurged} cache items {result.Game} {result.ModId} {result.TimeStamp}");
 
                     if (await _sql.GetNexusModInfoString(result.Game, result.ModId) != null) continue;
 
@@ -124,6 +124,8 @@ namespace Wabbajack.Server.Services
 
         public void Start()
         {
+            if (!_settings.RunBackEndJobs) return;
+            
             Task.Run(async () =>
             {
                 while (true)
