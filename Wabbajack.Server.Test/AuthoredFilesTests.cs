@@ -31,6 +31,9 @@ namespace Wabbajack.BuildServer.Test
             var data = await Fixture.GetService<SqlService>().AllAuthoredFiles();
             Assert.Contains((string)file.Path.FileName, data.Select(f => f.OriginalFileName));
 
+            var result = await _client.GetStringAsync(MakeURL("authored_files"));
+            Assert.Contains((string)file.Path.FileName, result);
+
             var state = await DownloadDispatcher.Infer(uri);
             Assert.IsType<WabbajackCDNDownloader.State>(state);
 

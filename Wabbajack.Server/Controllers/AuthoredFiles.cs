@@ -144,7 +144,7 @@ namespace Wabbajack.BuildServer.Controllers
             <html><body>
                 <table>
                 {{each $.files }}
-                <tr><td><a href='https//wabbajack.b-cdn.net/{{$.MungedName}}'>{{$.OriginalFileName}}</a></td><td>{{$.Size}}</td><td>{{$.LastTouched}}</td><td>{{$.Finalized}}</td><td>{{$.Uploader}}</td></tr>
+                <tr><td><a href='https://wabbajack.b-cdn.net/{{$.MungedName}}'>{{$.OriginalFileName}}</a></td><td>{{$.Size}}</td><td>{{$.LastTouched}}</td><td>{{$.Finalized}}</td><td>{{$.Author}}</td></tr>
                 {{/each}}
                 </table>
             </body></html>
@@ -156,7 +156,7 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<ContentResult> UploadedFilesGet()
         {
             var files = await _sql.AllAuthoredFiles();
-            var response = HandleGetListTemplate(files);
+            var response = HandleGetListTemplate(new {files});
             return new ContentResult
             {
                 ContentType = "text/html",
