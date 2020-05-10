@@ -33,7 +33,7 @@ This is where the fun begins. Wabbajack is programmed in C# so having a decent a
 You can download it [here](https://visualstudio.microsoft.com/vs/) but make sure to select the Community Edition as the other ones come at a cost. When installing Visual Studio you will be prompted to select a Workload and components. You will need the following:
 
 * **.NET desktop development** from the Workload tab
-* **[.NET Framework 4.7.2 SDK and targeting pack](https://dotnet.microsoft.com/download/dotnet-framework/net472)** from the .NET section
+* **[.NET Core 3.x](https://dotnet.microsoft.com/download/dotnet-core/3.1)**
 * **NuGet package manager** from the Code Tools section
 * **C# and Visual Basic** from the Development activities
 
