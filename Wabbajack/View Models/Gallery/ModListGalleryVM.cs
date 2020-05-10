@@ -65,10 +65,10 @@ namespace Wabbajack
 
             // load persistent filter settings
             settings = MWVM.Settings.Filters;
-            if (settings.isPersistent)
+            if (settings.IsPersistent)
             {
                 GameType = !string.IsNullOrEmpty(settings.Game) ? settings.Game : ALL_GAME_TYPE;
-                ShowNSFW = settings.showNSFW;
+                ShowNSFW = settings.ShowNSFW;
                 OnlyInstalled = settings.OnlyInstalled;
                 if (OnlyInstalled)
                     GameTypeEnabled = false;
@@ -215,13 +215,13 @@ namespace Wabbajack
 
         private void UpdateFiltersSettings()
         {
-            if (!settings.isPersistent)
+            if (!settings.IsPersistent)
                 return;
             if (!string.IsNullOrEmpty(GameType))
                 settings.Game = GameType;
             if (Search != null)
                 settings.Search = Search;
-            settings.showNSFW = ShowNSFW;
+            settings.ShowNSFW = ShowNSFW;
             settings.OnlyInstalled = OnlyInstalled;
         }
     }

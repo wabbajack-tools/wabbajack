@@ -99,12 +99,12 @@ namespace Wabbajack
     [JsonObject(MemberSerialization.OptOut)]
     public class FiltersSettings : ViewModel
     {
-        public bool showNSFW { get; set; }
+        public bool ShowNSFW { get; set; }
         public bool OnlyInstalled { get; set; }
         public string Game { get; set; }
         public string Search { get; set; }
         private bool _isPersistent = true;
-        public bool isPersistent { get => _isPersistent; set => RaiseAndSetIfChanged(ref _isPersistent, value); }
+        public bool IsPersistent { get => _isPersistent; set => RaiseAndSetIfChanged(ref _isPersistent, value); }
     }
 
     [JsonName("PerformanceSettings")]

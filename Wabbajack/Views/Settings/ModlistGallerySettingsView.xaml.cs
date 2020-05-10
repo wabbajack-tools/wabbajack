@@ -31,7 +31,7 @@ namespace Wabbajack
             this.WhenActivated(disposable =>
             {
                 // Bind Values
-                this.Bind(this.ViewModel, x => x.isPersistent, x => x.FilterPersistCheckBox.IsChecked)
+                this.Bind(this.ViewModel, x => x.IsPersistent, x => x.FilterPersistCheckBox.IsChecked)
                     .DisposeWith(disposable);
             });
         }
