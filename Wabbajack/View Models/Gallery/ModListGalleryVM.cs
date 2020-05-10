@@ -73,6 +73,10 @@ namespace Wabbajack
                 if (OnlyInstalled)
                     GameTypeEnabled = false;
                 Search = settings.Search;
+                // subscribe to save signal
+                MWVM.Settings.SaveSignal
+                    .Subscribe(_ => UpdateFiltersSettings())
+                    .DisposeWith(this.CompositeDisposable);
             }
             else
                 GameType = ALL_GAME_TYPE;
@@ -85,7 +89,6 @@ namespace Wabbajack
                     Search = string.Empty;
                     GameType = ALL_GAME_TYPE;
                     GameTypeEnabled = true;
-                    UpdateFiltersSettings();
                 });
 
             var random = new Random();
@@ -141,7 +144,6 @@ namespace Wabbajack
                 .Filter(this.WhenAny(x => x.OnlyInstalled)
                     .Select<bool, Func<ModListMetadataVM, bool>>(onlyInstalled => (vm) =>
                     {
-                        UpdateFiltersSettings();
                         if (!onlyInstalled) return true;
                         if (!GameRegistry.Games.TryGetValue(vm.Metadata.Game, out var gameMeta)) return false;
                         return gameMeta.IsInstalled;
@@ -152,13 +154,11 @@ namespace Wabbajack
                     .Select<string, Func<ModListMetadataVM, bool>>(search => (vm) =>
                     {
                         if (string.IsNullOrWhiteSpace(search)) return true;
-                        UpdateFiltersSettings();
                         return vm.Metadata.Title.ContainsCaseInsensitive(search);
                     }))
                 .Filter(this.WhenAny(x => x.ShowNSFW)
                     .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
                     {
-                        UpdateFiltersSettings();
                         if (!vm.Metadata.NSFW) return true;
                         return vm.Metadata.NSFW && showNSFW;
                     }))
@@ -172,14 +172,12 @@ namespace Wabbajack
                         if (string.IsNullOrEmpty(GameType))
                             return false;
 
-                        UpdateFiltersSettings();
                         return GameType == vm.Metadata.Game.GetDescription<Game>().ToString();
 
                     }))
                 .Filter(this.WhenAny(x => x.ShowNSFW)
                     .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
                     {
-                        UpdateFiltersSettings();
                         if (!vm.Metadata.NSFW) return true;
                         return vm.Metadata.NSFW && showNSFW;
                     }))
