@@ -30,8 +30,6 @@ namespace Wabbajack
 
         private const string ALL_GAME_TYPE = "All";
 
-        public ICommand OnlyInstalledCheckedCommand { get; }
-
         [Reactive]
         public IErrorResponse Error { get; set; }
 
@@ -46,9 +44,6 @@ namespace Wabbajack
 
         [Reactive]
         public string GameType { get; set; }
-        
-        [Reactive]
-        public bool GameTypeEnabled { get; set; }
 
         public List<string> GameTypeEntries { get { return GetGameTypeEntries(); } }
 
@@ -61,7 +56,6 @@ namespace Wabbajack
             : base(mainWindowVM)
         {
             MWVM = mainWindowVM;
-            GameTypeEnabled = true;
 
             // load persistent filter settings
             settings = MWVM.Settings.Filters;
@@ -70,8 +64,6 @@ namespace Wabbajack
                 GameType = !string.IsNullOrEmpty(settings.Game) ? settings.Game : ALL_GAME_TYPE;
                 ShowNSFW = settings.ShowNSFW;
                 OnlyInstalled = settings.OnlyInstalled;
-                if (OnlyInstalled)
-                    GameTypeEnabled = false;
                 Search = settings.Search;
                 // subscribe to save signal
                 MWVM.Settings.SaveSignal
@@ -88,7 +80,6 @@ namespace Wabbajack
                     ShowNSFW = false;
                     Search = string.Empty;
                     GameType = ALL_GAME_TYPE;
-                    GameTypeEnabled = true;
                 });
 
             var random = new Random();
@@ -123,17 +114,6 @@ namespace Wabbajack
             _Loaded = sourceList.CollectionCount()
                 .Select(c => c > 0)
                 .ToProperty(this, nameof(Loaded));
-
-            OnlyInstalledCheckedCommand = ReactiveCommand.Create(() =>
-            {
-                if (OnlyInstalled)
-                {
-                    GameType = ALL_GAME_TYPE;
-                    GameTypeEnabled = false;
-                }
-                else
-                    GameTypeEnabled = true;
-            });
 
             // Convert to VM and bind to resulting list
             sourceList
