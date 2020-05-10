@@ -216,8 +216,17 @@ namespace Wabbajack.Test
             return InstallFolder.Combine((string)Consts.MO2ModFolderName, mod, file);
         }
 
-        public void VerifyAllFiles()
+        public void VerifyAllFiles(bool gameFileShouldNotExistInGameFolder = true)
         {
+            if (gameFileShouldNotExistInGameFolder)
+            {
+                foreach (var file in Game.MetaData().RequiredFiles!)
+                {
+                    Assert.False(InstallFolder.Combine(Consts.GameFolderFilesDir, (RelativePath)file).Exists);
+                }
+            }
+
+
             var skipFiles = new []{"portable.txt"}.Select(e => (RelativePath)e).ToHashSet();
             foreach (var destFile in InstallFolder.EnumerateFiles())
             {

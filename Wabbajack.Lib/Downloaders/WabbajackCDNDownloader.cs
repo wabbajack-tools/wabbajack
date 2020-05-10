@@ -12,7 +12,7 @@ using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
-    public class WabbajackCDNDownloader : IDownloader
+    public class WabbajackCDNDownloader : IDownloader, IUrlDownloader
     {
         public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode = false)
         {
@@ -24,7 +24,12 @@ namespace Wabbajack.Lib.Downloaders
         {
         }
 
-       
+        public AbstractDownloadState? GetDownloaderState(string url)
+        {
+            return StateFromUrl(new Uri(url));
+        }
+
+
         public static AbstractDownloadState? StateFromUrl(Uri url)
         {
             if (url.Host == "wabbajacktest.b-cdn.net" || url.Host == "wabbajack.b-cdn.net")

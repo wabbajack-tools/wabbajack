@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.0.4.2 - 5/10/2020
+* Hotfix: allow the WJ CDN to be used for gallery modlists
+* Fix a bug with the CDN downloader and modlist compilation
+
 #### Version - 2.0.4.1 - 5/10/2020
 * Hotfix: don't throw a compilation exceptions when metas can't be inferred
 
