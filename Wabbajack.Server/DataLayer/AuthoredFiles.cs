@@ -1,9 +1,15 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Wabbajack.BuildServer.Controllers;
 using Wabbajack.Common;
 using Wabbajack.Lib.AuthorApi;
+using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.Server.DataLayer
 {
@@ -57,6 +63,13 @@ namespace Wabbajack.Server.DataLayer
                 new {Uid = definition.ServerAssignedUniqueId})).First();
         }
 
+        public async Task<IEnumerable<AuthoredFilesSummary>> AllAuthoredFiles()
+        {
+            await using var conn = await Open();
+            var results = await conn.QueryAsync<AuthoredFilesSummary>("SELECT CONVERT(NVARCHAR(50), ServerAssignedUniqueId) as ServerAssignedUniqueId, Size, OriginalFileName, Author, LastTouched, Finalized, MungedName from dbo.AuthoredFilesSummaries ORDER BY LastTouched DESC");
+            return results;
+
+        }
         
     }
 }

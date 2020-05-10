@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.AuthorApi;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Server.DataLayer;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -25,6 +27,9 @@ namespace Wabbajack.BuildServer.Test
             var client = await Client.Create(Fixture.APIKey);
             using var queue = new WorkQueue(2);
             var uri = await client.UploadFile(queue, file.Path, (s, percent) => Utils.Log($"({percent}) {s}"));
+
+            var data = await Fixture.GetService<SqlService>().AllAuthoredFiles();
+            Assert.Contains((string)file.Path.FileName, data.Select(f => f.OriginalFileName));
 
             var state = await DownloadDispatcher.Infer(uri);
             Assert.IsType<WabbajackCDNDownloader.State>(state);

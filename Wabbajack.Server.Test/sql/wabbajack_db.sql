@@ -417,6 +417,19 @@ CREATE TABLE [dbo].[AuthoredFiles](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
+/****** Object:  Table [dbo].[AuthoredFilesSummaries]    Script Date: 5/9/2020 6:06:00 PM ******/
+CREATE VIEW AuthoredFilesSummaries
+AS
+SELECT
+    [ServerAssignedUniqueId]
+     ,[LastTouched]
+     ,[Finalized]
+     ,JSON_VALUE(CDNFileDefinition, '$.OriginalFileName') as OriginalFileName
+     ,JSON_VALUE(CDNFileDefinition, '$.MungedName') as MungedName
+     ,JSON_VALUE(CDNFileDefinition, '$.Author') as Author
+     ,JSON_VALUE(CDNFILEDefinition, '$.Size') as Size
+FROM [wabbajack_prod].[dbo].[AuthoredFiles]
+GO
 /****** Uploaded Files [UploadedFiles] *************/
 
 CREATE TABLE [dbo].[UploadedFiles](

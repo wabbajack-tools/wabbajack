@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using FluentFTP;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Nettle;
 using SharpCompress.Compressors.LZMA;
 using Wabbajack.Common;
 using Wabbajack.Lib.AuthorApi;
@@ -138,6 +139,32 @@ namespace Wabbajack.BuildServer.Controllers
                 _logger.Log(LogLevel.Information, $"Delete failed for {path}");
             }
         }
+        
+        private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().Compile(@"
+            <html><body>
+                <table>
+                {{each $.files }}
+                <tr><td><a href='https//wabbajack.b-cdn.net/{{$.MungedName}}'>{{$.OriginalFileName}}</a></td><td>{{$.Size}}</td><td>{{$.LastTouched}}</td><td>{{$.Finalized}}</td><td>{{$.Uploader}}</td></tr>
+                {{/each}}
+                </table>
+            </body></html>
+        ");
+
+
+        [HttpGet]
+        [Route("")]
+        public async Task<ContentResult> UploadedFilesGet()
+        {
+            var files = await _sql.AllAuthoredFiles();
+            var response = HandleGetListTemplate(files);
+            return new ContentResult
+            {
+                ContentType = "text/html",
+                StatusCode = (int) HttpStatusCode.OK,
+                Content = response
+            };
+        }
+        
 
     }
 }
