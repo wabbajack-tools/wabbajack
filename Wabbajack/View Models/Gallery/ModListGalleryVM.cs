@@ -82,6 +82,15 @@ namespace Wabbajack
                     GameType = ALL_GAME_TYPE;
                 });
 
+
+            this.WhenAny(x => x.OnlyInstalled)
+                .Subscribe(val =>
+                {
+                    if(val)
+                        GameType = ALL_GAME_TYPE;
+                })
+                .DisposeWith(CompositeDisposable);
+
             var random = new Random();
             var sourceList = Observable.Return(Unit.Default)
                 .ObserveOn(RxApp.TaskpoolScheduler)
