@@ -41,6 +41,26 @@ namespace Wabbajack.Test
         }
         
         [Fact]
+        public async Task ExtraFilesInDownloadFolderDontStopCompilation() 
+        {
+
+            var profile = utils.AddProfile();
+            var mod = utils.AddMod();
+            var testPex = utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
+
+            await utils.Configure();
+
+            utils.AddManualDownload(
+                new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
+            
+            await utils.DownloadsFolder.Combine("some_other_file.7z").WriteAllTextAsync("random data");
+
+            await CompileAndInstall(profile);
+
+            utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
+        }
+        
+        [Fact]
         public async Task TestDirectMatchFromGameFolder()
         {
 

@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.0.4.1 - 5/10/2020
+* Hotfix: don't throw a compilation exceptions when metas can't be inferred
+
 #### Version - 2.0.4.0 - 5/9/2020
 * Several visual improvements to the gallery thanks to the hard work of Khamûl
 * Rewrote most of the server-side code for better stability and performance

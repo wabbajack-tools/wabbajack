@@ -13,10 +13,10 @@ namespace Wabbajack.Common.Http
     {
         public List<(string, string?)> Headers = new List<(string, string?)>();
         public List<Cookie> Cookies = new List<Cookie>();
-        public async Task<HttpResponseMessage> GetAsync(string url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
+        public async Task<HttpResponseMessage> GetAsync(string url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            return await SendAsync(request, responseHeadersRead);
+            return await SendAsync(request, responseHeadersRead, errorsAsExceptions: errorsAsExceptions);
         }
         
         
@@ -63,7 +63,7 @@ namespace Wabbajack.Common.Http
             return await result.Content.ReadAsStringAsync();
         }
 
-        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage msg, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
+        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage msg, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true)
         {
             foreach (var (k, v) in Headers) 
                 msg.Headers.Add(k, v);
@@ -76,7 +76,9 @@ namespace Wabbajack.Common.Http
                 var response = await ClientFactory.Client.SendAsync(msg, responseHeadersRead);
                 if (response.IsSuccessStatusCode) return response;
 
-                throw new HttpRequestException($"Http Exception {response.StatusCode} - {response.ReasonPhrase} - {msg.RequestUri}");;
+                if (errorsAsExceptions) 
+                    throw new HttpRequestException($"Http Exception {response.StatusCode} - {response.ReasonPhrase} - {msg.RequestUri}");;
+                return response;
             }
             catch (Exception)
             {

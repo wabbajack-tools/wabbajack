@@ -155,6 +155,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Inferring metas for game file downloads");
             await InferMetas();
+            
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Reindexing downloads after meta inferring");
@@ -397,7 +398,7 @@ namespace Wabbajack.Lib
                 var client = new Common.Http.Client();
                 using var response =
                     await client.GetAsync(
-                        $"http://build.wabbajack.org/indexed_files/{vf.Hash.ToHex()}/meta.ini");
+                        $"http://build.wabbajack.org/indexed_files/{vf.Hash.ToHex()}/meta.ini", errorsAsExceptions: false);
 
                 if (!response.IsSuccessStatusCode)
                 {
