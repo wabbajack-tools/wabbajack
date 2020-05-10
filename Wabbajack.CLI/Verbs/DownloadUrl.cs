@@ -13,14 +13,14 @@ namespace Wabbajack.CLI.Verbs
     public class DownloadUrl : AVerb
     {
         [Option('u', "url", Required = true, HelpText = "Url to download")]
-        public Uri Url { get; set; } = new Uri("");
+        public Uri? Url { get; set; }
 
         [Option('o', "output", Required = true, HelpText = "Output file name")]
         public string Output { get; set; } = "";
 
         protected override async Task<ExitCode> Run()
         {
-            var state = await DownloadDispatcher.Infer(Url);
+            var state = await DownloadDispatcher.Infer(Url!);
             if (state == null)
                 return CLIUtils.Exit($"Could not find download source for URL {Url}", ExitCode.Error);
 
