@@ -15,26 +15,23 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ReactiveUI;
+using Wabbajack.Common;
 
 namespace Wabbajack
 {
     /// <summary>
-    /// Interaction logic for SettingsView.xaml
+    /// Interaction logic for ModlistGallerySettingsView.xaml
     /// </summary>
-    public partial class SettingsView : ReactiveUserControl<SettingsVM>
+    public partial class ModlistGallerySettingsView : ReactiveUserControl<FiltersSettings>
     {
-        public SettingsView()
+        public ModlistGallerySettingsView()
         {
             InitializeComponent();
+
             this.WhenActivated(disposable =>
             {
-                this.OneWayBindStrict(this.ViewModel, x => x.BackCommand, x => x.BackButton.Command)
-                    .DisposeWith(disposable);
-                this.OneWayBindStrict(this.ViewModel, x => x.Login, x => x.LoginView.ViewModel)
-                    .DisposeWith(disposable);
-                this.OneWayBindStrict(this.ViewModel, x => x.Performance, x => x.PerformanceView.ViewModel)
-                    .DisposeWith(disposable);
-                this.OneWayBindStrict(this.ViewModel, x => x.Filters, x => x.ModlistGalleryView.ViewModel)
+                // Bind Values
+                this.Bind(this.ViewModel, x => x.isPersistent, x => x.FilterPersistCheckBox.IsChecked)
                     .DisposeWith(disposable);
             });
         }

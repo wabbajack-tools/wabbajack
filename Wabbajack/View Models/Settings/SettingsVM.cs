@@ -13,7 +13,7 @@ namespace Wabbajack
         public MainWindowVM MWVM { get; }
         public LoginManagerVM Login { get; }
         public PerformanceSettings Performance { get; }
-
+        public FiltersSettings Filters { get; }
         public AuthorFilesVM AuthorFile { get; }
         
         public SettingsVM(MainWindowVM mainWindowVM)
@@ -23,6 +23,7 @@ namespace Wabbajack
             Login = new LoginManagerVM(this);
             Performance = mainWindowVM.Settings.Performance;
             AuthorFile = new AuthorFilesVM(this);
+            Filters = mainWindowVM.Settings.Filters;
         }
 
     }

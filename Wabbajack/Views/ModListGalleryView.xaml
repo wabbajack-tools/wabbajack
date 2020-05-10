@@ -108,6 +108,7 @@
                 ItemsSource="{Binding Path=GameTypeEntries}"
                 SelectedItem="{Binding GameType, Mode=TwoWay}"
                 ToolTip="Select a game"
+                IsEnabled="{Binding GameTypeEnabled}"
                 Width="130" />
             <TextBlock
                 Margin="0,0,5,0"

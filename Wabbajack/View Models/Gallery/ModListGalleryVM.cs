@@ -24,6 +24,8 @@ namespace Wabbajack
 
         public ObservableCollectionExtended<ModListMetadataVM> ModLists { get; } = new ObservableCollectionExtended<ModListMetadataVM>();
 
+        private FiltersSettings settings;
+
         private int missingHashFallbackCounter;
 
         private const string ALL_GAME_TYPE = "All";
@@ -44,6 +46,9 @@ namespace Wabbajack
 
         [Reactive]
         public string GameType { get; set; }
+        
+        [Reactive]
+        public bool GameTypeEnabled { get; set; }
 
         public List<string> GameTypeEntries { get { return GetGameTypeEntries(); } }
 
@@ -56,8 +61,22 @@ namespace Wabbajack
             : base(mainWindowVM)
         {
             MWVM = mainWindowVM;
-            GameType = ALL_GAME_TYPE;
+            GameTypeEnabled = true;
 
+            // load persistent filter settings
+            settings = MWVM.Settings.Filters;
+            if (settings.isPersistent)
+            {
+                GameType = !string.IsNullOrEmpty(settings.Game) ? settings.Game : ALL_GAME_TYPE;
+                ShowNSFW = settings.showNSFW;
+                OnlyInstalled = settings.OnlyInstalled;
+                if (OnlyInstalled)
+                    GameTypeEnabled = false;
+                Search = settings.Search;
+            }
+            else
+                GameType = ALL_GAME_TYPE;
+            
             ClearFiltersCommand = ReactiveCommand.Create(
                 () =>
                 {
@@ -65,6 +84,8 @@ namespace Wabbajack
                     ShowNSFW = false;
                     Search = string.Empty;
                     GameType = ALL_GAME_TYPE;
+                    GameTypeEnabled = true;
+                    UpdateFiltersSettings();
                 });
 
             var random = new Random();
@@ -102,7 +123,13 @@ namespace Wabbajack
 
             OnlyInstalledCheckedCommand = ReactiveCommand.Create(() =>
             {
-                GameType = ALL_GAME_TYPE;
+                if (OnlyInstalled)
+                {
+                    GameType = ALL_GAME_TYPE;
+                    GameTypeEnabled = false;
+                }
+                else
+                    GameTypeEnabled = true;
             });
 
             // Convert to VM and bind to resulting list
@@ -114,6 +141,7 @@ namespace Wabbajack
                 .Filter(this.WhenAny(x => x.OnlyInstalled)
                     .Select<bool, Func<ModListMetadataVM, bool>>(onlyInstalled => (vm) =>
                     {
+                        UpdateFiltersSettings();
                         if (!onlyInstalled) return true;
                         if (!GameRegistry.Games.TryGetValue(vm.Metadata.Game, out var gameMeta)) return false;
                         return gameMeta.IsInstalled;
@@ -124,11 +152,13 @@ namespace Wabbajack
                     .Select<string, Func<ModListMetadataVM, bool>>(search => (vm) =>
                     {
                         if (string.IsNullOrWhiteSpace(search)) return true;
+                        UpdateFiltersSettings();
                         return vm.Metadata.Title.ContainsCaseInsensitive(search);
                     }))
                 .Filter(this.WhenAny(x => x.ShowNSFW)
                     .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
                     {
+                        UpdateFiltersSettings();
                         if (!vm.Metadata.NSFW) return true;
                         return vm.Metadata.NSFW && showNSFW;
                     }))
@@ -139,11 +169,17 @@ namespace Wabbajack
                     {
                         if (GameType == ALL_GAME_TYPE)
                             return true;
-                        return GameType == EnumExtensions.GetDescription<Game>(vm.Metadata.Game).ToString();
+                        if (string.IsNullOrEmpty(GameType))
+                            return false;
+
+                        UpdateFiltersSettings();
+                        return GameType == vm.Metadata.Game.GetDescription<Game>().ToString();
+
                     }))
                 .Filter(this.WhenAny(x => x.ShowNSFW)
                     .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
                     {
+                        UpdateFiltersSettings();
                         if (!vm.Metadata.NSFW) return true;
                         return vm.Metadata.NSFW && showNSFW;
                     }))
@@ -173,11 +209,20 @@ namespace Wabbajack
         private List<string> GetGameTypeEntries()
         {
             List<string> gameEntries = new List<string> { ALL_GAME_TYPE };
-            foreach (var gameType in EnumExtensions.GetAllItems<Game>() )
-            {
-                gameEntries.Add(EnumExtensions.GetDescription<Game>(gameType));
-            }
+            gameEntries.AddRange(EnumExtensions.GetAllItems<Game>().Select(gameType => gameType.GetDescription<Game>()));
             return gameEntries;
+        }
+
+        private void UpdateFiltersSettings()
+        {
+            if (!settings.isPersistent)
+                return;
+            if (!string.IsNullOrEmpty(GameType))
+                settings.Game = GameType;
+            if (Search != null)
+                settings.Search = Search;
+            settings.showNSFW = ShowNSFW;
+            settings.OnlyInstalled = OnlyInstalled;
         }
     }
 }
