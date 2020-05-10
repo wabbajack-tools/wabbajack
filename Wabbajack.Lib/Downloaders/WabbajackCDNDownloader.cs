@@ -56,6 +56,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
+                destination.Parent.CreateDirectory();
                 var definition = await GetDefinition();
                 await using var fs = destination.Create();
                 var client = new Common.Http.Client();

@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.0.4.3 - 5/10/2020
+* Hotfix: tell the WJ CDN downloader to create the parent folder if it doesn't exist
+
 #### Version - 2.0.4.2 - 5/10/2020
 * Hotfix: allow the WJ CDN to be used for gallery modlists
 * Fix a bug with the CDN downloader and modlist compilation
