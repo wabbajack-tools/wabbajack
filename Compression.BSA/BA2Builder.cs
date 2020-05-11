@@ -87,7 +87,7 @@ namespace Compression.BSA
 
             foreach (var entry in _entries)
             {
-                var bytes = Encoding.UTF7.GetBytes(entry.FullName);
+                var bytes = Encoding.UTF8.GetBytes(entry.FullName);
                 bw.Write((ushort)bytes.Length);
                 await bw.BaseStream.WriteAsync(bytes, 0, bytes.Length);
             }

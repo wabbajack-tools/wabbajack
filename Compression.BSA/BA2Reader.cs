@@ -94,7 +94,7 @@ namespace Compression.BSA
             {
                 _rdr.BaseStream.Seek((long) _nameTableOffset, SeekOrigin.Begin);
                 foreach (var file in files)
-                    file.FullPath = Encoding.UTF7.GetString(_rdr.ReadBytes(_rdr.ReadInt16()));
+                    file.FullPath = Encoding.UTF8.GetString(_rdr.ReadBytes(_rdr.ReadInt16()));
             }
             Files = files;
 

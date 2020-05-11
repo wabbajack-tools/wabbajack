@@ -22,7 +22,7 @@ namespace Wabbajack.VirtualFileSystem
         {
             try
             {
-                if (Consts.SupportedBSAs.Contains(source.Extension))
+                if (BSADispatch.MightBeBSA(source))
                     return await ExtractAllWithBSA(queue, source);
                 else if (source.Extension == Consts.OMOD)
                     return await ExtractAllWithOMOD(source);
