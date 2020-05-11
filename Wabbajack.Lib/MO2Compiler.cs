@@ -550,6 +550,9 @@ namespace Wabbajack.Lib
                 // Ignore the ModOrganizer.ini file it contains info created by MO2 on startup
                 new IncludeStubbedConfigFiles(this),
                 new IncludeLootFiles(this),
+                new IgnoreStartsWith(this, Path.Combine((string)Consts.GameFolderFilesDir, "Data")),
+                new IgnoreStartsWith(this, Path.Combine((string)Consts.GameFolderFilesDir, "Papyrus Compiler")),
+                new IgnoreStartsWith(this, Path.Combine((string)Consts.GameFolderFilesDir, "Skyrim")),                
                 new IgnoreRegex(this, Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
                 new IncludeRegex(this, "^[^\\\\]*\\.bat$"),
                 new IncludeModIniData(this),
