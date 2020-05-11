@@ -3,6 +3,7 @@
 * BA2s store file names as UTF8 instead of UTF7
 * Check for a BSA file by header magic not by extension (allows .bsa.bak files to be extracted)
 * Exclude the game `Data` directory from compilation
+* Downgrade Rective.UI from 11.4.x to 11.3.8 due to UI breakage
 
 #### Version - 2.0.4.3 - 5/10/2020
 * Hotfix: tell the WJ CDN downloader to create the parent folder if it doesn't exist
