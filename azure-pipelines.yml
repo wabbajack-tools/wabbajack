@@ -48,7 +48,7 @@ steps:
 - task: CmdLine@2
   displayName: "Test Release"
   inputs:
-    script: 'OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:"test  **/*.Test.csproj /p:Platform=x64" -output:".\MyProject_coverage.xml" -oldstyle'
+    script: 'C:\ProgramData\chocolatey\bin\OpenCover.Console.exe -register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:"test  **/*.Test.csproj /p:Platform=x64" -output:".\MyProject_coverage.xml" -oldstyle'
 
 - task: DotNetCoreCLI@2
   inputs:
