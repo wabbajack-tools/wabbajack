@@ -1,4 +1,8 @@
 ### Changelog
+#### Version - 2.0.4.4 - 5/11/2020
+* BA2s store file names as UTF8 instead of UTF7
+* Check for a BSA file by header magic not by extension (allows .bsa.bak files to be extracted)
+* Exclude the game `Data` directory from compilation
 
 #### Version - 2.0.4.3 - 5/10/2020
 * Hotfix: tell the WJ CDN downloader to create the parent folder if it doesn't exist
