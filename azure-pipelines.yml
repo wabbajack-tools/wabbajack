@@ -38,12 +38,18 @@ steps:
     projects: 'Wabbajack\Wabbajack.csproj'
     arguments: '--runtime win10-x64 --configuration Release /p:Platform=x64'
 
-- task: DotNetCoreCLI@2
+#- task: DotNetCoreCLI@2
+#  displayName: "Test Release"
+#  inputs:
+#    command: 'test'
+#    projects: '**/*.Test.csproj'
+#    arguments: '/p:Platform=x64 /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/CodeCoverage'
+
+- task: PowerShell@2
   displayName: "Test Release"
   inputs:
-    command: 'test'
-    projects: '**/*.Test.csproj'
-    arguments: '/p:Platform=x64 /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/CodeCoverage'
+    filePath: 'OpenCover.Console.exe'
+    arguments: '-register:user -target:"C:/Program Files/dotnet/dotnet.exe" -targetargs:"test  **/*.Test.csproj /p:Platform=x64" -output:".\MyProject_coverage.xml" -oldstyle'
 
 - task: DotNetCoreCLI@2
   inputs:
