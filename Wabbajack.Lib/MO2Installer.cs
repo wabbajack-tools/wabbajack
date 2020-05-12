@@ -316,7 +316,7 @@ namespace Wabbajack.Lib
             Info($"Generating cleaned ESM for {filename}");
             if (!gameFile.Exists) throw new InvalidDataException($"Missing {filename} at {gameFile}");
             Status($"Hashing game version of {filename}");
-            var sha = await gameFile.FileHashAsync();
+            var sha = await gameFile.FileHashCachedAsync();
             if (sha != directive.SourceESMHash)
                 throw new InvalidDataException(
                     $"Cannot patch {filename} from the game folder because the hashes do not match. Have you already cleaned the file?");

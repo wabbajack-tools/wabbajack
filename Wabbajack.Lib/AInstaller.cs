@@ -402,7 +402,7 @@ namespace Wabbajack.Lib
 
                 if (path.Size != d.Size) return null;
                 
-                return await path.FileHashAsync() == d.Hash ? d : null;
+                return await path.FileHashCachedAsync() == d.Hash ? d : null;
             }))
               .Do(d =>
               {
