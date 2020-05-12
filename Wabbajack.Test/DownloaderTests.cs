@@ -513,9 +513,7 @@ namespace Wabbajack.Test
             Assert.Equal(new[]
                 {
                     (RelativePath)@"Download.esm",
-                    (RelativePath)@"Download.esm.xxHash",
                     (RelativePath)@"Download_ed33cbb256e5328361da8d9227df9cab1bb43a79a87dca2f223b2e2762ccaad1_.esm",
-                    (RelativePath)@"Download_ed33cbb256e5328361da8d9227df9cab1bb43a79a87dca2f223b2e2762ccaad1_.esm.xxHash"
                 }.OrderBy(a => a).ToArray(),
             folder.EnumerateFiles().Select(f => f.FileName).OrderBy(a => a).ToArray());
            
