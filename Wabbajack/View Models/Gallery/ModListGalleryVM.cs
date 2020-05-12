@@ -24,8 +24,6 @@ namespace Wabbajack
 
         public ObservableCollectionExtended<ModListMetadataVM> ModLists { get; } = new ObservableCollectionExtended<ModListMetadataVM>();
 
-        private FiltersSettings settings;
-
         private int missingHashFallbackCounter;
 
         private const string ALL_GAME_TYPE = "All";
@@ -48,6 +46,9 @@ namespace Wabbajack
         public List<string> GameTypeEntries { get { return GetGameTypeEntries(); } }
 
         private readonly ObservableAsPropertyHelper<bool> _Loaded;
+
+        private FiltersSettings settings => MWVM.Settings.Filters;
+
         public bool Loaded => _Loaded.Value;
 
         public ICommand ClearFiltersCommand { get; }
@@ -58,21 +59,21 @@ namespace Wabbajack
             MWVM = mainWindowVM;
 
             // load persistent filter settings
-            settings = MWVM.Settings.Filters;
             if (settings.IsPersistent)
             {
                 GameType = !string.IsNullOrEmpty(settings.Game) ? settings.Game : ALL_GAME_TYPE;
                 ShowNSFW = settings.ShowNSFW;
                 OnlyInstalled = settings.OnlyInstalled;
                 Search = settings.Search;
-                // subscribe to save signal
-                MWVM.Settings.SaveSignal
-                    .Subscribe(_ => UpdateFiltersSettings())
-                    .DisposeWith(this.CompositeDisposable);
             }
             else
                 GameType = ALL_GAME_TYPE;
-            
+
+            // subscribe to save signal
+            MWVM.Settings.SaveSignal
+                .Subscribe(_ => UpdateFiltersSettings())
+                .DisposeWith(this.CompositeDisposable);
+
             ClearFiltersCommand = ReactiveCommand.Create(
                 () =>
                 {
@@ -202,12 +203,8 @@ namespace Wabbajack
 
         private void UpdateFiltersSettings()
         {
-            if (!settings.IsPersistent)
-                return;
-            if (!string.IsNullOrEmpty(GameType))
-                settings.Game = GameType;
-            if (Search != null)
-                settings.Search = Search;
+            settings.Game = GameType;
+            settings.Search = Search;
             settings.ShowNSFW = ShowNSFW;
             settings.OnlyInstalled = OnlyInstalled;
         }
