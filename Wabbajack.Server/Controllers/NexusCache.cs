@@ -54,7 +54,7 @@ namespace Wabbajack.BuildServer.Controllers
             {
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
                 result = await api.GetModInfo(game, ModId, false);
-                await _sql.AddNexusModInfo(game, ModId, DateTime.UtcNow, result);
+                await _sql.AddNexusModInfo(game, ModId, result.updated_time, result);
 
                 
                 method = "NOT_CACHED";
@@ -82,7 +82,9 @@ namespace Wabbajack.BuildServer.Controllers
             {
                 var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
                 result = await api.GetModFiles(game, ModId, false);
-                await _sql.AddNexusModFiles(game, ModId, DateTime.UtcNow, result);
+                var date = result.files.Select(f => f.uploaded_time).OrderByDescending(o => o).FirstOrDefault();
+                date = date == default ? DateTime.UtcNow : date;
+                await _sql.AddNexusModFiles(game, ModId, date, result);
 
                 method = "NOT_CACHED";
                 Interlocked.Increment(ref ForwardCount);
