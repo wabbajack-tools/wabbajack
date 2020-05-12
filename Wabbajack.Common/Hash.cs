@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using RocksDbSharp;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -96,10 +97,17 @@ namespace Wabbajack.Common
         {
             return new Hash(BitConverter.ToUInt64(xxHashAsHex.FromHex()));
         }
+
+        public byte[] ToArray()
+        {
+            return BitConverter.GetBytes(_code);
+        }
     }
     
     public static partial class Utils
     {
+        private static RocksDb _hashCache;
+
         public static Hash ReadHash(this BinaryReader br)
         {
             return new Hash(br.ReadUInt64());
@@ -170,14 +178,15 @@ namespace Wabbajack.Common
 
         public static bool TryGetHashCache(AbsolutePath file, out Hash hash)
         {
-            var hashFile = file.WithExtension(Consts.HashFileExtension);
-            hash = Hash.Empty; 
-            if (!hashFile.IsFile) return false;
+            var normPath = Encoding.UTF8.GetBytes(file.Normalize());
+            var value = _hashCache.Get(normPath);
+            hash = default;
             
-            if (hashFile.Size != 20) return false;
+            if (value == null) return false;
+            if (value.Length != 20) return false;
 
-            using var fs = hashFile.OpenRead();
-            using var br = new BinaryReader(fs);
+            using var ms = new MemoryStream(value);
+            using var br = new BinaryReader(ms);
             var version = br.ReadUInt32();
             if (version != HashCacheVersion) return false;
 
@@ -191,12 +200,13 @@ namespace Wabbajack.Common
         private const uint HashCacheVersion = 0x01;
         private static void WriteHashCache(AbsolutePath file, Hash hash)
         {
-            using var fs = file.WithExtension(Consts.HashFileExtension).Create();
-            using var bw = new BinaryWriter(fs);
+            using var ms = new MemoryStream(20);
+            using var bw = new BinaryWriter(ms);
             bw.Write(HashCacheVersion);
             var lastModified = file.LastModifiedUtc.AsUnixTime();
             bw.Write(lastModified);
             bw.Write((ulong)hash);
+            _hashCache.Put(Encoding.UTF8.GetBytes(file.Normalize()), ms.ToArray());
         }
 
         public static async Task<Hash> FileHashCachedAsync(this AbsolutePath file, bool nullOnIOError = false)

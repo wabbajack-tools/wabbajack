@@ -22,10 +22,9 @@ namespace Wabbajack.Common.Test
             const string data = "Cheese for Everyone!";
             await testFile.WriteAllTextAsync(data);
             File.WriteAllText("test.data", data);
-            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), testFile.FileHashCached());
+            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await testFile.FileHashCachedAsync());
             Assert.True(Utils.TryGetHashCache(testFile, out var fileHash));
             Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), fileHash);
-            Assert.NotEqual("eSIyd+KOG3s=", await testFile.WithExtension(Consts.HashFileExtension).ReadAllTextAsync());
         }
     }
 }

@@ -80,6 +80,11 @@ namespace Wabbajack.Common
             throw new InvalidDataException("Absolute path must be absolute");
         }
 
+        public string Normalize()
+        {
+            return _path.Replace("/", "\\").TrimEnd('\\');
+        }
+
         public Extension Extension => Extension.FromPath(_path);
 
         public FileStream OpenRead()
