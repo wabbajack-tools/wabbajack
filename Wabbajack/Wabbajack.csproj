@@ -52,7 +52,6 @@
     <None Remove="Resources\Wabba_Mouth_Small.png" />
     <Compile Remove="View Models\Compilers\VortexCompilerVM.cs" />
     <Compile Remove="View Models\Installers\VortexInstallerVM.cs" />
-    <None Include="View Models\Installers\VortexInstallerVM.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -24,8 +24,6 @@ namespace Wabbajack
 
         public ObservableCollectionExtended<ModListMetadataVM> ModLists { get; } = new ObservableCollectionExtended<ModListMetadataVM>();
 
-        private int missingHashFallbackCounter;
-
         private const string ALL_GAME_TYPE = "All";
 
         public ICommand OnlyInstalledCheckedCommand { get; }
