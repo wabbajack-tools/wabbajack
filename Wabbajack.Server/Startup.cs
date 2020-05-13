@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -59,6 +60,9 @@ namespace Wabbajack.Server
             services.AddSingleton<NexusPoll>();
             services.AddSingleton<ArchiveMaintainer>();
             services.AddSingleton<ModListDownloader>();
+            services.AddSingleton<NonNexusDownloadValidator>();
+            services.AddSingleton<ListValidator>();
+            
             services.AddMvc();
             services.AddControllers()
                 .AddNewtonsoftJson(o =>
@@ -103,6 +107,9 @@ namespace Wabbajack.Server
             app.UseNexusPoll();
             app.UseArchiveMaintainer();
             app.UseModListDownloader();
+            
+            app.UseService<NonNexusDownloadValidator>();
+            app.UseService<ListValidator>();
 
             app.Use(next =>
             {
