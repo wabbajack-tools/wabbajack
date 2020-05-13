@@ -22,7 +22,7 @@ namespace Wabbajack
             set => SetValue(ImageProperty, value);
         }
         public static readonly DependencyProperty ImageProperty = DependencyProperty.Register(nameof(Image), typeof(ImageSource), typeof(DetailImageView),
-             new FrameworkPropertyMetadata(default(ImageSource)));
+             new FrameworkPropertyMetadata(default(ImageSource), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
         public ImageSource Badge
         {
@@ -30,7 +30,7 @@ namespace Wabbajack
             set => SetValue(BadgeProperty, value);
         }
         public static readonly DependencyProperty BadgeProperty = DependencyProperty.Register(nameof(Badge), typeof(ImageSource), typeof(DetailImageView),
-             new FrameworkPropertyMetadata(default(ImageSource)));
+             new FrameworkPropertyMetadata(default(ImageSource), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
         public string Title
         {
@@ -56,34 +56,74 @@ namespace Wabbajack
         public static readonly DependencyProperty DescriptionProperty = DependencyProperty.Register(nameof(Description), typeof(string), typeof(DetailImageView),
              new FrameworkPropertyMetadata(default(string), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, WireNotifyPropertyChanged));
 
-        [Reactive]
-        public bool ShowAuthor { get; private set; }
-
-        [Reactive]
-        public bool ShowDescription { get; private set; }
-
-        [Reactive]
-        public bool ShowTitle { get; private set; }
-
         public DetailImageView()
         {
             InitializeComponent();
 
             this.WhenActivated(dispose =>
             {
+                // Update textboxes
+                var authorVisible = this.WhenAny(x => x.Author)
+                    .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
+                    .Replay(1)
+                    .RefCount();
+                authorVisible
+                    .BindToStrict(this, x => x.AuthorTextBlock.Visibility)
+                    .DisposeWith(dispose);
+                authorVisible
+                    .BindToStrict(this, x => x.AuthorTextShadow.Visibility)
+                    .DisposeWith(dispose);
                 this.WhenAny(x => x.Author)
-                    .Select(x => !string.IsNullOrWhiteSpace(x))
-                    .Subscribe(x => ShowAuthor = x)
+                    .BindToStrict(this, x => x.AuthorTextRun.Text)
+                    .DisposeWith(dispose);
+                this.WhenAny(x => x.Author)
+                    .BindToStrict(this, x => x.AuthorShadowTextRun.Text)
                     .DisposeWith(dispose);
 
+                var descVisible = this.WhenAny(x => x.Description)
+                    .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
+                    .Replay(1)
+                    .RefCount();
+                descVisible
+                    .BindToStrict(this, x => x.DescriptionTextBlock.Visibility)
+                    .DisposeWith(dispose);
+                descVisible
+                    .BindToStrict(this, x => x.DescriptionTextShadow.Visibility)
+                    .DisposeWith(dispose);
                 this.WhenAny(x => x.Description)
-                    .Select(x => !string.IsNullOrWhiteSpace(x))
-                    .Subscribe(x => ShowDescription = x)
+                    .BindToStrict(this, x => x.DescriptionTextBlock.Text)
+                    .DisposeWith(dispose);
+                this.WhenAny(x => x.Description)
+                    .BindToStrict(this, x => x.DescriptionTextShadow.Text)
                     .DisposeWith(dispose);
 
+                var titleVisible = this.WhenAny(x => x.Title)
+                    .Select(x => string.IsNullOrWhiteSpace(x) ? Visibility.Collapsed : Visibility.Visible)
+                    .Replay(1)
+                    .RefCount();
+                titleVisible
+                    .BindToStrict(this, x => x.TitleTextBlock.Visibility)
+                    .DisposeWith(dispose);
+                titleVisible
+                    .BindToStrict(this, x => x.TitleTextShadow.Visibility)
+                    .DisposeWith(dispose);
                 this.WhenAny(x => x.Title)
-                    .Select(x => !string.IsNullOrWhiteSpace(x))
-                    .Subscribe(x => ShowTitle = x)
+                    .BindToStrict(this, x => x.TitleTextBlock.Text)
+                    .DisposeWith(dispose);
+                this.WhenAny(x => x.Title)
+                    .BindToStrict(this, x => x.TitleTextShadow.Text)
+                    .DisposeWith(dispose);
+
+                // Update other items
+                this.WhenAny(x => x.Badge)
+                    .BindToStrict(this, x => x.BadgeImage.Source)
+                    .DisposeWith(dispose);
+                this.WhenAny(x => x.Image)
+                    .BindToStrict(this, x => x.ModlistImage.Source)
+                    .DisposeWith(dispose);
+                this.WhenAny(x => x.Image)
+                    .Select(img => img == null ? Visibility.Hidden : Visibility.Visible)
+                    .BindToStrict(this, x => x.Visibility)
                     .DisposeWith(dispose);
             });
         }
