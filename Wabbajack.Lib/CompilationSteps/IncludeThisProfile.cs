@@ -44,7 +44,7 @@ namespace Wabbajack.Lib.CompilationSteps
             var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IgnoreDisabledMods.IsAlwaysEnabled(f.Value))
                 .Select(f => f.Key)
                 .Distinct();
-            var lines = File.ReadAllLines(absolutePath.ToString()).Where(l =>
+            var lines = (await absolutePath.ReadAllLinesAsync()).Where(l =>
             {
                 return l.StartsWith("+")
                        || alwaysEnabled.Any(x => x.Equals(l.Substring(1)))
