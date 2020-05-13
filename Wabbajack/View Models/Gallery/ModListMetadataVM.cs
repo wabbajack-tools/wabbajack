@@ -174,6 +174,7 @@ namespace Wabbajack
             ProgressPercent = Percent.Zero;
             using (var queue = new WorkQueue(1))
             using (queue.Status.Select(i => i.ProgressPercent)
+                .ObserveOnGuiThread()
                 .Subscribe(percent => ProgressPercent = percent))
             {
                 var tcs = new TaskCompletionSource<bool>();

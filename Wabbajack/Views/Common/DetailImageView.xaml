@@ -43,9 +43,6 @@
                         </BeginStoryboard>
                     </DataTrigger.ExitActions>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Image}" Value="{x:Null}">
-                    <Setter Property="Visibility" Value="Hidden" />
-                </DataTrigger>
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
@@ -74,9 +71,9 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Stretch="UniformToFill">
-            <Image Source="{Binding Image, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
+            <Image x:Name="ModlistImage" />
         </Viewbox>
-        <Image
+        <Image x:Name="BadgeImage"
             Grid.Row="0"
             Grid.RowSpan="4"
             Grid.Column="0"
@@ -84,8 +81,7 @@
             Width="60"
             Height="60"
             HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            Source="{Binding Badge, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
+            VerticalAlignment="Top" />
         <TextBlock
             x:Name="TitleTextShadow"
             Grid.Row="2"
@@ -98,15 +94,13 @@
             FontSize="65"
             FontWeight="Bold"
             Style="{StaticResource BackgroundBlurStyle}"
-            Text="{Binding Title, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-            TextWrapping="WrapWithOverflow"
-            Visibility="{Binding ShowTitle, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityHiddenConverter}}">
+            TextWrapping="WrapWithOverflow">
             <TextBlock.Effect>
                 <BlurEffect Radius="85" />
             </TextBlock.Effect>
         </TextBlock>
         <TextBlock
-            x:Name="ArtistTextShadow"
+            x:Name="AuthorTextShadow"
             Grid.Row="3"
             Grid.Column="0"
             Margin="35,-10,-10,10"
@@ -116,15 +110,14 @@
             FontSize="30"
             FontWeight="Bold"
             Style="{StaticResource BackgroundBlurStyle}"
-            TextWrapping="WrapWithOverflow"
-            Visibility="{Binding ShowAuthor, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityHiddenConverter}}">
+            TextWrapping="WrapWithOverflow">
             <TextBlock.Effect>
                 <BlurEffect Radius="55" />
             </TextBlock.Effect>
             <Run FontSize="15" Text="by" />
-            <Run Text="{Binding Author, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
+            <Run x:Name="AuthorShadowTextRun" />
         </TextBlock>
-        <TextBlock
+        <TextBlock x:Name="TitleTextBlock"
             Grid.Row="2"
             Grid.Column="0"
             Margin="20,25,20,0"
@@ -133,27 +126,24 @@
             FontFamily="Lucida Sans"
             FontSize="65"
             FontWeight="Bold"
-            Text="{Binding Title, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
-            TextWrapping="WrapWithOverflow"
-            Visibility="{Binding ShowTitle, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityHiddenConverter}}">
+            TextWrapping="WrapWithOverflow">
             <TextBlock.Effect>
                 <DropShadowEffect />
             </TextBlock.Effect>
         </TextBlock>
-        <TextBlock
+        <TextBlock x:Name="AuthorTextBlock"
             Grid.Row="3"
             Grid.Column="0"
             Margin="55,0,20,20"
             FontFamily="Lucida Sans"
             FontSize="30"
             FontWeight="Bold"
-            TextWrapping="Wrap"
-            Visibility="{Binding ShowAuthor, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityHiddenConverter}}">
+            TextWrapping="Wrap">
             <TextBlock.Effect>
                 <DropShadowEffect />
             </TextBlock.Effect>
             <Run FontSize="15" Text="by" />
-            <Run Text="{Binding Author, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" />
+            <Run x:Name="AuthorTextRun" />
         </TextBlock>
         <TextBlock
             x:Name="DescriptionTextShadow"
@@ -167,15 +157,13 @@
             FontFamily="Lucida Sans"
             FontSize="16"
             Style="{StaticResource BackgroundBlurStyle}"
-            Text="{Binding Description, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
             TextAlignment="Right"
-            TextWrapping="Wrap"
-            Visibility="{Binding ShowDescription, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityHiddenConverter}}">
+            TextWrapping="Wrap">
             <TextBlock.Effect>
                 <BlurEffect Radius="55" />
             </TextBlock.Effect>
         </TextBlock>
-        <TextBlock
+        <TextBlock x:Name="DescriptionTextBlock"
             Grid.Row="2"
             Grid.RowSpan="2"
             Grid.Column="1"
@@ -184,10 +172,8 @@
             VerticalAlignment="Bottom"
             FontFamily="Lucida Sans"
             FontSize="16"
-            Text="{Binding Description, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
             TextAlignment="Right"
-            TextWrapping="Wrap"
-            Visibility="{Binding ShowDescription, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityHiddenConverter}}">
+            TextWrapping="Wrap">
             <TextBlock.Effect>
                 <DropShadowEffect />
             </TextBlock.Effect>
