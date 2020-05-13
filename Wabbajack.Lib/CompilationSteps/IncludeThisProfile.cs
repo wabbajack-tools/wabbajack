@@ -39,10 +39,17 @@ namespace Wabbajack.Lib.CompilationSteps
             return new State();
         }
 
-        private static async Task<byte[]> ReadAndCleanModlist(AbsolutePath absolutePath)
+        private async Task<byte[]> ReadAndCleanModlist(AbsolutePath absolutePath)
         {
-            var lines = await absolutePath.ReadAllLinesAsync();
-            lines = lines.Where(line => !(line.StartsWith("-") && !line.EndsWith("_separator"))).ToArray();
+            var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IgnoreDisabledMods.IsAlwaysEnabled(f.Value))
+                .Select(f => f.Key)
+                .Distinct();
+            var lines = (await absolutePath.ReadAllLinesAsync()).Where(l =>
+            {
+                return l.StartsWith("+")
+                       || alwaysEnabled.Any(x => x.Equals(l.Substring(1)))
+                       || l.EndsWith("_separator");
+            }).ToArray();
             return Encoding.UTF8.GetBytes(string.Join("\r\n", lines));
         }
 
