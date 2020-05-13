@@ -17,6 +17,23 @@ namespace Wabbajack.Server.DataLayer
             SqlMapper.AddTypeHandler(new JsonMapper<CDNFileDefinition>());
             SqlMapper.AddTypeHandler(new VersionMapper());
             SqlMapper.AddTypeHandler(new GameMapper());
+            SqlMapper.AddTypeHandler(new DateTimeHandler());
+        }
+        
+        /// <summary>
+        /// Needed to make sure dates are all in UTC format
+        /// </summary>
+        private class DateTimeHandler : SqlMapper.TypeHandler<DateTime>
+        {
+            public override void SetValue(IDbDataParameter parameter, DateTime value)
+            {
+                parameter.Value = value;
+            }
+
+            public override DateTime Parse(object value)
+            {
+                return DateTime.SpecifyKind((DateTime)value, DateTimeKind.Utc);
+            }
         }
 
         class JsonMapper<T> : SqlMapper.TypeHandler<T>
