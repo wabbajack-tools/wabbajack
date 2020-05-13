@@ -67,7 +67,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MahApps.Metro" Version="2.0.0-alpha0775" />
+    <PackageReference Include="MahApps.Metro" Version="2.0.0-alpha0821" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.0.0" />
     <PackageReference Include="PInvoke.Gdi32" Version="0.6.6" />
     <PackageReference Include="PInvoke.User32" Version="0.6.6" />

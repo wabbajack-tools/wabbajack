@@ -26,8 +26,6 @@ namespace Wabbajack
 
         private const string ALL_GAME_TYPE = "All";
 
-        public ICommand OnlyInstalledCheckedCommand { get; }
-
         [Reactive]
         public IErrorResponse Error { get; set; }
 
@@ -46,6 +44,9 @@ namespace Wabbajack
         public List<string> GameTypeEntries { get { return GetGameTypeEntries(); } }
 
         private readonly ObservableAsPropertyHelper<bool> _Loaded;
+
+        private FiltersSettings settings => MWVM.Settings.Filters;
+
         public bool Loaded => _Loaded.Value;
 
         public ICommand ClearFiltersCommand { get; }
@@ -54,7 +55,22 @@ namespace Wabbajack
             : base(mainWindowVM)
         {
             MWVM = mainWindowVM;
-            GameType = ALL_GAME_TYPE;
+
+            // load persistent filter settings
+            if (settings.IsPersistent)
+            {
+                GameType = !string.IsNullOrEmpty(settings.Game) ? settings.Game : ALL_GAME_TYPE;
+                ShowNSFW = settings.ShowNSFW;
+                OnlyInstalled = settings.OnlyInstalled;
+                Search = settings.Search;
+            }
+            else
+                GameType = ALL_GAME_TYPE;
+
+            // subscribe to save signal
+            MWVM.Settings.SaveSignal
+                .Subscribe(_ => UpdateFiltersSettings())
+                .DisposeWith(this.CompositeDisposable);
 
             ClearFiltersCommand = ReactiveCommand.Create(
                 () =>
@@ -64,6 +80,15 @@ namespace Wabbajack
                     Search = string.Empty;
                     GameType = ALL_GAME_TYPE;
                 });
+
+
+            this.WhenAny(x => x.OnlyInstalled)
+                .Subscribe(val =>
+                {
+                    if(val)
+                        GameType = ALL_GAME_TYPE;
+                })
+                .DisposeWith(CompositeDisposable);
 
             var random = new Random();
             var sourceList = Observable.Return(Unit.Default)
@@ -97,11 +122,6 @@ namespace Wabbajack
             _Loaded = sourceList.CollectionCount()
                 .Select(c => c > 0)
                 .ToProperty(this, nameof(Loaded));
-
-            OnlyInstalledCheckedCommand = ReactiveCommand.Create(() =>
-            {
-                GameType = ALL_GAME_TYPE;
-            });
 
             // Convert to VM and bind to resulting list
             sourceList
@@ -137,7 +157,11 @@ namespace Wabbajack
                     {
                         if (GameType == ALL_GAME_TYPE)
                             return true;
-                        return GameType == EnumExtensions.GetDescription<Game>(vm.Metadata.Game).ToString();
+                        if (string.IsNullOrEmpty(GameType))
+                            return false;
+
+                        return GameType == vm.Metadata.Game.GetDescription<Game>().ToString();
+
                     }))
                 .Filter(this.WhenAny(x => x.ShowNSFW)
                     .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
@@ -171,11 +195,16 @@ namespace Wabbajack
         private List<string> GetGameTypeEntries()
         {
             List<string> gameEntries = new List<string> { ALL_GAME_TYPE };
-            foreach (var gameType in EnumExtensions.GetAllItems<Game>() )
-            {
-                gameEntries.Add(EnumExtensions.GetDescription<Game>(gameType));
-            }
+            gameEntries.AddRange(EnumExtensions.GetAllItems<Game>().Select(gameType => gameType.GetDescription<Game>()));
             return gameEntries;
+        }
+
+        private void UpdateFiltersSettings()
+        {
+            settings.Game = GameType;
+            settings.Search = Search;
+            settings.ShowNSFW = ShowNSFW;
+            settings.OnlyInstalled = OnlyInstalled;
         }
     }
 }
