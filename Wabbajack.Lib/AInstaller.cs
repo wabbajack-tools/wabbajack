@@ -33,6 +33,7 @@ namespace Wabbajack.Lib
 
         public SystemParameters? SystemParameters { get; set; }
 
+
         public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters? parameters, int steps, Game game)
             : base(steps)
         {
@@ -43,6 +44,14 @@ namespace Wabbajack.Lib
             SystemParameters = parameters;
             Game = game.MetaData();
         }
+
+        private ExtractedFiles? ExtractedModListFiles { get; set; } = null;
+        public async Task ExtractModlist()
+        {
+            ExtractedModListFiles = await FileExtractor.ExtractAll(Queue, ModListArchive);
+        }
+
+
 
         public void Info(string msg)
         {
@@ -62,16 +71,8 @@ namespace Wabbajack.Lib
 
         public async Task<byte[]> LoadBytesFromPath(RelativePath path)
         {
-            await using var fs = new FileStream((string)ModListArchive, FileMode.Open, FileAccess.Read, FileShare.Read);
-            using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
-            await using var ms = new MemoryStream();
-            var entry = ar.GetEntry((string)path);
-            await using (var e = entry.Open())
-            {
-                await e.CopyToAsync(ms);
-            }
-
-            return ms.ToArray();
+            await using var e = ExtractedModListFiles![path].OpenRead();
+            return await e.ReadAllAsync();
         }
 
         public static ModList LoadFromFile(AbsolutePath path)

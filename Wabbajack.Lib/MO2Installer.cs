@@ -39,7 +39,7 @@ namespace Wabbajack.Lib
                   outputFolder: outputFolder, 
                   downloadFolder: downloadFolder,
                   parameters: parameters,
-                  steps: 20,
+                  steps: 21,
                   game: modList.GameType)
         {
             var gameExe = Consts.GameFolderFilesDir.Combine(modList.GameType.MetaData().MainExecutable!);
@@ -128,6 +128,10 @@ namespace Wabbajack.Lib
                 else
                     Error("Cannot continue, was unable to download one or more archives");
             }
+
+            if (cancel.IsCancellationRequested) return false;
+            UpdateTracker.NextStep("Extracting Modlist contents");
+            await ExtractModlist();
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Priming VFS");
