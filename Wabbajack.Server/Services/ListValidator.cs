@@ -10,6 +10,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Lib.NexusApi;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
 
@@ -18,6 +19,7 @@ namespace Wabbajack.Server.Services
     public class ListValidator : AbstractService<ListValidator, int>
     {
         private SqlService _sql;
+        private NexusApiClient _nexusClient;
 
         public IEnumerable<(ModListSummary Summary, DetailedStatus Detailed)> Summaries { get; private set; } =
             new (ModListSummary Summary, DetailedStatus Detailed)[0];
@@ -40,7 +42,7 @@ namespace Wabbajack.Server.Services
                 var (metadata, modList) = list;
                 var archives = await modList.Archives.PMap(queue, async archive =>
                 {
-                    var (_, result) = ValidateArchive(data, archive);
+                    var (_, result) = await ValidateArchive(data, archive);
                     // TODO : auto-healing goes here
                     return (archive, result);
                 });
@@ -78,7 +80,7 @@ namespace Wabbajack.Server.Services
             return Summaries.Count(s => s.Summary.HasFailures);
         }
         
-        private static (Archive archive, ArchiveStatus) ValidateArchive(ValidationData data, Archive archive)
+        private async Task<(Archive archive, ArchiveStatus)> ValidateArchive(ValidationData data, Archive archive)
         {
             switch (archive.State)
             {
@@ -88,8 +90,8 @@ namespace Wabbajack.Server.Services
                 case NexusDownloader.State nexusState when data.NexusFiles.Contains((
                     nexusState.Game.MetaData().NexusGameId, nexusState.ModID, nexusState.FileID)):
                     return (archive, ArchiveStatus.Valid);
-                case NexusDownloader.State _:
-                    return (archive, ArchiveStatus.InValid);
+                case NexusDownloader.State ns:
+                    return (archive, await FastNexusModStats(ns));
                 case ManualDownloader.State _:
                     return (archive, ArchiveStatus.Valid);
                 default:
@@ -103,6 +105,74 @@ namespace Wabbajack.Server.Services
                     return (archive, ArchiveStatus.InValid);
                 }
             }
+        }
+        
+        private async Task<ArchiveStatus> FastNexusModStats(NexusDownloader.State ns)
+        {
+            
+            var mod = await _sql.GetNexusModInfoString(ns.Game, ns.ModID);
+            var files = await _sql.GetModFiles(ns.Game, ns.ModID);
+
+            try
+            {
+                if (mod == null)
+                {
+                    _nexusClient ??= await NexusApiClient.Get();
+                    _logger.Log(LogLevel.Information, $"Found missing Nexus mod info {ns.Game} {ns.ModID}");
+                    try
+                    {
+                        mod = await _nexusClient.GetModInfo(ns.Game, ns.ModID, false);
+                    }
+                    catch
+                    {
+                        mod = new ModInfo
+                        {
+                            mod_id = ns.ModID.ToString(), game_id = ns.Game.MetaData().NexusGameId, available = false
+                        };
+                    }
+
+                    try
+                    {
+                        await _sql.AddNexusModInfo(ns.Game, ns.ModID, mod.updated_time, mod);
+                    }
+                    catch (Exception _)
+                    {
+                        // Could be a PK constraint failure
+                    }
+
+                }
+
+                if (files == null)
+                {
+                    _logger.Log(LogLevel.Information, $"Found missing Nexus mod info {ns.Game} {ns.ModID}");
+                    try
+                    {
+                        files = await _nexusClient.GetModFiles(ns.Game, ns.ModID, false);
+                    }
+                    catch
+                    {
+                        files = new NexusApiClient.GetModFilesResponse {files = new List<NexusFileInfo>()};
+                    }
+
+                    try
+                    {
+                        await _sql.AddNexusModFiles(ns.Game, ns.ModID, mod.updated_time, files);
+                    }
+                    catch (Exception _)
+                    {
+                        // Could be a PK constraint failure
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return ArchiveStatus.InValid;
+            }
+
+            if (mod.available && files.files.Any(f => !string.IsNullOrEmpty(f.category_name) && f.file_id == ns.FileID))
+                return ArchiveStatus.Valid;
+            return ArchiveStatus.InValid;
+
         }
     }
 }
