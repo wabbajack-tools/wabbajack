@@ -79,18 +79,27 @@ namespace Wabbajack.Lib.Downloaders
                     throw;
                 }
 
-                return new State
+                try
                 {
-                    Name = NexusApiUtils.FixupSummary(info.name),
-                    Author = NexusApiUtils.FixupSummary(info.author),
-                    Version = general.version ?? "0.0.0.0",
-                    ImageURL = info.picture_url,
-                    IsNSFW = info.contains_adult_content,
-                    Description = NexusApiUtils.FixupSummary(info.summary),
-                    Game = GameRegistry.GetByFuzzyName((string)general.gameName).Game,
-                    ModID = long.Parse(general.modID),
-                    FileID = long.Parse(general.fileID)
-                };
+                    return new State
+                    {
+                        Name = NexusApiUtils.FixupSummary(info.name),
+                        Author = NexusApiUtils.FixupSummary(info.author),
+                        Version = general.version ?? "0.0.0.0",
+                        ImageURL = info.picture_url,
+                        IsNSFW = info.contains_adult_content,
+                        Description = NexusApiUtils.FixupSummary(info.summary),
+                        Game = GameRegistry.GetByFuzzyName((string)general.gameName).Game,
+                        ModID = long.Parse(general.modID),
+                        FileID = long.Parse(general.fileID)
+                    };
+                }
+                catch (FormatException)
+                {
+                    Utils.Log(
+                        $"Cannot parse ModID/FileID from {(string)general.gameName} {(string)general.modID} {(string)general.fileID}");
+                    throw;
+                }
             }
 
             return null;
