@@ -56,7 +56,8 @@ namespace Wabbajack.Server
             services.AddSingleton<AppSettings>();
             services.AddSingleton<SqlService>();
             services.AddSingleton<GlobalInformation>();
-            services.AddSingleton<NexusPoll>();            
+            services.AddSingleton<NexusPoll>();
+            services.AddSingleton<ArchiveMaintainer>();
             services.AddMvc();
             services.AddControllers()
                 .AddNewtonsoftJson(o =>
