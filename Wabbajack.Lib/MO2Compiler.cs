@@ -88,7 +88,7 @@ namespace Wabbajack.Lib
             var otherProfilesPath = MO2ProfileDir.Combine("otherprofiles.txt");
             SelectedProfiles = new HashSet<string>();
             if (otherProfilesPath.Exists) SelectedProfiles = (await otherProfilesPath.ReadAllLinesAsync()).ToHashSet();
-            SelectedProfiles.Add(MO2Profile);
+            SelectedProfiles.Add(MO2Profile!);
 
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
 
@@ -322,7 +322,7 @@ namespace Wabbajack.Lib
                 Archives = SelectedArchives.ToList(),
                 ModManager = ModManager.MO2,
                 Directives = InstallDirectives,
-                Name = ModListName ?? MO2Profile,
+                Name = ModListName ?? MO2Profile!,
                 Author = ModListAuthor ?? "",
                 Description = ModListDescription ?? "",
                 Readme = ModlistReadme ?? "",

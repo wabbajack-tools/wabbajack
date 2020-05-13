@@ -12,7 +12,7 @@ using File = System.IO.File;
 namespace Wabbajack.Server.Services
 {
     /// <summary>
-    /// Maintains a concurrent cache of all the files we've downloaded, indexed by Hash
+    /// Maintains a concurrent cache of all the files we've downloaded, indexed by Hash. 
     /// </summary>
     public class ArchiveMaintainer
     {

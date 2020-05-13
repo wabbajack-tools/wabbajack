@@ -9,7 +9,7 @@ namespace Wabbajack.Server.DataLayer
 {
     public partial class SqlService
     {
-        public async Task IngestModList(Hash hash, ModlistMetadata metadata, ModList modlist)
+        public async Task IngestModList(Hash hash, ModlistMetadata metadata, ModList modlist, bool brokenDownload)
         {
             await using var conn = await Open();
             await using var tran = await conn.BeginTransactionAsync();
@@ -18,13 +18,14 @@ namespace Wabbajack.Server.DataLayer
                 new {MachineUrl = metadata.Links.MachineURL}, tran);
 
             await conn.ExecuteAsync(
-                @"INSERT INTO dbo.ModLists (MachineUrl, Hash, Metadata, ModList) VALUES (@MachineUrl, @Hash, @Metadata, @ModList)",
+                @"INSERT INTO dbo.ModLists (MachineUrl, Hash, Metadata, ModList, BrokenDownload) VALUES (@MachineUrl, @Hash, @Metadata, @ModList, @BrokenDownload)",
                 new
                 {
                     MachineUrl = metadata.Links.MachineURL,
                     Hash = hash,
                     MetaData = metadata.ToJson(),
-                    ModList = modlist.ToJson()
+                    ModList = modlist.ToJson(),
+                    BrokenDownload = brokenDownload
                 }, tran);
             
             var entries = modlist.Archives.Select(a =>

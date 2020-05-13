@@ -27,7 +27,7 @@ namespace Wabbajack.BuildServer.Test
             var modlist = await MakeModList();
             Consts.ModlistMetadataURL = modlist.ToString();
             var data = await ModlistMetadata.LoadFromGithub();
-            Assert.Single(data);
+            Assert.Equal(2, data.Count);
             Assert.Equal("test_list", data.First().Links.MachineURL);
         }
 
@@ -38,12 +38,16 @@ namespace Wabbajack.BuildServer.Test
             Consts.ModlistMetadataURL = modlist.ToString();
             var sql = Fixture.GetService<SqlService>();
             var downloader = Fixture.GetService<ModListDownloader>();
-            await downloader.CheckForNewLists();
+            Assert.Equal(2, await downloader.CheckForNewLists());
 
             foreach (var list in ModListMetaData)
             {
                 Assert.True(await sql.HaveIndexedModlist(list.Links.MachineURL, list.DownloadMetadata.Hash));
             }
+            
+            // Nothing has changed so we shouldn't be downloading anything this time
+            Assert.Equal(0, await downloader.CheckForNewLists());
+
         }
         
         private async Task<Uri> MakeModList()
@@ -88,6 +92,22 @@ namespace Wabbajack.BuildServer.Test
                     Links = new ModlistMetadata.LinksObject
                     {
                         MachineURL = "test_list",
+                        Download = MakeURL("test_modlist.wabbajack")
+                    }
+                },
+                new ModlistMetadata
+                {
+                    Official = true,
+                    Author = "Test Suite",
+                    Description = "A list with a broken hash",
+                    DownloadMetadata = new DownloadMetadata()
+                    {
+                        Hash = Hash.FromLong(42),
+                        Size = 42
+                    },
+                    Links = new ModlistMetadata.LinksObject
+                    {
+                        MachineURL = "broken_list",
                         Download = MakeURL("test_modlist.wabbajack")
                     }
                 }

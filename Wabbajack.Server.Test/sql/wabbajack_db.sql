@@ -323,6 +323,7 @@ CREATE TABLE [dbo].[ModLists](
  [Hash] [bigint] NOT NULL,
  [Metadata] [nvarchar](max) NOT NULL,
  [Modlist] [nvarchar](max) NOT NULL,
+ [BrokenDownload] [tinyint] NOT NULL,
  CONSTRAINT [PK_ModLists] PRIMARY KEY CLUSTERED
      (
       [MachineURL] ASC
