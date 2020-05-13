@@ -108,6 +108,7 @@
                 ItemsSource="{Binding Path=GameTypeEntries}"
                 SelectedItem="{Binding GameType, Mode=TwoWay}"
                 ToolTip="Select a game"
+                IsEnabled="{Binding OnlyInstalled, Converter={StaticResource InverseBooleanConverter}}"
                 Width="130" />
             <TextBlock
                 Margin="0,0,5,0"
@@ -129,7 +130,6 @@
                 Margin="10,0,10,0"
                 VerticalAlignment="Center"
                 Content="Only Installed"
-                Command="{Binding OnlyInstalledCheckedCommand}"
                 Foreground="{StaticResource ForegroundBrush}" />
             <Button
                 x:Name="ClearFiltersButton"
