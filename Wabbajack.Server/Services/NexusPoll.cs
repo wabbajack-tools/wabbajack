@@ -170,6 +170,5 @@ namespace Wabbajack.Server.Services
             var poll = (NexusPoll)b.ApplicationServices.GetService(typeof(NexusPoll));
             poll.Start();
         }
-    
     }
 }

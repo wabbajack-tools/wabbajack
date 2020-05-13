@@ -32,6 +32,9 @@ namespace Wabbajack.BuildServer.Test
 
         public BuildServerFixture()
         {
+            ServerArchivesFolder.DeleteDirectory();
+            ServerArchivesFolder.CreateDirectory();
+
             var builder = Program.CreateHostBuilder(
                 new[]
                 {
@@ -54,6 +57,7 @@ namespace Wabbajack.BuildServer.Test
 
             "ServerWhitelist.yaml".RelativeTo(ServerPublicFolder).WriteAllText(
                 "GoogleIDs:\nAllowedPrefixes:\n    - http://localhost");
+
         }
 
         ~BuildServerFixture()
@@ -149,6 +153,7 @@ namespace Wabbajack.BuildServer.Test
 
             Consts.ModlistSummaryURL = MakeURL("lists/status.json");
             Consts.ServerWhitelistURL = MakeURL("ServerWhitelist.yaml");
+           
         }
 
         public WorkQueue Queue { get; set; }

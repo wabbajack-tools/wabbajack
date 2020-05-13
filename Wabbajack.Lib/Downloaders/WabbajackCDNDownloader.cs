@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.Common;
@@ -58,15 +59,18 @@ namespace Wabbajack.Lib.Downloaders
             {
                 destination.Parent.CreateDirectory();
                 var definition = await GetDefinition();
-                await using var fs = destination.Create();
+                using var fs = destination.Create();
+                using var mmfile = MemoryMappedFile.CreateFromFile(fs, null, definition.Size, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
                 var client = new Common.Http.Client();
-                await definition.Parts.DoProgress($"Downloading {a.Name}", async part =>
+                using var queue = new WorkQueue();
+                await definition.Parts.PMap(queue, async part =>
                 {
-                    fs.Position = part.Offset;
+                    Utils.Status($"Downloading {a.Name}", Percent.FactoryPutInRange(definition.Parts.Length - part.Index, definition.Parts.Length));
+                    await using var ostream = mmfile.CreateViewStream(part.Offset, part.Size);
                     using var response = await client.GetAsync($"{Url}/parts/{part.Index}");
                     if (!response.IsSuccessStatusCode)
                         throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
-                    await response.Content.CopyToAsync(fs);
+                    await response.Content.CopyToAsync(ostream);
                 });
                 return true;
             }

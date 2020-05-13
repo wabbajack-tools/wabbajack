@@ -56,7 +56,9 @@ namespace Wabbajack.Server
             services.AddSingleton<AppSettings>();
             services.AddSingleton<SqlService>();
             services.AddSingleton<GlobalInformation>();
-            services.AddSingleton<NexusPoll>();            
+            services.AddSingleton<NexusPoll>();
+            services.AddSingleton<ArchiveMaintainer>();
+            services.AddSingleton<ModListDownloader>();
             services.AddMvc();
             services.AddControllers()
                 .AddNewtonsoftJson(o =>
@@ -99,6 +101,8 @@ namespace Wabbajack.Server
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseNexusPoll();
+            app.UseArchiveMaintainer();
+            app.UseModListDownloader();
 
             app.Use(next =>
             {
