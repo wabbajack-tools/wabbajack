@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Compression;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
@@ -38,6 +39,7 @@ namespace Wabbajack.Server.Services
                     {
                         try
                         {
+                            _logger.Log(LogLevel.Information, "Checking for updated mod lists");
                             await CheckForNewLists();
                         }
                         catch (Exception ex)
@@ -52,31 +54,47 @@ namespace Wabbajack.Server.Services
             }
         }
 
-        public async Task CheckForNewLists()
+        public async Task<int> CheckForNewLists()
         {
+            int downloaded = 0;
             var lists = await ModlistMetadata.LoadFromGithub();
             foreach (var list in lists)
             {
                 try
                 {
-                    if (_maintainer.HaveArchive(list.DownloadMetadata!.Hash))
+                    if (await _sql.HaveIndexedModlist(list.Links.MachineURL, list.DownloadMetadata.Hash))
                         continue;
 
-                    _logger.Log(LogLevel.Information, $"Downloading {list.Links.MachineURL}");
-                    var tf = new TempFile();
-                    var state = DownloadDispatcher.ResolveArchive(list.Links.Download);
-                    if (state == null)
+
+                    if (!_maintainer.HaveArchive(list.DownloadMetadata!.Hash))
                     {
-                        _logger.Log(LogLevel.Error,
-                            $"Now downloader found for list {list.Links.MachineURL} : {list.Links.Download}");
-                        continue;
+                        _logger.Log(LogLevel.Information, $"Downloading {list.Links.MachineURL}");
+                        var tf = new TempFile();
+                        var state = DownloadDispatcher.ResolveArchive(list.Links.Download);
+                        if (state == null)
+                        {
+                            _logger.Log(LogLevel.Error,
+                                $"Now downloader found for list {list.Links.MachineURL} : {list.Links.Download}");
+                            continue;
+                        }
+
+                        downloaded += 1;
+                        await state.Download(new Archive(state) {Name = $"{list.Links.MachineURL}.wabbajack"}, tf.Path);
+                        var hash = await tf.Path.FileHashAsync();
+                        if (hash != list.DownloadMetadata.Hash)
+                        {
+                            _logger.Log(LogLevel.Error,
+                                $"Downloaded modlist {list.Links.MachineURL} {list.DownloadMetadata.Hash} didn't match metadata hash of {hash}");
+                            await _sql.IngestModList(list.DownloadMetadata.Hash, list, new ModList(), true);
+                            continue;
+                        }
+
+                        await _maintainer.Ingest(tf.Path);
                     }
 
-                    await state.Download(new Archive(state) {Name = $"{list.Links.MachineURL}.wabbajack"}, tf.Path);
-                    var modistPath = await _maintainer.Ingest(tf.Path);
-                    
+                    _maintainer.TryGetPath(list.DownloadMetadata.Hash, out var modlistPath);
                     ModList modlist;
-                    await using (var fs = modistPath.OpenRead())
+                    await using (var fs = modlistPath.OpenRead())
                     using (var zip = new ZipArchive(fs, ZipArchiveMode.Read))
                     await using (var entry = zip.GetEntry("modlist")?.Open())
                     {
@@ -97,13 +115,15 @@ namespace Wabbajack.Server.Services
                         }
                     }
 
-                    await _sql.IngestModList(list.DownloadMetadata!.Hash, list, modlist);
+                    await _sql.IngestModList(list.DownloadMetadata!.Hash, list, modlist, false);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, $"Error downloading modlist {list.Links.MachineURL}");
                 }
             }
+            _logger.Log(LogLevel.Information, $"Done checking modlists. Downloaded {downloaded} new lists");
+            return downloaded;
         }
     }
     
