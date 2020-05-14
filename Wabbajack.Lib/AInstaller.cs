@@ -198,10 +198,15 @@ namespace Wabbajack.Lib
                     await using var patchStream = new MemoryStream();
                     Status($"Patching {toPatch.To.FileName}");
                     // Read in the patch data
+                    
+                    Status($"Verifying unpatched file {toPatch.To.FileName}");
+                    var toFile = OutputFolder.Combine(toPatch.To);
+                    var hash = await toFile.FileHashAsync();
+                    if (hash != toPatch.FromHash)
+                        throw new InvalidDataException($"Invalid Hash for {toPatch.To} before patching");
 
                     byte[] patchData = await LoadBytesFromPath(toPatch.PatchID);
 
-                    var toFile = OutputFolder.Combine(toPatch.To);
                     var oldData = new MemoryStream(await toFile.ReadAllBytesAsync());
 
                     // Remove the file we're about to patch
@@ -214,8 +219,8 @@ namespace Wabbajack.Lib
                     }
 
                     Status($"Verifying Patch {toPatch.To.FileName}");
-                    var resultSha = await toFile.FileHashAsync();
-                    if (resultSha != toPatch.Hash)
+                    hash = await toFile.FileHashAsync();
+                    if (hash != toPatch.Hash)
                         throw new InvalidDataException($"Invalid Hash for {toPatch.To} after patching");
                 });
         }

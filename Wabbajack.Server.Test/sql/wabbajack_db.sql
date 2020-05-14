@@ -465,55 +465,40 @@ CREATE UNIQUE NONCLUSTERED INDEX [ByAPIKey] ON [dbo].[ApiKeys]
     INCLUDE([Owner]) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
 
-/****** Object:  Table [dbo].[DownloadStates]    Script Date: 3/31/2020 6:22:47 AM ******/
-
-CREATE TABLE [dbo].[DownloadStates](
-   [Id] [binary](32) NOT NULL,
-   [Hash] [bigint] NOT NULL,
-   [PrimaryKey] [nvarchar](max) NOT NULL,
-   [IniState] [nvarchar](max) NOT NULL,
-   [JsonState] [nvarchar](max) NOT NULL,
-   CONSTRAINT [PK_DownloadStates] PRIMARY KEY CLUSTERED
-       (
-        [Id] ASC
-           )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+CREATE TABLE [dbo].[ArchiveDownloads](
+[Id] [uniqueidentifier] NOT NULL,
+[PrimaryKeyString] [nvarchar](255) NOT NULL,
+[Size] [bigint] NULL,
+[Hash] [bigint] NULL,
+[IsFailed] [tinyint] NULL,
+[DownloadFinished] [datetime] NULL,
+[DownloadState] [nvarchar](max) NOT NULL,
+[Downloader] [nvarchar](50) NOT NULL,
+[FailMessage] [nvarchar](MAX) NULL,
+CONSTRAINT [PK_ArchiveDownloads] PRIMARY KEY CLUSTERED
+ (
+  [Id] ASC
+     )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
 
-CREATE NONCLUSTERED INDEX [ByHash] ON [dbo].[DownloadStates]
+
+/****** Object:  Index [ByDownloaderAndFinished]    Script Date: 5/13/2020 8:47:58 PM ******/
+CREATE NONCLUSTERED INDEX [ByDownloaderAndFinished] ON [dbo].[ArchiveDownloads]
     (
+     [DownloadFinished] ASC,
+     [Downloader] ASC
+        )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+
+/****** Object:  Index [ByPrimaryKeyAndHash]    Script Date: 5/13/2020 8:48:01 PM ******/
+CREATE NONCLUSTERED INDEX [ByPrimaryKeyAndHash] ON [dbo].[ArchiveDownloads]
+    (
+     [PrimaryKeyString] ASC,
      [Hash] ASC
-        )
-    INCLUDE([IniState]) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+        )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-
-/****** Object:  View [dbo].[GameFiles]    Script Date: 4/30/2020 4:23:25 PM ******/
-
-CREATE VIEW [dbo].[GameFiles]
-            WITH SCHEMABINDING
-AS
-
-Select
-    Id,
-    CONVERT(NVARCHAR(20), JSON_VALUE(JsonState,'$.GameVersion')) as GameVersion,
-    CONVERT(NVARCHAR(32),JSON_VALUE(JsonState,'$.Game')) as Game,
-    JSON_VALUE(JsonState,'$.GameFile') as Path,
-    Hash as Hash
-FROM dbo.DownloadStates
-WHERE PrimaryKey like 'GameFileSourceDownloader+State|%'
-  AND JSON_VALUE(JsonState,'$.GameFile') NOT LIKE '%.xxhash'
-GO
-
-CREATE UNIQUE CLUSTERED INDEX [ByGameAndVersion] ON [dbo].[GameFiles]
-    (
-     [Game] ASC,
-     [GameVersion] ASC,
-     [Id] ASC
-        )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-GO
-
-
 
 /****** Object:  Index [IX_Child]    Script Date: 3/28/2020 4:58:59 PM ******/
 CREATE NONCLUSTERED INDEX [IX_Child] ON [dbo].[AllFilesInArchive]
