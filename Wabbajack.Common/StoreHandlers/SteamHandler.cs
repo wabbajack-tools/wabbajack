@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security;
 using Microsoft.Win32;
@@ -155,9 +156,21 @@ namespace Wabbajack.Common.StoreHandlers
                         if (!l.ContainsCaseInsensitive("\"installdir\""))
                             return;
 
-                        var path =  new RelativePath("common").Combine(GetVdfValue(l)).RelativeTo(u);
-                        if (path.Exists)
-                            game.Path = path;
+                        var value = GetVdfValue(l);
+                        AbsolutePath absPath;
+                        
+                        if (Path.IsPathRooted(value))
+                        { 
+                            absPath = (AbsolutePath)value;
+                        }
+                        else
+                        {
+                            absPath = new RelativePath("common").Combine(GetVdfValue(l)).RelativeTo(u);
+                        }
+                        
+                        if (absPath.Exists)
+                            game.Path = absPath;
+
                     });
 
                     if (!gotID || !game.Path.IsDirectory) return;
