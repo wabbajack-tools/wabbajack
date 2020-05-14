@@ -4,6 +4,7 @@
 * Make the CDN downloads multi-threaded
 * Optimize installation of included files 
 * Reinstate a broken feature with disabled mods
+* Fix how JSON serializers handle dates (UTC all the things!)
 
 #### Version - 2.0.4.4 - 5/11/2020
 * BA2s store file names as UTF8 instead of UTF7

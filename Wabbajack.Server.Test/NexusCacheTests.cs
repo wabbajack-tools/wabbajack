@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Server.DataLayer;
@@ -94,6 +95,30 @@ namespace Wabbajack.BuildServer.Test
             await sql.DeleteNexusModFilesUpdatedBeforeDate(Game.SkyrimSpecialEdition, 1137, DateTime.UtcNow);
             var hs3 = await sql.AllNexusFiles();
             Assert.DoesNotContain(hs3, f => f.NexusGameId == gameId && f.ModId == 1137);
+
+        }
+
+
+        [JsonName("DateBox")]
+        class Box
+        {
+            public DateTime Value
+            {
+                get;
+                set;
+            }
+        }
+        [Fact]
+        public async Task DatesConvertProperly()
+        {
+
+            var a = DateTime.Now;
+            var b = DateTime.UtcNow;
+            
+            Assert.NotEqual(a, new Box{Value = a}.ToJson().FromJsonString<Box>().Value);
+            Assert.Equal(b, new Box{Value = b}.ToJson().FromJsonString<Box>().Value);
+            Assert.NotEqual(a.Hour, b.Hour);
+            Assert.Equal(b.Hour, new Box{Value = a}.ToJson().FromJsonString<Box>().Value.Hour);
 
         }
     }
