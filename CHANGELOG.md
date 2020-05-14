@@ -1,4 +1,10 @@
 ### Changelog
+
+#### Version - 2.0.5.0 - 5/13/2020
+* Make the CDN downloads multi-threaded
+* Optimize installation of included files 
+* Reinstate a broken feature with disabled mods
+
 #### Version - 2.0.4.4 - 5/11/2020
 * BA2s store file names as UTF8 instead of UTF7
 * Check for a BSA file by header magic not by extension (allows .bsa.bak files to be extracted)
