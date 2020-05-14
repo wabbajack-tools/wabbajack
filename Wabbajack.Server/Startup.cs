@@ -62,6 +62,7 @@ namespace Wabbajack.Server
             services.AddSingleton<ModListDownloader>();
             services.AddSingleton<NonNexusDownloadValidator>();
             services.AddSingleton<ListValidator>();
+            services.AddSingleton<ArchiveDownloader>();
             
             services.AddMvc();
             services.AddControllers()
@@ -110,6 +111,7 @@ namespace Wabbajack.Server
             
             app.UseService<NonNexusDownloadValidator>();
             app.UseService<ListValidator>();
+            app.UseService<ArchiveDownloader>();
 
             app.Use(next =>
             {

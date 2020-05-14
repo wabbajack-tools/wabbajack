@@ -123,6 +123,10 @@ namespace Wabbajack.Server.Services
                 }
             }
             _logger.Log(LogLevel.Information, $"Done checking modlists. Downloaded {downloaded} new lists");
+
+            var fc = await _sql.EnqueueModListFilesForIndexing();
+            _logger.Log(LogLevel.Information, $"Enqueing {fc} files for downloading");
+            
             return downloaded;
         }
     }
