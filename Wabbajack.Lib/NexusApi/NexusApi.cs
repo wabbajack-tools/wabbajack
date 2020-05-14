@@ -153,6 +153,14 @@ namespace Wabbajack.Lib.NexusApi
             return await Get<UserStatus>(url);
         }
 
+        public async Task<(int, int)> GetRemainingApiCalls()
+        {
+            var url = "https://api.nexusmods.com/v1/users/validate.json";
+            using var response = await HttpClient.GetAsync(url);
+            return (int.Parse(response.Headers.GetValues("X-RL-Daily-Remaining").First()),
+                int.Parse(response.Headers.GetValues("X-RL-Hourly-Remaining").First()));
+        }
+
         #endregion
 
         #region Rate Tracking

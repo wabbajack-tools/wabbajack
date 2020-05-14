@@ -26,12 +26,16 @@ namespace Wabbajack.Server.Services
         public override async Task<int> Execute()
         {
             _nexusClient ??= await NexusApiClient.Get();
-            await _nexusClient.GetUserStatus();
             int count = 0;
 
             while (true)
             {
-                bool ignoreNexus = _nexusClient.HourlyRemaining < 25;
+                var (daily, hourly) = await _nexusClient.GetRemainingApiCalls();
+                bool ignoreNexus = hourly < 25;
+                if (ignoreNexus)
+                    _logger.LogWarning($"Ignoring Nexus Downloads due to low hourly api limit (Daily: {_nexusClient.DailyRemaining}, Hourly:{_nexusClient.HourlyRemaining})");
+                else
+                    _logger.LogInformation($"Looking for any download (Daily: {_nexusClient.DailyRemaining}, Hourly:{_nexusClient.HourlyRemaining})");
 
                 var nextDownload = await _sql.GetNextPendingDownload(ignoreNexus);
 
