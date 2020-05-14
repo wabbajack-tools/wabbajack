@@ -535,6 +535,22 @@ CREATE UNIQUE NONCLUSTERED INDEX [IX_IndexedFile_By_SHA256] ON [dbo].[IndexedFil
      [Sha256] ASC
         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
+
+/****** Object:  Table [dbo].[NexusModFilesSlow]    Script Date: 5/14/2020 2:23:15 PM ******/
+CREATE TABLE [dbo].[NexusModFilesSlow](
+[GameId] [bigint] NOT NULL,
+[FileId] [bigint] NOT NULL,
+[ModId] [bigint] NOT NULL,
+[LastChecked] [datetime] NOT NULL,
+CONSTRAINT [PK_NexusModFilesSlow] PRIMARY KEY CLUSTERED
+  (
+   [GameId] ASC,
+   [FileId] ASC,
+   [ModId] ASC
+      )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
 /****** Object:  StoredProcedure [dbo].[MergeAllFilesInArchive]    Script Date: 3/28/2020 4:58:59 PM ******/
 SET ANSI_NULLS ON
 GO

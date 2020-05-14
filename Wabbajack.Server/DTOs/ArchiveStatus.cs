@@ -1,6 +1,6 @@
 ﻿namespace Wabbajack.Server.DTOs
 {
-    enum ArchiveStatus
+    public enum ArchiveStatus
     {
         Valid,
         InValid,

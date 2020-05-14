@@ -30,8 +30,9 @@ namespace Wabbajack.Server.Services
 
             while (true)
             {
-                var (daily, hourly) = await _nexusClient.GetRemainingApiCalls();
-                bool ignoreNexus = hourly < 25;
+                //var (daily, hourly) = await _nexusClient.GetRemainingApiCalls();
+                //bool ignoreNexus = hourly < 25;
+                var ignoreNexus = true;
                 if (ignoreNexus)
                     _logger.LogWarning($"Ignoring Nexus Downloads due to low hourly api limit (Daily: {_nexusClient.DailyRemaining}, Hourly:{_nexusClient.HourlyRemaining})");
                 else

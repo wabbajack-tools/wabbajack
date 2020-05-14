@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Dapper;
 using Newtonsoft.Json;
 using Wabbajack.Common;
@@ -27,6 +28,11 @@ namespace Wabbajack.Server.DataLayer
             await using var conn = await Open();
             var deleted = await conn.ExecuteScalarAsync<long>(
                 @"DELETE FROM dbo.NexusModFiles WHERE Game = @Game AND ModID = @ModId AND LastChecked < @Date
+                      SELECT @@ROWCOUNT AS Deleted",
+                new {Game = game.MetaData().NexusGameId, ModId = modId, Date = date});
+            
+            deleted += await conn.ExecuteScalarAsync<long>(
+                @"DELETE FROM dbo.NexusModFilesSlow WHERE GameId = @Game AND ModID = @ModId AND LastChecked < @Date
                       SELECT @@ROWCOUNT AS Deleted",
                 new {Game = game.MetaData().NexusGameId, ModId = modId, Date = date});
             return deleted;
@@ -78,7 +84,25 @@ namespace Wabbajack.Server.DataLayer
                     LastChecked = lastCheckedUtc,
                     Data = JsonConvert.SerializeObject(data)
                 });
-            
+        }
+        
+        public async Task AddNexusModFileSlow(Game game, long modId, long fileId, DateTime lastCheckedUtc)
+        {
+            await using var conn = await Open();
+
+            await conn.ExecuteAsync(                
+                @"MERGE dbo.NexusModFilesSlow AS Target
+                      USING (SELECT @GameId GameId, @ModId ModId, @LastChecked LastChecked, @FileId FileId) AS Source
+                      ON Target.GameId = Source.GameId AND Target.ModId = Source.ModId AND Target.FileId = Source.FileId
+                      WHEN MATCHED THEN UPDATE SET Target.LastChecked = @LastChecked
+                      WHEN NOT MATCHED THEN INSERT (GameId, ModId, LastChecked, FileId) VALUES (@GameId, @ModId, @LastChecked, FileId);",
+                new
+                {
+                    GameId = game.MetaData().NexusGameId,
+                    ModId = modId,
+                    FileId = fileId,
+                    LastChecked = lastCheckedUtc,
+                });
         }
         
         public async Task<NexusApiClient.GetModFilesResponse> GetModFiles(Game game, long modId)
