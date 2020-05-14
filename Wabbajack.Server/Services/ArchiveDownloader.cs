@@ -31,9 +31,9 @@ namespace Wabbajack.Server.Services
 
             while (true)
             {
-                bool useNexus = _nexusClient.HourlyRemaining > 25;
+                bool ignoreNexus = _nexusClient.HourlyRemaining < 25;
 
-                var nextDownload = await _sql.GetNextPendingDownload(useNexus);
+                var nextDownload = await _sql.GetNextPendingDownload(ignoreNexus);
 
                 if (nextDownload == null)
                     break;
