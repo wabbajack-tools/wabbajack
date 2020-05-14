@@ -32,7 +32,7 @@ namespace Wabbajack.BuildServer.Test
 
         public BuildServerFixture()
         {
-            ServerArchivesFolder.DeleteDirectory();
+            ServerArchivesFolder.DeleteDirectory().Wait();
             ServerArchivesFolder.CreateDirectory();
 
             var builder = Program.CreateHostBuilder(

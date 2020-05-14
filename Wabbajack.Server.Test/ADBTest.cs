@@ -39,8 +39,7 @@ namespace Wabbajack.BuildServer.Test
         
         private async Task CreateSchema()
         {
-            Utils.Log("Creating Database");
-            //var conn = new SqlConnection("Data Source=localhost,1433;User ID=test;Password=test;MultipleActiveResultSets=true");
+            Utils.Log($"Creating Database {DBName}");
             await using var conn = new SqlConnection(CONN_STR);
 
             await conn.OpenAsync();
@@ -61,6 +60,7 @@ namespace Wabbajack.BuildServer.Test
             
             await new SqlCommand($"INSERT INTO dbo.ApiKeys (APIKey, Owner) VALUES ('{APIKey}', '{User}');", conn).ExecuteNonQueryAsync();
             _finishedSchema = true;
+            Utils.Log($"Finished creating database {DBName}");
         }
 
         private static IEnumerable<string> SplitSqlStatements(string sqlScript)
