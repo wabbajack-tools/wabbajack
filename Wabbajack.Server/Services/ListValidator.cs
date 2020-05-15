@@ -115,18 +115,22 @@ namespace Wabbajack.Server.Services
         public async Task<ArchiveStatus> SlowNexusModStats(ValidationData data, NexusDownloader.State ns)
         {
             var gameId = ns.Game.MetaData().NexusGameId;
-            using var _ = await _slowQueryLock.WaitAsync();
+            //using var _ = await _slowQueryLock.WaitAsync();
             _logger.Log(LogLevel.Warning, $"Slow querying for {ns.Game} {ns.ModID} {ns.FileID}");
 
 
             if (data.NexusFiles.Contains((gameId, ns.ModID, ns.FileID)))
                 return ArchiveStatus.Valid;
 
+            if (data.NexusFiles.Contains((gameId, ns.ModID, -1)))
+                return ArchiveStatus.InValid;
+
             if (data.SlowQueriedFor.Contains((ns.Game, ns.ModID)))
                 return ArchiveStatus.InValid;
             
             var queryTime = DateTime.UtcNow;
-            var regex = new Regex("(?<=[?;&]file_id\\=)\\d+");
+            var regex_id = new Regex("(?<=[?;&]id\\=)\\d+");
+            var regex_file_id = new Regex("(?<=[?;&]file_id\\=)\\d+");
             var client = new Common.Http.Client();
             var result =
                 await client.GetHtmlAsync(
@@ -136,20 +140,29 @@ namespace Wabbajack.Server.Services
                 .Select(f => f.GetAttributeValue("href", ""))
                 .Select(f =>
                 {
-                    var match = regex.Match(f);
-                    return !match.Success ? null : match.Value;
+                    var match = regex_id.Match(f);
+                    if (match.Success)
+                        return match.Value;
+                    match = regex_file_id.Match(f);
+                    if (match.Success)
+                        return match.Value;
+                    return null;
                 })
                 .Where(m => m != null)
                 .Select(m => long.Parse(m))
                 .Distinct()
                 .ToList();
-
+            
             _logger.Log(LogLevel.Warning, $"Slow queried {fileIds.Count} files");
             foreach (var id in fileIds)
             {
                 await _sql.AddNexusModFileSlow(ns.Game, ns.ModID, id, queryTime);
                 data.NexusFiles.Add((gameId, ns.ModID, id));
             }
+
+            // Add in the default marker
+            await _sql.AddNexusModFileSlow(ns.Game, ns.ModID, -1, queryTime);
+            data.NexusFiles.Add((gameId, ns.ModID, -1));
 
             return fileIds.Contains(ns.FileID) ? ArchiveStatus.Valid : ArchiveStatus.InValid;
         }

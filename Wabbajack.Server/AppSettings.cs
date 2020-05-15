@@ -29,5 +29,8 @@ namespace Wabbajack.BuildServer
         public string SqlConnection { get; set; }
 
         public int MaxJobs { get; set; } = 2;
+
+        public string SpamWebHook { get; set; } = null;
+        public string HamWebHook { get; set; } = null;
     }
 }

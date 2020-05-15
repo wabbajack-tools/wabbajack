@@ -42,5 +42,10 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="sheo_quotes.txt" />
+      <EmbeddedResource Include="sheo_quotes.txt" />
+    </ItemGroup>
+
 
 </Project>

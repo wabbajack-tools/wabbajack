@@ -48,7 +48,7 @@ namespace Wabbajack.Server.Services
                     if (totalPurged > 0)
                         _logger.Log(LogLevel.Information, $"Purged {totalPurged} cache items {result.Game} {result.ModId} {result.TimeStamp}");
 
-                    updated++;
+                    updated += totalPurged;
                 }
                 catch (Exception ex)
                 {
@@ -58,7 +58,7 @@ namespace Wabbajack.Server.Services
             }
 
             if (updated > 0) 
-                _logger.Log(LogLevel.Information, $"Primed {updated} nexus cache entries");
+                _logger.Log(LogLevel.Information, $"RSS Purged {updated} nexus cache entries");
 
             _globalInformation.LastNexusSyncUTC = DateTime.UtcNow;
         }
