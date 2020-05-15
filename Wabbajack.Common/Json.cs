@@ -31,10 +31,15 @@ namespace Wabbajack.Common
             new JsonSerializerSettings {
                 TypeNameHandling = TypeNameHandling.Objects,
                 SerializationBinder = new JsonNameSerializationBinder(),
-                Converters = Converters};
+                Converters = Converters,
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc
+            };
 
         public static JsonSerializerSettings GenericJsonSettings =>
-            new JsonSerializerSettings();
+            new JsonSerializerSettings
+            {
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            };
 
 
         public static void ToJson<T>(this T obj, string filename)

@@ -77,7 +77,7 @@ namespace Wabbajack.Common
                 return;
             }
 
-            throw new InvalidDataException("Absolute path must be absolute");
+            throw new InvalidDataException($"Absolute path must be absolute, got {_path}");
         }
 
         public string Normalize()
@@ -487,7 +487,7 @@ namespace Wabbajack.Common
         {
             if (Path.IsPathRooted(_path))
             {
-                throw new InvalidDataException("Cannot create relative path from absolute path string");
+                throw new InvalidDataException($"Cannot create relative path from absolute path string, got {_path}");
             }
         }
 

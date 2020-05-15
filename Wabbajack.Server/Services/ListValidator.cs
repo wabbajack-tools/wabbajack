@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.Crypto.Digests;
 using RocksDbSharp;
 using Wabbajack.BuildServer;
 using Wabbajack.Common;
@@ -91,7 +94,7 @@ namespace Wabbajack.Server.Services
                     nexusState.Game.MetaData().NexusGameId, nexusState.ModID, nexusState.FileID)):
                     return (archive, ArchiveStatus.Valid);
                 case NexusDownloader.State ns:
-                    return (archive, await FastNexusModStats(ns));
+                    return (archive, await SlowNexusModStats(data, ns));
                 case ManualDownloader.State _:
                     return (archive, ArchiveStatus.Valid);
                 default:
@@ -105,6 +108,50 @@ namespace Wabbajack.Server.Services
                     return (archive, ArchiveStatus.InValid);
                 }
             }
+        }
+
+        
+        private readonly AsyncLock _slowQueryLock = new AsyncLock();
+        public async Task<ArchiveStatus> SlowNexusModStats(ValidationData data, NexusDownloader.State ns)
+        {
+            var gameId = ns.Game.MetaData().NexusGameId;
+            using var _ = await _slowQueryLock.WaitAsync();
+            _logger.Log(LogLevel.Warning, $"Slow querying for {ns.Game} {ns.ModID} {ns.FileID}");
+
+
+            if (data.NexusFiles.Contains((gameId, ns.ModID, ns.FileID)))
+                return ArchiveStatus.Valid;
+
+            if (data.SlowQueriedFor.Contains((ns.Game, ns.ModID)))
+                return ArchiveStatus.InValid;
+            
+            var queryTime = DateTime.UtcNow;
+            var regex = new Regex("(?<=[?;&]file_id\\=)\\d+");
+            var client = new Common.Http.Client();
+            var result =
+                await client.GetHtmlAsync(
+                    $"https://www.nexusmods.com/{ns.Game.MetaData().NexusName}/mods/{ns.ModID}/?tab=files");
+
+            var fileIds = result.DocumentNode.Descendants()
+                .Select(f => f.GetAttributeValue("href", ""))
+                .Select(f =>
+                {
+                    var match = regex.Match(f);
+                    return !match.Success ? null : match.Value;
+                })
+                .Where(m => m != null)
+                .Select(m => long.Parse(m))
+                .Distinct()
+                .ToList();
+
+            _logger.Log(LogLevel.Warning, $"Slow queried {fileIds.Count} files");
+            foreach (var id in fileIds)
+            {
+                await _sql.AddNexusModFileSlow(ns.Game, ns.ModID, id, queryTime);
+                data.NexusFiles.Add((gameId, ns.ModID, id));
+            }
+
+            return fileIds.Contains(ns.FileID) ? ArchiveStatus.Valid : ArchiveStatus.InValid;
         }
         
         private async Task<ArchiveStatus> FastNexusModStats(NexusDownloader.State ns)

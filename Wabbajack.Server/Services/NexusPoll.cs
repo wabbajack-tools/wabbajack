@@ -48,17 +48,6 @@ namespace Wabbajack.Server.Services
                     if (totalPurged > 0)
                         _logger.Log(LogLevel.Information, $"Purged {totalPurged} cache items {result.Game} {result.ModId} {result.TimeStamp}");
 
-                    if (await _sql.GetNexusModInfoString(result.Game, result.ModId) != null) continue;
-
-                    // Lazily create the client
-                    client ??= await NexusApiClient.Get();
-
-                    // Cache the info
-                    var files = await client.GetModFiles(result.Game, result.ModId, false);
-                    await _sql.AddNexusModFiles(result.Game, result.ModId, result.TimeStamp, files);
-
-                    var modInfo = await client.GetModInfo(result.Game, result.ModId, useCache: false);
-                    await _sql.AddNexusModInfo(result.Game, result.ModId, result.TimeStamp, modInfo);
                     updated++;
                 }
                 catch (Exception ex)

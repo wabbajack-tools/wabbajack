@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -18,7 +19,7 @@ namespace Wabbajack.Server.DataLayer
             var modLists = AllModLists();
             return new ValidationData
             {
-                NexusFiles = await nexusFiles,
+                NexusFiles = new ConcurrentHashSet<(long Game, long ModId, long FileId)>((await nexusFiles).Select(f => (f.NexusGameId, f.ModId, f.FileId))),
                 ArchiveStatus = await archiveStatus,
                 ModLists = await modLists,
             };
@@ -33,14 +34,17 @@ namespace Wabbajack.Server.DataLayer
             return results.ToDictionary(v => (v.Item1, v.Item2), v => v.Item3);
         }
 
-        public async Task<HashSet<(long NexusGameId, long ModId, long FileId)>> AllNexusFiles()
+        public async Task<HashSet<(long NexusGameId, long ModId, long FileId, DateTime LastChecked)>> AllNexusFiles()
         {
             await using var conn = await Open();
-            var results = await conn.QueryAsync<(long, long, long)>(@"SELECT Game, ModId, p.file_id
-                                                      FROM [NexusModFiles] files
-                                                      CROSS APPLY
-                                                      OPENJSON(Data, '$.files') WITH (file_id bigint '$.file_id', category varchar(max) '$.category_name') p 
-                                                      WHERE p.category is not null");
+            var results = await conn.QueryAsync<(long, long, long, DateTime)>(@"SELECT Game, ModId, p.file_id, LastChecked
+          FROM [NexusModFiles] files
+          CROSS APPLY
+          OPENJSON(Data, '$.files') WITH (file_id bigint '$.file_id', category varchar(max) '$.category_name') p 
+          WHERE p.category is not null
+          UNION 
+          SELECT GameId, ModId, FileId, LastChecked FROM dbo.NexusModFilesSlow
+          ");
             return results.ToHashSet();
         }
         
