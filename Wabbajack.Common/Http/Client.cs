@@ -76,12 +76,15 @@ namespace Wabbajack.Common.Http
                 var response = await ClientFactory.Client.SendAsync(msg, responseHeadersRead);
                 if (response.IsSuccessStatusCode) return response;
 
-                if (errorsAsExceptions) 
-                    throw new HttpRequestException($"Http Exception {response.StatusCode} - {response.ReasonPhrase} - {msg.RequestUri}");;
+                if (errorsAsExceptions)
+                    throw new HttpRequestException(
+                        $"Http Exception {response.StatusCode} - {response.ReasonPhrase} - {msg.RequestUri}");
+                ;
                 return response;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (ex is HttpRequestException) throw;
                 if (retries > Consts.MaxHTTPRetries) throw;
 
                 retries++;
