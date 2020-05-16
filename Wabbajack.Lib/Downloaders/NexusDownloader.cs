@@ -121,7 +121,8 @@ namespace Wabbajack.Lib.Downloaders
                             $"Authenticating for the Nexus failed. A nexus account is required to automatically download mods."));
                         return;
                     }
-                    
+
+                    await Metrics.Send("nexus_login", _client.ApiKey!);
 
                     if (!await _client.IsPremium())
                     {

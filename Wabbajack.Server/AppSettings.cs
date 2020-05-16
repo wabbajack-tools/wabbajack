@@ -25,9 +25,15 @@ namespace Wabbajack.BuildServer
         public bool RunFrontEndJobs { get; set; }
         public bool RunBackEndJobs { get; set; }
         
+        public bool RunNexusPolling { get; set; }
+        public bool RunDownloader { get; set; }
+        
         public string BunnyCDN_StorageZone { get; set; }
         public string SqlConnection { get; set; }
 
         public int MaxJobs { get; set; } = 2;
+
+        public string SpamWebHook { get; set; } = null;
+        public string HamWebHook { get; set; } = null;
     }
 }

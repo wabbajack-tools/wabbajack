@@ -63,9 +63,9 @@ namespace Wabbajack.Common
             obj.ToJson(fs);
         }
 
-        public static string ToJson<T>(this T obj)
+        public static string ToJson<T>(this T obj, bool useGenericSettings = false)
         {
-            return JsonConvert.SerializeObject(obj, JsonSettings);
+            return JsonConvert.SerializeObject(obj, useGenericSettings ? GenericJsonSettings : JsonSettings);
         }
 
         public static T FromJson<T>(this AbsolutePath filename)

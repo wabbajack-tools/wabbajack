@@ -22,22 +22,25 @@ namespace Wabbajack.Server.Services
     public class ListValidator : AbstractService<ListValidator, int>
     {
         private SqlService _sql;
-        private NexusApiClient _nexusClient;
+        private DiscordWebHook _discord;
+        private NexusKeyMaintainance _nexus;
 
         public IEnumerable<(ModListSummary Summary, DetailedStatus Detailed)> Summaries { get; private set; } =
             new (ModListSummary Summary, DetailedStatus Detailed)[0];
 
 
-        public ListValidator(ILogger<ListValidator> logger, AppSettings settings, SqlService sql) 
+        public ListValidator(ILogger<ListValidator> logger, AppSettings settings, SqlService sql, DiscordWebHook discord, NexusKeyMaintainance nexus) 
             : base(logger, settings, TimeSpan.FromMinutes(10))
         {
             _sql = sql;
+            _discord = discord;
+            _nexus = nexus;
         }
 
         public override async Task<int> Execute()
         {
             var data = await _sql.GetValidationData();
-            
+
             using var queue = new WorkQueue();
 
             var results = await data.ModLists.PMap(queue, async list =>
@@ -94,7 +97,7 @@ namespace Wabbajack.Server.Services
                     nexusState.Game.MetaData().NexusGameId, nexusState.ModID, nexusState.FileID)):
                     return (archive, ArchiveStatus.Valid);
                 case NexusDownloader.State ns:
-                    return (archive, await SlowNexusModStats(data, ns));
+                    return (archive, await FastNexusModStats(ns));
                 case ManualDownloader.State _:
                     return (archive, ArchiveStatus.Valid);
                 default:
@@ -109,111 +112,87 @@ namespace Wabbajack.Server.Services
                 }
             }
         }
-
         
-        private readonly AsyncLock _slowQueryLock = new AsyncLock();
-        public async Task<ArchiveStatus> SlowNexusModStats(ValidationData data, NexusDownloader.State ns)
+        private AsyncLock _lock = new AsyncLock();
+
+        public async Task<ArchiveStatus> FastNexusModStats(NexusDownloader.State ns)
         {
-            var gameId = ns.Game.MetaData().NexusGameId;
-            using var _ = await _slowQueryLock.WaitAsync();
-            _logger.Log(LogLevel.Warning, $"Slow querying for {ns.Game} {ns.ModID} {ns.FileID}");
-
-
-            if (data.NexusFiles.Contains((gameId, ns.ModID, ns.FileID)))
-                return ArchiveStatus.Valid;
-
-            if (data.SlowQueriedFor.Contains((ns.Game, ns.ModID)))
-                return ArchiveStatus.InValid;
-            
-            var queryTime = DateTime.UtcNow;
-            var regex = new Regex("(?<=[?;&]file_id\\=)\\d+");
-            var client = new Common.Http.Client();
-            var result =
-                await client.GetHtmlAsync(
-                    $"https://www.nexusmods.com/{ns.Game.MetaData().NexusName}/mods/{ns.ModID}/?tab=files");
-
-            var fileIds = result.DocumentNode.Descendants()
-                .Select(f => f.GetAttributeValue("href", ""))
-                .Select(f =>
-                {
-                    var match = regex.Match(f);
-                    return !match.Success ? null : match.Value;
-                })
-                .Where(m => m != null)
-                .Select(m => long.Parse(m))
-                .Distinct()
-                .ToList();
-
-            _logger.Log(LogLevel.Warning, $"Slow queried {fileIds.Count} files");
-            foreach (var id in fileIds)
-            {
-                await _sql.AddNexusModFileSlow(ns.Game, ns.ModID, id, queryTime);
-                data.NexusFiles.Add((gameId, ns.ModID, id));
-            }
-
-            return fileIds.Contains(ns.FileID) ? ArchiveStatus.Valid : ArchiveStatus.InValid;
-        }
-        
-        private async Task<ArchiveStatus> FastNexusModStats(NexusDownloader.State ns)
-        {
-            
+            // Check if some other thread has added them
             var mod = await _sql.GetNexusModInfoString(ns.Game, ns.ModID);
             var files = await _sql.GetModFiles(ns.Game, ns.ModID);
 
-            try
+            if (mod == null || files == null)
             {
-                if (mod == null)
+                // Aquire the lock
+                using var lck = await _lock.WaitAsync();
+                
+                // Check again
+                mod = await _sql.GetNexusModInfoString(ns.Game, ns.ModID);
+                files = await _sql.GetModFiles(ns.Game, ns.ModID);
+
+                if (mod == null || files == null)
                 {
-                    _nexusClient ??= await NexusApiClient.Get();
-                    _logger.Log(LogLevel.Information, $"Found missing Nexus mod info {ns.Game} {ns.ModID}");
+
+                    NexusApiClient nexusClient = await _nexus.GetClient();
+                    var queryTime = DateTime.UtcNow;
+
                     try
                     {
-                        mod = await _nexusClient.GetModInfo(ns.Game, ns.ModID, false);
-                    }
-                    catch
-                    {
-                        mod = new ModInfo
+                        if (mod == null)
                         {
-                            mod_id = ns.ModID.ToString(), game_id = ns.Game.MetaData().NexusGameId, available = false
-                        };
-                    }
+                            _logger.Log(LogLevel.Information, $"Found missing Nexus mod info {ns.Game} {ns.ModID}");
+                            try
+                            {
+                                mod = await nexusClient.GetModInfo(ns.Game, ns.ModID, false);
+                            }
+                            catch
+                            {
+                                mod = new ModInfo
+                                {
+                                    mod_id = ns.ModID.ToString(),
+                                    game_id = ns.Game.MetaData().NexusGameId,
+                                    available = false
+                                };
+                            }
 
-                    try
-                    {
-                        await _sql.AddNexusModInfo(ns.Game, ns.ModID, mod.updated_time, mod);
-                    }
-                    catch (Exception _)
-                    {
-                        // Could be a PK constraint failure
-                    }
+                            try
+                            {
+                                await _sql.AddNexusModInfo(ns.Game, ns.ModID, queryTime, mod);
+                            }
+                            catch (Exception _)
+                            {
+                                // Could be a PK constraint failure
+                            }
 
+                        }
+
+                        if (files == null)
+                        {
+                            _logger.Log(LogLevel.Information, $"Found missing Nexus mod info {ns.Game} {ns.ModID}");
+                            try
+                            {
+                                files = await nexusClient.GetModFiles(ns.Game, ns.ModID, false);
+                            }
+                            catch
+                            {
+                                files = new NexusApiClient.GetModFilesResponse {files = new List<NexusFileInfo>()};
+                            }
+
+                            try
+                            {
+                                await _sql.AddNexusModFiles(ns.Game, ns.ModID, queryTime, files);
+                            }
+                            catch (Exception _)
+                            {
+                                // Could be a PK constraint failure
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        return ArchiveStatus.InValid;
+                    }
                 }
-
-                if (files == null)
-                {
-                    _logger.Log(LogLevel.Information, $"Found missing Nexus mod info {ns.Game} {ns.ModID}");
-                    try
-                    {
-                        files = await _nexusClient.GetModFiles(ns.Game, ns.ModID, false);
-                    }
-                    catch
-                    {
-                        files = new NexusApiClient.GetModFilesResponse {files = new List<NexusFileInfo>()};
-                    }
-
-                    try
-                    {
-                        await _sql.AddNexusModFiles(ns.Game, ns.ModID, mod.updated_time, files);
-                    }
-                    catch (Exception _)
-                    {
-                        // Could be a PK constraint failure
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                return ArchiveStatus.InValid;
             }
 
             if (mod.available && files.files.Any(f => !string.IsNullOrEmpty(f.category_name) && f.file_id == ns.FileID))

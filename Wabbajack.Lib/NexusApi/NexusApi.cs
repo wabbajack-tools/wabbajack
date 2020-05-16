@@ -157,8 +157,11 @@ namespace Wabbajack.Lib.NexusApi
         {
             var url = "https://api.nexusmods.com/v1/users/validate.json";
             using var response = await HttpClient.GetAsync(url);
-            return (int.Parse(response.Headers.GetValues("X-RL-Daily-Remaining").First()),
+            var result =  (int.Parse(response.Headers.GetValues("X-RL-Daily-Remaining").First()),
                 int.Parse(response.Headers.GetValues("X-RL-Hourly-Remaining").First()));
+            _dailyRemaining = result.Item1;
+            _hourlyRemaining = result.Item2;
+            return result;
         }
 
         #endregion
@@ -177,6 +180,13 @@ namespace Wabbajack.Lib.NexusApi
                     return _dailyRemaining;
                 }
             }
+            protected set
+            {
+                lock (RemainingLock)
+                {
+                    _dailyRemaining = value;
+                }
+            }
         }
 
         private int _hourlyRemaining;
@@ -189,10 +199,18 @@ namespace Wabbajack.Lib.NexusApi
                     return _hourlyRemaining;
                 }
             }
+            protected set
+            {
+                lock (RemainingLock)
+                {
+                    _hourlyRemaining = value;
+                }
+            }
+
         }
 
 
-        private void UpdateRemaining(HttpResponseMessage response)
+        protected virtual async Task UpdateRemaining(HttpResponseMessage response)
         {
             try
             {
@@ -221,7 +239,7 @@ namespace Wabbajack.Lib.NexusApi
 
         #endregion
 
-        private NexusApiClient(string? apiKey = null)
+        protected NexusApiClient(string? apiKey = null)
         {
             ApiKey = apiKey;
 
@@ -250,7 +268,7 @@ namespace Wabbajack.Lib.NexusApi
             try
             {
                 using var response = await HttpClient.GetAsync(url);
-                UpdateRemaining(response);
+                await UpdateRemaining(response);
                 if (!response.IsSuccessStatusCode)
                 {
                     Utils.Log($"Nexus call failed: {response.RequestMessage.RequestUri}");
