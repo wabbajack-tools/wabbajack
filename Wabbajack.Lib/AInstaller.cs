@@ -298,7 +298,7 @@ namespace Wabbajack.Lib
                 .Where(e => e.Extension != Consts.HashFileExtension)
                 .ToList();
             
-            Utils.Log($"Found {toHash} files to hash");
+            Utils.Log($"Found {toHash.Count} files to hash");
             
             var hashResults = await 
                 toHash
