@@ -155,6 +155,7 @@ namespace Wabbajack
                 WorkingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)
             };
             Process.Start(process);
+            ShutdownApplication();
         }
 
         private static bool IsStartingFromModlist(out AbsolutePath modlistPath)

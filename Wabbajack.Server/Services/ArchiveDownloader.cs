@@ -31,8 +31,8 @@ namespace Wabbajack.Server.Services
             while (true)
             {
                 var (daily, hourly) = await _nexusClient.GetRemainingApiCalls();
-                //bool ignoreNexus = hourly < 25;
-                var ignoreNexus = true;
+                bool ignoreNexus = (daily < 100 && hourly < 10);
+                //var ignoreNexus = true;
                 if (ignoreNexus)
                     _logger.LogWarning($"Ignoring Nexus Downloads due to low hourly api limit (Daily: {daily}, Hourly:{hourly})");
                 else
@@ -89,6 +89,7 @@ namespace Wabbajack.Server.Services
                 }
                 catch (Exception ex)
                 {
+                    _logger.Log(LogLevel.Warning, $"Error downloading {nextDownload.Archive.State.PrimaryKeyString}");
                     await nextDownload.Fail(_sql, ex.ToString());
                 }
                 

@@ -98,14 +98,15 @@ namespace Wabbajack.Server.Services
                 // Mod activity could hide files
                 var b = d.mod.LastestModActivity.AsUnixTime();
 
-                return new {Game = d.game.Game, Date = (a > b ? a : b), ModId = d.mod.ModId};
+                return new {Game = d.game.Game, Date = (a > b) ? a : b, ModId = d.mod.ModId};
             });
                     
             var purged = await collected.PMap(queue, async t =>
             {
-                var resultA = await _sql.DeleteNexusModInfosUpdatedBeforeDate(t.Game, t.ModId, t.Date);
-                var resultB = await _sql.DeleteNexusModFilesUpdatedBeforeDate(t.Game, t.ModId, t.Date);
-                return resultA + resultB;
+                long purgeCount = 0;
+                purgeCount += await _sql.DeleteNexusModInfosUpdatedBeforeDate(t.Game, t.ModId, t.Date);
+                purgeCount += await _sql.DeleteNexusModFilesUpdatedBeforeDate(t.Game, t.ModId, t.Date);
+                return purgeCount;
             });
 
             _logger.Log(LogLevel.Information, $"Purged {purged.Sum()} cache entries");

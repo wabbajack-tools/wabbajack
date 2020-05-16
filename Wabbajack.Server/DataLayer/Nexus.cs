@@ -30,11 +30,6 @@ namespace Wabbajack.Server.DataLayer
                 @"DELETE FROM dbo.NexusModFiles WHERE Game = @Game AND ModID = @ModId AND LastChecked < @Date
                       SELECT @@ROWCOUNT AS Deleted",
                 new {Game = game.MetaData().NexusGameId, ModId = modId, Date = date});
-            
-            deleted += await conn.ExecuteScalarAsync<long>(
-                @"DELETE FROM dbo.NexusModFilesSlow WHERE GameId = @Game AND ModID = @ModId AND LastChecked < @Date
-                      SELECT @@ROWCOUNT AS Deleted",
-                new {Game = game.MetaData().NexusGameId, ModId = modId, Date = date});
             return deleted;
         }
         
