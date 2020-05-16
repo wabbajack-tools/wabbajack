@@ -60,7 +60,7 @@ namespace Wabbajack.BuildServer.Test
         }
 
         [Fact]
-        public async Task CanQueryAndFindNexusModfilesSlow()
+        public async Task CanQueryAndFindNexusModfilesFast()
         {
             var startTime = DateTime.UtcNow;
             var sql = Fixture.GetService<SqlService>();
@@ -68,8 +68,7 @@ namespace Wabbajack.BuildServer.Test
             await sql.DeleteNexusModFilesUpdatedBeforeDate(Game.SkyrimSpecialEdition, 1137, DateTime.UtcNow);
             await sql.DeleteNexusModInfosUpdatedBeforeDate(Game.SkyrimSpecialEdition, 1137, DateTime.UtcNow);
 
-            var result = await validator.SlowNexusModStats(new ValidationData(),
-                new NexusDownloader.State {Game = Game.SkyrimSpecialEdition, ModID = 1137, FileID = 121449});
+            var result = await validator.FastNexusModStats(new NexusDownloader.State {Game = Game.SkyrimSpecialEdition, ModID = 1137, FileID = 121449});
             Assert.Equal(ArchiveStatus.Valid, result);
 
             var gameId = Game.SkyrimSpecialEdition.MetaData().NexusGameId;
@@ -119,6 +118,13 @@ namespace Wabbajack.BuildServer.Test
             Assert.Equal(b, new Box{Value = b}.ToJson().FromJsonString<Box>().Value);
             Assert.NotEqual(a.Hour, b.Hour);
             Assert.Equal(b.Hour, new Box{Value = a}.ToJson().FromJsonString<Box>().Value.Hour);
+            
+            
+            var ts = (long)1589528640;
+            var ds = DateTime.Parse("2020-05-15 07:44:00.000");
+            Assert.Equal(ds, ts.AsUnixTime());
+            Assert.Equal(ts, (long)ds.AsUnixTime());
+            Assert.Equal(ts, (long)ts.AsUnixTime().AsUnixTime());
 
         }
     }

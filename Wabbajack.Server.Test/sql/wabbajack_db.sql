@@ -551,6 +551,24 @@ CONSTRAINT [PK_NexusModFilesSlow] PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
+/****** Object:  Table [dbo].[NexusKeys]    Script Date: 5/15/2020 5:20:02 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[NexusKeys](
+                                  [ApiKey] [nvarchar](162) NOT NULL,
+                                  [DailyRemain] [int] NOT NULL,
+                                  [HourlyRemain] [int] NOT NULL,
+                                  CONSTRAINT [PK_NexusKeys] PRIMARY KEY CLUSTERED
+                                      (
+                                       [ApiKey] ASC
+                                          )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
 /****** Object:  StoredProcedure [dbo].[MergeAllFilesInArchive]    Script Date: 3/28/2020 4:58:59 PM ******/
 SET ANSI_NULLS ON
 GO

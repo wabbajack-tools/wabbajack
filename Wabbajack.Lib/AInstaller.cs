@@ -292,11 +292,18 @@ namespace Wabbajack.Lib
 
         public async Task HashArchives()
         {
-            var hashResults = await 
-                DownloadFolder.EnumerateFiles()
+            Utils.Log("Looking for files to hash");
+            var toHash = DownloadFolder.EnumerateFiles()
                 .Concat(Game.GameLocation().EnumerateFiles())
                 .Where(e => e.Extension != Consts.HashFileExtension)
-                .PMap(Queue, async e => (await e.FileHashCachedAsync(), e));
+                .ToList();
+            
+            Utils.Log($"Found {toHash} files to hash");
+            
+            var hashResults = await 
+                toHash
+                .PMap(Queue, async e => (await e.FileHashCachedAsync(), e)); 
+            
             HashedArchives.SetTo(hashResults
                 .OrderByDescending(e => e.Item2.LastModified)
                 .GroupBy(e => e.Item1)

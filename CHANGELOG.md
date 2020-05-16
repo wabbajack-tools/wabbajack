@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.0.5.1 - 5/16/2020
+* Close automatically Wabbajack when opening the CLI, resolves the "RocksDB is in use" errors
+
 #### Version - 2.0.5.0 - 5/14/2020
 * Make the CDN downloads multi-threaded
 * Optimize installation of included files 

@@ -52,7 +52,7 @@ namespace Wabbajack.BuildServer.Controllers
             string method = "CACHED";
             if (result == null)
             {
-                var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
+                var api = await GetClient();
                 result = await api.GetModInfo(game, ModId, false);
                 await _sql.AddNexusModInfo(game, ModId, result.updated_time, result);
 
@@ -67,6 +67,21 @@ namespace Wabbajack.BuildServer.Controllers
 
             Response.Headers.Add("x-cache-result", method);
             return result;
+        }
+
+        private async Task<NexusApiClient> GetClient()
+        {
+            var key = Request.Headers["apikey"].FirstOrDefault();
+            if (key == null)
+                return await NexusApiClient.Get(null);
+
+            if (await _sql.HaveKey(key))
+                return await NexusApiClient.Get(key);
+
+            var client = await NexusApiClient.Get(key);
+            var (daily, hourly) = await client.GetRemainingApiCalls();
+            await _sql.SetNexusAPIKey(key, daily, hourly);
+            return client;
         }
 
         [HttpGet]
