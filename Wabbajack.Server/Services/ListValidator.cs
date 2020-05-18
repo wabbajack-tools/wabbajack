@@ -42,9 +42,13 @@ namespace Wabbajack.Server.Services
             var data = await _sql.GetValidationData();
 
             using var queue = new WorkQueue();
+            var oldSummaries = Summaries;
 
             var results = await data.ModLists.PMap(queue, async list =>
             {
+                var oldSummary =
+                    oldSummaries.FirstOrDefault(s => s.Summary.MachineURL == list.Metadata.Links.MachineURL);
+                
                 var (metadata, modList) = list;
                 var archives = await modList.Archives.PMap(queue, async archive =>
                 {
@@ -80,6 +84,45 @@ namespace Wabbajack.Server.Services
                     }).ToList()
                 };
 
+                if (oldSummary != default && oldSummary.Summary.Failed != summary.Failed)
+                {
+                    _logger.Log(LogLevel.Information, $"Number of failures {oldSummary.Summary.Failed} -> {summary.Failed}");
+
+                    if (summary.HasFailures)
+                    {
+                        await _discord.Send(Channel.Ham,
+                            new DiscordMessage
+                            {
+                                Embeds = new[]
+                                {
+                                    new DiscordEmbed
+                                    {
+                                        Description =
+                                            $"Number of failures in {summary.Name} (`{summary.MachineURL}`) was {oldSummary.Summary.Failed} is now {summary.Failed}",
+                                        Url = new Uri(
+                                            $"https://build.wabbajack.org/lists/status/{summary.MachineURL}.html")
+                                    }
+                                }
+                            });
+                    }
+                    
+                    if (!summary.HasFailures)
+                    {
+                        await _discord.Send(Channel.Ham,
+                            new DiscordMessage
+                            {
+                                Embeds = new[]
+                                {
+                                    new DiscordEmbed
+                                    {
+                                        Description = $"{summary.Name} (`{summary.MachineURL}`) is now passing.",
+                                    }
+                                }
+                            });
+                    }
+
+                }
+                
                 return (summary, detailed);
             });
             Summaries = results;
