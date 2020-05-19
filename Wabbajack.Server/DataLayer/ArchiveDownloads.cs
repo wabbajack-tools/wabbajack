@@ -37,6 +37,26 @@ namespace Wabbajack.Server.DataLayer
             return (await conn.QueryAsync<(Hash, string)>("SELECT Hash, PrimaryKeyString FROM ArchiveDownloads")).ToHashSet();
         }
 
+        
+        public async Task<ArchiveDownload> GetArchiveDownload(Guid id)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, bool?, AbstractDownloadState, DateTime?)>(
+                "SELECT Id, Size, Hash, IsFailed, DownloadState, DownloadFinished FROM dbo.ArchiveDownloads WHERE Id = @id",
+                new {Id = id});
+            if (result == default)
+                return null;
+
+            return new ArchiveDownload
+            {
+                Id = result.Item1,
+                IsFailed = result.Item4,
+                DownloadFinished = result.Item6,
+                Archive = new Archive(result.Item5) {Size = result.Item2 ?? 0, Hash = result.Item3 ?? default}
+            };
+
+        }
+
         public async Task<ArchiveDownload> GetNextPendingDownload(bool ignoreNexus = false)
         {
             await using var conn = await Open();

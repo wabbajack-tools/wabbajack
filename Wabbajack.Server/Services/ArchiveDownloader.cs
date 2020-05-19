@@ -67,6 +67,7 @@ namespace Wabbajack.Server.Services
                     
                     if (nextDownload.Archive.Hash != default && hash != nextDownload.Archive.Hash)
                     {
+                        _logger.Log(LogLevel.Warning, $"Downloaded archive hashes don't match for {nextDownload.Archive.State.PrimaryKeyString} {nextDownload.Archive.Hash} {nextDownload.Archive.Size} vs {hash} {tempPath.Path.Size}");
                         await nextDownload.Fail(_sql, "Invalid Hash");
                         continue;
                     }
