@@ -73,8 +73,60 @@ namespace Wabbajack.Server.Test
             await Assert.ThrowsAsync<HttpException>(async () => await ClientAPI.GetModUpgrade(oldArchive, newArchive, TimeSpan.Zero, TimeSpan.Zero));
             Assert.Equal(1, await patcher.Execute());
 
-            Assert.Equal(new Uri("https://wabbajacktest.b-cdn.net/archive_upgrades/79223277e28e1b7b_3286c571d95f5666"),await ClientAPI.GetModUpgrade(oldArchive, newArchive, TimeSpan.Zero, TimeSpan.Zero));
+            Assert.Equal(new Uri("https://wabbajacktest.b-cdn.net/archive_updates/79223277e28e1b7b_3286c571d95f5666"),await ClientAPI.GetModUpgrade(oldArchive, newArchive, TimeSpan.Zero, TimeSpan.Zero));
+        }
 
+                [Fact]
+        public async Task TestEndToEndArchiveUpdating()
+        {
+            var modLists = await MakeModList();
+            Consts.ModlistMetadataURL = modLists.ToString();
+            
+            
+            var downloader = Fixture.GetService<ArchiveDownloader>();
+            var archiver = Fixture.GetService<ArchiveMaintainer>();
+            var patcher = Fixture.GetService<PatchBuilder>();
+            
+            var sql = Fixture.GetService<SqlService>();
+            var oldFileData = Encoding.UTF8.GetBytes("Cheese for Everyone!");
+            var newFileData = Encoding.UTF8.GetBytes("Forks for Everyone!");
+            var oldDataHash = oldFileData.xxHash();
+            var newDataHash = newFileData.xxHash();
+            
+            await "upgrading_file.txt".RelativeTo(Fixture.ServerPublicFolder).WriteAllBytesAsync(oldFileData);
+            
+            var oldArchive = new Archive(new HTTPDownloader.State(MakeURL("upgrading_file.txt")))
+            {
+                Size = oldFileData.Length,
+                Hash = oldDataHash
+            };
+
+            await IngestData(archiver, oldFileData);
+            await sql.EnqueueDownload(oldArchive);
+            var oldDownload = await sql.GetNextPendingDownload();
+            await oldDownload.Finish(sql);
+            
+            
+            // Now update the file
+            await "upgrading_file.txt".RelativeTo(Fixture.ServerPublicFolder).WriteAllBytesAsync(newFileData);
+
+
+            using var tempFile = new TempFile();
+            var pendingRequest = DownloadDispatcher.DownloadWithPossibleUpgrade(oldArchive, tempFile.Path);
+
+            for (var times = 0; await downloader.Execute() == 0 && times < 40; times ++)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(200));
+            }
+
+            
+            for (var times = 0; await patcher.Execute() == 0 && times < 40; times ++)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(200));
+            }
+
+            Assert.True(await pendingRequest);
+            Assert.Equal(oldDataHash, await tempFile.Path.FileHashAsync());
         }
 
         private async Task IngestData(ArchiveMaintainer am, byte[] data)

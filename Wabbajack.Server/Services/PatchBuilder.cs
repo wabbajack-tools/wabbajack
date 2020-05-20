@@ -50,7 +50,7 @@ namespace Wabbajack.Server.Services
                     _maintainer.TryGetPath(patch.Src.Archive.Hash, out var srcPath);
                     _maintainer.TryGetPath(patch.Dest.Archive.Hash, out var destPath);
 
-                    var patchName = $"archive_updates\\{patch.Src.Archive.Hash}_{patch.Dest.Archive.Hash}";
+                    var patchName = $"{Consts.ArchiveUpdatesCDNFolder}\\{patch.Src.Archive.Hash.ToHex()}_{patch.Dest.Archive.Hash.ToHex()}";
 
                     using var sigFile = new TempFile();
                     await using var srcStream = srcPath.OpenShared();
@@ -58,8 +58,8 @@ namespace Wabbajack.Server.Services
                     await using var sigStream = sigFile.Path.Create();
                     using var ftpClient = await GetBunnyCdnFtpClient();
 
-                    if (!await ftpClient.DirectoryExistsAsync("archive_updates")) 
-                        await ftpClient.CreateDirectoryAsync("archive_updates");
+                    if (!await ftpClient.DirectoryExistsAsync(Consts.ArchiveUpdatesCDNFolder)) 
+                        await ftpClient.CreateDirectoryAsync(Consts.ArchiveUpdatesCDNFolder);
 
                     
                     await using var patchOutput = await ftpClient.OpenWriteAsync(patchName);

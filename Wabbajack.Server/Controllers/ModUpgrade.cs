@@ -44,7 +44,7 @@ namespace Wabbajack.BuildServer.Controllers
                 {
                     return
                         Ok(
-                            $"https://{_settings.BunnyCDN_StorageZone}.b-cdn.net/archive_upgrades/{request.OldArchive.Hash.ToHex()}_{request.NewArchive.Hash.ToHex()}");
+                            $"https://{_settings.BunnyCDN_StorageZone}.b-cdn.net/{Consts.ArchiveUpdatesCDNFolder}/{request.OldArchive.Hash.ToHex()}_{request.NewArchive.Hash.ToHex()}");
                 }
 
                 return NotFound("Patch creation failed");

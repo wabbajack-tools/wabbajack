@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using AngleSharp.Css;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
@@ -46,7 +47,7 @@ namespace Wabbajack.Lib.Downloaders
         }
 
         [JsonName("HttpDownloader")]
-        public class State : AbstractDownloadState
+        public class State : AbstractDownloadState, IUpgradingState
         {
             public string Url { get; }
 
@@ -209,6 +210,28 @@ TOP:
                 else
                     return new [] {"[General]", $"directURL={Url}"};
 
+            }
+
+            public async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
+            {
+                var tmpFile = new TempFile();
+                
+                var newArchive = new Archive(this) {Name = a.Name};
+                
+                if (!await Download(newArchive, tmpFile.Path))
+                    return default;
+
+                newArchive.Hash = await tmpFile.Path.FileHashAsync();
+                newArchive.Size = tmpFile.Path.Size;
+
+                return (newArchive, tmpFile);
+
+            }
+
+            public bool ValidateUpgrade(AbstractDownloadState newArchiveState)
+            {
+                var httpState = (State)newArchiveState;
+                return httpState.Url == Url;
             }
         }
     }

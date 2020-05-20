@@ -144,6 +144,8 @@ namespace Wabbajack.Common
         public static Uri WabbajackOrg = new Uri("https://www.wabbajack.org/");
         
         public static long UPLOADED_FILE_BLOCK_SIZE = (long)1024 * 1024 * 2;
+        
+        public static string ArchiveUpdatesCDNFolder = "archive_updates";
 
     }
 }

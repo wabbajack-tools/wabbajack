@@ -340,7 +340,7 @@ namespace Wabbajack.Common
         public async Task WriteAllAsync(Stream data, bool disposeAfter = true)
         {
             await using var fs = Create();
-            await fs.CopyToAsync(data);
+            await data.CopyToAsync(fs);
             if (disposeAfter) await data.DisposeAsync();
         }
 
