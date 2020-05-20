@@ -189,17 +189,17 @@ namespace Wabbajack.BuildServer.Test
             
         }
         
-        protected async Task<Uri> MakeModList()
+        protected async Task<Uri> MakeModList(string modFileName)
         {
             var archive_data = Encoding.UTF8.GetBytes("Cheese for Everyone!");
-            var test_archive_path = "test_archive.txt".RelativeTo(Fixture.ServerPublicFolder);
+            var test_archive_path = modFileName.RelativeTo(Fixture.ServerPublicFolder);
             await test_archive_path.WriteAllBytesAsync(archive_data);
 
 
 
             ModListData = new ModList();
             ModListData.Archives.Add(
-                new Archive(new HTTPDownloader.State(MakeURL("test_archive.txt")))
+                new Archive(new HTTPDownloader.State(MakeURL(modFileName.ToString())))
                 {
                     Hash = await test_archive_path.FileHashAsync(),
                     Name = "test_archive",

@@ -25,7 +25,7 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanLoadMetadataFromTestServer()
         {
-            var modlist = await MakeModList();
+            var modlist = await MakeModList("CanLoadMetadataFromTestServer.txt");
             Consts.ModlistMetadataURL = modlist.ToString();
             var data = await ModlistMetadata.LoadFromGithub();
             Assert.Equal(2, data.Count);
@@ -35,11 +35,11 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanIngestModLists()
         {
-            var modlist = await MakeModList();
+            var modlist = await MakeModList("CanIngestModLists.txt");
             Consts.ModlistMetadataURL = modlist.ToString();
             var sql = Fixture.GetService<SqlService>();
             var downloader = Fixture.GetService<ModListDownloader>();
-            Assert.Equal(2, await downloader.CheckForNewLists());
+            await downloader.CheckForNewLists();
 
             foreach (var list in ModListMetaData)
             {
@@ -54,7 +54,7 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanValidateModLists()
         {
-            var modlists = await MakeModList();
+            var modlists = await MakeModList("can_validate_file.txt");
             Consts.ModlistMetadataURL = modlists.ToString();
             Utils.Log("Updating modlists");
             await RevalidateLists(true);
@@ -68,7 +68,7 @@ namespace Wabbajack.BuildServer.Test
             await CheckListFeeds(0, 1);
 
             Utils.Log("Break List");
-            var archive = "test_archive.txt".RelativeTo(Fixture.ServerPublicFolder);
+            var archive = "can_validate_file.txt".RelativeTo(Fixture.ServerPublicFolder);
             await archive.MoveToAsync(archive.WithExtension(new Extension(".moved")), true);
 
             // We can revalidate but the non-nexus archives won't be checked yet since the list didn't change
@@ -106,7 +106,7 @@ namespace Wabbajack.BuildServer.Test
                 [Fact]
         public async Task CanHealLists()
         {
-            var modlists = await MakeModList();
+            var modlists = await MakeModList("CanHealLists.txt");
             Consts.ModlistMetadataURL = modlists.ToString();
             Utils.Log("Updating modlists");
             await RevalidateLists(true);
@@ -120,7 +120,7 @@ namespace Wabbajack.BuildServer.Test
             await CheckListFeeds(0, 1);
 
             Utils.Log("Break List by changing the file");
-            var archive = "test_archive.txt".RelativeTo(Fixture.ServerPublicFolder);
+            var archive = "CanHealLists.txt".RelativeTo(Fixture.ServerPublicFolder);
             await archive.WriteAllTextAsync("broken");
 
             // We can revalidate but the non-nexus archives won't be checked yet since the list didn't change

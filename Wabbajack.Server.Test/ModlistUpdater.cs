@@ -32,7 +32,7 @@ namespace Wabbajack.Server.Test
         {
             var validator = Fixture.GetService<ListValidator>();
             var nonNexus = Fixture.GetService<NonNexusDownloadValidator>();
-            var modLists = await MakeModList();
+            var modLists = await MakeModList("CanIndexAndUpdateFiles.txt");
             Consts.ModlistMetadataURL = modLists.ToString();
             
             
@@ -79,7 +79,7 @@ namespace Wabbajack.Server.Test
         [Fact]
         public async Task TestEndToEndArchiveUpdating()
         {
-            var modLists = await MakeModList();
+            var modLists = await MakeModList("TestEndToEndArchiveUpdating.txt");
             Consts.ModlistMetadataURL = modLists.ToString();
             
             
