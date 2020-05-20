@@ -206,7 +206,7 @@ namespace Wabbajack.Server.Services
                         return isValid ? (archive, ArchiveStatus.Valid) : (archive, ArchiveStatus.InValid);
                     }
 
-                    return (archive, ArchiveStatus.InValid);
+                    return (archive, ArchiveStatus.Valid);
                 }
             }
         }

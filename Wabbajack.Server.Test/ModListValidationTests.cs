@@ -103,6 +103,58 @@ namespace Wabbajack.BuildServer.Test
 
         }
         
+                [Fact]
+        public async Task CanHealLists()
+        {
+            var modlists = await MakeModList();
+            Consts.ModlistMetadataURL = modlists.ToString();
+            Utils.Log("Updating modlists");
+            await RevalidateLists(true);
+            
+            Utils.Log("Checking validated results");
+            var data = (await ModlistMetadata.LoadFromGithub()).FirstOrDefault(l => l.Links.MachineURL == "test_list");
+            Assert.NotNull(data);
+            Assert.Equal(0, data.ValidationSummary.Failed);
+            Assert.Equal(1, data.ValidationSummary.Passed);
+            
+            await CheckListFeeds(0, 1);
+
+            Utils.Log("Break List by changing the file");
+            var archive = "test_archive.txt".RelativeTo(Fixture.ServerPublicFolder);
+            await archive.WriteAllTextAsync("broken");
+
+            // We can revalidate but the non-nexus archives won't be checked yet since the list didn't change
+            await RevalidateLists(false);
+            
+            data = (await ModlistMetadata.LoadFromGithub()).FirstOrDefault(l => l.Links.MachineURL == "test_list");
+            Assert.NotNull(data);
+            Assert.Equal(0, data.ValidationSummary.Failed);
+            Assert.Equal(1, data.ValidationSummary.Passed);
+
+            // Run the non-nexus validator
+            await RevalidateLists(true);
+
+            data = (await ModlistMetadata.LoadFromGithub()).FirstOrDefault(l => l.Links.MachineURL == "test_list");
+            Assert.NotNull(data);
+            Assert.Equal(0, data.ValidationSummary.Failed);
+            Assert.Equal(0, data.ValidationSummary.Passed);
+            Assert.Equal(1, data.ValidationSummary.Updating);
+
+            var patcher = Fixture.GetService<PatchBuilder>();
+            Assert.Equal(1, await patcher.Execute());
+
+            await RevalidateLists(false);
+            
+            data = (await ModlistMetadata.LoadFromGithub()).FirstOrDefault(l => l.Links.MachineURL == "test_list");
+            Assert.NotNull(data);
+            Assert.Equal(0, data.ValidationSummary.Failed);
+            Assert.Equal(1, data.ValidationSummary.Passed);
+            Assert.Equal(0, data.ValidationSummary.Updating);
+            
+
+
+        }
+        
         private async Task RevalidateLists(bool runNonNexus)
         {
             
@@ -117,6 +169,9 @@ namespace Wabbajack.BuildServer.Test
 
             var validator = Fixture.GetService<ListValidator>();
             await validator.Execute();
+
+            var archiver = Fixture.GetService<ArchiveDownloader>();
+            await archiver.Execute();
         }
 
         private async Task CheckListFeeds(int failed, int passed)
