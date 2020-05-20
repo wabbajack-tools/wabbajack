@@ -28,38 +28,98 @@ namespace Wabbajack.Server.DataLayer
         public async Task FinializePatch(Patch patch)
         {
             await using var conn = await Open();
-            await conn.ExecuteAsync("UPDATE dbo.Patches SET PatchSize = @Size, PatchHash = @PatchHash, Finished = @Finished WHERE SrcId = @SrcId AND DestID = @DestId",
+            await conn.ExecuteAsync("UPDATE dbo.Patches SET PatchSize = @PatchSize, Finished = @Finished, IsFailed = @IsFailed, FailMessage = @FailMessage WHERE SrcId = @SrcId AND DestID = @DestId",
                 new
                 {
                     SrcId = patch.Src.Id, 
                     DestId = patch.Dest.Id,
-                    PatchHash = patch.PatchHash,
                     PatchSize = patch.PatchSize,
-                    Finshed = patch.Finished
+                    Finished = patch.Finished,
+                    IsFailed = patch.IsFailed,
+                    FailMessage = patch.FailMessage
                 });
         }
 
         public async Task<Patch> FindPatch(Guid src, Guid dest)
         {
             await using var conn = await Open();
-            var patch = await conn.QueryFirstOrDefaultAsync<(Hash, long, DateTime?)>(
-                "SELECT PatchHash, PatchSize, Finished FROM dbo.Patches WHERE SrcId = @SrcId AND DestId = @DestId",
+            var patch = await conn.QueryFirstOrDefaultAsync<(long, DateTime?, bool?, string)>(
+                @"SELECT p.PatchHash, p.PatchSize, p.Finished, p.IsFailed, p.FailMessage 
+                      FROM dbo.Patches p
+                      LEFT JOIN dbo.ArchiveDownloads src ON p.SrcId = src.Id
+                      LEFT JOIN dbo.ArchiveDownloads dest ON p.SrcId = dest.Id
+                      WHERE SrcId = @SrcId 
+                        AND DestId = @DestId
+                        AND src.DownloadFinished IS NOT NULL
+                        AND dest.DownloadFinished IS NOT NULL",
                 new
                 {
                     SrcId = src,
                     DestId = dest
                 });
             if (patch == default)
-                return default(Patch);
+                return default;
 
             return new Patch {
                 Src = await GetArchiveDownload(src), 
                 Dest = await GetArchiveDownload(dest),
-                PatchHash = patch.Item1,
-                PatchSize = patch.Item2,
-                Finished = patch.Item3
+                PatchSize = patch.Item1,
+                Finished = patch.Item2,
+                IsFailed = patch.Item3,
+                FailMessage = patch.Item4
             };
+        }
+        
+        public async Task<Patch> FindOrEnqueuePatch(Guid src, Guid dest)
+        {
+            await using var conn = await Open();
+            var trans = await conn.BeginTransactionAsync();
+            var patch = await conn.QueryFirstOrDefaultAsync<(long, DateTime?, bool, string)>(
+                "SELECT PatchSize, Finished, IsFailed, FailMessage FROM dbo.Patches WHERE SrcId = @SrcId AND DestId = @DestId",
+                new
+                {
+                    SrcId = src,
+                    DestId = dest
+                }, trans);
+            if (patch == default)
+            {
+                await conn.ExecuteAsync("INSERT INTO dbo.Patches (SrcId, DestId) VALUES (@SrcId, @DestId)",
+                    new {SrcId = src, DestId = dest}, trans);
+                await trans.CommitAsync();
+                return new Patch {Src = await GetArchiveDownload(src), Dest = await GetArchiveDownload(dest),};
+            }
+            else
+            {
+                await trans.CommitAsync();
+                return new Patch {
+                    Src = await GetArchiveDownload(src), 
+                    Dest = await GetArchiveDownload(dest),
+                    PatchSize = patch.Item1,
+                    Finished = patch.Item2,
+                    IsFailed = patch.Item3,
+                    FailMessage = patch.Item4
+                };
+                
+            }
 
+        }
+
+        public async Task<Patch> GetPendingPatch()
+        {
+            await using var conn = await Open();
+            var patch = await conn.QueryFirstOrDefaultAsync<(Guid, Guid, long, DateTime?, bool?, string)>(
+                "SELECT SrcId, DestId, PatchSize, Finished, IsFailed, FailMessage FROM dbo.Patches WHERE Finished is NULL");
+            if (patch == default)
+                return default(Patch);
+
+            return new Patch {
+                Src = await GetArchiveDownload(patch.Item1), 
+                Dest = await GetArchiveDownload(patch.Item2),
+                PatchSize = patch.Item3,
+                Finished = patch.Item4,
+                IsFailed = patch.Item5,
+                FailMessage = patch.Item6
+            };
         }
     }
 }

@@ -65,6 +65,7 @@ namespace Wabbajack.Server
             services.AddSingleton<ArchiveDownloader>();
             services.AddSingleton<DiscordWebHook>();
             services.AddSingleton<NexusKeyMaintainance>();
+            services.AddSingleton<PatchBuilder>();
             
             services.AddMvc();
             services.AddControllers()
@@ -116,6 +117,7 @@ namespace Wabbajack.Server
             app.UseService<ArchiveDownloader>();
             app.UseService<DiscordWebHook>();
             app.UseService<NexusKeyMaintainance>();
+            app.UseService<PatchBuilder>();
 
             app.Use(next =>
             {

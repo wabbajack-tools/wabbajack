@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 
 namespace Wabbajack.Lib.Exceptions
 {
@@ -11,6 +12,13 @@ namespace Wabbajack.Lib.Exceptions
         {
             Code = code;
             Reason = reason;
+        }
+
+        public HttpException(HttpResponseMessage response) : base(
+            $"Http Error {response.StatusCode} - {response.ReasonPhrase}")
+        {
+            Code = (int)response.StatusCode;
+            Reason = response.ReasonPhrase;
         }
     }
 }

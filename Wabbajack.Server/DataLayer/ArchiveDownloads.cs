@@ -56,6 +56,73 @@ namespace Wabbajack.Server.DataLayer
             };
 
         }
+        
+        public async Task<ArchiveDownload> GetArchiveDownload(string primaryKeyString, Hash hash, long size)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, bool?, AbstractDownloadState, DateTime?)>(
+                "SELECT Id, Size, Hash, IsFailed, DownloadState, DownloadFinished FROM dbo.ArchiveDownloads WHERE PrimaryKeyString = @PrimaryKeyString AND Hash = @Hash AND Size = @Size",
+                new
+                {
+                    PrimaryKeyString = primaryKeyString,
+                    Hash = hash,
+                    Size = size
+                });
+            if (result == default)
+                return null;
+
+            return new ArchiveDownload
+            {
+                Id = result.Item1,
+                IsFailed = result.Item4,
+                DownloadFinished = result.Item6,
+                Archive = new Archive(result.Item5) {Size = result.Item2 ?? 0, Hash = result.Item3 ?? default}
+            };
+
+        }
+
+        
+        public async Task<ArchiveDownload> GetOrEnqueueArchive(Archive a)
+        {
+            await using var conn = await Open();
+            using var trans = await conn.BeginTransactionAsync();
+            var result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, bool?, AbstractDownloadState, DateTime?)>(
+                "SELECT Id, Size, Hash, IsFailed, DownloadState, DownloadFinished FROM dbo.ArchiveDownloads WHERE PrimaryKeyString = @PrimaryKeyString AND Hash = @Hash AND Size = @Size",
+                new
+                {
+                    PrimaryKeyString = a.State.PrimaryKeyString,
+                    Hash = a.Hash,
+                    Size = a.Size
+                }, trans);
+            if (result != default)
+            {
+                return new ArchiveDownload
+                {
+                    Id = result.Item1,
+                    IsFailed = result.Item4,
+                    DownloadFinished = result.Item6,
+                    Archive = new Archive(result.Item5) {Size = result.Item2 ?? 0, Hash = result.Item3 ?? default}
+                };
+            }
+
+            var id = Guid.NewGuid();
+            await conn.ExecuteAsync(
+                "INSERT INTO ArchiveDownloads (Id, PrimaryKeyString, Size, Hash, DownloadState, Downloader) VALUES (@Id, @PrimaryKeyString, @Size, @Hash, @DownloadState, @Downloader)",
+                new
+                {
+                    Id = id,
+                    PrimaryKeyString = a.State.PrimaryKeyString,
+                    Size = a.Size == 0 ? null : (long?)a.Size,
+                    Hash = a.Hash == default ? null : (Hash?)a.Hash,
+                    DownloadState = a.State,
+                    Downloader = AbstractDownloadState.TypeToName[a.State.GetType()]
+                }, trans);
+
+            await trans.CommitAsync();
+
+            return new ArchiveDownload {Id = id, Archive = a,};
+
+        }
 
         public async Task<ArchiveDownload> GetNextPendingDownload(bool ignoreNexus = false)
         {

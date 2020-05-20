@@ -551,6 +551,39 @@ CONSTRAINT [PK_NexusModFilesSlow] PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
+/****** Object:  Table [dbo].[Patches]    Script Date: 5/18/2020 6:26:07 AM ******/
+
+CREATE TABLE [dbo].[Patches](
+[SrcId] [uniqueidentifier] NOT NULL,
+[DestId] [uniqueidentifier] NOT NULL,
+[PatchSize] [bigint] NULL,
+[Finished] [datetime] NULL,
+[IsFailed] [tinyint] NULL,
+[FailMessage] [varchar](MAX) NULL,
+CONSTRAINT [PK_Patches] PRIMARY KEY CLUSTERED
+    (
+     [SrcId] ASC,
+     [DestId] ASC
+        )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Patches]  WITH CHECK ADD  CONSTRAINT [FK_DestId] FOREIGN KEY([DestId])
+    REFERENCES [dbo].[ArchiveDownloads] ([Id])
+GO
+
+ALTER TABLE [dbo].[Patches] CHECK CONSTRAINT [FK_DestId]
+GO
+
+ALTER TABLE [dbo].[Patches]  WITH CHECK ADD  CONSTRAINT [FK_SrcId] FOREIGN KEY([SrcId])
+    REFERENCES [dbo].[ArchiveDownloads] ([Id])
+GO
+
+ALTER TABLE [dbo].[Patches] CHECK CONSTRAINT [FK_SrcId]
+GO
+
+
+
 /****** Object:  Table [dbo].[NexusKeys]    Script Date: 5/15/2020 5:20:02 PM ******/
 SET ANSI_NULLS ON
 GO

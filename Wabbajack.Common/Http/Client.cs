@@ -19,11 +19,17 @@ namespace Wabbajack.Common.Http
             return await SendAsync(request, responseHeadersRead, errorsAsExceptions: errorsAsExceptions);
         }
         
+        public async Task<HttpResponseMessage> GetAsync(Uri url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            return await SendAsync(request, responseHeadersRead, errorsAsExceptions: errorsAsExceptions);
+        }
         
-        public async Task<HttpResponseMessage> PostAsync(string url, HttpContent content, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
+        
+        public async Task<HttpResponseMessage> PostAsync(string url, HttpContent content, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, url) {Content = content};
-            return await SendAsync(request, responseHeadersRead);
+            return await SendAsync(request, responseHeadersRead, errorsAsExceptions);
         }
         
         public async Task<HttpResponseMessage> PutAsync(string url, HttpContent content, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead)
@@ -79,7 +85,6 @@ namespace Wabbajack.Common.Http
                 if (errorsAsExceptions)
                     throw new HttpRequestException(
                         $"Http Exception {response.StatusCode} - {response.ReasonPhrase} - {msg.RequestUri}");
-                ;
                 return response;
             }
             catch (Exception ex)
