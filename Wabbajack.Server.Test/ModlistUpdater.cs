@@ -76,7 +76,7 @@ namespace Wabbajack.Server.Test
             Assert.Equal(new Uri("https://wabbajacktest.b-cdn.net/archive_updates/79223277e28e1b7b_3286c571d95f5666"),await ClientAPI.GetModUpgrade(oldArchive, newArchive, TimeSpan.Zero, TimeSpan.Zero));
         }
 
-                [Fact]
+        [Fact]
         public async Task TestEndToEndArchiveUpdating()
         {
             var modLists = await MakeModList();

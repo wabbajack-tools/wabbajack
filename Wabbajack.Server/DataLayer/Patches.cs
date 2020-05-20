@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using Wabbajack.Common;
+using Wabbajack.Lib;
 using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.Server.DataLayer
@@ -120,6 +123,27 @@ namespace Wabbajack.Server.DataLayer
                 IsFailed = patch.Item5,
                 FailMessage = patch.Item6
             };
+        }
+
+        public async Task<List<Patch>> PatchesForSource(Guid sourceDownload)
+        {
+            await using var conn = await Open();
+            var patches = await conn.QueryAsync<(Guid, Guid, long, DateTime?, bool?, string)>(
+                "SELECT SrcId, DestId, PatchSize, Finished, IsFailed, FailMessage FROM dbo.Patches WHERE SrcId = @SrcId", new {SrcId = sourceDownload});
+
+            List<Patch> results = new List<Patch>();
+            foreach (var (srcId, destId, patchSize, finished, isFinished, failMessage) in patches)
+            {
+                results.Add( new Patch {
+                    Src = await GetArchiveDownload(srcId), 
+                    Dest = await GetArchiveDownload(destId),
+                    PatchSize = patchSize,
+                    Finished = finished,
+                    IsFailed = isFinished,
+                    FailMessage = failMessage
+                });
+            } 
+            return results;
         }
     }
 }

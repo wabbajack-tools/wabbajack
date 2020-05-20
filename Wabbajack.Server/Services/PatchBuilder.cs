@@ -70,11 +70,24 @@ namespace Wabbajack.Server.Services
                     var size = await ftpClient.GetFileSizeAsync(patchName);
                     
                     await patch.Finish(_sql, size);
+                    await _discordWebHook.Send(Channel.Spam,
+                        new DiscordMessage
+                        {
+                            Content =
+                                $"Built {size.ToFileSizeString()} patch from {patch.Src.Archive.State.PrimaryKeyString} to {patch.Dest.Archive.State.PrimaryKeyString}"
+                        });
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error while building patch");
                     await patch.Fail(_sql, ex.ToString());
+                    await _discordWebHook.Send(Channel.Spam,
+                        new DiscordMessage
+                        {
+                            Content =
+                                $"Failure building patch from {patch.Src.Archive.State.PrimaryKeyString} to {patch.Dest.Archive.State.PrimaryKeyString}"
+                        });                    
+
                 }
 
                 count++;

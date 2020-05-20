@@ -217,9 +217,16 @@ TOP:
                 var tmpFile = new TempFile();
                 
                 var newArchive = new Archive(this) {Name = a.Name};
-                
-                if (!await Download(newArchive, tmpFile.Path))
+
+                try
+                {
+                    if (!await Download(newArchive, tmpFile.Path))
+                        return default;
+                }
+                catch (HttpRequestException)
+                {
                     return default;
+                }
 
                 newArchive.Hash = await tmpFile.Path.FileHashAsync();
                 newArchive.Size = tmpFile.Path.Size;

@@ -13,6 +13,26 @@ namespace Wabbajack.Server.DataLayer
 {
     public partial class SqlService
     {
+        public async Task<Guid> AddKnownDownload(Archive a, DateTime downloadFinished)
+        {
+            await using var conn = await Open();
+            var Id = Guid.NewGuid();
+            await conn.ExecuteAsync(
+                "INSERT INTO ArchiveDownloads (Id, PrimaryKeyString, Size, Hash, DownloadState, Downloader, DownloadFinished, IsFailed) VALUES (@Id, @PrimaryKeyString, @Size, @Hash, @DownloadState, @Downloader, @DownloadFinished, @IsFailed)",
+                new
+                {
+                    Id = Id,
+                    PrimaryKeyString = a.State.PrimaryKeyString,
+                    Size = a.Size == 0 ? null : (long?)a.Size,
+                    Hash = a.Hash == default ? null : (Hash?)a.Hash,
+                    DownloadState = a.State,
+                    Downloader = AbstractDownloadState.TypeToName[a.State.GetType()],
+                    DownloadFinished = downloadFinished,
+                    IsFailed = false
+                });
+            return Id;
+        }
+        
         public async Task<Guid> EnqueueDownload(Archive a)
         {
             await using var conn = await Open();
@@ -26,7 +46,7 @@ namespace Wabbajack.Server.DataLayer
                     Size = a.Size == 0 ? null : (long?)a.Size,
                     Hash = a.Hash == default ? null : (Hash?)a.Hash,
                     DownloadState = a.State,
-                    Downloader = AbstractDownloadState.TypeToName[a.State.GetType()]
+                    Downloader = AbstractDownloadState.TypeToName[a.State.GetType()],
                 });
             return Id;
         }
