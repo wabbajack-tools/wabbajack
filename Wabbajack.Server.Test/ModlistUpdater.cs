@@ -93,9 +93,9 @@ namespace Wabbajack.Server.Test
             var oldDataHash = oldFileData.xxHash();
             var newDataHash = newFileData.xxHash();
             
-            await "upgrading_file.txt".RelativeTo(Fixture.ServerPublicFolder).WriteAllBytesAsync(oldFileData);
+            await "TestEndToEndArchiveUpdating.txt".RelativeTo(Fixture.ServerPublicFolder).WriteAllBytesAsync(oldFileData);
             
-            var oldArchive = new Archive(new HTTPDownloader.State(MakeURL("upgrading_file.txt")))
+            var oldArchive = new Archive(new HTTPDownloader.State(MakeURL("TestEndToEndArchiveUpdating.txt")))
             {
                 Size = oldFileData.Length,
                 Hash = oldDataHash
@@ -108,7 +108,7 @@ namespace Wabbajack.Server.Test
             
             
             // Now update the file
-            await "upgrading_file.txt".RelativeTo(Fixture.ServerPublicFolder).WriteAllBytesAsync(newFileData);
+            await"TestEndToEndArchiveUpdating.txt".RelativeTo(Fixture.ServerPublicFolder).WriteAllBytesAsync(newFileData);
 
 
             using var tempFile = new TempFile();

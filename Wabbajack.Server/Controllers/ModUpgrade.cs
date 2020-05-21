@@ -37,6 +37,7 @@ namespace Wabbajack.BuildServer.Controllers
             var oldDownload = await _sql.GetOrEnqueueArchive(request.OldArchive);
             var newDownload = await _sql.GetOrEnqueueArchive(request.NewArchive);
 
+            _logger.Log(LogLevel.Information, $"Upgrade requested from {oldDownload.Archive.Hash} to {newDownload.Archive.Hash}");
             var patch = await _sql.FindOrEnqueuePatch(oldDownload.Id, newDownload.Id);
             if (patch.Finished.HasValue)
             {

@@ -77,8 +77,8 @@ namespace Wabbajack.Server.DataLayer
         {
             await using var conn = await Open();
             var trans = await conn.BeginTransactionAsync();
-            var patch = await conn.QueryFirstOrDefaultAsync<(long, DateTime?, bool, string)>(
-                "SELECT PatchSize, Finished, IsFailed, FailMessage FROM dbo.Patches WHERE SrcId = @SrcId AND DestId = @DestId",
+            var patch = await conn.QueryFirstOrDefaultAsync<(Guid, Guid, long, DateTime?, bool?, string)>(
+                "SELECT SrcId, DestId, PatchSize, Finished, IsFailed, FailMessage FROM dbo.Patches WHERE SrcId = @SrcId AND DestId = @DestId",
                 new
                 {
                     SrcId = src,
@@ -93,14 +93,13 @@ namespace Wabbajack.Server.DataLayer
             }
             else
             {
-                await trans.CommitAsync();
                 return new Patch {
                     Src = await GetArchiveDownload(src), 
                     Dest = await GetArchiveDownload(dest),
-                    PatchSize = patch.Item1,
-                    Finished = patch.Item2,
-                    IsFailed = patch.Item3,
-                    FailMessage = patch.Item4
+                    PatchSize = patch.Item3,
+                    Finished = patch.Item4,
+                    IsFailed = patch.Item5,
+                    FailMessage = patch.Item6
                 };
                 
             }
