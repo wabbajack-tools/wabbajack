@@ -11,6 +11,7 @@ using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Validation;
 
+
 namespace Wabbajack.Lib.Downloaders
 {
     public class HTTPDownloader : IDownloader, IUrlDownloader
@@ -222,7 +223,7 @@ TOP:
                     if (!await Download(newArchive, tmpFile.Path))
                         return default;
                 }
-                catch (HttpRequestException)
+                catch (HttpException)
                 {
                     return default;
                 }
