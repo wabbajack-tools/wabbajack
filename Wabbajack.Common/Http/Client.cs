@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using Wabbajack.Common.Exceptions;
 
 namespace Wabbajack.Common.Http
 {
@@ -83,13 +84,22 @@ namespace Wabbajack.Common.Http
                 if (response.IsSuccessStatusCode) return response;
 
                 if (errorsAsExceptions)
-                    throw new HttpRequestException(
-                        $"Http Exception {response.StatusCode} - {response.ReasonPhrase} - {msg.RequestUri}");
+                    throw new HttpException(response);
+                        
                 return response;
             }
             catch (Exception ex)
             {
-                if (ex is HttpRequestException) throw;
+                if (ex is HttpException http)
+                {
+                    if (http.Code != 503) throw;
+
+                    var ms = Utils.NextRandom(100, 1000);
+                    Utils.Log($"Got a 503 from {msg.RequestUri} retrying in {ms}ms");
+
+                    await Task.Delay(ms);
+                    goto TOP;
+                }
                 if (retries > Consts.MaxHTTPRetries) throw;
 
                 retries++;

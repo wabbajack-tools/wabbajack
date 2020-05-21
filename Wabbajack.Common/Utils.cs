@@ -1203,5 +1203,11 @@ namespace Wabbajack.Common
             if (lst.Count > 0 && lst.Count != size)
                 yield return lst;
         }
+
+        private static Random _random = new Random();
+        public static int NextRandom(int min, int max)
+        {
+            return _random.Next(min, max);
+        }
     }
 }

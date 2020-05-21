@@ -5,16 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Reflection;
-using System.Security.Authentication;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
-using WebSocketSharp;
-using static Wabbajack.Lib.NexusApi.NexusApiUtils;
 using System.Threading;
-using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.NexusApi

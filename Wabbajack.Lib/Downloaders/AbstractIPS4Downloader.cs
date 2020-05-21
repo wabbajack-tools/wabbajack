@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
@@ -120,16 +121,15 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
-                await using var stream = await ResolveDownloadStream(a);
+                using var stream = await ResolveDownloadStream(a);
                 if (stream == null) return false;
-                await using (var file = destination.Create())
-                {
-                    await stream.CopyToAsync(file);
-                }
+                await using var fromStream = await stream.Content.ReadAsStreamAsync();
+                await using var toStream = destination.Create();
+                await fromStream.CopyToAsync(toStream);
                 return true;
             }
 
-            private async Task<Stream?> ResolveDownloadStream(Archive a)
+            private async Task<HttpResponseMessage?> ResolveDownloadStream(Archive a)
             {
                 TOP:
                 string url;
@@ -181,7 +181,7 @@ namespace Wabbajack.Lib.Downloaders
                     if (a.Size != 0 && headerContentSize != 0 && a.Size != headerContentSize) 
                         return null;
                     
-                    return await streamResult.Content.ReadAsStreamAsync();
+                    return streamResult;
                 }
 
                 // Sometimes LL hands back a json object telling us to wait until a certain time
@@ -211,7 +211,7 @@ namespace Wabbajack.Lib.Downloaders
                 if (stream == null)
                     return false;
 
-                stream.Close();
+                stream.Dispose();
                 return true;
             }
 

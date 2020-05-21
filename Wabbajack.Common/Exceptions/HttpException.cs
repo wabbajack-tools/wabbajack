@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 
-namespace Wabbajack.Lib.Exceptions
+namespace Wabbajack.Common.Exceptions
 {
     public class HttpException : Exception
     {

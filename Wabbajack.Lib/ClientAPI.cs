@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.Exceptions;
 
 namespace Wabbajack.Lib
 {

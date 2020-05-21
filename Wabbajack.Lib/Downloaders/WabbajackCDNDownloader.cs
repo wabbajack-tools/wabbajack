@@ -2,13 +2,11 @@
 using System.IO;
 using System.IO.Compression;
 using System.IO.MemoryMappedFiles;
-using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.AuthorApi;
-using Wabbajack.Lib.Downloaders.UrlDownloaders;
-using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders

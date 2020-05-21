@@ -2,8 +2,8 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
-using Wabbajack.Lib.Exceptions;
 using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
