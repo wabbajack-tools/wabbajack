@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.0.6.0 - 5/21/2020
+* Add auto-healing features back into the client/server code
+* Put in the code about "Hashing Archives" that somehow missed the last release
+
 #### Version - 2.0.5.1 - 5/16/2020
 * Close Wabbajack when opening the CLI, resolves the "RocksDB is in use" errors
 * Print some helpful messages about "Hashing Archives" to let users know the app isn't dead
