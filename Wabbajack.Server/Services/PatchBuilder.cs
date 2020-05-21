@@ -10,6 +10,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Wabbajack.Server.Services
 {
@@ -53,24 +54,20 @@ namespace Wabbajack.Server.Services
                     var patchName = $"{Consts.ArchiveUpdatesCDNFolder}\\{patch.Src.Archive.Hash.ToHex()}_{patch.Dest.Archive.Hash.ToHex()}";
 
                     using var sigFile = new TempFile();
+                    using var patchFile = new TempFile();
                     await using var srcStream = srcPath.OpenShared();
                     await using var destStream = destPath.OpenShared();
                     await using var sigStream = sigFile.Path.Create();
-                    using var ftpClient = await GetBunnyCdnFtpClient();
-
-                    if (!await ftpClient.DirectoryExistsAsync(Consts.ArchiveUpdatesCDNFolder)) 
-                        await ftpClient.CreateDirectoryAsync(Consts.ArchiveUpdatesCDNFolder);
-
-                    
-                    await using var patchOutput = await ftpClient.OpenWriteAsync(patchName);
+                    await using var patchOutput = patchFile.Path.Create();
                     OctoDiff.Create(destStream, srcStream, sigStream, patchOutput);
-                    
                     await patchOutput.DisposeAsync();
-                    
-                    var size = await ftpClient.GetFileSizeAsync(patchName);
+                    var size = patchFile.Path.Size;
+
+                    await UploadToCDN(patchFile.Path, patchName);
+                   
                     
                     await patch.Finish(_sql, size);
-                    await _discordWebHook.Send(Channel.Spam,
+                    await _discordWebHook.Send(Channel.Ham,
                         new DiscordMessage
                         {
                             Content =
@@ -95,7 +92,31 @@ namespace Wabbajack.Server.Services
 
             return count;
         }
-        
+
+        private async Task UploadToCDN(AbsolutePath patchFile, string patchName)
+        {
+            for (var times = 0; times < 5; times ++)
+            {
+                try
+                {
+                    _logger.Log(LogLevel.Information,
+                        $"Uploading {patchFile.Size.ToFileSizeString()} patch file to CDN");
+                    using var client = await GetBunnyCdnFtpClient();
+                    
+                    if (!await client.DirectoryExistsAsync(Consts.ArchiveUpdatesCDNFolder)) 
+                        await client.CreateDirectoryAsync(Consts.ArchiveUpdatesCDNFolder);
+                    
+                    await client.UploadFileAsync((string)patchFile, patchName, FtpRemoteExists.Overwrite);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error uploading {patchFile} to CDN");
+                }
+            }
+            _logger.Log(LogLevel.Error, $"Couldn't upload {patchFile} to {patchName}");
+        }
+
         private async Task<FtpClient> GetBunnyCdnFtpClient()
         {
             var info = Utils.FromEncryptedJson<BunnyCdnFtpInfo>("bunny-cdn-ftp-info");

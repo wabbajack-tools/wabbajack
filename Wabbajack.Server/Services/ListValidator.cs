@@ -138,11 +138,15 @@ namespace Wabbajack.Server.Services
             using var _ = await _healLock.WaitAsync();
 
             if (!(archive.State is IUpgradingState))
+            {
+                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State} because it's not a healable state");
                 return (archive, ArchiveStatus.InValid);
-            
+            }
+
             var srcDownload = await _sql.GetArchiveDownload(archive.State.PrimaryKeyString, archive.Hash, archive.Size);
             if (srcDownload == null || srcDownload.IsFailed == true)
             {
+                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State} because it hasn't been previously successfully downloaded");
                 return (archive, ArchiveStatus.InValid);
             }
 
@@ -166,6 +170,7 @@ namespace Wabbajack.Server.Services
             var upgrade = await (archive.State as IUpgradingState)?.FindUpgrade(archive);
             if (upgrade == default)
             {
+                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State} because an alternative wasn't found");
                 return (archive, ArchiveStatus.InValid);
             }
 

@@ -257,7 +257,7 @@ namespace Wabbajack.Lib.Downloaders
                 
                 var tempFile = new TempFile();
 
-                var newArchive = new Archive(new State {Game = Game, ModID = ModID, FileID = FileID})
+                var newArchive = new Archive(new State {Game = Game, ModID = ModID, FileID = newFile.file_id})
                 {
                     Name = newFile.file_name,
                 };
