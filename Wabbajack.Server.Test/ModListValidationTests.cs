@@ -25,7 +25,7 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanLoadMetadataFromTestServer()
         {
-            var modlist = await MakeModList();
+            var modlist = await MakeModList("CanLoadMetadataFromTestServer.txt");
             Consts.ModlistMetadataURL = modlist.ToString();
             var data = await ModlistMetadata.LoadFromGithub();
             Assert.Equal(2, data.Count);
@@ -35,11 +35,11 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanIngestModLists()
         {
-            var modlist = await MakeModList();
+            var modlist = await MakeModList("CanIngestModLists.txt");
             Consts.ModlistMetadataURL = modlist.ToString();
             var sql = Fixture.GetService<SqlService>();
             var downloader = Fixture.GetService<ModListDownloader>();
-            Assert.Equal(2, await downloader.CheckForNewLists());
+            await downloader.CheckForNewLists();
 
             foreach (var list in ModListMetaData)
             {
@@ -54,7 +54,7 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanValidateModLists()
         {
-            var modlists = await MakeModList();
+            var modlists = await MakeModList("can_validate_file.txt");
             Consts.ModlistMetadataURL = modlists.ToString();
             Utils.Log("Updating modlists");
             await RevalidateLists(true);
@@ -68,7 +68,7 @@ namespace Wabbajack.BuildServer.Test
             await CheckListFeeds(0, 1);
 
             Utils.Log("Break List");
-            var archive = "test_archive.txt".RelativeTo(Fixture.ServerPublicFolder);
+            var archive = "can_validate_file.txt".RelativeTo(Fixture.ServerPublicFolder);
             await archive.MoveToAsync(archive.WithExtension(new Extension(".moved")), true);
 
             // We can revalidate but the non-nexus archives won't be checked yet since the list didn't change
@@ -103,6 +103,58 @@ namespace Wabbajack.BuildServer.Test
 
         }
         
+                [Fact]
+        public async Task CanHealLists()
+        {
+            var modlists = await MakeModList("CanHealLists.txt");
+            Consts.ModlistMetadataURL = modlists.ToString();
+            Utils.Log("Updating modlists");
+            await RevalidateLists(true);
+            
+            Utils.Log("Checking validated results");
+            var data = (await ModlistMetadata.LoadFromGithub()).FirstOrDefault(l => l.Links.MachineURL == "test_list");
+            Assert.NotNull(data);
+            Assert.Equal(0, data.ValidationSummary.Failed);
+            Assert.Equal(1, data.ValidationSummary.Passed);
+            
+            await CheckListFeeds(0, 1);
+
+            Utils.Log("Break List by changing the file");
+            var archive = "CanHealLists.txt".RelativeTo(Fixture.ServerPublicFolder);
+            await archive.WriteAllTextAsync("broken");
+
+            // We can revalidate but the non-nexus archives won't be checked yet since the list didn't change
+            await RevalidateLists(false);
+            
+            data = (await ModlistMetadata.LoadFromGithub()).FirstOrDefault(l => l.Links.MachineURL == "test_list");
+            Assert.NotNull(data);
+            Assert.Equal(0, data.ValidationSummary.Failed);
+            Assert.Equal(1, data.ValidationSummary.Passed);
+
+            // Run the non-nexus validator
+            await RevalidateLists(true);
+
+            data = (await ModlistMetadata.LoadFromGithub()).FirstOrDefault(l => l.Links.MachineURL == "test_list");
+            Assert.NotNull(data);
+            Assert.Equal(0, data.ValidationSummary.Failed);
+            Assert.Equal(0, data.ValidationSummary.Passed);
+            Assert.Equal(1, data.ValidationSummary.Updating);
+
+            var patcher = Fixture.GetService<PatchBuilder>();
+            Assert.Equal(1, await patcher.Execute());
+
+            await RevalidateLists(false);
+            
+            data = (await ModlistMetadata.LoadFromGithub()).FirstOrDefault(l => l.Links.MachineURL == "test_list");
+            Assert.NotNull(data);
+            Assert.Equal(0, data.ValidationSummary.Failed);
+            Assert.Equal(1, data.ValidationSummary.Passed);
+            Assert.Equal(0, data.ValidationSummary.Updating);
+            
+
+
+        }
+        
         private async Task RevalidateLists(bool runNonNexus)
         {
             
@@ -117,6 +169,9 @@ namespace Wabbajack.BuildServer.Test
 
             var validator = Fixture.GetService<ListValidator>();
             await validator.Execute();
+
+            var archiver = Fixture.GetService<ArchiveDownloader>();
+            await archiver.Execute();
         }
 
         private async Task CheckListFeeds(int failed, int passed)
@@ -135,79 +190,7 @@ namespace Wabbajack.BuildServer.Test
         }
 
         
-        private async Task<Uri> MakeModList()
-        {
-            var archive_data = Encoding.UTF8.GetBytes("Cheese for Everyone!");
-            var test_archive_path = "test_archive.txt".RelativeTo(Fixture.ServerPublicFolder);
-            await test_archive_path.WriteAllBytesAsync(archive_data);
 
-
-
-            ModListData = new ModList();
-            ModListData.Archives.Add(
-                new Archive(new HTTPDownloader.State(MakeURL("test_archive.txt")))
-                {
-                    Hash = await test_archive_path.FileHashAsync(),
-                    Name = "test_archive",
-                    Size = test_archive_path.Size,
-                });
-            
-            var modListPath = "test_modlist.wabbajack".RelativeTo(Fixture.ServerPublicFolder);
-
-            await using (var fs = modListPath.Create())
-            {
-                using var za = new ZipArchive(fs, ZipArchiveMode.Create);
-                var entry = za.CreateEntry("modlist");
-                await using var es = entry.Open();
-                ModListData.ToJson(es);
-            }
-
-            ModListMetaData = new List<ModlistMetadata>
-            {
-                new ModlistMetadata
-                {
-                    Official = false,
-                    Author = "Test Suite",
-                    Description = "A test",
-                    DownloadMetadata = new DownloadMetadata
-                    {
-                        Hash = await modListPath.FileHashAsync(), 
-                        Size = modListPath.Size
-                    },
-                    Links = new ModlistMetadata.LinksObject
-                    {
-                        MachineURL = "test_list",
-                        Download = MakeURL("test_modlist.wabbajack")
-                    }
-                },
-                new ModlistMetadata
-                {
-                    Official = true,
-                    Author = "Test Suite",
-                    Description = "A list with a broken hash",
-                    DownloadMetadata = new DownloadMetadata()
-                    {
-                        Hash = Hash.FromLong(42),
-                        Size = 42
-                    },
-                    Links = new ModlistMetadata.LinksObject
-                    {
-                        MachineURL = "broken_list",
-                        Download = MakeURL("test_modlist.wabbajack")
-                    }
-                }
-            };
-
-            var metadataPath = "test_mod_list_metadata.json".RelativeTo(Fixture.ServerPublicFolder);
-
-            ModListMetaData.ToJson(metadataPath);
-            
-            return new Uri(MakeURL("test_mod_list_metadata.json"));
-        }
-
-        public ModList ModListData { get; set; }
-
-        public List<ModlistMetadata> ModListMetaData { get; set; }
 
     }
 }

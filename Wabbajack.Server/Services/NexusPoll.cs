@@ -66,7 +66,7 @@ namespace Wabbajack.Server.Services
         public async Task UpdateNexusCacheAPI()
         {
             using var _ = _logger.BeginScope("Nexus Update via API");
-            _logger.Log(LogLevel.Information, "Starting");
+            _logger.Log(LogLevel.Information, "Starting Nexus Update via API");
             var api = await NexusApiClient.Get();
             
             var gameTasks = GameRegistry.Games.Values
@@ -117,7 +117,7 @@ namespace Wabbajack.Server.Services
         public void Start()
         {
             if (!_settings.RunBackEndJobs) return;
-            
+            /*
             Task.Run(async () =>
             {
                 while (true)
@@ -133,7 +133,7 @@ namespace Wabbajack.Server.Services
                     await Task.Delay(_globalInformation.NexusRSSPollRate);
                 }
             });
-
+*/
             Task.Run(async () =>
             {
                 while (true)

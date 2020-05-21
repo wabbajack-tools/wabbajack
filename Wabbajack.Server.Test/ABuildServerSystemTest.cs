@@ -1,12 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO.Compression;
 using System.Reactive.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Wabbajack.Common;
 using Wabbajack.Common.Http;
 using Wabbajack.Common.StatusFeed;
+using Wabbajack.Lib;
+using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.FileUploader;
+using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Server;
 using Wabbajack.Server.DataLayer;
 using Xunit;
@@ -182,5 +188,79 @@ namespace Wabbajack.BuildServer.Test
             _unsubErr.Dispose();
             
         }
+        
+        protected async Task<Uri> MakeModList(string modFileName)
+        {
+            var archive_data = Encoding.UTF8.GetBytes("Cheese for Everyone!");
+            var test_archive_path = modFileName.RelativeTo(Fixture.ServerPublicFolder);
+            await test_archive_path.WriteAllBytesAsync(archive_data);
+
+
+
+            ModListData = new ModList();
+            ModListData.Archives.Add(
+                new Archive(new HTTPDownloader.State(MakeURL(modFileName.ToString())))
+                {
+                    Hash = await test_archive_path.FileHashAsync(),
+                    Name = "test_archive",
+                    Size = test_archive_path.Size,
+                });
+            
+            var modListPath = "test_modlist.wabbajack".RelativeTo(Fixture.ServerPublicFolder);
+
+            await using (var fs = modListPath.Create())
+            {
+                using var za = new ZipArchive(fs, ZipArchiveMode.Create);
+                var entry = za.CreateEntry("modlist");
+                await using var es = entry.Open();
+                ModListData.ToJson(es);
+            }
+
+            ModListMetaData = new List<ModlistMetadata>
+            {
+                new ModlistMetadata
+                {
+                    Official = false,
+                    Author = "Test Suite",
+                    Description = "A test",
+                    DownloadMetadata = new DownloadMetadata
+                    {
+                        Hash = await modListPath.FileHashAsync(), 
+                        Size = modListPath.Size
+                    },
+                    Links = new ModlistMetadata.LinksObject
+                    {
+                        MachineURL = "test_list",
+                        Download = MakeURL("test_modlist.wabbajack")
+                    }
+                },
+                new ModlistMetadata
+                {
+                    Official = true,
+                    Author = "Test Suite",
+                    Description = "A list with a broken hash",
+                    DownloadMetadata = new DownloadMetadata()
+                    {
+                        Hash = Hash.FromLong(42),
+                        Size = 42
+                    },
+                    Links = new ModlistMetadata.LinksObject
+                    {
+                        MachineURL = "broken_list",
+                        Download = MakeURL("test_modlist.wabbajack")
+                    }
+                }
+            };
+
+            var metadataPath = "test_mod_list_metadata.json".RelativeTo(Fixture.ServerPublicFolder);
+
+            ModListMetaData.ToJson(metadataPath);
+            
+            return new Uri(MakeURL("test_mod_list_metadata.json"));
+        }
+
+        public ModList ModListData { get; set; }
+
+        public List<ModlistMetadata> ModListMetaData { get; set; }
     }
 }

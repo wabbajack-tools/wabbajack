@@ -337,6 +337,13 @@ namespace Wabbajack.Common
             await fs.WriteAsync(data);
         }
 
+        public async Task WriteAllAsync(Stream data, bool disposeAfter = true)
+        {
+            await using var fs = Create();
+            await data.CopyToAsync(fs);
+            if (disposeAfter) await data.DisposeAsync();
+        }
+
         public void AppendAllText(string text)
         {
             File.AppendAllText(_path, text);

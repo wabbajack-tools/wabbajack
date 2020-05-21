@@ -24,17 +24,19 @@ namespace Wabbajack.Server.Services
         private SqlService _sql;
         private DiscordWebHook _discord;
         private NexusKeyMaintainance _nexus;
+        private ArchiveMaintainer _archives;
 
         public IEnumerable<(ModListSummary Summary, DetailedStatus Detailed)> Summaries { get; private set; } =
             new (ModListSummary Summary, DetailedStatus Detailed)[0];
 
 
-        public ListValidator(ILogger<ListValidator> logger, AppSettings settings, SqlService sql, DiscordWebHook discord, NexusKeyMaintainance nexus) 
-            : base(logger, settings, TimeSpan.FromMinutes(10))
+        public ListValidator(ILogger<ListValidator> logger, AppSettings settings, SqlService sql, DiscordWebHook discord, NexusKeyMaintainance nexus, ArchiveMaintainer archives) 
+            : base(logger, settings, TimeSpan.FromMinutes(5))
         {
             _sql = sql;
             _discord = discord;
             _nexus = nexus;
+            _archives = archives;
         }
 
         public override async Task<int> Execute()
@@ -42,14 +44,19 @@ namespace Wabbajack.Server.Services
             var data = await _sql.GetValidationData();
 
             using var queue = new WorkQueue();
+            var oldSummaries = Summaries;
 
             var results = await data.ModLists.PMap(queue, async list =>
             {
+                var oldSummary =
+                    oldSummaries.FirstOrDefault(s => s.Summary.MachineURL == list.Metadata.Links.MachineURL);
+                
                 var (metadata, modList) = list;
                 var archives = await modList.Archives.PMap(queue, async archive =>
                 {
                     var (_, result) = await ValidateArchive(data, archive);
-                    // TODO : auto-healing goes here
+                    if (result == ArchiveStatus.InValid)
+                        return await TryToHeal(data, archive);
                     return (archive, result);
                 });
 
@@ -80,12 +87,103 @@ namespace Wabbajack.Server.Services
                     }).ToList()
                 };
 
+                if (oldSummary != default && oldSummary.Summary.Failed != summary.Failed)
+                {
+                    _logger.Log(LogLevel.Information, $"Number of failures {oldSummary.Summary.Failed} -> {summary.Failed}");
+
+                    if (summary.HasFailures)
+                    {
+                        await _discord.Send(Channel.Ham,
+                            new DiscordMessage
+                            {
+                                Embeds = new[]
+                                {
+                                    new DiscordEmbed
+                                    {
+                                        Description =
+                                            $"Number of failures in {summary.Name} (`{summary.MachineURL}`) was {oldSummary.Summary.Failed} is now {summary.Failed}",
+                                        Url = new Uri(
+                                            $"https://build.wabbajack.org/lists/status/{summary.MachineURL}.html")
+                                    }
+                                }
+                            });
+                    }
+                    
+                    if (!summary.HasFailures)
+                    {
+                        await _discord.Send(Channel.Ham,
+                            new DiscordMessage
+                            {
+                                Embeds = new[]
+                                {
+                                    new DiscordEmbed
+                                    {
+                                        Description = $"{summary.Name} (`{summary.MachineURL}`) is now passing.",
+                                    }
+                                }
+                            });
+                    }
+
+                }
+                
                 return (summary, detailed);
             });
             Summaries = results;
             return Summaries.Count(s => s.Summary.HasFailures);
         }
-        
+
+        private AsyncLock _healLock = new AsyncLock();
+        private async Task<(Archive, ArchiveStatus)> TryToHeal(ValidationData data, Archive archive)
+        {
+            using var _ = await _healLock.WaitAsync();
+
+            if (!(archive.State is IUpgradingState))
+                return (archive, ArchiveStatus.InValid);
+            
+            var srcDownload = await _sql.GetArchiveDownload(archive.State.PrimaryKeyString, archive.Hash, archive.Size);
+            if (srcDownload == null || srcDownload.IsFailed == true)
+            {
+                return (archive, ArchiveStatus.InValid);
+            }
+
+            
+            var patches = await _sql.PatchesForSource(srcDownload.Id);
+            foreach (var patch in patches)
+            {
+                if (patch.Finished is null)
+                    return (archive, ArchiveStatus.Updating);
+
+                if (patch.IsFailed == true)
+                    continue;
+                
+                var (_, status) = await ValidateArchive(data, patch.Dest.Archive);
+                if (status == ArchiveStatus.Valid)
+                    return (archive, ArchiveStatus.Updated);
+            }
+            
+            
+            var upgradeTime = DateTime.UtcNow;
+            var upgrade = await (archive.State as IUpgradingState)?.FindUpgrade(archive);
+            if (upgrade == default)
+            {
+                return (archive, ArchiveStatus.InValid);
+            }
+
+            await _archives.Ingest(upgrade.NewFile.Path);
+
+            var id = await _sql.AddKnownDownload(upgrade.Archive, upgradeTime);
+            var destDownload = await _sql.GetArchiveDownload(id);
+
+            await _sql.AddPatch(new Patch {Src = srcDownload, Dest = destDownload});
+            
+            _logger.Log(LogLevel.Information, $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}");
+            await _discord.Send(Channel.Spam, new DiscordMessage { Content = $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}" });
+
+            upgrade.NewFile.Dispose();
+
+            return (archive, ArchiveStatus.Updating);
+        }
+
         private async Task<(Archive archive, ArchiveStatus)> ValidateArchive(ValidationData data, Archive archive)
         {
             switch (archive.State)
@@ -108,7 +206,7 @@ namespace Wabbajack.Server.Services
                         return isValid ? (archive, ArchiveStatus.Valid) : (archive, ArchiveStatus.InValid);
                     }
 
-                    return (archive, ArchiveStatus.InValid);
+                    return (archive, ArchiveStatus.Valid);
                 }
             }
         }

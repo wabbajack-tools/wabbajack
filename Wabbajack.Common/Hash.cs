@@ -225,7 +225,8 @@ namespace Wabbajack.Common
             {
                 await using var fs = file.OpenRead();
                 var config = new xxHashConfig {HashSizeInBits = 64};
-                var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(fs);
+                await using var hs = new StatusFileStream(fs, $"Hashing {file}");
+                var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(hs);
                 return new Hash(BitConverter.ToUInt64(value.Hash));
             }
             catch (IOException)

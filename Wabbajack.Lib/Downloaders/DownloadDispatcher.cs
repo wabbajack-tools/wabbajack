@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
@@ -95,40 +97,49 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            Utils.Log($"Download failed, looking for upgrade");
-            var upgrade = await ClientAPI.GetModUpgrade(archive.Hash);
-            if (upgrade == null)
+            if (!(archive.State is IUpgradingState))
             {
-                Utils.Log($"No upgrade found for {archive.Hash}");
+                Utils.Log($"Download failed for {archive.Name} and no upgrade from this download source is possible");
                 return false;
             }
-            Utils.Log($"Upgrading via {upgrade.State.PrimaryKeyString}");
+
+            var upgrade = (IUpgradingState)archive.State;
+
+            Utils.Log($"Trying to find solution to broken download for {archive.Name}");
             
-            Utils.Log($"Upgrading {archive.Hash}");
-            var upgradePath = destination.Parent.Combine("_Upgrade_" + archive.Name);
-            var upgradeResult = await Download(upgrade, upgradePath);
-            if (!upgradeResult) return false;
-
-            var patchName = $"{archive.Hash.ToHex()}_{upgrade.Hash.ToHex()}";
-            var patchPath = destination.Parent.Combine("_Patch_" + patchName);
-
-            var patchState = new Archive(new HTTPDownloader.State($"https://wabbajackcdn.b-cdn.net/updates/{patchName}"))
+            var result = await upgrade.FindUpgrade(archive);
+            if (result == default)
             {
-                Name = patchName,
-            };
+                Utils.Log(
+                    $"No solution for broken download {archive.Name} {archive.State.PrimaryKeyString} could be found");
+                return false;
 
-            var patchResult = await Download(patchState, patchPath);
-            if (!patchResult) return false;
-
-            Utils.Status($"Applying Upgrade to {archive.Hash}");
-            await using (var patchStream = patchPath.OpenRead())
-            await using (var srcStream = upgradePath.OpenRead())
-            await using (var destStream = destination.Create())
-            {
-                OctoDiff.Apply(srcStream, patchStream, destStream);
             }
 
-            await destination.FileHashCachedAsync();
+            Utils.Log($"Looking for patch for {archive.Name}");
+            var patchResult = await ClientAPI.GetModUpgrade(archive, result.Archive!);
+
+            Utils.Log($"Downloading patch for {archive.Name}");
+            
+            var tempFile = new TempFile();
+
+            using var response = await (new Common.Http.Client()).GetAsync(patchResult);
+            await tempFile.Path.WriteAllAsync(await response.Content.ReadAsStreamAsync());
+            response.Dispose();
+
+            Utils.Log($"Applying patch to {archive.Name}");
+            await using(var src = result.NewFile.Path.OpenShared())
+            await using (var final = destination.Create())
+            {
+                Utils.ApplyPatch(src, () => tempFile.Path.OpenShared(), final);
+            }
+
+            var hash = await destination.FileHashCachedAsync();
+            if (hash != archive.Hash && archive.Hash != default)
+            {
+                Utils.Log("Archive hash didn't match after patching");
+                return false;
+            }
 
             return true;
         }

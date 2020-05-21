@@ -23,7 +23,7 @@ namespace Wabbajack.Server.DTOs
 
         public async Task Finish(SqlService service)
         {
-            IsFailed = true;
+            IsFailed = false;
             DownloadFinished = DateTime.UtcNow;
             await service.UpdatePendingDownload(this);
         }

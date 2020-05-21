@@ -140,7 +140,7 @@ namespace Wabbajack.Lib.Downloaders
         }
 
         [JsonName("NexusDownloader")]
-        public class State : AbstractDownloadState, IMetaState
+        public class State : AbstractDownloadState, IMetaState, IUpgradingState
         {
             [JsonIgnore]
             public Uri URL => new Uri($"http://nexusmods.com/{Game.MetaData().NexusName}/mods/{ModID}");
@@ -239,6 +239,41 @@ namespace Wabbajack.Lib.Downloaders
             public override string[] GetMetaIni()
             {
                 return new[] {"[General]", $"gameName={Game.MetaData().MO2ArchiveName}", $"modID={ModID}", $"fileID={FileID}"};
+            }
+
+            public async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
+            {
+                var client = await NexusApiClient.Get();
+
+                var mod = await client.GetModInfo(Game, ModID);
+                var files = await client.GetModFiles(Game, ModID);
+                var oldFile = files.files.FirstOrDefault(f => f.file_id == FileID);
+                var newFile = files.files.OrderByDescending(f => f.uploaded_timestamp).FirstOrDefault();
+
+                if (!mod.available || oldFile == default || newFile == default)
+                {
+                    return default;
+                }
+                
+                var tempFile = new TempFile();
+
+                var newArchive = new Archive(new State {Game = Game, ModID = ModID, FileID = FileID})
+                {
+                    Name = newFile.file_name,
+                };
+
+                await newArchive.State.Download(newArchive, tempFile.Path);
+
+                newArchive.Size = tempFile.Path.Size;
+                newArchive.Hash = await tempFile.Path.FileHashAsync();
+
+                return (newArchive, tempFile);
+            }
+
+            public bool ValidateUpgrade(AbstractDownloadState newArchiveState)
+            {
+                var state = (State)newArchiveState;
+                return Game == state.Game && ModID == state.ModID;
             }
         }
     }
