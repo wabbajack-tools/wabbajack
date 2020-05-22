@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using System.Threading;
+using Wabbajack.Common.Exceptions;
 using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.NexusApi
@@ -267,7 +268,7 @@ namespace Wabbajack.Lib.NexusApi
                 if (!response.IsSuccessStatusCode)
                 {
                     Utils.Log($"Nexus call failed: {response.RequestMessage.RequestUri}");
-                    throw new HttpRequestException($"{response.StatusCode} - {response.ReasonPhrase}");
+                    throw new HttpException(response);
                 }
 
 
@@ -317,9 +318,9 @@ namespace Wabbajack.Lib.NexusApi
             {
                 return (await Get<List<DownloadLink>>(url)).First().URI;
             }
-            catch (HttpRequestException)
+            catch (HttpException ex)
             {
-                if (await IsPremium())
+                if (ex.Code != 403 || await IsPremium())
                 {
                     throw;
                 }

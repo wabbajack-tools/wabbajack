@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.0.6.1 - 5/22/2020
+* Fix regression with manual archive downloading
+
 #### Version - 2.0.6.0 - 5/21/2020
 * Add auto-healing features back into the client/server code
 * Put in the code about "Hashing Archives" that somehow missed the last release
