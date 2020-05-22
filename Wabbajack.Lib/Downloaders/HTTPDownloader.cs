@@ -102,7 +102,7 @@ namespace Wabbajack.Lib.Downloaders
 TOP:
 
                     if (!response.IsSuccessStatusCode)
-                        throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
+                        return false;
 
                     Stream stream;
                     try

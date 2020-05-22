@@ -54,7 +54,7 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanValidateModLists()
         {
-            var modlists = await MakeModList("can_validate_file.txt");
+            var modlists = await MakeModList("CanValidateModlistsFile.txt");
             Consts.ModlistMetadataURL = modlists.ToString();
             Utils.Log("Updating modlists");
             await RevalidateLists(true);
@@ -68,7 +68,7 @@ namespace Wabbajack.BuildServer.Test
             await CheckListFeeds(0, 1);
 
             Utils.Log("Break List");
-            var archive = "can_validate_file.txt".RelativeTo(Fixture.ServerPublicFolder);
+            var archive = "CanValidateModlistsFile.txt".RelativeTo(Fixture.ServerPublicFolder);
             await archive.MoveToAsync(archive.WithExtension(new Extension(".moved")), true);
 
             // We can revalidate but the non-nexus archives won't be checked yet since the list didn't change

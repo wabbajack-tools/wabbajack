@@ -139,14 +139,14 @@ namespace Wabbajack.Server.Services
 
             if (!(archive.State is IUpgradingState))
             {
-                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State} because it's not a healable state");
+                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State.PrimaryKeyString} because it's not a healable state");
                 return (archive, ArchiveStatus.InValid);
             }
 
             var srcDownload = await _sql.GetArchiveDownload(archive.State.PrimaryKeyString, archive.Hash, archive.Size);
             if (srcDownload == null || srcDownload.IsFailed == true)
             {
-                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State} because it hasn't been previously successfully downloaded");
+                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State.PrimaryKeyString} because it hasn't been previously successfully downloaded");
                 return (archive, ArchiveStatus.InValid);
             }
 
