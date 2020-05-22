@@ -56,7 +56,7 @@ namespace Wabbajack.Lib.FileUploader
         public static async Task<bool> UploadPackagedInis(IEnumerable<Archive> archives)
         {
             archives = archives.ToArray(); // defensive copy
-            Utils.Log($"Packaging {archives.Count()} inis");
+            Utils.Log($"Packaging {archives.Count()} archive states");
             try
             {
                 await using var ms = new MemoryStream();
@@ -67,7 +67,7 @@ namespace Wabbajack.Lib.FileUploader
                         if (e.State == null) continue;
                         var entry = z.CreateEntry(Path.GetFileName(e.Name));
                         await using var os = entry.Open();
-                        await os.WriteAsync(Encoding.UTF8.GetBytes(string.Join("\n", e.State.GetMetaIni())));
+                        e.ToJson(os);
                     }
                 }
 

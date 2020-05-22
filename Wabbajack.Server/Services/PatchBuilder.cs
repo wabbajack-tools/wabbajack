@@ -67,7 +67,7 @@ namespace Wabbajack.Server.Services
                    
                     
                     await patch.Finish(_sql, size);
-                    await _discordWebHook.Send(Channel.Ham,
+                    await _discordWebHook.Send(Channel.Spam,
                         new DiscordMessage
                         {
                             Content =

@@ -109,7 +109,7 @@ namespace Wabbajack.Server.Services
                             });
                     }
                     
-                    if (!summary.HasFailures)
+                    if (!summary.HasFailures && oldSummary.Summary.HasFailures)
                     {
                         await _discord.Send(Channel.Ham,
                             new DiscordMessage
@@ -146,7 +146,7 @@ namespace Wabbajack.Server.Services
             var srcDownload = await _sql.GetArchiveDownload(archive.State.PrimaryKeyString, archive.Hash, archive.Size);
             if (srcDownload == null || srcDownload.IsFailed == true)
             {
-                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State.PrimaryKeyString} because it hasn't been previously successfully downloaded");
+                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State.PrimaryKeyString} Size: {archive.Size} Hash: {(long)archive.Hash} because it hasn't been previously successfully downloaded");
                 return (archive, ArchiveStatus.InValid);
             }
 
