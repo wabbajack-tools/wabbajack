@@ -279,6 +279,29 @@ namespace Wabbajack.Common
             File.Delete(_path);
         }
 
+        
+        public async Task DeleteWithRetryAsync()
+        {
+            var retries = 0;
+            TOP:
+            if (!IsFile) return;
+
+            if (IsReadOnly) IsReadOnly = false;
+
+            try
+            {
+                File.Delete(_path);
+            }
+            catch (IOException)
+            {
+                if (retries > 5) throw;
+                await Task.Delay(1000);
+
+                retries++;
+                goto TOP;
+            }
+        }
+
         public bool InFolder(AbsolutePath folder)
         {
             return _path.StartsWith(folder._path + Path.DirectorySeparator);

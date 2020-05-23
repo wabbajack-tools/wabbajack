@@ -210,7 +210,7 @@ namespace Wabbajack.Lib
                     var oldData = new MemoryStream(await toFile.ReadAllBytesAsync());
 
                     // Remove the file we're about to patch
-                    toFile.Delete();
+                    await toFile.DeleteWithRetryAsync();
 
                     // Patch it
                     await using (var outStream = toFile.Create())
