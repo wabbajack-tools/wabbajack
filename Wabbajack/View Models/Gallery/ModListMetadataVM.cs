@@ -81,7 +81,7 @@ namespace Wabbajack
             DownloadSizeText = "Download size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
             InstallSizeText = "Installation size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
             IsBroken = metadata.ValidationSummary.HasFailures;
-            OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/{Metadata.Links.MachineURL}")));
+            OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/modlist/gallery/{Metadata.Links.MachineURL}")));
             ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, Unit>(
                 canExecute: this.WhenAny(x => x.IsBroken).Select(x => !x),
                 execute: (unit) => 
