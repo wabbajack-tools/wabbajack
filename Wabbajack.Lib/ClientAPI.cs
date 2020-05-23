@@ -27,6 +27,7 @@ namespace Wabbajack.Lib
         {
             get
             {
+                if (OldArchive.Size > 2_500_000_000 || NewArchive.Size > 2_500_000_000) return false;
                 if (OldArchive.Hash == NewArchive.Hash && OldArchive.State.PrimaryKeyString == NewArchive.State.PrimaryKeyString) return false;
                 if (OldArchive.State.GetType() != NewArchive.State.GetType())
                     return false;

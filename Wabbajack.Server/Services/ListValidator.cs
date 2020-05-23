@@ -170,7 +170,7 @@ namespace Wabbajack.Server.Services
             var upgrade = await (archive.State as IUpgradingState)?.FindUpgrade(archive);
             if (upgrade == default)
             {
-                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State} because an alternative wasn't found");
+                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State.PrimaryKeyString} because an alternative wasn't found");
                 return (archive, ArchiveStatus.InValid);
             }
 
@@ -178,7 +178,7 @@ namespace Wabbajack.Server.Services
 
             var id = await _sql.AddKnownDownload(upgrade.Archive, upgradeTime);
             var destDownload = await _sql.GetArchiveDownload(id);
-
+            
             await _sql.AddPatch(new Patch {Src = srcDownload, Dest = destDownload});
             
             _logger.Log(LogLevel.Information, $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}");

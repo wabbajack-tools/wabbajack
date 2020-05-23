@@ -77,27 +77,33 @@ namespace Wabbajack.Common.Http
             if (Cookies.Count > 0)
                 Cookies.ForEach(c => ClientFactory.Cookies.Add(c));   
             int retries = 0;
+            HttpResponseMessage response;
             TOP:
             try
             {
-                var response = await ClientFactory.Client.SendAsync(msg, responseHeadersRead);
+                response = await ClientFactory.Client.SendAsync(msg, responseHeadersRead);
                 if (response.IsSuccessStatusCode) return response;
 
                 if (errorsAsExceptions)
+                {
+                    response.Dispose();
                     throw new HttpException(response);
-                        
+                }
+
                 return response;
             }
             catch (Exception ex)
             {
                 if (ex is HttpException http)
                 {
-                    if (http.Code != 503) throw;
+                    if (http.Code < 500) throw;
 
+                    retries++;
                     var ms = Utils.NextRandom(100, 1000);
                     Utils.Log($"Got a 503 from {msg.RequestUri} retrying in {ms}ms");
 
                     await Task.Delay(ms);
+                    msg = CloneMessage(msg);
                     goto TOP;
                 }
                 if (retries > Consts.MaxHTTPRetries) throw;
