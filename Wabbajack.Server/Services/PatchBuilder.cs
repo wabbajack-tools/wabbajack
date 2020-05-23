@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Splat;
 using Wabbajack.BuildServer;
 using Wabbajack.Common;
+using Wabbajack.Lib;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
@@ -33,6 +34,8 @@ namespace Wabbajack.Server.Services
             int count = 0;
             while (true)
             {
+                count++;
+
                 var patch = await _sql.GetPendingPatch();
                 if (patch == default) break;
 
@@ -47,6 +50,18 @@ namespace Wabbajack.Server.Services
                             Content =
                                 $"Building patch from {patch.Src.Archive.State.PrimaryKeyString} to {patch.Dest.Archive.State.PrimaryKeyString}"
                         });
+
+                    if (patch.Src.Archive.Hash == patch.Dest.Archive.Hash)
+                    {
+                        await patch.Fail(_sql, "Hashes match");
+                        continue;
+                    }
+
+                    if (patch.Src.Archive.Size > 2_500_000_000 || patch.Dest.Archive.Size > 2_500_000_000)
+                    {
+                        await patch.Fail(_sql, "Too large to patch");
+                        continue;
+                    }
 
                     _maintainer.TryGetPath(patch.Src.Archive.Hash, out var srcPath);
                     _maintainer.TryGetPath(patch.Dest.Archive.Hash, out var destPath);
@@ -86,8 +101,6 @@ namespace Wabbajack.Server.Services
                         });                    
 
                 }
-
-                count++;
             }
 
             return count;

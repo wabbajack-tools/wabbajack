@@ -231,6 +231,11 @@ TOP:
                 newArchive.Hash = await tmpFile.Path.FileHashAsync();
                 newArchive.Size = tmpFile.Path.Size;
 
+                if (newArchive.Hash == a.Hash || a.Size > 2_500_000_000 || newArchive.Size > 2_500_000_000)
+                {
+                    return default;
+                }
+
                 return (newArchive, tmpFile);
 
             }

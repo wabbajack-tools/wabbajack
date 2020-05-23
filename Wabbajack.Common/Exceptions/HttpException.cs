@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Net.Http;
+using Wabbajack.Common.Serialization.Json;
 
 namespace Wabbajack.Common.Exceptions
 {
+    [JsonName("HttpException")]
     public class HttpException : Exception
     {
         public string Reason { get; set; }
