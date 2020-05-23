@@ -472,6 +472,52 @@ namespace Wabbajack.Test
 
             utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
         }
+        
+        
+        /// <summary>
+        /// Issue #861 : https://github.com/wabbajack-tools/wabbajack/issues/861
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task AlwaysEnabledModsRetainTheirOrder() 
+        {
+
+            var profile = utils.AddProfile();
+            var enabledMod = utils.AddMod();
+            var enabledTestPex = utils.AddModFile(enabledMod, @"Data\scripts\enabledTestPex.pex", 10);
+
+            var disabledMod = utils.AddMod();
+            var disabledTestPex = utils.AddModFile(disabledMod, @"Data\scripts\disabledTestPex.pex", 10);
+
+            await disabledMod.RelativeTo(utils.ModsFolder).Combine("meta.ini").WriteAllLinesAsync(
+                "[General]",
+                $"notes={Consts.WABBAJACK_ALWAYS_ENABLE}");
+
+            await utils.Configure(new []
+            {
+                (disabledMod, false),
+                (enabledMod, true)
+            });
+
+            utils.AddManualDownload(
+                new Dictionary<string, byte[]>
+                {
+                    {"/file1.pex", await enabledTestPex.ReadAllBytesAsync()},
+                    {"/file2.pex", await disabledTestPex.ReadAllBytesAsync()},
+                });
+
+            await CompileAndInstall(profile);
+
+            utils.VerifyInstalledFile(enabledMod, @"Data\scripts\enabledTestPex.pex");
+            utils.VerifyInstalledFile(disabledMod, @"Data\scripts\disabledTestPex.pex");
+
+            var modlistTxt = await utils.InstallFolder.Combine("profiles", profile, "modlist.txt").ReadAllLinesAsync();
+            Assert.Equal(new string[]
+            {
+                $"-{disabledMod}",
+                $"+{enabledMod}"
+            }, modlistTxt.ToArray());
+        }
 
     }
 }
