@@ -89,7 +89,7 @@ namespace Wabbajack.Common
 
         public FileStream OpenRead()
         {
-            return File.OpenRead(_path);
+            return File.Open(_path, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
         public FileStream Create()
