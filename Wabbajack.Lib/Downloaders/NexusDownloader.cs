@@ -122,8 +122,6 @@ namespace Wabbajack.Lib.Downloaders
                         return;
                     }
 
-                    await Metrics.Send("nexus_login", _client.ApiKey!);
-
                     if (!await _client.IsPremium())
                     {
                         var result = await Utils.Log(new YesNoIntervention(
