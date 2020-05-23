@@ -42,7 +42,7 @@ namespace Wabbajack.Test
 
         public List<string> Mods = new List<string>();
 
-        public async Task Configure()
+        public async Task Configure(IEnumerable<(string ModName, bool IsEnabled)> enabledMods = null)
         {
             await MO2Folder.Combine("ModOrganizer.ini").WriteAllLinesAsync(
                 "[General]", 
@@ -53,11 +53,22 @@ namespace Wabbajack.Test
             DownloadsFolder.CreateDirectory();
             GameFolder.Combine("Data").CreateDirectory();
 
-            Profiles.Do(profile =>
+            if (enabledMods == null)
             {
-                MO2Folder.Combine("profiles", profile, "modlist.txt").WriteAllLines(
-                    Mods.Select(s => $"+{s}").ToArray());
-            });
+                Profiles.Do(profile =>
+                {
+                    MO2Folder.Combine("profiles", profile, "modlist.txt").WriteAllLines(
+                        Mods.Select(s => $"+{s}").ToArray());
+                });
+            }
+            else
+            {
+                Profiles.Do(profile =>
+                {
+                    MO2Folder.Combine("profiles", profile, "modlist.txt").WriteAllLines(
+                        enabledMods.Select(s => $"{(s.IsEnabled ? "+" : "-")}{s.ModName}").ToArray());
+                });
+            }
         }
 
         public string AddProfile(string name = null)
