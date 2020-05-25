@@ -32,7 +32,7 @@ namespace Wabbajack.Common
             try
             {
                 client.DefaultRequestHeaders.Add(Consts.MetricsKeyHeader,
-                    Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader));
+                    await Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader));
                 await client.GetAsync($"{Consts.WabbajackBuildServerUri}metrics/{action}/{value}");
             }
             catch (Exception)

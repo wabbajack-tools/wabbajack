@@ -185,7 +185,7 @@ namespace Wabbajack.Lib
                     };
                 }));
 
-                var srcData = result.Sources.Select(f => _mo2Compiler.MO2Folder.Combine(f.RelativePath).ReadAllBytes())
+                var srcData = (await result.Sources.SelectAsync(async f => await _mo2Compiler.MO2Folder.Combine(f.RelativePath).ReadAllBytesAsync()).ToList())
                     .ConcatArrays();
 
                 var dstData = await source.AbsolutePath.ReadAllBytesAsync();
@@ -264,7 +264,8 @@ namespace Wabbajack.Lib
                 {
                     Utils.LogStatus($"Generating zEdit merge: {m.To}");
 
-                    var srcData = m.Sources.Select(s => installer.OutputFolder.Combine(s.RelativePath).ReadAllBytes())
+                    var srcData = (await m.Sources.SelectAsync(async s => await installer.OutputFolder.Combine(s.RelativePath).ReadAllBytesAsync())
+                        .ToList())
                         .ConcatArrays();
 
                     var patchData = await installer.LoadBytesFromPath(m.PatchID);

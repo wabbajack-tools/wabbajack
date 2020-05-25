@@ -128,10 +128,10 @@ namespace Wabbajack.Lib.Downloaders
             response.Dispose();
 
             Utils.Log($"Applying patch to {archive.Name}");
-            await using(var src = result.NewFile.Path.OpenShared())
+            await using(var src = await result.NewFile.Path.OpenShared())
             await using (var final = destination.Create())
             {
-                Utils.ApplyPatch(src, () => tempFile.Path.OpenShared(), final);
+                Utils.ApplyPatch(src, () => tempFile.Path.OpenShared().Result, final);
             }
 
             var hash = await destination.FileHashCachedAsync();

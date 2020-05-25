@@ -58,7 +58,7 @@ namespace Wabbajack.Lib.NexusApi
 
                 try
                 {
-                    return Utils.FromEncryptedJson<string>("nexusapikey");
+                    return await Utils.FromEncryptedJson<string>("nexusapikey");
                 }
                 catch (Exception)
                 {

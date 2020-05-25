@@ -165,7 +165,7 @@ namespace Wabbajack.Common
             if (LogFile == default) return;
             lock (_lock)
             {
-                LogFile.AppendAllText($"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n");
+                File.AppendAllText(LogFile.ToString(), $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n");
             }
         }
 
@@ -794,16 +794,16 @@ namespace Wabbajack.Common
             }
         }
 
-        public static bool TryGetPatch(Hash foundHash, Hash fileHash, [MaybeNullWhen(false)] out byte[] ePatch)
+        public static bool TryGetPatch(Hash foundHash, Hash fileHash, [MaybeNullWhen(false)] out AbsolutePath ePatch)
         {
             var patchName = Consts.PatchCacheFolder.Combine($"{foundHash.ToHex()}_{fileHash.ToHex()}.patch");
             if (patchName.Exists)
             {
-                ePatch = patchName.ReadAllBytes();
+                ePatch = patchName;
                 return true;
             }
 
-            ePatch = Array.Empty<byte>();
+            ePatch = default;
             return false;
         }
 
@@ -1039,9 +1039,9 @@ namespace Wabbajack.Common
             bytes.ToEcryptedData(key);
         }
 
-        public static T FromEncryptedJson<T>(string key)
+        public static async Task<T> FromEncryptedJson<T>(string key)
         {
-            var decoded = FromEncryptedData(key);
+            var decoded = await FromEncryptedData(key);
             return Encoding.UTF8.GetString(decoded).FromJsonString<T>();
         }
 
@@ -1053,9 +1053,9 @@ namespace Wabbajack.Common
             
             Consts.LocalAppDataPath.Combine(key).WriteAllBytes(encoded);
         }
-        public static byte[] FromEncryptedData(string key)
+        public static async Task<byte[]> FromEncryptedData(string key)
         {
-            var bytes = Consts.LocalAppDataPath.Combine(key).ReadAllBytes();
+            var bytes = await Consts.LocalAppDataPath.Combine(key).ReadAllBytesAsync();
             return ProtectedData.Unprotect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
         }
 

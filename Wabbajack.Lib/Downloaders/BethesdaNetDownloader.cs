@@ -220,7 +220,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var info = new CollectedBNetInfo();
 
-                var login_info = Utils.FromEncryptedJson<BethesdaNetData>(DataName);
+                var login_info = await Utils.FromEncryptedJson<BethesdaNetData>(DataName);
 
                 var client = new Common.Http.Client();
 
