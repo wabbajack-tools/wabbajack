@@ -148,7 +148,7 @@ namespace Wabbajack.VirtualFileSystem
             bw.Write(FileVersion);
             bw.Write((ulong) Index.AllFiles.Count);
 
-            (await Index.AllFiles
+            await (await Index.AllFiles
                     .PMap(Queue, f =>
                     {
                         var ms = new MemoryStream();
@@ -156,7 +156,7 @@ namespace Wabbajack.VirtualFileSystem
                         f.Write(ibw);
                         return ms;
                     }))
-                .Do(async ms =>
+                .DoAsync(async ms =>
                 {
                     var size = ms.Position;
                     ms.Position = 0;

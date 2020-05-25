@@ -300,6 +300,17 @@ namespace Wabbajack.Common
         {
             foreach (var i in coll) f(i);
         }
+        
+        /// <summary>
+        ///     Executes the action for every item in coll
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="coll"></param>
+        /// <param name="f"></param>
+        public static async Task DoAsync<T>(this IEnumerable<T> coll, Func<T, Task> f)
+        {
+            foreach (var i in coll) await f(i);
+        }
 
         public static void DoIndexed<T>(this IEnumerable<T> coll, Action<int, T> f)
         {
