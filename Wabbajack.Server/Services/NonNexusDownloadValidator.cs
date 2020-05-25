@@ -39,6 +39,7 @@ namespace Wabbajack.Server.Services
                         case WabbajackCDNDownloader.State _:
                         case GoogleDriveDownloader.State _:
                         case ManualDownloader.State _:
+                        case ModDBDownloader.State _:    
                         case HTTPDownloader.State h when h.Url.StartsWith("https://wabbajack"):
                             isValid = true;
                             break;
