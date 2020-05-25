@@ -11,7 +11,7 @@
         <Version>79.1.360</Version>
       </PackageReference>
       <PackageReference Include="CefSharp.OffScreen">
-        <Version>79.1.360</Version>
+        <Version>81.3.100</Version>
       </PackageReference>
       <PackageReference Include="Fody">
         <Version>6.1.1</Version>
