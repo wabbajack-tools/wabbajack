@@ -26,7 +26,7 @@ namespace Compression.BSA
 
         public async Task Build(AbsolutePath filename)
         {
-            await using var fs = filename.Create();
+            await using var fs = await filename.Create();
             await using var bw = new BinaryWriter(fs);
             
             bw.Write(_state.VersionNumber);

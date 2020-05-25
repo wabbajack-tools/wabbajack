@@ -17,7 +17,7 @@ namespace Wabbajack.Common
         {
             if (!Utils.HaveEncryptedJson(Consts.MetricsKeyHeader))
             {
-                Utils.ToEcryptedJson(Utils.MakeRandomKey(), Consts.MetricsKeyHeader);
+                Utils.MakeRandomKey().ToEcryptedJson(Consts.MetricsKeyHeader).AsTask().Wait();
             }
         }
         /// <summary>

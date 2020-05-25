@@ -38,19 +38,22 @@ namespace Compression.BSA
 
         public bool HasNameTable => _nameTableOffset > 0;
 
-        public BA2Reader(AbsolutePath filename) : this(filename.OpenRead())
+        
+        
+        public static async Task<BA2Reader> Load(AbsolutePath filename)
         {
-            _filename = filename;
+            var rdr = new BA2Reader(await filename.OpenShared()) {_filename = filename};
+            await rdr.LoadHeaders();
+            return rdr;
         }
 
-        public BA2Reader(Stream stream)
+        private BA2Reader(Stream stream)
         {
             _stream = stream;
             _rdr = new BinaryReader(_stream, Encoding.UTF7);
-            LoadHeaders();
         }
 
-        public void LoadHeaders()
+        private async Task LoadHeaders()
         {
             _headerMagic = Encoding.ASCII.GetString(_rdr.ReadBytes(4));
 
@@ -196,39 +199,36 @@ namespace Compression.BSA
 
         public uint HeaderSize => DDS.HeaderSizeForFormat((DXGI_FORMAT)_format);
 
-        public void CopyDataTo(Stream output)
+        public async ValueTask CopyDataTo(Stream output)
         {
             var bw = new BinaryWriter(output);
 
             WriteHeader(bw);
 
-            using (var fs = _bsa._filename.OpenRead())
-            using (var br = new BinaryReader(fs))
+            await using var fs = await _bsa._filename.OpenRead();
+            using var br = new BinaryReader(fs);
+            foreach (var chunk in _chunks)
             {
-                foreach (var chunk in _chunks)
+                var full = new byte[chunk._fullSz];
+                var isCompressed = chunk._packSz != 0;
+
+                br.BaseStream.Seek((long)chunk._offset, SeekOrigin.Begin);
+
+                if (!isCompressed)
                 {
-                    var full = new byte[chunk._fullSz];
-                    var isCompressed = chunk._packSz != 0;
-
-                    br.BaseStream.Seek((long)chunk._offset, SeekOrigin.Begin);
-
-                    if (!isCompressed)
-                    {
-                        br.BaseStream.Read(full, 0, full.Length);
-                    }
-                    else
-                    {
-                        byte[] compressed = new byte[chunk._packSz];
-                        br.BaseStream.Read(compressed, 0, compressed.Length);
-                        var inflater = new Inflater();
-                        inflater.SetInput(compressed);
-                        inflater.Inflate(full);
-                    }
-
-                    bw.BaseStream.Write(full, 0, full.Length);
+                    await br.BaseStream.ReadAsync(full, 0, full.Length);
                 }
-            }
+                else
+                {
+                    byte[] compressed = new byte[chunk._packSz];
+                    await br.BaseStream.ReadAsync(compressed, 0, compressed.Length);
+                    var inflater = new Inflater();
+                    inflater.SetInput(compressed);
+                    inflater.Inflate(full);
+                }
 
+                await bw.BaseStream.WriteAsync(full, 0, full.Length);
+            }
         }
 
         public void Dump(Action<string> print)
@@ -480,31 +480,28 @@ namespace Compression.BSA
         public uint Size => _realSize;
         public FileStateObject State => new BA2FileEntryState(this);
 
-        public void CopyDataTo(Stream output)
+        public async ValueTask CopyDataTo(Stream output)
         {
-            using (var fs = _bsa._filename.OpenRead())
+            await using var fs = await _bsa._filename.OpenRead();
+            fs.Seek((long) _offset, SeekOrigin.Begin);
+            uint len = Compressed ? _size : _realSize;
+
+            var bytes = new byte[len];
+            fs.Read(bytes, 0, (int) len);
+
+            if (!Compressed)
             {
-                fs.Seek((long) _offset, SeekOrigin.Begin);
-                uint len = Compressed ? _size : _realSize;
-
-                var bytes = new byte[len];
-                fs.Read(bytes, 0, (int) len);
-
-                if (!Compressed)
-                {
-                    output.Write(bytes, 0, bytes.Length);
-                }
-                else
-                {
-                    var uncompressed = new byte[_realSize];
-                    var inflater = new Inflater();
-                    inflater.SetInput(bytes);
-                    inflater.Inflate(uncompressed);
-                    output.Write(uncompressed, 0, uncompressed.Length);
-                }
+                await output.WriteAsync(bytes, 0, bytes.Length);
+            }
+            else
+            {
+                var uncompressed = new byte[_realSize];
+                var inflater = new Inflater();
+                inflater.SetInput(bytes);
+                inflater.Inflate(uncompressed);
+                await output.WriteAsync(uncompressed, 0, uncompressed.Length);
             }
         }
-
     }
 
     [JsonName("BA2FileEntryState")]

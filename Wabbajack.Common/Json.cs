@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Wabbajack.Common.Serialization.Json;
@@ -57,9 +58,9 @@ namespace Wabbajack.Common
             ser.Serialize(writer, obj);
         }
         
-        public static void ToJson<T>(this T obj, AbsolutePath path)
+        public static async ValueTask ToJsonAsync<T>(this T obj, AbsolutePath path)
         {
-            using var fs = path.Create();
+            await using var fs = await path.Create();
             obj.ToJson(fs);
         }
 

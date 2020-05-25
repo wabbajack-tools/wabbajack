@@ -68,7 +68,7 @@ namespace Wabbajack.Common
             if (LogFile.Exists)
             {
                 var newPath = Consts.LogsFolder.Combine(Consts.EntryPoint.FileNameWithoutExtension + LogFile.LastModified.ToString(" yyyy-MM-dd HH_mm_ss") + ".log");
-                LogFile.MoveTo(newPath, true);
+                LogFile.MoveToAsync(newPath, true).Wait();
             }
 
             var logFiles = LogFolder.EnumerateFiles(false).ToList();
@@ -726,7 +726,7 @@ namespace Wabbajack.Common
                     RETRY_OPEN:
                     try
                     {
-                        await using var f = cacheFile.OpenRead();
+                        await using var f = await cacheFile.OpenRead();
                         await f.CopyToAsync(output);
                     }
                     catch (IOException)
@@ -741,7 +741,7 @@ namespace Wabbajack.Common
                 {
                     var tmpName = Consts.PatchCacheFolder.Combine(Guid.NewGuid() + ".tmp");
 
-                    await using (var f = tmpName.Create())
+                    await using (var f = await tmpName.Create())
                     {
                         Status("Creating Patch");
                         OctoDiff.Create(a, b, f);
@@ -750,7 +750,7 @@ namespace Wabbajack.Common
                     RETRY:
                     try
                     {
-                        tmpName.MoveTo(cacheFile, true);
+                        await tmpName.MoveToAsync(cacheFile, true);
                     }
                     catch (UnauthorizedAccessException)
                     {
@@ -775,7 +775,7 @@ namespace Wabbajack.Common
             patchStream.Position = 0;
             var tmpName = Consts.PatchCacheFolder.Combine(Guid.NewGuid() + ".tmp");
 
-            await using (var f = tmpName.Create())
+            await using (var f = await tmpName.Create())
             {
                 await patchStream.CopyToAsync(f);
                 patchStream.Position = 0;
@@ -786,7 +786,7 @@ namespace Wabbajack.Common
                 var cacheFile = Consts.PatchCacheFolder.Combine($"{srcHash.ToHex()}_{destHash.ToHex()}.patch");
                 Consts.PatchCacheFolder.CreateDirectory();
 
-                tmpName.MoveTo(cacheFile, true);
+                await tmpName.MoveToAsync(cacheFile, true);
             }
             catch (UnauthorizedAccessException)
             {
@@ -900,7 +900,7 @@ namespace Wabbajack.Common
             var startTime = DateTime.Now;
             var seconds = 2;
             var results = await Enumerable.Range(0, queue.DesiredNumWorkers)
-                .PMap(queue, idx =>
+                .PMap(queue, async idx =>
                 {
                     var random = new Random();
 
@@ -908,7 +908,7 @@ namespace Wabbajack.Common
                     long size = 0;
                     byte[] buffer = new byte[1024 * 8];
                     random.NextBytes(buffer);
-                    using (var fs = file.Create())
+                    await using (var fs = await file.Create())
                     {
                         while (DateTime.Now < startTime + new TimeSpan(0, 0, seconds))
                         {
@@ -939,7 +939,7 @@ namespace Wabbajack.Common
                 }
             }
             var speed = await TestDiskSpeedInner(queue, path);
-            speed.ToJson(benchmarkFile);
+            await speed.ToJsonAsync(benchmarkFile);
            
             return speed;
         }
@@ -1033,10 +1033,10 @@ namespace Wabbajack.Common
         /// <typeparam name="T"></typeparam>
         /// <param name="key"></param>
         /// <param name="data"></param>
-        public static void ToEcryptedJson<T>(this T data, string key)
+        public static async ValueTask ToEcryptedJson<T>(this T data, string key)
         {
             var bytes = Encoding.UTF8.GetBytes(data.ToJson());
-            bytes.ToEcryptedData(key);
+            await bytes.ToEcryptedData(key);
         }
 
         public static async Task<T> FromEncryptedJson<T>(string key)
@@ -1046,12 +1046,12 @@ namespace Wabbajack.Common
         }
 
         
-        public static void ToEcryptedData(this byte[] bytes, string key)
+        public static async ValueTask ToEcryptedData(this byte[] bytes, string key)
         {
             var encoded = ProtectedData.Protect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
             Consts.LocalAppDataPath.CreateDirectory();
             
-            Consts.LocalAppDataPath.Combine(key).WriteAllBytes(encoded);
+            await Consts.LocalAppDataPath.Combine(key).WriteAllBytesAsync(encoded);
         }
         public static async Task<byte[]> FromEncryptedData(string key)
         {

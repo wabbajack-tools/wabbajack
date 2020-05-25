@@ -95,7 +95,7 @@ namespace Compression.BSA
         public async Task Build(AbsolutePath outputName)
         {
             RegenFolderRecords();
-            await using var fs = outputName.Create();
+            await using var fs = await outputName.Create();
             await using var wtr = new BinaryWriter(fs);
             
             wtr.Write(_fileId);

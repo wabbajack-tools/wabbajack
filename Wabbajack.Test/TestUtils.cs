@@ -183,7 +183,7 @@ namespace Wabbajack.Test
             return name;
         }
 
-        public void VerifyInstalledFile(string mod, string file)
+        public async Task VerifyInstalledFile(string mod, string file)
         {
             var src = MO2Folder.Combine((string)Consts.MO2ModFolderName, mod, file);
             Assert.True(src.Exists);
@@ -191,8 +191,8 @@ namespace Wabbajack.Test
             var dest = InstallFolder.Combine((string)Consts.MO2ModFolderName, mod, file);
             Assert.True(dest.Exists, $"Destination {dest} doesn't exist");
 
-            var srcData = src.ReadAllBytes();
-            var destData = dest.ReadAllBytes();
+            var srcData = await src.ReadAllBytesAsync();
+            var destData = await dest.ReadAllBytesAsync();
 
             Assert.Equal(srcData.Length, destData.Length);
 
@@ -203,7 +203,7 @@ namespace Wabbajack.Test
             }
         }
         
-        public void VerifyInstalledGameFile(string file)
+        public async Task VerifyInstalledGameFile(string file)
         {
             var src = GameFolder.Combine(file);
             Assert.True(src.Exists);
@@ -211,8 +211,8 @@ namespace Wabbajack.Test
             var dest = InstallFolder.Combine((string)Consts.GameFolderFilesDir, file);
             Assert.True(dest.Exists);
 
-            var srcData = src.ReadAllBytes();
-            var destData = dest.ReadAllBytes();
+            var srcData = await src.ReadAllBytesAsync();
+            var destData = await dest.ReadAllBytesAsync();
 
             Assert.Equal(srcData.Length, destData.Length);
 

@@ -11,20 +11,20 @@ namespace Wabbajack.Common.Test
         [Fact]
         public async Task CanDetectNewEncryptedData()
         {
-            var test_string = Guid.NewGuid().ToString();
+            var testString = Guid.NewGuid().ToString();
             var data = new ConcurrentBag<string>();
-            var events = Utils.HaveEncryptedJsonObservable(test_string).Subscribe(e =>
+            var events = Utils.HaveEncryptedJsonObservable(testString).Subscribe(e =>
             {
                 if (e)
-                    data.Add(test_string);
+                    data.Add(testString);
                 else
                     data.Clear();
             });
             
-            test_string.ToEcryptedJson(test_string);
+            await testString.ToEcryptedJson(testString);
             await Task.Delay(100);
             
-            Assert.Contains(test_string, data);
+            Assert.Contains(testString, data);
 
 
         } 

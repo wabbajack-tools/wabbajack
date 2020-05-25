@@ -16,7 +16,7 @@ namespace Wabbajack.CLI.Verbs
 
         protected override async Task<ExitCode> Run()
         {
-            File.WriteAllBytes(Output, await Utils.FromEncryptedData(Name));
+            await Output.RelativeTo(AbsolutePath.EntryPoint).WriteAllBytesAsync(await Utils.FromEncryptedData(Name));
             return 0;
         }
     }
