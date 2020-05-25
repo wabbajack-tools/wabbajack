@@ -36,19 +36,19 @@ namespace Wabbajack.BuildServer.Test
         public AbsolutePath ServerUpdatesFolder => "updates".RelativeTo(AbsolutePath.EntryPoint);
 
 
-        public static async Task Start()
+        public override async Task InitializeAsync()
         {
-            var fixture = new BuildServerFixture();
-            fixture.ServerArchivesFolder.DeleteDirectory().Wait();
-            fixture.ServerArchivesFolder.CreateDirectory();
+            await base.InitializeAsync();
+            ServerArchivesFolder.DeleteDirectory().Wait();
+            ServerArchivesFolder.CreateDirectory();
 
             var builder = Program.CreateHostBuilder(
                 new[]
                 {
                     $"WabbajackSettings:DownloadDir={"tmp".RelativeTo(AbsolutePath.EntryPoint)}",
                     $"WabbajackSettings:ArchiveDir={"archives".RelativeTo(AbsolutePath.EntryPoint)}",
-                    $"WabbajackSettings:TempFolder={fixture.ServerTempFolder}",
-                    $"WabbajackSettings:SQLConnection={fixture.PublicConnStr}",
+                    $"WabbajackSettings:TempFolder={ServerTempFolder}",
+                    $"WabbajackSettings:SQLConnection={PublicConnStr}",
                     $"WabbajackSettings:BunnyCDN_User=TEST",
                     $"WabbajackSettings:BunnyCDN_Password=TEST",
                     "WabbajackSettings:JobScheduler=false",
@@ -57,12 +57,12 @@ namespace Wabbajack.BuildServer.Test
                     "WabbajackSettings:RunFrontEndJobs=false",
                     "WabbajackSettinss:DisableNexusForwarding=true"
                 }, true);
-            fixture._host = builder.Build();
-            fixture._token = new CancellationTokenSource();
-            fixture._task = fixture._host.RunAsync(fixture._token.Token);
+            _host = builder.Build();
+            _token = new CancellationTokenSource();
+            _task = _host.RunAsync(_token.Token);
             Consts.WabbajackBuildServerUri = new Uri("http://localhost:8080");
 
-            await "ServerWhitelist.yaml".RelativeTo(fixture.ServerPublicFolder).WriteAllTextAsync(
+            await "ServerWhitelist.yaml".RelativeTo(ServerPublicFolder).WriteAllTextAsync(
                 "GoogleIDs:\nAllowedPrefixes:\n    - http://localhost");
 
         }
