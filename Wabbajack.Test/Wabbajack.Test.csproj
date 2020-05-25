@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Common" Version="79.1.360" />
+    <PackageReference Include="CefSharp.Common" Version="81.3.100" />
     <PackageReference Include="CefSharp.OffScreen" Version="79.1.360" />
       <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
       <PackageReference Include="xunit" Version="2.4.1" />
