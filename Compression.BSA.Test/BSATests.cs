@@ -96,16 +96,16 @@ namespace Compression.BSA.Test
                 var tempFile = ((RelativePath)"tmp.bsa").RelativeToEntryPoint();
                 var size = bsa.Size;
                 
-                await using var a = BSADispatch.OpenRead(bsa);
-                await a.Files.PMap(Queue, file =>
+                await using var a = await BSADispatch.OpenRead(bsa);
+                await a.Files.PMap(Queue, async file =>
                 {
                     var absName = _tempDir.Combine(file.Path);
                     ViaJson(file.State);
 
                     absName.Parent.CreateDirectory();
-                    using (var fs = absName.Create())
+                    await using (var fs = await absName.Create())
                     {
-                        file.CopyDataTo(fs);
+                        await file.CopyDataTo(fs);
                     }
 
                     Assert.Equal(file.Size, absName.Size);
@@ -123,7 +123,7 @@ namespace Compression.BSA.Test
                     var streams = await a.Files.PMap(Queue, async file =>
                     {
                         var absPath = _tempDir.Combine(file.Path);
-                        var str = absPath.OpenRead();
+                        var str = await absPath.OpenRead();
                         await w.AddFile(ViaJson(file.State), str);
                         return str;
                     });
@@ -132,7 +132,7 @@ namespace Compression.BSA.Test
                 }
 
                 TestContext.WriteLine($"Verifying {bsa}");
-                await using var b = BSADispatch.OpenRead(tempFile);
+                await using var b = await BSADispatch.OpenRead(tempFile);
                 TestContext.WriteLine($"Performing A/B tests on {bsa}");
                 Assert.Equal(a.State.ToJson(), b.State.ToJson());
 

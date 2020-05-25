@@ -81,7 +81,7 @@ namespace Wabbajack.Lib.Downloaders
                     destination.Parent.CreateDirectory();
                 }
 
-                using (var fs = download ? destination.Create() : null)
+                using (var fs = download ? await destination.Create() : null)
                 {
                     var client = Client ?? new Common.Http.Client();
                     client.Headers.Add(("User-Agent", Consts.UserAgent));

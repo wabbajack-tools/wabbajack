@@ -27,17 +27,17 @@ namespace Wabbajack.Test
         {
 
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var testPex = utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
+            var mod = await utils.AddMod();
+            var testPex = await utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
 
             await utils.Configure();
 
-            utils.AddManualDownload(
+            await utils.AddManualDownload(
                 new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
 
             await CompileAndInstall(profile);
 
-            utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
         }
         
         [Fact]
@@ -45,19 +45,19 @@ namespace Wabbajack.Test
         {
 
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var testPex = utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
+            var mod = await utils.AddMod();
+            var testPex = await utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
 
             await utils.Configure();
 
-            utils.AddManualDownload(
+            await utils.AddManualDownload(
                 new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
             
             await utils.DownloadsFolder.Combine("some_other_file.7z").WriteAllTextAsync("random data");
 
             await CompileAndInstall(profile);
 
-            utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
         }
         
         [Fact]
@@ -65,17 +65,17 @@ namespace Wabbajack.Test
         {
 
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var testPex = utils.AddGameFile(@"enbstuff\test.pex", 10);
+            var mod = await utils.AddMod();
+            var testPex = await utils.AddGameFile(@"enbstuff\test.pex", 10);
 
             await utils.Configure();
 
-            utils.AddManualDownload(
+            await utils.AddManualDownload(
                 new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
 
             await CompileAndInstall(profile);
 
-            utils.VerifyInstalledGameFile(@"enbstuff\test.pex");
+            await utils.VerifyInstalledGameFile(@"enbstuff\test.pex");
         }
         
         [Fact]
@@ -83,14 +83,14 @@ namespace Wabbajack.Test
         {
 
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var testPex = utils.AddGameFile(@"enbstuff\test.pex", 10);
+            var mod = await utils.AddMod();
+            var testPex = await utils.AddGameFile(@"enbstuff\test.pex", 10);
 
             await utils.Configure();
 
             utils.MO2Folder.Combine(Consts.GameFolderFilesDir).CreateDirectory();
 
-            utils.AddManualDownload(
+            await utils.AddManualDownload(
                 new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
 
             await CompileAndInstall(profile);
@@ -103,21 +103,21 @@ namespace Wabbajack.Test
         {
 
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var testPex = utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
+            var mod = await utils.AddMod();
+            var testPex = await utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
 
             // Make a copy to make sure it gets picked up and moved around.
-            testPex.CopyTo(testPex.WithExtension(new Extension(".copy")));
+            await testPex.CopyToAsync(testPex.WithExtension(new Extension(".copy")));
 
             await utils.Configure();
 
-            utils.AddManualDownload(
+            await utils.AddManualDownload(
                 new Dictionary<string, byte[]> { { "/baz/biz.pex", await testPex.ReadAllBytesAsync() } });
 
             await CompileAndInstall(profile);
 
-            utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
-            utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex.copy");
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex.copy");
         }
 
         [Fact]
@@ -125,14 +125,14 @@ namespace Wabbajack.Test
         {
 
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var unchanged = utils.AddModFile(mod, @"Data\scripts\unchanged.pex", 10);
-            var deleted = utils.AddModFile(mod, @"Data\scripts\deleted.pex", 10);
-            var modified = utils.AddModFile(mod, @"Data\scripts\modified.pex", 10);
+            var mod = await utils.AddMod();
+            var unchanged = await utils.AddModFile(mod, @"Data\scripts\unchanged.pex", 10);
+            var deleted = await utils.AddModFile(mod, @"Data\scripts\deleted.pex", 10);
+            var modified = await utils.AddModFile(mod, @"Data\scripts\modified.pex", 10);
 
             await utils.Configure();
 
-            utils.AddManualDownload(
+            await utils.AddManualDownload(
                 new Dictionary<string, byte[]>
                 {
                     { "/baz/unchanged.pex", await unchanged.ReadAllBytesAsync() },
@@ -142,9 +142,9 @@ namespace Wabbajack.Test
 
             await CompileAndInstall(profile);
 
-            utils.VerifyInstalledFile(mod, @"Data\scripts\unchanged.pex");
-            utils.VerifyInstalledFile(mod, @"Data\scripts\deleted.pex");
-            utils.VerifyInstalledFile(mod, @"Data\scripts\modified.pex");
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\unchanged.pex");
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\deleted.pex");
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\modified.pex");
 
             var unchangedPath = utils.PathOfInstalledFile(mod, @"Data\scripts\unchanged.pex");
             var deletedPath = utils.PathOfInstalledFile(mod, @"Data\scripts\deleted.pex");
@@ -170,9 +170,9 @@ namespace Wabbajack.Test
             
             await CompileAndInstall(profile);
 
-            utils.VerifyInstalledFile(mod, @"Data\scripts\unchanged.pex");
-            utils.VerifyInstalledFile(mod, @"Data\scripts\deleted.pex");
-            utils.VerifyInstalledFile(mod, @"Data\scripts\modified.pex");
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\unchanged.pex");
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\deleted.pex");
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\modified.pex");
 
             Assert.Equal(unchangedModified, unchangedPath.LastModified);
             Assert.NotEqual(modifiedModified, modifiedPath.LastModified);
@@ -184,7 +184,7 @@ namespace Wabbajack.Test
         public async Task SetScreenSizeTest()
         {
             var profile = utils.AddProfile();
-            var mod = utils.AddMod("dummy");
+            var mod = await utils.AddMod("dummy");
 
             await utils.Configure();
             await utils.MO2Folder.Combine("profiles", profile, "somegameprefs.ini").WriteAllLinesAsync(
@@ -216,11 +216,11 @@ namespace Wabbajack.Test
         public async Task UnmodifiedInlinedFilesArePulledFromArchives()
         {
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var ini = utils.AddModFile(mod, @"foo.ini", 10);
+            var mod = await utils.AddMod();
+            var ini = await utils.AddModFile(mod, @"foo.ini", 10);
             await utils.Configure();
 
-            utils.AddManualDownload(
+            await utils.AddManualDownload(
                 new Dictionary<string, byte[]> { { "/baz/biz.pex", await ini.ReadAllBytesAsync() } });
 
             var modlist = await CompileAndInstall(profile);
@@ -234,9 +234,9 @@ namespace Wabbajack.Test
         public async Task ModifiedIniFilesArePatchedAgainstFileWithSameName()
         {
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var ini = utils.AddModFile(mod, @"foo.ini", 10);
-            var meta = utils.AddModFile(mod, "meta.ini");
+            var mod = await utils.AddMod();
+            var ini = await utils.AddModFile(mod, @"foo.ini", 10);
+            var meta = await utils.AddModFile(mod, "meta.ini");
 
             await utils.Configure();
 
@@ -262,8 +262,8 @@ namespace Wabbajack.Test
         public async Task CanPatchFilesSourcedFromBSAs()
         {
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var file = utils.AddModFile(mod, @"baz.bin", 10);
+            var mod = await utils.AddMod();
+            var file = await utils.AddModFile(mod, @"baz.bin", 10);
             
             await utils.Configure();
 
@@ -287,7 +287,7 @@ namespace Wabbajack.Test
                 new Dictionary<string, byte[]> { { "/stuff/files.bsa", await tempFile.Path.ReadAllBytesAsync() } });
             
             await CompileAndInstall(profile);
-            utils.VerifyInstalledFile(mod, @"baz.bin");
+            await utils.VerifyInstalledFile(mod, @"baz.bin");
             
         }
         
@@ -295,8 +295,8 @@ namespace Wabbajack.Test
         public async Task CanNoMatchIncludeFilesFromBSAs()
         {
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var file = utils.AddModFile(mod, @"baz.bsa", 10);
+            var mod = await utils.AddMod();
+            var file = await utils.AddModFile(mod, @"baz.bsa", 10);
 
             await file.Parent.Combine("meta.ini").WriteAllLinesAsync(new[]
             {
@@ -334,7 +334,7 @@ namespace Wabbajack.Test
                 new Dictionary<string, byte[]> { { "/stuff/matching_file_data.bin", tempFileData } });
             
             await CompileAndInstall(profile);
-            utils.VerifyInstalledFile(mod, @"baz.bsa");
+            await utils.VerifyInstalledFile(mod, @"baz.bsa");
             
         }
         
@@ -342,8 +342,8 @@ namespace Wabbajack.Test
         public async Task CanInstallFilesFromBSAAndBSA()
         {
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var file = utils.AddModFile(mod, @"baz.bin", 128);
+            var mod = await utils.AddMod();
+            var file = await utils.AddModFile(mod, @"baz.bin", 128);
             
             await utils.Configure();
 
@@ -362,14 +362,14 @@ namespace Wabbajack.Test
                 }, new MemoryStream(await file.ReadAllBytesAsync()));
                 await bsa.Build(tempFile.Path);
             }
-            tempFile.Path.CopyTo(file.Parent.Combine("bsa_data.bsa"));
+            await tempFile.Path.CopyToAsync(file.Parent.Combine("bsa_data.bsa"));
             
             var archive = utils.AddManualDownload(
                 new Dictionary<string, byte[]> { { "/stuff/files.bsa", await tempFile.Path.ReadAllBytesAsync() } });
             
             await CompileAndInstall(profile);
-            utils.VerifyInstalledFile(mod, @"baz.bin");
-            utils.VerifyInstalledFile(mod, @"bsa_data.bsa");
+            await utils.VerifyInstalledFile(mod, @"baz.bin");
+            await utils.VerifyInstalledFile(mod, @"bsa_data.bsa");
             
         }
         
@@ -377,8 +377,8 @@ namespace Wabbajack.Test
         public async Task CanRecreateBSAsFromFilesSourcedInOtherBSAs()
         {
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var file = utils.AddModFile(mod, @"baz.bsa", 10);
+            var mod = await utils.AddMod();
+            var file = await utils.AddModFile(mod, @"baz.bsa", 10);
             
             await utils.Configure();
 
@@ -414,7 +414,7 @@ namespace Wabbajack.Test
 
             
             await CompileAndInstall(profile);
-            utils.VerifyInstalledFile(mod, @"baz.bsa");
+            await utils.VerifyInstalledFile(mod, @"baz.bsa");
             
         }
 
@@ -425,8 +425,8 @@ namespace Wabbajack.Test
             Consts.TestMode = false;
 
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var skyrimExe = utils.AddModFile(mod, @"Data\test.exe", 10);
+            var mod = await utils.AddMod();
+            var skyrimExe = await utils.AddModFile(mod, @"Data\test.exe", 10);
 
             var gameFolder = Consts.GameFolderFilesDir.RelativeTo(utils.MO2Folder);
             gameFolder.CreateDirectory();
@@ -459,18 +459,18 @@ namespace Wabbajack.Test
         {
 
             var profile = utils.AddProfile();
-            var mod = utils.AddMod();
-            var testPex = utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
+            var mod = await utils.AddMod();
+            var testPex = await utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
 
             await utils.Configure();
 
-            await utils.AddModFile(mod, "meta.ini").WriteAllLinesAsync(new[]
+            await (await utils.AddModFile(mod, "meta.ini")).WriteAllLinesAsync(new[]
             {
                 "[General]", "notes= fsdaf WABBAJACK_NOMATCH_INCLUDE fadsfsad",
             });
             await CompileAndInstall(profile);
 
-            utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
+            await utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
         }
         
         
@@ -483,11 +483,11 @@ namespace Wabbajack.Test
         {
 
             var profile = utils.AddProfile();
-            var enabledMod = utils.AddMod();
-            var enabledTestPex = utils.AddModFile(enabledMod, @"Data\scripts\enabledTestPex.pex", 10);
+            var enabledMod = await utils.AddMod();
+            var enabledTestPex = await utils.AddModFile(enabledMod, @"Data\scripts\enabledTestPex.pex", 10);
 
-            var disabledMod = utils.AddMod();
-            var disabledTestPex = utils.AddModFile(disabledMod, @"Data\scripts\disabledTestPex.pex", 10);
+            var disabledMod = await utils.AddMod();
+            var disabledTestPex = await utils.AddModFile(disabledMod, @"Data\scripts\disabledTestPex.pex", 10);
 
             await disabledMod.RelativeTo(utils.ModsFolder).Combine("meta.ini").WriteAllLinesAsync(
                 "[General]",
@@ -499,7 +499,7 @@ namespace Wabbajack.Test
                 (enabledMod, true)
             });
 
-            utils.AddManualDownload(
+            await utils.AddManualDownload(
                 new Dictionary<string, byte[]>
                 {
                     {"/file1.pex", await enabledTestPex.ReadAllBytesAsync()},
@@ -508,8 +508,8 @@ namespace Wabbajack.Test
 
             await CompileAndInstall(profile);
 
-            utils.VerifyInstalledFile(enabledMod, @"Data\scripts\enabledTestPex.pex");
-            utils.VerifyInstalledFile(disabledMod, @"Data\scripts\disabledTestPex.pex");
+            await utils.VerifyInstalledFile(enabledMod, @"Data\scripts\enabledTestPex.pex");
+            await utils.VerifyInstalledFile(disabledMod, @"Data\scripts\disabledTestPex.pex");
 
             var modlistTxt = await utils.InstallFolder.Combine("profiles", profile, "modlist.txt").ReadAllLinesAsync();
             Assert.Equal(new string[]

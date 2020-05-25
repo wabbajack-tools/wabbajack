@@ -15,13 +15,13 @@ namespace Wabbajack.Test
         public async Task CanCreatezEditPatches()
         {
             var profile = utils.AddProfile();
-            var moda = utils.AddMod();
-            var modb = utils.AddMod();
-            var moddest = utils.AddMod();
-            var srca = utils.AddModFile(moda, @"srca.esp", 10);
-            var srcb = utils.AddModFile(moda, @"srcb.esp.mohidden", 10);
-            var srcc = utils.AddModFile(modb, @"optional\srcc.esp", 10);
-            var dest = utils.AddModFile(moddest, @"merged.esp", 20);
+            var moda = await utils.AddMod();
+            var modb = await utils.AddMod();
+            var moddest = await utils.AddMod();
+            var srca = await utils.AddModFile(moda, @"srca.esp", 10);
+            var srcb = await utils.AddModFile(moda, @"srcb.esp.mohidden", 10);
+            var srcc = await utils.AddModFile(modb, @"optional\srcc.esp", 10);
+            var dest = await utils.AddModFile(moddest, @"merged.esp", 20);
 
             var srcs = new List<string> {srca, srcb, srcc};
 

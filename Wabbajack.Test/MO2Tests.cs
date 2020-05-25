@@ -27,8 +27,8 @@ namespace Wabbajack.Test
         public async Task CheckValidInstallPath_HasModlist()
         {
             await using var tempDir = await TempFolder.Create();
-            await using var mo2 = tempDir.Dir.Combine("ModOrganizer.exe").Create();
-            await using var molist = tempDir.Dir.Combine(((RelativePath)"modlist")).WithExtension(Consts.ModListExtension).Create();
+            await using var mo2 = await tempDir.Dir.Combine("ModOrganizer.exe").Create();
+            await using var molist = await tempDir.Dir.Combine(((RelativePath)"modlist")).WithExtension(Consts.ModListExtension).Create();
             Assert.False(MO2Installer.CheckValidInstallPath(tempDir.Dir, downloadFolder: null).Succeeded);
         }
 
@@ -36,7 +36,7 @@ namespace Wabbajack.Test
         public async Task CheckValidInstallPath_ProperOverwrite()
         {
             await using var tempDir = await TempFolder.Create();
-            await using var tmp = tempDir.Dir.Combine(Consts.ModOrganizer2Exe).Create();
+            await using var tmp = await tempDir.Dir.Combine(Consts.ModOrganizer2Exe).Create();
             Assert.True(MO2Installer.CheckValidInstallPath(tempDir.Dir, downloadFolder: null).Succeeded);
         }
 
@@ -46,7 +46,7 @@ namespace Wabbajack.Test
             await using var tempDir = await TempFolder.Create();
             await tempDir.Dir.DeleteDirectory();
             tempDir.Dir.CreateDirectory();
-            await using var tmp = tempDir.Dir.Combine($"someFile.txt").Create();
+            await using var tmp = await tempDir.Dir.Combine($"someFile.txt").Create();
             Assert.False(MO2Installer.CheckValidInstallPath(tempDir.Dir, downloadFolder: null).Succeeded);
         }
 
@@ -56,7 +56,7 @@ namespace Wabbajack.Test
             await using var tempDir = await TempFolder.Create();
             var downloadsFolder = tempDir.Dir.Combine("downloads");
             downloadsFolder.CreateDirectory();
-            await using var tmp = tempDir.Dir.Combine($"downloads/someFile.txt").Create();
+            await using var tmp = await tempDir.Dir.Combine($"downloads/someFile.txt").Create();
             Assert.True(MO2Installer.CheckValidInstallPath(tempDir.Dir, downloadFolder: downloadsFolder).Succeeded);
         }
         #endregion

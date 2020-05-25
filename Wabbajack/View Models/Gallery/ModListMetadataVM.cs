@@ -144,11 +144,11 @@ namespace Wabbajack
                 .Unit()
                 .StartWith(Unit.Default)
                 .FlowSwitch(_parent.WhenAny(x => x.IsActive))
-                .Select(_ =>
+                .SelectAsync(async _ =>
                 {
                     try
                     {
-                        return !metadata.NeedsDownload(Location);
+                        return !(await metadata.NeedsDownload(Location));
                     }
                     catch (Exception)
                     {
@@ -185,7 +185,7 @@ namespace Wabbajack
                         var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
                         var result = await downloader.Download(new Archive(state: null!) { Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0 }, Location);
                         // Want to rehash to current file, even if failed?
-                        Location.FileHashCached();
+                        await Location.FileHashCachedAsync();
                         tcs.SetResult(result);
                     }
                     catch (Exception ex)

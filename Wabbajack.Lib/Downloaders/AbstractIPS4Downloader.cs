@@ -124,7 +124,7 @@ namespace Wabbajack.Lib.Downloaders
                 using var stream = await ResolveDownloadStream(a);
                 if (stream == null) return false;
                 await using var fromStream = await stream.Content.ReadAsStreamAsync();
-                await using var toStream = destination.Create();
+                await using var toStream = await destination.Create();
                 await fromStream.CopyToAsync(toStream);
                 return true;
             }

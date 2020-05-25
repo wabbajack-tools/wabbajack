@@ -129,7 +129,7 @@ namespace Wabbajack.Lib.Downloaders
 
             Utils.Log($"Applying patch to {archive.Name}");
             await using(var src = await result.NewFile.Path.OpenShared())
-            await using (var final = destination.Create())
+            await using (var final = await destination.Create())
             {
                 Utils.ApplyPatch(src, () => tempFile.Path.OpenShared().Result, final);
             }

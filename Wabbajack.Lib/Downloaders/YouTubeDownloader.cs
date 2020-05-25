@@ -114,7 +114,7 @@ namespace Wabbajack.Lib.Downloaders
 
                     var trackFolder = folder.Dir.Combine("tracks");
 
-                    await using (var fs = initialDownload.Create())
+                    await using (var fs = await initialDownload.Create())
                     {
                         await client.Videos.Streams.CopyToAsync(stream, fs, new Progress($"Downloading {a.Name}"),
                             CancellationToken.None);
@@ -128,7 +128,7 @@ namespace Wabbajack.Lib.Downloaders
                         await ExtractTrack(initialDownload, trackFolder, track);
                     });
 
-                    await using var dest = destination.Create();
+                    await using var dest = await destination.Create();
                     using var ar = new ZipArchive(dest, ZipArchiveMode.Create);
                     foreach (var track in trackFolder.EnumerateFiles().OrderBy(e => e))
                     {
@@ -136,7 +136,7 @@ namespace Wabbajack.Lib.Downloaders
                         var entry = ar.CreateEntry(Path.Combine("Data", "tracks", (string)track.RelativeTo(trackFolder)), CompressionLevel.NoCompression);
                         entry.LastWriteTime = meta.UploadDate;
                         await using var es = entry.Open();
-                        await using var ins = track.OpenRead();
+                        await using var ins = await track.OpenRead();
                         await ins.CopyToAsync(es);
                     }
                         

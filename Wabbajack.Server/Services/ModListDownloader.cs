@@ -99,7 +99,7 @@ namespace Wabbajack.Server.Services
 
                     _maintainer.TryGetPath(list.DownloadMetadata.Hash, out var modlistPath);
                     ModList modlist;
-                    await using (var fs = modlistPath.OpenRead())
+                    await using (var fs = await modlistPath.OpenRead())
                     using (var zip = new ZipArchive(fs, ZipArchiveMode.Read))
                     await using (var entry = zip.GetEntry("modlist")?.Open())
                     {

@@ -47,7 +47,7 @@ namespace Wabbajack.Test
         public async Task CreateModlist()
         {
             var profile = utils.AddProfile("Default");
-            var mod = utils.AddMod();
+            var mod = await utils.AddMod();
 
             await DownloadAndInstall(
                 "https://github.com/ModOrganizer2/modorganizer/releases/download/v2.2.1/Mod.Organizer.2.2.1.7z",
@@ -79,7 +79,7 @@ namespace Wabbajack.Test
 
 
             await CompileAndInstall(profile);
-            utils.VerifyAllFiles();
+            await utils.VerifyAllFiles();
 
             await utils.InstallFolder.Combine(Consts.LOOTFolderFilesDir).DeleteDirectory();
 
@@ -111,7 +111,7 @@ namespace Wabbajack.Test
 
         private async Task<(AbsolutePath Download, AbsolutePath ModFolder)> DownloadAndInstall(Game game, int modId, string modName)
         {
-            utils.AddMod(modName);
+            await utils.AddMod(modName);
             var client = await NexusApiClient.Get();
             var resp = await client.GetModFiles(game, modId);
             var file = resp.files.FirstOrDefault(f => f.is_primary) ?? resp.files.FirstOrDefault(f => !string.IsNullOrEmpty(f.category_name));

@@ -81,7 +81,7 @@ namespace Wabbajack.Lib.Downloaders
                 await Task.Delay(500, cancel);
             }
 
-            cookies.ToEcryptedJson(_encryptedKeyName);
+            await cookies.ToEcryptedJson(_encryptedKeyName);
 
             return cookies;
         }

@@ -70,10 +70,10 @@ namespace Wabbajack.Server.Services
 
                     using var sigFile = new TempFile();
                     using var patchFile = new TempFile();
-                    await using var srcStream = srcPath.OpenShared();
-                    await using var destStream = destPath.OpenShared();
-                    await using var sigStream = sigFile.Path.Create();
-                    await using var patchOutput = patchFile.Path.Create();
+                    await using var srcStream = await srcPath.OpenShared();
+                    await using var destStream = await destPath.OpenShared();
+                    await using var sigStream = await sigFile.Path.Create();
+                    await using var patchOutput = await patchFile.Path.Create();
                     OctoDiff.Create(destStream, srcStream, sigStream, patchOutput);
                     await patchOutput.DisposeAsync();
                     var size = patchFile.Path.Size;
@@ -132,7 +132,7 @@ namespace Wabbajack.Server.Services
 
         private async Task<FtpClient> GetBunnyCdnFtpClient()
         {
-            var info = Utils.FromEncryptedJson<BunnyCdnFtpInfo>("bunny-cdn-ftp-info");
+            var info = await Utils.FromEncryptedJson<BunnyCdnFtpInfo>("bunny-cdn-ftp-info");
             var client = new FtpClient(info.Hostname) {Credentials = new NetworkCredential(info.Username, info.Password)};
             await client.ConnectAsync();
             return client;

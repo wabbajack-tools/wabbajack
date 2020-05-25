@@ -45,19 +45,17 @@ namespace Wabbajack
             ImageObservable = Observable.Return(Unit.Default)
                 // Download and retrieve bytes on background thread
                 .ObserveOn(RxApp.TaskpoolScheduler)
-                .Select(filePath =>
+                .SelectAsync(async filePath =>
                 {
                     try
                     {
-                        using var fs = ModListPath.OpenShared();
+                        await using var fs = await ModListPath.OpenShared();
                         using var ar = new ZipArchive(fs, ZipArchiveMode.Read);
                         var ms = new MemoryStream();
                         var entry = ar.GetEntry("modlist-image.png");
                         if (entry == null) return default(MemoryStream);
-                        using (var e = entry.Open())
-                        {
-                            e.CopyTo(ms);
-                        }
+                        await using var e = entry.Open();
+                        e.CopyTo(ms);
                         return ms;
                     }
                     catch (Exception ex)
@@ -82,10 +80,7 @@ namespace Wabbajack
                     }
                 })
                 // If ever would return null, show WJ logo instead
-                .Select(x =>
-                {
-                    return x ?? ResourceLinks.WabbajackLogoNoText.Value;
-                })
+                .Select(x => x ?? ResourceLinks.WabbajackLogoNoText.Value)
                 .Replay(1)
                 .RefCount();
         }

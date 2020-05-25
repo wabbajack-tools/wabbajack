@@ -4,6 +4,8 @@ using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Kernel;
 using ReactiveUI;
@@ -36,6 +38,20 @@ namespace Wabbajack
         public static IObservable<T> ObserveOnGuiThread<T>(this IObservable<T> source)
         {
             return source.ObserveOn(RxApp.MainThreadScheduler);
+        }
+
+        
+        /// <summary>
+        /// Like IObservable.Select but supports async map functions
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="f"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static IObservable<TOut> SelectAsync<TIn, TOut>(this IObservable<TIn> source, Func<TIn, Task<TOut>> f)
+        {
+            return source.Select(itm => Observable.FromAsync(async () => await f(itm))).Merge(10);
+
         }
 
         public static IObservable<Unit> StartingExecution(this IReactiveCommand cmd)

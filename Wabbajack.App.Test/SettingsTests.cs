@@ -8,16 +8,16 @@ namespace Wabbajack.Test
         [Fact]
         public async Task CanSaveAndLoadSettings()
         {
-            MainSettings.TryLoadTypicalSettings(out var settings);
+            var (settings, loadedSettings) = await MainSettings.TryLoadTypicalSettings();
 
-            if (settings == null)
+            if (settings == null || !loadedSettings)
             {
                 settings = new MainSettings();
             }
 
-            MainSettings.SaveSettings(settings);
+            await MainSettings.SaveSettings(settings);
             
-            Assert.True(MainSettings.TryLoadTypicalSettings(out settings));
+            Assert.True((await MainSettings.TryLoadTypicalSettings()).loaded);
             
         }
     }

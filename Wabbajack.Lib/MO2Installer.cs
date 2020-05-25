@@ -84,7 +84,7 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Validating Game ESMs");
-            ValidateGameESMs();
+            await ValidateGameESMs();
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Validating Modlist");
@@ -238,14 +238,14 @@ namespace Wabbajack.Lib
                    });
         }
 
-        private void ValidateGameESMs()
+        private async ValueTask ValidateGameESMs()
         {
             foreach (var esm in ModList.Directives.OfType<CleanedESM>().ToList())
             {
                 var filename = esm.To.FileName;
                 var gameFile = GameFolder!.Value.Combine((RelativePath)"Data", filename);
                 Utils.Log($"Validating {filename}");
-                var hash = gameFile.FileHash();
+                var hash = await gameFile.FileHashAsync();
                 if (hash != esm.SourceESMHash)
                 {
                     Utils.ErrorThrow(new InvalidGameESMError(esm, hash, gameFile));
@@ -269,7 +269,7 @@ namespace Wabbajack.Lib
                 var streams = await bsa.FileStates.PMap(Queue, async state =>
                 {
                     Status($"Adding {state.Path} to BSA");
-                    var fs = sourceDir.Combine(state.Path).OpenRead();
+                    var fs = await sourceDir.Combine(state.Path).OpenRead();
                     await a.AddFile(state, fs);
                     return fs;
                 });
@@ -328,8 +328,8 @@ namespace Wabbajack.Lib
             var patchData = await LoadBytesFromPath(directive.SourceDataID);
             var toFile = OutputFolder.Combine(directive.To);
             Status($"Patching {filename}");
-            using var output = toFile.Create();
-            using var input = gameFile.OpenRead();
+            await using var output = await toFile.Create();
+            await using var input = await gameFile.OpenRead();
             Utils.ApplyPatch(input, () => new MemoryStream(patchData), output);
         }
 

@@ -71,7 +71,7 @@ namespace Wabbajack.Lib
 
         public async Task<byte[]> LoadBytesFromPath(RelativePath path)
         {
-            await using var e = ExtractedModListFiles![path].OpenRead();
+            await using var e = await ExtractedModListFiles![path].OpenRead();
             return await e.ReadAllAsync();
         }
 
@@ -213,7 +213,7 @@ namespace Wabbajack.Lib
                     toFile.Delete();
 
                     // Patch it
-                    await using (var outStream = toFile.Create())
+                    await using (var outStream = await toFile.Create())
                     {
                         Utils.ApplyPatch(oldData, () => new MemoryStream(patchData), outStream);
                     }

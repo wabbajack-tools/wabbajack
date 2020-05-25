@@ -36,18 +36,19 @@ namespace Wabbajack.BuildServer.Test
         public AbsolutePath ServerUpdatesFolder => "updates".RelativeTo(AbsolutePath.EntryPoint);
 
 
-        public BuildServerFixture()
+        public static async Task Start()
         {
-            ServerArchivesFolder.DeleteDirectory().Wait();
-            ServerArchivesFolder.CreateDirectory();
+            var fixture = new BuildServerFixture();
+            fixture.ServerArchivesFolder.DeleteDirectory().Wait();
+            fixture.ServerArchivesFolder.CreateDirectory();
 
             var builder = Program.CreateHostBuilder(
                 new[]
                 {
                     $"WabbajackSettings:DownloadDir={"tmp".RelativeTo(AbsolutePath.EntryPoint)}",
                     $"WabbajackSettings:ArchiveDir={"archives".RelativeTo(AbsolutePath.EntryPoint)}",
-                    $"WabbajackSettings:TempFolder={ServerTempFolder}",
-                    $"WabbajackSettings:SQLConnection={PublicConnStr}",
+                    $"WabbajackSettings:TempFolder={fixture.ServerTempFolder}",
+                    $"WabbajackSettings:SQLConnection={fixture.PublicConnStr}",
                     $"WabbajackSettings:BunnyCDN_User=TEST",
                     $"WabbajackSettings:BunnyCDN_Password=TEST",
                     "WabbajackSettings:JobScheduler=false",
@@ -56,12 +57,12 @@ namespace Wabbajack.BuildServer.Test
                     "WabbajackSettings:RunFrontEndJobs=false",
                     "WabbajackSettinss:DisableNexusForwarding=true"
                 }, true);
-            _host = builder.Build();
-            _token = new CancellationTokenSource();
-            _task = _host.RunAsync(_token.Token);
+            fixture._host = builder.Build();
+            fixture._token = new CancellationTokenSource();
+            fixture._task = fixture._host.RunAsync(fixture._token.Token);
             Consts.WabbajackBuildServerUri = new Uri("http://localhost:8080");
 
-            "ServerWhitelist.yaml".RelativeTo(ServerPublicFolder).WriteAllText(
+            await "ServerWhitelist.yaml".RelativeTo(fixture.ServerPublicFolder).WriteAllTextAsync(
                 "GoogleIDs:\nAllowedPrefixes:\n    - http://localhost");
 
         }
@@ -208,7 +209,7 @@ namespace Wabbajack.BuildServer.Test
             
             var modListPath = "test_modlist.wabbajack".RelativeTo(Fixture.ServerPublicFolder);
 
-            await using (var fs = modListPath.Create())
+            await using (var fs = await modListPath.Create())
             {
                 using var za = new ZipArchive(fs, ZipArchiveMode.Create);
                 var entry = za.CreateEntry("modlist");
@@ -254,7 +255,7 @@ namespace Wabbajack.BuildServer.Test
 
             var metadataPath = "test_mod_list_metadata.json".RelativeTo(Fixture.ServerPublicFolder);
 
-            ModListMetaData.ToJson(metadataPath);
+            await ModListMetaData.ToJsonAsync(metadataPath);
             
             return new Uri(MakeURL("test_mod_list_metadata.json"));
         }

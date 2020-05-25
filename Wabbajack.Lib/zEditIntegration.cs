@@ -270,7 +270,7 @@ namespace Wabbajack.Lib
 
                     var patchData = await installer.LoadBytesFromPath(m.PatchID);
 
-                    await using var fs = installer.OutputFolder.Combine(m.To).Create();
+                    await using var fs = await installer.OutputFolder.Combine(m.To).Create();
                     Utils.ApplyPatch(new MemoryStream(srcData), () => new MemoryStream(patchData), fs);
                 });
         }
