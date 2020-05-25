@@ -243,6 +243,10 @@ TOP:
             public bool ValidateUpgrade(AbstractDownloadState newArchiveState)
             {
                 var httpState = (State)newArchiveState;
+
+                if (new Uri(httpState.Url).Host.EndsWith(".mediafire.com"))
+                    return false;
+                
                 return httpState.Url == Url;
             }
         }
