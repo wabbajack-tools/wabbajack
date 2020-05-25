@@ -72,7 +72,7 @@ namespace Wabbajack.VirtualFileSystem.Test
             Assert.NotNull(file);
 
             Assert.Equal(128, file.Size);
-            Assert.Equal(absPath.FileHash(), file.Hash);
+            Assert.Equal(await absPath.FileHashAsync(), file.Hash);
 
             Assert.True(file.IsArchive);
             var innerFile = file.Children.First();
@@ -143,7 +143,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             var cleanup = await context.Stage(new List<VirtualFile> {file});
             
-            await using var stream = file.StagedFile.OpenRead();
+            await using var stream = await file.StagedFile.OpenRead();
            
             Assert.Equal("This is a test", await stream.ReadAllTextAsync());
 
@@ -158,7 +158,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             var inner_dir = @"archive\other\dir".RelativeTo(VFS_TEST_DIR);
             inner_dir.CreateDirectory();
-            TEST_ZIP.MoveTo( @"archive\other\dir\nested.zip".RelativeTo(VFS_TEST_DIR));
+            await TEST_ZIP.MoveToAsync( @"archive\other\dir\nested.zip".RelativeTo(VFS_TEST_DIR));
             await ZipUpFolder(ARCHIVE_TEST_TXT.Parent, TEST_ZIP);
 
             await AddTestRoot();
@@ -169,7 +169,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             foreach (var file in files)
             {
-                await using var stream = file.StagedFile.OpenRead();
+                await using var stream = await file.StagedFile.OpenRead();
                 
                 Assert.Equal("This is a test", await stream.ReadAllTextAsync());
             }

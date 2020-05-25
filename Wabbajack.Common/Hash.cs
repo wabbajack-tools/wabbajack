@@ -151,6 +151,14 @@ namespace Wabbajack.Common
             var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
             return Hash.FromULong(BitConverter.ToUInt64(value.Hash));
         }
+        
+        public static async Task<Hash> xxHashAsync(this Stream stream)
+        {
+            var config = new xxHashConfig {HashSizeInBits = 64};
+            await using var f = new StatusFileStream(stream, $"Hashing memory stream");
+            var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(f);
+            return Hash.FromULong(BitConverter.ToUInt64(value.Hash));
+        }
         public static bool TryGetHashCache(AbsolutePath file, out Hash hash)
         {
             var normPath = Encoding.UTF8.GetBytes(file.Normalize());
