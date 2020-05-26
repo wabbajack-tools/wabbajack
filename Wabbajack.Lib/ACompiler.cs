@@ -147,7 +147,7 @@ namespace Wabbajack.Lib
             using (var of = await ModListOutputFolder.Combine("modlist").Create()) 
                 ModList.ToJson(of);
 
-            ModListOutputFile.Delete();
+            await ModListOutputFile.DeleteAsync();
 
             using (var fs = await ModListOutputFile.Create())
             {

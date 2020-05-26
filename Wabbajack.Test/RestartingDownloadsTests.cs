@@ -78,7 +78,7 @@ namespace Wabbajack.Test
 
             Assert.Equal(server.Data, await testFile.Path.ReadAllBytesAsync());
 
-            testFile.Path.Delete();
+            await testFile.Path.DeleteAsync();
         }
 
         public void Dispose()

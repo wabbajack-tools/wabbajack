@@ -50,10 +50,10 @@ namespace Wabbajack
             }
 
             var backup = Consts.SettingsFile.AppendToName("-backup");
-            backup.Delete();
+            await backup.DeleteAsync();
             
             await Consts.SettingsFile.CopyToAsync(backup);
-            Consts.SettingsFile.Delete();
+            await Consts.SettingsFile.DeleteAsync();
 
             return default;
         }

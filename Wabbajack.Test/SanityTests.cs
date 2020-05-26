@@ -164,7 +164,7 @@ namespace Wabbajack.Test
             await modifiedPath.WriteAllTextAsync("random data");
             var modifiedModified = modifiedPath.LastModified;
 
-            deletedPath.Delete();
+            await deletedPath.DeleteAsync();
 
             Assert.True(extraPath.Exists);
             

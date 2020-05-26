@@ -195,7 +195,7 @@ namespace Wabbajack.VirtualFileSystem
             }
             catch (IOException)
             {
-                filename.Delete();
+                await filename.DeleteAsync();
             }
         }
 
