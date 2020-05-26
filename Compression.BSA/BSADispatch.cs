@@ -1,33 +1,34 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 
 namespace Compression.BSA
 {
     public static class BSADispatch
     {
-        public static IBSAReader OpenRead(AbsolutePath filename)
+        public static async ValueTask<IBSAReader> OpenRead(AbsolutePath filename)
         {
             var fourcc = "";
-            using (var file = filename.OpenRead())
+            using (var file = await filename.OpenRead())
             {
                 fourcc = Encoding.ASCII.GetString(new BinaryReader(file).ReadBytes(4));
             }
 
             if (fourcc == TES3Reader.TES3_MAGIC)
-                return new TES3Reader(filename);
+                return await TES3Reader.Load(filename);
             if (fourcc == "BSA\0")
-                return new BSAReader(filename);
+                return await BSAReader.Load(filename);
             if (fourcc == "BTDX")
-                return new BA2Reader(filename);
+                return await BA2Reader.Load(filename);
             throw new InvalidDataException("Filename is not a .bsa or .ba2, magic " + fourcc);
         }
 
         private static HashSet<string> MagicStrings = new HashSet<string> {TES3Reader.TES3_MAGIC, "BSA\0", "BTDX"};
-        public static bool MightBeBSA(AbsolutePath filename)
+        public static async ValueTask<bool> MightBeBSA(AbsolutePath filename)
         {
-            using var file = filename.OpenRead();
+            using var file = await filename.OpenRead();
             var fourcc = Encoding.ASCII.GetString(new BinaryReader(file).ReadBytes(4));
             return MagicStrings.Contains(fourcc);
         }

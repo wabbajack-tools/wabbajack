@@ -45,8 +45,9 @@ namespace Wabbajack
 
             Warmup();
 
+            var (settings, loadedSettings) = MainSettings.TryLoadTypicalSettings().AsTask().Result;
             // Load settings
-            if (CLIArguments.NoSettings || !MainSettings.TryLoadTypicalSettings(out var settings))
+            if (CLIArguments.NoSettings || !loadedSettings)
             {
                 _settings = new MainSettings
                 {

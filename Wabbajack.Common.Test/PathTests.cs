@@ -1,28 +1,29 @@
-﻿using Xunit;
+﻿using System.Threading.Tasks;
+using Xunit;
 
 namespace Wabbajack.Common.Test
 {
     public class PathTests
     {
         [Fact]
-        public void CanDeleteReadOnlyFile()
+        public async Task CanDeleteReadOnlyFile()
         {
             var tempFile = new TempFile();
-            tempFile.Path.WriteAllText("Test");
+            await tempFile.Path.WriteAllTextAsync("Test");
             tempFile.Path.SetReadOnly(true);
             
             tempFile.Path.Delete();
         }
         
         [Fact]
-        public void CanMoveReadOnlyFiles()
+        public async Task CanMoveReadOnlyFiles()
         {
             var tempFile = new TempFile();
             var tempFile2 = new TempFile();
-            tempFile.Path.WriteAllText("Test");
+            await tempFile.Path.WriteAllTextAsync("Test");
             tempFile.Path.SetReadOnly(true);
             
-            tempFile.Path.MoveTo(tempFile2.Path);
+            await tempFile.Path.MoveToAsync(tempFile2.Path);
         }
 
         [Fact]

@@ -57,7 +57,7 @@ namespace Wabbajack.Test
             {
                 Profiles.Do(profile =>
                 {
-                    MO2Folder.Combine("profiles", profile, "modlist.txt").WriteAllLines(
+                    MO2Folder.Combine("profiles", profile, "modlist.txt").WriteAllLinesAsync(
                         Mods.Select(s => $"+{s}").ToArray());
                 });
             }
@@ -65,7 +65,7 @@ namespace Wabbajack.Test
             {
                 Profiles.Do(profile =>
                 {
-                    MO2Folder.Combine("profiles", profile, "modlist.txt").WriteAllLines(
+                    MO2Folder.Combine("profiles", profile, "modlist.txt").WriteAllLinesAsync(
                         enabledMods.Select(s => $"{(s.IsEnabled ? "+" : "-")}{s.ModName}").ToArray());
                 });
             }
@@ -79,17 +79,14 @@ namespace Wabbajack.Test
             return profile_name;
         }
 
-        public string AddMod(string name = null)
+        public async Task<string> AddMod(string name = null)
         {
-            lock (this)
-            {
-                string mod_name = name ?? RandomName();
-                var mod_folder = MO2Folder.Combine(Consts.MO2ModFolderName, (RelativePath)mod_name);
-                mod_folder.CreateDirectory();
-                mod_folder.Combine("meta.ini").WriteAllText("[General]");
-                Mods.Add(mod_name);
-                return mod_name;
-            }
+            string mod_name = name ?? RandomName();
+            var mod_folder = MO2Folder.Combine(Consts.MO2ModFolderName, (RelativePath)mod_name);
+            mod_folder.CreateDirectory();
+            await mod_folder.Combine("meta.ini").WriteAllTextAsync("[General]");
+            Mods.Add(mod_name);
+            return mod_name;
         }
 
         /// <summary>
@@ -100,17 +97,15 @@ namespace Wabbajack.Test
         /// <param name="path"></param>
         /// <param name="random_fill"></param>
         /// <returns></returns>
-        public AbsolutePath AddModFile(string mod_name, string path, int random_fill=128)
+        public async Task<AbsolutePath> AddModFile(string mod_name, string path, int random_fill=128)
         {
-
-
             var full_path = ModsFolder.Combine(mod_name, path);
             full_path.Parent.CreateDirectory();
-            GenerateRandomFileData(full_path, random_fill);
+            await GenerateRandomFileData(full_path, random_fill);
             return full_path;
         }
 
-        public void GenerateRandomFileData(AbsolutePath full_path, int random_fill)
+        public async Task GenerateRandomFileData(AbsolutePath full_path, int random_fill)
         {
             byte[] bytes = new byte[0];
             if (random_fill != 0)
@@ -118,7 +113,7 @@ namespace Wabbajack.Test
                 bytes = new byte[random_fill];
                 RNG.NextBytes(bytes);
             }
-            full_path.WriteAllBytes(bytes);
+            await full_path.WriteAllBytesAsync(bytes);
         }
 
         public static byte[] RandomData(int? size = null, int maxSize = 1024)
@@ -162,20 +157,20 @@ namespace Wabbajack.Test
             return data;
         }
 
-        public string AddManualDownload(Dictionary<string, byte[]> contents)
+        public async ValueTask<string> AddManualDownload(Dictionary<string, byte[]> contents)
         {
             var name = RandomName() + ".zip";
 
-            using FileStream fs = DownloadsFolder.Combine(name).Create();
+            await using FileStream fs = await DownloadsFolder.Combine(name).Create();
             using ZipArchive archive = new ZipArchive(fs, ZipArchiveMode.Create);
             contents.Do(kv =>
             {
                 var entry = archive.CreateEntry(kv.Key);
-                using (var os = entry.Open())
-                    os.Write(kv.Value, 0, kv.Value.Length);
+                using var os = entry.Open();
+                os.Write(kv.Value, 0, kv.Value.Length);
             });
 
-            DownloadsFolder.Combine(name + Consts.MetaFileExtension).WriteAllLines(
+            await DownloadsFolder.Combine(name + Consts.MetaFileExtension).WriteAllLinesAsync(
                     "[General]",
                     "manualURL=<TESTING>"
                 );
@@ -183,7 +178,7 @@ namespace Wabbajack.Test
             return name;
         }
 
-        public void VerifyInstalledFile(string mod, string file)
+        public async Task VerifyInstalledFile(string mod, string file)
         {
             var src = MO2Folder.Combine((string)Consts.MO2ModFolderName, mod, file);
             Assert.True(src.Exists);
@@ -191,8 +186,8 @@ namespace Wabbajack.Test
             var dest = InstallFolder.Combine((string)Consts.MO2ModFolderName, mod, file);
             Assert.True(dest.Exists, $"Destination {dest} doesn't exist");
 
-            var srcData = src.ReadAllBytes();
-            var destData = dest.ReadAllBytes();
+            var srcData = await src.ReadAllBytesAsync();
+            var destData = await dest.ReadAllBytesAsync();
 
             Assert.Equal(srcData.Length, destData.Length);
 
@@ -203,7 +198,7 @@ namespace Wabbajack.Test
             }
         }
         
-        public void VerifyInstalledGameFile(string file)
+        public async Task VerifyInstalledGameFile(string file)
         {
             var src = GameFolder.Combine(file);
             Assert.True(src.Exists);
@@ -211,8 +206,8 @@ namespace Wabbajack.Test
             var dest = InstallFolder.Combine((string)Consts.GameFolderFilesDir, file);
             Assert.True(dest.Exists);
 
-            var srcData = src.ReadAllBytes();
-            var destData = dest.ReadAllBytes();
+            var srcData = await src.ReadAllBytesAsync();
+            var destData = await dest.ReadAllBytesAsync();
 
             Assert.Equal(srcData.Length, destData.Length);
 
@@ -227,7 +222,7 @@ namespace Wabbajack.Test
             return InstallFolder.Combine((string)Consts.MO2ModFolderName, mod, file);
         }
 
-        public void VerifyAllFiles(bool gameFileShouldNotExistInGameFolder = true)
+        public async ValueTask VerifyAllFiles(bool gameFileShouldNotExistInGameFolder = true)
         {
             if (gameFileShouldNotExistInGameFolder)
             {
@@ -264,16 +259,16 @@ namespace Wabbajack.Test
                 if (!skipExtensions.Contains(srcFile.Extension))
                 {
                     Assert.Equal(srcFile.Size, destFile.Size);
-                    Assert.Equal(srcFile.FileHash(), destFile.FileHash());
+                    Assert.Equal(await srcFile.FileHashAsync(), await destFile.FileHashAsync());
                 }
             }
         }
 
-        public AbsolutePath AddGameFile(string path, int i)
+        public async ValueTask<AbsolutePath> AddGameFile(string path, int i)
         {
             var fullPath = GameFolder.Combine(path);
             fullPath.Parent.CreateDirectory();
-            GenerateRandomFileData(fullPath, i);
+            await GenerateRandomFileData(fullPath, i);
             return fullPath;
         }
     }

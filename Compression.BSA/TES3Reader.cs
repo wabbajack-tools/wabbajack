@@ -18,48 +18,52 @@ namespace Compression.BSA
         internal long _dataOffset;
         internal AbsolutePath _filename;
 
-        public TES3Reader(AbsolutePath filename)
+        public static async ValueTask<TES3Reader> Load(AbsolutePath filename)
         {
-            _filename = filename;
-            using var fs = filename.OpenRead();
+            await using var fs = await filename.OpenRead();
             using var br = new BinaryReader(fs);
-            _versionNumber = br.ReadUInt32();
-            _hashTableOffset = br.ReadUInt32();
-            _fileCount = br.ReadUInt32();
+            var rdr = new TES3Reader
+            {
+                _filename = filename,
+                _versionNumber = br.ReadUInt32(),
+                _hashTableOffset = br.ReadUInt32(),
+                _fileCount = br.ReadUInt32()
+            };
 
-            _files = new TES3FileEntry[_fileCount];
-            for (int i = 0; i < _fileCount; i++)
+            rdr._files = new TES3FileEntry[rdr._fileCount];
+            for (int i = 0; i < rdr._fileCount; i++)
             {
                 var file = new TES3FileEntry {
                     Index = i,
-                    Archive = this, 
+                    Archive = rdr, 
                     Size = br.ReadUInt32(), 
                     Offset = br.ReadUInt32()
                     
                 };
-                _files[i] = file;
+                rdr._files[i] = file;
             }
 
-            for (int i = 0; i < _fileCount; i++)
+            for (int i = 0; i < rdr._fileCount; i++)
             {
-                _files[i].NameOffset = br.ReadUInt32();
+                rdr._files[i].NameOffset = br.ReadUInt32();
             }
 
             var origPos = br.BaseStream.Position;
-            for (int i = 0; i < _fileCount; i++)
+            for (int i = 0; i < rdr._fileCount; i++)
             {
-                br.BaseStream.Position = origPos + _files[i].NameOffset;
-                _files[i].Path = new RelativePath(br.ReadStringTerm(VersionType.TES3));
+                br.BaseStream.Position = origPos + rdr._files[i].NameOffset;
+                rdr._files[i].Path = new RelativePath(br.ReadStringTerm(VersionType.TES3));
             }
 
-            br.BaseStream.Position = _hashTableOffset + 12;
-            for (int i = 0; i < _fileCount; i++)
+            br.BaseStream.Position = rdr._hashTableOffset + 12;
+            for (int i = 0; i < rdr._fileCount; i++)
             {
-                _files[i].Hash1 = br.ReadUInt32();
-                _files[i].Hash2 = br.ReadUInt32();
+                rdr._files[i].Hash1 = br.ReadUInt32();
+                rdr._files[i].Hash2 = br.ReadUInt32();
             }
 
-            _dataOffset = br.BaseStream.Position;
+            rdr._dataOffset = br.BaseStream.Position;
+            return rdr;
         }
 
         public async ValueTask DisposeAsync()
@@ -118,11 +122,11 @@ namespace Compression.BSA
                 Hash2 = Hash2
             };
 
-        public void CopyDataTo(Stream output)
+        public async ValueTask CopyDataTo(Stream output)
         {
-            using var fs = Archive._filename.OpenRead();
+            await using var fs = await Archive._filename.OpenRead();
             fs.Position = Archive._dataOffset + Offset;
-            fs.CopyToLimit(output, (int)Size);
+            await fs.CopyToLimitAsync(output, (int)Size);
         }
 
         public void Dump(Action<string> print)

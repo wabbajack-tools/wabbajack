@@ -43,11 +43,11 @@ namespace Wabbajack.Lib
     
     public class ClientAPI
     {
-        public static Common.Http.Client GetClient()
+        public static async Task<Common.Http.Client> GetClient()
         {
             var client = new Common.Http.Client();
             if (Utils.HaveEncryptedJson(Consts.MetricsKeyHeader)) 
-                client.Headers.Add((Consts.MetricsKeyHeader, Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader)));
+                client.Headers.Add((Consts.MetricsKeyHeader, await Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader)));
             return client;
         }
 
@@ -63,7 +63,7 @@ namespace Wabbajack.Lib
             
             RETRY:
             
-            var response = await GetClient()
+            var response = await (await GetClient())
                 .PostAsync($"{Consts.WabbajackBuildServerUri}mod_upgrade", new StringContent(request.ToJson(), Encoding.UTF8, "application/json"));
 
             if (response.IsSuccessStatusCode)
@@ -114,7 +114,7 @@ namespace Wabbajack.Lib
 
         public static async Task<NexusCacheStats> GetNexusCacheStats()
         {
-            return await GetClient()
+            return await (await GetClient())
                 .GetJsonAsync<NexusCacheStats>($"{Consts.WabbajackBuildServerUri}nexus_cache/stats");
         }
 

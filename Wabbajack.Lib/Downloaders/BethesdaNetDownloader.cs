@@ -110,7 +110,7 @@ namespace Wabbajack.Lib.Downloaders
             try
             {
                 var result = last_line.FromJsonString<BethesdaNetData>();
-                result.ToEcryptedJson(DataName);
+                await result.ToEcryptedJson(DataName);
                 return result;
             }
             catch (Exception ex)
@@ -180,7 +180,7 @@ namespace Wabbajack.Lib.Downloaders
             private const uint CKM_Magic = 0x52415442; // BTAR
             private async Task ConvertCKMToZip(AbsolutePath src, AbsolutePath dest)
             {
-                using var reader = new BinaryReader(src.OpenRead());
+                using var reader = new BinaryReader(await src.OpenRead());
                 var magic = reader.ReadUInt32();
                 if (magic != CKM_Magic)
                     throw new InvalidDataException("Invalid magic format in CKM parsing");
@@ -193,7 +193,7 @@ namespace Wabbajack.Lib.Downloaders
                 if (minorVersion < 2 || minorVersion > 4)
                     throw new InvalidDataException("Archive minor version is unknown. Should be 2, 3, or 4.");
 
-                await using var fos = dest.Create();
+                await using var fos = await dest.Create();
                 using var archive = new ZipArchive(fos, ZipArchiveMode.Create);
                 while (reader.PeekChar() != -1)
                 {
@@ -220,7 +220,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var info = new CollectedBNetInfo();
 
-                var login_info = Utils.FromEncryptedJson<BethesdaNetData>(DataName);
+                var login_info = await Utils.FromEncryptedJson<BethesdaNetData>(DataName);
 
                 var client = new Common.Http.Client();
 

@@ -58,7 +58,7 @@ namespace Wabbajack.Lib.NexusApi
 
                 try
                 {
-                    return Utils.FromEncryptedJson<string>("nexusapikey");
+                    return await Utils.FromEncryptedJson<string>("nexusapikey");
                 }
                 catch (Exception)
                 {
@@ -77,7 +77,7 @@ namespace Wabbajack.Lib.NexusApi
         public static async Task<string> RequestAndCacheAPIKey()
         {
             var result = await Utils.Log(new RequestNexusAuthorization()).Task;
-            result.ToEcryptedJson("nexusapikey");
+            await result.ToEcryptedJson("nexusapikey");
             return result;
         }
 

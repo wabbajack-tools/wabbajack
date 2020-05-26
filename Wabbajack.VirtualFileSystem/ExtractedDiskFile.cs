@@ -23,9 +23,9 @@ namespace Wabbajack.VirtualFileSystem
         }
         public DateTime LastModifiedUtc => _path.LastModifiedUtc;
         public long Size => _path.Size;
-        public Stream OpenRead()
+        public async ValueTask<Stream> OpenRead()
         {
-            return _path.OpenRead();
+            return await _path.OpenRead();
         }
 
         public async Task<bool> CanExtract()

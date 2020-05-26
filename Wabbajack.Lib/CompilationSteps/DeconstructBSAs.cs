@@ -62,7 +62,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             if (source.AbsolutePath.Size >= (long) 2 << 31)
             {
-                await using var bsa = BSADispatch.OpenRead(source.AbsolutePath);
+                await using var bsa = await BSADispatch.OpenRead(source.AbsolutePath);
                 if (bsa.State is BSAStateObject)
                 {
                     Utils.Error(
@@ -95,7 +95,7 @@ namespace Wabbajack.Lib.CompilationSteps
             }
 
             CreateBSA directive;
-            await using (var bsa = BSADispatch.OpenRead(source.AbsolutePath))
+            await using (var bsa = await BSADispatch.OpenRead(source.AbsolutePath))
             {
                 directive = new CreateBSA(
                     state: bsa.State, 

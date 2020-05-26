@@ -81,7 +81,7 @@ namespace Wabbajack.Lib.Downloaders
                 await Task.Delay(500, cancel);
             }
 
-            cookies.ToEcryptedJson(_encryptedKeyName);
+            await cookies.ToEcryptedJson(_encryptedKeyName);
 
             return cookies;
         }
@@ -91,7 +91,7 @@ namespace Wabbajack.Lib.Downloaders
             Helpers.Cookie[] cookies;
             try
             {
-                cookies = Utils.FromEncryptedJson<Helpers.Cookie[]>(_encryptedKeyName);
+                cookies = await Utils.FromEncryptedJson<Helpers.Cookie[]>(_encryptedKeyName);
                 if (cookies != null)
                     return Helpers.GetClient(cookies, SiteURL.ToString());
             }

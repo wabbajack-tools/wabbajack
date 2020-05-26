@@ -32,7 +32,7 @@ namespace Wabbajack.BuildServer.Test
         public string APIKey { get; }
         public string User { get; }
 
-        public async Task InitializeAsync()
+        public virtual async Task InitializeAsync()
         {
             await CreateSchema();
         }

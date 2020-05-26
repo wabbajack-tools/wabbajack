@@ -141,7 +141,7 @@ namespace Wabbajack.BuildServer.Test
             Assert.Equal(1, data.ValidationSummary.Updating);
 
             var patcher = Fixture.GetService<PatchBuilder>();
-            Assert.Equal(1, await patcher.Execute());
+            Assert.True(await patcher.Execute() > 1);
 
             await RevalidateLists(false);
             

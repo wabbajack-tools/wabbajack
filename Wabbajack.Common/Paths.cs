@@ -87,31 +87,27 @@ namespace Wabbajack.Common
 
         public Extension Extension => Extension.FromPath(_path);
 
-        public FileStream OpenRead()
+        public ValueTask<FileStream> OpenRead()
         {
-            return File.OpenRead(_path);
+            return OpenShared();
         }
 
-        public FileStream Create()
+        public ValueTask<FileStream> Create()
         {
-            return File.Create(_path);
+            var path = _path;
+            return CircuitBreaker.WithAutoRetry<FileStream, IOException>(async () => File.Create(path));
         }
 
-        public FileStream OpenWrite()
+        public ValueTask<FileStream> OpenWrite()
         {
-            return File.OpenWrite(_path);
+            var path = _path;
+            return CircuitBreaker.WithAutoRetry<FileStream, IOException>(async () => File.OpenWrite(path));
         }
 
         public async Task WriteAllTextAsync(string text)
         {
             await using var fs = File.Create(_path);
             await fs.WriteAsync(Encoding.UTF8.GetBytes(text));
-        }
-        
-        public void WriteAllText(string text)
-        {
-            using var fs = File.Create(_path);
-            fs.Write(Encoding.UTF8.GetBytes(text));
         }
 
         public bool Exists => File.Exists(_path) || Directory.Exists(_path);
@@ -175,24 +171,6 @@ namespace Wabbajack.Common
 
         public AbsolutePath Root => (AbsolutePath)Path.GetPathRoot(_path);
 
-        /// <summary>
-        ///     Moves this file to the specified location, will use Copy if required
-        /// </summary>
-        /// <param name="otherPath"></param>
-        /// <param name="overwrite">Replace the destination file if it exists</param>
-        public void MoveTo(AbsolutePath otherPath, bool overwrite = false)
-        {
-            if (Root != otherPath.Root)
-            {
-                if (otherPath.Exists && overwrite)
-                    otherPath.Delete();
-                
-                CopyTo(otherPath);
-                return;
-            }
-            File.Move(_path, otherPath._path, overwrite ? MoveOptions.ReplaceExisting : MoveOptions.None);
-        }
-        
         /// <summary>
         ///     Moves this file to the specified location, will use Copy if required
         /// </summary>
@@ -286,7 +264,7 @@ namespace Wabbajack.Common
 
         public async Task<byte[]> ReadAllBytesAsync()
         {
-            await using var f = OpenRead();
+            await using var f = await OpenShared();
             return await f.ReadAllAsync();
         }
 
@@ -325,36 +303,18 @@ namespace Wabbajack.Common
             return File.ReadAllLines(_path);
         }
 
-        public void WriteAllBytes(byte[] data)
-        {
-            using var fs = Create();
-            fs.Write(data);
-        }
-
         public async Task WriteAllBytesAsync(byte[] data)
         {
-            await using var fs = Create();
+            await using var fs = await Create();
             await fs.WriteAsync(data);
         }
 
         public async Task WriteAllAsync(Stream data, bool disposeAfter = true)
         {
-            await using var fs = Create();
+            await using var fs = await Create();
             await data.CopyToAsync(fs);
             if (disposeAfter) await data.DisposeAsync();
         }
-
-        public void AppendAllText(string text)
-        {
-            File.AppendAllText(_path, text);
-        }
-
-        public void CopyTo(AbsolutePath dest)
-        {
-            File.Copy(_path, dest._path);
-        }
-        
-        
 
         [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Auto)]
         private static extern bool CreateHardLink(string lpFileName, string lpExistingFileName, IntPtr lpSecurityAttributes);
@@ -384,12 +344,6 @@ namespace Wabbajack.Common
             return (await ReadAllTextAsync()).Split(new[] {'\n', '\r'}, StringSplitOptions.RemoveEmptyEntries);
         }
 
-        public byte[] ReadAllBytes()
-        {
-            using var file = OpenShared();
-            return file.ReadAll();
-        }
-
         public static AbsolutePath GetCurrentDirectory()
         {
             return new AbsolutePath(Directory.GetCurrentDirectory());
@@ -397,8 +351,8 @@ namespace Wabbajack.Common
 
         public async Task CopyToAsync(AbsolutePath destFile)
         {
-            await using var src = OpenRead();
-            await using var dest = destFile.Create();
+            await using var src = await OpenRead();
+            await using var dest = await destFile.Create();
             await src.CopyToAsync(dest);
         }
 
@@ -413,11 +367,6 @@ namespace Wabbajack.Common
             await WriteAllTextAsync(string.Join("\r\n",strings));
         }
 
-        public void	 WriteAllLines(params string[] strings)
-        {
-            WriteAllText(string.Join("\n",strings));
-        }
-
         public int CompareTo(AbsolutePath other)
         {
             return string.Compare(_path, other._path, StringComparison.Ordinal);
@@ -428,14 +377,18 @@ namespace Wabbajack.Common
             return File.ReadAllText(_path);
         }
 
-        public FileStream OpenShared()
+        public ValueTask<FileStream> OpenShared()
         {
-            return File.Open(_path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            var path = _path;
+            return CircuitBreaker.WithAutoRetry<FileStream, IOException>(async () =>
+                File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read));
         }
 
-        public FileStream WriteShared()
+        public ValueTask<FileStream> WriteShared()
         {
-            return File.Open(_path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
+            var path = _path;
+            return CircuitBreaker.WithAutoRetry<FileStream, IOException>(async () =>
+                File.Open(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite));
         }
 
         public async Task CopyDirectoryToAsync(AbsolutePath destination)

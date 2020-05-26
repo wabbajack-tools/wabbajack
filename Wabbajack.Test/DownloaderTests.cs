@@ -436,7 +436,7 @@ namespace Wabbajack.Test
 
             await converted.Download(new Archive(state: null!) { Name = "mod.zip" }, filename.Path);
 
-            await using var fs = filename.Path.OpenRead();
+            await using var fs = await filename.Path.OpenRead();
             using var archive = new ZipArchive(fs);
             var entries = archive.Entries.Select(e => e.FullName).ToList();
             Assert.Equal(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});

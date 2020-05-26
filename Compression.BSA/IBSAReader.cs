@@ -60,7 +60,7 @@ namespace Compression.BSA
         /// in order to maintain thread-safe access. 
         /// </summary>
         /// <param name="output"></param>
-        void CopyDataTo(Stream output);
+        ValueTask CopyDataTo(Stream output);
 
         void Dump(Action<string> print);
     }

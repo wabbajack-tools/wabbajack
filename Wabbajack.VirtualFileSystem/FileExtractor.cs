@@ -22,7 +22,7 @@ namespace Wabbajack.VirtualFileSystem
         {
             try
             {
-                if (BSADispatch.MightBeBSA(source))
+                if (await BSADispatch.MightBeBSA(source))
                     return await ExtractAllWithBSA(queue, source);
                 else if (source.Extension == Consts.OMOD)
                     return await ExtractAllWithOMOD(source);
@@ -114,7 +114,7 @@ namespace Wabbajack.VirtualFileSystem
         {
             try
             {
-                await using var arch = BSADispatch.OpenRead(source);
+                await using var arch = await BSADispatch.OpenRead(source);
                 var files = arch.Files.ToDictionary(f => f.Path, f => (IExtractedFile)new ExtractedBSAFile(f));
                 return new ExtractedFiles(files, arch);
             }

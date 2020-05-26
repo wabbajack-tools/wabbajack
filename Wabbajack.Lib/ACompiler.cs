@@ -81,10 +81,10 @@ namespace Wabbajack.Lib
             return id;
         }
 
-        internal FileStream IncludeFile(out RelativePath id)
+        internal AbsolutePath IncludeFile(out RelativePath id)
         {
             id = IncludeId();
-            return ModListOutputFolder.Combine(id).Create();
+            return ModListOutputFolder.Combine(id);
         }
 
         internal async Task<RelativePath> IncludeFile(string data)
@@ -144,34 +144,32 @@ namespace Wabbajack.Lib
                 ModList.Image = (RelativePath)"modlist-image.png";
             }
 
-            using (var of = ModListOutputFolder.Combine("modlist").Create()) 
+            using (var of = await ModListOutputFolder.Combine("modlist").Create()) 
                 ModList.ToJson(of);
 
             ModListOutputFile.Delete();
 
-            using (var fs = ModListOutputFile.Create())
+            using (var fs = await ModListOutputFile.Create())
             {
                 using (var za = new ZipArchive(fs, ZipArchiveMode.Create))
                 {
-                    ModListOutputFolder.EnumerateFiles()
+                    await ModListOutputFolder.EnumerateFiles()
                         .DoProgress("Compressing ModList",
-                    f =>
+                    async f =>
                     {
                         var ze = za.CreateEntry((string)f.FileName);
-                        using var os = ze.Open();
-                        using var ins = f.OpenRead();
-                        ins.CopyTo(os);
+                        await using var os = ze.Open();
+                        await using var ins = await f.OpenRead();
+                        await ins.CopyToAsync(os);
                     });
 
                     // Copy in modimage
                     if (ModListImage.Exists)
                     {
                         var ze = za.CreateEntry((string)ModList.Image);
-                        using (var os = ze.Open())
-                        using (var ins = ModListImage.OpenRead())
-                        {
-                            ins.CopyTo(os);
-                        }
+                        await using var os = ze.Open();
+                        await using var ins = await ModListImage.OpenRead();
+                        await ins.CopyToAsync(os);
                     }
                 }
             }
@@ -180,7 +178,7 @@ namespace Wabbajack.Lib
             var metadata = new DownloadMetadata
             {
                 Size = ModListOutputFile.Size,
-                Hash = ModListOutputFile.FileHash(),
+                Hash = await ModListOutputFile.FileHashAsync(),
                 NumberOfArchives = ModList.Archives.Count,
                 SizeOfArchives = ModList.Archives.Sum(a => a.Size),
                 NumberOfInstalledFiles = ModList.Directives.Count,

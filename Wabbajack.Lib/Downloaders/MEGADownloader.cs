@@ -153,7 +153,7 @@ namespace Wabbajack.Lib.Downloaders
                 else
                 {
                     Utils.Status("Logging into MEGA with saved credentials.");
-                    var infos = Utils.FromEncryptedJson<MEGAAuthInfos>(DataName);
+                    var infos = await Utils.FromEncryptedJson<MEGAAuthInfos>(DataName);
                     var authInfo = infos.ToAuthInfos();
                     await MegaApiClient.LoginAsync(authInfo);
                 }

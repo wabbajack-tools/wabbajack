@@ -58,7 +58,7 @@ namespace Compression.BSA
         public async Task Build(AbsolutePath filename)
         {
             SortEntries();
-            await using var fs = filename.Create();
+            await using var fs = await filename.Create();
             await using var bw = new BinaryWriter(fs);
             
             bw.Write(Encoding.ASCII.GetBytes(_state.HeaderMagic));

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib;
@@ -29,20 +30,19 @@ namespace Wabbajack
         [JsonIgnore]
         public IObservable<Unit> SaveSignal => _saveSignal;
 
-        public static bool TryLoadTypicalSettings(out MainSettings settings)
+        public static async ValueTask<(MainSettings settings, bool loaded)> TryLoadTypicalSettings()
         {
             if (!Consts.SettingsFile.Exists)
             {
-                settings = default;
-                return false;
+                return default;
             }
 
             // Version check
             try
             {
-                settings = Consts.SettingsFile.FromJson<MainSettings>();
+                var settings = Consts.SettingsFile.FromJson<MainSettings>();
                 if (settings.Version == Consts.SettingsVersion)
-                    return true;
+                    return (settings, true);
             }
             catch (Exception ex)
             {
@@ -52,14 +52,13 @@ namespace Wabbajack
             var backup = Consts.SettingsFile.AppendToName("-backup");
             backup.Delete();
             
-            Consts.SettingsFile.CopyTo(backup);
+            await Consts.SettingsFile.CopyToAsync(backup);
             Consts.SettingsFile.Delete();
 
-            settings = default;
-            return false;
+            return default;
         }
 
-        public static void SaveSettings(MainSettings settings)
+        public static async ValueTask SaveSettings(MainSettings settings)
         {
             settings._saveSignal.OnNext(Unit.Default);
 
@@ -68,7 +67,7 @@ namespace Wabbajack
             //settings._saveSignal.OnCompleted();
             //await settings._saveSignal;
 
-            settings.ToJson(Consts.SettingsFile);
+            await settings.ToJsonAsync(Consts.SettingsFile);
         }
     }
 

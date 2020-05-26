@@ -19,15 +19,15 @@ namespace Wabbajack.VirtualFileSystem
 
         public async Task<Hash> HashAsync()
         {
-            await using var stream = OpenRead();
-            return stream.xxHash();
+            await using var stream = await OpenRead();
+            return await stream.xxHashAsync();
         }
         public DateTime LastModifiedUtc => DateTime.UtcNow;
         public long Size => _file.Size;
-        public Stream OpenRead()
+        public async ValueTask<Stream> OpenRead()
         {
             var ms = new MemoryStream();
-            _file.CopyDataTo(ms);
+            await _file.CopyDataTo(ms);
             ms.Position = 0;
             return ms;
         }
@@ -44,8 +44,8 @@ namespace Wabbajack.VirtualFileSystem
 
         public async Task MoveTo(AbsolutePath path)
         {
-            await using var fs = path.Create();
-            _file.CopyDataTo(fs);
+            await using var fs = await path.Create();
+            await _file.CopyDataTo(fs);
         }
     }
 }

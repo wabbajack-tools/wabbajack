@@ -129,21 +129,6 @@ namespace Wabbajack.Common
             return sha.Hash.ToHex();
         }
 
-        public static Hash FileHash(this AbsolutePath file, bool nullOnIoError = false)
-        {
-            try
-            {
-                using var fs = file.OpenRead();
-                var config = new xxHashConfig {HashSizeInBits = 64};
-                using var f = new StatusFileStream(fs, $"Hashing {(string)file.FileName}");
-                return new Hash(BitConverter.ToUInt64(xxHashFactory.Instance.Create(config).ComputeHash(f).Hash));
-            }
-            catch (IOException)
-            {
-                if (nullOnIoError) return Hash.Empty;
-                throw;
-            }
-        }
         public static Hash xxHash(this byte[] data)
         {
             var hash = new xxHashConfig();
@@ -166,16 +151,14 @@ namespace Wabbajack.Common
             var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
             return Hash.FromULong(BitConverter.ToUInt64(value.Hash));
         }
-        public static Hash FileHashCached(this AbsolutePath file, bool nullOnIoError = false)
+        
+        public static async Task<Hash> xxHashAsync(this Stream stream)
         {
-            if (TryGetHashCache(file, out var foundHash)) return foundHash;
-
-            var hash = file.FileHash(nullOnIoError);
-            if (hash != Hash.Empty) 
-                WriteHashCache(file, hash);
-            return hash;
+            var config = new xxHashConfig {HashSizeInBits = 64};
+            await using var f = new StatusFileStream(stream, $"Hashing memory stream");
+            var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(f);
+            return Hash.FromULong(BitConverter.ToUInt64(value.Hash));
         }
-
         public static bool TryGetHashCache(AbsolutePath file, out Hash hash)
         {
             var normPath = Encoding.UTF8.GetBytes(file.Normalize());
@@ -223,7 +206,7 @@ namespace Wabbajack.Common
         {
             try
             {
-                await using var fs = file.OpenRead();
+                await using var fs = await file.OpenRead();
                 var config = new xxHashConfig {HashSizeInBits = 64};
                 await using var hs = new StatusFileStream(fs, $"Hashing {file}");
                 var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(hs);

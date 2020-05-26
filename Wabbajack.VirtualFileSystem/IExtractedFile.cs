@@ -12,7 +12,7 @@ namespace Wabbajack.VirtualFileSystem
         public DateTime LastModifiedUtc { get; }
         public long Size { get; }
 
-        public Stream OpenRead();
+        public ValueTask<Stream> OpenRead();
 
         public Task<bool> CanExtract();
 

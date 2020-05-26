@@ -63,7 +63,7 @@ namespace Wabbajack.Lib.AuthorApi
                 {
                     progressFn("Hashing file parts", Percent.FactoryPutInRange(part.Index, parts.Length));
                     var buffer = new byte[part.Size];
-                    await using (var fs = path.OpenShared())
+                    await using (var fs = await path.OpenShared())
                     {
                         fs.Position = part.Offset;
                         await fs.ReadAsync(buffer);
@@ -91,7 +91,7 @@ namespace Wabbajack.Lib.AuthorApi
             {
                 progressFn("Uploading Part", Percent.FactoryPutInRange(part.Index, definition.Parts.Length));
                 var buffer = new byte[part.Size];
-                await using (var fs = path.OpenShared())
+                await using (var fs = await path.OpenShared())
                 {
                     fs.Position = part.Offset;
                     await fs.ReadAsync(buffer);

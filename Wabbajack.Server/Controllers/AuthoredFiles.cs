@@ -99,7 +99,7 @@ namespace Wabbajack.BuildServer.Controllers
 
         private async Task<FtpClient> GetBunnyCdnFtpClient()
         {
-            var info = Utils.FromEncryptedJson<BunnyCdnFtpInfo>("bunny-cdn-ftp-info");
+            var info = await Utils.FromEncryptedJson<BunnyCdnFtpInfo>("bunny-cdn-ftp-info");
             var client = new FtpClient(info.Hostname) {Credentials = new NetworkCredential(info.Username, info.Password)};
             await client.ConnectAsync();
             return client;

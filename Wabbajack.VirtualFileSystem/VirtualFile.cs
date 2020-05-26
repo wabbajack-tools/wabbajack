@@ -220,7 +220,7 @@ namespace Wabbajack.VirtualFileSystem
             self.FillFullPath(depth);
             
             if (context.UseExtendedHashes)
-                self.ExtendedHashes = ExtendedHashes.FromFile(extractedFile);
+                self.ExtendedHashes = await ExtendedHashes.FromFile(extractedFile);
 
             if (!await extractedFile.CanExtract()) return self;
 
@@ -386,9 +386,9 @@ namespace Wabbajack.VirtualFileSystem
             return path;
         }
 
-        public Stream OpenRead()
+        public async ValueTask<Stream> OpenRead()
         {
-            return StagedFile.OpenRead();
+            return await StagedFile.OpenRead();
         }
     }
 
@@ -399,10 +399,10 @@ namespace Wabbajack.VirtualFileSystem
         public string MD5 { get; set; }
         public string CRC { get; set; }
 
-        public static ExtendedHashes FromFile(IExtractedFile file)
+        public static async ValueTask<ExtendedHashes> FromFile(IExtractedFile file)
         {
             var hashes = new ExtendedHashes();
-            using var stream = file.OpenRead();
+            await using var stream = await file.OpenRead();
             hashes.SHA256 = System.Security.Cryptography.SHA256.Create().ComputeHash(stream).ToHex();
             stream.Position = 0;
             hashes.SHA1 = System.Security.Cryptography.SHA1.Create().ComputeHash(stream).ToHex();

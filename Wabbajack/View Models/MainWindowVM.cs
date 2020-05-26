@@ -199,7 +199,7 @@ namespace Wabbajack
             Settings.PosY = MainWindow.Top;
             Settings.Width = MainWindow.Width;
             Settings.Height = MainWindow.Height;
-            MainSettings.SaveSettings(Settings);
+            MainSettings.SaveSettings(Settings).AsTask().Wait();
             Application.Current.Shutdown();
         }
     }

@@ -140,7 +140,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public async Task WriteToFile(AbsolutePath filename)
         {
-            await using var fs = filename.Create();
+            await using var fs = await filename.Create();
             await using var bw = new BinaryWriter(fs, Encoding.UTF8, true);
             fs.SetLength(0);
 
@@ -148,7 +148,7 @@ namespace Wabbajack.VirtualFileSystem
             bw.Write(FileVersion);
             bw.Write((ulong) Index.AllFiles.Count);
 
-            (await Index.AllFiles
+            await (await Index.AllFiles
                     .PMap(Queue, f =>
                     {
                         var ms = new MemoryStream();
@@ -156,12 +156,12 @@ namespace Wabbajack.VirtualFileSystem
                         f.Write(ibw);
                         return ms;
                     }))
-                .Do(ms =>
+                .DoAsync(async ms =>
                 {
                     var size = ms.Position;
                     ms.Position = 0;
                     bw.Write((ulong) size);
-                    ms.CopyTo(fs);
+                    await ms.CopyToAsync(fs);
                 });
             Utils.Log($"Wrote {fs.Position.ToFileSizeString()} file as vfs cache file {filename}");
         }
@@ -170,7 +170,7 @@ namespace Wabbajack.VirtualFileSystem
         {
             try
             {
-                await using var fs = filename.OpenRead();
+                await using var fs = await filename.OpenRead();
                 using var br = new BinaryReader(fs, Encoding.UTF8, true);
                 var magic = Encoding.ASCII.GetString(br.ReadBytes(Encoding.ASCII.GetBytes(Magic).Length));
                 var fileVersion = br.ReadUInt64();

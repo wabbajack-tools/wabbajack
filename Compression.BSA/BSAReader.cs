@@ -60,8 +60,8 @@ namespace Compression.BSA
         internal uint _folderRecordOffset;
         private List<FolderRecord> _folders;
         internal string _magic;
-        private readonly BinaryReader _rdr;
-        private readonly Stream _stream;
+        private BinaryReader _rdr;
+        private Stream _stream;
         internal uint _totalFileNameLength;
         internal uint _totalFolderNameLength;
         internal uint _version;
@@ -80,16 +80,15 @@ namespace Compression.BSA
         }
 
 
-        public BSAReader(AbsolutePath filename)
+        public static async ValueTask<BSAReader> Load(AbsolutePath filename)
         {
-            _fileName = filename;
-            using var stream = filename.OpenRead();
+            using var stream = await filename.OpenRead();
             using var br = new BinaryReader(stream);
-            _rdr = br;
-            _stream = stream;
-            LoadHeaders();
-            _rdr = null;
-            _stream = null;
+            var bsa = new BSAReader {_rdr = br, _stream = stream, _fileName = filename};
+            await bsa.LoadHeaders();
+            bsa._rdr = null;
+            bsa._stream = null;
+            return bsa;
         }
 
         public IEnumerable<IFile> Files
@@ -132,7 +131,7 @@ namespace Compression.BSA
         {
         }
 
-        private void LoadHeaders()
+        private async ValueTask LoadHeaders()
         {
             var fourcc = Encoding.ASCII.GetString(_rdr.ReadBytes(4));
 
@@ -330,43 +329,34 @@ namespace Compression.BSA
             _name = rdr.ReadStringTerm(_bsa.HeaderType);
         }
 
-        public void CopyDataTo(Stream output)
+        public async ValueTask CopyDataTo(Stream output)
         {
-            using (var in_file = _bsa._fileName.OpenRead())
-            using (var rdr = new BinaryReader(in_file))
-            {
-                rdr.BaseStream.Position = _dataOffset;
+            await using var in_file = await _bsa._fileName.OpenRead();
+            using var rdr = new BinaryReader(in_file);
+            rdr.BaseStream.Position = _dataOffset;
 
-                if (_bsa.HeaderType == VersionType.SSE)
+            if (_bsa.HeaderType == VersionType.SSE)
+            {
+                if (Compressed)
                 {
-                    if (Compressed)
-                    {
-                        using var r = LZ4Stream.Decode(rdr.BaseStream);
-                        r.CopyToLimit(output, (int) _originalSize);
-                    }
-                    else
-                    {
-                        rdr.BaseStream.CopyToLimit(output, (int) _onDiskSize);
-                    }
+                    using var r = LZ4Stream.Decode(rdr.BaseStream);
+                    await r.CopyToLimitAsync(output, (int) _originalSize);
                 }
                 else
                 {
-                    if (Compressed)
-                    {
-                        using var z = new InflaterInputStream(rdr.BaseStream);
-                        z.CopyToLimit(output, (int) _originalSize);
-                    }
-                    else
-                        rdr.BaseStream.CopyToLimit(output, (int) _onDiskSize);
+                    await rdr.BaseStream.CopyToLimitAsync(output, (int) _onDiskSize);
                 }
             }
-        }
-
-        public byte[] GetData()
-        {
-            var ms = new MemoryStream();
-            CopyDataTo(ms);
-            return ms.ToArray();
+            else
+            {
+                if (Compressed)
+                {
+                    await using var z = new InflaterInputStream(rdr.BaseStream);
+                    await z.CopyToLimitAsync(output, (int) _originalSize);
+                }
+                else
+                    await rdr.BaseStream.CopyToLimitAsync(output, (int) _onDiskSize);
+            }
         }
     }
 

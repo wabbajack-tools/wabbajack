@@ -57,7 +57,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 destination.Parent.CreateDirectory();
                 var definition = await GetDefinition();
-                using var fs = destination.Create();
+                await using var fs = await destination.Create();
                 using var mmfile = MemoryMappedFile.CreateFromFile(fs, null, definition.Size, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
                 var client = new Common.Http.Client();
                 using var queue = new WorkQueue();
