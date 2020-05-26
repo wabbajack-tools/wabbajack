@@ -181,10 +181,10 @@ namespace Wabbajack.Common
             if (Root != otherPath.Root)
             {
                 if (otherPath.Exists && overwrite)
-                    otherPath.Delete();
+                    await otherPath.DeleteAsync();
                 
                 await CopyToAsync(otherPath);
-                Delete();
+                await DeleteAsync();
                 return;
             }
             File.Move(_path, otherPath._path, overwrite ? MoveOptions.ReplaceExisting : MoveOptions.None);
@@ -248,13 +248,14 @@ namespace Wabbajack.Common
             Directory.CreateDirectory(_path);
         }
 
-        public void Delete()
+        public async Task DeleteAsync()
         {
             if (!IsFile) return;
 
             if (IsReadOnly) IsReadOnly = false;
-            
-            File.Delete(_path);
+
+            var path = _path;
+            await CircuitBreaker.WithAutoRetry<IOException>(async () => File.Delete(path));
         }
 
         public bool InFolder(AbsolutePath folder)

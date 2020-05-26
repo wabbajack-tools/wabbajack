@@ -12,7 +12,7 @@ namespace Wabbajack.Common.Test
             await tempFile.Path.WriteAllTextAsync("Test");
             tempFile.Path.SetReadOnly(true);
             
-            tempFile.Path.Delete();
+            await tempFile.Path.DeleteAsync();
         }
         
         [Fact]

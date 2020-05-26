@@ -89,7 +89,7 @@ namespace Wabbajack.Common
                 {
                     try
                     {
-                        f.Delete();
+                        f.DeleteAsync().Wait();
                         success++;
                     }
                     catch (Exception e)
@@ -801,7 +801,7 @@ namespace Wabbajack.Common
             }
             catch (UnauthorizedAccessException)
             {
-                tmpName.Delete();
+                await tmpName.DeleteAsync();
             }
         }
 
@@ -929,7 +929,7 @@ namespace Wabbajack.Common
                             size += buffer.Length;
                         }
                     }
-                    file.Delete();
+                    await file.DeleteAsync();
                     return size;
                 });
             return results.Sum() / seconds;
@@ -1086,9 +1086,9 @@ namespace Wabbajack.Common
                                  .DistinctUntilChanged();
         }
 
-        public static void DeleteEncryptedJson(string key)
+        public static async ValueTask DeleteEncryptedJson(string key)
         {
-            Consts.LocalAppDataPath.Combine(key).Delete();
+            await Consts.LocalAppDataPath.Combine(key).DeleteAsync();
         }
 
         public static void StartProcessFromFile(string file)

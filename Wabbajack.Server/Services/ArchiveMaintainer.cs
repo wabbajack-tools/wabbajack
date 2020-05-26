@@ -48,7 +48,7 @@ namespace Wabbajack.Server.Services
             var hash = await file.FileHashAsync();
             if (HaveArchive(hash))
             {
-                file.Delete();
+                await file.DeleteAsync();
                 return _archives[hash];
             }
             

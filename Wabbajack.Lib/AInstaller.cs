@@ -148,7 +148,7 @@ namespace Wabbajack.Lib
                 {
                     if (to.IsReadOnly)
                         to.IsReadOnly = false;
-                    to.Delete();
+                    await to.DeleteAsync();
                 }
 
                 if (from.Exists)
@@ -210,7 +210,7 @@ namespace Wabbajack.Lib
                     var oldData = new MemoryStream(await toFile.ReadAllBytesAsync());
 
                     // Remove the file we're about to patch
-                    toFile.Delete();
+                    await toFile.DeleteAsync();
 
                     // Patch it
                     await using (var outStream = await toFile.Create())
@@ -264,7 +264,7 @@ namespace Wabbajack.Lib
                             var ext = Path.GetExtension(archive.Name);
                             var uniqueKey = archive.State.PrimaryKeyString.StringSha256Hex();
                             outputPath = DownloadFolder.Combine(origName + "_" + uniqueKey + "_" + ext);
-                            outputPath.Delete();
+                            await outputPath.DeleteAsync();
                         }
                     }
 
@@ -358,7 +358,7 @@ namespace Wabbajack.Lib
 
             UpdateTracker.NextStep("Looking for files to delete");
             await OutputFolder.EnumerateFiles()
-                .PMap(Queue, UpdateTracker, f =>
+                .PMap(Queue, UpdateTracker, async f =>
                 {
                     var relativeTo = f.RelativeTo(OutputFolder);
                     Utils.Status($"Checking if ModList file {relativeTo}");
@@ -366,7 +366,7 @@ namespace Wabbajack.Lib
                         return;
 
                     Utils.Log($"Deleting {relativeTo} it's not part of this ModList");
-                    f.Delete();
+                    await f.DeleteAsync();
                 });
 
             Utils.Log("Cleaning empty folders");

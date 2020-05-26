@@ -64,7 +64,7 @@ namespace Wabbajack.Test
                 DownloadAndInstall(Game.SkyrimSpecialEdition, 32359, "Frost Armor HDT"));
             
             // We're going to fully patch this mod from another source.
-            modfiles[3].Download.Delete();
+            await modfiles[3].Download.DeleteAsync();
 
             await utils.Configure();
             

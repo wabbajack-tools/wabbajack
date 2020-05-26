@@ -108,7 +108,7 @@ namespace Wabbajack.VirtualFileSystem.Test
             Assert.Equal(14, file.Size);
             Assert.Equal(Hash.FromBase64("qX0GZvIaTKM="), file.Hash);
 
-            TEST_TXT.Delete();
+            await TEST_TXT.DeleteAsync();
 
             await AddTestRoot();
 

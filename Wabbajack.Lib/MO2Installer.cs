@@ -233,7 +233,7 @@ namespace Wabbajack.Lib
                    {
                        Status($"Writing included .meta file {directive.To}");
                        var outPath = DownloadFolder.Combine(directive.To);
-                       if (outPath.IsFile) outPath.Delete();
+                       if (outPath.IsFile) await outPath.DeleteAsync();
                        await outPath.WriteAllBytesAsync(await LoadBytesFromPath(directive.SourceDataID));
                    });
         }
@@ -296,7 +296,7 @@ namespace Wabbajack.Lib
                 {
                     Status($"Writing included file {directive.To}");
                     var outPath = OutputFolder.Combine(directive.To);
-                    outPath.Delete();
+                    await outPath.DeleteAsync();
 
                     switch (directive)
                     {

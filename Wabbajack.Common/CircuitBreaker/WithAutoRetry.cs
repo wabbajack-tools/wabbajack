@@ -32,6 +32,30 @@ namespace Wabbajack.Common
                 goto TOP;
             }
         }
+        
+        public static async ValueTask WithAutoRetry<TE>(Func<ValueTask> f, TimeSpan? delay = null, int? multipler = null, int? maxRetries = null) where TE : Exception
+        {
+            int retries = 0;
+            delay ??= DEFAULT_DELAY;
+            multipler ??= DEFAULT_DELAY_MULTIPLIER;
+            maxRetries ??= DEFAULT_RETRIES;
+
+            TOP:
+            try
+            {
+                await f();
+            }
+            catch (TE ex)
+            {
+                retries += 1;
+                if (retries > maxRetries)
+                    throw;
+                Utils.Log($"(Retry {retries} of {maxRetries}), got exception {ex.Message}, waiting {delay.Value.TotalMilliseconds}ms");
+                await Task.Delay(delay.Value);
+                delay = delay * multipler;
+                goto TOP;
+            }
+        }
 
     }
 }
