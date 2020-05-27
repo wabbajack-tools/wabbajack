@@ -105,7 +105,7 @@ namespace Wabbajack.Common
             Output.OnCompleted();
 
             if (result != 0 && ThrowOnNonZeroExitCode)
-                throw new Exception($"Error executing {Path} - Exit Code {result} - Check the log for more information");
+                throw new Exception($"Error executing {Path} - Exit Code {result} - Check the log for more information - {string.Join(" ", args.Select(a => a!.ToString()))}");
             return result;
         }
         
