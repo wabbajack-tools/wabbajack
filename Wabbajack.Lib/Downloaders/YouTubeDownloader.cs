@@ -120,8 +120,6 @@ namespace Wabbajack.Lib.Downloaders
                             CancellationToken.None);
                     }
 
-                    await initialDownload.CopyToAsync(destination.WithExtension(new Extension(".dest_stream")));
-                    
                     await Tracks.PMap(queue, async track =>
                     {
                         Utils.Status($"Extracting track {track.Name}");
@@ -133,7 +131,7 @@ namespace Wabbajack.Lib.Downloaders
                     foreach (var track in trackFolder.EnumerateFiles().OrderBy(e => e))
                     {
                         Utils.Status($"Adding {track.FileName} to archive");
-                        var entry = ar.CreateEntry(Path.Combine("Data", "tracks", (string)track.RelativeTo(trackFolder)), CompressionLevel.NoCompression);
+                        var entry = ar.CreateEntry(Path.Combine("Data", "Music", (string)track.RelativeTo(trackFolder)), CompressionLevel.NoCompression);
                         entry.LastWriteTime = meta.UploadDate;
                         await using var es = entry.Open();
                         await using var ins = await track.OpenRead();
@@ -155,10 +153,12 @@ namespace Wabbajack.Lib.Downloaders
             private Extension XWMExtension = new Extension(".xwm");
             private async Task ExtractTrack(AbsolutePath source, AbsolutePath destFolder, Track track)
             {
+                Utils.Log($"Extracting {track.Name}");
+                var wavFile = track.Name.RelativeTo(destFolder).WithExtension(WAVExtension);
                 var process = new ProcessHelper
                 {
                     Path = FFMpegPath,
-                    Arguments = new object[] {"-threads", 1, "-i", source, "-ss", track.Start, "-t", track.End - track.Start, track.Name.RelativeTo(destFolder).WithExtension(WAVExtension)},
+                    Arguments = new object[] {"-hide_banner", "-loglevel", "panic", "-threads", 1, "-i", source, "-ss", track.Start, "-t", track.End - track.Start, wavFile},
                     ThrowOnNonZeroExitCode = true
                 };
 
@@ -169,27 +169,27 @@ namespace Wabbajack.Lib.Downloaders
                     });
                 
                 await process.Start();
+                ffmpegLogs.Dispose();
 
                 if (track.Format == Track.FormatEnum.WAV) return;
                 
                 process = new ProcessHelper()
                 {
                     Path = xWMAEncodePath,
-                    Arguments = new object[] {"-b", 192000, track.Name.RelativeTo(destFolder).WithExtension(WAVExtension), track.Name.RelativeTo(destFolder).WithExtension(XWMExtension)},
+                    Arguments = new object[] {"-b", 192000, wavFile, wavFile.ReplaceExtension(XWMExtension)},
                     ThrowOnNonZeroExitCode = true
                 };
                 
                 var xwmLogs = process.Output.Where(arg => arg.Type == ProcessHelper.StreamType.Output)
                     .ForEachAsync(val =>
                     {
-                        Utils.Status($"Encoding {track.Name} - {val.Line}");
+                        Utils.Log($"Encoding {track.Name} - {val.Line}");
                     });
 
                 await process.Start();
-                
-                if (File.Exists($"{destFolder}\\{track.Name}.wav"))
-                    File.Delete($"{destFolder}\\{track.Name}.wav");
-                
+                xwmLogs.Dispose();
+
+                await wavFile.DeleteAsync();
             }
 
             private class Progress : IProgress<double>

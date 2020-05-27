@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DynamicData;
+using Org.BouncyCastle.Utilities.Collections;
 using Wabbajack.Common;
 using YoutubeExplode;
 
@@ -17,21 +20,28 @@ namespace Wabbajack.Lib.Downloaders.UrlDownloaders
             var video = await client.Videos.GetAsync(state.Key);
 
             var desc = video.Description;
+            
+            var replaceChars = new HashSet<char>() {'_', '(', ')', '-'};
 
             var lines = desc.Split('\n', StringSplitOptions.RemoveEmptyEntries)
                 .Select(line => line.Trim())
                 .Select(line =>
                 {
-                    var segments = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                    if (segments.Length == 0) return (TimeSpan.Zero, string.Empty);
                     
-                    if (TryParseEx(segments.First(), out var s1))
-                        return (s1, string.Join(" ", segments.Skip(1)));
-                    if (TryParseEx(Enumerable.Last(segments), out var s2))
-                        return (s2, string.Join(" ", Utils.ButLast(segments)));
+                    var segments = replaceChars.Aggregate(line, (acc, c) => acc.Replace(c, ' '))
+                                                      .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (segments.Length == 0) return (TimeSpan.Zero, string.Empty);
+
+                    foreach (var segment in segments)
+                    {
+                        if (TryParseEx(segment, out var si))
+                        {
+                            return (si, string.Join(" ", segments.Where(s => !s.Contains(":"))));
+                        }
+                    }
                     return (TimeSpan.Zero, string.Empty);
                 })
-                .Where(t => t.Item2 != null)
+                .Where(t => t.Item2 != string.Empty)
                 .ToList();
 
             var tracks = lines.Select((line, idx) => new YouTubeDownloader.State.Track
@@ -41,6 +51,11 @@ namespace Wabbajack.Lib.Downloaders.UrlDownloaders
                 End = idx < lines.Count - 1 ? lines[idx + 1].Item1 : video.Duration,
                 Format = YouTubeDownloader.State.Track.FormatEnum.XWM
             }).ToList();
+
+            foreach (var track in tracks)
+            {
+                Utils.Log($"Inferred Track {track.Name} {track.Format} {track.Start}-{track.End}");
+            }
 
             state.Tracks = tracks;
             
