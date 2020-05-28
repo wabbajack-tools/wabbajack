@@ -20,7 +20,7 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanUploadDownloadAndDeleteAuthoredFiles()
         {
-            using var file = new TempFile();
+            await using var file = new TempFile();
             await file.Path.WriteAllBytesAsync(RandomData(Consts.UPLOADED_FILE_BLOCK_SIZE * 4 + Consts.UPLOADED_FILE_BLOCK_SIZE / 3));
             var originalHash = await file.Path.FileHashAsync();
 

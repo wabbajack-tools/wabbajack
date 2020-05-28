@@ -184,7 +184,7 @@ namespace Wabbajack.Server.Services
             _logger.Log(LogLevel.Information, $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}");
             await _discord.Send(Channel.Spam, new DiscordMessage { Content = $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}" });
 
-            upgrade.NewFile.Dispose();
+            await upgrade.NewFile.DisposeAsync();
 
             return (archive, ArchiveStatus.Updating);
         }

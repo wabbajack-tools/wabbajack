@@ -47,7 +47,7 @@ namespace Wabbajack.Test
         public async Task FileNoExistsCheck_Exists()
         {
             var vm = new FilePickerVM();
-            using (CreateSetFile(vm))
+            await using (CreateSetFile(vm))
             {
                 vm.PathType = FilePickerVM.PathTypeOptions.File;
                 vm.ExistCheckOption = FilePickerVM.CheckOptions.Off;
@@ -76,7 +76,7 @@ namespace Wabbajack.Test
         public async Task ExistCheckTypeOff_Exists()
         {
             var vm = new FilePickerVM();
-            using (CreateSetFile(vm))
+            await using (CreateSetFile(vm))
             {
                 vm.PathType = FilePickerVM.PathTypeOptions.Off;
                 vm.ExistCheckOption = FilePickerVM.CheckOptions.On;
@@ -119,7 +119,7 @@ namespace Wabbajack.Test
         public async Task FileIfNotEmptyCheck_Exists()
         {
             var vm = new FilePickerVM();
-            using (CreateSetFile(vm))
+            await using (CreateSetFile(vm))
             {
                 vm.PathType = FilePickerVM.PathTypeOptions.File;
                 vm.ExistCheckOption = FilePickerVM.CheckOptions.IfPathNotEmpty;
@@ -148,7 +148,7 @@ namespace Wabbajack.Test
         public async Task FileOnExistsCheck_Exists()
         {
             var vm = new FilePickerVM();
-            using (CreateSetFile(vm))
+            await using (CreateSetFile(vm))
             {
                 vm.PathType = FilePickerVM.PathTypeOptions.File;
                 vm.ExistCheckOption = FilePickerVM.CheckOptions.On;
@@ -259,7 +259,7 @@ namespace Wabbajack.Test
         public async Task FileExistsButSetToFolder()
         {
             var vm = new FilePickerVM();
-            using (CreateSetFile(vm))
+            await using (CreateSetFile(vm))
             {
                 vm.PathType = FilePickerVM.PathTypeOptions.Folder;
                 vm.ExistCheckOption = FilePickerVM.CheckOptions.On;
@@ -291,7 +291,7 @@ namespace Wabbajack.Test
         public async Task FileWithFilters_Passes()
         {
             var vm = new FilePickerVM();
-            using (CreateSetFile(vm))
+            await using (CreateSetFile(vm))
             {
                 vm.PathType = FilePickerVM.PathTypeOptions.File;
                 vm.ExistCheckOption = FilePickerVM.CheckOptions.Off;
@@ -308,7 +308,7 @@ namespace Wabbajack.Test
         public async Task FileWithFilters_ExistsButFails()
         {
             var vm = new FilePickerVM();
-            using (CreateSetFile(vm))
+            await using (CreateSetFile(vm))
             {
                 vm.PathType = FilePickerVM.PathTypeOptions.File;
                 vm.ExistCheckOption = FilePickerVM.CheckOptions.Off;

@@ -69,7 +69,7 @@ namespace Wabbajack.Test
 
             var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive(state: null!){Size = 20}));
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist {AllowedPrefixes = new List<string>{"https://mega.nz/#!CsMSFaaJ!-uziC4mbJPRy2e4pPk8Gjb3oDT_38Be9fzZ6Ld4NL-k" } }));
             Assert.False(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>{ "blerg" }}));
@@ -99,7 +99,7 @@ namespace Wabbajack.Test
 
             var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive(state: null!){Size = 20}));
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "https://www.dropbox.com/s/5hov3m2pboppoc2/WABBAJACK_TEST_FILE.txt?" } }));
             Assert.False(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "blerg" } }));
@@ -129,7 +129,7 @@ namespace Wabbajack.Test
 
             var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20}));
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { GoogleIDs = new List<string> { "1grLRTrpHxlg7VPxATTFNfq2OkU_Plvh_" } }));
             Assert.False(converted.IsWhitelisted(new ServerWhitelist { GoogleIDs = new List<string>()}));
@@ -158,7 +158,7 @@ namespace Wabbajack.Test
 
             var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20}));
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://build.wabbajack.org/" } }));
             Assert.False(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
@@ -182,7 +182,7 @@ namespace Wabbajack.Test
 
             var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20}));
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string> { "http://build.wabbajack.org/" } }));
 
@@ -212,7 +212,7 @@ namespace Wabbajack.Test
 
             var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20 }));
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist
                 {AllowedPrefixes = new List<string> {"http://www.mediafire.com/file/agiqzm1xwebczpx/"}}));
@@ -241,7 +241,7 @@ namespace Wabbajack.Test
             Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20 }));
             // Exercise the cache code
             Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20 }));
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
@@ -268,7 +268,7 @@ namespace Wabbajack.Test
 
             var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20}));
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
@@ -300,7 +300,7 @@ namespace Wabbajack.Test
             Assert.False(await converted.Verify(new Archive(state: null!) { Size = 15}));
 
             
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
             await converted.Download(new Archive(state: null!) { Name = "LoversLab Test.txt" }, filename.Path);
@@ -327,7 +327,7 @@ namespace Wabbajack.Test
                 */
             var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20}));
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
@@ -352,7 +352,7 @@ namespace Wabbajack.Test
 
             var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20}));
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
@@ -404,7 +404,7 @@ namespace Wabbajack.Test
 
             var converted = RoundTripState(state);
             Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20}));
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
@@ -425,7 +425,7 @@ namespace Wabbajack.Test
             var ini = $@"[General]
                               directURL=https://bethesda.net/en/mods/skyrim/mod-detail/4145641";
 
-            using var filename = new TempFile();
+            await using var filename = new TempFile();
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
             Assert.NotNull(state);
 
@@ -463,7 +463,7 @@ namespace Wabbajack.Test
 
             Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
 
-            using var tempFile = new TempFile();
+            await using var tempFile = new TempFile();
             await converted.Download(new Archive(state: null!) { Name = "yt_test.zip"}, tempFile.Path);
             Assert.Equal(Hash.FromBase64("pD7UoVNY4o8="), await tempFile.Path.FileHashAsync());
         }

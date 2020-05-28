@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
+using System.Threading.Tasks;
 
 namespace Wabbajack.Common
 {
@@ -9,13 +10,13 @@ namespace Wabbajack.Common
     /// Memory allocator that stores data via memory mapping to a on-disk file. Disposing of this object
     /// deletes the memory mapped file
     /// </summary>
-    public class DiskSlabAllocator : IDisposable
+    public class DiskSlabAllocator : IAsyncDisposable
     {
         private readonly TempFile _file;
         private readonly MemoryMappedFile _mmap;
         private long _head = 0;
         private readonly FileStream _fileStream;
-        private List<IDisposable> _allocated = new List<IDisposable>();
+        private List<IAsyncDisposable> _allocated = new List<IAsyncDisposable>();
         private long _size;
 
         public DiskSlabAllocator(long size)
@@ -44,12 +45,13 @@ namespace Wabbajack.Common
             }
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            _allocated.Do(s => s.Dispose());
+            foreach (var allocated in _allocated)
+                await allocated.DisposeAsync();
             _mmap.Dispose();
-            _fileStream.Dispose();
-            _file.Dispose();
+            await _fileStream.DisposeAsync();
+            await _file.DisposeAsync();
         }
     }
 }

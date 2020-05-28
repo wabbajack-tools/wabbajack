@@ -148,7 +148,7 @@ namespace Wabbajack.Lib.Downloaders
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
                 var (client, info, collected) = await ResolveDownloadInfo();
-                using var tf = new TempFile();
+                await using var tf = new TempFile();
                 await using var file = tf.File.Create();
                 var max_chunks = info.depot_list[0].file_list[0].chunk_count;
                 foreach (var chunk in info.depot_list[0].file_list[0].chunk_list.OrderBy(c => c.index))

@@ -104,7 +104,7 @@ namespace Wabbajack.Server.Test
             await"TestEndToEndArchiveUpdating.txt".RelativeTo(Fixture.ServerPublicFolder).WriteAllBytesAsync(newFileData);
 
 
-            using var tempFile = new TempFile();
+            await using var tempFile = new TempFile();
             var pendingRequest = DownloadDispatcher.DownloadWithPossibleUpgrade(oldArchive, tempFile.Path);
 
             for (var times = 0; await downloader.Execute() == 0 && times < 40; times ++)
@@ -124,7 +124,7 @@ namespace Wabbajack.Server.Test
 
         private async Task IngestData(ArchiveMaintainer am, byte[] data)
         {
-            using var f = new TempFile();
+            await using var f = new TempFile();
             await f.Path.WriteAllBytesAsync(data);
             await am.Ingest(f.Path);
         }
