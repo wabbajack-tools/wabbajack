@@ -28,6 +28,7 @@ namespace Wabbajack.Lib.Downloaders
             new TESAllianceDownloader(),
             new YouTubeDownloader(),
             new WabbajackCDNDownloader(),
+            new YandexDownloader(),
             new HTTPDownloader(),
             new ManualDownloader(),
         };

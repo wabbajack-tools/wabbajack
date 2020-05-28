@@ -337,6 +337,30 @@ namespace Wabbajack.Test
 
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
         }
+        
+        [Fact]
+        public async Task YandexDownloader()
+        {
+            await DownloadDispatcher.GetInstance<YandexDownloader>().Prepare();
+            var ini = @"[General]
+                        directURL=https://yadi.sk/d/jqwQT4ByYtC9Tw";
+
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.NotNull(state);
+
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20}));
+            await using var filename = new TempFile();
+
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() {"https://yadi.sk"} }));
+
+            await converted.Download(new Archive(state: null!) { Name = "WABBAJACK_TEST_FILE.txt" }, filename.Path);
+
+            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
+
+            Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
+        }
 
         
         [Fact]
