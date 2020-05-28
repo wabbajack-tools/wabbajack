@@ -40,6 +40,7 @@ namespace Wabbajack.Lib.Downloaders
             typeof(TESAllianceDownloader.State),
             typeof(BethesdaNetDownloader.State),
             typeof(YouTubeDownloader.State),
+            typeof(YandexDownloader.State),
             typeof(WabbajackCDNDownloader.State)
         };
         public static Dictionary<string, Type> NameToType { get; set; }

@@ -43,10 +43,19 @@ namespace Wabbajack.Lib.WebAutomation
                 return null;
             }
         }
+        
+        public Action<Uri?> DownloadHandler { 
+            set => _driver.DownloadHandler = value;
+        }
 
         public Task<string> GetAttr(string selector, string attr)
         {
             return _driver.EvaluateJavaScript($"document.querySelector(\"{selector}\").{attr}");
+        }
+
+        public Task<string> EvalJavascript(string js)
+        {
+            return _driver.EvaluateJavaScript(js);
         }
 
         public void Dispose()
