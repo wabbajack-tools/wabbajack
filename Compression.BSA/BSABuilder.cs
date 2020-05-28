@@ -78,7 +78,7 @@ namespace Compression.BSA
 
         public async ValueTask DisposeAsync()
         {
-            _slab.Dispose();
+            await _slab.DisposeAsync();
         }
         public async Task AddFile(FileStateObject state, Stream src)
         {

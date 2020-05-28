@@ -184,7 +184,11 @@ namespace Wabbajack.VirtualFileSystem
                 Utils.Status($"Extracting {source.FileName} - done", Percent.One, alsoLog: true);
             }
 
-            tmpFile?.Dispose();
+            if (tmpFile != null)
+            {
+                await tmpFile.DisposeAsync();
+            }
+
             return new ExtractedFiles(dest);
         }
 

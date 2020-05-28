@@ -21,13 +21,13 @@ namespace Wabbajack.Common
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            _file.Dispose();
+            _file.DisposeAsync().AsTask().Wait();
         }
 
         public override async ValueTask DisposeAsync()
         {
             await base.DisposeAsync();
-            _file.Dispose();
+            await _file.DisposeAsync();
         }
     }
 }

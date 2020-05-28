@@ -60,7 +60,7 @@ namespace Wabbajack.Server.Services
                     _logger.Log(LogLevel.Information, $"Downloading {nextDownload.Archive.State.PrimaryKeyString}");
                     await DownloadDispatcher.PrepareAll(new[] {nextDownload.Archive.State});
 
-                    using var tempPath = new TempFile();
+                    await using var tempPath = new TempFile();
                     await nextDownload.Archive.State.Download(nextDownload.Archive, tempPath.Path);
 
                     var hash = await tempPath.Path.FileHashAsync();

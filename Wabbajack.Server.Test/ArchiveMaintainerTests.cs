@@ -16,8 +16,8 @@ namespace Wabbajack.BuildServer.Test
         public async Task CanIngestFiles()
         {
             var maintainer = Fixture.GetService<ArchiveMaintainer>();
-            using var tf = new TempFile();
-            using var tf2 = new TempFile();
+            await using var tf = new TempFile();
+            await using var tf2 = new TempFile();
             
             await tf.Path.WriteAllBytesAsync(RandomData(1024));
             await tf.Path.CopyToAsync(tf2.Path);
@@ -35,7 +35,7 @@ namespace Wabbajack.BuildServer.Test
         public async Task IngestsExistingFiles()
         {
             var maintainer = Fixture.GetService<ArchiveMaintainer>();
-            using var tf = new TempFile();
+            await using var tf = new TempFile();
             
             await tf.Path.WriteAllBytesAsync(RandomData(1024));
             var hash = await tf.Path.FileHashAsync();

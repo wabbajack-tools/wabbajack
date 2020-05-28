@@ -68,8 +68,8 @@ namespace Wabbajack.Server.Services
 
                     var patchName = $"{Consts.ArchiveUpdatesCDNFolder}\\{patch.Src.Archive.Hash.ToHex()}_{patch.Dest.Archive.Hash.ToHex()}";
 
-                    using var sigFile = new TempFile();
-                    using var patchFile = new TempFile();
+                    await using var sigFile = new TempFile();
+                    await using var patchFile = new TempFile();
                     await using var srcStream = await srcPath.OpenShared();
                     await using var destStream = await destPath.OpenShared();
                     await using var sigStream = await sigFile.Path.Create();

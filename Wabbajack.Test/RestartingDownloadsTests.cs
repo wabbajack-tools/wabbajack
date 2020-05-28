@@ -70,7 +70,7 @@ namespace Wabbajack.Test
         [Fact]
         public async Task DownloadResume()
         {
-            using var testFile = new TempFile();
+            await using var testFile = new TempFile();
             using var server = new CrappyRandomServer();
             var state = new HTTPDownloader.State($"http://localhost:{server.Port}/foo");
 

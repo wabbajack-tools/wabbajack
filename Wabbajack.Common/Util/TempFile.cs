@@ -8,7 +8,7 @@ using AlphaPath = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Common
 {
-    public class TempFile : IDisposable
+    public class TempFile : IAsyncDisposable
     {
         public FileInfo File { get; private set; }
         public AbsolutePath Path => (AbsolutePath)File.FullName;
@@ -35,12 +35,11 @@ namespace Wabbajack.Common
             }
             this.DeleteAfter = deleteAfter;
         }
-
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             if (DeleteAfter)
             {
-                this.File.Delete();
+                await Path.DeleteAsync();
             }
         }
     }
