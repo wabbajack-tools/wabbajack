@@ -19,8 +19,8 @@ namespace Wabbajack.Lib.Downloaders
         where TState : AbstractIPS4Downloader<TDownloader, TState>.State<TDownloader>, new()
         where TDownloader : IDownloader
     {
-        protected AbstractIPS4Downloader(Uri loginUri, string encryptedKeyName, string cookieDomain)
-            : base(loginUri, encryptedKeyName, cookieDomain, "ips4_member_id")
+        protected AbstractIPS4Downloader(Uri loginUri, string encryptedKeyName, string cookieDomain, string loginCookie = "ips4_member_id")
+            : base(loginUri, encryptedKeyName, cookieDomain, loginCookie)
         {
         }
 
@@ -50,6 +50,15 @@ namespace Wabbajack.Lib.Downloaders
                     FullURL = url.AbsolutePath,
                     FileID = id2,
                     FileName = name
+                };
+            }
+
+            if (url.PathAndQuery.StartsWith("/files/getdownload"))
+            {
+                return new TState
+                {
+                    FullURL = url.ToString(), 
+                    IsAttachment = true
                 };
             }
            

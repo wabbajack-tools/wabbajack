@@ -362,6 +362,30 @@ namespace Wabbajack.Test
 
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
         }
+        
+        [Fact]
+        public async Task TESAllDownloader()
+        {
+            await DownloadDispatcher.GetInstance<TESAllDownloader>().Prepare();
+            const string ini = "[General]\n" +
+                               "directURL=https://tesall.ru/files/getdownload/594545-wabbajack-test-file/";
+
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+
+            Assert.NotNull(state);
+
+            var converted = RoundTripState(state);
+            Assert.True(await converted.Verify(new Archive(state: null!) { Size = 20}));
+            await using var filename = new TempFile();
+
+            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
+
+            await converted.Download(new Archive(state: null!) { Name = "TESAll Test.zip" }, filename.Path);
+
+            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
+
+            Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
+        }
 
         /* WAITING FOR APPROVAL BY MODERATOR
          [Fact]
