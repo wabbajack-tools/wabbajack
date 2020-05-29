@@ -38,7 +38,7 @@ namespace Wabbajack.Lib.Downloaders
         public string SiteName => "Bethesda.NET";
         public IObservable<string> MetaInfo => Observable.Return(""); //"Wabbajack will start the game, then exit once you enter the Mods page";
         public Uri SiteURL => new Uri("https://bethesda.net");
-        public Uri? IconUri { get; }
+        public Uri? IconUri => new Uri("https://bethesda.net/favicon.ico");
 
         public BethesdaNetDownloader()
         {

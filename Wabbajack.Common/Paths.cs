@@ -556,6 +556,7 @@ namespace Wabbajack.Common
 
         public static AbsolutePath RelativeTo(this string str, AbsolutePath path)
         {
+            if (Path.IsPathRooted(str)) return (AbsolutePath)str;
             return ((RelativePath)str).RelativeTo(path);
         }
 

@@ -12,6 +12,11 @@ namespace Wabbajack
             InitializeComponent();
             this.WhenActivated(disposable =>
             {
+                this.WhenAny(x => x.ViewModel.Favicon)
+                    .ObserveOnGuiThread()
+                    .Subscribe(x => Favicon.Source = x)
+                    .DisposeWith(disposable);
+                
                 this.OneWayBindStrict(ViewModel, x => x.Login.SiteName, x => x.SiteNameText.Text)
                     .DisposeWith(disposable);
 
