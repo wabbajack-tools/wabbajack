@@ -38,11 +38,15 @@
                 FontFamily="Lucida Sans"
                 FontSize="20"
                 FontWeight="Bold"
-                Text="Modlist Gallery" />
+                Text="Misc Settings" />
             <Grid
                 Grid.Row="2"
                 Grid.Column="0"
                 Grid.ColumnSpan="3">
+                <Grid.RowDefinitions>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                </Grid.RowDefinitions>
                 <Grid.Resources>
                     <Style BasedOn="{StaticResource MainButtonStyle}" TargetType="Button">
                         <Style.Triggers>
@@ -54,11 +58,12 @@
                         </Style.Triggers>
                     </Style>
                 </Grid.Resources>
-                <CheckBox Name="FilterPersistCheckBox" Content="Filters are saved on exit" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top">
+                <CheckBox Name="FilterPersistCheckBox" Content="Gallery filters are saved on exit" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top" Grid.Row = "0">
                     <CheckBox.LayoutTransform>
                         <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
                     </CheckBox.LayoutTransform>
                 </CheckBox>
+                <Button Name="ClearCefCache" Content="Clear In-App Browser Cache" Margin="0,5,0,0" Grid.Row="1"></Button>
             </Grid>
         </Grid>
     </Border>

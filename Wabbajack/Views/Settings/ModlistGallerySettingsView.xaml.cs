@@ -16,6 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using ReactiveUI;
 using Wabbajack.Common;
+using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack
 {
@@ -33,6 +34,8 @@ namespace Wabbajack
                 // Bind Values
                 this.Bind(this.ViewModel, x => x.IsPersistent, x => x.FilterPersistCheckBox.IsChecked)
                     .DisposeWith(disposable);
+
+                this.ClearCefCache.Click += (sender, args) => {Driver.ClearCache();};
             });
         }
     }
