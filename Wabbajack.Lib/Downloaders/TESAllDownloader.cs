@@ -7,8 +7,8 @@ namespace Wabbajack.Lib.Downloaders
     {
         #region INeedsDownload
         public override string SiteName => "TESALL";
-        public override Uri SiteURL => new Uri("http://tesall.ru");
-        public override Uri IconUri => new Uri("http://tesall.ru/favicon.ico");
+        public override Uri SiteURL => new Uri("https://tesall.ru");
+        public override Uri IconUri => new Uri("https://tesall.ru/favicon.ico");
         #endregion
 
         public TESAllDownloader() : base(new Uri("https://tesall.ru/index.php?app=core&module=global&section=login"),
