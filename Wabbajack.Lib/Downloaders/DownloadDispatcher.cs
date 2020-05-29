@@ -26,6 +26,7 @@ namespace Wabbajack.Lib.Downloaders
             new DeadlyStreamDownloader(),
             new BethesdaNetDownloader(),
             new TESAllianceDownloader(),
+            new TESAllDownloader(),
             new YouTubeDownloader(),
             new WabbajackCDNDownloader(),
             new YandexDownloader(),
