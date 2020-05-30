@@ -75,9 +75,9 @@ namespace Wabbajack.Lib
             // Most of the heavy lifting is done on the scratch disk, so we'll use the value from that disk
             var memory = Utils.GetMemoryStatus();
             // Assume roughly 2GB of ram needed to extract each 7zip archive, and then leave 2GB for the OS. If calculation is lower or equal to 1 GB, use 1GB
-            var based_on_memory = Math.Max((memory.ullTotalPhys - (2 * GB)) / (2 * GB), 1);
-            var scratch_size = await RecommendQueueSize(AbsolutePath.EntryPoint);
-            var result = Math.Min((int)based_on_memory, (int)scratch_size);
+            var basedOnMemory = Math.Max((memory.ullTotalPhys - (2 * GB)) / (2 * GB), 1);
+            var scratchSize = await RecommendQueueSize(AbsolutePath.EntryPoint);
+            var result = Math.Min((int)basedOnMemory, (int)scratchSize);
             Utils.Log($"Recommending a queue size of {result} based on disk performance, number of cores, and {((long)memory.ullTotalPhys).ToFileSizeString()} of system RAM");
             return result;
         }
@@ -99,8 +99,12 @@ namespace Wabbajack.Lib
             Utils.Log($"{raw_speed.ToFileSizeString()}/sec for {folder}");
             int speed = (int)(raw_speed / 1024 / 1024);
 
-            // Less than 100MB/sec, stick with two threads.
-            return speed < 100 ? 2 : Math.Min(Environment.ProcessorCount, speed / 100 * 2);
+            // Less than 200, it's probably a HDD, so we can't go higher than 2
+            if (speed < 200) return 2;
+            // SATA SSD, so stick with 8 thread maximum
+            if (speed < 600) return Math.Min(Environment.ProcessorCount, 8);
+            // Anything higher is probably a NVME or a really good SSD, so take off the reins
+            return Environment.ProcessorCount;
         }
 
         /// <summary>
