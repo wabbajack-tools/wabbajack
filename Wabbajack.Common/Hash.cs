@@ -66,10 +66,7 @@ namespace Wabbajack.Common
             return BitConverter.ToInt64(BitConverter.GetBytes(a._code));
         }
 
-        public string ToHex()
-        {
-            return BitConverter.GetBytes(_code).ToHex();
-        }
+
 
         public string ToBase64()
         {
@@ -96,6 +93,10 @@ namespace Wabbajack.Common
         public static Hash FromHex(string xxHashAsHex)
         {
             return new Hash(BitConverter.ToUInt64(xxHashAsHex.FromHex()));
+        }
+        public string ToHex()
+        {
+            return BitConverter.GetBytes(_code).ToHex();
         }
 
         public byte[] ToArray()

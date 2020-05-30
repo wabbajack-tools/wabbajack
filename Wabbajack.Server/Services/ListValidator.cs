@@ -158,7 +158,7 @@ namespace Wabbajack.Server.Services
                     return (archive, ArchiveStatus.Updating);
 
                 if (patch.IsFailed == true)
-                    continue;
+                    return (archive, ArchiveStatus.InValid);
                 
                 var (_, status) = await ValidateArchive(data, patch.Dest.Archive);
                 if (status == ArchiveStatus.Valid)
