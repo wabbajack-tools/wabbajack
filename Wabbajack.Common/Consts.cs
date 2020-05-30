@@ -127,6 +127,8 @@ namespace Wabbajack.Common
         public static AbsolutePath SettingsFile => LocalAppDataPath.Combine("settings.json");
         public static RelativePath SettingsIni = (RelativePath)"settings.ini";
         public static byte SettingsVersion => 2;
+        public static AbsolutePath CefCacheLocation = @"CEF".RelativeTo(LocalAppDataPath);
+
         public static Extension SeqExtension = new Extension(".seq");
 
         public static RelativePath SettingsJson = (RelativePath)"settings.json";

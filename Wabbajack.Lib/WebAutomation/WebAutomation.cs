@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using CefSharp;
 using CefSharp.OffScreen;
+using Wabbajack.Lib.LibCefHelpers;
 
 namespace Wabbajack.Lib.WebAutomation
 {
@@ -61,6 +62,11 @@ namespace Wabbajack.Lib.WebAutomation
         public void Dispose()
         {
             _browser.Dispose();
+        }
+
+        public static void ClearCache()
+        {
+            Helpers.ClearCookies();
         }
     }
 }

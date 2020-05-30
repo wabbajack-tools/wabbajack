@@ -12,6 +12,7 @@ using CefSharp;
 using CefSharp.OffScreen;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
+using Cookie = CefSharp.Cookie;
 
 namespace Wabbajack.Lib.LibCefHelpers
 {
@@ -89,11 +90,31 @@ namespace Wabbajack.Lib.LibCefHelpers
             if (Inited) return;
             Inited = true;
             CefSettings settings = new CefSettings();
-            settings.CachePath = Path.Combine(Consts.LocalAppDataPath  + @"\CEF");
+            settings.CachePath = Consts.CefCacheLocation.ToString();
             Cef.Initialize(settings);
         }
 
         public static bool Inited { get; set; }
+
+        public static void ClearCookies()
+        {
+            var manager = Cef.GetGlobalCookieManager();
+            var visitor = new CookieDeleter();
+            manager.VisitAllCookies(visitor);
+        }
+    }
+
+    class CookieDeleter : ICookieVisitor
+    {
+        public void Dispose()
+        {
+        }
+
+        public bool Visit(Cookie cookie, int count, int total, ref bool deleteCookie)
+        {
+            deleteCookie = true;
+            return true;
+        }
     }
 
     public static class ModuleInitializer
