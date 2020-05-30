@@ -41,8 +41,6 @@ namespace Wabbajack.Common
         public static readonly Extension ESM = new Extension(".esm");
         public static readonly Extension ESP = new Extension(".esp");
 
-        public static string NexusCacheDirectory = "nexus_link_cache";
-
         public static string WABBAJACK_INCLUDE = "WABBAJACK_INCLUDE";
         public static string WABBAJACK_ALWAYS_ENABLE = "WABBAJACK_ALWAYS_ENABLE";
         public static string WABBAJACK_NOMATCH_INCLUDE = "WABBAJACK_NOMATCH_INCLUDE";
