@@ -246,9 +246,6 @@ namespace Wabbajack.Lib.NexusApi
             headers.Add(("Accept", "application/json"));
             headers.Add(("Application-Name", Consts.AppName));
             headers.Add(("Application-Version", $"{Assembly.GetEntryAssembly()?.GetName()?.Version ?? new Version(0, 1)}"));
-
-            if (!Directory.Exists(Consts.NexusCacheDirectory))
-                Directory.CreateDirectory(Consts.NexusCacheDirectory);
         }
 
         public static async Task<NexusApiClient> Get(string? apiKey = null)

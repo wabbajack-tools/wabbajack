@@ -14,8 +14,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             _cruftFiles = new HashSet<string>
             {
-                "7z.dll", "7z.exe", "vfs_staged_files\\", "nexus.key_cache", "patch_cache\\",
-                Consts.NexusCacheDirectory + "\\"
+                "7z.dll", "7z.exe", "vfs_staged_files\\", "nexus.key_cache", "patch_cache\\"
             };
         }
 

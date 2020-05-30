@@ -55,6 +55,15 @@ namespace Wabbajack.Lib.Downloaders
 
             try
             {
+                MegaApiClient.Logout();
+            }
+            catch (NotSupportedException ex)
+            {
+                // Not logged in, so ignore
+            }
+
+            try
+            {
                 authInfos = MegaApiClient.GenerateAuthInfos(username, password.ToNormalString(), mfa);
             }
             catch (ApiException e)
