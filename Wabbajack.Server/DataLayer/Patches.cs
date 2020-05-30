@@ -131,14 +131,14 @@ namespace Wabbajack.Server.DataLayer
                 "SELECT SrcId, DestId, PatchSize, Finished, IsFailed, FailMessage FROM dbo.Patches WHERE SrcId = @SrcId", new {SrcId = sourceDownload});
 
             List<Patch> results = new List<Patch>();
-            foreach (var (srcId, destId, patchSize, finished, isFinished, failMessage) in patches)
+            foreach (var (srcId, destId, patchSize, finished, isFailed, failMessage) in patches)
             {
                 results.Add( new Patch {
                     Src = await GetArchiveDownload(srcId), 
                     Dest = await GetArchiveDownload(destId),
                     PatchSize = patchSize,
                     Finished = finished,
-                    IsFailed = isFinished,
+                    IsFailed = isFailed,
                     FailMessage = failMessage
                 });
             } 

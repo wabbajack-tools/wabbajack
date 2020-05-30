@@ -26,5 +26,16 @@ namespace Wabbajack.Common.Test
             Assert.True(Utils.TryGetHashCache(testFile, out var fileHash));
             Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), fileHash);
         }
+
+        [Fact]
+        public void TestHashHex()
+        {
+
+            var hash = Hash.FromULong((ulong)Utils.NextRandom(0, int.MaxValue)); 
+            Assert.Equal(hash, Hash.FromHex(hash.ToHex()));
+
+            hash = Hash.FromLong(4085310893299329733);
+            Assert.Equal(hash, Hash.FromHex(hash.ToHex()));
+        }
     }
 }

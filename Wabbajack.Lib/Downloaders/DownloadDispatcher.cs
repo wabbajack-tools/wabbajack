@@ -118,7 +118,7 @@ namespace Wabbajack.Lib.Downloaders
 
             }
 
-            Utils.Log($"Looking for patch for {archive.Name}");
+            Utils.Log($"Looking for patch for {archive.Name} ({(long)archive.Hash} {archive.Hash.ToHex()} -> {(long)result.Archive!.Hash} {result.Archive!.Hash.ToHex()})");
             var patchResult = await ClientAPI.GetModUpgrade(archive, result.Archive!);
 
             Utils.Log($"Downloading patch for {archive.Name}");
