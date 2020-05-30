@@ -1,5 +1,7 @@
 ### Changelog
 
+* Run disk benchmarks for 10 seconds and use a tiered approach to disk queue size calculation of disks
+
 #### Version - 2.0.7.0 - 5/28/2020
 * Code is now robust when dealing with invasive Anti-virus software. We'll retry deletes/opens if the file is in use
 * Rework HTTP retries for all sites to reduce the amount of 503 errors we get from LL

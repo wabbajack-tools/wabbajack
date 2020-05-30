@@ -908,11 +908,13 @@ namespace Wabbajack.Common
 
         private static async Task<long> TestDiskSpeedInner(WorkQueue queue, AbsolutePath path)
         {
-            var startTime = DateTime.Now;
-            var seconds = 2;
-            var results = await Enumerable.Range(0, queue.DesiredNumWorkers)
+            var seconds = 10;
+            var runTime = new TimeSpan(0, 0, seconds);
+            Log($"Running disk benchmark, this will take {seconds} seconds");
+            var results = Enumerable.Range(0, queue.DesiredNumWorkers)
                 .PMap(queue, async idx =>
                 {
+                    var startTime = DateTime.Now;
                     var random = new Random();
 
                     var file = path.Combine($"size_test{idx}.bin");
@@ -921,7 +923,7 @@ namespace Wabbajack.Common
                     random.NextBytes(buffer);
                     await using (var fs = await file.Create())
                     {
-                        while (DateTime.Now < startTime + new TimeSpan(0, 0, seconds))
+                        while (DateTime.Now - startTime < runTime)
                         {
                             fs.Write(buffer, 0, buffer.Length);
                             // Flush to make sure large buffers don't cause the rate to be higher than it should
@@ -932,7 +934,14 @@ namespace Wabbajack.Common
                     await file.DeleteAsync();
                     return size;
                 });
-            return results.Sum() / seconds;
+
+            for (int x = 0; x < seconds; x++)
+            {
+                Log($"Running Disk benchmark {Percent.FactoryPutInRange(x, seconds)} complete");
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
+            
+            return (await results).Sum() / seconds;
         }
 
         public static async Task<long> TestDiskSpeed(WorkQueue queue, AbsolutePath path)
