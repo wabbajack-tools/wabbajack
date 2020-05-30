@@ -2,6 +2,7 @@
 
 #### Version - 2.0.8.0 - ??
 * Make sure the MEGA client is logged out before logging in (#881)
+* Removed final references to `nexus_link_cache` (#865)
 
 #### Version - 2.0.7.0 - 5/28/2020
 * Code is now robust when dealing with invasive Anti-virus software. We'll retry deletes/opens if the file is in use
