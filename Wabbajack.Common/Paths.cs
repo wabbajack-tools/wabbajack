@@ -95,13 +95,13 @@ namespace Wabbajack.Common
         public ValueTask<FileStream> Create()
         {
             var path = _path;
-            return CircuitBreaker.WithAutoRetry<FileStream, IOException>(async () => File.Open(path, FileMode.Create, FileAccess.ReadWrite));
+            return CircuitBreaker.WithAutoRetryAsync<FileStream, IOException>(async () => File.Open(path, FileMode.Create, FileAccess.ReadWrite));
         }
 
         public ValueTask<FileStream> OpenWrite()
         {
             var path = _path;
-            return CircuitBreaker.WithAutoRetry<FileStream, IOException>(async () => File.OpenWrite(path));
+            return CircuitBreaker.WithAutoRetryAsync<FileStream, IOException>(async () => File.OpenWrite(path));
         }
 
         public async Task WriteAllTextAsync(string text)
@@ -255,7 +255,17 @@ namespace Wabbajack.Common
             if (IsReadOnly) IsReadOnly = false;
 
             var path = _path;
-            await CircuitBreaker.WithAutoRetry<IOException>(async () => File.Delete(path));
+            await CircuitBreaker.WithAutoRetryAsync<IOException>(async () => File.Delete(path));
+        }
+        
+        public void Delete()
+        {
+            if (!IsFile) return;
+
+            if (IsReadOnly) IsReadOnly = false;
+
+            var path = _path;
+            CircuitBreaker.WithAutoRetry<IOException>(async () => File.Delete(path));
         }
 
         public bool InFolder(AbsolutePath folder)
@@ -381,14 +391,14 @@ namespace Wabbajack.Common
         public ValueTask<FileStream> OpenShared()
         {
             var path = _path;
-            return CircuitBreaker.WithAutoRetry<FileStream, IOException>(async () =>
+            return CircuitBreaker.WithAutoRetryAsync<FileStream, IOException>(async () =>
                 File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
         }
 
         public ValueTask<FileStream> WriteShared()
         {
             var path = _path;
-            return CircuitBreaker.WithAutoRetry<FileStream, IOException>(async () =>
+            return CircuitBreaker.WithAutoRetryAsync<FileStream, IOException>(async () =>
                 File.Open(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite));
         }
 

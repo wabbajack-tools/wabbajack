@@ -102,11 +102,10 @@ namespace Wabbajack
         {
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly().Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
-                Utils.Log(new CriticalFailureIntervention(
+                Utils.Error(new CriticalFailureIntervention(
                     "Wabbajack is running inside your Downloads folder. This folder is often highly monitored by antivirus software and these can often " +
                     "conflict with the operations Wabbajack needs to perform. Please move this executable outside of your Downloads folder and then restart the app.",
-                    "Cannot run inside Downloads")).Task.Wait();
-                Environment.Exit(1);
+                    "Cannot run inside Downloads"));
             }
 
             MWVM = mainWindowVM;

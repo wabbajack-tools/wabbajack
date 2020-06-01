@@ -89,7 +89,7 @@ namespace Wabbajack.Common
                 {
                     try
                     {
-                        f.DeleteAsync().Wait();
+                        f.Delete();
                         success++;
                     }
                     catch (Exception e)

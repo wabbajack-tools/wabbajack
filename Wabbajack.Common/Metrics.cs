@@ -12,13 +12,16 @@ namespace Wabbajack.Common
         public const string Downloading = "downloading";
         public const string BeginInstall = "begin_install";
         public const string FinishInstall = "finish_install";
+        private static AsyncLock _creationLock = new AsyncLock();
 
-        static Metrics()
+        public static async ValueTask<string> GetMetricsKey()
         {
+            using var _ = await _creationLock.WaitAsync();
             if (!Utils.HaveEncryptedJson(Consts.MetricsKeyHeader))
             {
-                Utils.MakeRandomKey().ToEcryptedJson(Consts.MetricsKeyHeader).AsTask().Wait();
+                await Utils.MakeRandomKey().ToEcryptedJson(Consts.MetricsKeyHeader);
             }
+            return await Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader);
         }
         /// <summary>
         /// This is all we track for metrics, action, and value. The action will be like
@@ -31,8 +34,7 @@ namespace Wabbajack.Common
             var client = new HttpClient();
             try
             {
-                client.DefaultRequestHeaders.Add(Consts.MetricsKeyHeader,
-                    await Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader));
+                client.DefaultRequestHeaders.Add(Consts.MetricsKeyHeader, await GetMetricsKey());
                 await client.GetAsync($"{Consts.WabbajackBuildServerUri}metrics/{action}/{value}");
             }
             catch (Exception)
