@@ -8,7 +8,7 @@ using Xunit.Abstractions;
 
 namespace Wabbajack.Test
 {
-    public abstract class ACompilerTest : XunitContextBase, IDisposable
+    public abstract class ACompilerTest : XunitContextBase, IAsyncDisposable
     {
         private IDisposable _unsub;
         protected TestUtils utils { get; set; }
@@ -26,9 +26,9 @@ namespace Wabbajack.Test
 
         }
 
-        public override void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            utils.DisposeAsync().AsTask().Wait();
+            await utils.DisposeAsync();
             _unsub.Dispose();
             base.Dispose();
         }
