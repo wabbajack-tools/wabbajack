@@ -27,7 +27,7 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
-        <PackageReference Include="HtmlAgilityPack" Version="1.11.23" />
+        <PackageReference Include="HtmlAgilityPack" Version="1.11.24" />
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
         <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0-preview.4.20251.6" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
