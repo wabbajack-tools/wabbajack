@@ -19,9 +19,21 @@ namespace Wabbajack.Common
             using var _ = await _creationLock.WaitAsync();
             if (!Utils.HaveEncryptedJson(Consts.MetricsKeyHeader))
             {
-                await Utils.MakeRandomKey().ToEcryptedJson(Consts.MetricsKeyHeader);
+                var key = Utils.MakeRandomKey();
+                await key.ToEcryptedJson(Consts.MetricsKeyHeader);
+                return key;
             }
-            return await Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader);
+
+            try
+            {
+                return await Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader);
+            }
+            catch (Exception)
+            {
+                var key = Utils.MakeRandomKey();
+                await key.ToEcryptedJson(Consts.MetricsKeyHeader);
+                return key;
+            }
         }
         /// <summary>
         /// This is all we track for metrics, action, and value. The action will be like

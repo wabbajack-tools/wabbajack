@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -46,12 +46,9 @@ namespace Wabbajack.Lib
         public static async Task<Common.Http.Client> GetClient()
         {
             var client = new Common.Http.Client();
-            if (Utils.HaveEncryptedJson(Consts.MetricsKeyHeader)) 
-                client.Headers.Add((Consts.MetricsKeyHeader, await Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader)));
+            client.Headers.Add((Consts.MetricsKeyHeader, await Metrics.GetMetricsKey()));
             return client;
         }
-
-        
 
         public static async Task<Uri> GetModUpgrade(Archive oldArchive, Archive newArchive, TimeSpan? maxWait = null, TimeSpan? waitBetweenTries = null)
         {
