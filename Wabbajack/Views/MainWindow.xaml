@@ -81,4 +81,11 @@
             </Button>
         </mahapps:WindowCommands>
     </mahapps:MetroWindow.RightWindowCommands>
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo x:Name="taskBarItemInfo1" 
+                     ThumbnailClipMargin="80,0,80,140"
+                     Description="Progress"
+                     ProgressValue="{Binding PercentCompleted}">
+        </TaskbarItemInfo>
+    </Window.TaskbarItemInfo>
 </mahapps:MetroWindow>

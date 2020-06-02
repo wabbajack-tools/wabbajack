@@ -34,6 +34,10 @@ namespace Wabbajack
         [Reactive]
         public ViewModel ActivePane { get; private set; }
 
+        private readonly ObservableAsPropertyHelper<Percent> _percentCompleted;
+
+        public Double PercentCompleted => (double)_percentCompleted.Value; 
+
         public ObservableCollectionExtended<IStatusMessage> Log { get; } = new ObservableCollectionExtended<IStatusMessage>();
 
         public readonly Lazy<CompilerVM> Compiler;
@@ -144,7 +148,15 @@ namespace Wabbajack
 
             OpenTerminalCommand = ReactiveCommand.Create(() => OpenTerminal());
             
-
+            _percentCompleted = Observable.CombineLatest(
+                this.WhenAny(x => x.Installer.Value.PercentCompleted),
+                this.WhenAny(x => x.Compiler.Value.PercentCompleted),
+                (Percent installer, Percent compiler) =>
+                {
+                    // add logic to take te active percentage, installer or compiler
+                    return installer;
+                })
+                .ToGuiProperty(this, nameof(PercentCompleted));
         }
 
         private void OpenTerminal()
