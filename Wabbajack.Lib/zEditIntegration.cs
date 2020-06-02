@@ -192,7 +192,7 @@ namespace Wabbajack.Lib
 
                 await using (var ms = new MemoryStream())
                 {
-                    await Utils.CreatePatch(srcData, dstData, ms);
+                    await Utils.CreatePatchCached(srcData, dstData, ms);
                     result.PatchID = await _compiler.IncludeFile(ms.ToArray());
                 }
 

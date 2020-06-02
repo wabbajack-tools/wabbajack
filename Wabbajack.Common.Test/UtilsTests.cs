@@ -31,7 +31,7 @@ namespace Wabbajack.Common.Test
             switch (method)
             {
                 case DiffMethod.Default:
-                    await Utils.CreatePatch(src, dest, ms);
+                    await Utils.CreatePatchCached(src, dest, ms);
                     break;
                 case DiffMethod.BSDiff:
                     BSDiff.Create(src, dest, ms);

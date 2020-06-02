@@ -504,7 +504,7 @@ namespace Wabbajack.Lib
                 await using var outputStream = await IncludeFile(out var id).Create();
                 entry.PatchID = id;
                 await using var destStream = await LoadDataForTo(entry.To, absolutePaths);
-                await Utils.CreatePatch(srcStream, srcFile.Hash, destStream, entry.Hash, outputStream);
+                await Utils.CreatePatchCached(srcStream, srcFile.Hash, destStream, entry.Hash, outputStream);
                 Info($"Patch size {outputStream.Length} for {entry.To}");
             });
         }

@@ -94,7 +94,9 @@ namespace Wabbajack.Lib.CompilationSteps
             e.Hash = source.File.Hash;
 
             if (Utils.TryGetPatch(found.Hash, source.File.Hash, out var data))
+            {
                 e.PatchID = await _compiler.IncludeFile(data);
+            }
 
             return e;
         }
