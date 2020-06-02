@@ -1,9 +1,13 @@
 ### Changelog
 
-#### Version - 2.0.8.0 - ??
+#### Version - 2.0.8.0 - 6/2/2020
 * Make sure the MEGA client is logged out before logging in (#881)
 * Removed final references to `nexus_link_cache` (#865)
 * Run disk benchmarks for 10 seconds and use a tiered approach to disk queue size calculation of disks
+* Move the patch cache into RocksDB to get rid of the occasional race conditions while creating patches
+* Added downloader support for tesall.ru
+* Added downloader support for Yandex Disk
+* Numerous bug fixes
 
 #### Version - 2.0.7.0 - 5/28/2020
 * Code is now robust when dealing with invasive Anti-virus software. We'll retry deletes/opens if the file is in use
