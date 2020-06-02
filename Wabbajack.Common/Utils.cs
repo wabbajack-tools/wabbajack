@@ -108,6 +108,7 @@ namespace Wabbajack.Common
                                                 Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Deleted += h, h => watcher.Deleted -= h).Select(e => (FileEventType.Deleted, e.EventArgs)))
                                        .ObserveOn(RxApp.TaskpoolScheduler);
             watcher.EnableRaisingEvents = true;
+            InitPatches();
         }
 
         private static readonly Subject<IStatusMessage> LoggerSubj = new Subject<IStatusMessage>();
@@ -721,121 +722,6 @@ namespace Wabbajack.Common
         public static string ToFileSizeString(this int byteCount)
         {
             return ToFileSizeString((long)byteCount);
-        }
-
-        public static async Task CreatePatch(byte[] a, byte[] b, Stream output)
-        {
-            var dataA = a.xxHash().ToHex();
-            var dataB = b.xxHash().ToHex();
-            var cacheFile = Consts.PatchCacheFolder.Combine($"{dataA}_{dataB}.patch");
-            Consts.PatchCacheFolder.CreateDirectory();
-
-            while (true)
-            {
-                if (cacheFile.IsFile)
-                {
-                    RETRY_OPEN:
-                    try
-                    {
-                        await using var f = await cacheFile.OpenRead();
-                        await f.CopyToAsync(output);
-                    }
-                    catch (IOException)
-                    {
-                        // Race condition with patch caching
-                        await Task.Delay(100);
-                        goto RETRY_OPEN;
-                    }
-
-                }
-                else
-                {
-                    var tmpName = Consts.PatchCacheFolder.Combine(Guid.NewGuid() + ".tmp");
-
-                    await using (var f = await tmpName.Create())
-                    {
-                        Status("Creating Patch");
-                        OctoDiff.Create(a, b, f);
-                    }
-
-                    RETRY:
-                    try
-                    {
-                        await tmpName.MoveToAsync(cacheFile, true);
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        if (cacheFile.IsFile)
-                            continue;
-                        await Task.Delay(1000);
-                        goto RETRY;
-                    }
-
-                    continue;
-                }
-
-                break;
-            }
-        }
-
-        public static async Task CreatePatch(Stream srcStream, Hash srcHash, FileStream destStream, Hash destHash,
-            FileStream patchStream)
-        {
-            await using var sigFile = new TempStream();
-            OctoDiff.Create(srcStream, destStream, sigFile, patchStream);
-            patchStream.Position = 0;
-            var tmpName = Consts.PatchCacheFolder.Combine(Guid.NewGuid() + ".tmp");
-
-            await using (var f = await tmpName.Create())
-            {
-                await patchStream.CopyToAsync(f);
-                patchStream.Position = 0;
-            }
-            
-            try
-            {
-                var cacheFile = Consts.PatchCacheFolder.Combine($"{srcHash.ToHex()}_{destHash.ToHex()}.patch");
-                Consts.PatchCacheFolder.CreateDirectory();
-
-                await tmpName.MoveToAsync(cacheFile, true);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                await tmpName.DeleteAsync();
-            }
-        }
-
-        public static bool TryGetPatch(Hash foundHash, Hash fileHash, [MaybeNullWhen(false)] out AbsolutePath ePatch)
-        {
-            var patchName = Consts.PatchCacheFolder.Combine($"{foundHash.ToHex()}_{fileHash.ToHex()}.patch");
-            if (patchName.Exists)
-            {
-                ePatch = patchName;
-                return true;
-            }
-
-            ePatch = default;
-            return false;
-        }
-
-        public static void ApplyPatch(Stream input, Func<Stream> openPatchStream, Stream output)
-        {
-            using var ps = openPatchStream();
-            using var br = new BinaryReader(ps);
-            var bytes = br.ReadBytes(8);
-            var str = Encoding.ASCII.GetString(bytes);
-            switch (str)
-            {
-                case "BSDIFF40":
-                    BSDiff.Apply(input, openPatchStream, output);
-                    return;
-                case "OCTODELT":
-                    OctoDiff.Apply(input, openPatchStream, output);
-                    return;
-                default:
-                    throw new Exception($"No diff dispatch for: {str}");
-            }
-
         }
 
         public static IEnumerable<T> ButLast<T>(this IEnumerable<T> coll)

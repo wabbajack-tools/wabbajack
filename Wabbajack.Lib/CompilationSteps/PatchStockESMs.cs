@@ -31,7 +31,7 @@ namespace Wabbajack.Lib.CompilationSteps
             Utils.Status($"Generating patch of {filename}");
             await using (var ms = new MemoryStream())
             {
-                await Utils.CreatePatch(await gameFile.ReadAllBytesAsync(), await source.AbsolutePath.ReadAllBytesAsync(), ms);
+                await Utils.CreatePatchCached(await gameFile.ReadAllBytesAsync(), await source.AbsolutePath.ReadAllBytesAsync(), ms);
                 var data = ms.ToArray();
                 result.SourceDataID = await _compiler.IncludeFile(data);
                 Utils.Log($"Generated a {data.Length} byte patch for {filename}");
