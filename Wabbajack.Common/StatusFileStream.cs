@@ -9,6 +9,7 @@ namespace Wabbajack.Common
         private Stream _inner;
         private WorkQueue? _queue;
         private DateTime _lastUpdate;
+        private TimeSpan _span;
 
         public StatusFileStream(Stream fs, string message, WorkQueue? queue = null)
         {
@@ -16,6 +17,7 @@ namespace Wabbajack.Common
             _inner = fs;
             _message = message;
             _lastUpdate = DateTime.UnixEpoch;
+            _span = TimeSpan.FromMilliseconds(500);
         }
 
         public override void Flush()
@@ -41,7 +43,7 @@ namespace Wabbajack.Common
 
         private void UpdateStatus()
         {
-            if (DateTime.Now - _lastUpdate < TimeSpan.FromMilliseconds(500))
+            if (DateTime.Now - _lastUpdate < _span)
             {
                 return;
             }

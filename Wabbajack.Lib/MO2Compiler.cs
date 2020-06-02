@@ -95,13 +95,27 @@ namespace Wabbajack.Lib
             Utils.Log($"VFS File Location: {VFSCacheName}");
 
             if (cancel.IsCancellationRequested) return false;
-            await VFS.IntegrateFromFile(VFSCacheName);
-
-            var roots = new List<AbsolutePath>
-            {
-                MO2Folder, GamePath, MO2DownloadsFolder, CompilingGame.GameLocation()
-            };
             
+            if (VFSCacheName.Exists) 
+                await VFS.IntegrateFromFile(VFSCacheName);
+
+            List<AbsolutePath> roots;
+            if (UseGamePaths)
+            {
+                roots = new List<AbsolutePath>
+                {
+                    MO2Folder, GamePath, MO2DownloadsFolder, CompilingGame.GameLocation()
+                };
+            }
+            else
+            {
+                roots = new List<AbsolutePath>
+                {
+                    MO2Folder, MO2DownloadsFolder
+                };
+                
+            }
+
             // TODO: make this generic so we can add more paths
 
             var lootPath = (AbsolutePath)Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -348,6 +362,8 @@ namespace Wabbajack.Lib
 
             return true;
         }
+
+        public bool UseGamePaths { get; set; } = true;
 
         private async Task CleanInvalidArchives()
         {

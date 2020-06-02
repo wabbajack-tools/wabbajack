@@ -73,7 +73,7 @@ namespace Wabbajack.Test
             await utils.AddManualDownload(
                 new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
 
-            await CompileAndInstall(profile);
+            await CompileAndInstall(profile, useGameFiles: true);
 
             await utils.VerifyInstalledGameFile(@"enbstuff\test.pex");
         }

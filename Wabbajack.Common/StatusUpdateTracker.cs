@@ -49,7 +49,7 @@ namespace Wabbajack.Common
 
         public void MakeUpdate(Percent progress)
         {
-            _progress.OnNext(OverAllStatus(progress));
+            _progress.OnNext(progress);
         }
 
         public void MakeUpdate(int max, int curr)

@@ -33,19 +33,20 @@ namespace Wabbajack.Test
             base.Dispose();
         }
 
-        protected async Task<MO2Compiler> ConfigureAndRunCompiler(string profile)
+        protected async Task<MO2Compiler> ConfigureAndRunCompiler(string profile, bool useGameFiles= false)
         {
             var compiler = new MO2Compiler(
                 mo2Folder: utils.MO2Folder,
                 mo2Profile: profile,
                 outputFile: OutputFile(profile));
+            compiler.UseGamePaths = useGameFiles;
             Assert.True(await compiler.Begin());
             return compiler;
         }
 
-        protected async Task<ModList> CompileAndInstall(string profile)
+        protected async Task<ModList> CompileAndInstall(string profile, bool useGameFiles = false)
         {
-            var compiler = await ConfigureAndRunCompiler(profile);
+            var compiler = await ConfigureAndRunCompiler(profile, useGameFiles: useGameFiles);
             Utils.Log("Finished Compiling");
             await Install(compiler);
             return compiler.ModList;
