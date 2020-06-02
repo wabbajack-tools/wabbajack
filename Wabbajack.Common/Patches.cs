@@ -57,8 +57,10 @@ namespace Wabbajack.Common
             if (patch != null)
             {
                 await patchOutStream.WriteAsync(patch);
+                return;
             }
             
+            Status("Creating Patch");
             await using var sigStream = new MemoryStream();
             await using var patchStream = new MemoryStream();
             OctoDiff.Create(srcStream, destStream, sigStream, patchStream);
