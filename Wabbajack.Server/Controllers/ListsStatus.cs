@@ -160,7 +160,8 @@ namespace Wabbajack.BuildServer.Controllers
             else
                 color = "red";
 
-            return Ok(new Badge("Modlist Availability", $"{ration}%"){color = color}.ToJson());
+            Response.ContentType = "application/json";
+            return Ok(new Badge("Modlist Availability", $"{ration}%"){color = color});
         }
 
         [HttpGet]
@@ -175,7 +176,8 @@ namespace Wabbajack.BuildServer.Controllers
 
             var failing = info.HasFailures;
 
-            return Ok(new Badge(info.Name, failing ? "Failing" : "Succeeding"){color = failing ? "red" : "green"}.ToJson());
+            Response.ContentType = "application/json";
+            return Ok(new Badge(info.Name, failing ? "Failing" : "Succeeding"){color = failing ? "red" : "green"});
         }
     }
 }
