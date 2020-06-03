@@ -5,6 +5,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using FluentFTP;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
@@ -16,6 +17,7 @@ using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.BuildServer.Controllers
 {
+    [Authorize]
     [Route("/authored_files")]
     public class AuthoredFiles : ControllerBase
     {
