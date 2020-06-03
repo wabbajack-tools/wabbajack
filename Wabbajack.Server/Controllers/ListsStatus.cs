@@ -124,7 +124,56 @@ namespace Wabbajack.BuildServer.Controllers
                 .FirstOrDefault(d => d.MachineName == Name);
         }
 
+        public class Badge
+        {
+            public int schemaVersion { get; set; } = 1;
+            public string label { get; set; }
+            public string message { get; set; }
+            public string color { get; set; }
 
-        
+            public Badge(string _label, string _message)
+            {
+                label = _label;
+                message = _message;
+            }
+        }
+
+        [HttpGet]
+        [Route("status/badge.json")]
+        public async Task<IActionResult> HandleGitHubBadge()
+        {
+            //var failing = _validator.Summaries.Select(x => x.Summary.Failed).Aggregate((x, y) => x + y);
+            var succeeding = _validator.Summaries.Select(x => x.Summary.Passed).Aggregate((x, y) => x + y);
+            var total = _validator.Summaries.Count();
+            double ration = total / (double)succeeding * 100.0;
+            string color;
+            if (ration >= 95)
+                color = "brightgreen";
+            else if (ration >= 80)
+                color = "green";
+            else if (ration >= 50)
+                color = "yellowgreen";
+            else if (ration >= 20)
+                color = "orange";
+            else
+                color = "red";
+
+            return Ok(new Badge("Modlist Availability", $"{ration}%"){color = color}.ToJson());
+        }
+
+        [HttpGet]
+        [Route("status/{Name}/badge.json")]
+        public async Task<IActionResult> HandleNamedGitHubBadge(string Name)
+        {
+            var info = _validator.Summaries.Select(x => x.Summary)
+                .FirstOrDefault(x => x.MachineURL == Name);
+
+            if (info == null)
+                return new NotFoundObjectResult("Not Found!");
+
+            var failing = info.HasFailures;
+
+            return Ok(new Badge(info.Name, failing ? "Failing" : "Succeeding"){color = failing ? "red" : "green"}.ToJson());
+        }
     }
 }
