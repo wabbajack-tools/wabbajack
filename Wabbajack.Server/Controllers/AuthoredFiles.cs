@@ -154,6 +154,7 @@ namespace Wabbajack.BuildServer.Controllers
 
 
         [HttpGet]
+        [AllowAnonymous]
         [Route("")]
         public async Task<ContentResult> UploadedFilesGet()
         {

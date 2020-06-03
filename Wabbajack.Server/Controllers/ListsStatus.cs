@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
@@ -124,6 +125,7 @@ namespace Wabbajack.BuildServer.Controllers
                 .FirstOrDefault(d => d.MachineName == Name);
         }
 
+        [JsonName("Badge")]
         public class Badge
         {
             public int schemaVersion { get; set; } = 1;
