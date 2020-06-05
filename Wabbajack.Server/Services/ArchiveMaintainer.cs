@@ -18,54 +18,48 @@ namespace Wabbajack.Server.Services
     {
         private AppSettings _settings;
         private ILogger<ArchiveMaintainer> _logger;
-        private ConcurrentDictionary<Hash, AbsolutePath> _archives = new ConcurrentDictionary<Hash, AbsolutePath>();
 
         public ArchiveMaintainer(ILogger<ArchiveMaintainer> logger, AppSettings settings)
         {
             _settings = settings;
             _logger = logger;
+            _logger.Log(LogLevel.Information, "Creating Archive Maintainer");
         }
 
         public void Start()
         {
-            foreach (var path in _settings.ArchivePath.EnumerateFiles(false))
-            {
-                try
-                {
-                    var hash = Hash.FromHex((string)path.FileNameWithoutExtension);
-                    _archives[hash] = path;
-                }
-                catch (Exception ex)
-                {
-                    _logger.Log(LogLevel.Error, ex.ToString());
-                }
-            }
-            _logger.Log(LogLevel.Information, $"Found {_archives.Count} archives");
+            _logger.Log(LogLevel.Information, $"Found {_settings.ArchivePath.EnumerateFiles(false).Count()} archives");
+        }
+
+        private AbsolutePath ArchivePath(Hash hash)
+        {
+            return _settings.ArchivePath.Combine(hash.ToHex());
         }
 
         public async Task<AbsolutePath> Ingest(AbsolutePath file)
         {
             var hash = await file.FileHashAsync();
+            var path = ArchivePath(hash);
             if (HaveArchive(hash))
             {
                 await file.DeleteAsync();
-                return _archives[hash];
+                return path;
             }
             
             var newPath = _settings.ArchivePath.Combine(hash.ToHex());
             await file.MoveToAsync(newPath);
-            _archives[hash] = newPath;
-            return _archives[hash];
+            return path;
         }
 
         public bool HaveArchive(Hash hash)
         {
-            return _archives.ContainsKey(hash);
+            return ArchivePath(hash).Exists;
         }
 
         public bool TryGetPath(Hash hash, out AbsolutePath path)
         {
-            return _archives.TryGetValue(hash, out path);
+            path = ArchivePath(hash);
+            return path.Exists;
         }
     }
     
