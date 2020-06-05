@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.0.9.0 - 6/5/2020
+* Added support for Fallout 4 VR
+
 #### Version - 2.0.8.0 - 6/2/2020
 * Make sure the MEGA client is logged out before logging in (#881)
 * Removed final references to `nexus_link_cache` (#865)
