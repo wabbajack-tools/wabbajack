@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Threading.Tasks;
+using Wabbajack.BuildServer;
 using Wabbajack.BuildServer.Test;
 using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
@@ -23,6 +24,8 @@ namespace Wabbajack.Server.Test
         [Fact]
         public async Task CanIndexAndUpdateFiles()
         {
+            var settings = Fixture.GetService<AppSettings>();
+            settings.ValidateModUpgrades = false;
             var validator = Fixture.GetService<ListValidator>();
             var nonNexus = Fixture.GetService<NonNexusDownloadValidator>();
             var modLists = await MakeModList("CanIndexAndUpdateFiles.txt");
@@ -72,6 +75,9 @@ namespace Wabbajack.Server.Test
         [Fact]
         public async Task TestEndToEndArchiveUpdating()
         {
+            var settings = Fixture.GetService<AppSettings>();
+            settings.ValidateModUpgrades = false;
+
             var modLists = await MakeModList("TestEndToEndArchiveUpdating.txt");
             Consts.ModlistMetadataURL = modLists.ToString();
             

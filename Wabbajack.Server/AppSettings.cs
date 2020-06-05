@@ -35,5 +35,6 @@ namespace Wabbajack.BuildServer
 
         public string SpamWebHook { get; set; } = null;
         public string HamWebHook { get; set; } = null;
+        public bool ValidateModUpgrades { get; set; } = true;
     }
 }

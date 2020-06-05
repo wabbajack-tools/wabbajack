@@ -35,7 +35,7 @@ namespace Wabbajack.BuildServer.Controllers
                 return BadRequest("Invalid mod upgrade");
             }
 
-            if (!await _sql.HashIsInAModlist(request.OldArchive.Hash))
+            if (_settings.ValidateModUpgrades && !await _sql.HashIsInAModlist(request.OldArchive.Hash))
             {
                 _logger.Log(LogLevel.Information, $"Upgrade requested from {request.OldArchive.Hash} to {request.NewArchive.Hash} rejected as src hash is not in a curated modlist");
                 return BadRequest("Hash is not in a recent modlist");
