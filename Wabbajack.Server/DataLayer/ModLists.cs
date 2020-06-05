@@ -59,5 +59,13 @@ namespace Wabbajack.Server.DataLayer
                 new {MachineUrl = machineUrl, Hash = hash});
             return result != null;
         }
+
+        public async Task<bool> HashIsInAModlist(Hash hash)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryFirstOrDefaultAsync<bool>("SELECT Hash FROM dbo.ModListArchives Where Hash = @Hash",
+                new {Hash = hash});
+            return result;
+        }
     }
 }

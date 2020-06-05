@@ -26,6 +26,8 @@ namespace Wabbajack.Common
         Fallout4,
         [Description("Skyrim VR")]
         SkyrimVR,
+        [Description("Fallout 4 VR")]
+        Fallout4VR
     }
 
     public static class GameExtensions
@@ -339,7 +341,8 @@ namespace Wabbajack.Common
                     {
                         "Fallout4.exe"
                     },
-                    MainExecutable = "Fallout4.exe"
+                    MainExecutable = "Fallout4.exe",
+                    CommonlyConfusedWith = new [] {Game.Fallout4VR}
                 }
             },
             {
@@ -374,6 +377,23 @@ namespace Wabbajack.Common
                         "TESV.exe"
                     },
                     MainExecutable = "TESV.exe"
+                }
+            },
+            {
+                Game.Fallout4VR, new GameMetaData
+                {
+                    SupportedModManager = ModManager.MO2,
+                    Game = Game.Fallout4VR,
+                    NexusName = "fallout4",
+                    MO2Name = "Fallout 4 VR",
+                    MO2ArchiveName = "Fallout4",
+                    SteamIDs = new List<int>{611660},
+                    RequiredFiles = new List<string>
+                    {
+                        "Fallout4VR.exe"
+                    },
+                    MainExecutable = "Fallout4VR.exe",
+                    CommonlyConfusedWith = new [] {Game.Fallout4}
                 }
             }
         };
