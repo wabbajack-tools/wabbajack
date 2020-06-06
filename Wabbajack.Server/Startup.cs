@@ -55,6 +55,7 @@ namespace Wabbajack.Server
             });
 
             services.AddSingleton<AppSettings>();
+            services.AddSingleton<QuickSync>();
             services.AddSingleton<SqlService>();
             services.AddSingleton<GlobalInformation>();
             services.AddSingleton<NexusPoll>();

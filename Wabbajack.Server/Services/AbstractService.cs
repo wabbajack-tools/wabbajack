@@ -16,12 +16,14 @@ namespace Wabbajack.Server.Services
         protected AppSettings _settings;
         private TimeSpan _delay;
         protected ILogger<TP> _logger;
+        protected QuickSync _quickSync;
 
-        public AbstractService(ILogger<TP> logger, AppSettings settings, TimeSpan delay)
+        public AbstractService(ILogger<TP> logger, AppSettings settings, QuickSync quickSync, TimeSpan delay)
         {
             _settings = settings;
             _delay = delay;
             _logger = logger;
+            _quickSync = quickSync;
         }
 
         public void Start()
@@ -32,7 +34,7 @@ namespace Wabbajack.Server.Services
                 {
                     while (true)
                     {
-
+                        await _quickSync.ResetToken<TP>();
                         try
                         {
                             await Execute();
@@ -42,9 +44,9 @@ namespace Wabbajack.Server.Services
                             _logger.LogError(ex, "Running Service Loop");
                         }
 
-                        await Task.Delay(_delay);
+                        var token = await _quickSync.GetToken<TP>();
+                        await Task.Delay(_delay, token);
                     }
-
                 });
             }
         }

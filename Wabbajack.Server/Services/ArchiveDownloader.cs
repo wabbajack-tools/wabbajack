@@ -16,11 +16,14 @@ namespace Wabbajack.Server.Services
         private SqlService _sql;
         private ArchiveMaintainer _archiveMaintainer;
         private NexusApiClient _nexusClient;
+        private DiscordWebHook _discord;
 
-        public ArchiveDownloader(ILogger<ArchiveDownloader> logger, AppSettings settings, SqlService sql, ArchiveMaintainer archiveMaintainer) : base(logger, settings, TimeSpan.FromMinutes(10))
+        public ArchiveDownloader(ILogger<ArchiveDownloader> logger, AppSettings settings, SqlService sql, ArchiveMaintainer archiveMaintainer, DiscordWebHook discord, QuickSync quickSync) 
+            : base(logger, settings, quickSync, TimeSpan.FromMinutes(10))
         {
             _sql = sql;
             _archiveMaintainer = archiveMaintainer;
+            _discord = discord;
         }
 
         public override async Task<int> Execute()
@@ -58,6 +61,7 @@ namespace Wabbajack.Server.Services
                 try
                 {
                     _logger.Log(LogLevel.Information, $"Downloading {nextDownload.Archive.State.PrimaryKeyString}");
+                    await _discord.Send(Channel.Spam, new DiscordMessage {Content = $"Downloading {nextDownload.Archive.State.PrimaryKeyString}"});
                     await DownloadDispatcher.PrepareAll(new[] {nextDownload.Archive.State});
 
                     await using var tempPath = new TempFile();
@@ -86,15 +90,24 @@ namespace Wabbajack.Server.Services
 
                     _logger.Log(LogLevel.Information, $"Finished Archiving {nextDownload.Archive.State.PrimaryKeyString}");
                     await nextDownload.Finish(_sql);
+                    await _discord.Send(Channel.Spam, new DiscordMessage {Content = $"Finished downloading {nextDownload.Archive.State.PrimaryKeyString}"});
+
 
                 }
                 catch (Exception ex)
                 {
                     _logger.Log(LogLevel.Warning, $"Error downloading {nextDownload.Archive.State.PrimaryKeyString}");
                     await nextDownload.Fail(_sql, ex.ToString());
+                    await _discord.Send(Channel.Spam, new DiscordMessage {Content = $"Error downloading {nextDownload.Archive.State.PrimaryKeyString}"});
                 }
                 
                 count++;
+            }
+
+            if (count > 0)
+            {
+                // Wake the Patch builder up in case it needs to build a patch now
+                await _quickSync.Notify<PatchBuilder>();
             }
 
             return count;

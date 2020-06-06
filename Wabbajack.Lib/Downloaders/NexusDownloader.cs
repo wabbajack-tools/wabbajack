@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using F23.StringSimilarity;
 using Newtonsoft.Json;
 using ReactiveUI;
 using Wabbajack.Common;
@@ -246,14 +247,16 @@ namespace Wabbajack.Lib.Downloaders
                 var mod = await client.GetModInfo(Game, ModID);
                 var files = await client.GetModFiles(Game, ModID);
                 var oldFile = files.files.FirstOrDefault(f => f.file_id == FileID);
-                var newFile = files.files.Where(f => f.category_name != null).OrderByDescending(f => f.uploaded_timestamp).FirstOrDefault();
+                var nl = new Levenshtein();
+                var newFile = files.files.Where(f => f.category_name != null)
+                    .OrderBy(f => nl.Distance(oldFile.name.ToLowerInvariant(), f.name.ToLowerInvariant())).FirstOrDefault();
 
                 if (!mod.available || oldFile == default || newFile == default)
                 {
                     return default;
                 }
                 // Size is in KB
-                if (oldFile.size > 2_500_000 || newFile.size > 2_500_000 || oldFile.file_id == newFile.file_id)
+                if (oldFile.size > 4_500_000 || newFile.size > 4_500_000 || oldFile.file_id == newFile.file_id)
                 {
                     return default;
                 }

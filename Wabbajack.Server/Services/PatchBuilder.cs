@@ -22,7 +22,7 @@ namespace Wabbajack.Server.Services
         private ArchiveMaintainer _maintainer;
 
         public PatchBuilder(ILogger<PatchBuilder> logger, SqlService sql, AppSettings settings, ArchiveMaintainer maintainer,
-            DiscordWebHook discordWebHook) : base(logger, settings, TimeSpan.FromMinutes(1))
+            DiscordWebHook discordWebHook, QuickSync quickSync) : base(logger, settings, quickSync, TimeSpan.FromMinutes(1))
         {
             _discordWebHook = discordWebHook;
             _sql = sql;
@@ -101,6 +101,12 @@ namespace Wabbajack.Server.Services
                         });                    
 
                 }
+            }
+
+            if (count > 0)
+            {
+                // Notify the List Validator that we may have more patches
+                await _quickSync.Notify<ListValidator>();
             }
 
             return count;

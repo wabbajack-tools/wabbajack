@@ -23,7 +23,7 @@ namespace Wabbajack.Server.Services
         private ILogger<DiscordWebHook> _logger;
         private Random _random = new Random();
 
-        public DiscordWebHook(ILogger<DiscordWebHook> logger, AppSettings settings) : base(logger, settings, TimeSpan.FromHours(1))
+        public DiscordWebHook(ILogger<DiscordWebHook> logger, AppSettings settings, QuickSync quickSync) : base(logger, settings, quickSync, TimeSpan.FromHours(1))
         {
             _settings = settings;
             _logger = logger;

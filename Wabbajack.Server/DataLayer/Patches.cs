@@ -110,7 +110,10 @@ namespace Wabbajack.Server.DataLayer
         {
             await using var conn = await Open();
             var patch = await conn.QueryFirstOrDefaultAsync<(Guid, Guid, long, DateTime?, bool?, string)>(
-                "SELECT SrcId, DestId, PatchSize, Finished, IsFailed, FailMessage FROM dbo.Patches WHERE Finished is NULL");
+                @"SELECT p.SrcId, p.DestId, p.PatchSize, p.Finished, p.IsFailed, p.FailMessage FROM dbo.Patches p 
+                      LEFT JOIN dbo.ArchiveDownloads src ON src.Id = p.SrcId
+                      LEFT JOIN dbo.ArchiveDownloads dest ON dest.Id = p.DestId
+                      WHERE p.Finished is NULL AND src.IsFailed = 0 AND dest.IsFailed = 0 ");
             if (patch == default)
                 return default(Patch);
 
@@ -143,6 +146,15 @@ namespace Wabbajack.Server.DataLayer
                 });
             } 
             return results;
+        }
+
+        public async Task MarkPatchUsage(Guid srcId, Guid destId)
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync(
+                @"UPDATE dbo.Patches SET Downloads = Downloads + 1, LastUsed = GETUTCDATE() WHERE SrcId = @srcId AND DestID = @destId",
+                new {SrcId = srcId, DestId = destId});
+
         }
     }
 }

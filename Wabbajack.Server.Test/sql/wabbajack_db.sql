@@ -560,6 +560,8 @@ CREATE TABLE [dbo].[Patches](
 [Finished] [datetime] NULL,
 [IsFailed] [tinyint] NULL,
 [FailMessage] [varchar](MAX) NULL,
+[LastUsed] [datetime] NULL,
+[Downloads] [bigint] NOT NULL DEFAULT 0,
 CONSTRAINT [PK_Patches] PRIMARY KEY CLUSTERED
     (
      [SrcId] ASC,

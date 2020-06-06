@@ -30,8 +30,8 @@ namespace Wabbajack.Server.Services
             new (ModListSummary Summary, DetailedStatus Detailed)[0];
 
 
-        public ListValidator(ILogger<ListValidator> logger, AppSettings settings, SqlService sql, DiscordWebHook discord, NexusKeyMaintainance nexus, ArchiveMaintainer archives) 
-            : base(logger, settings, TimeSpan.FromMinutes(5))
+        public ListValidator(ILogger<ListValidator> logger, AppSettings settings, SqlService sql, DiscordWebHook discord, NexusKeyMaintainance nexus, ArchiveMaintainer archives, QuickSync quickSync) 
+            : base(logger, settings, quickSync, TimeSpan.FromMinutes(5))
         {
             _sql = sql;
             _discord = discord;
@@ -56,7 +56,7 @@ namespace Wabbajack.Server.Services
                 {
                     var (_, result) = await ValidateArchive(data, archive);
                     if (result == ArchiveStatus.InValid)
-                        return await TryToHeal(data, archive);
+                        return await TryToHeal(data, archive, metadata);
                     return (archive, result);
                 });
 
@@ -133,7 +133,7 @@ namespace Wabbajack.Server.Services
         }
 
         private AsyncLock _healLock = new AsyncLock();
-        private async Task<(Archive, ArchiveStatus)> TryToHeal(ValidationData data, Archive archive)
+        private async Task<(Archive, ArchiveStatus)> TryToHeal(ValidationData data, Archive archive, ModlistMetadata modList)
         {
             using var _ = await _healLock.WaitAsync();
 
@@ -182,7 +182,7 @@ namespace Wabbajack.Server.Services
             await _sql.AddPatch(new Patch {Src = srcDownload, Dest = destDownload});
             
             _logger.Log(LogLevel.Information, $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}");
-            await _discord.Send(Channel.Spam, new DiscordMessage { Content = $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}" });
+            await _discord.Send(Channel.Ham, new DiscordMessage { Content = $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash} to auto-heal `{modList.Links.MachineURL}`" });
 
             await upgrade.NewFile.DisposeAsync();
 

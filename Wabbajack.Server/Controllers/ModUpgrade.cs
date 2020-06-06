@@ -15,13 +15,15 @@ namespace Wabbajack.BuildServer.Controllers
         private SqlService _sql;
         private DiscordWebHook _discord;
         private AppSettings _settings;
+        private QuickSync _quickSync;
 
-        public ModUpgrade(ILogger<ModUpgrade> logger, SqlService sql, DiscordWebHook discord, AppSettings settings)
+        public ModUpgrade(ILogger<ModUpgrade> logger, SqlService sql, DiscordWebHook discord, QuickSync quickSync, AppSettings settings)
         {
             _logger = logger;
             _sql = sql;
             _discord = discord;
             _settings = settings;
+            _quickSync = quickSync;
         }
         
         [HttpPost]
@@ -49,6 +51,7 @@ namespace Wabbajack.BuildServer.Controllers
                 if (patch.PatchSize != 0)
                 {
                     _logger.Log(LogLevel.Information, $"Upgrade requested from {oldDownload.Archive.Hash} to {newDownload.Archive.Hash} patch Found");
+                    await _sql.MarkPatchUsage(oldDownload.Id, newDownload.Id);
                     return
                         Ok(
                             $"https://{_settings.BunnyCDN_StorageZone}.b-cdn.net/{Consts.ArchiveUpdatesCDNFolder}/{request.OldArchive.Hash.ToHex()}_{request.NewArchive.Hash.ToHex()}");
@@ -57,6 +60,16 @@ namespace Wabbajack.BuildServer.Controllers
 
                 return NotFound("Patch creation failed");
             }
+
+            if (!newDownload.DownloadFinished.HasValue)
+            {
+                await _quickSync.Notify<ArchiveDownloader>();
+            }
+            else
+            {
+                await _quickSync.Notify<PatchBuilder>();
+            }
+            
             _logger.Log(LogLevel.Information, $"Upgrade requested from {oldDownload.Archive.Hash} to {newDownload.Archive.Hash} patch found is processing");
             // Still processing
             return Accepted();

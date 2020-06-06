@@ -13,7 +13,7 @@ namespace Wabbajack.Server.Services
     {
         private SqlService _sql;
 
-        public NexusKeyMaintainance(ILogger<NexusKeyMaintainance> logger, AppSettings settings, SqlService sql) : base(logger, settings, TimeSpan.FromHours(1))
+        public NexusKeyMaintainance(ILogger<NexusKeyMaintainance> logger, AppSettings settings, SqlService sql, QuickSync quickSync) : base(logger, settings, quickSync, TimeSpan.FromHours(1))
         {
             _sql = sql;
         }

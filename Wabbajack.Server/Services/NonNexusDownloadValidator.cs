@@ -16,8 +16,8 @@ namespace Wabbajack.Server.Services
     {
         private SqlService _sql;
 
-        public NonNexusDownloadValidator(ILogger<NonNexusDownloadValidator> logger, AppSettings settings, SqlService sql)
-            : base(logger, settings, TimeSpan.FromHours(2))
+        public NonNexusDownloadValidator(ILogger<NonNexusDownloadValidator> logger, AppSettings settings, SqlService sql, QuickSync quickSync)
+            : base(logger, settings, quickSync, TimeSpan.FromHours(2))
         {
             _sql = sql;
         }
