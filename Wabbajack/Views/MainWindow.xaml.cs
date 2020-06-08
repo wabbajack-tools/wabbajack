@@ -24,58 +24,68 @@ namespace Wabbajack
 
         public MainWindow()
         {
-            // Wire any unhandled crashing exceptions to log before exiting
-            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+            try
             {
-                // Don't do any special logging side effects
-                Utils.Error(((Exception)e.ExceptionObject), "Uncaught error");
-            };
-
-            Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
-            var p = SystemParametersConstructor.Create();
-
-            Utils.Log($"Detected Windows Version: {p.WindowsVersion}");
-
-            if (!(p.WindowsVersion.Major >= 6 && p.WindowsVersion.Minor >= 2))
-                Utils.Log(
-                    $"You are not running a recent version of Windows (version 10 or greater), Wabbajack is not supported on OS versions older than Windows 10.");
-            
-            Utils.Log(
-                $"System settings - ({p.SystemMemorySize.ToFileSizeString()} RAM), Display: {p.ScreenWidth} x {p.ScreenHeight} ({p.VideoMemorySize.ToFileSizeString()} VRAM - VideoMemorySizeMb={p.EnbLEVRAMSize})");
-
-            Warmup();
-
-            var (settings, loadedSettings) = MainSettings.TryLoadTypicalSettings().AsTask().Result;
-            // Load settings
-            if (CLIArguments.NoSettings || !loadedSettings)
-            {
-                _settings = new MainSettings
+                // Wire any unhandled crashing exceptions to log before exiting
+                AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
                 {
-                    Version = Consts.SettingsVersion
+                    // Don't do any special logging side effects
+                    Utils.LogStraightToFile("Error.");
+                    Utils.LogStraightToFile(((Exception)e.ExceptionObject).ToString());
+                    Environment.Exit(-1);
                 };
-                RunWhenLoaded(DefaultSettings);
-            }
-            else
-            {
-                _settings = settings;
-                RunWhenLoaded(LoadSettings);
-            }
 
-            // Set datacontext
-            _mwvm = new MainWindowVM(this, _settings);
-            DataContext = _mwvm;
+                Utils.Log($"Wabbajack Build - {ThisAssembly.Git.Sha}");
+                Utils.Log($"Running in {AbsolutePath.EntryPoint}");
 
-            // Bring window to the front if it isn't already
-            this.Initialized += (s, e) =>
+                var p = SystemParametersConstructor.Create();
+
+                Utils.Log($"Detected Windows Version: {p.WindowsVersion}");
+
+                if (!(p.WindowsVersion.Major >= 6 && p.WindowsVersion.Minor >= 2))
+                    Utils.Log(
+                        $"You are not running a recent version of Windows (version 10 or greater), Wabbajack is not supported on OS versions older than Windows 10.");
+
+                Utils.Log(
+                    $"System settings - ({p.SystemMemorySize.ToFileSizeString()} RAM), Display: {p.ScreenWidth} x {p.ScreenHeight} ({p.VideoMemorySize.ToFileSizeString()} VRAM - VideoMemorySizeMb={p.EnbLEVRAMSize})");
+
+                Warmup();
+
+                var (settings, loadedSettings) = MainSettings.TryLoadTypicalSettings().AsTask().Result;
+                // Load settings
+                if (CLIArguments.NoSettings || !loadedSettings)
+                {
+                    _settings = new MainSettings {Version = Consts.SettingsVersion};
+                    RunWhenLoaded(DefaultSettings);
+                }
+                else
+                {
+                    _settings = settings;
+                    RunWhenLoaded(LoadSettings);
+                }
+
+                // Set datacontext
+                _mwvm = new MainWindowVM(this, _settings);
+                DataContext = _mwvm;
+
+                // Bring window to the front if it isn't already
+                this.Initialized += (s, e) =>
+                {
+                    this.Activate();
+                    this.Topmost = true;
+                    this.Focus();
+                };
+                this.ContentRendered += (s, e) =>
+                {
+                    this.Topmost = false;
+                };
+            }
+            catch (Exception ex)
             {
-                this.Activate();
-                this.Topmost = true;
-                this.Focus();
-            };
-            this.ContentRendered += (s, e) =>
-            {
-                this.Topmost = false;
-            };
+                Utils.LogStraightToFile("Error");
+                Utils.LogStraightToFile(ex.ToString()); 
+                Environment.Exit(-1);
+            }
         }
 
         public void Init(MainWindowVM vm, MainSettings settings)
