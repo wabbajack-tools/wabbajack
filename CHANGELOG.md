@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.0.9.1 - 6/8/2020
+* Add crash handling and crash logging to the application startup
+* Use string distance comparisons to find Nexus mod upgrades
+
 #### Version - 2.0.9.0 - 6/5/2020
 * Added support for Fallout 4 VR
 
