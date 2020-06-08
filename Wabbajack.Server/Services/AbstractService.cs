@@ -45,7 +45,14 @@ namespace Wabbajack.Server.Services
                         }
 
                         var token = await _quickSync.GetToken<TP>();
-                        await Task.Delay(_delay, token);
+                        try
+                        {
+                            await Task.Delay(_delay, token);
+                        }
+                        catch (TaskCanceledException)
+                        {
+                            
+                        }
                     }
                 });
             }
