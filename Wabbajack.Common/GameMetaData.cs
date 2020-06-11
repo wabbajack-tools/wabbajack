@@ -414,7 +414,8 @@ namespace Wabbajack.Common
                     RequiredFiles = new List<string>
                     {
                         "_windows\\Darkest.exe"
-                    }
+                    },
+                    MainExecutable = "_windows\\Darkest.exe"
                 }
             }
         };
