@@ -9,25 +9,26 @@ namespace Wabbajack.Lib
     [JsonName("Manifest")]
     public class Manifest
     {
-        public string Name;
-        public Version Version;
-        public string Author;
-        public string Description;
+        public readonly string Name;
+        public readonly Version Version;
+        public readonly string Author;
+        public readonly string Description;
 
-        public Game GameType;
+        public readonly Game GameType;
         // Enum toString for better parsing in other software
         public string GameName;
 
-        public ModManager ModManager;
+        public readonly ModManager ModManager;
         // Enum toString for better parsing in other software
         public string ModManagerName;
 
-        public long DownloadSize;
-        public long InstallSize;
+        public readonly long DownloadSize;
+        public readonly long InstallSize;
 
         public bool IsNSFW;
 
-        public List<Archive> Archives;
+        public readonly List<Archive> Archives;
+        public readonly List<InlineFile> InlinedFiles;
 
         public Manifest(ModList modlist)
         {
@@ -54,6 +55,8 @@ namespace Wabbajack.Lib
                 Name = a.Name,
                 Size = a.Size,
             }).ToList();
+
+            InlinedFiles = modlist.Directives.OfType<InlineFile>().ToList();
         }
     }
 }
