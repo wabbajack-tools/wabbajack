@@ -144,33 +144,31 @@ namespace Wabbajack.Lib
                 ModList.Image = (RelativePath)"modlist-image.png";
             }
 
-            using (var of = await ModListOutputFolder.Combine("modlist").Create()) 
+            await using (var of = await ModListOutputFolder.Combine("modlist").Create()) 
                 ModList.ToJson(of);
 
             await ModListOutputFile.DeleteAsync();
 
-            using (var fs = await ModListOutputFile.Create())
+            await using (var fs = await ModListOutputFile.Create())
             {
-                using (var za = new ZipArchive(fs, ZipArchiveMode.Create))
+                using var za = new ZipArchive(fs, ZipArchiveMode.Create);
+                await ModListOutputFolder.EnumerateFiles()
+                    .DoProgress("Compressing ModList",
+                async f =>
                 {
-                    await ModListOutputFolder.EnumerateFiles()
-                        .DoProgress("Compressing ModList",
-                    async f =>
-                    {
-                        var ze = za.CreateEntry((string)f.FileName);
-                        await using var os = ze.Open();
-                        await using var ins = await f.OpenRead();
-                        await ins.CopyToAsync(os);
-                    });
+                    var ze = za.CreateEntry((string)f.FileName);
+                    await using var os = ze.Open();
+                    await using var ins = await f.OpenRead();
+                    await ins.CopyToAsync(os);
+                });
 
-                    // Copy in modimage
-                    if (ModListImage.Exists)
-                    {
-                        var ze = za.CreateEntry((string)ModList.Image);
-                        await using var os = ze.Open();
-                        await using var ins = await ModListImage.OpenRead();
-                        await ins.CopyToAsync(os);
-                    }
+                // Copy in modimage
+                if (ModListImage.Exists)
+                {
+                    var ze = za.CreateEntry((string)ModList.Image);
+                    await using var os = ze.Open();
+                    await using var ins = await ModListImage.OpenRead();
+                    await ins.CopyToAsync(os);
                 }
             }
 
@@ -185,7 +183,6 @@ namespace Wabbajack.Lib
                 SizeOfInstalledFiles = ModList.Directives.Sum(a => a.Size)
             };
             metadata.ToJson(ModListOutputFile + ".meta.json");
-
 
             Utils.Log("Removing ModList staging folder");
             await Utils.DeleteDirectory(ModListOutputFolder);
