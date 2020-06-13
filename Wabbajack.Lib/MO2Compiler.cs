@@ -175,7 +175,6 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Reindexing downloads after meta inferring");
             await VFS.AddRoot(MO2DownloadsFolder);
             await VFS.WriteToFile(VFSCacheName);
-            
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Pre-validating Archives");
@@ -193,34 +192,38 @@ namespace Wabbajack.Lib
 
 
             var stockGameFolder = CompilingGame.GameLocation();
-            
-            foreach (var (relativePath, hash) in await ClientAPI.GetGameFiles(CompilingGame.Game, Version.Parse(CompilingGame.InstalledVersion)))
+
+            var installedVersion = CompilingGame.InstalledVersion;
+            if (installedVersion != null)
             {
-                if (!VFS.Index.ByRootPath.TryGetValue(relativePath.RelativeTo(stockGameFolder), out var virtualFile))
-                    continue;
-                if (virtualFile.Hash != hash)
+                foreach (var (relativePath, hash) in await ClientAPI.GetGameFiles(CompilingGame.Game, Version.Parse(installedVersion)))
                 {
-                    Utils.Log(
-                        $"File {relativePath} int the game folder appears to be modified, it will not be used during compilation");
-                    continue;
+                    if (!VFS.Index.ByRootPath.TryGetValue(relativePath.RelativeTo(stockGameFolder), out var virtualFile))
+                        continue;
+                    if (virtualFile.Hash != hash)
+                    {
+                        Utils.Log(
+                            $"File {relativePath} int the game folder appears to be modified, it will not be used during compilation");
+                        continue;
+                    }
+
+                    var state = new GameFileSourceDownloader.State
+                    {
+                        Game = CompilingGame.Game,
+                        GameVersion = CompilingGame.InstalledVersion,
+                        GameFile = relativePath
+                    };
+
+                    Utils.Log($"Adding Game file: {relativePath}");
+                    IndexedArchives.Add(new IndexedArchive(virtualFile)
+                    {
+                        Name = (string)relativePath.FileName,
+                        IniData = state.GetMetaIniString().LoadIniString(),
+                        Meta = state.GetMetaIniString()
+                    });
                 }
-
-                var state = new GameFileSourceDownloader.State
-                {
-                    Game = CompilingGame.Game, GameVersion = CompilingGame.InstalledVersion, GameFile = relativePath
-                };
-
-                Utils.Log($"Adding Game file: {relativePath}");
-                IndexedArchives.Add(new IndexedArchive(virtualFile)
-                {
-                    Name = (string)relativePath.FileName,
-                    IniData = state.GetMetaIniString().LoadIniString(),
-                    Meta = state.GetMetaIniString()
-                });
             }
-            
-            
-            
+
             await CleanInvalidArchives();
 
             UpdateTracker.NextStep("Finding Install Files");
@@ -550,6 +553,7 @@ namespace Wabbajack.Lib
             {
                 new IgnoreGameFilesIfGameFolderFilesExist(this),
                 new IncludePropertyFiles(this),
+                new IncludeGenericGamePlugin(this),
                 new IgnoreStartsWith(this,"logs\\"),
                 new IgnoreStartsWith(this, "downloads\\"),
                 new IgnoreStartsWith(this,"webcache\\"),

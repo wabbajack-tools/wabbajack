@@ -27,7 +27,10 @@ namespace Wabbajack.Common
         [Description("Skyrim VR")]
         SkyrimVR,
         [Description("Fallout 4 VR")]
-        Fallout4VR
+        Fallout4VR,
+        //MO2 Non-BGS Games
+        [Description("Darkest Dungeon")]
+        DarkestDungeon
     }
 
     public static class GameExtensions
@@ -42,6 +45,8 @@ namespace Wabbajack.Common
     {
         public Game Game { get; internal set; }
         public ModManager SupportedModManager { get; internal set; }
+
+        public bool IsGenericMO2Plugin { get; internal set; }
 
         public string? MO2ArchiveName { get; internal set; }
         public string? NexusName { get; internal set; }
@@ -394,6 +399,23 @@ namespace Wabbajack.Common
                     },
                     MainExecutable = "Fallout4VR.exe",
                     CommonlyConfusedWith = new [] {Game.Fallout4}
+                }
+            },
+            {
+                Game.DarkestDungeon, new GameMetaData
+                {
+                    Game = Game.DarkestDungeon,
+                    NexusName = "darkestdungeon",
+                    MO2Name = "Darkest Dungeon",
+                    NexusGameId = 804,
+                    SteamIDs = new List<int> {262060},
+                    GOGIDs = new List<int>{1450711444},
+                    IsGenericMO2Plugin = true,
+                    RequiredFiles = new List<string>
+                    {
+                        "_windows\\Darkest.exe"
+                    },
+                    MainExecutable = "_windows\\Darkest.exe"
                 }
             }
         };
