@@ -96,7 +96,7 @@ namespace Wabbajack.Common.Http
             {
                 if (ex is HttpException http)
                 {
-                    if (http.Code < 500) throw;
+                    if (http.Code != 503) throw;
 
                     retries++;
                     var ms = Utils.NextRandom(100, 1000);
