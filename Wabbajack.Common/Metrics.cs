@@ -45,9 +45,10 @@ namespace Wabbajack.Common
         /// <param name="value"></param>
         public static async Task Send(string action, string value)
         {
-            Utils.Log($"File hash check (-42) {GetMetricsKey()}");
+            var key = await GetMetricsKey();
+            Utils.Log($"File hash check (-42) {key}");
             var client = new Http.Client();
-            client.Headers.Add((Consts.MetricsKeyHeader, await GetMetricsKey()));
+            client.Headers.Add((Consts.MetricsKeyHeader, key));
             await client.GetAsync($"{Consts.WabbajackBuildServerUri}metrics/{action}/{value}");
         }
     }
