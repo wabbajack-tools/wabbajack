@@ -5,6 +5,15 @@
         <Platforms>x64</Platforms>
         <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
         <Nullable>enable</Nullable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageVersion>2.0.9.1</PackageVersion>
+        <Title>Wabbajack Common Lib</Title>
+        <Authors>Wabbajack Team</Authors>
+        <Copyright>2020</Copyright>
+        <PackageProjectUrl>https://github.com/wabbajack-tools/wabbajack</PackageProjectUrl>
+        <PackageLicenseUrl>https://raw.githubusercontent.com/wabbajack-tools/wabbajack/master/LICENSE.txt</PackageLicenseUrl>
+        <PackageIconUrl>https://www.wabbajack.org/favicon.ico</PackageIconUrl>
+        <RepositoryUrl>https://github.com/wabbajack-tools/wabbajack</RepositoryUrl>
     </PropertyGroup>
     <ItemGroup>
         <None Remove="7z.dll.gz" />
@@ -41,9 +50,6 @@
         <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="5.0.0-preview.4.20251.6" />
         <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0-preview.4.20251.6" />
         <PackageReference Include="YamlDotNet" Version="8.1.2" />
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj" />
     </ItemGroup>
     <ItemGroup>
       <Compile Update="Serialization\PrimitiveHandlers.cs">

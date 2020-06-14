@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
-using Wabbajack.Common.CSP;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = System.IO.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -63,8 +62,6 @@ namespace Wabbajack.VirtualFileSystem
 
             var filesToIndex = root.EnumerateFiles().Distinct().ToList();
             
-            var results = Channel.Create(1024, ProgressUpdater<VirtualFile>($"Indexing {root}", filesToIndex.Count));
-
             var allFiles = await filesToIndex
                             .PMap(Queue, async f =>
                             {

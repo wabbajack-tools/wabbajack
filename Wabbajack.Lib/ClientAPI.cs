@@ -124,5 +124,11 @@ namespace Wabbajack.Lib
                 .GetJsonAsync<Dictionary<RelativePath, Hash>>($"{Consts.WabbajackBuildServerUri}game_files/{game}/{version}");
                 */
         }
+
+        public static async Task SendModListDefinition(ModList modList)
+        {
+            var client = await GetClient();
+            await client.PostAsync($"{Consts.WabbajackBuildServerUri}list_definitions/ingest", new StringContent(modList.ToJson(), Encoding.UTF8, "application/json"));
+        }
     }
 }

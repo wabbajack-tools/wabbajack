@@ -51,7 +51,7 @@ namespace Wabbajack.Lib
         protected override async Task<bool> _Begin(CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested) return false;
-            var metric = Metrics.Send(Metrics.BeginInstall, ModList.Name);
+            await Metrics.Send(Metrics.BeginInstall, ModList.Name);
             Utils.Log("Configuring Processor");
 
             Queue.SetActiveThreadsObservable(ConstructDynamicNumThreads(await RecommendQueueSize()));
@@ -171,7 +171,7 @@ namespace Wabbajack.Lib
             SetScreenSizeInPrefs();
 
             UpdateTracker.NextStep("Installation complete! You may exit the program.");
-            var metric2 = Metrics.Send(Metrics.FinishInstall, ModList.Name);
+            await Metrics.Send(Metrics.FinishInstall, ModList.Name);
 
             return true;
         }

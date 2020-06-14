@@ -22,5 +22,7 @@ namespace Wabbajack.Server.DTOs
     {
         public bool IsFailing { get; set; }
         public Archive Archive { get; set; }
+
+        public ArchiveStatus ArchiveStatus { get; set; }
     }
 }

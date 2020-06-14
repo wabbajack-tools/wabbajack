@@ -83,7 +83,9 @@ namespace Wabbajack.Server.Services
                     MachineName = metadata.Links.MachineURL,
                     Archives = archives.Select(a => new DetailedStatusItem
                     {
-                        Archive = a.Item1, IsFailing = a.Item2 == ArchiveStatus.InValid || a.Item2 == ArchiveStatus.Updating
+                        Archive = a.Item1, 
+                        IsFailing = a.Item2 == ArchiveStatus.InValid || a.Item2 == ArchiveStatus.Updating,
+                        ArchiveStatus = a.Item2
                     }).ToList()
                 };
 

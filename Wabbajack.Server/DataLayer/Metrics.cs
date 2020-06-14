@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -12,6 +13,17 @@ namespace Wabbajack.Server.DataLayer
         {
             await using var conn = await Open();
             await conn.ExecuteAsync(@"INSERT INTO dbo.Metrics (Timestamp, Action, Subject, MetricsKey) VALUES (@Timestamp, @Action, @Subject, @MetricsKey)", metric);
+        }
+        
+        public async Task IngestAccess(string ip, string log)
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync(@"INSERT INTO dbo.AccessLog (Timestamp, Action, Ip) VALUES (@Timestamp, @Action, @Ip)", new
+            {
+                Timestamp = DateTime.UtcNow,
+                Ip = ip,
+                Action = log
+            });
         }
         
         public async Task<IEnumerable<AggregateMetric>> MetricsReport(string action)

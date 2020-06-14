@@ -9,7 +9,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Server.DataLayer;
+using Wabbajack.Server.DTOs;
 
 
 namespace Wabbajack.BuildServer
@@ -40,6 +43,18 @@ namespace Wabbajack.BuildServer
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
+            var metricsKey = Request.Headers[Consts.MetricsKeyHeader].FirstOrDefault();
+            await LogRequest(metricsKey);
+            if (metricsKey != default)
+            {
+                if (await _sql.IsTarKey(metricsKey))
+                {
+                    await _sql.IngestMetric(new Metric {Action = "TarKey", Subject = "Auth", MetricsKey = metricsKey, Timestamp = DateTime.UtcNow});
+                    await Task.Delay(TimeSpan.FromSeconds(60));
+                    throw new Exception("Error, lipsum timeout of the cross distant cloud.");
+                }
+            }
+
             if (!Request.Headers.TryGetValue(ApiKeyHeaderName, out var apiKeyHeaderValues))
             {
                 return AuthenticateResult.NoResult();
@@ -71,6 +86,24 @@ namespace Wabbajack.BuildServer
             }
 
             return AuthenticateResult.Fail("Invalid API Key provided.");
+        }
+
+        [JsonName("RequestLog")]
+        public class RequestLog
+        {
+            public string Path { get; set; }
+            public string Query { get; set; }
+            public Dictionary<string, string[]> Headers { get; set; }
+        }
+        private async Task LogRequest(string metricsKey)
+        {
+            var action = new RequestLog {
+                Path = Request.Path, 
+                Query = Request.QueryString.Value, 
+                Headers = Request.Headers.GroupBy(s => s.Key)
+                    .ToDictionary(s => s.Key, s => s.SelectMany(v => v.Value).ToArray())
+            };
+            await _sql.IngestAccess(Request.HttpContext.Connection.RemoteIpAddress.ToString(), action.ToJson());
         }
 
         protected override async Task HandleChallengeAsync(AuthenticationProperties properties)

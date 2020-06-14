@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.0.9.2 - 6/8/2020
+* Several bug fixes
+* Added Darkest Dungeon as a game to alpha test non Bethesda MO2 game integration
+
 #### Version - 2.0.9.1 - 6/8/2020
 * Add crash handling and crash logging to the application startup
 * Use string distance comparisons to find Nexus mod upgrades

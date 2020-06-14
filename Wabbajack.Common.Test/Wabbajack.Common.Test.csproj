@@ -14,6 +14,7 @@
     </ItemGroup>
     
     <ItemGroup>
+      <ProjectReference Include="..\Wabbajack.Common.CSP\Wabbajack.Common.CSP.csproj" />
       <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
     </ItemGroup>
 

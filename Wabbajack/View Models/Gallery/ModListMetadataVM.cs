@@ -195,7 +195,7 @@ namespace Wabbajack
                 });
 
 
-                Task.Run(() => Metrics.Send(Metrics.Downloading, Metadata.Title))
+                Task.Run(async () => await Metrics.Send(Metrics.Downloading, Metadata.Title))
                     .FireAndForget(ex => Utils.Error(ex, "Error sending download metric"));
 
                 return await tcs.Task;

@@ -44,5 +44,12 @@ namespace Wabbajack.Server.DataLayer
         }
 
 
+        public async Task<bool> IsTarKey(string metricsKey)
+        {
+            await using var conn = await Open();
+            var result = await conn.QueryFirstOrDefaultAsync<string>(
+                "SELECT MetricsKey FROM TarKey WHERE MetricsKey = @MetricsKey", new {MetricsKey = metricsKey});
+            return result == metricsKey;
+        }
     }
 }

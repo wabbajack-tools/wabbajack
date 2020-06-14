@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Wabbajack.Common.Exceptions;
 
 namespace Wabbajack.Common
 {
@@ -43,16 +45,9 @@ namespace Wabbajack.Common
         /// <param name="value"></param>
         public static async Task Send(string action, string value)
         {
-            var client = new HttpClient();
-            try
-            {
-                client.DefaultRequestHeaders.Add(Consts.MetricsKeyHeader, await GetMetricsKey());
-                await client.GetAsync($"{Consts.WabbajackBuildServerUri}metrics/{action}/{value}");
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
+            var client = new Http.Client();
+            client.Headers.Add((Consts.MetricsKeyHeader, await GetMetricsKey()));
+            await client.GetAsync($"{Consts.WabbajackBuildServerUri}metrics/{action}/{value}");
         }
     }
 }

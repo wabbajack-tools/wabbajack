@@ -317,6 +317,16 @@ CREATE TABLE [dbo].[NexusModInfos](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
+CREATE TABLE [dbo].[TarKey](
+    [MetricsKey] [nvarchar](64) NOT NULL,
+    CONSTRAINT [PK_TarKey] PRIMARY KEY CLUSTERED
+        (
+         [MetricsKey] ASC
+            )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
 /****** Object:  Table [dbo].[ModLists]    Script Date: 4/2/2020 3:59:19 PM ******/
 CREATE TABLE [dbo].[ModLists](
  [MachineURL] [nvarchar](50) NOT NULL,
@@ -399,6 +409,22 @@ CREATE TABLE [dbo].[Metrics](
                                 [MetricsKey] [nvarchar](64) NULL,
                                 [GroupingSubject]  AS (substring([Subject],(0),case when patindex('%[0-9].%',[Subject])=(0) then len([Subject])+(1) else patindex('%[0-9].%',[Subject]) end)),
                                 CONSTRAINT [PK_Metrics] PRIMARY KEY CLUSTERED
+                                    (
+                                     [Id] ASC
+                                        )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[AccessLog](
+                                [Id] [bigint] IDENTITY(1,1) NOT NULL,
+                                [Timestamp] [datetime] NOT NULL,
+                                [Action] [nvarchar](max) NOT NULL,
+                                [Ip] [nvarchar](36) NOT NULL,
+                                CONSTRAINT [PK_AccessLog] PRIMARY KEY CLUSTERED
                                     (
                                      [Id] ASC
                                         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]

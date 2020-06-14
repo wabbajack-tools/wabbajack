@@ -81,6 +81,18 @@ namespace Wabbajack.BuildServer.Controllers
                 <li>{{$.Archive.Name}}</li>
                 {{/each}}
                 </ul>
+                <h3>Updated ({{updated.Count}}):</h3>
+                <ul>
+                {{each $.updated }}
+                <li>{{$.Archive.Name}}</li>
+                {{/each}}
+                </ul>
+                <h3>Updating ({{updating.Count}}):</h3>
+                <ul>
+                {{each $.updating }}
+                <li>{{$.Archive.Name}}</li>
+                {{/each}}
+                </ul>
                 <h3>Passed ({{passed.Count}}):</h3>
                 <ul>
                 {{each $.passed }}
@@ -101,7 +113,9 @@ namespace Wabbajack.BuildServer.Controllers
                 lst,
                 ago = (DateTime.UtcNow - lst.Checked).TotalMinutes,
                 failed = lst.Archives.Where(a => a.IsFailing).ToList(),
-                passed = lst.Archives.Where(a => !a.IsFailing).ToList()
+                passed = lst.Archives.Where(a => !a.IsFailing).ToList(),
+                updated = lst.Archives.Where(a => a.ArchiveStatus == ArchiveStatus.Updated).ToList(),
+                updating = lst.Archives.Where(a => a.ArchiveStatus == ArchiveStatus.Updating).ToList(),
             });
             return new ContentResult
             {
