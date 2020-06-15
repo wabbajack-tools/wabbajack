@@ -36,8 +36,6 @@ namespace Wabbajack.Common
                 }
                 else
                 {
-                    // When there's a file but no regkey
-                    Utils.Log("user has reg key but no file");
                     // If there is no file but a registry key, create the file and transfer the data from the registry key
                     using (RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Wabbajack", RegistryKeyPermissionCheck.Default)!)
                     {
@@ -59,7 +57,6 @@ namespace Wabbajack.Common
                 }
                 else
                 {
-                    Utils.Log("user has file but no regkey");
                     // If there's a regkey and a file, return regkey
                     using (RegistryKey regKey = Registry.CurrentUser.CreateSubKey(@"Software\Wabbajack", RegistryKeyPermissionCheck.Default)!)
                     {
