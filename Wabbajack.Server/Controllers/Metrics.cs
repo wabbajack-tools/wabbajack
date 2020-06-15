@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Nettle;
 using Wabbajack.Common;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
@@ -47,6 +50,52 @@ namespace Wabbajack.BuildServer.Controllers
                     Values = g.Select(m => m.Count).ToList()
                 });
             return Ok(results.ToList());
+        }
+
+        private static readonly Func<object, string> ReportTemplate = NettleEngine.GetCompiler().Compile(@"
+            <html><body>
+                <h2>Tar Report for {{$.key}}</h2>
+                <h3>Ban Status: {{$.status}}</h3>
+                <table>
+                {{each $.log }}
+                <tr>
+                <td>{{$.Timestamp}}</td>
+                <td>{{$.Path}}</td>
+                <td>{{$.Key}}</td>
+                </tr>
+                {{/each}}
+                </table>
+            </body></html>
+        ");
+        
+        [HttpGet]
+        [Route("tarlog/{key}")]
+        public async Task<IActionResult> TarLog(string key)
+        {
+            var isTarKey = await _sql.IsTarKey(key);
+
+            List<(DateTime, string, string)> report = new List<(DateTime, string, string)>();
+            
+            if (isTarKey) report = await _sql.FullTarReport(key);
+            
+            var response = ReportTemplate(new
+            {
+                key = key,
+                status = isTarKey ? "BANNED" : "NOT BANNED",
+                log = report.Select(entry => new
+                {
+                    Timestamp = entry.Item1,
+                    Path = entry.Item2,
+                    Key = entry.Item3
+                }).ToList()
+            });
+            return new ContentResult
+            {
+                ContentType = "text/html",
+                StatusCode = (int) HttpStatusCode.OK,
+                Content = response
+            };
+            
         }
 
         private async Task Log(DateTime timestamp, string action, string subject, string metricsKey = null)

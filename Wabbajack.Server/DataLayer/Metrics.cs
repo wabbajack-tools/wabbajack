@@ -49,5 +49,21 @@ namespace Wabbajack.Server.DataLayer
                         ORDER BY d.Date, d.GroupingSubject, d.Action", new {Action = action}))
                 .ToList();
         }
+
+        public async Task<List<(DateTime, string, string)>> FullTarReport(string key)
+        {
+            await using var conn = await Open();
+            return (await conn.QueryAsync<(DateTime, string, string)>(@"
+                                SELECT u.Timestamp, u.Path, u.MetricsKey FROM
+                                (SELECT al.Timestamp, JSON_VALUE(al.Action, '$.Path') as Path, al.MetricsKey FROM dbo.AccessLog al
+                                WHERE al.MetricsKey in (SELECT DISTINCT MetricsKey from AccessLog al WHERE al.Ip in (SELECT DISTINCT Ip from AccessLog where MetricsKey = @MetricsKey))
+                                UNION ALL
+                                SELECT m.Timestamp, m.Action + ' ' + m.Subject as Path, m.MetricsKey FROM dbo.Metrics m
+                                WHERE m.MetricsKey in (SELECT DISTINCT MetricsKey from AccessLog al WHERE al.Ip in (SELECT DISTINCT Ip from AccessLog where MetricsKey = @MetricsKey)
+                                AND m.Action != 'TarKey')) u
+                                ORDER BY u.Timestamp Desc",
+                new {MetricsKey = key})).ToList();
+
+        }
     }
 }

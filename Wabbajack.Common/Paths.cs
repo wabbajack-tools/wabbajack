@@ -250,12 +250,19 @@ namespace Wabbajack.Common
 
         public async Task DeleteAsync()
         {
-            if (!IsFile) return;
+            try
+            {
+                if (!IsFile) return;
 
-            if (IsReadOnly) IsReadOnly = false;
+                if (IsReadOnly) IsReadOnly = false;
 
-            var path = _path;
-            await CircuitBreaker.WithAutoRetryAsync<IOException>(async () => File.Delete(path));
+                var path = _path;
+                await CircuitBreaker.WithAutoRetryAsync<IOException>(async () => File.Delete(path));
+            }
+            catch (FileNotFoundException)
+            {
+                // ignore, it doesn't exist so why delete it?
+            }
         }
         
         public void Delete()
