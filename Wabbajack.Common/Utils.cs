@@ -21,6 +21,7 @@ using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
 using IniParser.Model.Configuration;
 using IniParser.Parser;
+using Microsoft.Win32;
 using Newtonsoft.Json;
 using ReactiveUI;
 using RocksDbSharp;
@@ -969,6 +970,21 @@ namespace Wabbajack.Common
         {
             return Consts.LocalAppDataPath.Combine(key).IsFile;
         }
+
+        public static bool HaveRegKey()
+        {
+            return Registry.CurrentUser.OpenSubKey(@"Software\Wabbajack") != null;
+        }
+
+        public static bool HaveRegKeyMetricsKey()
+        {
+            if (HaveRegKey())
+            {
+                return Registry.CurrentUser.OpenSubKey(@"Software\Wabbajack")!.GetValueNames().Contains(Consts.MetricsKeyHeader);
+            }
+            return false;
+        }
+
 
         public static IObservable<(FileEventType, FileSystemEventArgs)> AppLocalEvents { get; }
 
