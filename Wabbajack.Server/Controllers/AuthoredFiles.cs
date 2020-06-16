@@ -17,7 +17,7 @@ using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.BuildServer.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Author")]
     [Route("/authored_files")]
     public class AuthoredFiles : ControllerBase
     {

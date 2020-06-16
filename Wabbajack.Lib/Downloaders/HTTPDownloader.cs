@@ -83,7 +83,7 @@ namespace Wabbajack.Lib.Downloaders
 
                 using (var fs = download ? await destination.Create() : null)
                 {
-                    var client = Client ?? new Common.Http.Client();
+                    var client = Client ?? await ClientAPI.GetClient();
                     client.Headers.Add(("User-Agent", Consts.UserAgent));
 
                     foreach (var header in Headers)

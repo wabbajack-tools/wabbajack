@@ -15,6 +15,7 @@ using Wabbajack.Lib.FileUploader;
 using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Server;
 using Wabbajack.Server.DataLayer;
+using Wabbajack.Server.DTOs;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -41,7 +42,7 @@ namespace Wabbajack.BuildServer.Test
             await base.InitializeAsync();
             ServerArchivesFolder.DeleteDirectory().Wait();
             ServerArchivesFolder.CreateDirectory();
-
+            
             var builder = Program.CreateHostBuilder(
                 new[]
                 {
@@ -64,6 +65,15 @@ namespace Wabbajack.BuildServer.Test
 
             await "ServerWhitelist.yaml".RelativeTo(ServerPublicFolder).WriteAllTextAsync(
                 "GoogleIDs:\nAllowedPrefixes:\n    - http://localhost");
+
+            var sql = GetService<SqlService>();
+            await sql.IngestMetric(new Metric
+            {
+                Action = "start",
+                Subject = "tests",
+                Timestamp = DateTime.UtcNow,
+                MetricsKey = await Metrics.GetMetricsKey()
+            });
 
         }
 

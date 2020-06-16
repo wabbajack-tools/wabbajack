@@ -55,27 +55,24 @@ namespace Wabbajack.BuildServer
                 }
             }
 
-            if (!Request.Headers.TryGetValue(ApiKeyHeaderName, out var apiKeyHeaderValues))
+            var authorKey = Request.Headers[ApiKeyHeaderName].FirstOrDefault();
+            
+            if (authorKey == null && metricsKey == null)
             {
                 return AuthenticateResult.NoResult();
             }
+            
 
-            var providedApiKey = apiKeyHeaderValues.FirstOrDefault();
-
-            if (apiKeyHeaderValues.Count == 0 || string.IsNullOrWhiteSpace(providedApiKey))
+            if (authorKey != null)
             {
-                return AuthenticateResult.NoResult();
-            }
+                var owner = await _sql.LoginByApiKey(authorKey);
+                if (owner == null)
+                    return AuthenticateResult.Fail("Invalid author key");
 
-            var owner = await _sql.LoginByApiKey(providedApiKey);
-
-            if (owner != null)
-            {
                 var claims = new List<Claim> {new Claim(ClaimTypes.Name, owner)};
 
-                /*
-                claims.AddRange(existingApiKey.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
-                */
+                claims.Add(new Claim(ClaimTypes.Role, "Author"));
+                claims.Add(new Claim(ClaimTypes.Role, "User"));
 
                 var identity = new ClaimsIdentity(claims, Options.AuthenticationType);
                 var identities = new List<ClaimsIdentity> {identity};
@@ -85,7 +82,24 @@ namespace Wabbajack.BuildServer
                 return AuthenticateResult.Success(ticket);
             }
 
-            return AuthenticateResult.Fail("Invalid API Key provided.");
+            if (!await _sql.ValidMetricsKey(metricsKey))
+            {
+                return AuthenticateResult.Fail("Invalid Metrics Key");
+            }
+            else
+            {
+                var claims = new List<Claim>();
+
+                claims.Add(new Claim(ClaimTypes.Role, "User"));
+
+                var identity = new ClaimsIdentity(claims, Options.AuthenticationType);
+                var identities = new List<ClaimsIdentity> {identity};
+                var principal = new ClaimsPrincipal(identities);
+                var ticket = new AuthenticationTicket(principal, Options.Scheme);
+
+                return AuthenticateResult.Success(ticket);
+            }
+
         }
 
         [JsonName("RequestLog")]
@@ -103,7 +117,10 @@ namespace Wabbajack.BuildServer
                 Headers = Request.Headers.GroupBy(s => s.Key)
                     .ToDictionary(s => s.Key, s => s.SelectMany(v => v.Value).ToArray())
             };
-            await _sql.IngestAccess(Request.HttpContext.Connection.RemoteIpAddress.ToString(), action.ToJson());
+            var ip = Request.Headers["CF-Connecting-IP"].FirstOrDefault() ??
+                     Request.Headers["X-Forwarded-For"].FirstOrDefault() ??
+                     Request.HttpContext.Connection.RemoteIpAddress.ToString();
+            await _sql.IngestAccess(ip, action.ToJson());
         }
 
         protected override async Task HandleChallengeAsync(AuthenticationProperties properties)

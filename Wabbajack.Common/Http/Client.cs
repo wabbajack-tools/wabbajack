@@ -141,5 +141,12 @@ namespace Wabbajack.Common.Http
             doc.LoadHtml(body);
             return doc;
         }
+
+        public Client WithHeader((string MetricsKeyHeader, string) header)
+        {
+            var newHeaders = Headers.Cons(header).ToList();
+            var client = new Client {Headers = newHeaders, Cookies = Cookies,};
+            return client;
+        }
     }
 }
