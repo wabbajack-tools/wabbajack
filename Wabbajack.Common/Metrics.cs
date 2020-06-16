@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 using Wabbajack.Common.Exceptions;
 
 namespace Wabbajack.Common
@@ -21,20 +23,48 @@ namespace Wabbajack.Common
             using var _ = await _creationLock.WaitAsync();
             if (!Utils.HaveEncryptedJson(Consts.MetricsKeyHeader))
             {
-                var key = Utils.MakeRandomKey();
-                await key.ToEcryptedJson(Consts.MetricsKeyHeader);
-                return key;
+                if (!Utils.HaveRegKeyMetricsKey())
+                {
+                    // When there's no file or regkey
+                    var key = Utils.MakeRandomKey();
+                    await key.ToEcryptedJson(Consts.MetricsKeyHeader);
+                    using (RegistryKey regKey = Registry.CurrentUser.CreateSubKey(@"Software\Wabbajack", RegistryKeyPermissionCheck.Default)!)
+                    {
+                        regKey.SetValue("x-metrics-key", key);
+                    }
+                    return key;
+                }
+                else
+                {
+                    // If there is no file but a registry key, create the file and transfer the data from the registry key
+                    using (RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Wabbajack", RegistryKeyPermissionCheck.Default)!)
+                    {
+                        string key = (string)regKey.GetValue(Consts.MetricsKeyHeader)!;
+                        await key.ToEcryptedJson(Consts.MetricsKeyHeader);
+                        return key;
+                    }
+                }
             }
-
-            try
+            else
             {
-                return await Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader);
-            }
-            catch (Exception)
-            {
-                var key = Utils.MakeRandomKey();
-                await key.ToEcryptedJson(Consts.MetricsKeyHeader);
-                return key;
+                if (Utils.HaveRegKeyMetricsKey())
+                {
+                    // When there's a file and a regkey
+                    using (RegistryKey regKey = Registry.CurrentUser.OpenSubKey(@"Software\Wabbajack", RegistryKeyPermissionCheck.Default)!)
+                    {
+                        return (string)regKey.GetValue(Consts.MetricsKeyHeader)!;
+                    }
+                }
+                else
+                {
+                    // If there's a regkey and a file, return regkey
+                    using (RegistryKey regKey = Registry.CurrentUser.CreateSubKey(@"Software\Wabbajack", RegistryKeyPermissionCheck.Default)!)
+                    {
+                        string key = await Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader)!;
+                        regKey.SetValue("x-metrics-key", key);
+                        return key;
+                    }
+                }
             }
         }
         /// <summary>
