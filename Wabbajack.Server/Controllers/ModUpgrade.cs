@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
@@ -27,6 +28,7 @@ namespace Wabbajack.BuildServer.Controllers
         }
         
         [HttpPost]
+        [Authorize(Roles = "User")]
         [Route("/mod_upgrade")]
         public async Task<IActionResult> PostModUpgrade()
         {

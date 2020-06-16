@@ -11,6 +11,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using System.Threading;
 using Wabbajack.Common.Exceptions;
+using Wabbajack.Common.Http;
 using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.NexusApi
@@ -254,13 +255,14 @@ namespace Wabbajack.Lib.NexusApi
             return new NexusApiClient(apiKey);
         }
 
-        public async Task<T> Get<T>(string url)
+        public async Task<T> Get<T>(string url, Client? client = null)
         {
+            client ??= HttpClient;
             int retries = 0;
             TOP:
             try
             {
-                using var response = await HttpClient.GetAsync(url);
+                using var response = await client.GetAsync(url);
                 await UpdateRemaining(response);
                 if (!response.IsSuccessStatusCode)
                 {
@@ -297,7 +299,7 @@ namespace Wabbajack.Lib.NexusApi
                     Scheme = Consts.WabbajackBuildServerUri.Scheme, 
                     Port = Consts.WabbajackBuildServerUri.Port
                 };
-                return await Get<T>(builder.ToString());
+                return await Get<T>(builder.ToString(), HttpClient.WithHeader((Consts.MetricsKeyHeader, await Metrics.GetMetricsKey())));
             }
             catch (Exception)
             {

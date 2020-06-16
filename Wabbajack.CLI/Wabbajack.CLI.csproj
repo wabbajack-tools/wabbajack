@@ -6,8 +6,8 @@
         <AssemblyName>wabbajack-cli</AssemblyName>
         <Company>Wabbajack</Company>
         <Platforms>x64</Platforms>
-        <AssemblyVersion>2.0.9.3</AssemblyVersion>
-        <FileVersion>2.0.9.3</FileVersion>
+        <AssemblyVersion>2.0.9.4</AssemblyVersion>
+        <FileVersion>2.0.9.4</FileVersion>
         <Copyright>Copyright © 2019-2020</Copyright>
         <Description>An automated ModList installer</Description>
         <PublishReadyToRun>true</PublishReadyToRun>        

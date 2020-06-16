@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
@@ -29,6 +30,7 @@ namespace Wabbajack.BuildServer.Controllers
 
 
         [Route("ingest")]
+        [Authorize(Roles = "User")]
         [HttpPost]
         public async Task<IActionResult> PostIngest()
         {

@@ -1,9 +1,12 @@
 ### Changelog
 
-#### Version - 2.0.9.3 - 6/8/2020
+#### Version - 2.0.9.4 - 6/16/2020
+* Improve interactions between server and client code
+
+#### Version - 2.0.9.3 - 6/14/2020
 * Retry 503s not all 500s
 
-#### Version - 2.0.9.2 - 6/8/2020
+#### Version - 2.0.9.2 - 6/13/2020
 * Several bug fixes
 * Added Darkest Dungeon as a game to alpha test non Bethesda MO2 game integration
 

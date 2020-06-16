@@ -125,7 +125,7 @@ namespace Wabbajack.Lib.Downloaders
             
             var tempFile = new TempFile();
 
-            using var response = await (new Common.Http.Client()).GetAsync(patchResult);
+            using var response = await (await ClientAPI.GetClient()).GetAsync(patchResult);
             await tempFile.Path.WriteAllAsync(await response.Content.ReadAsStreamAsync());
             response.Dispose();
 

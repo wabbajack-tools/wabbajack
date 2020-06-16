@@ -18,6 +18,7 @@ namespace Wabbajack.BuildServer.Controllers
 {
     //[Authorize]
     [ApiController]
+    [Authorize(Roles = "User")]
     [Route("/v1/games/")]
     public class NexusCache : ControllerBase
     {
