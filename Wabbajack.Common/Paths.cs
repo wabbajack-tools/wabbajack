@@ -198,6 +198,7 @@ namespace Wabbajack.Common
             return new RelativePath(relPath);
         }
 
+
         public async Task<string> ReadAllTextAsync()
         {
             await using var fs = File.OpenRead(_path);
@@ -459,6 +460,12 @@ namespace Wabbajack.Common
         public static RelativePath RandomFileName()
         {
             return (RelativePath)Guid.NewGuid().ToString();
+        }
+        
+        
+        public RelativePath Munge()
+        {
+            return (RelativePath)_path.Replace('\\', '_').Replace('/', '_').Replace(':', '_');
         }
 
         private void Validate()

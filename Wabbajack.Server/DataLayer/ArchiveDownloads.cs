@@ -105,7 +105,7 @@ namespace Wabbajack.Server.DataLayer
         public async Task<ArchiveDownload> GetOrEnqueueArchive(Archive a)
         {
             await using var conn = await Open();
-            using var trans = await conn.BeginTransactionAsync();
+            await using var trans = await conn.BeginTransactionAsync();
             var result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, bool?, AbstractDownloadState, DateTime?)>(
                 "SELECT Id, Size, Hash, IsFailed, DownloadState, DownloadFinished FROM dbo.ArchiveDownloads WHERE PrimaryKeyString = @PrimaryKeyString AND Hash = @Hash AND Size = @Size",
                 new
@@ -114,7 +114,7 @@ namespace Wabbajack.Server.DataLayer
                     Hash = a.Hash,
                     Size = a.Size
                 }, trans);
-            if (result != default)
+            if (result.Item1 != default)
             {
                 return new ArchiveDownload
                 {
@@ -152,12 +152,12 @@ namespace Wabbajack.Server.DataLayer
             if (ignoreNexus)
             {
                 result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, AbstractDownloadState)>(
-                    "SELECT Id, Size, Hash, DownloadState FROM dbo.ArchiveDownloads WHERE DownloadFinished is NULL AND Downloader != 'NexusDownloader+State'");
+                    "SELECT TOP(1) Id, Size, Hash, DownloadState FROM dbo.ArchiveDownloads WHERE DownloadFinished is NULL AND Downloader != 'NexusDownloader+State'");
             }
             else
             {
                 result = await conn.QueryFirstOrDefaultAsync<(Guid, long?, Hash?, AbstractDownloadState)>(
-                    "SELECT Id, Size, Hash, DownloadState FROM dbo.ArchiveDownloads WHERE DownloadFinished is NULL");
+                    "SELECT TOP(1) Id, Size, Hash, DownloadState FROM dbo.ArchiveDownloads WHERE DownloadFinished is NULL");
             }
 
             if (result == default)
@@ -195,6 +195,19 @@ namespace Wabbajack.Server.DataLayer
             FROM [dbo].[ModListArchives] mla
                 LEFT JOIN dbo.ArchiveDownloads ad on mla.PrimaryKeyString = ad.PrimaryKeyString AND mla.Hash = ad.Hash
             WHERE ad.PrimaryKeyString is null");
+        }
+
+        public async Task<List<Archive>> GetGameFiles(Game game, string version)
+        {
+            await using var conn = await Open();
+            var files = (await conn.QueryAsync<(Hash, long, AbstractDownloadState)>(
+                $"SELECT Hash, Size, DownloadState FROM dbo.ArchiveDownloads WHERE PrimaryKeyString like 'GameFileSourceDownloader+State|{game}|{version}|%'"))
+                .Select(f => new Archive(f.Item3)
+                {
+                    Hash = f.Item1,
+                    Size = f.Item2
+                }).ToList();
+            return files;
         }
 
     }

@@ -1,6 +1,7 @@
 ﻿﻿using System;
 using System.Collections.Generic;
-using System.Net;
+ using System.Linq;
+ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,8 +9,9 @@ using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders;
+ using Wabbajack.VirtualFileSystem;
 
-namespace Wabbajack.Lib
+ namespace Wabbajack.Lib
 {
     [JsonName("ModUpgradeRequest")]
     public class ModUpgradeRequest
@@ -115,20 +117,27 @@ namespace Wabbajack.Lib
                 .GetJsonAsync<NexusCacheStats>($"{Consts.WabbajackBuildServerUri}nexus_cache/stats");
         }
 
-        public static async Task<Dictionary<RelativePath, Hash>> GetGameFiles(Game game, Version version)
-        {
-            // TODO: Disabled for now
-            return new Dictionary<RelativePath, Hash>();
-            /*
-            return await GetClient()
-                .GetJsonAsync<Dictionary<RelativePath, Hash>>($"{Consts.WabbajackBuildServerUri}game_files/{game}/{version}");
-                */
-        }
-
         public static async Task SendModListDefinition(ModList modList)
         {
             var client = await GetClient();
             await client.PostAsync($"{Consts.WabbajackBuildServerUri}list_definitions/ingest", new StringContent(modList.ToJson(), Encoding.UTF8, "application/json"));
+        }
+
+        public static async Task<Archive[]> GetExistingGameFiles(WorkQueue queue, Game game)
+        {
+            var client = await GetClient();
+            var metaData = game.MetaData();
+            var results =
+                await client.GetJsonAsync<Archive[]>(
+                    $"{Consts.WabbajackBuildServerUri}game_files/{game}/{metaData.InstalledVersion}");
+
+            return (await results.PMap(queue, async file => (await file.State.Verify(file), file))).Where(f => f.Item1)
+                .Select(f =>
+                {
+                    f.file.Name = ((GameFileSourceDownloader.State)f.file.State).GameFile.Munge().ToString();
+                    return f.file;
+                })
+                .ToArray();
         }
     }
 }

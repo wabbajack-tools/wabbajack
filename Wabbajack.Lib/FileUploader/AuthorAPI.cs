@@ -53,41 +53,6 @@ namespace Wabbajack.Lib.FileUploader
             return await RunJob("UpdateModLists");
         }
 
-        public static async Task<bool> UploadPackagedInis(IEnumerable<Archive> archives)
-        {
-            archives = archives.ToArray(); // defensive copy
-            Utils.Log($"Packaging {archives.Count()} archive states");
-            try
-            {
-                await using var ms = new MemoryStream();
-                using (var z = new ZipArchive(ms, ZipArchiveMode.Create, true))
-                {
-                    foreach (var e in archives)
-                    {
-                        if (e.State == null) continue;
-                        var entry = z.CreateEntry(Path.GetFileName(e.Name));
-                        await using var os = entry.Open();
-                        e.ToJson(os);
-                    }
-                }
-
-                var client = new Common.Http.Client();
-                var response = await client.PostAsync($"{Consts.WabbajackBuildServerUri}indexed_files/notify", new ByteArrayContent(ms.ToArray()));
-                
-                if (response.IsSuccessStatusCode) return true;
-
-                Utils.Log("Error sending Inis");
-                Utils.Log(await response.Content.ReadAsStringAsync());
-                return false;
-
-            }
-            catch (Exception ex)
-            {
-                Utils.Log(ex.ToString());
-                return false;
-            }
-        }
-
         public static async Task<string> GetServerLog()
         {
             return await (await GetAuthorizedClient()).GetStringAsync($"{Consts.WabbajackBuildServerUri}heartbeat/logs");

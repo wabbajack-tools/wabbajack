@@ -13,7 +13,7 @@ namespace Wabbajack.Lib.CompilationSteps
     {
         private readonly Dictionary<RelativePath, IGrouping<RelativePath, VirtualFile>> _indexed;
         private VirtualFile? _bsa;
-        private Dictionary<RelativePath, VirtualFile> _indexedByName;
+        private Dictionary<RelativePath, IEnumerable<VirtualFile>> _indexedByName;
         private MO2Compiler _mo2Compiler;
 
         public IncludePatches(ACompiler compiler, VirtualFile? constructingFromBSA = null) : base(compiler)
@@ -27,7 +27,8 @@ namespace Wabbajack.Lib.CompilationSteps
             _indexedByName = _indexed.Values
                                      .SelectMany(s => s)
                                      .Where(f => f.IsNative)
-                                     .ToDictionary(f => f.FullPath.FileName);
+                                     .GroupBy(f => f.FullPath.FileName)
+                                     .ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>)f);
         }
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)
@@ -78,7 +79,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 if (_indexedByName.TryGetValue(relName, out var arch))
                 {
                     // Just match some file in the archive based on the smallest delta difference
-                    found = arch.ThisAndAllChildren
+                    found = arch.SelectMany(a => a.ThisAndAllChildren)
                         .OrderBy(o => Math.Abs(o.Size - source.File.Size))
                         .First();
                 }

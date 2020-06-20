@@ -23,6 +23,9 @@ namespace Wabbajack.Server.DTOs
     [JsonName("DiscordEmbed")]
     public class DiscordEmbed
     {
+        [JsonProperty("title")]
+        public string Title { get; set; }
+        
         [JsonProperty("color")]
         public int Color { get; set; }
 

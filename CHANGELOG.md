@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 2.1.0.0 - ???
+* Game files are available as downloads automatically during compilation/installation
+* Game files are patched/copied/used in BSA creation automatically 
+* CleanedESM support removed from the compiler stack (still usable during installation for backwards compatability)
+* VR games automatically pull from base games if they are required and are installed during compilation 
+
 #### Version - 2.0.9.4 - 6/16/2020
 * Improve interactions between server and client code
 

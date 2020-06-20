@@ -473,6 +473,42 @@ namespace Wabbajack.Test
             await utils.VerifyInstalledFile(mod, @"Data\scripts\test.pex");
         }
         
+        [Fact]
+        public async Task CanSourceFilesFromTheGameFiles() 
+        {
+
+            var profile = utils.AddProfile();
+            var mod = await utils.AddMod();
+
+            Game.SkyrimSpecialEdition.MetaData().CanSourceFrom = new[] {Game.Morrowind, Game.Skyrim};
+            
+            // Morrowind file with different name
+            var mwFile = Game.Morrowind.MetaData().GameLocation().Combine("Data Files", "Bloodmoon.esm");
+            var testMW = await utils.AddModFile(mod, @"Data\MW\Bm.esm");
+            await mwFile.CopyToAsync(testMW);
+
+            // Skyrim file with same name
+            var skyrimFile = Game.Skyrim.MetaData().GameLocation().Combine("Data", "Update.esm");
+            var testSky = await utils.AddModFile(mod, @"Data\Skyrim\Update.esm");
+            await skyrimFile.CopyToAsync(testSky);
+
+            // Same game, but patched ata
+            
+            var pdata = utils.RandomData(1024);
+            var testSkySE = await utils.AddModFile(mod, @"Data\SkyrimSE\Update.esm");
+            await testSkySE.WriteAllBytesAsync(pdata);
+            
+
+            await utils.Configure();
+
+            await CompileAndInstall(profile, useGameFiles: true);
+
+            await utils.VerifyInstalledFile(mod, @"Data\MW\Bm.esm");
+            await utils.VerifyInstalledFile(mod, @"Data\Skyrim\Update.esm");
+            await utils.VerifyInstalledFile(mod, @"Data\SkyrimSE\Update.esm");
+            
+        }
+        
         
         /// <summary>
         /// Issue #861 : https://github.com/wabbajack-tools/wabbajack/issues/861

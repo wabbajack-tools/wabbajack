@@ -73,7 +73,14 @@ namespace Wabbajack.Common
         // Games that this game are commonly confused with, for example Skyrim SE vs Skyrim LE
         public Game[] CommonlyConfusedWith { get; set; } = Array.Empty<Game>();
 
+        /// <summary>
+        ///  Other games this game can pull source files from (if the game is installed on the user's machine)
+        /// </summary>
+        public Game[] CanSourceFrom { get; set; } = Array.Empty<Game>();
+
         public string HumanFriendlyGameName => Game.GetDescription();
+
+        private AbsolutePath _cachedPath = default;
 
         public string InstalledVersion
         {
@@ -97,9 +104,16 @@ namespace Wabbajack.Common
 
         public bool TryGetGameLocation(out AbsolutePath path)
         {
+            if (_cachedPath != default)
+            {
+                path = _cachedPath;
+                return true;
+            }
+            
             var ret = TryGetGameLocation();
             if (ret != null)
             {
+                _cachedPath = ret.Value;
                 path = ret.Value;
                 return true;
             }
@@ -329,7 +343,7 @@ namespace Wabbajack.Common
                         "SkyrimSE.exe"
                     },
                     MainExecutable = "SkyrimSE.exe",
-                    CommonlyConfusedWith = new []{Game.Skyrim, Game.SkyrimVR}
+                    CommonlyConfusedWith = new []{Game.Skyrim, Game.SkyrimVR},
                 }
             },
             {
@@ -347,7 +361,7 @@ namespace Wabbajack.Common
                         "Fallout4.exe"
                     },
                     MainExecutable = "Fallout4.exe",
-                    CommonlyConfusedWith = new [] {Game.Fallout4VR}
+                    CommonlyConfusedWith = new [] {Game.Fallout4VR},
                 }
             },
             {
@@ -365,7 +379,8 @@ namespace Wabbajack.Common
                         "SkyrimVR.exe"
                     },
                     MainExecutable = "SkyrimVR.exe",
-                    CommonlyConfusedWith = new []{Game.Skyrim, Game.SkyrimSpecialEdition}
+                    CommonlyConfusedWith = new []{Game.Skyrim, Game.SkyrimSpecialEdition},
+                    CanSourceFrom = new [] {Game.SkyrimSpecialEdition}
                 }
             },
             {
@@ -398,7 +413,8 @@ namespace Wabbajack.Common
                         "Fallout4VR.exe"
                     },
                     MainExecutable = "Fallout4VR.exe",
-                    CommonlyConfusedWith = new [] {Game.Fallout4}
+                    CommonlyConfusedWith = new [] {Game.Fallout4},
+                    CanSourceFrom = new [] {Game.Fallout4}
                 }
             },
             {

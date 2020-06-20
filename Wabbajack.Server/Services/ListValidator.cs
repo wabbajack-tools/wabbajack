@@ -102,7 +102,7 @@ namespace Wabbajack.Server.Services
                                 {
                                     new DiscordEmbed
                                     {
-                                        Description =
+                                        Title =
                                             $"Number of failures in {summary.Name} (`{summary.MachineURL}`) was {oldSummary.Summary.Failed} is now {summary.Failed}",
                                         Url = new Uri(
                                             $"https://build.wabbajack.org/lists/status/{summary.MachineURL}.html")
@@ -120,7 +120,10 @@ namespace Wabbajack.Server.Services
                                 {
                                     new DiscordEmbed
                                     {
-                                        Description = $"{summary.Name} (`{summary.MachineURL}`) is now passing.",
+                                        Title = $"{summary.Name} (`{summary.MachineURL}`) is now passing.",
+                                        Url = new Uri(
+                                            $"https://build.wabbajack.org/lists/status/{summary.MachineURL}.html")
+
                                     }
                                 }
                             });

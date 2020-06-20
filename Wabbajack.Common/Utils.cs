@@ -942,8 +942,16 @@ namespace Wabbajack.Common
         /// <param name="data"></param>
         public static async ValueTask ToEcryptedJson<T>(this T data, string key)
         {
-            var bytes = Encoding.UTF8.GetBytes(data.ToJson());
-            await bytes.ToEcryptedData(key);
+            try
+            {
+                var bytes = Encoding.UTF8.GetBytes(data.ToJson());
+                await bytes.ToEcryptedData(key);
+            }
+            catch (Exception ex)
+            {
+                Log($"Error encrypting data {key} {ex}");
+                throw;
+            }
         }
 
         public static async Task<T> FromEncryptedJson<T>(string key)
@@ -1125,7 +1133,7 @@ namespace Wabbajack.Common
             if (lst.Count > 0 && lst.Count != size)
                 yield return lst;
         }
-
+       
         private static Random _random = new Random();
         public static int NextRandom(int min, int max)
         {

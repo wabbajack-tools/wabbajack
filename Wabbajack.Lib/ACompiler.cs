@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -221,9 +222,10 @@ namespace Wabbajack.Lib
             throw new ArgumentException($"No match found for Archive sha: {hash.ToBase64()} this shouldn't happen");
         }
 
-        public async Task<Archive> ResolveArchive(IndexedArchive archive)
+        public async Task<Archive> ResolveArchive([NotNull] IndexedArchive archive)
         {
-            Utils.Status($"Checking link for {archive.Name}", alsoLog: true);
+            if (!string.IsNullOrWhiteSpace(archive.Name)) 
+                Utils.Status($"Checking link for {archive.Name}", alsoLog: true);
 
             if (archive.IniData == null)
                 Error(
@@ -234,7 +236,7 @@ namespace Wabbajack.Lib
             if (result.State == null)
                 Error($"{archive.Name} could not be handled by any of the downloaders");
 
-            result.Name = archive.Name;
+            result.Name = archive.Name ?? "";
             result.Hash = archive.File.Hash;
             result.Size = archive.File.Size;
 
