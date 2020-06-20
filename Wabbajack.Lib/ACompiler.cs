@@ -47,6 +47,8 @@ namespace Wabbajack.Lib
         public ModList ModList = new ModList();
 
         public List<IndexedArchive> IndexedArchives = new List<IndexedArchive>();
+        public Dictionary<AbsolutePath, IndexedArchive> ArchivesByFullPath { get; set; } = new Dictionary<AbsolutePath, IndexedArchive>();
+        
         public Dictionary<Hash, IEnumerable<VirtualFile>> IndexedFiles = new Dictionary<Hash, IEnumerable<VirtualFile>>();
 
         public ACompiler(int steps)

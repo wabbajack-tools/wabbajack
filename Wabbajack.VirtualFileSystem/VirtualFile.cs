@@ -125,6 +125,9 @@ namespace Wabbajack.VirtualFileSystem
         }
 
 
+        public VirtualFile TopParent => IsNative ? this : Parent.TopParent;
+
+
         public T ThisAndAllChildrenReduced<T>(T acc, Func<T, VirtualFile, T> fn)
         {
             acc = fn(acc, this);

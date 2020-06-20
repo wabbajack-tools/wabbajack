@@ -221,7 +221,9 @@ namespace Wabbajack.Lib
                 }
             }
 
-            await CleanInvalidArchives();
+            IndexedArchives = IndexedArchives.DistinctBy(a => a.File.AbsoluteName).ToList();
+
+            await CleanInvalidArchivesAndFillState();
 
             UpdateTracker.NextStep("Finding Install Files");
             ModListOutputFolder.CreateDirectory();
@@ -293,6 +295,8 @@ namespace Wabbajack.Lib
                 .Where(f => f.Item1 != default)
                 .Select(f => new KeyValuePair<AbsolutePath, dynamic>(f.Item1, f.Item2)));
 
+            ArchivesByFullPath = IndexedArchives.ToDictionary(a => a.File.AbsoluteName);
+
             if (cancel.IsCancellationRequested) return false;
             var stack = MakeStack();
             UpdateTracker.NextStep("Running Compilation Stack");
@@ -359,15 +363,16 @@ namespace Wabbajack.Lib
             return true;
         }
 
+
         public bool UseGamePaths { get; set; } = true;
 
-        private async Task CleanInvalidArchives()
+        private async Task CleanInvalidArchivesAndFillState()
         {
             var remove = (await IndexedArchives.PMap(Queue, async a =>
             {
                 try
                 {
-                    await ResolveArchive(a);
+                    a.State = (await ResolveArchive(a)).State;
                     return null;
                 }
                 catch

@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
+using Wabbajack.Lib.Downloaders;
+using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.Lib.CompilationSteps
 {
@@ -11,13 +13,27 @@ namespace Wabbajack.Lib.CompilationSteps
         {
         }
 
+        public static int GetFilePriority(MO2Compiler compiler, VirtualFile file)
+        {
+            var archive = file.TopParent;
+            var adata = compiler.ArchivesByFullPath[archive.AbsoluteName];
+            if (adata.State is GameFileSourceDownloader.State gs)
+            {
+                return gs.Game == compiler.CompilingGame.Game ? 1 : 3;
+            }
+
+            return 2;
+        }
+
         public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
+            var mo2Compiler = (MO2Compiler)_compiler;
             if (!_compiler.IndexedFiles.TryGetValue(source.Hash, out var found)) return null;
             var result = source.EvolveTo<FromArchive>();
 
             var match = found.Where(f => f.Name.FileName == source.Path.FileName)
-                            .OrderBy(f => f.NestingFactor)
+                            .OrderBy(f => GetFilePriority(mo2Compiler, f))
+                            .ThenBy(f => f.NestingFactor)
                             .FirstOrDefault()
                         ?? found.OrderBy(f => f.NestingFactor).FirstOrDefault();
 

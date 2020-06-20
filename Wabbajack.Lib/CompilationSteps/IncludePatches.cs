@@ -80,7 +80,8 @@ namespace Wabbajack.Lib.CompilationSteps
                 {
                     // Just match some file in the archive based on the smallest delta difference
                     found = arch.SelectMany(a => a.ThisAndAllChildren)
-                        .OrderBy(o => Math.Abs(o.Size - source.File.Size))
+                        .OrderBy(o => DirectMatch.GetFilePriority(_mo2Compiler, o))
+                        .ThenBy(o => Math.Abs(o.Size - source.File.Size))
                         .First();
                 }
             }
