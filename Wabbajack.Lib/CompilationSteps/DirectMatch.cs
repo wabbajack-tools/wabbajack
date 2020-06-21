@@ -21,8 +21,7 @@ namespace Wabbajack.Lib.CompilationSteps
             {
                 return gs.Game == compiler.CompilingGame.Game ? 1 : 3;
             }
-
-            return 2;
+            return 1;
         }
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)
