@@ -85,25 +85,6 @@ using Wabbajack.Lib.Downloaders;
             throw ex;
         }
 
-        /// <summary>
-        /// Given an archive hash, search the Wabbajack server for a matching .ini file
-        /// </summary>
-        /// <param name="hash"></param>
-        /// <returns></returns>
-        public static async Task<string?> GetModIni(Hash hash)
-        {
-            var client = new Common.Http.Client();
-            try
-            {
-                return await client.GetStringAsync(
-                        $"{Consts.WabbajackBuildServerUri}indexed_files/{hash.ToHex()}/meta.ini");
-            }
-            catch (HttpException)
-            {
-                return null;
-            }
-        }
-
         public class NexusCacheStats
         {
             public long CachedCount { get; set; }
@@ -138,6 +119,18 @@ using Wabbajack.Lib.Downloaders;
                     return f.file;
                 })
                 .ToArray();
+        }
+
+        public static async Task<AbstractDownloadState?> InferDownloadState(Hash hash)
+        {
+            var client = await GetClient();
+            var results = await client.GetJsonAsync<Archive[]>($"{Consts.WabbajackBuildServerUri}mod_files/by_hash/{hash.ToHex()}");
+
+            foreach (var result in results)
+            {
+                if (await result.State.Verify(result)) return result.State;
+            }
+            return null;
         }
     }
 }

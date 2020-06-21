@@ -37,7 +37,6 @@ namespace Wabbajack.BuildServer.Test
 
             var allStates = await service.GetAllArchiveDownloads();
             Assert.Contains(state.PrimaryKeyString, allStates.Select(s => s.PrimaryKeyString));
-
         }
 
         private async Task ClearDownloaderQueue()

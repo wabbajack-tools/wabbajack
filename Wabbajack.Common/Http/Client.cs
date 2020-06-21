@@ -96,11 +96,11 @@ namespace Wabbajack.Common.Http
             {
                 if (ex is HttpException http)
                 {
-                    if (http.Code != 503) throw;
+                    if (http.Code != 503 && http.Code != 521) throw;
 
                     retries++;
                     var ms = Utils.NextRandom(100, 1000);
-                    Utils.Log($"Got a 503 from {msg.RequestUri} retrying in {ms}ms");
+                    Utils.Log($"Got a {http.Code} from {msg.RequestUri} retrying in {ms}ms");
 
                     await Task.Delay(ms);
                     msg = CloneMessage(msg);

@@ -210,5 +210,16 @@ namespace Wabbajack.Server.DataLayer
             return files;
         }
 
+        public async Task<Archive[]> ResolveDownloadStatesByHash(Hash hash)
+        {
+            await using var conn = await Open();
+            var files = (await conn.QueryAsync<(long, Hash, AbstractDownloadState)>(
+                    @"SELECT Size, Hash,  DownloadState from dbo.ArchiveDownloads WHERE Hash = @Hash AND IsFailed = 0 AND DownloadFinished IS NOT NULL ORDER BY DownloadFinished DESC",
+                    new {Hash = hash})
+                );
+            return files.Select(e =>
+                new Archive(e.Item3) {Size = e.Item1, Hash = e.Item2}
+            ).ToArray();
+        }
     }
 }

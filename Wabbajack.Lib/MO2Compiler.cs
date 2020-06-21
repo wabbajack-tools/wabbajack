@@ -412,12 +412,12 @@ namespace Wabbajack.Lib
             await to_find.PMap(Queue, async f =>
             {
                 var vf = VFS.Index.ByRootPath[f];
-                var client = new Common.Http.Client();
-                using var response =
-                    await client.GetAsync(
-                        $"http://build.wabbajack.org/indexed_files/{vf.Hash.ToHex()}/meta.ini", errorsAsExceptions: false);
 
-                if (!response.IsSuccessStatusCode)
+                var meta = await ClientAPI.InferDownloadState(vf.Hash);
+
+
+
+                if (meta == null)
                 {
                     await vf.AbsoluteName.WithExtension(Consts.MetaFileExtension).WriteAllLinesAsync(
                         "[General]", 
@@ -425,9 +425,8 @@ namespace Wabbajack.Lib
                     return;
                 }
 
-                var iniData = await response.Content.ReadAsStringAsync();
                 Utils.Log($"Inferred .meta for {vf.FullPath.FileName}, writing to disk");
-                await vf.AbsoluteName.WithExtension(Consts.MetaFileExtension).WriteAllTextAsync(iniData);
+                await vf.AbsoluteName.WithExtension(Consts.MetaFileExtension).WriteAllTextAsync(meta.GetMetaIniString());
             });
         }
 
