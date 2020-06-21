@@ -487,9 +487,9 @@ namespace Wabbajack.Test
             var testMW = await utils.AddModFile(mod, @"Data\MW\Bm.esm");
             await mwFile.CopyToAsync(testMW);
 
-            // Skyrim file with same name
-            var skyrimFile = Game.Skyrim.MetaData().GameLocation().Combine("Data", "Update.esm");
-            var testSky = await utils.AddModFile(mod, @"Data\Skyrim\Update.esm");
+            // SkyrimSE file with same name
+            var skyrimFile = Game.SkyrimSpecialEdition.MetaData().GameLocation().Combine("Data", "Update.esm");
+            var testSky = await utils.AddModFile(mod, @"Data\SkyrimSE\Update.esm.old");
             await skyrimFile.CopyToAsync(testSky);
 
             // Same game, but patched ata
@@ -504,7 +504,7 @@ namespace Wabbajack.Test
             await CompileAndInstall(profile, useGameFiles: true);
 
             await utils.VerifyInstalledFile(mod, @"Data\MW\Bm.esm");
-            await utils.VerifyInstalledFile(mod, @"Data\Skyrim\Update.esm");
+            await utils.VerifyInstalledFile(mod, @"Data\SkyrimSE\Update.esm.old");
             await utils.VerifyInstalledFile(mod, @"Data\SkyrimSE\Update.esm");
             
         }
