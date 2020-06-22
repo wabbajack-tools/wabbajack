@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
@@ -31,6 +32,11 @@ namespace Wabbajack.Lib
         public override AbsolutePath GamePath { get; }
 
         public GameMetaData CompilingGame { get; }
+        
+        /// <summary>
+        /// All games available for sourcing during compilation (including the Compiling Game)
+        /// </summary>
+        public List<Game> AvailableGames { get; }
 
         public override AbsolutePath ModListOutputFolder => ((RelativePath)"output_folder").RelativeToEntryPoint();
 
@@ -61,6 +67,8 @@ namespace Wabbajack.Lib
             CompilingGame = GameRegistry.Games.First(g => g.Value.MO2Name == mo2game).Value;
             GamePath = new AbsolutePath((string)MO2Ini.General.gamePath.Replace("\\\\", "\\"));
             ModListOutputFile = outputFile;
+
+            AvailableGames = CompilingGame.CanSourceFrom.Cons(CompilingGame.Game).Where(g => g.MetaData().IsInstalled).ToList();
         }
 
         public AbsolutePath MO2DownloadsFolder
@@ -104,8 +112,9 @@ namespace Wabbajack.Lib
             {
                 roots = new List<AbsolutePath>
                 {
-                    MO2Folder, GamePath, MO2DownloadsFolder, CompilingGame.GameLocation()
+                    MO2Folder, GamePath, MO2DownloadsFolder
                 };
+                roots.AddRange(AvailableGames.Select(g => g.MetaData().GameLocation()));
             }
             else
             {
@@ -191,40 +200,30 @@ namespace Wabbajack.Lib
                 })).ToList();
 
 
-            var stockGameFolder = CompilingGame.GameLocation();
-
-            var installedVersion = CompilingGame.InstalledVersion;
-            if (installedVersion != null)
+            if (UseGamePaths)
             {
-                foreach (var (relativePath, hash) in await ClientAPI.GetGameFiles(CompilingGame.Game, Version.Parse(installedVersion)))
+                foreach (var ag in AvailableGames)
                 {
-                    if (!VFS.Index.ByRootPath.TryGetValue(relativePath.RelativeTo(stockGameFolder), out var virtualFile))
-                        continue;
-                    if (virtualFile.Hash != hash)
-                    {
-                        Utils.Log(
-                            $"File {relativePath} int the game folder appears to be modified, it will not be used during compilation");
-                        continue;
-                    }
+                    var files = await ClientAPI.GetExistingGameFiles(Queue, ag);
+                    Utils.Log($"Including {files.Length} stock game files from {ag} as download sources");
 
-                    var state = new GameFileSourceDownloader.State
+                    IndexedArchives.AddRange(files.Select(f =>
                     {
-                        Game = CompilingGame.Game,
-                        GameVersion = CompilingGame.InstalledVersion,
-                        GameFile = relativePath
-                    };
-
-                    Utils.Log($"Adding Game file: {relativePath}");
-                    IndexedArchives.Add(new IndexedArchive(virtualFile)
-                    {
-                        Name = (string)relativePath.FileName,
-                        IniData = state.GetMetaIniString().LoadIniString(),
-                        Meta = state.GetMetaIniString()
-                    });
+                        var meta = f.State.GetMetaIniString();
+                        var ini = meta.LoadIniString();
+                        var state = (GameFileSourceDownloader.State)f.State;
+                        return new IndexedArchive(
+                            VFS.Index.ByRootPath[ag.MetaData().GameLocation().Combine(state.GameFile)])
+                        {
+                            IniData = ini, Meta = meta,
+                        };
+                    }));
                 }
             }
 
-            await CleanInvalidArchives();
+            IndexedArchives = IndexedArchives.DistinctBy(a => a.File.AbsoluteName).ToList();
+
+            await CleanInvalidArchivesAndFillState();
 
             UpdateTracker.NextStep("Finding Install Files");
             ModListOutputFolder.CreateDirectory();
@@ -296,6 +295,8 @@ namespace Wabbajack.Lib
                 .Where(f => f.Item1 != default)
                 .Select(f => new KeyValuePair<AbsolutePath, dynamic>(f.Item1, f.Item2)));
 
+            ArchivesByFullPath = IndexedArchives.ToDictionary(a => a.File.AbsoluteName);
+
             if (cancel.IsCancellationRequested) return false;
             var stack = MakeStack();
             UpdateTracker.NextStep("Running Compilation Stack");
@@ -319,10 +320,6 @@ namespace Wabbajack.Lib
 
             UpdateTracker.NextStep("Gathering Archives");
             await GatherArchives();
-            
-            // Don't await this because we don't care if it fails.
-            Utils.Log("Finding States to package");
-            await AuthorAPI.UploadPackagedInis(SelectedArchives.ToArray());
             
             UpdateTracker.NextStep("Including Archive Metadata");
             await IncludeArchiveMetadata();
@@ -366,15 +363,16 @@ namespace Wabbajack.Lib
             return true;
         }
 
+
         public bool UseGamePaths { get; set; } = true;
 
-        private async Task CleanInvalidArchives()
+        private async Task CleanInvalidArchivesAndFillState()
         {
             var remove = (await IndexedArchives.PMap(Queue, async a =>
             {
                 try
                 {
-                    await ResolveArchive(a);
+                    a.State = (await ResolveArchive(a)).State;
                     return null;
                 }
                 catch
@@ -414,12 +412,12 @@ namespace Wabbajack.Lib
             await to_find.PMap(Queue, async f =>
             {
                 var vf = VFS.Index.ByRootPath[f];
-                var client = new Common.Http.Client();
-                using var response =
-                    await client.GetAsync(
-                        $"http://build.wabbajack.org/indexed_files/{vf.Hash.ToHex()}/meta.ini", errorsAsExceptions: false);
 
-                if (!response.IsSuccessStatusCode)
+                var meta = await ClientAPI.InferDownloadState(vf.Hash);
+
+
+
+                if (meta == null)
                 {
                     await vf.AbsoluteName.WithExtension(Consts.MetaFileExtension).WriteAllLinesAsync(
                         "[General]", 
@@ -427,9 +425,8 @@ namespace Wabbajack.Lib
                     return;
                 }
 
-                var iniData = await response.Content.ReadAsStringAsync();
                 Utils.Log($"Inferred .meta for {vf.FullPath.FileName}, writing to disk");
-                await vf.AbsoluteName.WithExtension(Consts.MetaFileExtension).WriteAllTextAsync(iniData);
+                await vf.AbsoluteName.WithExtension(Consts.MetaFileExtension).WriteAllTextAsync(meta.GetMetaIniString());
             });
         }
 
@@ -438,13 +435,15 @@ namespace Wabbajack.Lib
             Utils.Log($"Including {SelectedArchives.Count} .meta files for downloads");
             await SelectedArchives.PMap(Queue, async a =>
             {
+                if (a.State is GameFileSourceDownloader.State) return;
+                
                 var source = MO2DownloadsFolder.Combine(a.Name + Consts.MetaFileExtension);
                 var ini = a.State.GetMetaIniString();
                 var (id, fullPath) = await IncludeString(ini);
                 InstallDirectives.Add(new ArchiveMeta
                 {
                     SourceDataID = id,
-                    Size = source.Size,
+                    Size = fullPath.Size,
                     Hash = await fullPath.FileHashAsync(),
                     To = source.FileName
                 });
@@ -602,7 +601,7 @@ namespace Wabbajack.Lib
 
                 new IgnoreWabbajackInstallCruft(this),
 
-                new PatchStockESMs(this),
+                //new PatchStockESMs(this),
 
                 new IncludeAllConfigs(this),
                 new zEditIntegration.IncludeZEditPatches(this),

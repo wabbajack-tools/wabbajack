@@ -290,6 +290,7 @@ namespace Wabbajack.Lib
         public string Meta = string.Empty;
         public string Name = string.Empty;
         public VirtualFile File { get; }
+        public AbstractDownloadState? State { get; set; }
 
         public IndexedArchive(VirtualFile file)
         {

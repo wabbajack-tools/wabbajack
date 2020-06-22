@@ -20,7 +20,8 @@ namespace Wabbajack.CLI
             typeof(Changelog),
             typeof(FindSimilar),
             typeof(BSADump),
-            typeof(MigrateGameFolderFiles)
+            typeof(MigrateGameFolderFiles),
+            typeof(HashFile)
         };
     }
 }

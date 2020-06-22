@@ -46,6 +46,8 @@ namespace Wabbajack.Server.Services
                 if (nextDownload == null)
                     break;
                 
+                _logger.LogInformation($"Checking for previously archived {nextDownload.Archive.Hash}");
+                
                 if (nextDownload.Archive.Hash != default && _archiveMaintainer.HaveArchive(nextDownload.Archive.Hash))
                 {
                     await nextDownload.Finish(_sql);
@@ -61,7 +63,8 @@ namespace Wabbajack.Server.Services
                 try
                 {
                     _logger.Log(LogLevel.Information, $"Downloading {nextDownload.Archive.State.PrimaryKeyString}");
-                    await _discord.Send(Channel.Spam, new DiscordMessage {Content = $"Downloading {nextDownload.Archive.State.PrimaryKeyString}"});
+                    if (!(nextDownload.Archive.State is GameFileSourceDownloader.State)) 
+                        await _discord.Send(Channel.Spam, new DiscordMessage {Content = $"Downloading {nextDownload.Archive.State.PrimaryKeyString}"});
                     await DownloadDispatcher.PrepareAll(new[] {nextDownload.Archive.State});
 
                     await using var tempPath = new TempFile();
@@ -90,7 +93,9 @@ namespace Wabbajack.Server.Services
 
                     _logger.Log(LogLevel.Information, $"Finished Archiving {nextDownload.Archive.State.PrimaryKeyString}");
                     await nextDownload.Finish(_sql);
-                    await _discord.Send(Channel.Spam, new DiscordMessage {Content = $"Finished downloading {nextDownload.Archive.State.PrimaryKeyString}"});
+                    
+                    if (!(nextDownload.Archive.State is GameFileSourceDownloader.State)) 
+                        await _discord.Send(Channel.Spam, new DiscordMessage {Content = $"Finished downloading {nextDownload.Archive.State.PrimaryKeyString}"});
 
 
                 }
