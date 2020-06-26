@@ -43,7 +43,7 @@ namespace Wabbajack.Lib.Downloaders
         public BethesdaNetDownloader()
         {
             TriggerLogin = ReactiveCommand.CreateFromTask(() => Utils.CatchAndLog(RequestLoginAndCache), IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
-            ClearLogin = ReactiveCommand.Create(() => Utils.CatchAndLog(() =>Utils.DeleteEncryptedJson(DataName)), IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
+            ClearLogin = ReactiveCommand.CreateFromTask(() => Utils.CatchAndLog(async () => await Utils.DeleteEncryptedJson(DataName)), IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
         }
 
         private static async Task RequestLoginAndCache()

@@ -49,7 +49,7 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
-        public LoginReturnMessage LoginWithCredentials(string username, SecureString password, string? mfa)
+        public async Task<LoginReturnMessage> LoginWithCredentials(string username, SecureString password, string? mfa)
         {
             MegaApiClient.AuthInfos authInfos;
 
@@ -57,7 +57,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 MegaApiClient.Logout();
             }
-            catch (NotSupportedException ex)
+            catch (NotSupportedException)
             {
                 // Not logged in, so ignore
             }
@@ -101,7 +101,7 @@ namespace Wabbajack.Lib.Downloaders
             if (MegaApiClient.IsLoggedIn)
             {
                 var infos = MEGAAuthInfos.ToMEGAAuthInfos(authInfos);
-                infos.ToEcryptedJson(DataName);
+                await infos.ToEcryptedJson(DataName);
             }
 
             return new LoginReturnMessage("Logged in successfully, you can now close this window.",

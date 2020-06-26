@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Wabbajack.Common;
 
 namespace Wabbajack
 {
@@ -12,9 +13,15 @@ namespace Wabbajack
                 await task.ConfigureAwait(false);
             }
             catch (Exception ex)
-            when (onException != null)
             {
-                onException(ex);
+                if (onException == null)
+                {
+                    Utils.Error(ex);
+                }
+                else
+                {
+                    onException(ex);
+                }
             }
         }
 

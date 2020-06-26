@@ -57,8 +57,8 @@ namespace Wabbajack.Lib.Downloaders
             TriggerLogin = ReactiveCommand.CreateFromTask(
                 execute: () => Utils.CatchAndLog(async () => await Utils.Log(new RequestSiteLogin(this)).Task),
                 canExecute: IsLoggedIn.Select(b => !b).ObserveOnGuiThread());
-            ClearLogin = ReactiveCommand.Create(
-                execute: () => Utils.CatchAndLog(() => Utils.DeleteEncryptedJson(_encryptedKeyName)),
+            ClearLogin = ReactiveCommand.CreateFromTask(
+                execute: () => Utils.CatchAndLog(async () => await Utils.DeleteEncryptedJson(_encryptedKeyName)),
                 canExecute: IsLoggedIn.ObserveOnGuiThread());
         }
 
