@@ -111,7 +111,7 @@ namespace Compression.BSA
 
         public ArchiveFlags ArchiveFlags => (ArchiveFlags) _archiveFlags;
 
-        public FileFlags FileFlags => (FileFlags) _archiveFlags;
+        public FileFlags FileFlags => (FileFlags)_fileFlags;
 
 
         public bool HasFolderNames => (_archiveFlags & 0x1) > 0;
