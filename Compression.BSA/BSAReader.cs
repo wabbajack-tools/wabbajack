@@ -79,13 +79,23 @@ namespace Compression.BSA
             }
         }
 
-
-        public static async ValueTask<BSAReader> Load(AbsolutePath filename)
+        public static async ValueTask<BSAReader> LoadWithRetry(AbsolutePath filename)
         {
             using var stream = await filename.OpenRead();
             using var br = new BinaryReader(stream);
-            var bsa = new BSAReader {_rdr = br, _stream = stream, _fileName = filename};
-            await bsa.LoadHeaders();
+            var bsa = new BSAReader { _rdr = br, _stream = stream, _fileName = filename };
+            bsa.LoadHeaders();
+            bsa._rdr = null;
+            bsa._stream = null;
+            return bsa;
+        }
+
+        public static BSAReader Load(AbsolutePath filename)
+        {
+            using var stream = File.Open(filename.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var br = new BinaryReader(stream);
+            var bsa = new BSAReader { _rdr = br, _stream = stream, _fileName = filename };
+            bsa.LoadHeaders();
             bsa._rdr = null;
             bsa._stream = null;
             return bsa;
@@ -127,7 +137,7 @@ namespace Compression.BSA
             }
         }
 
-        private async ValueTask LoadHeaders()
+        private void LoadHeaders()
         {
             var fourcc = Encoding.ASCII.GetString(_rdr.ReadBytes(4));
 
