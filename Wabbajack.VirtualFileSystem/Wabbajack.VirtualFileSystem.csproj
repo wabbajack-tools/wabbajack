@@ -5,6 +5,9 @@
       <Platforms>x64</Platforms>
       <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      <DocumentationFile>Wabbajack.VirtualFileSystem.xml</DocumentationFile>
+    </PropertyGroup>
     <ItemGroup>
       <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />
       <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
