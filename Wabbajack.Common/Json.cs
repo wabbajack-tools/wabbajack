@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -244,14 +245,12 @@ namespace Wabbajack.Common
         
         public class IPathConverter : JsonConverter<IPath>
         {
-            public override void WriteJson(JsonWriter writer, IPath value, JsonSerializer serializer)
+            public override void WriteJson(JsonWriter writer, [AllowNull] IPath value, JsonSerializer serializer)
             {
                 writer.WriteValue(Enum.GetName(typeof(Game), value));
             }
 
-            public override IPath ReadJson(JsonReader reader, Type objectType, IPath existingValue,
-                bool hasExistingValue,
-                JsonSerializer serializer)
+            public override IPath ReadJson(JsonReader reader, Type objectType, [AllowNull] IPath existingValue, bool hasExistingValue, JsonSerializer serializer)
             {
                 // Backwards compatibility support
                 var str = reader.Value?.ToString();
@@ -260,7 +259,6 @@ namespace Wabbajack.Common
                 if (Path.IsPathRooted(str))
                     return (AbsolutePath)str;
                 return (RelativePath)str;
-
             }
         }
 

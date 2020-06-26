@@ -14,9 +14,11 @@
         <PackageLicenseUrl>https://raw.githubusercontent.com/wabbajack-tools/wabbajack/master/LICENSE.txt</PackageLicenseUrl>
         <PackageIconUrl>https://www.wabbajack.org/favicon.ico</PackageIconUrl>
         <RepositoryUrl>https://github.com/wabbajack-tools/wabbajack</RepositoryUrl>
+        <Version>1.1</Version>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       <DocumentationFile>Wabbajack.Common.xml</DocumentationFile>
+      <NoWarn></NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <None Remove="7z.dll.gz" />
