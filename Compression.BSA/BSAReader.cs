@@ -60,8 +60,6 @@ namespace Compression.BSA
         internal uint _folderRecordOffset;
         private List<FolderRecord> _folders;
         internal string _magic;
-        private BinaryReader _rdr;
-        private Stream _stream;
         internal uint _totalFileNameLength;
         internal uint _totalFolderNameLength;
         internal uint _version;
@@ -83,10 +81,8 @@ namespace Compression.BSA
         {
             using var stream = await filename.OpenRead();
             using var br = new BinaryReader(stream);
-            var bsa = new BSAReader { _rdr = br, _stream = stream, _fileName = filename };
-            bsa.LoadHeaders();
-            bsa._rdr = null;
-            bsa._stream = null;
+            var bsa = new BSAReader { _fileName = filename };
+            bsa.LoadHeaders(br);
             return bsa;
         }
 
@@ -94,10 +90,8 @@ namespace Compression.BSA
         {
             using var stream = File.Open(filename.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);
             using var br = new BinaryReader(stream);
-            var bsa = new BSAReader { _rdr = br, _stream = stream, _fileName = filename };
-            bsa.LoadHeaders();
-            bsa._rdr = null;
-            bsa._stream = null;
+            var bsa = new BSAReader { _fileName = filename };
+            bsa.LoadHeaders(br);
             return bsa;
         }
 
@@ -137,38 +131,38 @@ namespace Compression.BSA
             }
         }
 
-        private void LoadHeaders()
+        private void LoadHeaders(BinaryReader rdr)
         {
-            var fourcc = Encoding.ASCII.GetString(_rdr.ReadBytes(4));
+            var fourcc = Encoding.ASCII.GetString(rdr.ReadBytes(4));
 
             if (fourcc != "BSA\0")
                 throw new InvalidDataException("Archive is not a BSA");
 
             _magic = fourcc;
-            _version = _rdr.ReadUInt32();
-            _folderRecordOffset = _rdr.ReadUInt32();
-            _archiveFlags = _rdr.ReadUInt32();
-            _folderCount = _rdr.ReadUInt32();
-            _fileCount = _rdr.ReadUInt32();
-            _totalFolderNameLength = _rdr.ReadUInt32();
-            _totalFileNameLength = _rdr.ReadUInt32();
-            _fileFlags = _rdr.ReadUInt32();
+            _version = rdr.ReadUInt32();
+            _folderRecordOffset = rdr.ReadUInt32();
+            _archiveFlags = rdr.ReadUInt32();
+            _folderCount = rdr.ReadUInt32();
+            _fileCount = rdr.ReadUInt32();
+            _totalFolderNameLength = rdr.ReadUInt32();
+            _totalFileNameLength = rdr.ReadUInt32();
+            _fileFlags = rdr.ReadUInt32();
 
-            LoadFolderRecords();
+            LoadFolderRecords(rdr);
         }
 
-        private void LoadFolderRecords()
+        private void LoadFolderRecords(BinaryReader rdr)
         {
             _folders = new List<FolderRecord>();
             for (var idx = 0; idx < _folderCount; idx += 1)
-                _folders.Add(new FolderRecord(this, _rdr));
+                _folders.Add(new FolderRecord(this, rdr));
 
             foreach (var folder in _folders)
-                folder.LoadFileRecordBlock(this, _rdr);
+                folder.LoadFileRecordBlock(this, rdr);
 
             foreach (var folder in _folders)
             foreach (var file in folder._files)
-                file.LoadFileRecord(this, folder, file, _rdr);
+                file.LoadFileRecord(this, folder, file, rdr);
         }
     }
 
