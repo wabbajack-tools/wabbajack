@@ -114,9 +114,9 @@ namespace Wabbajack.VirtualFileSystem
         {
             try
             {
-                await using var arch = await BSADispatch.OpenRead(source);
+                var arch = await BSADispatch.OpenRead(source);
                 var files = arch.Files.ToDictionary(f => f.Path, f => (IExtractedFile)new ExtractedBSAFile(f));
-                return new ExtractedFiles(files, arch);
+                return new ExtractedFiles(files);
             }
             catch (Exception ex)
             {

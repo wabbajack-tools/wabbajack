@@ -14,7 +14,7 @@ namespace Wabbajack.CLI.Verbs
         
         protected override async Task<ExitCode> Run()
         {
-            await using var bsa = await BSADispatch.OpenRead(Input.RelativeTo(AbsolutePath.GetCurrentDirectory()));
+            var bsa = await BSADispatch.OpenRead(Input.RelativeTo(AbsolutePath.GetCurrentDirectory()));
             bsa.Dump(Console.WriteLine);
             return ExitCode.Ok;
         }

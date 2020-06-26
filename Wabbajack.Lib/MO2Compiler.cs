@@ -521,7 +521,7 @@ namespace Wabbajack.Lib
                 var bsaId = (RelativePath)((string)to).Split('\\')[1];
                 var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsaId);
 
-                await using var a = await BSADispatch.OpenRead(MO2Folder.Combine(bsa.To));
+                var a = await BSADispatch.OpenRead(MO2Folder.Combine(bsa.To));
                 var find = (RelativePath)Path.Combine(((string)to).Split('\\').Skip(2).ToArray());
                 var file = a.Files.First(e => e.Path == find);
                 var returnStream = new TempStream();

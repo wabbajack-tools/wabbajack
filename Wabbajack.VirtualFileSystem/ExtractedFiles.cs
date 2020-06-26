@@ -13,7 +13,7 @@ namespace Wabbajack.VirtualFileSystem
         private IAsyncDisposable _disposable;
         private AbsolutePath _tempFolder;
 
-        public ExtractedFiles(Dictionary<RelativePath, IExtractedFile> files, IAsyncDisposable disposeOther)
+        public ExtractedFiles(Dictionary<RelativePath, IExtractedFile> files, IAsyncDisposable disposeOther = null)
         {
             _files = files;
             _disposable = disposeOther;

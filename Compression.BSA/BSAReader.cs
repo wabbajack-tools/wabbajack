@@ -50,7 +50,7 @@ namespace Compression.BSA
         Miscellaneous = 0x100
     }
 
-    public class BSAReader : IAsyncDisposable, IBSAReader
+    public class BSAReader : IBSAReader
     {
         internal uint _archiveFlags;
         internal uint _fileCount;
@@ -125,10 +125,6 @@ namespace Compression.BSA
                 if (HeaderType == VersionType.FO3 || HeaderType == VersionType.SSE) return (_archiveFlags & 0x100) > 0;
                 return false;
             }
-        }
-
-        public async ValueTask DisposeAsync()
-        {
         }
 
         private async ValueTask LoadHeaders()
