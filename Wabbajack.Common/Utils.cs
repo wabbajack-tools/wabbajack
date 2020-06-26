@@ -439,7 +439,8 @@ namespace Wabbajack.Common
         /// <param name="coll"></param>
         /// <param name="func"></param>
         /// <returns></returns>
-        public static IEnumerable<TOut> Keep<TIn, TOut>(this IEnumerable<TIn> coll, Func<TIn, TOut> func) where TOut : IComparable<TOut>
+        public static IEnumerable<TOut> Keep<TIn, TOut>(this IEnumerable<TIn> coll, Func<TIn, TOut> func)
+            where TOut : struct, IComparable<TOut>
         {
             return coll.Select(func).Where(v => v.CompareTo(default) != 0);
         }

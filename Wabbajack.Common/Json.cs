@@ -52,7 +52,7 @@ namespace Wabbajack.Common
         
         public static void ToJson<T>(this T obj, Stream stream)
         {
-            using var tw = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
+            using var tw = new StreamWriter(stream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
             using var writer = new JsonTextWriter(tw);
             var ser = JsonSerializer.Create(JsonSettings);
             ser.Serialize(writer, obj);
@@ -81,7 +81,7 @@ namespace Wabbajack.Common
 
         public static T FromJson<T>(this Stream stream, bool genericReader = false)
         {
-            using var tr = new StreamReader(stream, Encoding.UTF8, leaveOpen: true);
+            using var tr = new StreamReader(stream, Encoding.UTF8, bufferSize: 1024, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
             using var reader = new JsonTextReader(tr);
             var ser = JsonSerializer.Create(genericReader ? GenericJsonSettings : JsonSettings);
             var result = ser.Deserialize<T>(reader);
