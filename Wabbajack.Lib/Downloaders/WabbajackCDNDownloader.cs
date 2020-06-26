@@ -59,7 +59,7 @@ namespace Wabbajack.Lib.Downloaders
                 var definition = await GetDefinition();
                 await using var fs = await destination.Create();
                 using var mmfile = MemoryMappedFile.CreateFromFile(fs, null, definition.Size, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
-                var client = new Common.Http.Client();
+                var client = new Wabbajack.Lib.Http.Client();
                 using var queue = new WorkQueue();
                 await definition.Parts.PMap(queue, async part =>
                 {
@@ -81,7 +81,7 @@ namespace Wabbajack.Lib.Downloaders
 
             private async Task<CDNFileDefinition> GetDefinition()
             {
-                var client = new Common.Http.Client();
+                var client = new Wabbajack.Lib.Http.Client();
                 using var data = await client.GetAsync(Url + "/definition.json.gz");
                 await using var gz = new GZipStream(await data.Content.ReadAsStreamAsync(), CompressionMode.Decompress);
                 return gz.FromJson<CDNFileDefinition>();

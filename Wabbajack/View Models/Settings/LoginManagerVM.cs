@@ -84,7 +84,7 @@ namespace Wabbajack
             {
                 if (Login.IconUri == null) return;
 
-                using var img = await new Common.Http.Client().GetAsync(Login.IconUri, errorsAsExceptions:false);
+                using var img = await new Wabbajack.Lib.Http.Client().GetAsync(Login.IconUri, errorsAsExceptions:false);
                 if (!img.IsSuccessStatusCode) return;
 
                 var icoData = new MemoryStream(await img.Content.ReadAsByteArrayAsync());

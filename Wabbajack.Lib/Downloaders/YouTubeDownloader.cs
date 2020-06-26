@@ -104,7 +104,7 @@ namespace Wabbajack.Lib.Downloaders
                     using var queue = new WorkQueue();
                     await using var folder = await TempFolder.Create();
                     folder.Dir.Combine("tracks").CreateDirectory();
-                    var client = new YoutubeClient(Common.Http.ClientFactory.Client);
+                    var client = new YoutubeClient(Wabbajack.Lib.Http.ClientFactory.Client);
                     var meta = await client.Videos.GetAsync(Key);
                     var video = await client.Videos.Streams.GetManifestAsync(Key);
                     var stream = video.Streams.OfType<AudioOnlyStreamInfo>().Where(f => f.AudioCodec.StartsWith("mp4a")).OrderByDescending(a => a.Bitrate)
@@ -210,7 +210,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 try
                 {
-                    var client = new YoutubeClient(Common.Http.ClientFactory.Client);
+                    var client = new YoutubeClient(Wabbajack.Lib.Http.ClientFactory.Client);
                     var video = await client.Videos.GetAsync(Key);
                     return true;
                 }

@@ -18,9 +18,9 @@ namespace Wabbajack.Lib.LibCefHelpers
 {
     public static class Helpers
     {
-        public static Common.Http.Client GetClient(IEnumerable<Cookie> cookies, string referer)
+        public static Wabbajack.Lib.Http.Client GetClient(IEnumerable<Cookie> cookies, string referer)
         {
-            var client = new Common.Http.Client();
+            var client = new Wabbajack.Lib.Http.Client();
             client.Headers.Add(("Referrer", referer));
             client.Cookies.AddRange(cookies.Select(cookie => new System.Net.Cookie(cookie.Name, cookie.Value, cookie.Path, cookie.Domain)));
             return client;

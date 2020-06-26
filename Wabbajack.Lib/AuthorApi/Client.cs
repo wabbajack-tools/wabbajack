@@ -18,20 +18,20 @@ namespace Wabbajack.Lib.AuthorApi
             return new Client(client); 
         }
 
-        private Client(Common.Http.Client client)
+        private Client(Wabbajack.Lib.Http.Client client)
         {
             _client = client;
         }
         
-        public static async Task<Common.Http.Client> GetAuthorizedClient(string? apiKey = null)
+        public static async Task<Wabbajack.Lib.Http.Client> GetAuthorizedClient(string? apiKey = null)
         {
-            var client = new Common.Http.Client();
+            var client = new Wabbajack.Lib.Http.Client();
             client.Headers.Add(("X-API-KEY", await GetAPIKey(apiKey)));
             return client;
         }
 
         public static string? ApiKeyOverride = null;
-        private Common.Http.Client _client;
+        private Wabbajack.Lib.Http.Client _client;
 
         public static async ValueTask<string> GetAPIKey(string? apiKey = null)
         {

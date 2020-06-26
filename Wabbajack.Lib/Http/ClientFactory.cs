@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Net;
 using SysHttp = System.Net.Http;
-namespace Wabbajack.Common.Http
+
+namespace Wabbajack.Lib.Http
 {
     public static class ClientFactory
     {

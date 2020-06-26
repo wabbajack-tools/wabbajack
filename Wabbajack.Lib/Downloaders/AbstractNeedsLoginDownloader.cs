@@ -26,7 +26,7 @@ namespace Wabbajack.Lib.Downloaders
 
         // ToDo
         // Remove null assignment.  Either add nullability to type, or figure way to prepare it safely
-        public Common.Http.Client AuthedClient { get; private set; } = null!;
+        public Wabbajack.Lib.Http.Client AuthedClient { get; private set; } = null!;
 
         public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
         public ReactiveCommand<Unit, Unit> ClearLogin { get; }
@@ -86,7 +86,7 @@ namespace Wabbajack.Lib.Downloaders
             return cookies;
         }
         
-        public async Task<Common.Http.Client> GetAuthedClient()
+        public async Task<Wabbajack.Lib.Http.Client> GetAuthedClient()
         {
             Helpers.Cookie[] cookies;
             try

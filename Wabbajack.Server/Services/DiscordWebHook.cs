@@ -49,7 +49,7 @@ namespace Wabbajack.Server.Services
                 };
                 if (url == null) return;
 
-                var client = new Common.Http.Client();
+                var client = new Wabbajack.Lib.Http.Client();
                 await client.PostAsync(url, new StringContent(message.ToJson(true), Encoding.UTF8, "application/json"));
             }
             catch (Exception ex)

@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Wabbajack.Common;
-using Wabbajack.Common.Http;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
@@ -145,10 +144,10 @@ namespace Wabbajack.BuildServer.Test
     [Collection("ServerTests")]
     public class ABuildServerSystemTest : XunitContextBase, IClassFixture<SingletonAdaptor<BuildServerFixture>>
     {
-        protected readonly Client _client;
+        protected readonly Wabbajack.Lib.Http.Client _client;
         private readonly IDisposable _unsubMsgs;
         private readonly IDisposable _unsubErr;
-        protected Client _authedClient;
+        protected Wabbajack.Lib.Http.Client _authedClient;
         protected WorkQueue _queue;
         private Random _random;
 
@@ -159,8 +158,8 @@ namespace Wabbajack.BuildServer.Test
             _unsubMsgs = Utils.LogMessages.OfType<IInfo>().Subscribe(onNext: msg => XunitContext.WriteLine(msg.ShortDescription));
             _unsubErr = Utils.LogMessages.OfType<IUserIntervention>().Subscribe(msg =>
                 XunitContext.WriteLine("ERROR: User intervention required: " + msg.ShortDescription));
-            _client = new Client();
-            _authedClient = new Client();
+            _client = new Wabbajack.Lib.Http.Client();
+            _authedClient = new Wabbajack.Lib.Http.Client();
             Fixture = fixture.Deref();
             _authedClient.Headers.Add(("x-api-key", Fixture.APIKey));
             AuthorAPI.ApiKeyOverride = Fixture.APIKey;

@@ -29,9 +29,9 @@ namespace Wabbajack.Lib.FileUploader
             return apiKey ?? (await Consts.LocalAppDataPath.Combine(Consts.AuthorAPIKeyFile).ReadAllTextAsync()).Trim();
         }
  
-        public static async Task<Common.Http.Client> GetAuthorizedClient(string? apiKey = null)
+        public static async Task<Wabbajack.Lib.Http.Client> GetAuthorizedClient(string? apiKey = null)
         {
-            var client = new Common.Http.Client();
+            var client = new Wabbajack.Lib.Http.Client();
             client.Headers.Add(("X-API-KEY", await GetAPIKey(apiKey)));
             return client;
         }

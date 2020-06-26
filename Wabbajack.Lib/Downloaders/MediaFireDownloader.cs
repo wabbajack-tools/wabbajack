@@ -50,7 +50,7 @@ namespace Wabbajack.Lib.Downloaders
 
             private async Task<HTTPDownloader.State?> Resolve()
             {
-                var client = new Common.Http.Client();
+                var client = new Wabbajack.Lib.Http.Client();
                 var body = await client.GetHtmlAsync(Url);
                 var node = body.DocumentNode.DescendantsAndSelf().First(d => d.HasClass("input") && d.HasClass("popsok") &&
                                                                              d.GetAttributeValue("aria-label", "") == "Download file");
