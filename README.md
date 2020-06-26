@@ -19,6 +19,7 @@ Wabbajack is an automated ModList installer that can recreate contents of a fold
 | Fallout New Vegas         | Steam     | MO2           |       |
 | Skyrim                    | Steam     | MO2           |       |
 | Skyrim Special Edition    | Steam     | MO2           |       |
+| Enderal                   | Steam     | MO2           |       |
 | Fallout 4                 | Steam     | MO2           |       |
 | Skyrim VR                 | Steam     | MO2           |       |
 
