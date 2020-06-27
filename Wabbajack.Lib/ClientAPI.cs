@@ -45,9 +45,9 @@ using Wabbajack.Lib.Downloaders;
     
     public class ClientAPI
     {
-        public static async Task<Common.Http.Client> GetClient()
+        public static async Task<Wabbajack.Lib.Http.Client> GetClient()
         {
-            var client = new Common.Http.Client();
+            var client = new Wabbajack.Lib.Http.Client();
             client.Headers.Add((Consts.MetricsKeyHeader, await Metrics.GetMetricsKey()));
             return client;
         }

@@ -19,7 +19,7 @@ namespace Compression.BSA
             if (fourcc == TES3Reader.TES3_MAGIC)
                 return await TES3Reader.Load(filename);
             if (fourcc == "BSA\0")
-                return await BSAReader.Load(filename);
+                return await BSAReader.LoadWithRetry(filename);
             if (fourcc == "BTDX")
                 return await BA2Reader.Load(filename);
             throw new InvalidDataException("Filename is not a .bsa or .ba2, magic " + fourcc);

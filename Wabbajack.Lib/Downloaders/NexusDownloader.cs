@@ -46,8 +46,8 @@ namespace Wabbajack.Lib.Downloaders
             TriggerLogin = ReactiveCommand.CreateFromTask(
                 execute: () => Utils.CatchAndLog(NexusApiClient.RequestAndCacheAPIKey), 
                 canExecute: IsLoggedIn.Select(b => !b).ObserveOnGuiThread());
-            ClearLogin = ReactiveCommand.Create(
-                execute: () => Utils.CatchAndLog(() => Utils.DeleteEncryptedJson("nexusapikey")),
+            ClearLogin = ReactiveCommand.CreateFromTask(
+                execute: () => Utils.CatchAndLog(async () => await Utils.DeleteEncryptedJson("nexusapikey")),
                 canExecute: IsLoggedIn.ObserveOnGuiThread());
         }
 

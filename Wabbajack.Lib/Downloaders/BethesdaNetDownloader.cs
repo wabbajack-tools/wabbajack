@@ -43,7 +43,7 @@ namespace Wabbajack.Lib.Downloaders
         public BethesdaNetDownloader()
         {
             TriggerLogin = ReactiveCommand.CreateFromTask(() => Utils.CatchAndLog(RequestLoginAndCache), IsLoggedIn.Select(b => !b).ObserveOn(RxApp.MainThreadScheduler));
-            ClearLogin = ReactiveCommand.Create(() => Utils.CatchAndLog(() =>Utils.DeleteEncryptedJson(DataName)), IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
+            ClearLogin = ReactiveCommand.CreateFromTask(() => Utils.CatchAndLog(async () => await Utils.DeleteEncryptedJson(DataName)), IsLoggedIn.ObserveOn(RxApp.MainThreadScheduler));
         }
 
         private static async Task RequestLoginAndCache()
@@ -216,13 +216,13 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            private async Task<(Common.Http.Client, CDPTree, CollectedBNetInfo)> ResolveDownloadInfo()
+            private async Task<(Wabbajack.Lib.Http.Client, CDPTree, CollectedBNetInfo)> ResolveDownloadInfo()
             {
                 var info = new CollectedBNetInfo();
 
                 var login_info = await Utils.FromEncryptedJson<BethesdaNetData>(DataName);
 
-                var client = new Common.Http.Client();
+                var client = new Wabbajack.Lib.Http.Client();
 
                 client.Headers.Add(("User-Agent", "bnet"));
                 foreach (var header in login_info.headers.Where(h => h.Key.ToLower().StartsWith("x-")))

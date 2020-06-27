@@ -366,3 +366,9 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 /.idea
+
+Compression.BSA/Compression.BSA.xml
+
+Wabbajack.Common/Wabbajack.Common.xml
+
+Wabbajack.VirtualFileSystem/Wabbajack.VirtualFileSystem.xml

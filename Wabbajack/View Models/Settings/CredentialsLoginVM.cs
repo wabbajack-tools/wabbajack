@@ -2,6 +2,7 @@
 using System.Net.Mail;
 using System.Reactive.Linq;
 using System.Security;
+using System.Threading.Tasks;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Wabbajack.Common;
@@ -21,6 +22,9 @@ namespace Wabbajack
         [Reactive]
         public LoginReturnMessage ReturnMessage { get; set; }
 
+        [Reactive]
+        public bool LoggingIn { get; private set; }
+
         private readonly ObservableAsPropertyHelper<bool> _loginEnabled;
         public bool LoginEnabled => _loginEnabled.Value;
 
@@ -35,6 +39,12 @@ namespace Wabbajack
 
             _loginEnabled = this.WhenAny(x => x.Username)
                 .Select(IsValidAddress)
+                .CombineLatest(
+                    this.WhenAny(x => x.LoggingIn),
+                    (valid, loggingIn) =>
+                    {
+                        return valid && !loggingIn;
+                    })
                 .ToGuiProperty(this,
                     nameof(LoginEnabled));
 
@@ -43,23 +53,29 @@ namespace Wabbajack
                 .ToGuiProperty(this, nameof(MFAVisible));
         }
 
-        public void Login(SecureString password)
+        public async Task Login(SecureString password)
         {
             try
             {
+                LoggingIn = true;
+
                 if (password == null || password.Length == 0)
                 {
                     ReturnMessage = new LoginReturnMessage("You need to input a password!", LoginReturnCode.BadInput);
                     return;
                 }
 
-                ReturnMessage = _downloader.LoginWithCredentials(Username, password, string.IsNullOrWhiteSpace(MFAKey) ? null : MFAKey);
+                ReturnMessage = await _downloader.LoginWithCredentials(Username, password, string.IsNullOrWhiteSpace(MFAKey) ? null : MFAKey);
                 password.Clear();
             }
             catch (Exception e)
             {
                 Utils.Error(e, "Exception while trying to login");
                 ReturnMessage = new LoginReturnMessage($"Unhandled exception: {e.Message}", LoginReturnCode.InternalError);
+            }
+            finally
+            {
+                LoggingIn = false;
             }
         }
 

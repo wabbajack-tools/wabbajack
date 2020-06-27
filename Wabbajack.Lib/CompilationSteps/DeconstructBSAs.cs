@@ -20,7 +20,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public DeconstructBSAs(ACompiler compiler) : base(compiler)
         {
-            _mo2Compiler = (MO2Compiler) compiler;
+            _mo2Compiler = (MO2Compiler)compiler;
             _includeDirectly = _mo2Compiler.ModInis.Where(kv =>
                 {
                     var general = kv.Value.General;
@@ -60,10 +60,10 @@ namespace Wabbajack.Lib.CompilationSteps
                 if (_includeDirectly.Any(path => source.Path.StartsWith(path)))
                     defaultInclude = true;
 
-            if (source.AbsolutePath.Size >= (long) 2 << 31)
+            if (source.AbsolutePath.Size >= (long)2 << 31)
             {
-                await using var bsa = await BSADispatch.OpenRead(source.AbsolutePath);
-                if (bsa.State is BSAStateObject)
+                var bsaTest = await BSADispatch.OpenRead(source.AbsolutePath);
+                if (bsaTest.State is BSAStateObject)
                 {
                     Utils.Error(
                         $"BSA {source.AbsolutePath.FileName} is over 2GB in size, very few programs (Including Wabbajack) can create BSA files this large without causing CTD issues." +
@@ -83,7 +83,7 @@ namespace Wabbajack.Lib.CompilationSteps
             {
                 _cleanup = await source.File.Context.Stage(source.File.Children);
             }
-            
+
             var matches = await sourceFiles.PMap(_mo2Compiler.Queue, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e, Consts.BSACreationDir.Combine((RelativePath)id, (RelativePath)e.Name))));
 
 
@@ -95,16 +95,14 @@ namespace Wabbajack.Lib.CompilationSteps
             }
 
             CreateBSA directive;
-            await using (var bsa = await BSADispatch.OpenRead(source.AbsolutePath))
+            var bsa = await BSADispatch.OpenRead(source.AbsolutePath);
+            directive = new CreateBSA(
+                state: bsa.State,
+                items: bsa.Files.Select(f => f.State).ToList())
             {
-                directive = new CreateBSA(
-                    state: bsa.State, 
-                    items: bsa.Files.Select(f => f.State).ToList())
-                {
-                    To = source.Path,
-                    TempID = (RelativePath)id,
-                };
-            }
+                To = source.Path,
+                TempID = (RelativePath)id,
+            };
 
             if (_cleanup != null)
                 await _cleanup();

@@ -61,7 +61,7 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive archive)
             {
-                var client = new Common.Http.Client();
+                var client = new Wabbajack.Lib.Http.Client();
                 var result = await client.GetAsync(Url, errorsAsExceptions: false);
                 return result.IsSuccessStatusCode;
             }

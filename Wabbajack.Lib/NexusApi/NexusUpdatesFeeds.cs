@@ -46,7 +46,7 @@ namespace Wabbajack.Lib.NexusApi
 
         private static async Task<IEnumerable<UpdateRecord>> GetFeed(Uri uri)
         {
-            var client = new Common.Http.Client();
+            var client = new Wabbajack.Lib.Http.Client();
             var data = await client.GetStringAsync(uri);
             var reader = XmlReader.Create(new StringReader(data));
             var results = SyndicationFeed.Load(reader);

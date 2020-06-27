@@ -7,9 +7,10 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
+using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
 
-namespace Wabbajack.Common
+namespace Wabbajack.Lib
 {
     public class Metrics
     {

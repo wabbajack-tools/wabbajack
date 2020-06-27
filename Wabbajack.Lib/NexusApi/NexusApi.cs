@@ -11,7 +11,6 @@ using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using System.Threading;
 using Wabbajack.Common.Exceptions;
-using Wabbajack.Common.Http;
 using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.NexusApi
@@ -20,7 +19,7 @@ namespace Wabbajack.Lib.NexusApi
     {
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
        
-        public Common.Http.Client HttpClient { get; } = new Common.Http.Client();
+        public Wabbajack.Lib.Http.Client HttpClient { get; } = new Wabbajack.Lib.Http.Client();
 
         #region Authentication
 
@@ -255,7 +254,7 @@ namespace Wabbajack.Lib.NexusApi
             return new NexusApiClient(apiKey);
         }
 
-        public async Task<T> Get<T>(string url, Client? client = null)
+        public async Task<T> Get<T>(string url, Wabbajack.Lib.Http.Client? client = null)
         {
             client ??= HttpClient;
             int retries = 0;

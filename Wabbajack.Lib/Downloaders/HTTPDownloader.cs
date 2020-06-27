@@ -54,7 +54,7 @@ namespace Wabbajack.Lib.Downloaders
             public List<string> Headers { get; } = new List<string>();
 
             [JsonIgnore]
-            public Common.Http.Client? Client { get; set; }
+            public Wabbajack.Lib.Http.Client? Client { get; set; }
 
             [JsonIgnore]
             public override object[] PrimaryKey => new object[] { Url };

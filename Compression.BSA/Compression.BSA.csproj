@@ -1,10 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Platforms>x64</Platforms>
-        <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+      <TargetFramework>netstandard2.1</TargetFramework>
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+      <Platforms>x64</Platforms>
+      <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+      <Version>3.0</Version>
+      <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      <DocumentationFile>Compression.BSA.xml</DocumentationFile>
     </PropertyGroup>
     <ItemGroup>
       <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />

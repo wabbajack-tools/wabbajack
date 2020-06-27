@@ -24,7 +24,7 @@ namespace Wabbajack.Lib.Validation
 
         public async Task LoadListsFromGithub()
         {
-            var client = new Common.Http.Client();
+            var client = new Wabbajack.Lib.Http.Client();
 
             Utils.Log("Loading server whitelist");
             using (var response = await client.GetAsync(Consts.ServerWhitelistURL))

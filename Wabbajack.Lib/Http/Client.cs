@@ -6,9 +6,10 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
 
-namespace Wabbajack.Common.Http
+namespace Wabbajack.Lib.Http
 {
     public class Client
     {

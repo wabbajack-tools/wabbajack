@@ -59,7 +59,7 @@ namespace Wabbajack.Lib.Downloaders
             private async Task<HTTPDownloader.State> ToHttpState()
             {
                 var initialURL = $"https://drive.google.com/uc?id={Id}&export=download";
-                var client = new Common.Http.Client();
+                var client = new Wabbajack.Lib.Http.Client();
                 using var response = await client.GetAsync(initialURL);
                 if (!response.IsSuccessStatusCode)
                     throw new HttpException((int)response.StatusCode, response.ReasonPhrase);

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Dapper;
-using Wabbajack.Common;
+using Wabbajack.Lib;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
 using Xunit;

@@ -6,7 +6,7 @@ using Wabbajack.Common;
 
 namespace Compression.BSA
 {
-    public interface IBSAReader : IAsyncDisposable
+    public interface IBSAReader
     {
         /// <summary>
         /// The files defined by the archive
