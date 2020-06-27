@@ -93,7 +93,8 @@ namespace Compression.BSA.Test
                 _tempDir.CreateDirectory();
 
                 TestContext.WriteLine($"Reading {bsa}");
-                var tempFile = ((RelativePath)"tmp.bsa").RelativeToEntryPoint();
+                await using var tempFolder = await TempFolder.Create();
+                var tempFile = tempFolder.Dir.Combine("test.bsa");
                 var size = bsa.Size;
                 
                 var a = await BSADispatch.OpenRead(bsa);
