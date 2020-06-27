@@ -4,7 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 
-namespace Compression.BSA
+namespace Wabbajack.Compression.BSA
 {
     public static class BSADispatch
     {

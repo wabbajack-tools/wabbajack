@@ -72,8 +72,8 @@
       </PackageReference>
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\Compression.BSA\Compression.BSA.csproj" />
       <ProjectReference Include="..\Wabbajack.Common\Wabbajack.Common.csproj" />
+      <ProjectReference Include="..\Wabbajack.Compression.BSA\Wabbajack.Compression.BSA.csproj" />
       <ProjectReference Include="..\Wabbajack.VirtualFileSystem\Wabbajack.VirtualFileSystem.csproj" />
     </ItemGroup>
     <ItemGroup>

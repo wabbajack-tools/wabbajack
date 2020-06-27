@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 
-namespace Compression.BSA
+namespace Wabbajack.Compression.BSA
 {
     public class TES3Reader : IBSAReader
     {

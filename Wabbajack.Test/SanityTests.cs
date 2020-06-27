@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Compression.BSA;
+using Wabbajack.Compression.BSA;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.CompilationSteps.CompilationErrors;

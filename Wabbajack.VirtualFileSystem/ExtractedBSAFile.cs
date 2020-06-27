@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Compression.BSA;
+using Wabbajack.Compression.BSA;
 using Wabbajack.Common;
 
 namespace Wabbajack.VirtualFileSystem

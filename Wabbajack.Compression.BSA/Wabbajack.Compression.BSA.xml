@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Wabbajack.Compression.BSA</name>
+    </assembly>
+    <members>
+        <member name="P:Wabbajack.Compression.BSA.IBSAReader.Files">
+            <summary>
+            The files defined by the archive
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Compression.BSA.IFile.Path">
+            <summary>
+            The path of the file inside the archive
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Compression.BSA.IFile.Size">
+            <summary>
+            The uncompressed file size
+            </summary>
+        </member>
+        <member name="P:Wabbajack.Compression.BSA.IFile.State">
+            <summary>
+            Get the metadata for the file.
+            </summary>
+        </member>
+        <member name="M:Wabbajack.Compression.BSA.IFile.CopyDataTo(System.IO.Stream)">
+            <summary>
+            Copies this entry to the given stream. 100% thread safe, the .bsa will be opened multiple times
+            in order to maintain thread-safe access. 
+            </summary>
+            <param name="output"></param>
+        </member>
+        <member name="M:Wabbajack.Compression.BSA.Utils.ToBZString(Wabbajack.Common.RelativePath,Wabbajack.Compression.BSA.VersionType)">
+            <summary>
+                Returns bytes for a \0 terminated string
+            </summary>
+            <param name="val"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wabbajack.Compression.BSA.Utils.ToBSString(Wabbajack.Common.RelativePath)">
+            <summary>
+                Returns bytes for unterminated string with a count at the start
+            </summary>
+            <param name="val"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wabbajack.Compression.BSA.Utils.ToTermString(System.String,Wabbajack.Compression.BSA.VersionType)">
+            <summary>
+                Returns bytes for a \0 terminated string prefixed by a length
+            </summary>
+            <param name="val"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

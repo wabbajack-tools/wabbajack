@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
-using Compression.BSA;
+using Wabbajack.Compression.BSA;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed.Errors;

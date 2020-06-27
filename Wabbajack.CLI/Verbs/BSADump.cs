@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CommandLine;
-using Compression.BSA;
+using Wabbajack.Compression.BSA;
 using Wabbajack.Common;
 
 namespace Wabbajack.CLI.Verbs

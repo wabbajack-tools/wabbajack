@@ -5,11 +5,15 @@
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
       <Platforms>x64</Platforms>
       <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-      <Version>3.0</Version>
+      <Version>2.1.0.0</Version>
       <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+      <PackageProjectUrl>https://github.com/wabbajack-tools/wabbajack</PackageProjectUrl>
+      <PackageLicenseUrl>https://raw.githubusercontent.com/wabbajack-tools/wabbajack/master/LICENSE.txt</PackageLicenseUrl>
+      <PackageIconUrl>https://www.wabbajack.org/favicon.ico</PackageIconUrl>
+      <RepositoryUrl>https://github.com/wabbajack-tools/wabbajack</RepositoryUrl>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      <DocumentationFile>Compression.BSA.xml</DocumentationFile>
+      <DocumentationFile>Wabbajack.Compression.BSA.xml</DocumentationFile>
     </PropertyGroup>
     <ItemGroup>
       <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />

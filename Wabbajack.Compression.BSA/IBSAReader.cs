@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 
-namespace Compression.BSA
+namespace Wabbajack.Compression.BSA
 {
     public interface IBSAReader
     {

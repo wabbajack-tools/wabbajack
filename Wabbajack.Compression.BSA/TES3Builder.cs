@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using File = Alphaleonis.Win32.Filesystem.File;
 
-namespace Compression.BSA
+namespace Wabbajack.Compression.BSA
 {
     public class TES3Builder : IBSABuilder
     {

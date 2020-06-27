@@ -1,4 +1,4 @@
-﻿using Compression.BSA;
+﻿using Wabbajack.Compression.BSA;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

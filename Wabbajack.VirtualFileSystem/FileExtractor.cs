@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
-using Compression.BSA;
+using Wabbajack.Compression.BSA;
 using OMODFramework;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Common.StatusFeed.Errors;

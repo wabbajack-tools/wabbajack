@@ -11,7 +11,7 @@ using Wabbajack.Common;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
-namespace Compression.BSA
+namespace Wabbajack.Compression.BSA
 {
     public class BSABuilder : IBSABuilder
     {
