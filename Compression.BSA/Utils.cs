@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
-namespace Wabbajack.Compression.BSA
+namespace Compression.BSA
 {
     internal static class Utils
     {

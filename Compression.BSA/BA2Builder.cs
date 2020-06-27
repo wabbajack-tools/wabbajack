@@ -9,7 +9,7 @@ using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Wabbajack.Common;
 
-namespace Wabbajack.Compression.BSA
+namespace Compression.BSA
 {
     interface IFileBuilder
     {

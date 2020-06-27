@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace Wabbajack.Compression.BSA
+namespace Compression.BSA
 {
     /*
      * Copied from https://raw.githubusercontent.com/AlexxEG/BSA_Browser/master/Sharp.BSA.BA2/BA2Util/DDS.cs

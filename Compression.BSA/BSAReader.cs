@@ -9,7 +9,7 @@ using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 using File = Alphaleonis.Win32.Filesystem.File;
 
-namespace Wabbajack.Compression.BSA
+namespace Compression.BSA
 {
     public enum VersionType : uint
     {
