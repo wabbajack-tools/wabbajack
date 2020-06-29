@@ -28,6 +28,8 @@ namespace Wabbajack.Server.Services
             _sql = sql;
             _maintainer = maintainer;
         }
+        
+        public bool NoCleaning { get; set; }
 
         public override async Task<int> Execute()
         {
@@ -66,8 +68,6 @@ namespace Wabbajack.Server.Services
                     _maintainer.TryGetPath(patch.Src.Archive.Hash, out var srcPath);
                     _maintainer.TryGetPath(patch.Dest.Archive.Hash, out var destPath);
 
-                    var patchName = $"{Consts.ArchiveUpdatesCDNFolder}\\{patch.Src.Archive.Hash.ToHex()}_{patch.Dest.Archive.Hash.ToHex()}";
-
                     await using var sigFile = new TempFile();
                     await using var patchFile = new TempFile();
                     await using var srcStream = await srcPath.OpenShared();
@@ -78,7 +78,7 @@ namespace Wabbajack.Server.Services
                     await patchOutput.DisposeAsync();
                     var size = patchFile.Path.Size;
 
-                    await UploadToCDN(patchFile.Path, patchName);
+                    await UploadToCDN(patchFile.Path, PatchName(patch));
                    
                     
                     await patch.Finish(_sql, size);
@@ -109,7 +109,44 @@ namespace Wabbajack.Server.Services
                 await _quickSync.Notify<ListValidator>();
             }
 
+            if (!NoCleaning) 
+                await CleanupOldPatches();
+
             return count;
+        }
+
+        private static string PatchName(Patch patch)
+        {
+            return $"{Consts.ArchiveUpdatesCDNFolder}\\{patch.Src.Archive.Hash.ToHex()}_{patch.Dest.Archive.Hash.ToHex()}";
+        }
+
+        private async Task CleanupOldPatches()
+        {
+            var patches = await _sql.GetOldPatches();
+            using var client = await GetBunnyCdnFtpClient();
+
+            foreach (var patch in patches)
+            {
+                _logger.LogInformation($"Cleaning patch {patch.Src.Archive.Hash} -> {patch.Dest.Archive.Hash}");
+                /*
+                await _discordWebHook.Send(Channel.Ham,
+                    new DiscordMessage
+                    {
+                        Content =
+                            $"Removing patch from {patch.Src.Archive.State.PrimaryKeyString} to {patch.Dest.Archive.State.PrimaryKeyString} due it no longer being required by curated lists"
+                    });
+*/
+                if (!await DeleteFromCDN(client, PatchName(patch)))
+                {
+                    _logger.LogWarning($"Patch file didn't exist {PatchName(patch)}");
+                }
+
+                await _sql.DeletePatch(patch);
+                
+                var pendingPatch = await _sql.GetPendingPatch();
+                if (pendingPatch != default) break;
+
+            }
         }
 
         private async Task UploadToCDN(AbsolutePath patchFile, string patchName)
@@ -134,6 +171,14 @@ namespace Wabbajack.Server.Services
                 }
             }
             _logger.Log(LogLevel.Error, $"Couldn't upload {patchFile} to {patchName}");
+        }
+
+        private async Task<bool> DeleteFromCDN(FtpClient client, string patchName)
+        {
+            if (!await client.FileExistsAsync(patchName))
+                return false;
+            await client.DeleteFileAsync(patchName);
+            return true;
         }
 
         private async Task<FtpClient> GetBunnyCdnFtpClient()

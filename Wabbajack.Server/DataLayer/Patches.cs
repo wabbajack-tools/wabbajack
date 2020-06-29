@@ -156,5 +156,49 @@ namespace Wabbajack.Server.DataLayer
                 new {SrcId = srcId, DestId = destId});
 
         }
+
+        public async Task<List<Patch>> GetOldPatches()
+        {
+            await using var conn = await Open();
+            var patches = await conn.QueryAsync<(Guid, Guid, long, DateTime?, bool?, string)>(
+                @"SELECT p.SrcId, p.DestId, p.PatchSize, p.Finished, p.IsFailed, p.FailMessage
+                        FROM dbo.Patches p
+                        LEFT JOIN dbo.ArchiveDownloads a ON p.SrcId = a.Id
+                        LEFT JOIN dbo.ModListArchives m ON m.PrimaryKeyString = a.PrimaryKeyString AND m.Hash = a.Hash
+                        WHERE m.PrimaryKeyString is null
+                        UNION 
+                        SELECT p.SrcId, p.DestId, p.PatchSize, p.Finished, p.IsFailed, p.FailMessage
+                        FROM dbo.Patches p
+                        LEFT JOIN dbo.ArchiveDownloads a ON p.SrcId = a.Id
+                        LEFT JOIN dbo.ModListArchives m ON m.PrimaryKeyString = a.PrimaryKeyString AND m.Hash = a.Hash
+                        WHERE m.PrimaryKeyString is not null
+                        AND (p.LastUsed < DATEADD(d, -7, getutcdate()) OR p.LastUsed is null and p.Finished < DATEADD(d, -7, getutcdate()))");
+            
+            List<Patch> results = new List<Patch>();
+            foreach (var (srcId, destId, patchSize, finished, isFailed, failMessage) in patches)
+            {
+                results.Add( new Patch {
+                    Src = await GetArchiveDownload(srcId), 
+                    Dest = await GetArchiveDownload(destId),
+                    PatchSize = patchSize,
+                    Finished = finished,
+                    IsFailed = isFailed,
+                    FailMessage = failMessage
+                });
+            } 
+            return results;
+        }
+
+        public async Task DeletePatch(Patch patch)
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync(@"DELETE FROM dbo.Patches WHERE SrcId = @SrcId AND DestId = @DestID", 
+                new
+                {
+                    SrcId = patch.Src.Id,
+                    DestId = patch.Dest.Id
+                });
+
+        }
     }
 }

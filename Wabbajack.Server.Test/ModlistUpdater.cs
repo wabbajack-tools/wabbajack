@@ -36,6 +36,7 @@ namespace Wabbajack.Server.Test
             var downloader = Fixture.GetService<ArchiveDownloader>();
             var archiver = Fixture.GetService<ArchiveMaintainer>();
             var patcher = Fixture.GetService<PatchBuilder>();
+            patcher.NoCleaning = true;
             
             var sql = Fixture.GetService<SqlService>();
             var oldFileData = Encoding.UTF8.GetBytes("Cheese for Everyone!");
@@ -85,6 +86,7 @@ namespace Wabbajack.Server.Test
             var downloader = Fixture.GetService<ArchiveDownloader>();
             var archiver = Fixture.GetService<ArchiveMaintainer>();
             var patcher = Fixture.GetService<PatchBuilder>();
+            patcher.NoCleaning = true;
             
             var sql = Fixture.GetService<SqlService>();
             var oldFileData = Encoding.UTF8.GetBytes("Cheese for Everyone!");
