@@ -182,14 +182,19 @@ namespace Wabbajack
                 {
                     try
                     {
+                        Utils.Log($"Starting Download of {Metadata.Links.MachineURL}");
                         var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
                         var result = await downloader.Download(new Archive(state: null!) { Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0 }, Location);
+                        Utils.Log($"Done downloading {Metadata.Links.MachineURL}");
+
                         // Want to rehash to current file, even if failed?
                         await Location.FileHashCachedAsync();
+                        Utils.Log($"Done hashing {Metadata.Links.MachineURL}");
                         tcs.SetResult(result);
                     }
                     catch (Exception ex)
                     {
+                        Utils.Error(ex,$"Error Downloading of {Metadata.Links.MachineURL}");
                         tcs.SetException(ex);
                     }
                 });
