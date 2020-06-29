@@ -61,6 +61,7 @@ namespace Wabbajack
                 url = url.Substring(0, url.IndexOf("release", StringComparison.Ordinal));
 
             //url = url.Replace("&", "^&");
+            url = url.Replace(" ", "%20");
             Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") {CreateNoWindow = true});
 
             e.Handled = true;
