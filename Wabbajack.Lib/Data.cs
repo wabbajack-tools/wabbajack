@@ -240,6 +240,14 @@ namespace Wabbajack.Lib
         ///     The file to apply to the source file to patch it
         /// </summary>
         public RelativePath PatchID { get; set; }
+
+
+        /// <summary>
+        /// During compilation this holds several possible files that could be used as a patch source. At the end
+        /// of compilation we'll go through all of these and find the smallest patch file.
+        /// </summary>
+        [JsonIgnore]
+        public VirtualFile[] Choices { get; set; } = { };
     }
 
     [JsonName("SourcePatch")]

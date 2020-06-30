@@ -128,7 +128,7 @@ namespace Compression.BSA
         public void WriteHeader(BinaryWriter bw)
         {
             bw.Write(_state.NameHash);
-            bw.Write(Encoding.ASCII.GetBytes(_state.Extension));
+            bw.Write(Encoding.UTF8.GetBytes(_state.Extension));
             bw.Write(_state.DirHash);
             bw.Write(_state.Unk8);
             bw.Write((byte)_chunks.Count);
@@ -254,7 +254,7 @@ namespace Compression.BSA
         public void WriteHeader(BinaryWriter wtr)
         {
             wtr.Write(_state.NameHash);
-            wtr.Write(Encoding.ASCII.GetBytes(_state.Extension));
+            wtr.Write(Encoding.UTF8.GetBytes(_state.Extension));
             wtr.Write(_state.DirHash);
             wtr.Write(_state.Flags);
             _offsetOffset = wtr.BaseStream.Position;
