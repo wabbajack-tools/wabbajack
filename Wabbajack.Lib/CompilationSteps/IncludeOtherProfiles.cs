@@ -31,19 +31,5 @@ namespace Wabbajack.Lib.CompilationSteps
             c.Reason = "File not for selected profiles";
             return c;
         }
-
-        public override IState GetState()
-        {
-            return new State();
-        }
-
-        [JsonObject("IgnoreOtherProfiles")]
-        public class State : IState
-        {
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IgnoreOtherProfiles(compiler);
-            }
-        }
     }
 }

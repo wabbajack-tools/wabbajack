@@ -46,11 +46,6 @@ namespace Wabbajack.Lib.CompilationSteps
             };
         }
 
-        public override IState GetState()
-        {
-            return new State();
-        }
-
         public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             if (!Consts.SupportedBSAs.Contains(source.Path.Extension)) return null;
@@ -107,15 +102,6 @@ namespace Wabbajack.Lib.CompilationSteps
             if (_cleanup != null)
                 await _cleanup();
             return directive;
-        }
-
-        [JsonObject("DeconstructBSAs")]
-        public class State : IState
-        {
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new DeconstructBSAs(compiler);
-            }
         }
     }
 }

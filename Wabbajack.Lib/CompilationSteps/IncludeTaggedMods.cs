@@ -39,26 +39,5 @@ namespace Wabbajack.Lib.CompilationSteps
 
             return null;
         }
-
-        public override IState GetState()
-        {
-            return new State(_tag);
-        }
-
-        [JsonObject("IncludeTaggedMods")]
-        public class State : IState
-        {
-            public string Tag { get; set; }
-
-            public State(string tag)
-            {
-                Tag = tag;
-            }
-
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IncludeTaggedMods(compiler, Tag);
-            }
-        }
     }
 }

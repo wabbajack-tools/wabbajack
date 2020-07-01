@@ -577,6 +577,7 @@ namespace Wabbajack.Lib
                 new IgnoreGameFilesIfGameFolderFilesExist(this),
                 new IncludePropertyFiles(this),
                 new IncludeGenericGamePlugin(this),
+                new IgnoreSaveFiles(this),
                 new IgnoreStartsWith(this,"logs\\"),
                 new IgnoreStartsWith(this, "downloads\\"),
                 new IgnoreStartsWith(this,"webcache\\"),

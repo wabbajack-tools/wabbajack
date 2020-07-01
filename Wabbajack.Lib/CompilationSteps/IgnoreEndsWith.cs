@@ -21,26 +21,5 @@ namespace Wabbajack.Lib.CompilationSteps
             result.Reason = _reason;
             return result;
         }
-
-        public override IState GetState()
-        {
-            return new State(_postfix);
-        }
-
-        [JsonObject("IgnoreEndsWith")]
-        public class State : IState
-        {
-            public string Postfix { get; set; }
-
-            public State(string postfix)
-            {
-                Postfix = postfix;
-            }
-
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IgnoreEndsWith(compiler, Postfix);
-            }
-        }
     }
 }

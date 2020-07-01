@@ -34,11 +34,6 @@ namespace Wabbajack.Lib.CompilationSteps
 
         }
 
-        public override IState GetState()
-        {
-            return new State();
-        }
-
         private async Task<byte[]> ReadAndCleanModlist(AbsolutePath absolutePath)
         {
             var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IgnoreDisabledMods.IsAlwaysEnabled(f.Value))
@@ -52,15 +47,6 @@ namespace Wabbajack.Lib.CompilationSteps
                        || l.EndsWith("_separator");
             }).ToArray();
             return Encoding.UTF8.GetBytes(string.Join("\r\n", lines));
-        }
-
-        [JsonObject("IncludeThisProfile")]
-        public class State : IState
-        {
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IncludeThisProfile(compiler);
-            }
         }
     }
 }

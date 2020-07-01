@@ -35,11 +35,6 @@ namespace Wabbajack.Lib.CompilationSteps
             return r;
         }
 
-        public override IState GetState()
-        {
-            return new State();
-        }
-
         public static bool IsAlwaysEnabled(dynamic data)
         {
             if (data == null)
@@ -52,15 +47,6 @@ namespace Wabbajack.Lib.CompilationSteps
                 data.General.comments.Contains(Consts.WABBAJACK_ALWAYS_ENABLE))
                 return true;
             return false;
-        }
-
-        [JsonObject("IgnoreDisabledMods")]
-        public class State : IState
-        {
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IgnoreDisabledMods(compiler);
-            }
         }
     }
 }

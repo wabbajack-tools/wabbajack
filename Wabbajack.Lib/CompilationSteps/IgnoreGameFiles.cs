@@ -20,19 +20,5 @@ namespace Wabbajack.Lib.CompilationSteps
             i.Reason = "Default game file";
             return i;
         }
-
-        public override IState GetState()
-        {
-            return new State();
-        }
-
-        [JsonObject("IgnoreGameFiles")]
-        public class State : IState
-        {
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IgnoreGameFiles(compiler);
-            }
-        }
     }
 }

@@ -114,10 +114,11 @@ namespace Wabbajack.Common
         public bool IsFile => File.Exists(_path);
         public bool IsDirectory => Directory.Exists(_path);
 
-        public async Task DeleteDirectory()
+        public async Task DeleteDirectory(bool dontDeleteIfNotEmpty = false)
         {
             if (IsDirectory)
             {
+                if (dontDeleteIfNotEmpty && (EnumerateFiles().Any() || EnumerateDirectories().Any())) return;
                 await Utils.DeleteDirectory(this);
             }
         }

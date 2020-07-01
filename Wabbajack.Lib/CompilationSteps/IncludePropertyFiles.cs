@@ -33,20 +33,6 @@ namespace Wabbajack.Lib.CompilationSteps
             }
 
             return result;
-            }
-
-        public override IState GetState()
-        {
-            return new State();
-        }
-
-        [JsonObject("IncludePropertyFiles")]
-        public class State : IState
-        {
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IncludePropertyFiles(compiler);
-            }
         }
     }
 }

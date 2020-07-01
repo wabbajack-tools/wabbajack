@@ -48,25 +48,5 @@ namespace Wabbajack.Lib.CompilationSteps
                 return null;
             }
         }
-
-        public override IState GetState()
-        {
-            return new State(_game);
-        }
-
-        public class State : IState
-        {
-            private readonly SteamGame _game;
-
-            public State(SteamGame game)
-            {
-                _game = game;
-            }
-
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IncludeSteamWorkshopItems(compiler, _game);
-            }
-        }
     }
 }

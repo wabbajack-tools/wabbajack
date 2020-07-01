@@ -356,6 +356,10 @@ namespace Wabbajack.Lib
             
             var indexed = ModList.Directives.ToDictionary(d => d.To);
 
+
+            var profileFolder = OutputFolder.Combine("profiles");
+            var savePath = (RelativePath)"saves";
+            
             UpdateTracker.NextStep("Looking for files to delete");
             await OutputFolder.EnumerateFiles()
                 .PMap(Queue, UpdateTracker, async f =>
@@ -364,6 +368,8 @@ namespace Wabbajack.Lib
                     Utils.Status($"Checking if ModList file {relativeTo}");
                     if (indexed.ContainsKey(relativeTo) || f.InFolder(DownloadFolder))
                         return;
+
+                    if (f.InFolder(profileFolder) && f.Parent.FileName == savePath) return;
 
                     Utils.Log($"Deleting {relativeTo} it's not part of this ModList");
                     await f.DeleteAsync();
@@ -394,7 +400,7 @@ namespace Wabbajack.Lib
                     .ToList();
                 foreach (var dir in toDelete)
                 {
-                    await dir.DeleteDirectory();
+                    await dir.DeleteDirectory(dontDeleteIfNotEmpty:true);
                 }
             }
             catch (Exception)
