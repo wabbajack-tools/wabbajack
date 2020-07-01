@@ -42,19 +42,5 @@ namespace Wabbajack.Lib.CompilationSteps
             res.SourceDataID = await _compiler.IncludeFile(await source.AbsolutePath.ReadAllBytesAsync());
             return res;
         }
-
-        public override IState GetState()
-        {
-            return new State();
-        }
-
-        [JsonObject("IncludeGenericGamePlugin")]
-        public class State : IState
-        {
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IncludeGenericGamePlugin(compiler);
-            }
-        }
     }
 }

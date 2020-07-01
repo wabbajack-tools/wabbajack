@@ -199,20 +199,6 @@ namespace Wabbajack.Lib
                 return result;
 
             }
-
-            public override IState GetState()
-            {
-                return new State();
-            }
-
-            [JsonObject("IncludeZEditPatches")]
-            public class State : IState
-            {
-                public ICompilationStep CreateStep(ACompiler compiler)
-                {
-                    return new IncludeZEditPatches((MO2Compiler)compiler);
-                }
-            }
         }
 
         public class zEditSettings

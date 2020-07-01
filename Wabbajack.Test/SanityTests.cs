@@ -181,6 +181,32 @@ namespace Wabbajack.Test
         }
 
         [Fact]
+        public async Task SaveFilesAreIgnored()
+        {
+            var profile = utils.AddProfile();
+            var mod = await utils.AddMod("dummy");
+
+            var saveFolder = utils.MO2Folder.Combine("profiles", profile, "saves");
+            saveFolder.CreateDirectory();
+            await saveFolder.Combine("incompilation").WriteAllTextAsync("ignore this");
+
+            var installSaveFolderThisProfile = utils.InstallFolder.Combine("profiles", profile, "saves");
+            var installSaveFolderOtherProfile = utils.InstallFolder.Combine("profiles", "Other Profile", "saves");
+            installSaveFolderThisProfile.CreateDirectory();
+            installSaveFolderOtherProfile.CreateDirectory();
+
+            await installSaveFolderOtherProfile.Combine("otherprofile").WriteAllTextAsync("other profile file");
+            await installSaveFolderThisProfile.Combine("thisprofile").WriteAllTextAsync("this profile file");
+
+            await utils.Configure();
+            var modlist = await CompileAndInstall(profile);
+            
+            Assert.Equal("other profile file", await installSaveFolderOtherProfile.Combine("otherprofile").ReadAllTextAsync());
+            Assert.Equal("this profile file", await installSaveFolderThisProfile.Combine("thisprofile").ReadAllTextAsync());
+            Assert.False(installSaveFolderThisProfile.Combine("incompilation").Exists);
+        }
+
+        [Fact]
         public async Task SetScreenSizeTest()
         {
             var profile = utils.AddProfile();

@@ -113,19 +113,5 @@ namespace Wabbajack.Lib.CompilationSteps
             return file.RelativeTo(((MO2Compiler)_compiler).MO2ModsFolder).TopParent
                 .RelativeTo(((MO2Compiler)_compiler).MO2ModsFolder);
         }
-
-        public override IState GetState()
-        {
-            return new State();
-        }
-
-        [JsonObject("IncludePatches")]
-        public class State : IState
-        {
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IncludePatches(compiler);
-            }
-        }
     }
 }

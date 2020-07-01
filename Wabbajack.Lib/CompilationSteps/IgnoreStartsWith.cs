@@ -26,26 +26,5 @@ namespace Wabbajack.Lib.CompilationSteps
             return result;
 
         }
-
-        public override IState GetState()
-        {
-            return new State(_prefix);
-        }
-
-        [JsonObject("IgnoreStartsWith")]
-        public class State : IState
-        {
-            public string Prefix { get; set; }
-
-            public State(string prefix)
-            {
-                Prefix = prefix;
-            }
-
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IgnoreStartsWith(compiler, Prefix);
-            }
-        }
     }
 }

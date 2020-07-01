@@ -25,19 +25,5 @@ namespace Wabbajack.Lib.CompilationSteps
             result.Reason = "Wabbajack Cruft file";
             return result;
         }
-
-        public override IState GetState()
-        {
-            return new State();
-        }
-
-        [JsonObject("IgnoreWabbajackInstallCruft")]
-        public class State : IState
-        {
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IgnoreWabbajackInstallCruft(compiler);
-            }
-        }
     }
 }

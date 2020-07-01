@@ -18,19 +18,5 @@ namespace Wabbajack.Lib.CompilationSteps
             inline.SourceDataID = await _compiler.IncludeFile(await file.ReadAllAsync());
             return inline;
         }
-
-        public override IState GetState()
-        {
-            return new State();
-        }
-
-        [JsonObject("IncludeAll")]
-        public class State : IState
-        {
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IncludeAll(compiler);
-            }
-        }
     }
 }

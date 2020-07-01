@@ -19,12 +19,6 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             return Consts.ConfigFileExtensions.Contains(source.Path.Extension) ? await RemapFile(source) : null;
         }
-
-        public override IState GetState()
-        {
-            return new State();
-        }
-
         private async Task<Directive?> RemapFile(RawSourceFile source)
         {
             var data = await source.AbsolutePath.ReadAllTextAsync();
@@ -48,15 +42,6 @@ namespace Wabbajack.Lib.CompilationSteps
             var result = source.EvolveTo<RemappedInlineFile>();
             result.SourceDataID = await _compiler.IncludeFile(Encoding.UTF8.GetBytes(data));
             return result;
-        }
-
-        [JsonObject("IncludeStubbedConfigFiles")]
-        public class State : IState
-        {
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new IncludeStubbedConfigFiles(compiler);
-            }
         }
     }
 }

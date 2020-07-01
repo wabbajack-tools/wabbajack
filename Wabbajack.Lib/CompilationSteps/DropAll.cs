@@ -16,19 +16,5 @@ namespace Wabbajack.Lib.CompilationSteps
             result.Reason = "No Match in Stack";
             return result;
         }
-
-        public override IState GetState()
-        {
-            return new State();
-        }
-
-        [JsonObject("DropAll")]
-        public class State : IState
-        {
-            public ICompilationStep CreateStep(ACompiler compiler)
-            {
-                return new DropAll(compiler);
-            }
-        }
     }
 }
