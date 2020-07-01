@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using F23.StringSimilarity;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.VirtualFileSystem;
@@ -75,8 +76,11 @@ namespace Wabbajack.Lib.CompilationSteps
                 var relName = (RelativePath)Path.GetFileName(matchAllName);
                 if (_indexedByName.TryGetValue(relName, out var arch))
                 {
-                    // Just match some file in the archive based on the smallest delta difference
-                    found = arch.SelectMany(a => a.ThisAndAllChildren).ToArray();
+                    var dist = new Levenshtein();
+                    found = arch.SelectMany(a => a.ThisAndAllChildren)
+                        .OrderBy(a => dist.Distance(a.FullPath.FileName.ToString(), source.File.FullPath.FileName.ToString()))
+                        .Take(3)
+                        .ToArray();
                 }
             }
 
