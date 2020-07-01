@@ -15,7 +15,7 @@
       <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
       <PackageReference Include="K4os.Compression.LZ4.Streams" Version="1.2.2-beta" />
       <PackageReference Include="SharpZipLib" Version="1.2.0" />
-      <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0-preview.4.20251.6" />
+      <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0-preview.6.20305.6" />
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Properties\" />
