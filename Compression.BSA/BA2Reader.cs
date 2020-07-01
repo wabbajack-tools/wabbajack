@@ -50,7 +50,7 @@ namespace Compression.BSA
         private BA2Reader(Stream stream)
         {
             _stream = stream;
-            _rdr = new BinaryReader(_stream, Encoding.UTF7);
+            _rdr = new BinaryReader(_stream, Encoding.UTF8);
         }
 
         private async Task LoadHeaders()
@@ -173,7 +173,7 @@ namespace Compression.BSA
             var _rdr = ba2Reader._rdr;
             _nameHash = _rdr.ReadUInt32();
             FullPath = _nameHash.ToString("X");
-            _extension = Encoding.UTF7.GetString(_rdr.ReadBytes(4));
+            _extension = Encoding.UTF8.GetString(_rdr.ReadBytes(4));
             _dirHash = _rdr.ReadUInt32();
             _unk8 = _rdr.ReadByte();
             _numChunks = _rdr.ReadByte();
@@ -463,7 +463,7 @@ namespace Compression.BSA
             var _rdr = ba2Reader._rdr;
             _nameHash = _rdr.ReadUInt32();
             FullPath = _nameHash.ToString("X");
-            _extension = Encoding.UTF7.GetString(_rdr.ReadBytes(4));
+            _extension = Encoding.UTF8.GetString(_rdr.ReadBytes(4));
             _dirHash = _rdr.ReadUInt32();
             _flags = _rdr.ReadUInt32();
             _offset = _rdr.ReadUInt64();

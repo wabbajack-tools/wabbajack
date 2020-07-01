@@ -19,7 +19,7 @@ namespace Wabbajack.Lib.CompilationSteps
             var adata = compiler.ArchivesByFullPath[archive.AbsoluteName];
             if (adata.State is GameFileSourceDownloader.State gs)
             {
-                return gs.Game == compiler.CompilingGame.Game ? 1 : 3;
+                return gs.Game == compiler.CompilingGame.Game ? 2 : 3;
             }
             return 1;
         }

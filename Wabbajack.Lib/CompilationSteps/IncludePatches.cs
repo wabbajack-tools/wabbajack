@@ -53,53 +53,54 @@ namespace Wabbajack.Lib.CompilationSteps
 
             var installationFile = (string?)modIni?.General?.installationFile;
 
-            VirtualFile? found = null;
+            VirtualFile[] found = {};
             
             // Find based on exact file name + ext
             if (choices != null && installationFile != null)
             {
                 var relName = (RelativePath)Path.GetFileName(installationFile);
-                found = choices.FirstOrDefault(
-                    f => f.FilesInFullPath.First().Name.FileName == relName);
+                found = choices.Where(f => f.FilesInFullPath.First().Name.FileName == relName).ToArray();
             }
 
             // Find based on file name only (not ext)
-            if (found == null && choices != null)
+            if (found.Length == 0 && choices != null)
             {
-                found = choices.OrderBy(f => f.NestingFactor)
-                               .ThenByDescending(f => (f.FilesInFullPath.First() ?? f).LastModified)
-                               .First();
+                found = choices.ToArray();
             }
 
             // Find based on matchAll=<archivename> in [General] in meta.ini
             var matchAllName = (string?)modIni?.General?.matchAll;
-            if (matchAllName != null)
+            if (matchAllName != null && found.Length == 0)
             {
                 var relName = (RelativePath)Path.GetFileName(matchAllName);
                 if (_indexedByName.TryGetValue(relName, out var arch))
                 {
                     // Just match some file in the archive based on the smallest delta difference
-                    found = arch.SelectMany(a => a.ThisAndAllChildren)
-                        .OrderBy(o => DirectMatch.GetFilePriority(_mo2Compiler, o))
-                        .ThenBy(o => Math.Abs(o.Size - source.File.Size))
-                        .First();
+                    found = arch.SelectMany(a => a.ThisAndAllChildren).ToArray();
                 }
             }
 
-            if (found == null)
+            if (found.Length == 0)
                 return null;
 
+            
             var e = source.EvolveTo<PatchedFromArchive>();
-            e.FromHash = found.Hash;
-            e.ArchiveHashPath = found.MakeRelativePaths();
-            e.To = source.Path;
-            e.Hash = source.File.Hash;
 
-            if (Utils.TryGetPatch(found.Hash, source.File.Hash, out var data))
+            var patches = found.Select(c => (Utils.TryGetPatch(c.Hash, source.File.Hash, out var data), data, c))
+                .ToArray();
+
+            if (patches.All(p => p.Item1))
             {
-                e.PatchID = await _compiler.IncludeFile(data);
+                var (_, bytes, file) = patches.OrderBy(f => f.data!.Length).First();
+                e.FromHash = file.Hash;
+                e.ArchiveHashPath = file.MakeRelativePaths();
+                e.PatchID = await _compiler.IncludeFile(bytes!);
             }
-
+            else
+            {
+                e.Choices = found;
+            }
+            
             return e;
         }
 

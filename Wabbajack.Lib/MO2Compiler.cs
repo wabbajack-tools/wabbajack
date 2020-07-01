@@ -318,13 +318,14 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Verifying Files");
             zEditIntegration.VerifyMerges(this);
 
+            UpdateTracker.NextStep("Building Patches");
+            await BuildPatches();
+            
             UpdateTracker.NextStep("Gathering Archives");
             await GatherArchives();
             
             UpdateTracker.NextStep("Including Archive Metadata");
             await IncludeArchiveMetadata();
-            UpdateTracker.NextStep("Building Patches");
-            await BuildPatches();
 
             UpdateTracker.NextStep("Gathering Metadata");
             await GatherMetaData();
@@ -468,15 +469,21 @@ namespace Wabbajack.Lib
         {
             Info("Gathering patch files");
 
-            await InstallDirectives.OfType<PatchedFromArchive>()
-                .Where(p => p.PatchID == null)
-                .PMap(Queue, async p =>
-                {
-                    if (Utils.TryGetPatch(p.FromHash, p.Hash, out var bytes))
-                        p.PatchID = await IncludeFile(bytes);
-                });
+            var toBuild = InstallDirectives.OfType<PatchedFromArchive>()
+                .Where(p => p.Choices.Length > 0)
+                .SelectMany(p => p.Choices.Select(c => new PatchedFromArchive
+                    {
+                        To = p.To,
+                        Hash = p.Hash,
+                        ArchiveHashPath = c.MakeRelativePaths(),
+                        FromFile = c,
+                        Size = p.Size,
+                    }))
+                .ToArray();
 
-            var groups = InstallDirectives.OfType<PatchedFromArchive>()
+            if (toBuild.Length == 0) return;
+ 
+            var groups = toBuild
                 .Where(p => p.PatchID == default)
                 .GroupBy(p => p.ArchiveHashPath.BaseHash)
                 .ToList();
@@ -485,7 +492,26 @@ namespace Wabbajack.Lib
             var absolutePaths = AllFiles.ToDictionary(e => e.Path, e => e.AbsolutePath);
             await groups.PMap(Queue, group => BuildArchivePatches(group.Key, group, absolutePaths));
 
-            var firstFailedPatch = InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.PatchID == null);
+
+            await InstallDirectives.OfType<PatchedFromArchive>()
+                .Where(p => p.PatchID == default)
+                .PMap(Queue, async pfa =>
+                {
+                    var patches = pfa.Choices
+                        .Select(c => (Utils.TryGetPatch(c.Hash, pfa.Hash, out var data), data, c))
+                        .ToArray();
+
+                    if (patches.All(p => p.Item1))
+                    {
+                        var (_, bytes, file) = patches.OrderBy(f => f.data!.Length).First();
+                        pfa.FromFile = file;
+                        pfa.FromHash = file.Hash;
+                        pfa.ArchiveHashPath = file.MakeRelativePaths();
+                        pfa.PatchID = await IncludeFile(bytes!);
+                    }
+                });
+
+            var firstFailedPatch = InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.PatchID == default);
             if (firstFailedPatch != null)
                 Error($"Missing patches after generation, this should not happen. First failure: {firstFailedPatch.FullPath}");
         }
@@ -503,11 +529,9 @@ namespace Wabbajack.Lib
                 Status($"Patching {entry.To}");
                 var srcFile = byPath[string.Join("|", entry.ArchiveHashPath.Paths)];
                 await using var srcStream = await srcFile.OpenRead();
-                await using var outputStream = await IncludeFile(out var id).Create();
-                entry.PatchID = id;
                 await using var destStream = await LoadDataForTo(entry.To, absolutePaths);
-                await Utils.CreatePatchCached(srcStream, srcFile.Hash, destStream, entry.Hash, outputStream);
-                Info($"Patch size {outputStream.Length} for {entry.To}");
+                var patchSize = await Utils.CreatePatchCached(srcStream, srcFile.Hash, destStream, entry.Hash);
+                Info($"Patch size {patchSize} for {entry.To}");
             });
         }
 

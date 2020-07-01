@@ -49,15 +49,17 @@ namespace Wabbajack.Common
             await patch.CopyToAsync(output);
         }
 
-        public static async Task CreatePatchCached(Stream srcStream, Hash srcHash, FileStream destStream, Hash destHash,
-            Stream patchOutStream)
+        public static async Task<long> CreatePatchCached(Stream srcStream, Hash srcHash, FileStream destStream, Hash destHash,
+            Stream? patchOutStream = null)
         {
             var key = PatchKey(srcHash, destHash);
             var patch = _patchCache!.Get(key);
             if (patch != null)
             {
+                if (patchOutStream == null) return patch.Length;
+                
                 await patchOutStream.WriteAsync(patch);
-                return;
+                return patch.Length;
             }
             
             Status("Creating Patch");
@@ -66,8 +68,12 @@ namespace Wabbajack.Common
             OctoDiff.Create(srcStream, destStream, sigStream, patchStream);
             _patchCache.Put(key, patchStream.ToArray());
 
+            if (patchOutStream == null) return patchStream.Position;
+            
             patchStream.Position = 0;
             await patchStream.CopyToAsync(patchOutStream);
+
+            return patchStream.Position;
         }
 
         public static bool TryGetPatch(Hash foundHash, Hash fileHash, [MaybeNullWhen(false)] out byte[] ePatch)
@@ -84,6 +90,12 @@ namespace Wabbajack.Common
             ePatch = null;
             return false;
 
+        }
+
+        public static bool HavePatch(Hash foundHash, Hash fileHash)
+        {
+            var key = PatchKey(foundHash, fileHash);
+            return _patchCache!.Get(key) != null;
         }
 
         public static void ApplyPatch(Stream input, Func<Stream> openPatchStream, Stream output)
