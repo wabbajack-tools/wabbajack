@@ -43,7 +43,6 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task DontReenqueueDownloadedfiles()
         {
-            Game.Witcher3.MetaData().GameLocation();
             var hash = Hash.FromLong(Random.Next(int.MinValue, int.MaxValue));
             await ClearDownloaderQueue();
             var _sql = Fixture.GetService<SqlService>();
