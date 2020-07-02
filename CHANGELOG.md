@@ -1,10 +1,11 @@
 ### Changelog
 
-#### Version - 2.1.0.0 - ???
+#### Version - 2.1.0.0 - 7/2/2020
 * Game files are available as downloads automatically during compilation/installation
 * Game files are patched/copied/used in BSA creation automatically 
 * CleanedESM support removed from the compiler stack (still usable during installation for backwards compatibility)
 * VR games automatically pull from base games if they are required and are installed during compilation 
+* New `wabbajack-cli.exe` command `inlined-file-report` which will print statistics on the patches/included files in a `.wabbajack` file
 
 #### Version - 2.0.9.4 - 6/16/2020
 * Improve interactions between server and client code
