@@ -149,7 +149,7 @@ namespace Wabbajack.BuildServer.Test
         private readonly IDisposable _unsubErr;
         protected Wabbajack.Lib.Http.Client _authedClient;
         protected WorkQueue _queue;
-        private Random _random;
+        protected Random Random;
 
 
         public ABuildServerSystemTest(ITestOutputHelper output, SingletonAdaptor<BuildServerFixture> fixture) : base(output)
@@ -165,7 +165,7 @@ namespace Wabbajack.BuildServer.Test
             AuthorAPI.ApiKeyOverride = Fixture.APIKey;
             _queue = new WorkQueue();
             Queue = new WorkQueue();
-            _random = new Random();
+            Random = new Random();
 
             Consts.ModlistSummaryURL = MakeURL("lists/status.json");
             Consts.ServerWhitelistURL = MakeURL("ServerWhitelist.yaml");
@@ -184,8 +184,8 @@ namespace Wabbajack.BuildServer.Test
 
         protected byte[] RandomData(long? size = null)
         {
-            var arr = new byte[size ?? _random.Next(1024)];
-            _random.NextBytes(arr);
+            var arr = new byte[size ?? Random.Next(1024)];
+            Random.NextBytes(arr);
             return arr;
         }
 
