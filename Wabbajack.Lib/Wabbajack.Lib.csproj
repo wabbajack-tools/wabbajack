@@ -8,7 +8,7 @@
     </PropertyGroup>
     <ItemGroup>
       <PackageReference Include="CefSharp.Common">
-        <Version>83.3.120-pre</Version>
+        <Version>83.4.20</Version>
       </PackageReference>
       <PackageReference Include="CefSharp.OffScreen">
         <Version>83.3.120-pre</Version>
