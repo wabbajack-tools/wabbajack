@@ -1,4 +1,5 @@
 ﻿using System;
+using Markdig.Syntax.Inlines;
 using Wabbajack.CLI.Verbs;
 
 namespace Wabbajack.CLI
@@ -21,7 +22,8 @@ namespace Wabbajack.CLI
             typeof(FindSimilar),
             typeof(BSADump),
             typeof(MigrateGameFolderFiles),
-            typeof(HashFile)
+            typeof(HashFile),
+            typeof(InlinedFileReport)
         };
     }
 }

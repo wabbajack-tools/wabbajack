@@ -29,6 +29,7 @@ namespace Wabbajack.CLI
                     (BSADump opts) => opts.Execute(),
                     (MigrateGameFolderFiles opts) => opts.Execute(),
                     (HashFile opts) => opts.Execute(),
+                    (InlinedFileReport opts) => opts.Execute(),
                     errs => 1);
         }
     }
