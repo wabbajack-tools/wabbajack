@@ -30,7 +30,8 @@ namespace Wabbajack.Common
         Fallout4VR,
         //MO2 Non-BGS Games
         [Description("Darkest Dungeon")]
-        DarkestDungeon
+        DarkestDungeon,
+        Witcher3
     }
 
     public static class GameExtensions
@@ -433,7 +434,22 @@ namespace Wabbajack.Common
                     },
                     MainExecutable = "_windows\\Darkest.exe"
                 }
-            }
+            },
+            {	
+                Game.Witcher3, new GameMetaData	
+                {	
+                    Game = Game.Witcher3,	
+                    NexusName = "witcher3",	
+                    NexusGameId = 952,	
+                    SteamIDs = new List<int>{292030, 499450}, // normal and GotY	
+                    GOGIDs = new List<int>{1207664643, 1495134320, 1207664663, 1640424747}, // normal, GotY and both in packages	
+                    RequiredFiles = new List<string>	
+                    {	
+                        "bin\\x64\\witcher3.exe"	
+                    },
+                    MainExecutable = @"bin\x64\witcher3.exe"
+                }
+            }	
         };
 
     }

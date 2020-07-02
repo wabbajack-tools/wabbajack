@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Server.DataLayer;
@@ -37,6 +38,29 @@ namespace Wabbajack.BuildServer.Test
 
             var allStates = await service.GetAllArchiveDownloads();
             Assert.Contains(state.PrimaryKeyString, allStates.Select(s => s.PrimaryKeyString));
+        }
+
+        [Fact]
+        public async Task DontReenqueueDownloadedfiles()
+        {
+            var hash = Hash.FromLong(Random.Next(int.MinValue, int.MaxValue));
+            await ClearDownloaderQueue();
+            var _sql = Fixture.GetService<SqlService>();
+            var archive = new Archive(new HTTPDownloader.State("http://www.google.com")) {Size = 42, Hash = hash,};
+            await _sql.EnqueueDownload(archive);
+            
+            var download = await _sql.GetNextPendingDownload();
+            await download.Finish(_sql);
+            Assert.Null(await _sql.GetNextPendingDownload());
+            
+            var found = await _sql.GetArchiveDownload(archive.State.PrimaryKeyString, archive.Hash, archive.Size);
+            Assert.NotNull(found);
+
+            var next = await _sql.GetOrEnqueueArchive(archive);
+            Assert.Null(await _sql.GetNextPendingDownload());
+
+            await ClearDownloaderQueue();
+
         }
 
         private async Task ClearDownloaderQueue()
