@@ -52,6 +52,9 @@ namespace Wabbajack
 
         [Reactive]
         public bool IsBroken { get; private set; }
+        
+        [Reactive]
+        public bool IsDownloading { get; private set; }
 
         [Reactive]
         public string DownloadSizeText { get; private set; }
@@ -148,7 +151,7 @@ namespace Wabbajack
                 {
                     try
                     {
-                        return !(await metadata.NeedsDownload(Location));
+                        return !IsDownloading && !(await metadata.NeedsDownload(Location));
                     }
                     catch (Exception)
                     {
@@ -182,9 +185,14 @@ namespace Wabbajack
                 {
                     try
                     {
+                        IsDownloading = true;
                         Utils.Log($"Starting Download of {Metadata.Links.MachineURL}");
                         var downloader = DownloadDispatcher.ResolveArchive(Metadata.Links.Download);
-                        var result = await downloader.Download(new Archive(state: null!) { Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0 }, Location);
+                        var result = await downloader.Download(
+                            new Archive(state: null!)
+                            {
+                                Name = Metadata.Title, Size = Metadata.DownloadMetadata?.Size ?? 0
+                            }, Location);
                         Utils.Log($"Done downloading {Metadata.Links.MachineURL}");
 
                         // Want to rehash to current file, even if failed?
@@ -194,8 +202,12 @@ namespace Wabbajack
                     }
                     catch (Exception ex)
                     {
-                        Utils.Error(ex,$"Error Downloading of {Metadata.Links.MachineURL}");
+                        Utils.Error(ex, $"Error Downloading of {Metadata.Links.MachineURL}");
                         tcs.SetException(ex);
+                    }
+                    finally
+                    {
+                        IsDownloading = false;
                     }
                 });
 
