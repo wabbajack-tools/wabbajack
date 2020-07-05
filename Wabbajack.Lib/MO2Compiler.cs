@@ -204,20 +204,27 @@ namespace Wabbajack.Lib
             {
                 foreach (var ag in AvailableGames)
                 {
-                    var files = await ClientAPI.GetExistingGameFiles(Queue, ag);
-                    Utils.Log($"Including {files.Length} stock game files from {ag} as download sources");
-
-                    IndexedArchives.AddRange(files.Select(f =>
+                    try
                     {
-                        var meta = f.State.GetMetaIniString();
-                        var ini = meta.LoadIniString();
-                        var state = (GameFileSourceDownloader.State)f.State;
-                        return new IndexedArchive(
-                            VFS.Index.ByRootPath[ag.MetaData().GameLocation().Combine(state.GameFile)])
+                        var files = await ClientAPI.GetExistingGameFiles(Queue, ag);
+                        Utils.Log($"Including {files.Length} stock game files from {ag} as download sources");
+
+                        IndexedArchives.AddRange(files.Select(f =>
                         {
-                            IniData = ini, Meta = meta,
-                        };
-                    }));
+                            var meta = f.State.GetMetaIniString();
+                            var ini = meta.LoadIniString();
+                            var state = (GameFileSourceDownloader.State)f.State;
+                            return new IndexedArchive(
+                                VFS.Index.ByRootPath[ag.MetaData().GameLocation().Combine(state.GameFile)])
+                            {
+                                IniData = ini, Meta = meta,
+                            };
+                        }));
+                    }
+                    catch (Exception e)
+                    {
+                        Utils.Error(e, "Unable to find existing game files, skipping.");
+                    }
                 }
             }
 
