@@ -591,6 +591,7 @@ namespace Wabbajack.Lib
             {
                 new IgnoreGameFilesIfGameFolderFilesExist(this),
                 new IncludePropertyFiles(this),
+                //new IncludeSteamWorkshopItems(this),
                 new IgnoreSaveFiles(this),
                 new IgnoreStartsWith(this,"logs\\"),
                 new IgnoreStartsWith(this, "downloads\\"),
