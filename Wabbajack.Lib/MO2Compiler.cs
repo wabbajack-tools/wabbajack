@@ -638,6 +638,8 @@ namespace Wabbajack.Lib
                 new IgnoreEndsWith(this, "portable.txt"), 
                 new IgnoreEndsWith(this, ".bin"),
                 new IgnoreEndsWith(this, ".refcache"),
+                //Include custom categories  
+                new IncludeRegex(this, "categories.dat$"),
 
                 new IgnoreWabbajackInstallCruft(this),
 
