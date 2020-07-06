@@ -16,6 +16,7 @@ namespace Wabbajack.Lib.CompilationSteps
         private VirtualFile? _bsa;
         private Dictionary<RelativePath, IEnumerable<VirtualFile>> _indexedByName;
         private MO2Compiler _mo2Compiler;
+        private bool _isGenericGame;
 
         public IncludePatches(ACompiler compiler, VirtualFile? constructingFromBSA = null) : base(compiler)
         {
@@ -30,10 +31,18 @@ namespace Wabbajack.Lib.CompilationSteps
                                      .Where(f => f.IsNative)
                                      .GroupBy(f => f.FullPath.FileName)
                                      .ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>)f);
+
+            _isGenericGame = _mo2Compiler.CompilingGame.IsGenericMO2Plugin;
         }
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
+            if (_isGenericGame)
+            {
+                if (source.Path.StartsWith(Consts.GameFolderFilesDir))
+                    return null;
+            }
+
             var name = source.File.Name.FileName;
             RelativePath nameWithoutExt = name;
             if (name.Extension == Consts.MOHIDDEN)

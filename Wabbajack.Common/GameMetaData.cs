@@ -190,7 +190,7 @@ namespace Wabbajack.Common
         /// </summary>
         public static GameMetaData GetByFuzzyName(string someName)
         {
-            return TryGetByFuzzyName(someName) ?? throw new ArgumentNullException($"{someName} could not be translated to a game");
+            return TryGetByFuzzyName(someName) ?? throw new ArgumentNullException(nameof(someName), $"\"{someName}\" could not be translated to a game!");
         }
 
         /// <summary>

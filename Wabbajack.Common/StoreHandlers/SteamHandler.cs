@@ -23,7 +23,7 @@ namespace Wabbajack.Common.StoreHandlers
     {
         public readonly SteamGame Game;
         public int ItemID;
-        public int Size;
+        public long Size;
 
         public SteamWorkshopItem(SteamGame game)
         {
@@ -210,7 +210,7 @@ namespace Wabbajack.Common.StoreHandlers
                 .Where(f => f.IsFile)
                 .Do(f =>
             {
-                if (f.FileName.ToString() != $"appworkshop{game.ID}.acf")
+                if (f.FileName.ToString() != $"appworkshop_{game.ID}.acf")
                     return;
 
                 Utils.Log($"Found Steam Workshop item file {f} for \"{game.Name}\"");
@@ -284,7 +284,7 @@ namespace Wabbajack.Common.StoreHandlers
                         return;
 
                     if (currentLine == bracketStart + 1)
-                        if (!int.TryParse(GetVdfValue(l), out currentItem.Size))
+                        if (!long.TryParse(GetVdfValue(l), out currentItem.Size))
                             return;
 
                     if (bracketStart == 0 || bracketEnd == 0 || currentItem.ItemID == 0 || currentItem.Size == 0)
@@ -305,14 +305,15 @@ namespace Wabbajack.Common.StoreHandlers
         private static string GetVdfValue(string line)
         {
             var trim = line.Trim('\t').Replace("\t", "");
-            string[] s = trim.Split('\"');
-            return s[3].Replace("\\\\", "\\");
+            var split = trim.Split('\"');
+            return split.Length >= 4 ? split[3].Replace("\\\\", "\\") : string.Empty;
         }
 
         private static string GetSingleVdfValue(string line)
         {
             var trim = line.Trim('\t').Replace("\t", "");
-            return trim.Split('\"')[1];
+            var split = trim.Split('\"');
+            return split.Length >= 2 ? split[1] : string.Empty;
         }
     }
 }

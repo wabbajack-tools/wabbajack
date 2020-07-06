@@ -204,20 +204,27 @@ namespace Wabbajack.Lib
             {
                 foreach (var ag in AvailableGames)
                 {
-                    var files = await ClientAPI.GetExistingGameFiles(Queue, ag);
-                    Utils.Log($"Including {files.Length} stock game files from {ag} as download sources");
-
-                    IndexedArchives.AddRange(files.Select(f =>
+                    try
                     {
-                        var meta = f.State.GetMetaIniString();
-                        var ini = meta.LoadIniString();
-                        var state = (GameFileSourceDownloader.State)f.State;
-                        return new IndexedArchive(
-                            VFS.Index.ByRootPath[ag.MetaData().GameLocation().Combine(state.GameFile)])
+                        var files = await ClientAPI.GetExistingGameFiles(Queue, ag);
+                        Utils.Log($"Including {files.Length} stock game files from {ag} as download sources");
+
+                        IndexedArchives.AddRange(files.Select(f =>
                         {
-                            IniData = ini, Meta = meta,
-                        };
-                    }));
+                            var meta = f.State.GetMetaIniString();
+                            var ini = meta.LoadIniString();
+                            var state = (GameFileSourceDownloader.State)f.State;
+                            return new IndexedArchive(
+                                VFS.Index.ByRootPath[ag.MetaData().GameLocation().Combine(state.GameFile)])
+                            {
+                                IniData = ini, Meta = meta,
+                            };
+                        }));
+                    }
+                    catch (Exception e)
+                    {
+                        Utils.Error(e, "Unable to find existing game files, skipping.");
+                    }
                 }
             }
 
@@ -397,7 +404,15 @@ namespace Wabbajack.Lib
             {
                 var metaname = filename.WithExtension(Consts.MetaFileExtension);
                 if (!metaname.Exists) return true;
-                return await DownloadDispatcher.ResolveArchive(metaname.LoadIniFile()) == null;
+                try
+                {
+                    return await DownloadDispatcher.ResolveArchive(metaname.LoadIniFile()) == null;
+                }
+                catch (Exception e)
+                {
+                    Utils.ErrorThrow(e, $"Exception while checking meta {filename}");
+                    return false;
+                }
             }
 
             var to_find = (await MO2DownloadsFolder.EnumerateFiles()
@@ -576,7 +591,7 @@ namespace Wabbajack.Lib
             {
                 new IgnoreGameFilesIfGameFolderFilesExist(this),
                 new IncludePropertyFiles(this),
-                new IncludeGenericGamePlugin(this),
+                //new IncludeSteamWorkshopItems(this),
                 new IgnoreSaveFiles(this),
                 new IgnoreStartsWith(this,"logs\\"),
                 new IgnoreStartsWith(this, "downloads\\"),
@@ -623,6 +638,8 @@ namespace Wabbajack.Lib
                 new IgnoreEndsWith(this, "portable.txt"), 
                 new IgnoreEndsWith(this, ".bin"),
                 new IgnoreEndsWith(this, ".refcache"),
+                //Include custom categories  
+                new IncludeRegex(this, "categories.dat$"),
 
                 new IgnoreWabbajackInstallCruft(this),
 
