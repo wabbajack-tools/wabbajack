@@ -58,6 +58,7 @@ namespace Wabbajack.Lib.Downloaders
             if (general.modID != null && general.fileID != null && general.gameName != null)
             {
                 var game = GameRegistry.GetByFuzzyName((string)general.gameName).Game;
+
                 if (quickMode)
                 {
                     return new State

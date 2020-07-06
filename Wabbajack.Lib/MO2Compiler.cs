@@ -397,7 +397,15 @@ namespace Wabbajack.Lib
             {
                 var metaname = filename.WithExtension(Consts.MetaFileExtension);
                 if (!metaname.Exists) return true;
-                return await DownloadDispatcher.ResolveArchive(metaname.LoadIniFile()) == null;
+                try
+                {
+                    return await DownloadDispatcher.ResolveArchive(metaname.LoadIniFile()) == null;
+                }
+                catch (Exception e)
+                {
+                    Utils.ErrorThrow(e, $"Exception while checking meta {filename}");
+                    return false;
+                }
             }
 
             var to_find = (await MO2DownloadsFolder.EnumerateFiles()
