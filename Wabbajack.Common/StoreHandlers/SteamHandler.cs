@@ -305,14 +305,15 @@ namespace Wabbajack.Common.StoreHandlers
         private static string GetVdfValue(string line)
         {
             var trim = line.Trim('\t').Replace("\t", "");
-            string[] s = trim.Split('\"');
-            return s[3].Replace("\\\\", "\\");
+            var split = trim.Split('\"');
+            return split.Length >= 4 ? split[3].Replace("\\\\", "\\") : string.Empty;
         }
 
         private static string GetSingleVdfValue(string line)
         {
             var trim = line.Trim('\t').Replace("\t", "");
-            return trim.Split('\"')[1];
+            var split = trim.Split('\"');
+            return split.Length >= 2 ? split[1] : string.Empty;
         }
     }
 }
