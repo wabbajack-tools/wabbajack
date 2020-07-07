@@ -18,8 +18,7 @@ namespace Wabbajack.SelfExtractorAutomation
 
         public FlaUI.Core.Application Application { get; private set; }
         public AutomationBase Automation { get; private set; }
-        public Process ApplicationProcess { get; set; }
-
+        
         public Window Window { get; set; }
         
 
@@ -33,8 +32,7 @@ namespace Wabbajack.SelfExtractorAutomation
         public async Task Run()
         {
             Application = Application.Launch(_exe.ToString());
-            ApplicationProcess = Process.GetProcessById(Application.ProcessId);
-            ChildProcessTracker.AddProcess(ApplicationProcess);
+            ChildProcessTracker.AddProcess(Process.GetProcessById(Application.ProcessId));
             Automation = new UIA2Automation();
             Application.WaitWhileBusy();
            // await Task.Delay(1000);
@@ -52,7 +50,6 @@ namespace Wabbajack.SelfExtractorAutomation
             }
         }
 
-
         public void SetMainWindow()
         {
             while (Window == null)
@@ -66,7 +63,6 @@ namespace Wabbajack.SelfExtractorAutomation
                 while (Window == null)
                 {
 
-                    if (ApplicationProcess.HasExited) return;
                     Window = Application.GetAllTopLevelWindows(Automation).FirstOrDefault(w => w.IsAvailable);
 
                     Application.WaitWhileBusy();
