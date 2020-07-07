@@ -9,6 +9,7 @@ using Wabbajack.Lib;
 using Wabbajack.Lib.CompilationSteps.CompilationErrors;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
@@ -63,7 +64,7 @@ namespace Wabbajack.Test
         [Fact]
         public async Task TestDirectMatchFromGameFolder()
         {
-
+            // This code is disabled, but we'll still test for it in case it somehow gets re-enabled in the future
             var profile = utils.AddProfile();
             var mod = await utils.AddMod();
             var testPex = await utils.AddGameFile(@"enbstuff\test.pex", 10);
@@ -75,7 +76,8 @@ namespace Wabbajack.Test
 
             await CompileAndInstall(profile, useGameFiles: true);
 
-            await utils.VerifyInstalledGameFile(@"enbstuff\test.pex");
+            // This should fail
+            await Assert.ThrowsAsync<TrueException>(async () => await utils.VerifyInstalledGameFile(@"enbstuff\test.pex"));
         }
         
         [Fact]
@@ -532,6 +534,8 @@ namespace Wabbajack.Test
             await utils.VerifyInstalledFile(mod, @"Data\MW\Bm.esm");
             await utils.VerifyInstalledFile(mod, @"Data\SkyrimSE\Update.esm.old");
             await utils.VerifyInstalledFile(mod, @"Data\SkyrimSE\Update.esm");
+            
+            Assert.False(utils.InstallFolder.Combine(Consts.GameFolderFilesDir).IsDirectory);
             
         }
         

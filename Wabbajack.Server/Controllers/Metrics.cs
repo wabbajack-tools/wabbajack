@@ -54,27 +54,30 @@ namespace Wabbajack.BuildServer.Controllers
         }
 
         [HttpGet]
-        [Route("badge/{name}/badge.json")]
-        public async Task<IActionResult> MetricsGitHubBadge(string name)
+        [Route("badge/{name}/total_installs_badge.json")]
+        public async Task<IActionResult> TotalInstallsBadge(string name)
         {
-            var results = (await _sql.MetricsReport("finish_install"))
-                .GroupBy(m => m.Subject)
-                .Select(g => new MetricResult
-                {
-                    SeriesName = g.Key,
-                    Labels = g.Select(m => m.Date.ToString(CultureInfo.InvariantCulture)).ToList(),
-                    Values = g.Select(m => m.Count).ToList()
-                }).ToList();
+            var results = await _sql.TotalInstalls(name);
+
+            Response.ContentType = "application/json";
+           
+            return Ok(results == 0 
+                ? new Badge($"Modlist {name} not found!", "Error") {color = "red"} 
+                : new Badge("Installations: ", $"{results}") {color = "green"});
+        }
+
+        [HttpGet]
+        [Route("badge/{name}/unique_installs_badge.json")]
+        public async Task<IActionResult> UniqueInstallsBadge(string name)
+        {
+            var results = await _sql.UniqueInstalls(name);
 
             Response.ContentType = "application/json";
 
-            var modlist =
-                results.FirstOrDefault(x => x.SeriesName.Equals(name, StringComparison.InvariantCultureIgnoreCase));
-            
-            return Ok(modlist == null 
-                ? new Badge($"Modlist {name} not found!", "Error") {color = "red"}.ToJson() 
-                : new Badge("Installations: ", $"{modlist.Values.Aggregate((x, y) => x + y)}").ToJson());
-        }
+            return Ok(results == 0
+                ? new Badge($"Modlist {name} not found!", "Error") {color = "red"}
+                : new Badge("Installations: ", $"{results}"){color = "green"}) ;
+    }
 
         private static readonly Func<object, string> ReportTemplate = NettleEngine.GetCompiler().Compile(@"
             <html><body>

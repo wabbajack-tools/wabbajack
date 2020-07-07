@@ -104,9 +104,6 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             
-            if (VFSCacheName.Exists) 
-                await VFS.IntegrateFromFile(VFSCacheName);
-
             List<AbsolutePath> roots;
             if (UseGamePaths)
             {
@@ -138,7 +135,6 @@ namespace Wabbajack.Lib
 
             if (cancel.IsCancellationRequested) return false;
             await VFS.AddRoots(roots);
-            await VFS.WriteToFile(VFSCacheName);
             
             if (lootPath.Exists)
             {
@@ -183,8 +179,7 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Reindexing downloads after meta inferring");
             await VFS.AddRoot(MO2DownloadsFolder);
-            await VFS.WriteToFile(VFSCacheName);
-
+            
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Pre-validating Archives");
             
@@ -246,27 +241,12 @@ namespace Wabbajack.Lib
                 });
 
             // If Game Folder Files exists, ignore the game folder
-            IEnumerable<RawSourceFile> gameFiles;
-            if (!MO2Folder.Combine(Consts.GameFolderFilesDir).Exists)
-            {
-                gameFiles = GamePath.EnumerateFiles()
-                    .Where(p => p.IsFile)
-                    .Where(p => p.Extension!= Consts.HashFileExtension)
-                    .Select(p => new RawSourceFile(VFS.Index.ByRootPath[p],
-                        Consts.GameFolderFilesDir.Combine(p.RelativeTo(GamePath))));
-            }
-            else
-            {
-                gameFiles = new List<RawSourceFile>();
-            }
-
-
             IndexedFiles = IndexedArchives.SelectMany(f => f.File.ThisAndAllChildren)
                 .OrderBy(f => f.NestingFactor)
                 .GroupBy(f => f.Hash)
                 .ToDictionary(f => f.Key, f => f.AsEnumerable());
 
-            AllFiles.SetTo(mo2Files.Concat(gameFiles)
+            AllFiles.SetTo(mo2Files
                 .Concat(lootFiles)
                 .DistinctBy(f => f.Path));
 

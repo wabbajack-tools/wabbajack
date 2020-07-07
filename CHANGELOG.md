@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 2.1.0.2 - 7/7/2020
+* Don't scan the game folder during compilation. If you are compiling and want `Game Folder Files` create it in your MO2 folder and manually place files into it
+* Don't throw a hard error on a post-patch hash failure.
+* Don't save the VFS cache to disk or load it during compilation. We have other caches that make this mostly worthless
+
 #### Version - 2.1.0.1 - 7/6/2020
 * Don't include saves in .wabbajack files
 * Don't delete saves from any MO2 profile during installation
