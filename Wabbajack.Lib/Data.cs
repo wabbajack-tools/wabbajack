@@ -39,7 +39,7 @@ namespace Wabbajack.Lib
         {
             var v = new T();
             v.To = Path;
-            v.Hash = Hash;
+            v.Hash = File.Hash;
             v.Size = File.Size;
             return v;
         }

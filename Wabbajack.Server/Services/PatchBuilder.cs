@@ -128,14 +128,14 @@ namespace Wabbajack.Server.Services
             foreach (var patch in patches)
             {
                 _logger.LogInformation($"Cleaning patch {patch.Src.Archive.Hash} -> {patch.Dest.Archive.Hash}");
-                /*
+                
                 await _discordWebHook.Send(Channel.Ham,
                     new DiscordMessage
                     {
                         Content =
                             $"Removing patch from {patch.Src.Archive.State.PrimaryKeyString} to {patch.Dest.Archive.State.PrimaryKeyString} due it no longer being required by curated lists"
                     });
-*/
+
                 if (!await DeleteFromCDN(client, PatchName(patch)))
                 {
                     _logger.LogWarning($"Patch file didn't exist {PatchName(patch)}");

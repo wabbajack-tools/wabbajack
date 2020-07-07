@@ -72,5 +72,27 @@ namespace Wabbajack.Server.DataLayer
             return (await conn.QueryAsync<string>("SELECT TOP(1) MetricsKey from Metrics Where MetricsKey = @MetricsKey",
                 new {MetricsKey = metricsKey})).FirstOrDefault() != null;
         }
+
+
+        public async Task<long> UniqueInstalls(string machineUrl)
+        {
+            await using var conn = await Open();
+            return await conn.QueryFirstAsync<long>(
+                @"SELECT COUNT(*) FROM (
+                        SELECT DISTINCT MetricsKey from dbo.Metrics where Action = 'finish_install' and GroupingSubject in (
+                        SELECT JSON_VALUE(Metadata, '$.title') FROM dbo.ModLists
+                        WHERE JSON_VALUE(Metadata, '$.links.machineURL') = @MachineURL)) s",
+                new {MachineURL = machineUrl});
+        }
+        
+        public async Task<long> TotalInstalls(string machineUrl)
+        {
+            await using var conn = await Open();
+            return await conn.QueryFirstAsync<long>(
+                @"SELECT COUNT(*) from dbo.Metrics where Action = 'finish_install' and GroupingSubject in (
+                        SELECT JSON_VALUE(Metadata, '$.title') FROM dbo.ModLists
+                        WHERE JSON_VALUE(Metadata, '$.links.machineURL') = @MachineURL)",
+                new {MachineURL = machineUrl});
+        }
     }
 }
