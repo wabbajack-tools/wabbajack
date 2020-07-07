@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 2.1.0.1 - 7/6/2020
+* Don't include saves in .wabbajack files
+* Don't delete saves from any MO2 profile during installation
+* Don't try to hash .wabbajack files *in the middle of downloading them*
+* Print the PrimaryKeyString in logs when an archive is missing (in case the archive name is blank)
+
 #### Version - 2.1.0.0 - 7/2/2020
 * Game files are available as downloads automatically during compilation/installation
 * Game files are patched/copied/used in BSA creation automatically 

@@ -122,7 +122,7 @@ namespace Wabbajack.Lib
             if (missing.Count > 0)
             {
                 foreach (var a in missing)
-                    Info($"Unable to download {a.Name}");
+                    Info($"Unable to download {a.Name} ({a.State.PrimaryKeyString})");
                 if (IgnoreMissingFiles)
                     Info("Missing some archives, but continuing anyways at the request of the user");
                 else
