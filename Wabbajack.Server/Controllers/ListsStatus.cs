@@ -9,6 +9,7 @@ using Nettle;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.ModListRegistry;
+using Wabbajack.Server;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
 using Wabbajack.Server.Services;
@@ -137,21 +138,6 @@ namespace Wabbajack.BuildServer.Controllers
             return _validator.Summaries
                 .Select(d => d.Detailed)
                 .FirstOrDefault(d => d.MachineName == Name);
-        }
-
-        [JsonName("Badge")]
-        public class Badge
-        {
-            public int schemaVersion { get; set; } = 1;
-            public string label { get; set; }
-            public string message { get; set; }
-            public string color { get; set; }
-
-            public Badge(string _label, string _message)
-            {
-                label = _label;
-                message = _message;
-            }
         }
 
         [HttpGet]
