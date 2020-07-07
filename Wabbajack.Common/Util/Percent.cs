@@ -213,5 +213,10 @@ namespace Wabbajack.Common
             p = default(Percent);
             return false;
         }
+
+        public static Percent FactoryPutInRange(in double min, in double max, in double value)
+        {
+            return FactoryPutInRange((value - min) / (max - min));
+        }
     }
 }

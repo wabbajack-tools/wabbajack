@@ -30,7 +30,7 @@ namespace Wabbajack.Common
         {
         }
 
-        public async Task<int> Start()
+        public async Task<int> Start(Action<Process>? callback = null)
         {
             var args = Arguments.Select(arg =>
             {
@@ -79,11 +79,14 @@ namespace Wabbajack.Common
                     Utils.Log($"{Path.FileName} ({p.Id}) StdErr: {data.Data}");
             };
             p.ErrorDataReceived += ErrorEventHandler;
+            
 
             p.Start();
             p.BeginErrorReadLine();
             p.BeginOutputReadLine();
             ChildProcessTracker.AddProcess(p);
+
+            callback?.Invoke(p);
 
             try
             {

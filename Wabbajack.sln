@@ -44,6 +44,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Server", "Wabbaja
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wabbajack.Server.Test", "Wabbajack.Server.Test\Wabbajack.Server.Test.csproj", "{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.SelfExtractorAutomation", "Wabbajack.SelfExtractorAutomation\Wabbajack.SelfExtractorAutomation.csproj", "{728AE05C-056C-465E-9F19-D7F42C77BA28}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wabbajack.SelfExtractorAutomation.Test", "Wabbajack.SelfExtractorAutomation.Test\Wabbajack.SelfExtractorAutomation.Test.csproj", "{55396233-410E-4B20-BEF2-74836D7EEA38}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -165,6 +169,22 @@ Global
 		{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}.Release|x64.ActiveCfg = Release|Any CPU
 		{9DEC8DC8-B6E0-469B-9571-C4BAC0776D07}.Release|x64.Build.0 = Release|Any CPU
+		{728AE05C-056C-465E-9F19-D7F42C77BA28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{728AE05C-056C-465E-9F19-D7F42C77BA28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{728AE05C-056C-465E-9F19-D7F42C77BA28}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{728AE05C-056C-465E-9F19-D7F42C77BA28}.Debug|x64.Build.0 = Debug|Any CPU
+		{728AE05C-056C-465E-9F19-D7F42C77BA28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{728AE05C-056C-465E-9F19-D7F42C77BA28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{728AE05C-056C-465E-9F19-D7F42C77BA28}.Release|x64.ActiveCfg = Release|Any CPU
+		{728AE05C-056C-465E-9F19-D7F42C77BA28}.Release|x64.Build.0 = Release|Any CPU
+		{55396233-410E-4B20-BEF2-74836D7EEA38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55396233-410E-4B20-BEF2-74836D7EEA38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55396233-410E-4B20-BEF2-74836D7EEA38}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{55396233-410E-4B20-BEF2-74836D7EEA38}.Debug|x64.Build.0 = Debug|Any CPU
+		{55396233-410E-4B20-BEF2-74836D7EEA38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55396233-410E-4B20-BEF2-74836D7EEA38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55396233-410E-4B20-BEF2-74836D7EEA38}.Release|x64.ActiveCfg = Release|Any CPU
+		{55396233-410E-4B20-BEF2-74836D7EEA38}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
