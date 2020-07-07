@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Nettle;
 using Wabbajack.Common;
+using Wabbajack.Server;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
 using WebSocketSharp;
@@ -50,6 +51,29 @@ namespace Wabbajack.BuildServer.Controllers
                     Values = g.Select(m => m.Count).ToList()
                 });
             return Ok(results.ToList());
+        }
+
+        [HttpGet]
+        [Route("badge/{name}/badge.json")]
+        public async Task<IActionResult> MetricsGitHubBadge(string name)
+        {
+            var results = (await _sql.MetricsReport("finish_install"))
+                .GroupBy(m => m.Subject)
+                .Select(g => new MetricResult
+                {
+                    SeriesName = g.Key,
+                    Labels = g.Select(m => m.Date.ToString(CultureInfo.InvariantCulture)).ToList(),
+                    Values = g.Select(m => m.Count).ToList()
+                }).ToList();
+
+            Response.ContentType = "application/json";
+
+            var modlist =
+                results.FirstOrDefault(x => x.SeriesName.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+            
+            return Ok(modlist == null 
+                ? new Badge($"Modlist {name} not found!", "Error") {color = "red"}.ToJson() 
+                : new Badge("Installations: ", $"{modlist.Values.Aggregate((x, y) => x + y)}").ToJson());
         }
 
         private static readonly Func<object, string> ReportTemplate = NettleEngine.GetCompiler().Compile(@"
