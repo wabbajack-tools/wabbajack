@@ -36,10 +36,10 @@ namespace Wabbajack.Server
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSwaggerGen(c =>
+            /*services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "Wabbajack Build API", Version = "v1"});
-            });
+            });*/
             
             services.AddAuthentication(options =>
                 {
@@ -99,12 +99,14 @@ namespace Wabbajack.Server
             provider.Mappings[".wabbajack"] = "application/zip";
             app.UseStaticFiles();
 
+            /*
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Wabbajack Build API");
                 c.RoutePrefix = string.Empty;
-            });
+            }); */
+            
             app.UseRouting();
 
             app.UseAuthentication();

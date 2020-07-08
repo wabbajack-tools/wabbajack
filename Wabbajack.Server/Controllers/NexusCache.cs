@@ -112,5 +112,15 @@ namespace Wabbajack.BuildServer.Controllers
             Response.Headers.Add("x-cache-result", method);
             return result;
         }
+
+        [HttpGet]
+        [Authorize(Roles ="Author")]
+        [Route("/purge_nexus_cache/{ModId}")]
+        public async Task<IActionResult> PurgeNexusCache(long ModId)
+        {
+            _logger.LogInformation($"Purging nexus cache for {ModId}");
+            await _sql.PurgeNexusCache(ModId);
+            return Ok("Purged");
+        }
     }
 }

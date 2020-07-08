@@ -23,7 +23,9 @@ namespace Wabbajack.CLI
             typeof(BSADump),
             typeof(MigrateGameFolderFiles),
             typeof(HashFile),
-            typeof(InlinedFileReport)
+            typeof(InlinedFileReport),
+            typeof(ExtractBSA),
+            typeof(PurgeNexusCache)
         };
     }
 }

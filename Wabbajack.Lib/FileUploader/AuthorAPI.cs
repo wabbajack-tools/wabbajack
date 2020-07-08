@@ -69,5 +69,10 @@ namespace Wabbajack.Lib.FileUploader
                 .DeleteStringAsync($"{Consts.WabbajackBuildServerUri}uploaded_files/{name}");
             return result;
         }
+
+        public static async Task<string> PurgeNexusModInfo(long modId)
+        {
+            return await (await GetAuthorizedClient()).GetStringAsync($"{Consts.WabbajackBuildServerUri}purge_nexus_cache/{modId}");
+        }
     }
 }

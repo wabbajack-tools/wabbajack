@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.FileUploader;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
@@ -57,6 +58,30 @@ namespace Wabbajack.BuildServer.Test
 
             Assert.Single(modInfoResponse.files);
             Assert.Equal("blerg", modInfoResponse.files.First().file_name);
+        }
+        
+        [Fact]
+        public async Task TestCanPurgeModInfo()
+        {
+            var sqlService = Fixture.GetService<SqlService>();
+            var modId = long.MaxValue >> 3;
+            await sqlService.AddNexusModFiles(Game.SkyrimSpecialEdition, modId,  DateTime.Now, 
+                new NexusApiClient.GetModFilesResponse {files = new List<NexusFileInfo>
+                {
+                    new NexusFileInfo
+                    {
+                        file_name = "blerg"
+                    }
+                }});
+           
+            var api = await NexusApiClient.Get();
+           
+            var modInfoResponse = await api.GetModFiles(Game.SkyrimSpecialEdition, modId);
+
+            Assert.Single(modInfoResponse.files);
+            Assert.Equal("blerg", modInfoResponse.files.First().file_name);
+
+            await AuthorAPI.PurgeNexusModInfo(modId);
         }
 
         [Fact]

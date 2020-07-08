@@ -133,7 +133,7 @@ namespace Wabbajack.Server.Services
                     new DiscordMessage
                     {
                         Content =
-                            $"Removing patch from {patch.Src.Archive.State.PrimaryKeyString} to {patch.Dest.Archive.State.PrimaryKeyString} due it no longer being required by curated lists"
+                            $"Removing {patch.PatchSize.FileSizeToString()} patch from {patch.Src.Archive.State.PrimaryKeyString} to {patch.Dest.Archive.State.PrimaryKeyString} due it no longer being required by curated lists"
                     });
 
                 if (!await DeleteFromCDN(client, PatchName(patch)))
