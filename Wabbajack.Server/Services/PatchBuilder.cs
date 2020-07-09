@@ -129,7 +129,7 @@ namespace Wabbajack.Server.Services
             {
                 _logger.LogInformation($"Cleaning patch {patch.Src.Archive.Hash} -> {patch.Dest.Archive.Hash}");
                 
-                await _discordWebHook.Send(Channel.Ham,
+                await _discordWebHook.Send(Channel.Spam,
                     new DiscordMessage
                     {
                         Content =

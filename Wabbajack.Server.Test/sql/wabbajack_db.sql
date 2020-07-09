@@ -415,21 +415,32 @@ CREATE TABLE [dbo].[Metrics](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
 CREATE TABLE [dbo].[AccessLog](
-                                [Id] [bigint] IDENTITY(1,1) NOT NULL,
-                                [Timestamp] [datetime] NOT NULL,
-                                [Action] [nvarchar](max) NOT NULL,
-                                [Ip] [nvarchar](36) NOT NULL,
-                                CONSTRAINT [PK_AccessLog] PRIMARY KEY CLUSTERED
-                                    (
-                                     [Id] ASC
-                                        )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+                                  [Id] [bigint] IDENTITY(1,1) NOT NULL,
+                                  [Timestamp] [datetime] NOT NULL,
+                                  [Action] [nvarchar](max) NOT NULL,
+                                  [Ip] [nvarchar](50) NOT NULL,
+                                  [MetricsKey]  AS (json_value([Action],'$.Headers."x-metrics-key"[0]')),
+                                  CONSTRAINT [PK_AccessLog] PRIMARY KEY CLUSTERED
+                                      (
+                                       [Id] ASC
+                                          )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
+CREATE NONCLUSTERED INDEX [AccessLogByMetricsKey] ON [dbo].[AccessLog]
+    (
+     [MetricsKey] ASC
+        )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+
+/****** Object:  Index [AccessLogByIP]    Script Date: 7/8/2020 10:14:01 PM ******/
+CREATE NONCLUSTERED INDEX [AccessLogByIP] ON [dbo].[AccessLog]
+    (
+     [Ip] ASC
+        )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+
+
 
 /****** Object:  Table [dbo].[AuthoredFiles]    Script Date: 5/9/2020 2:22:00 PM ******/
 CREATE TABLE [dbo].[AuthoredFiles](
