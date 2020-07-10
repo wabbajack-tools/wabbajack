@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentFTP;
@@ -145,8 +146,26 @@ namespace Wabbajack.Server.Services
                 
                 var pendingPatch = await _sql.GetPendingPatch();
                 if (pendingPatch != default) break;
-
             }
+
+            var files = await client.GetListingAsync($"{Consts.ArchiveUpdatesCDNFolder}\\");
+            _logger.LogInformation($"Found {files.Length} on the CDN");
+
+            var sqlFiles = await _sql.AllPatchHashes();
+            _logger.LogInformation($"Found {sqlFiles.Count} in SQL");
+
+            var hashPairs = files.Select(f => f.Name).Where(f => f.Contains("_")).Select(p =>
+            {
+                var lst = p.Split("_", StringSplitOptions.RemoveEmptyEntries).Select(Hash.FromHex).ToArray();
+                return (lst[0], lst[1]);
+            }).ToHashSet();
+            
+            foreach (var sqlFile in sqlFiles.Where(s => !hashPairs.Contains(s)))
+            {
+                _logger.LogInformation($"Removing SQL File entry for {sqlFile.Item1} -> {sqlFile.Item2} it's not on the CDN");
+                await _sql.DeletePatchesForHashPair(sqlFile);
+            }
+
         }
 
         private async Task UploadToCDN(AbsolutePath patchFile, string patchName)

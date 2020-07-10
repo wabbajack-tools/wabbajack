@@ -200,5 +200,30 @@ namespace Wabbajack.Server.DataLayer
                 });
 
         }
+
+        public async Task<HashSet<(Hash, Hash)>> AllPatchHashes()
+        {
+            await using var conn = await Open();
+            return (await conn.QueryAsync<(Hash, Hash)>(@"SELECT a1.Hash, a2.Hash
+                      FROM dbo.Patches p
+                      LEFT JOIN dbo.ArchiveDownloads a1 ON a1.Id = p.SrcId
+                      LEFT JOIN dbo.ArchiveDownloads a2 on a2.Id = p.DestId")).ToHashSet();
+        }
+
+        public async Task DeletePatchesForHashPair((Hash, Hash) sqlFile)
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync(@"DELETE p
+                      FROM dbo.Patches p
+                      LEFT JOIN dbo.ArchiveDownloads a1 ON a1.Id = p.SrcId
+                      LEFT JOIN dbo.ArchiveDownloads a2 on a2.Id = p.DestId
+                      WHERE a1.Hash = @SrcHash
+                      AND a2.Hash = @DestHash", new
+            {
+                SrcHash = sqlFile.Item1,
+                DestHash = sqlFile.Item2
+            });
+            
+        }
     }
 }
