@@ -29,7 +29,7 @@ namespace Wabbajack.Lib.CompilationSteps
             _indexedByName = _indexed.Values
                                      .SelectMany(s => s)
                                      .Where(f => f.IsNative)
-                                     .GroupBy(f => f.FullPath.FileName)
+                                     .GroupBy(f => f.Name.FileName)
                                      .ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>)f);
 
             _isGenericGame = _mo2Compiler.CompilingGame.IsGenericMO2Plugin;
@@ -87,7 +87,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 {
                     var dist = new Levenshtein();
                     found = arch.SelectMany(a => a.ThisAndAllChildren)
-                        .OrderBy(a => dist.Distance(a.FullPath.FileName.ToString(), source.File.FullPath.FileName.ToString()))
+                        .OrderBy(a => dist.Distance(a.Name.FileName.ToString(), source.File.Name.FileName.ToString()))
                         .Take(3)
                         .ToArray();
                 }

@@ -71,7 +71,7 @@ namespace Wabbajack.VirtualFileSystem
                                         return found;
                                 }
 
-                                return await VirtualFile.Analyze(this, null, new ExtractedDiskFile(f), f, 0);
+                                return await VirtualFile.Analyze(this, null, new RootDiskFile(f), f, 0);
                             });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
@@ -103,7 +103,7 @@ namespace Wabbajack.VirtualFileSystem
                             return found;
                     }
 
-                    return await VirtualFile.Analyze(this, null, new ExtractedDiskFile(f), f, 0);
+                    return await VirtualFile.Analyze(this, null, new RootDiskFile(f), f, 0);
                 });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
