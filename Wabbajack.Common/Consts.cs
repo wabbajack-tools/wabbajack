@@ -102,6 +102,7 @@ namespace Wabbajack.Common
         public const string ModListExtensionString = ".wabbajack";
         public static Extension ModListExtension = new Extension(ModListExtensionString);
         public static AbsolutePath LocalAppDataPath => new AbsolutePath(Path.Combine(KnownFolders.LocalAppData.Path, "Wabbajack"));
+        public static AbsolutePath FaviconCacheFolderPath => LocalAppDataPath.Combine("favicons");
         public static string MetricsKeyHeader => "x-metrics-key";
 
         public static string WabbajackCacheLocation = "http://build.wabbajack.org/nexus_api_cache/";
