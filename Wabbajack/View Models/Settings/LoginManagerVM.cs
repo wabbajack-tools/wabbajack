@@ -15,6 +15,7 @@ using System.Windows.Threading;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 
@@ -84,22 +85,50 @@ namespace Wabbajack
             {
                 if (Login.IconUri == null) return;
 
-                using var img = await new Wabbajack.Lib.Http.Client().GetAsync(Login.IconUri, errorsAsExceptions:false);
-                if (!img.IsSuccessStatusCode) return;
+                if(!Consts.FaviconCacheFolderPath.Exists)
+                    Consts.FaviconCacheFolderPath.CreateDirectory();
 
-                var icoData = new MemoryStream(await img.Content.ReadAsByteArrayAsync());
-                
-                var data = new Icon(icoData);
-                var ms = new MemoryStream(); 
-                data.ToBitmap().Save(ms, ImageFormat.Png);
-                ms.Position = 0;
-                
-                var source = new BitmapImage();
-                source.BeginInit();
-                source.StreamSource = ms;
-                source.EndInit();
-                source.Freeze();
-                Favicon = source;
+                var faviconIcon = Consts.FaviconCacheFolderPath.Combine($"{Login.SiteName}.ico");
+                if (faviconIcon.Exists)
+                {
+                    await using var fs = await faviconIcon.OpenRead();
+
+                    var ms = new MemoryStream((int)fs.Length);
+                    await fs.CopyToAsync(ms);
+                    ms.Position = 0;
+
+                    var source = new BitmapImage();
+                    source.BeginInit();
+                    source.StreamSource = ms;
+                    source.EndInit();
+                    source.Freeze();
+                    Favicon = source;
+                }
+                else
+                {
+                    using var img = await new Lib.Http.Client().GetAsync(Login.IconUri, errorsAsExceptions: false);
+                    if (!img.IsSuccessStatusCode) return;
+
+                    var icoData = new MemoryStream(await img.Content.ReadAsByteArrayAsync());
+
+                    var data = new Icon(icoData);
+                    var ms = new MemoryStream();
+                    data.ToBitmap().Save(ms, ImageFormat.Png);
+                    ms.Position = 0;
+
+                    await using (var fs = await faviconIcon.Create())
+                    {
+                        await ms.CopyToAsync(fs);
+                        ms.Position = 0;
+                    }
+
+                    var source = new BitmapImage();
+                    source.BeginInit();
+                    source.StreamSource = ms;
+                    source.EndInit();
+                    source.Freeze();
+                    Favicon = source;
+                }
             });
         }
     }
