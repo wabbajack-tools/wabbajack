@@ -91,6 +91,18 @@ namespace Wabbajack
                 var faviconIcon = Consts.FaviconCacheFolderPath.Combine($"{Login.SiteName}.ico");
                 if (faviconIcon.Exists)
                 {
+                    var fsi = new FileInfo(faviconIcon.ToString());
+                    var creationDate = fsi.CreationTimeUtc;
+                    var now = DateTime.UtcNow;
+
+                    //delete favicons older than 10 days
+
+                    if ((now - creationDate).TotalDays > 10)
+                        await faviconIcon.DeleteAsync();
+                }
+
+                if (faviconIcon.Exists)
+                {
                     await using var fs = await faviconIcon.OpenRead();
 
                     var ms = new MemoryStream((int)fs.Length);
