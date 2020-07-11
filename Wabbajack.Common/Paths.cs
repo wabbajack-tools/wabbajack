@@ -188,7 +188,9 @@ namespace Wabbajack.Common
                 await DeleteAsync();
                 return;
             }
-            File.Move(_path, otherPath._path, overwrite ? MoveOptions.ReplaceExisting : MoveOptions.None);
+
+            var path = _path;
+            await CircuitBreaker.WithAutoRetryAsync<IOException>(async () => File.Move(path, otherPath._path, overwrite ? MoveOptions.ReplaceExisting : MoveOptions.None));
         }
 
         public RelativePath RelativeTo(AbsolutePath p)

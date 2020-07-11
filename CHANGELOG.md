@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 2.1.1.0 - 7/10/2020
+* New CLI option for clearing nexus cache entries (authors only)
+* Retry failed Move commands
+* Don't re-hash files during compilation
+* Can extract BSAs via wabbajack-cli.exe
+
 #### Version - 2.1.0.2 - 7/7/2020
 * Don't scan the game folder during compilation. If you are compiling and want `Game Folder Files` create it in your MO2 folder and manually place files into it
 * Don't throw a hard error on a post-patch hash failure.
