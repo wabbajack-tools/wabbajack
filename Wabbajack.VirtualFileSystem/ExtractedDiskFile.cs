@@ -8,7 +8,7 @@ namespace Wabbajack.VirtualFileSystem
 {
     public class ExtractedDiskFile : IExtractedFile
     {
-        private AbsolutePath _path;
+        protected AbsolutePath _path;
 
         public ExtractedDiskFile(AbsolutePath path)
         {
@@ -17,7 +17,7 @@ namespace Wabbajack.VirtualFileSystem
             _path = path;
         }
 
-        public async Task<Hash> HashAsync()
+        public virtual async Task<Hash> HashAsync()
         {
             return await _path.FileHashAsync();
         }

@@ -19,7 +19,7 @@ namespace Wabbajack.VirtualFileSystem
         static VirtualFile()
         {
             var options = new DbOptions().SetCreateIfMissing(true);
-            _vfsCache = RocksDb.Open(options, (string)Consts.LocalAppDataPath.Combine("GlobalVFSCache.rocksDb"));
+            _vfsCache = RocksDb.Open(options, (string)Consts.LocalAppDataPath.Combine("GlobalVFSCache2.rocksDb"));
         }
         
         private AbsolutePath _stagedPath;
@@ -170,8 +170,10 @@ namespace Wabbajack.VirtualFileSystem
                 return false;
             }
 
-            var data = new MemoryStream(result).FromJson<IndexedVirtualFile>();
+            var data = IndexedVirtualFile.Read(new MemoryStream(result));
             found = ConvertFromIndexedFile(context, data, path, parent, extractedFile);
+            found.Name = path;
+            found.Hash = hash;
             return true;
 
         }
@@ -195,7 +197,8 @@ namespace Wabbajack.VirtualFileSystem
 
             if (!context.UseExtendedHashes && FileExtractor.MightBeArchive(relPath.FileName.Extension))
             {
-                var result = await TryGetContentsFromServer(hash);
+                // Disabled because it isn't enabled on the server
+                IndexedVirtualFile result = null; //await TryGetContentsFromServer(hash);
 
                 if (result != null)
                 {
@@ -245,7 +248,7 @@ namespace Wabbajack.VirtualFileSystem
             }
 
             await using var ms = new MemoryStream();
-            self.ToIndexedVirtualFile().ToJson(ms);
+            self.ToIndexedVirtualFile().Write(ms);
             _vfsCache.Put(self.Hash.ToArray(), ms.ToArray());
             
             return self;

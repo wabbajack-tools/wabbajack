@@ -108,5 +108,12 @@ namespace Wabbajack.Server.DataLayer
                 new {Game = game.MetaData().NexusGameId, ModId = modId});
             return result == null ? null : JsonConvert.DeserializeObject<NexusApiClient.GetModFilesResponse>(result);
         }
+
+        public async Task PurgeNexusCache(long modId)
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync("DELETE FROM dbo.NexusModFiles WHERE ModId = @ModId", new {ModId = modId});
+            await conn.ExecuteAsync("DELETE FROM dbo.NexusModInfos WHERE ModId = @ModId", new {ModId = modId});
+        }
     }
 }
