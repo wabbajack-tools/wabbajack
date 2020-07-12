@@ -126,9 +126,18 @@ using Wabbajack.Lib.Downloaders;
             var client = await GetClient();
             var results = await client.GetJsonAsync<Archive[]>($"{Consts.WabbajackBuildServerUri}mod_files/by_hash/{hash.ToHex()}");
 
+            await DownloadDispatcher.PrepareAll(results.Select(r => r.State));
             foreach (var result in results)
             {
-                if (await result.State.Verify(result)) return result.State;
+                try
+                {
+                    if (await result.State.Verify(result)) return result.State;
+                }
+                catch (Exception ex)
+                {
+                    Utils.Log($"Verification error for failed for inferenced archive {result.State.PrimaryKeyString}");
+                    Utils.Log(ex.ToString());
+                }
             }
             return null;
         }
