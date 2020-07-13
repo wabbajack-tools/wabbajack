@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -32,18 +35,50 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("/mod_upgrade")]
         public async Task<IActionResult> PostModUpgrade()
         {
+            var isAuthor = User.Claims.Any(c => c.Type == ClaimTypes.Role && c.Value == "Author");
             var request = (await Request.Body.ReadAllTextAsync()).FromJsonString<ModUpgradeRequest>();
-            if (!request.IsValid)
+            if (!isAuthor)
             {
-                _logger.Log(LogLevel.Information, $"Upgrade requested from {request.OldArchive.Hash} to {request.NewArchive.Hash} rejected as upgrade is invalid");
-                return BadRequest("Invalid mod upgrade");
+                var srcDownload = await _sql.GetArchiveDownload(request.OldArchive.State.PrimaryKeyString,
+                    request.OldArchive.Hash, request.OldArchive.Size);
+                var destDownload = await _sql.GetArchiveDownload(request.NewArchive.State.PrimaryKeyString,
+                    request.NewArchive.Hash, request.NewArchive.Size);
+
+                if (srcDownload == default || destDownload == default ||
+                    await _sql.FindPatch(srcDownload.Id, destDownload.Id) == default)
+                {
+                    if (!await request.IsValid())
+                    {
+                        _logger.Log(LogLevel.Information,
+                            $"Upgrade requested from {request.OldArchive.Hash} to {request.NewArchive.Hash} rejected as upgrade is invalid");
+                        return BadRequest("Invalid mod upgrade");
+                    }
+
+                    if (_settings.ValidateModUpgrades && !await _sql.HashIsInAModlist(request.OldArchive.Hash))
+                    {
+                        _logger.Log(LogLevel.Information,
+                            $"Upgrade requested from {request.OldArchive.Hash} to {request.NewArchive.Hash} rejected as src hash is not in a curated modlist");
+                        return BadRequest("Hash is not in a recent modlist");
+                    }
+
+                }
+
             }
 
-            if (_settings.ValidateModUpgrades && !await _sql.HashIsInAModlist(request.OldArchive.Hash))
+            try
             {
-                _logger.Log(LogLevel.Information, $"Upgrade requested from {request.OldArchive.Hash} to {request.NewArchive.Hash} rejected as src hash is not in a curated modlist");
-                return BadRequest("Hash is not in a recent modlist");
+                if (await request.OldArchive.State.Verify(request.OldArchive))
+                {
+                    _logger.LogInformation(
+                        $"Refusing to upgrade ({request.OldArchive.State.PrimaryKeyString}), old archive is valid");
+                    return NotFound("File is Valid");
+                }
             }
+            catch (Exception ex)
+            {
+                // ignore
+            }
+
             var oldDownload = await _sql.GetOrEnqueueArchive(request.OldArchive);
             var newDownload = await _sql.GetOrEnqueueArchive(request.NewArchive);
 
@@ -76,6 +111,18 @@ namespace Wabbajack.BuildServer.Controllers
             // Still processing
             return Accepted();
         }
+
+        [HttpGet]
+        [Authorize(Roles = "User")]
+        [Route("/mod_upgrade/find/{hashAsHex}")]
+        public async Task<IActionResult> FindUpgrade(string hashAsHex)
+        {
+            var hash = Hash.FromHex(hashAsHex);
+
+            var patches = await _sql.PatchesForSource(hash);
+            return Ok(patches.Select(p => p.Dest).ToList());
+        }
+      
 
     }
 }

@@ -240,7 +240,7 @@ TOP:
 
             }
 
-            public bool ValidateUpgrade(AbstractDownloadState newArchiveState)
+            public override async Task<bool> ValidateUpgrade(Hash srcHash, AbstractDownloadState newArchiveState)
             {
                 var httpState = (State)newArchiveState;
 

@@ -21,6 +21,7 @@ namespace Wabbajack.Lib
 
         public static async ValueTask<string> GetMetricsKey()
         {
+            TOP:
             using var _ = await _creationLock.WaitAsync();
             if (!Utils.HaveEncryptedJson(Consts.MetricsKeyHeader))
             {
@@ -61,9 +62,19 @@ namespace Wabbajack.Lib
                     // If there's a regkey and a file, return regkey
                     using (RegistryKey regKey = Registry.CurrentUser.CreateSubKey(@"Software\Wabbajack", RegistryKeyPermissionCheck.Default)!)
                     {
-                        string key = await Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader)!;
-                        regKey.SetValue("x-metrics-key", key);
-                        return key;
+                        try
+                        {
+                            string key = await Utils.FromEncryptedJson<string>(Consts.MetricsKeyHeader)!;
+                            regKey.SetValue("x-metrics-key", key);
+                            return key;
+                        }
+                        catch (Exception)
+                        {
+                            // Probably an encryption error
+                            await Utils.DeleteEncryptedJson(Consts.MetricsKeyHeader);
+                            goto TOP;
+                        }
+
                     }
                 }
             }

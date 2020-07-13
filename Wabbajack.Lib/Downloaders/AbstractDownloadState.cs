@@ -21,7 +21,7 @@ namespace Wabbajack.Lib.Downloaders
         Task<bool> LoadMetaData();
     }
 
-    public abstract class AbstractDownloadState
+    public abstract class AbstractDownloadState : IUpgradingState
     {
         public static List<Type> KnownSubTypes = new List<Type>
         {
@@ -102,5 +102,61 @@ namespace Wabbajack.Lib.Downloaders
         {
             return string.Join("\n", GetMetaIni());
         }
+
+        public async Task<(Archive? Archive, TempFile NewFile)> ServerFindUpgrade(Archive a)
+        {
+            var alternatives = await ClientAPI.GetModUpgrades(a.Hash);
+            if (alternatives == default)
+                return default;
+
+
+            await DownloadDispatcher.PrepareAll(alternatives.Select(r => r.State));
+            Archive? selected = null;
+            foreach (var result in alternatives)
+            {
+                try
+                {
+                    if (!await result.State.Verify(result)) continue;
+
+                    selected = result;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Utils.Log($"Verification error for failed for possible upgrade {result.State.PrimaryKeyString}");
+                    Utils.Log(ex.ToString());
+                }
+            }
+
+            if (selected == null) return default;
+
+            var tmpFile = new TempFile();
+            if (await selected.State.Download(selected, tmpFile.Path))
+            {
+                return (selected, tmpFile);
+            }
+
+            await tmpFile.DisposeAsync();
+            return default;
+
+        }
+
+        public virtual async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
+        {
+            return await ServerFindUpgrade(a);
+        }
+
+        public virtual async Task<bool> ServerValidateUpgrade(Hash srcHash, AbstractDownloadState newArchiveState)
+        {
+            var alternatives = await ClientAPI.GetModUpgrades(srcHash);
+            return alternatives?.Any(a => a.State.PrimaryKeyString == newArchiveState.PrimaryKeyString) ?? default;
+        }
+
+        public virtual async Task<bool> ValidateUpgrade(Hash srcHash, AbstractDownloadState newArchiveState)
+        {
+            return await ServerValidateUpgrade(srcHash, newArchiveState);
+        }
+        
+
     }
 }

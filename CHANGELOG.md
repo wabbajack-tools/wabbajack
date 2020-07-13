@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 2.1.2.0 - 7/13/2020
+* Can heal hand selected MEGA files
+* Several backend fixes
+* Reworked the ChangeDownload CLI command
+* Fix for a VFS cache error when compiling lists that extract BSAs.
+
 #### Version - 2.1.1.0 - 7/10/2020
 * New CLI option for clearing nexus cache entries (authors only)
 * Retry failed Move commands

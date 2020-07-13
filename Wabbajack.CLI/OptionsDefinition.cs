@@ -25,7 +25,8 @@ namespace Wabbajack.CLI
             typeof(HashFile),
             typeof(InlinedFileReport),
             typeof(ExtractBSA),
-            typeof(PurgeNexusCache)
+            typeof(PurgeNexusCache),
+            typeof(ForceHealing)
         };
     }
 }

@@ -13,6 +13,6 @@ namespace Wabbajack.Lib.Downloaders
         /// <returns></returns>
         public Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a);
 
-        bool ValidateUpgrade(AbstractDownloadState newArchiveState);
+        Task<bool> ValidateUpgrade(Hash srcHash, AbstractDownloadState newArchiveState);
     }
 }

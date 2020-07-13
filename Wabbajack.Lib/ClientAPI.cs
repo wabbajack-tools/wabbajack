@@ -25,21 +25,18 @@ using Wabbajack.Lib.Downloaders;
             NewArchive = newArchive;
         }
 
-        public bool IsValid
+        public async Task<bool> IsValid()
         {
-            get
-            {
-                if (OldArchive.Size > 2_500_000_000 || NewArchive.Size > 2_500_000_000) return false;
-                if (OldArchive.Hash == NewArchive.Hash && OldArchive.State.PrimaryKeyString == NewArchive.State.PrimaryKeyString) return false;
-                if (OldArchive.State.GetType() != NewArchive.State.GetType())
-                    return false;
-                if (OldArchive.State is IUpgradingState u)
-                {
-                    return u.ValidateUpgrade(NewArchive.State);
-                }
-
+            if (OldArchive.Size > 2_500_000_000 || NewArchive.Size > 2_500_000_000) return false;
+            if (OldArchive.Hash == NewArchive.Hash && OldArchive.State.PrimaryKeyString == NewArchive.State.PrimaryKeyString) return false;
+            if (OldArchive.State.GetType() != NewArchive.State.GetType())
                 return false;
+            if (OldArchive.State is IUpgradingState u)
+            {
+                return await u.ValidateUpgrade(OldArchive.Hash, NewArchive.State);
             }
+
+            return false;
         }
     }
     
@@ -52,7 +49,7 @@ using Wabbajack.Lib.Downloaders;
             return client;
         }
 
-        public static async Task<Uri> GetModUpgrade(Archive oldArchive, Archive newArchive, TimeSpan? maxWait = null, TimeSpan? waitBetweenTries = null)
+        public static async Task<Uri> GetModUpgrade(Archive oldArchive, Archive newArchive, TimeSpan? maxWait = null, TimeSpan? waitBetweenTries = null, bool useAuthor = false)
         {
             maxWait ??= TimeSpan.FromMinutes(10);
             waitBetweenTries ??= TimeSpan.FromSeconds(15);
@@ -62,7 +59,7 @@ using Wabbajack.Lib.Downloaders;
             
             RETRY:
             
-            var response = await (await GetClient())
+            var response = await (useAuthor ? await AuthorApi.Client.GetAuthorizedClient() : await GetClient())
                 .PostAsync($"{Consts.WabbajackBuildServerUri}mod_upgrade", new StringContent(request.ToJson(), Encoding.UTF8, "application/json"));
 
             if (response.IsSuccessStatusCode)
@@ -140,6 +137,14 @@ using Wabbajack.Lib.Downloaders;
                 }
             }
             return null;
+        }
+
+        public static async Task<Archive[]> GetModUpgrades(Hash src)
+        {
+            var client = await GetClient();
+            Utils.Log($"Looking for generic upgrade for {src} ({(long)src})");
+            var results = await client.GetJsonAsync<Archive[]>($"{Consts.WabbajackBuildServerUri}mod_upgrade/find/{src.ToHex()}");
+            return results;
         }
     }
 }

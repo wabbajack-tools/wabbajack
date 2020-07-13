@@ -47,7 +47,7 @@ namespace Wabbajack.Server.DataLayer
         {
             await using var conn = await Open();
             var patch = await conn.QueryFirstOrDefaultAsync<(long, DateTime?, bool?, string)>(
-                @"SELECT p.PatchHash, p.PatchSize, p.Finished, p.IsFailed, p.FailMessage 
+                @"SELECT p.PatchSize, p.Finished, p.IsFailed, p.FailMessage 
                       FROM dbo.Patches p
                       LEFT JOIN dbo.ArchiveDownloads src ON p.SrcId = src.Id
                       LEFT JOIN dbo.ArchiveDownloads dest ON p.SrcId = dest.Id
@@ -133,19 +133,19 @@ namespace Wabbajack.Server.DataLayer
             var patches = await conn.QueryAsync<(Guid, Guid, long, DateTime?, bool?, string)>(
                 "SELECT SrcId, DestId, PatchSize, Finished, IsFailed, FailMessage FROM dbo.Patches WHERE SrcId = @SrcId", new {SrcId = sourceDownload});
 
-            List<Patch> results = new List<Patch>();
-            foreach (var (srcId, destId, patchSize, finished, isFailed, failMessage) in patches)
-            {
-                results.Add( new Patch {
-                    Src = await GetArchiveDownload(srcId), 
-                    Dest = await GetArchiveDownload(destId),
-                    PatchSize = patchSize,
-                    Finished = finished,
-                    IsFailed = isFailed,
-                    FailMessage = failMessage
-                });
-            } 
-            return results;
+            return await AsPatches(patches);
+        }
+        public async Task<List<Patch>> PatchesForSource(Hash sourceHash)
+        {
+            await using var conn = await Open();
+            var patches = await conn.QueryAsync<(Guid, Guid, long, DateTime?, bool?, string)>(
+                @"SELECT p.SrcId, p.DestId, p.PatchSize, p.Finished, p.IsFailed, p.FailMessage 
+                     FROM dbo.Patches p
+                     LEFT JOIN dbo.ArchiveDownloads a ON p.SrcId = a.Id 
+                     
+                     WHERE a.Hash = @Hash AND p.Finished IS NOT NULL AND p.IsFailed = 0", new {Hash = sourceHash});
+
+            return await AsPatches(patches);
         }
 
         public async Task MarkPatchUsage(Guid srcId, Guid destId)
@@ -174,20 +174,28 @@ namespace Wabbajack.Server.DataLayer
                         WHERE m.PrimaryKeyString is not null
                         AND (p.LastUsed < DATEADD(d, -7, getutcdate()) OR p.LastUsed is null and p.Finished < DATEADD(d, -7, getutcdate()))");
             
+            return await AsPatches(patches);
+        }
+
+        private async Task<List<Patch>> AsPatches(IEnumerable<(Guid, Guid, long, DateTime?, bool?, string)> patches)
+        {
             List<Patch> results = new List<Patch>();
             foreach (var (srcId, destId, patchSize, finished, isFailed, failMessage) in patches)
             {
-                results.Add( new Patch {
-                    Src = await GetArchiveDownload(srcId), 
+                results.Add(new Patch
+                {
+                    Src = await GetArchiveDownload(srcId),
                     Dest = await GetArchiveDownload(destId),
                     PatchSize = patchSize,
                     Finished = finished,
                     IsFailed = isFailed,
                     FailMessage = failMessage
                 });
-            } 
+            }
+
             return results;
         }
+
 
         public async Task DeletePatch(Patch patch)
         {
@@ -225,5 +233,6 @@ namespace Wabbajack.Server.DataLayer
             });
             
         }
+
     }
 }

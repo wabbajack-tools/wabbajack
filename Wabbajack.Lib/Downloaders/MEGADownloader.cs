@@ -194,10 +194,15 @@ namespace Wabbajack.Lib.Downloaders
                 }
             }
 
-            public override async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
+            public override Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
             {
-                return default;
+                return ServerFindUpgrade(a);
             }
+            
+            public override async Task<bool> ValidateUpgrade(Hash srcHash, AbstractDownloadState newArchiveState)
+            {
+                return await ServerValidateUpgrade(srcHash, newArchiveState);
+            }                
         }
 
         public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
