@@ -180,6 +180,7 @@ namespace Wabbajack.CLI
                 Console.WriteLine(msg);
             else
                 Console.Write(msg);
+            Console.Out.Flush();
         }
 
         internal static ExitCode Exit(string msg, ExitCode code)

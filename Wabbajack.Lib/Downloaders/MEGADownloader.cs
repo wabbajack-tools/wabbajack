@@ -193,6 +193,11 @@ namespace Wabbajack.Lib.Downloaders
                     return false;
                 }
             }
+
+            public override async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
+            {
+                return default;
+            }
         }
 
         public ReactiveCommand<Unit, Unit> TriggerLogin { get; }
