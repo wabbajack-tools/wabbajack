@@ -21,7 +21,6 @@ namespace Wabbajack.Lib
 
         public static async ValueTask<string> GetMetricsKey()
         {
-            TOP:
             using var _ = await _creationLock.WaitAsync();
             if (!Utils.HaveEncryptedJson(Consts.MetricsKeyHeader))
             {
@@ -72,7 +71,7 @@ namespace Wabbajack.Lib
                         {
                             // Probably an encryption error
                             await Utils.DeleteEncryptedJson(Consts.MetricsKeyHeader);
-                            goto TOP;
+                            return await GetMetricsKey();
                         }
 
                     }
