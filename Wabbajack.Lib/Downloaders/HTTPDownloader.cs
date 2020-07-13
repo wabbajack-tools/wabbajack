@@ -212,7 +212,7 @@ TOP:
 
             }
 
-            public async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
+            public virtual async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
             {
                 var tmpFile = new TempFile();
                 
