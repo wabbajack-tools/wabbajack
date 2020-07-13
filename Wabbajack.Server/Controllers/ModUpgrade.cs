@@ -120,7 +120,7 @@ namespace Wabbajack.BuildServer.Controllers
             var hash = Hash.FromHex(hashAsHex);
 
             var patches = await _sql.PatchesForSource(hash);
-            return Ok(patches.Select(p => p.Dest).ToList());
+            return Ok(patches.Select(p => p.Dest.Archive).ToList().ToJson());
         }
       
 
