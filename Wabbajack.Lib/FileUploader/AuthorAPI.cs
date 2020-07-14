@@ -40,7 +40,6 @@ namespace Wabbajack.Lib.FileUploader
         {
             var client = await GetAuthorizedClient();
             return await client.GetStringAsync($"{Consts.WabbajackBuildServerUri}jobs/enqueue_job/{jobtype}");
-            
         }
 
         public static async Task<string> UpdateNexusCache()

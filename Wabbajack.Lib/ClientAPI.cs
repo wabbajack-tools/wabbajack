@@ -19,12 +19,12 @@ namespace Wabbajack.Lib
 
         private static bool CheckBuildServer()
         {
-            var client = new Wabbajack.Lib.Http.Client();
+            var client = new Http.Client();
 
             try
             {
                 var result = client.GetAsync($"{Consts.WabbajackBuildServerUri}heartbeat").Result;
-                _isBuildServerDown = result.StatusCode != HttpStatusCode.OK;
+                _isBuildServerDown = result.StatusCode != HttpStatusCode.OK && result.StatusCode != HttpStatusCode.InternalServerError;
             }
             catch (Exception)
             {
