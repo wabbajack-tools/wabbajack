@@ -1,7 +1,7 @@
 ﻿﻿using System;
 using System.Collections.Generic;
- using System.Linq;
- using System.Net;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,10 +9,45 @@ using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders;
- using Wabbajack.VirtualFileSystem;
-
- namespace Wabbajack.Lib
+ 
+namespace Wabbajack.Lib
 {
+    public static class BuildServerStatus
+    {
+        private static bool _didCheck;
+        private static bool _isBuildServerDown;
+
+        private static bool CheckBuildServer()
+        {
+            var client = new Wabbajack.Lib.Http.Client();
+
+            try
+            {
+                var result = client.GetAsync($"{Consts.WabbajackBuildServerUri}heartbeat").Result;
+                _isBuildServerDown = result.StatusCode != HttpStatusCode.OK;
+            }
+            catch (Exception)
+            {
+                _isBuildServerDown = true;
+            }
+            finally
+            {
+                _didCheck = true;
+            }
+
+            Utils.Log($"Build server is {(_isBuildServerDown ? "down" : "alive")}");
+            return _isBuildServerDown;
+        }
+
+        public static bool IsBuildServerDown
+        {
+            get
+            {
+                return _didCheck ? _isBuildServerDown : CheckBuildServer();
+            }
+        }
+    }
+
     [JsonName("ModUpgradeRequest")]
     public class ModUpgradeRequest
     {
@@ -98,11 +133,15 @@ using Wabbajack.Lib.Downloaders;
         public static async Task SendModListDefinition(ModList modList)
         {
             var client = await GetClient();
+            if (BuildServerStatus.IsBuildServerDown)
+                return;
             await client.PostAsync($"{Consts.WabbajackBuildServerUri}list_definitions/ingest", new StringContent(modList.ToJson(), Encoding.UTF8, "application/json"));
         }
 
         public static async Task<Archive[]> GetExistingGameFiles(WorkQueue queue, Game game)
         {
+            if(BuildServerStatus.IsBuildServerDown)
+                return new Archive[0];
             var client = await GetClient();
             var metaData = game.MetaData();
             var results =
@@ -120,8 +159,13 @@ using Wabbajack.Lib.Downloaders;
 
         public static async Task<AbstractDownloadState?> InferDownloadState(Hash hash)
         {
+            if (BuildServerStatus.IsBuildServerDown)
+                return null;
+
             var client = await GetClient();
-            var results = await client.GetJsonAsync<Archive[]>($"{Consts.WabbajackBuildServerUri}mod_files/by_hash/{hash.ToHex()}");
+
+            var results = await client.GetJsonAsync<Archive[]>(
+                $"{Consts.WabbajackBuildServerUri}mod_files/by_hash/{hash.ToHex()}");
 
             await DownloadDispatcher.PrepareAll(results.Select(r => r.State));
             foreach (var result in results)

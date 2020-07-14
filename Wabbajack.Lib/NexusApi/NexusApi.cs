@@ -290,21 +290,16 @@ namespace Wabbajack.Lib.NexusApi
 
         private async Task<T> GetCached<T>(string url)
         {
-            try
-            {
-                var builder = new UriBuilder(url)
-                {
-                    Host = Consts.WabbajackBuildServerUri.Host, 
-                    Scheme = Consts.WabbajackBuildServerUri.Scheme, 
-                    Port = Consts.WabbajackBuildServerUri.Port
-                };
-                return await Get<T>(builder.ToString(), HttpClient.WithHeader((Consts.MetricsKeyHeader, await Metrics.GetMetricsKey())));
-            }
-            catch (Exception)
-            {
+            if (BuildServerStatus.IsBuildServerDown)
                 return await Get<T>(url);
-            }
 
+            var builder = new UriBuilder(url)
+            {
+                Host = Consts.WabbajackBuildServerUri.Host, 
+                Scheme = Consts.WabbajackBuildServerUri.Scheme, 
+                Port = Consts.WabbajackBuildServerUri.Port
+            };
+            return await Get<T>(builder.ToString(), HttpClient.WithHeader((Consts.MetricsKeyHeader, await Metrics.GetMetricsKey())));
         }
 
         public async Task<string> GetNexusDownloadLink(NexusDownloader.State archive)
@@ -362,7 +357,14 @@ namespace Wabbajack.Lib.NexusApi
             var url = $"https://api.nexusmods.com/v1/games/{game.MetaData().NexusName}/mods/{modId}.json";
             if (useCache)
             {
-                return await GetCached<ModInfo>(url);
+                try
+                {
+                    return await GetCached<ModInfo>(url);
+                }
+                catch (HttpException)
+                {
+                    return await Get<ModInfo>(url);
+                }
             }
 
             return await Get<ModInfo>(url);

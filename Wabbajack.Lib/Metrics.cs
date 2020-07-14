@@ -86,6 +86,9 @@ namespace Wabbajack.Lib
         /// <param name="value"></param>
         public static async Task Send(string action, string value)
         {
+            if (BuildServerStatus.IsBuildServerDown)
+                return;
+
             var key = await GetMetricsKey();
             Utils.Log($"File hash check (-42) {key}");
             var client = new Http.Client();

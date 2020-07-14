@@ -101,6 +101,9 @@ namespace Wabbajack.Lib
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
 
             Utils.Log($"VFS File Location: {VFSCacheName}");
+            Utils.Log($"MO2 Folder: {MO2Folder}");
+            Utils.Log($"Downloads Folder: {MO2DownloadsFolder}");
+            Utils.Log($"Game Folder: {GamePath}");
 
             if (cancel.IsCancellationRequested) return false;
             
@@ -174,7 +177,6 @@ namespace Wabbajack.Lib
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Inferring metas for game file downloads");
             await InferMetas();
-            
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Reindexing downloads after meta inferring");
@@ -410,8 +412,6 @@ namespace Wabbajack.Lib
                 var vf = VFS.Index.ByRootPath[f];
 
                 var meta = await ClientAPI.InferDownloadState(vf.Hash);
-
-
 
                 if (meta == null)
                 {
