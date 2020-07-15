@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Org.BouncyCastle.Bcpg;
@@ -16,6 +17,16 @@ namespace Wabbajack.Lib
         {
             NotMalware = 0,
             Malware = 2
+        }
+
+        private static AbsolutePath ScannerPath()
+        {
+            return ((AbsolutePath)@"C:\ProgramData\Microsoft\Windows Defender\Platform")
+                .EnumerateDirectories(recursive:false)
+                .OrderByDescending(f => f.FileName)
+                .First()
+                .EnumerateFiles(recursive:true)
+                .First(f => f.FileName == (RelativePath)"MpCmdRun.exe");
         }
 
         public static async Task<(Hash, Result)> ScanStream(Stream stream)
@@ -43,8 +54,7 @@ namespace Wabbajack.Lib
 
             var process = new ProcessHelper
             {
-                Path =
-                    (AbsolutePath)@"C:\ProgramData\Microsoft\Windows Defender\Platform\4.18.2006.10-0\X86\MpCmdRun.exe",
+                Path = ScannerPath(),
                 Arguments = new object[] {"-Scan", "-ScanType", "3", "-DisableRemediation", "-File", file.Path},
             };
             
