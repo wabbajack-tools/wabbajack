@@ -20,6 +20,7 @@ using Wabbajack.Common.StatusFeed;
 using System.Reactive;
 using System.Collections.Generic;
 using System.Windows.Input;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common.IO;
 
 namespace Wabbajack
@@ -110,12 +111,13 @@ namespace Wabbajack
 
             MWVM = mainWindowVM;
 
-            ModListLocation = new FilePickerVM()
+            ModListLocation = new FilePickerVM
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
                 PromptTitle = "Select a ModList to install"
             };
+            ModListLocation.Filters.Add(new CommonFileDialogFilter("Wabbajack Modlist", ".wabbajack"));
 
             // Swap to proper sub VM based on selected type
             _installer = this.WhenAny(x => x.TargetManager)

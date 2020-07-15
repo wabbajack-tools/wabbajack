@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using DynamicData;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 
@@ -42,12 +43,14 @@ namespace Wabbajack
         public MO2CompilerVM(CompilerVM parent)
         {
             Parent = parent;
-            ModListLocation = new FilePickerVM()
+            ModListLocation = new FilePickerVM
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.On,
                 PathType = FilePickerVM.PathTypeOptions.File,
-                PromptTitle = "Select a ModList"
+                PromptTitle = "Select a Modlist"
             };
+            ModListLocation.Filters.Add(new CommonFileDialogFilter("MO2 Profile (modlist.txt)", ".txt"));
+
             DownloadLocation = new FilePickerVM()
             {
                 ExistCheckOption = FilePickerVM.CheckOptions.On,
