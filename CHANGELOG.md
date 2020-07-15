@@ -2,6 +2,8 @@
 
 #### Version - next
 * Filters from the FilePicker are now being used
+* Wabbajack will continue working even if the build server is down
+* Fixed an issue where the main window does not appear after the splash screen
 
 #### Version - 2.1.2.0 - 7/13/2020
 * Can heal hand selected MEGA files

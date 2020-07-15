@@ -126,7 +126,8 @@ namespace Wabbajack
                 var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
                 VersionDisplay = $"v{fvi.FileVersion}";
                 Utils.Log($"Wabbajack Version: {fvi.FileVersion}");
-                var tsk = Metrics.Send("started_wabbajack", fvi.FileVersion);
+                
+                Task.Run(() => Metrics.Send("started_wabbajack", fvi.FileVersion));
             }
             catch (Exception ex)
             {
