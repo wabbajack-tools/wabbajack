@@ -48,11 +48,11 @@ namespace Wabbajack.Server.DataLayer
             return results.ToHashSet();
         }
         
-        public async Task<List<(ModlistMetadata, ModList)>> AllModLists()
+        public async Task<List<ModlistMetadata>> AllModLists()
         {
             await using var conn = await Open();
-            var results = await conn.QueryAsync<(string, string)>(@"SELECT Metadata, ModList FROM dbo.ModLists");
-            return results.Select(m => (m.Item1.FromJsonString<ModlistMetadata>(), m.Item2.FromJsonString<ModList>())).ToList();
+            var results = await conn.QueryAsync<ModlistMetadata>(@"SELECT Metadata FROM dbo.ModLists");
+            return results.ToList();
         }
     }
 }

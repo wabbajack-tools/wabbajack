@@ -2,8 +2,10 @@
 using System.Data;
 using Dapper;
 using Wabbajack.Common;
+using Wabbajack.Lib;
 using Wabbajack.Lib.AuthorApi;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.ModListRegistry;
 
 namespace Wabbajack.Server.DataLayer
 {
@@ -15,6 +17,7 @@ namespace Wabbajack.Server.DataLayer
             SqlMapper.AddTypeHandler(new RelativePathMapper());
             SqlMapper.AddTypeHandler(new JsonMapper<AbstractDownloadState>());
             SqlMapper.AddTypeHandler(new JsonMapper<CDNFileDefinition>());
+            SqlMapper.AddTypeHandler(new JsonMapper<ModlistMetadata>());
             SqlMapper.AddTypeHandler(new VersionMapper());
             SqlMapper.AddTypeHandler(new GameMapper());
             SqlMapper.AddTypeHandler(new DateTimeHandler());

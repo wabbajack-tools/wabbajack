@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -118,7 +119,13 @@ namespace Wabbajack.Server.Services
 
         private static string PatchName(Patch patch)
         {
-            return $"{Consts.ArchiveUpdatesCDNFolder}\\{patch.Src.Archive.Hash.ToHex()}_{patch.Dest.Archive.Hash.ToHex()}";
+            return PatchName(patch.Src.Archive.Hash, patch.Dest.Archive.Hash);
+
+        }
+
+        private static string PatchName(Hash oldHash, Hash newHash)
+        {
+            return $"{Consts.ArchiveUpdatesCDNFolder}\\{oldHash.ToHex()}_{newHash.ToHex()}";
         }
 
         private async Task CleanupOldPatches()
@@ -154,17 +161,38 @@ namespace Wabbajack.Server.Services
             var sqlFiles = await _sql.AllPatchHashes();
             _logger.LogInformation($"Found {sqlFiles.Count} in SQL");
 
-            var hashPairs = files.Select(f => f.Name).Where(f => f.Contains("_")).Select(p =>
+            HashSet<(Hash, Hash)> NamesToPairs(IEnumerable<FtpListItem> ftpFiles)
             {
-                var lst = p.Split("_", StringSplitOptions.RemoveEmptyEntries).Select(Hash.FromHex).ToArray();
-                return (lst[0], lst[1]);
-            }).ToHashSet();
+                return ftpFiles.Select(f => f.Name).Where(f => f.Contains("_")).Select(p =>
+                {
+                    try
+                    {
+                        var lst = p.Split("_", StringSplitOptions.RemoveEmptyEntries).Select(Hash.FromHex).ToArray();
+                        return (lst[0], lst[1]);
+                    }
+                    catch (FormatException ex)
+                    {
+                        return default;
+                    }
+                }).Where(f => f != default).ToHashSet();
+            }
             
+            var oldHashPairs = NamesToPairs(files.Where(f => DateTime.UtcNow - f.Modified > TimeSpan.FromDays(2)));
+            foreach (var (oldHash, newHash) in oldHashPairs.Where(o => !sqlFiles.Contains(o)))
+            {
+                _logger.LogInformation($"Removing CDN File entry for {oldHash} -> {newHash} it's not SQL");
+                await client.DeleteFileAsync(PatchName(oldHash, newHash));
+            }
+
+            var hashPairs = NamesToPairs(files);
             foreach (var sqlFile in sqlFiles.Where(s => !hashPairs.Contains(s)))
             {
                 _logger.LogInformation($"Removing SQL File entry for {sqlFile.Item1} -> {sqlFile.Item2} it's not on the CDN");
                 await _sql.DeletePatchesForHashPair(sqlFile);
             }
+
+
+
 
         }
 

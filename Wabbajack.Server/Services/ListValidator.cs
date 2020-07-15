@@ -46,13 +46,13 @@ namespace Wabbajack.Server.Services
             using var queue = new WorkQueue();
             var oldSummaries = Summaries;
 
-            var results = await data.ModLists.PMap(queue, async list =>
+            var results = await data.ModLists.PMap(queue, async metadata =>
             {
                 var oldSummary =
-                    oldSummaries.FirstOrDefault(s => s.Summary.MachineURL == list.Metadata.Links.MachineURL);
+                    oldSummaries.FirstOrDefault(s => s.Summary.MachineURL == metadata.Links.MachineURL);
                 
-                var (metadata, modList) = list;
-                var archives = await modList.Archives.PMap(queue, async archive =>
+                var listArchives = await _sql.ModListArchives(metadata.Links.MachineURL);
+                var archives = await listArchives.PMap(queue, async archive =>
                 {
                     var (_, result) = await ValidateArchive(data, archive);
                     if (result == ArchiveStatus.InValid)

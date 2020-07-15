@@ -1,9 +1,11 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Common;
+using Wabbajack.Lib.Downloaders;
 
 namespace Wabbajack.Server.DataLayer
 {
@@ -17,6 +19,11 @@ namespace Wabbajack.Server.DataLayer
             await conn.ExecuteAsync(@"DELETE FROM dbo.ModLists Where MachineUrl = @MachineUrl",
                 new {MachineUrl = metadata.Links.MachineURL}, tran);
 
+            var archives = modlist.Archives;
+            var directives = modlist.Directives;
+            modlist.Archives = new List<Archive>();
+            modlist.Directives = new List<Directive>();
+
             await conn.ExecuteAsync(
                 @"INSERT INTO dbo.ModLists (MachineUrl, Hash, Metadata, ModList, BrokenDownload) VALUES (@MachineUrl, @Hash, @Metadata, @ModList, @BrokenDownload)",
                 new
@@ -28,7 +35,7 @@ namespace Wabbajack.Server.DataLayer
                     BrokenDownload = brokenDownload
                 }, tran);
             
-            var entries = modlist.Archives.Select(a =>
+            var entries = archives.Select(a =>
                 new
                 {
                     MachineUrl = metadata.Links.MachineURL,
@@ -66,6 +73,14 @@ namespace Wabbajack.Server.DataLayer
             var result = await conn.QueryFirstOrDefaultAsync<bool>("SELECT Hash FROM dbo.ModListArchives Where Hash = @Hash",
                 new {Hash = hash});
             return result;
+        }
+
+        public async Task<List<Archive>> ModListArchives(string machineURL)
+        {
+            await using var conn = await Open();
+            var archives = await conn.QueryAsync<(Hash, long, AbstractDownloadState)>("SELECT Hash, Size, State FROM dbo.ModListArchives WHERE MachineUrl = @MachineUrl",
+            new {MachineUrl = machineURL});
+            return archives.Select(t => new Archive(t.Item3) {Size = t.Item2, Hash = t.Item1}).ToList();
         }
     }
 }
