@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - next
+* Filters from the FilePicker are now being used
+
 #### Version - 2.1.2.0 - 7/13/2020
 * Can heal hand selected MEGA files
 * Several backend fixes
