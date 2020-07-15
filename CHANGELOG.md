@@ -1,6 +1,7 @@
 ### Changelog
 
 #### Version - next
+* Filters from the FilePicker are now being used
 * Wabbajack will continue working even if the build server is down
 * Fixed an issue where the main window does not appear after the splash screen
 
