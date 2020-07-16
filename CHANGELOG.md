@@ -1,9 +1,11 @@
 ### Changelog
 
-#### Version - next
+#### Version - 2.1.3.0 - 7/15/2020
 * Filters from the FilePicker are now being used
 * Wabbajack will continue working even if the build server is down
 * Fixed an issue where the main window does not appear after the splash screen
+* Patched executable files (dlls, exes, etc.) are now virus scanned both during compilation and install
+* Fixed a VFS cache load issue with compilation
 
 #### Version - 2.1.2.0 - 7/13/2020
 * Can heal hand selected MEGA files
