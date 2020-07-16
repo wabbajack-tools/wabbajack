@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Compression;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
@@ -60,7 +61,9 @@ namespace Wabbajack.Server.Services
         public async Task<int> CheckForNewLists()
         {
             int downloaded = 0;
-            var lists = await ModlistMetadata.LoadFromGithub();
+            var lists = (await ModlistMetadata.LoadFromGithub())
+                .Concat(await ModlistMetadata.LoadUnlistedFromGithub()).ToList();
+            
             foreach (var list in lists)
             {
                 try

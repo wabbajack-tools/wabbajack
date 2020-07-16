@@ -62,7 +62,7 @@ namespace Wabbajack.Lib.ModListRegistry
 
         public static async Task<List<ModlistMetadata>> LoadFromGithub()
         {
-            var client = new Wabbajack.Lib.Http.Client();
+            var client = new Http.Client();
             Utils.Log("Loading ModLists from GitHub");
             var metadataResult = client.GetStringAsync(Consts.ModlistMetadataURL);
             var summaryResult = client.GetStringAsync(Consts.ModlistSummaryURL);
@@ -82,6 +82,21 @@ namespace Wabbajack.Lib.ModListRegistry
             }
 
             return metadata.OrderBy(m => (m.ValidationSummary?.HasFailures ?? false ? 1 : 0, m.Title)).ToList();
+        }
+
+        public static async Task<List<ModlistMetadata>> LoadUnlistedFromGithub()
+        {
+            try
+            {
+                var client = new Http.Client();
+                return (await client.GetStringAsync(Consts.ModlistMetadataURL)).FromJsonString<List<ModlistMetadata>>();
+            }
+            catch (Exception ex)
+            {
+                Utils.LogStatus("Error loading unlisted modlists");
+                return new List<ModlistMetadata>();
+            }
+
         }
         
         public async ValueTask<bool> NeedsDownload(AbsolutePath modlistPath)

@@ -1,6 +1,10 @@
 ### Changelog
 
-#### Version - 2.1.3.0 - 7/15/2020
+#### Version - 2.1.4.0 - **
+* List ingestion now supports compression and processes on a background threaded
+* Support for validation of unlisted modlists
+
+#### Version - 2.1.3.0 - 7/16/2020
 * Filters from the FilePicker are now being used
 * Wabbajack will continue working even if the build server is down
 * Fixed an issue where the main window does not appear after the splash screen
