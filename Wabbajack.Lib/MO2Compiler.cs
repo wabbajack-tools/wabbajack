@@ -4,15 +4,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
-using Wabbajack.Lib.FileUploader;
 using Wabbajack.Lib.Validation;
-using Wabbajack.VirtualFileSystem;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib

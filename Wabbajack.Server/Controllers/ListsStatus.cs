@@ -82,7 +82,7 @@ namespace Wabbajack.BuildServer.Controllers
                 <ul>
                 {{each $.failed }}
                 {{if $.HasUrl}}
-                <a href='{{$.Url}}'><li>{{$.Name}}</li></a>
+                <li><a href='{{$.Url}}'>{{$.Name}}</a></li>
                 {{else}}
                 <li>{{$.Name}}</li>
                 {{/if}}
@@ -94,7 +94,7 @@ namespace Wabbajack.BuildServer.Controllers
                 <ul>
                 {{each $.updated }}
                 {{if $.HasUrl}}
-                <a href='{{$.Url}}'><li>{{$.Name}}</li></a>
+                <li><a href='{{$.Url}}'>{{$.Name}}</a></li>
                 {{else}}
                 <li>{{$.Name}}</li>
                 {{/if}}
@@ -106,7 +106,7 @@ namespace Wabbajack.BuildServer.Controllers
                 <ul>
                 {{each $.updating }}
                 {{if $.HasUrl}}
-                <a href='{{$.Url}}'><li>{{$.Name}}</li></a>
+                <li><a href='{{$.Url}}'>{{$.Name}}</a></li>
                 {{else}}
                 <li>{{$.Name}}</li>
                 {{/if}}
@@ -117,7 +117,7 @@ namespace Wabbajack.BuildServer.Controllers
                 <ul>
                 {{each $.passed }}
                 {{if $.HasUrl}}
-                <a href='{{$.Url}}'><li>{{$.Name}}</li></a>
+                <li><a href='{{$.Url}}'>{{$.Name}}</a></li>
                 {{else}}
                 <li>{{$.Name}}</li>
                 {{/if}}

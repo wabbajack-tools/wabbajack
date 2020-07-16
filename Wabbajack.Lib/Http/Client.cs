@@ -110,6 +110,7 @@ namespace Wabbajack.Lib.Http
                 if (retries > Consts.MaxHTTPRetries) throw;
 
                 retries++;
+                Utils.LogStraightToFile(ex.ToString());
                 Utils.Log($"Http Connect error to {msg.RequestUri} retry {retries}");
                 await Task.Delay(100 * retries);
                 msg = CloneMessage(msg);

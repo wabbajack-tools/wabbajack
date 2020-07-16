@@ -1,10 +1,13 @@
 ﻿﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+ using System.IO;
+ using System.IO.Compression;
+ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+ using K4os.Compression.LZ4.Internal;
  using Org.BouncyCastle.Crypto.Agreement.Srp;
  using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
@@ -136,7 +139,15 @@ namespace Wabbajack.Lib
             var client = await GetClient();
             if (BuildServerStatus.IsBuildServerDown)
                 return;
-            await client.PostAsync($"{Consts.WabbajackBuildServerUri}list_definitions/ingest", new StringContent(modList.ToJson(), Encoding.UTF8, "application/json"));
+            var data = Encoding.UTF8.GetBytes(modList.ToJson());
+            
+            await using var fs = new MemoryStream();
+            await using var gzip = new GZipStream(fs, CompressionLevel.Optimal, true);
+            await gzip.WriteAsync(data);
+            await gzip.DisposeAsync();
+            
+            client.Headers.Add((Consts.CompressedBodyHeader, "gzip"));
+            await client.PostAsync($"{Consts.WabbajackBuildServerUri}list_definitions/ingest", new ByteArrayContent(fs.ToArray()));
         }
 
         public static async Task<Archive[]> GetExistingGameFiles(WorkQueue queue, Game game)

@@ -82,6 +82,7 @@ namespace Wabbajack.Common
 
         public static string ServerWhitelistURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml";
         public static string ModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json";
+        public static string UnlistedModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/unlisted_modlists.json";
         public static string ModlistSummaryURL = "http://build.wabbajack.org/lists/status.json";
         public static string UserAgent
         {
@@ -126,6 +127,8 @@ namespace Wabbajack.Common
         public static AbsolutePath SettingsFile => LocalAppDataPath.Combine("settings.json");
         public static RelativePath SettingsIni = (RelativePath)"settings.ini";
         public static byte SettingsVersion => 2;
+        public static string CompressedBodyHeader = "x-compressed-body";
+
         public static AbsolutePath CefCacheLocation = @"CEF".RelativeTo(LocalAppDataPath);
 
         public static Extension SeqExtension = new Extension(".seq");
