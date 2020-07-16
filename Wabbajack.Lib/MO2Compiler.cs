@@ -376,7 +376,7 @@ namespace Wabbajack.Lib
 
             Utils.Log(
                 $"Removing {remove.Count} archives from the compilation state, this is probably not an issue but reference this if you have compilation failures");
-            remove.Do(r => Utils.Log($"Resolution failed for: {r.File.FullPath}"));
+            remove.Do(r => Utils.Log($"Resolution failed for: ({r.File.Size} {r.File.Hash}) {r.File.FullPath}"));
             IndexedArchives.RemoveAll(a => remove.Contains(a));
         }
 
@@ -600,10 +600,6 @@ namespace Wabbajack.Lib
                 new DeconstructBSAs(this), // Deconstruct BSAs before building patches so we don't generate massive patch files
                 new IncludePatches(this),
                 new IncludeDummyESPs(this),
-
-
-                // If we have no match at this point for a game folder file, skip them, we can't do anything about them
-                new IgnoreGameFiles(this),
 
                 // There are some types of files that will error the compilation, because they're created on-the-fly via tools
                 // so if we don't have a match by this point, just drop them.

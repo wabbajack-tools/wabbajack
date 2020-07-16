@@ -538,8 +538,28 @@ namespace Wabbajack.Test
             Assert.False(utils.InstallFolder.Combine(Consts.GameFolderFilesDir).IsDirectory);
             
         }
-        
-        
+
+        [Fact]
+        public async Task MissingGameFolderFilesBreakInstallation()
+        {
+
+            var profile = utils.AddProfile();
+            var mod = await utils.AddMod();
+            var testPex = await utils.AddModFile(mod, @"Data\scripts\test.pex", 10);
+
+            await utils.Configure();
+
+            utils.MO2Folder.Combine(Consts.GameFolderFilesDir).CreateDirectory();
+            await utils.MO2Folder.Combine(Consts.GameFolderFilesDir).Combine("dx4242.dll")
+                .WriteAllBytesAsync(utils.RandomData());
+
+            await utils.AddManualDownload(
+                new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
+
+            await Assert.ThrowsAsync<TrueException>(async () => await CompileAndInstall(profile));
+        }
+
+
         /// <summary>
         /// Issue #861 : https://github.com/wabbajack-tools/wabbajack/issues/861
         /// </summary>
