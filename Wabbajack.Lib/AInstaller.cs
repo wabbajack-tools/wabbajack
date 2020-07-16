@@ -224,6 +224,14 @@ namespace Wabbajack.Lib
                     {
                         Utils.Log($"NOTE: Invalid Hash for {toPatch.To} after patching {hash} vs {toPatch.Hash}");
                     }
+
+                    if (await VirusScanner.ShouldScan(toFile) &&
+                        await ClientAPI.GetVirusScanResult(toFile) == VirusScanner.Result.Malware)
+                    {
+                        await toFile.DeleteAsync();
+                        Utils.ErrorThrow(new Exception($"Virus scan of patched executable reported possible malware: {toFile.ToString()} ({(long)hash})"));
+                    }
+                    
                 });
         }
 

@@ -46,11 +46,13 @@ namespace Wabbajack.VirtualFileSystem
                 Size = br.ReadInt64(),
             };
             var lst = new List<IndexedVirtualFile>();
+            ivf.Children = lst;
             var count = br.ReadInt32();
             for (int x = 0; x < count; x++)
             {
                 lst.Add(Read(br));
             }
+
             return ivf;
         }
 

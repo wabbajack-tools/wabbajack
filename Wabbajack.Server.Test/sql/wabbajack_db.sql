@@ -641,6 +641,17 @@ CREATE TABLE [dbo].[NexusKeys](
 ) ON [PRIMARY]
 GO
 
+/****** Object:  Table [dbo].[VirusScanResults]    Script Date: 7/14/2020 9:30:59 PM ******/
+CREATE TABLE [dbo].[VirusScanResults](
+                                         [Hash] [bigint] NOT NULL,
+                                         [IsMalware] [tinyint] NOT NULL,
+                                         CONSTRAINT [PK_VirusScanResults] PRIMARY KEY CLUSTERED
+                                             (
+                                              [Hash] ASC
+                                                 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
 /****** Object:  StoredProcedure [dbo].[MergeAllFilesInArchive]    Script Date: 3/28/2020 4:58:59 PM ******/
 SET ANSI_NULLS ON
 GO

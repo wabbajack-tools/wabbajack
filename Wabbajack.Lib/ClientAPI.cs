@@ -5,7 +5,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Wabbajack.Common;
+ using Org.BouncyCastle.Crypto.Agreement.Srp;
+ using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders;
@@ -189,6 +190,34 @@ namespace Wabbajack.Lib
             Utils.Log($"Looking for generic upgrade for {src} ({(long)src})");
             var results = await client.GetJsonAsync<Archive[]>($"{Consts.WabbajackBuildServerUri}mod_upgrade/find/{src.ToHex()}");
             return results;
+        }
+
+        public static async Task<VirusScanner.Result> GetVirusScanResult(AbsolutePath path)
+        {
+            var client = await GetClient();
+            Utils.Log($"Checking virus result for {path}");
+
+            var hash = await path.FileHashAsync();
+
+            using var result = await client.GetAsync($"{Consts.WabbajackBuildServerUri}virus_scan/{hash.ToHex()}", errorsAsExceptions: false);
+            if (result.StatusCode == HttpStatusCode.OK)
+            {
+                var data = await result.Content.ReadAsStringAsync();
+                return Enum.Parse<VirusScanner.Result>(data);
+            }
+
+            if (result.StatusCode == HttpStatusCode.NotFound)
+            {
+                await using var input = await path.OpenRead();
+                using var postResult = await client.PostAsync($"{Consts.WabbajackBuildServerUri}virus_scan", errorsAsExceptions: false, content: new StreamContent(input));
+                if (postResult.StatusCode == HttpStatusCode.OK)
+                {
+                    var data = await postResult.Content.ReadAsStringAsync();
+                    return Enum.Parse<VirusScanner.Result>(data);
+                }
+                throw new HttpException(result);
+            }
+            throw new HttpException(result);
         }
     }
 }

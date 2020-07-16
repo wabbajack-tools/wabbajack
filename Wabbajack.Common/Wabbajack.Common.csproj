@@ -34,6 +34,10 @@
           <Generator>TextTemplatingFileGenerator</Generator>
           <LastGenOutput>PrimitiveHandlers.cs</LastGenOutput>
         </None>
+        <None Update="FileSignatures\Signatures.tt">
+          <Generator>TextTemplatingFileGenerator</Generator>
+          <LastGenOutput>Signatures.cs</LastGenOutput>
+        </None>
     </ItemGroup>
     <ItemGroup>
         <Folder Include="KnownFolders\" />
@@ -59,6 +63,11 @@
     <ItemGroup>
       <Compile Update="Serialization\PrimitiveHandlers.cs">
         <DependentUpon>PrimitiveHandlers.tt</DependentUpon>
+      </Compile>
+      <Compile Update="FileSignatures\Signatures.cs">
+        <AutoGen>True</AutoGen>
+        <DesignTime>True</DesignTime>
+        <DependentUpon>Signatures.tt</DependentUpon>
       </Compile>
     </ItemGroup>
 </Project>
