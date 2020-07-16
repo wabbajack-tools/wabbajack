@@ -114,6 +114,14 @@ namespace Wabbajack.Lib.CompilationSteps
                 e.Choices = found;
             }
             
+            if (source.File.IsNative && await VirusScanner.ShouldScan(source.File.AbsoluteName))
+            {
+                if (await ClientAPI.GetVirusScanResult(source.File.AbsoluteName) == VirusScanner.Result.Malware)
+                {
+                    Utils.ErrorThrow(new Exception($"Executable file {source.File.AbsoluteName} ({source.File}) has been marked as malware."));
+                }
+            }
+            
             return e;
         }
 

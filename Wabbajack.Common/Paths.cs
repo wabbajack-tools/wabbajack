@@ -331,11 +331,11 @@ namespace Wabbajack.Common
             await fs.WriteAsync(data);
         }
 
-        public async Task WriteAllAsync(Stream data, bool disposeAfter = true)
+        public async Task WriteAllAsync(Stream data, bool disposeDataAfter = true)
         {
             await using var fs = await Create();
             await data.CopyToAsync(fs);
-            if (disposeAfter) await data.DisposeAsync();
+            if (disposeDataAfter) await data.DisposeAsync();
         }
 
         [DllImport("kernel32.dll", SetLastError=true, CharSet=CharSet.Auto)]
