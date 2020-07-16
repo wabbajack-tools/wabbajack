@@ -39,6 +39,7 @@ namespace Wabbajack.Server.DataLayer
                 new
                 {
                     MachineUrl = metadata.Links.MachineURL,
+                    Name = a.Name,
                     Hash = a.Hash,
                     Size = a.Size,
                     State = a.State.ToJson(),
@@ -51,7 +52,7 @@ namespace Wabbajack.Server.DataLayer
             foreach (var entry in entries)
             {
                 await conn.ExecuteAsync(
-                    "INSERT INTO dbo.ModListArchives (MachineURL, Hash, Size, PrimaryKeyString, State) VALUES (@MachineURL, @Hash, @Size, @PrimaryKeyString, @State)",
+                    "INSERT INTO dbo.ModListArchives (MachineURL, Name, Hash, Size, PrimaryKeyString, State) VALUES (@MachineURL, @Name, @Hash, @Size, @PrimaryKeyString, @State)",
                     entry, tran);
             }
             
@@ -78,9 +79,14 @@ namespace Wabbajack.Server.DataLayer
         public async Task<List<Archive>> ModListArchives(string machineURL)
         {
             await using var conn = await Open();
-            var archives = await conn.QueryAsync<(Hash, long, AbstractDownloadState)>("SELECT Hash, Size, State FROM dbo.ModListArchives WHERE MachineUrl = @MachineUrl",
+            var archives = await conn.QueryAsync<(string, Hash, long, AbstractDownloadState)>("SELECT Name, Hash, Size, State FROM dbo.ModListArchives WHERE MachineUrl = @MachineUrl",
             new {MachineUrl = machineURL});
-            return archives.Select(t => new Archive(t.Item3) {Size = t.Item2, Hash = t.Item1}).ToList();
+            return archives.Select(t => new Archive(t.Item4)
+            {
+                Name = string.IsNullOrWhiteSpace(t.Item1) ? t.Item4.PrimaryKeyString : t.Item1, 
+                Size = t.Item3, 
+                Hash = t.Item2
+            }).ToList();
         }
     }
 }

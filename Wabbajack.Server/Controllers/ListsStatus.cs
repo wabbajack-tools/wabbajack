@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Nettle;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
+using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
 using Wabbajack.Server;
 using Wabbajack.Server.DataLayer;
@@ -76,28 +77,50 @@ namespace Wabbajack.BuildServer.Controllers
         private static readonly Func<object, string> HandleGetListTemplate = NettleEngine.GetCompiler().Compile(@"
             <html><body>
                 <h2>{{lst.Name}} - {{lst.Checked}} - {{ago}}min ago</h2>
+
                 <h3>Failed ({{failed.Count}}):</h3>
                 <ul>
                 {{each $.failed }}
-                <li>{{$.Archive.Name}}</li>
+                {{if $.HasUrl}}
+                <a href='{{$.Url}}'><li>{{$.Name}}</li></a>
+                {{else}}
+                <li>{{$.Name}}</li>
+                {{/if}}
                 {{/each}}
                 </ul>
+
+
                 <h3>Updated ({{updated.Count}}):</h3>
                 <ul>
                 {{each $.updated }}
-                <li>{{$.Archive.Name}}</li>
+                {{if $.HasUrl}}
+                <a href='{{$.Url}}'><li>{{$.Name}}</li></a>
+                {{else}}
+                <li>{{$.Name}}</li>
+                {{/if}}
+
                 {{/each}}
                 </ul>
+
                 <h3>Updating ({{updating.Count}}):</h3>
                 <ul>
                 {{each $.updating }}
-                <li>{{$.Archive.Name}}</li>
+                {{if $.HasUrl}}
+                <a href='{{$.Url}}'><li>{{$.Name}}</li></a>
+                {{else}}
+                <li>{{$.Name}}</li>
+                {{/if}}
                 {{/each}}
                 </ul>
+
                 <h3>Passed ({{passed.Count}}):</h3>
                 <ul>
                 {{each $.passed }}
-                <li>{{$.Archive.Name}}</li>
+                {{if $.HasUrl}}
+                <a href='{{$.Url}}'><li>{{$.Name}}</li></a>
+                {{else}}
+                <li>{{$.Name}}</li>
+                {{/if}}
                 {{/each}}
                 </ul>
             </body></html>
@@ -109,6 +132,7 @@ namespace Wabbajack.BuildServer.Controllers
         {
 
             var lst = await DetailedStatus(Name);
+            
             var response = HandleGetListTemplate(new
             {
                 lst,
@@ -135,9 +159,15 @@ namespace Wabbajack.BuildServer.Controllers
         
         private async Task<DetailedStatus> DetailedStatus(string Name)
         {
-            return _validator.Summaries
+            var results = _validator.Summaries
                 .Select(d => d.Detailed)
                 .FirstOrDefault(d => d.MachineName == Name);
+            results!.Archives.Do(itm =>
+            {
+                if (string.IsNullOrWhiteSpace(itm.Archive.Name)) 
+                    itm.Archive.Name = itm.Archive.State.PrimaryKeyString;
+            });
+            return results;
         }
 
         [HttpGet]

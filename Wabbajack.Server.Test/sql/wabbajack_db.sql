@@ -345,6 +345,7 @@ GO
 
 CREATE TABLE [dbo].[ModListArchives](
 [MachineUrl] [nvarchar](50) NOT NULL,
+[Name] [nvarchar](max),
 [Hash] [bigint] NOT NULL,
 [PrimaryKeyString] [nvarchar](max) NOT NULL,
 [Size] [bigint] NOT NULL,

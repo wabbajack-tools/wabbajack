@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib;
 using Wabbajack.Lib.ModListRegistry;
@@ -23,6 +24,11 @@ namespace Wabbajack.Server.DTOs
         public bool IsFailing { get; set; }
         public Archive Archive { get; set; }
 
+        public string Name => string.IsNullOrWhiteSpace(Archive.Name) ? Archive.State.PrimaryKeyString : Archive.Name;
+        public string Url => Archive.State.GetManifestURL(Archive);
+
+        [JsonIgnore]
+        public bool HasUrl => Url != null;
         public ArchiveStatus ArchiveStatus { get; set; }
     }
 }
