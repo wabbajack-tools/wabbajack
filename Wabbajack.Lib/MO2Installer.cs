@@ -261,6 +261,7 @@ namespace Wabbajack.Lib
             foreach (var bsa in bsas)
             {
                 Status($"Building {bsa.To}");
+                Info($"Building {bsa.To}");
                 var sourceDir = OutputFolder.Combine(Consts.BSACreationDir, bsa.TempID);
 
                 var bsaSize = bsa.FileStates.Select(state => sourceDir.Combine(state.Path).Size).Sum();

@@ -164,15 +164,7 @@ namespace Wabbajack.Server.DataLayer
                 @"SELECT p.SrcId, p.DestId, p.PatchSize, p.Finished, p.IsFailed, p.FailMessage
                         FROM dbo.Patches p
                         LEFT JOIN dbo.ArchiveDownloads a ON p.SrcId = a.Id
-                        LEFT JOIN dbo.ModListArchives m ON m.PrimaryKeyString = a.PrimaryKeyString AND m.Hash = a.Hash
-                        WHERE m.PrimaryKeyString is null
-                        UNION 
-                        SELECT p.SrcId, p.DestId, p.PatchSize, p.Finished, p.IsFailed, p.FailMessage
-                        FROM dbo.Patches p
-                        LEFT JOIN dbo.ArchiveDownloads a ON p.SrcId = a.Id
-                        LEFT JOIN dbo.ModListArchives m ON m.PrimaryKeyString = a.PrimaryKeyString AND m.Hash = a.Hash
-                        WHERE m.PrimaryKeyString is not null
-                        AND (p.LastUsed < DATEADD(d, -7, getutcdate()) OR p.LastUsed is null and p.Finished < DATEADD(d, -7, getutcdate()))");
+                        WHERE a.Hash not in (SELECT Hash FROM dbo.ModListArchives)");
             
             return await AsPatches(patches);
         }

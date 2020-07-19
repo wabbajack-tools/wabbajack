@@ -23,7 +23,7 @@ namespace Wabbajack.Common
         {
             _file = new TempFile();
             _fileStream = _file.File.Open(FileMode.Create, FileAccess.ReadWrite);
-            _size = size;
+            _size = Math.Max(size, 1024);
             _mmap = MemoryMappedFile.CreateFromFile(_fileStream, null, size, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
         }
 

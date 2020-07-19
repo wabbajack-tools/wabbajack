@@ -16,20 +16,6 @@ namespace Wabbajack.Test
             var modlists = await ModlistMetadata.LoadFromGithub();
             Assert.True(modlists.Count > 0);
         }
-
-        [Fact]
-        public async Task VerifyLogoURLs()
-        {
-            var modlists = await ModlistMetadata.LoadFromGithub();
-
-            foreach (var modlist in modlists.Select(m => m.Links))
-            {
-                var logoState = DownloadDispatcher.ResolveArchive(modlist.ImageUri);
-                Assert.NotNull(logoState);
-                Assert.True(await logoState.Verify(new Archive(state: null){Size = 0}), $"{modlist.ImageUri} is not valid");
-            }
-        }
-
         public ModlistMetadataTests(ITestOutputHelper output) : base(output)
         {
             
