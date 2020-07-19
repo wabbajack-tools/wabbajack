@@ -12,7 +12,7 @@ namespace Wabbajack.Lib
         public AbsolutePath OutputFolder { get; set; }
         public string ModListName { get; set; } = string.Empty;
 
-        public override string ShortDescription { get; } = "Do you want to overwrite existing files?";
+        public override string ShortDescription { get; } = "Do you want to update existing files?";
 
         public override string ExtendedDescription
         {
