@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - next
+* Fixed Mediafire Downloader not handling direct links
+
 #### Version - 2.1.4.0 - **
 * List ingestion now supports compression and processes on a background threaded
 * Support for validation of unlisted modlists
