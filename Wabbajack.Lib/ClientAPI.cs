@@ -203,6 +203,15 @@ namespace Wabbajack.Lib
             return results;
         }
 
+        
+        public static async Task<string[]> GetCDNMirrorList()
+        {
+            var client = await GetClient();
+            Utils.Log($"Looking for CDN mirrors");
+            var results = await client.GetJsonAsync<string[]>($"{Consts.WabbajackBuildServerUri}authored_files/mirrors");
+            return results;
+        }
+
         public static async Task<VirusScanner.Result> GetVirusScanResult(AbsolutePath path)
         {
             var client = await GetClient();
