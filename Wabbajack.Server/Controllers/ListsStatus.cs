@@ -167,6 +167,7 @@ namespace Wabbajack.BuildServer.Controllers
                 if (string.IsNullOrWhiteSpace(itm.Archive.Name)) 
                     itm.Archive.Name = itm.Archive.State.PrimaryKeyString;
             });
+            results.Archives = results.Archives.OrderBy(a => a.Name).ToList();
             return results;
         }
 

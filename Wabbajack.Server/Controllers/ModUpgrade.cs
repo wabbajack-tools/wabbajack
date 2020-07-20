@@ -76,7 +76,9 @@ namespace Wabbajack.BuildServer.Controllers
             }
             catch (Exception ex)
             {
-                // ignore
+                _logger.LogInformation(
+                    $"Refusing to upgrade ({request.OldArchive.State.PrimaryKeyString}), due to upgrade failure");
+                return NotFound("File is Valid");
             }
 
             var oldDownload = await _sql.GetOrEnqueueArchive(request.OldArchive);

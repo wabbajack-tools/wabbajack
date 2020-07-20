@@ -26,7 +26,7 @@ namespace Compression.BSA
 
     public class ArchiveStateObject
     {
-        public virtual IBSABuilder MakeBuilder(long size)
+        public virtual async Task<IBSABuilder> MakeBuilder(long size)
         {
             throw new NotImplementedException();
         }

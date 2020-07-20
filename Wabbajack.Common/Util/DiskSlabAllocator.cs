@@ -12,19 +12,32 @@ namespace Wabbajack.Common
     /// </summary>
     public class DiskSlabAllocator : IAsyncDisposable
     {
-        private readonly TempFile _file;
-        private readonly MemoryMappedFile _mmap;
+        private TempFile? _file;
+        private MemoryMappedFile? _mmap;
         private long _head = 0;
-        private readonly FileStream _fileStream;
+        private FileStream? _fileStream;
         private List<IAsyncDisposable> _allocated = new List<IAsyncDisposable>();
         private long _size;
 
-        public DiskSlabAllocator(long size)
+        private DiskSlabAllocator()
         {
-            _file = new TempFile();
-            _fileStream = _file.File.Open(FileMode.Create, FileAccess.ReadWrite);
-            _size = size;
-            _mmap = MemoryMappedFile.CreateFromFile(_fileStream, null, size, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
+
+        }
+
+        public static async Task<DiskSlabAllocator> Create(long size)
+        {
+            var file = new TempFile();
+            var fileStream = await file.Path.Create();
+            size = Math.Max(size, 1024);
+            var self = new DiskSlabAllocator
+            {
+                _file = file,
+                _size = size,
+                _fileStream = fileStream,
+                _mmap = MemoryMappedFile.CreateFromFile(fileStream, null, size, MemoryMappedFileAccess.ReadWrite,
+                    HandleInheritability.None, false)
+            };
+            return self;
         }
 
         public Stream Allocate(long size)
@@ -39,7 +52,7 @@ namespace Wabbajack.Common
 
                 var startAt = _head;
                 _head += size;
-                var stream =  _mmap.CreateViewStream(startAt, size, MemoryMappedFileAccess.ReadWrite);
+                var stream =  _mmap!.CreateViewStream(startAt, size, MemoryMappedFileAccess.ReadWrite);
                 _allocated.Add(stream);
                 return stream;
             }
@@ -49,9 +62,9 @@ namespace Wabbajack.Common
         {
             foreach (var allocated in _allocated)
                 await allocated.DisposeAsync();
-            _mmap.Dispose();
-            await _fileStream.DisposeAsync();
-            await _file.DisposeAsync();
+            _mmap!.Dispose();
+            await _fileStream!.DisposeAsync();
+            await _file!.DisposeAsync();
         }
     }
 }
