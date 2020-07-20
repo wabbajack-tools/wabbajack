@@ -255,7 +255,7 @@ namespace Wabbajack
                         }
                         else
                         {
-                            return "Configuring";
+                            return "Awaiting Input";
                         }
                     })
                 .ToGuiProperty(this, nameof(ProgressTitle));
