@@ -67,6 +67,7 @@ namespace Wabbajack.Server
             services.AddSingleton<DiscordWebHook>();
             services.AddSingleton<NexusKeyMaintainance>();
             services.AddSingleton<PatchBuilder>();
+            services.AddSingleton<CDNMirrorList>();
             
             services.AddMvc();
             services.AddControllers()
@@ -121,6 +122,7 @@ namespace Wabbajack.Server
             app.UseService<DiscordWebHook>();
             app.UseService<NexusKeyMaintainance>();
             app.UseService<PatchBuilder>();
+            app.UseService<CDNMirrorList>();
 
             app.Use(next =>
             {

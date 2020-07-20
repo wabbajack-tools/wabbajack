@@ -15,10 +15,10 @@ namespace Wabbajack.Lib.Http
     {
         public List<(string, string?)> Headers = new List<(string, string?)>();
         public List<Cookie> Cookies = new List<Cookie>();
-        public async Task<HttpResponseMessage> GetAsync(string url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true)
+        public async Task<HttpResponseMessage> GetAsync(string url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true, bool retry = true)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
-            return await SendAsync(request, responseHeadersRead, errorsAsExceptions: errorsAsExceptions);
+            return await SendAsync(request, responseHeadersRead, errorsAsExceptions: errorsAsExceptions, retry: retry);
         }
         
         public async Task<HttpResponseMessage> GetAsync(Uri url, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true)
@@ -71,7 +71,7 @@ namespace Wabbajack.Lib.Http
             return await result.Content.ReadAsStringAsync();
         }
 
-        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage msg, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true)
+        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage msg, HttpCompletionOption responseHeadersRead = HttpCompletionOption.ResponseHeadersRead, bool errorsAsExceptions = true, bool retry = false)
         {
             foreach (var (k, v) in Headers) 
                 msg.Headers.Add(k, v);
@@ -95,6 +95,7 @@ namespace Wabbajack.Lib.Http
             }
             catch (Exception ex)
             {
+                if (!retry) throw;
                 if (ex is HttpException http)
                 {
                     if (http.Code != 503 && http.Code != 521) throw;

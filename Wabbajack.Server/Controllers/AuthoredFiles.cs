@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Net;
@@ -14,6 +15,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib.AuthorApi;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.DTOs;
+using Wabbajack.Server.Services;
 
 namespace Wabbajack.BuildServer.Controllers
 {
@@ -24,12 +26,15 @@ namespace Wabbajack.BuildServer.Controllers
         private SqlService _sql;
         private ILogger<AuthoredFiles> _logger;
         private AppSettings _settings;
+        private CDNMirrorList _mirrorList;
 
-        public AuthoredFiles(ILogger<AuthoredFiles> logger, SqlService sql, AppSettings settings)
+
+        public AuthoredFiles(ILogger<AuthoredFiles> logger, SqlService sql, AppSettings settings, CDNMirrorList mirrorList)
         {
             _sql = sql;
             _logger = logger;
             _settings = settings;
+            _mirrorList = mirrorList;
         }
 
         [HttpPut]
@@ -153,6 +158,7 @@ namespace Wabbajack.BuildServer.Controllers
         ");
 
 
+
         [HttpGet]
         [AllowAnonymous]
         [Route("")]
@@ -166,6 +172,15 @@ namespace Wabbajack.BuildServer.Controllers
                 StatusCode = (int) HttpStatusCode.OK,
                 Content = response
             };
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("mirrors")]
+        public async Task<IActionResult> GetMirrorList()
+        {
+            Response.Headers.Add("x-last-updated", _mirrorList.LastUpdate.ToString(CultureInfo.InvariantCulture));
+            return Ok(_mirrorList.Mirrors);
         }
         
 
