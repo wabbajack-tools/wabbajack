@@ -119,7 +119,7 @@ namespace Compression.BSA.Test
 
                 TestContext.WriteLine($"Building {bsa}");
 
-                await using (var w = ViaJson(a.State).MakeBuilder(size))
+                await using (var w = await ViaJson(a.State).MakeBuilder(size))
                 {
                     var streams = await a.Files.PMap(Queue, async file =>
                     {

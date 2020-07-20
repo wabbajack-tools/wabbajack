@@ -29,10 +29,10 @@ namespace Compression.BSA
         private List<IFileBuilder> _entries = new List<IFileBuilder>();
         private DiskSlabAllocator _slab;
 
-        public BA2Builder(BA2StateObject state, long size)
+        public static async Task<BA2Builder> Create(BA2StateObject state, long size)
         {
-            _state = state;
-            _slab = new DiskSlabAllocator(size);
+            var self = new BA2Builder {_state = state, _slab = await DiskSlabAllocator.Create(size)};
+            return self;
         }
         
         public async ValueTask DisposeAsync()

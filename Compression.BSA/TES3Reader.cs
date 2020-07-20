@@ -100,7 +100,7 @@ namespace Compression.BSA
         public uint HashOffset { get; set; }
         public uint VersionNumber { get; set; }
 
-        public override IBSABuilder MakeBuilder(long size)
+        public override async Task<IBSABuilder> MakeBuilder(long size)
         {
             return new TES3Builder(this);
         }

@@ -144,9 +144,9 @@ namespace Compression.BSA
         public EntryType Type { get; set; }
         public string HeaderMagic { get; set; }
         public uint Version { get; set; }
-        public override IBSABuilder MakeBuilder(long size)
+        public override async Task<IBSABuilder> MakeBuilder(long size)
         {
-            return new BA2Builder(this, size);
+            return await BA2Builder.Create(this, size);
         }
     }
 

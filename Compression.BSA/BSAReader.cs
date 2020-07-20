@@ -179,9 +179,9 @@ namespace Compression.BSA
 
         }
 
-        public override IBSABuilder MakeBuilder(long size)
+        public override async Task<IBSABuilder> MakeBuilder(long size)
         {
-            return new BSABuilder(this, size);
+            return await BSABuilder.Create(this, size);
         }
 
         public string Magic { get; set; }

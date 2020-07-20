@@ -26,18 +26,24 @@ namespace Compression.BSA
         internal uint _version;
         internal DiskSlabAllocator _slab;
 
-        public BSABuilder(long size)
+        public static async Task<BSABuilder> Create(long size)
         {
-            _fileId = Encoding.ASCII.GetBytes("BSA\0");
-            _offset = 0x24;
-            _slab = new DiskSlabAllocator(size);
+            var self = new BSABuilder
+            {
+                _fileId = Encoding.ASCII.GetBytes("BSA\0"),
+                _offset = 0x24,
+                _slab = await DiskSlabAllocator.Create(size)
+            };
+            return self;
         }
 
-        public BSABuilder(BSAStateObject bsaStateObject, long size) : this(size)
+        public static async Task<BSABuilder> Create(BSAStateObject bsaStateObject, long size)
         {
-            _version = bsaStateObject.Version;
-            _fileFlags = bsaStateObject.FileFlags;
-            _archiveFlags = bsaStateObject.ArchiveFlags;
+            var self = await Create(size);
+            self._version = bsaStateObject.Version;
+            self._fileFlags = bsaStateObject.FileFlags;
+            self._archiveFlags = bsaStateObject.ArchiveFlags;
+            return self;
         }
 
         public IEnumerable<FileEntry> Files => _files;

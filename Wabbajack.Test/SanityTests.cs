@@ -302,7 +302,7 @@ namespace Wabbajack.Test
                 Magic = "BSA\0", Version = 0x69, ArchiveFlags = 0x107, FileFlags = 0x0,
             };
 
-            await using (var bsa = bsaState.MakeBuilder(1024 * 1024))
+            await using (var bsa = await bsaState.MakeBuilder(1024 * 1024))
             {
                 await bsa.AddFile(new BSAFileStateObject
                 {
@@ -344,7 +344,7 @@ namespace Wabbajack.Test
 
             var tempFileData = utils.RandomData(1024);
             
-            await using (var bsa = bsaState.MakeBuilder(1024 * 1024))
+            await using (var bsa = await bsaState.MakeBuilder(1024 * 1024))
             {
                 await bsa.AddFile(new BSAFileStateObject
                 {
@@ -382,7 +382,7 @@ namespace Wabbajack.Test
                 Magic = "BSA\0", Version = 0x69, ArchiveFlags = 0x107, FileFlags = 0x0,
             };
 
-            await using (var bsa = bsaState.MakeBuilder(1024 * 1024))
+            await using (var bsa = await bsaState.MakeBuilder(1024 * 1024))
             {
                 await bsa.AddFile(new BSAFileStateObject
                 {
@@ -418,7 +418,7 @@ namespace Wabbajack.Test
 
             // Create the download
             await using var tempFile = new TempFile();
-            await using (var bsa = bsaState.MakeBuilder(1024 * 1024))
+            await using (var bsa = await bsaState.MakeBuilder(1024 * 1024))
             {
                 await bsa.AddFile(new BSAFileStateObject
                 {
@@ -431,7 +431,7 @@ namespace Wabbajack.Test
 
             
             // Create the result
-            await using (var bsa = bsaState.MakeBuilder(1024 * 1024))
+            await using (var bsa = await bsaState.MakeBuilder(1024 * 1024))
             {
                 await bsa.AddFile(new BSAFileStateObject
                 {
