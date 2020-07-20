@@ -28,10 +28,11 @@ namespace Wabbajack.Common
         {
             var file = new TempFile();
             var fileStream = await file.Path.Create();
+            size = Math.Max(size, 1024);
             var self = new DiskSlabAllocator
             {
                 _file = file,
-                _size = Math.Max(size, 1024),
+                _size = size,
                 _fileStream = fileStream,
                 _mmap = MemoryMappedFile.CreateFromFile(fileStream, null, size, MemoryMappedFileAccess.ReadWrite,
                     HandleInheritability.None, false)
