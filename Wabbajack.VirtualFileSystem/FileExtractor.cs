@@ -177,7 +177,7 @@ namespace Wabbajack.VirtualFileSystem
             
             if (exitCode != 0)
             {
-                Utils.Error(new _7zipReturnError(exitCode, source, dest.Dir, ""));
+                Utils.ErrorThrow(new _7zipReturnError(exitCode, source, dest.Dir, ""));
             }
             else
             {

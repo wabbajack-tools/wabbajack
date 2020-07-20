@@ -1,16 +1,12 @@
 ### Changelog
 
-#### Version - next
-* Fixed Mediafire Downloader not handling direct links
-
-#### Version - 2.1.4.0 - **
-* List ingestion now supports compression and processes on a background threaded
-* Support for validation of unlisted modlists
-
 #### Version - 2.1.3.1 - 7/20/2020
-* Fix for direct links on Mediafire
+* Fixed Mediafire Downloader not handling direct links
 * Support for backup mirrors when a given CDN edge node isn't available
 * Several help message improvements
+* List ingestion now supports compression and processes on a background threaded
+* Support for validation of unlisted modlists
+* Abort installation/compilation on 7zip read errors
 
 #### Version - 2.1.3.0 - 7/16/2020
 * Filters from the FilePicker are now being used
