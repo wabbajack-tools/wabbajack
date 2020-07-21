@@ -77,7 +77,7 @@ namespace Compression.BSA
             }
         }
 
-        public static async ValueTask<BSAReader> LoadWithRetry(AbsolutePath filename)
+        public static async ValueTask<BSAReader> LoadAsync(AbsolutePath filename)
         {
             using var stream = await filename.OpenRead();
             using var br = new BinaryReader(stream);
