@@ -10,6 +10,7 @@ using OMODFramework;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.Common;
+using Wabbajack.Common.FileSignatures;
 using Utils = Wabbajack.Common.Utils;
 
 
@@ -17,19 +18,38 @@ namespace Wabbajack.VirtualFileSystem
 {
     public class FileExtractor
     {
+
+        private static SignatureChecker archiveSigs = new SignatureChecker(Definitions.FileType.TES3, 
+            Definitions.FileType.BSA,
+            Definitions.FileType.BA2,
+            Definitions.FileType.ZIP,
+            Definitions.FileType.EXE,
+            Definitions.FileType.RAR,
+            Definitions.FileType._7Z);
         
         public static async Task<ExtractedFiles> ExtractAll(WorkQueue queue, AbsolutePath source, IEnumerable<RelativePath> OnlyFiles = null)
         {
             try
             {
-                if (await BSADispatch.MightBeBSA(source))
-                    return await ExtractAllWithBSA(queue, source);
-                else if (source.Extension == Consts.OMOD)
+                var sig = await archiveSigs.MatchesAsync(source);
+                
+                if (source.Extension == Consts.OMOD)
                     return await ExtractAllWithOMOD(source);
-                else if (source.Extension == Consts.EXE)
-                    return await ExtractAllExe(source);
-                else
-                    return await ExtractAllWith7Zip(source, OnlyFiles);
+                
+                switch (sig)
+                {
+                    case Definitions.FileType.BSA:
+                    case Definitions.FileType.TES3:
+                    case Definitions.FileType.BA2:
+                        return await ExtractAllWithBSA(queue, source);
+                    case Definitions.FileType.EXE:
+                        return await ExtractAllExe(source);
+                    case Definitions.FileType._7Z:
+                    case Definitions.FileType.ZIP:
+                    case Definitions.FileType.RAR:
+                        return await ExtractAllWith7Zip(source, OnlyFiles);
+                }
+                throw new Exception("Invalid archive format");
             }
             catch (Exception ex)
             {

@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Common.FileSignatures;
 
 namespace Compression.BSA
 {
@@ -10,27 +11,19 @@ namespace Compression.BSA
     {
         public static async ValueTask<IBSAReader> OpenRead(AbsolutePath filename)
         {
-            var fourcc = "";
-            using (var file = await filename.OpenRead())
+            return await BSASignatures.MatchesAsync(filename) switch
             {
-                fourcc = Encoding.ASCII.GetString(new BinaryReader(file).ReadBytes(4));
-            }
-
-            if (fourcc == TES3Reader.TES3_MAGIC)
-                return await TES3Reader.Load(filename);
-            if (fourcc == "BSA\0")
-                return await BSAReader.LoadWithRetry(filename);
-            if (fourcc == "BTDX")
-                return await BA2Reader.Load(filename);
-            throw new InvalidDataException("Filename is not a .bsa or .ba2, magic " + fourcc);
+                Definitions.FileType.TES3 => await TES3Reader.Load(filename),
+                Definitions.FileType.BSA => await BSAReader.LoadAsync(filename),
+                Definitions.FileType.BA2 => await BA2Reader.Load(filename),
+                _ => throw new InvalidDataException("Filename is not a .bsa or .ba2")
+            };
         }
 
-        private static HashSet<string> MagicStrings = new HashSet<string> {TES3Reader.TES3_MAGIC, "BSA\0", "BTDX"};
+        private static SignatureChecker BSASignatures = new SignatureChecker(Definitions.FileType.BSA, Definitions.FileType.BA2, Definitions.FileType.TES3);
         public static async ValueTask<bool> MightBeBSA(AbsolutePath filename)
         {
-            using var file = await filename.OpenRead();
-            var fourcc = Encoding.ASCII.GetString(new BinaryReader(file).ReadBytes(4));
-            return MagicStrings.Contains(fourcc);
+            return await BSASignatures.MatchesAsync(filename) != null;
         }
     }
 }
