@@ -9,7 +9,7 @@
       <AssemblyVersion>2.1.3.2</AssemblyVersion>
       <FileVersion>2.1.3.2</FileVersion>
     <Copyright>Copyright © 2019-2020</Copyright>
-    <Description>An automated ModList installer</Description>~
+    <Description>An automated ModList installer</Description>
     <PublishReadyToRun>true</PublishReadyToRun>
     <StartupObject></StartupObject>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
