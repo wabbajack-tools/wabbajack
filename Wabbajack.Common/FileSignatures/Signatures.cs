@@ -440,6 +440,9 @@ namespace Wabbajack.Common.FileSignatures {
                 // FO4 BSA
         (FileType.BA2, new byte[] {0x42, 0x54, 0x44, 0x58}),
 
+                // Relaxed RAR format
+        (FileType.RAR, new byte[] {0x52, 0x61, 0x72, 0x21}),
+
                 // JPEG2000 image files
         (FileType.JP2, new byte[] {0x00, 0x00, 0x00, 0x0C, 0x6A, 0x50, 0x20, 0x20}),
 

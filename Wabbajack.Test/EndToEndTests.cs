@@ -62,7 +62,8 @@ namespace Wabbajack.Test
                 DownloadAndInstall(Game.Fallout4, 11925, "Anti-Tank Rifle"), 
                 DownloadAndInstall(Game.SkyrimSpecialEdition, 4783, "Frost Armor UNP"), 
                 DownloadAndInstall(Game.SkyrimSpecialEdition, 32359, "Frost Armor HDT"),
-                DownloadAndInstall(Game.SkyrimSpecialEdition, 31667, "Nemesis"));
+                DownloadAndInstall(Game.SkyrimSpecialEdition, 31667, "Nemesis"),
+                DownloadAndInstall(Game.Fallout4, 40136, "RAR test File"));
             
             // We're going to fully patch this mod from another source.
             await modfiles[3].Download.DeleteAsync();

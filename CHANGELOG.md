@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.1.3.3 - 7/22/2020
+* Relax the RAR signature so it works with RAR 5 and RAR 4 formats
+
 #### Version - 2.1.3.2 - 7/21/2020
 * Fixed regression with 7zip and bad archive files (.tar files with Nemesis)
 
