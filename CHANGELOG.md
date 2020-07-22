@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.1.3.2 - 7/21/2020
+* Fixed regression with 7zip and bad archive files (.tar files with Nemesis)
+
 #### Version - 2.1.3.1 - 7/20/2020
 * Fixed Mediafire Downloader not handling direct links
 * Support for backup mirrors when a given CDN edge node isn't available
