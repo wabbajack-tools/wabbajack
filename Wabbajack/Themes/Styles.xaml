@@ -3471,4 +3471,61 @@
     <Style BasedOn="{StaticResource MahApps.Styles.TabControl}" TargetType="TabControl" />
     <Style BasedOn="{StaticResource MahApps.Styles.TabItem}" TargetType="{x:Type TabItem}" />
 
+    <Style BasedOn="{StaticResource MahApps.Styles.ToolTip}" TargetType="ToolTip">
+        <Setter Property="Background" Value="{DynamicResource MahApps.Brushes.Control.Background}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource MahApps.Brushes.Gray7}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontSize" Value="{DynamicResource MahApps.Font.Size.Tooltip}" />
+        <Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.ThemeForeground}" />
+        <Setter Property="Padding" Value="6,3" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToolTip}">
+                    <Border
+                        Name="Root"
+                        MaxWidth="500"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Opacity="0"
+                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                        <Border.Resources>
+                            <Storyboard x:Key="Visible State" />
+                            <Storyboard x:Key="Normal State" />
+                        </Border.Resources>
+                        <TextBlock
+                            Margin="5"
+                            Text="{TemplateBinding Content}"
+                            TextWrapping="Wrap" />
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="OpenStates">
+                                <VisualStateGroup.Transitions>
+                                    <VisualTransition
+                                        GeneratedDuration="0:0:0.3"
+                                        From="Open"
+                                        To="Closed" />
+                                </VisualStateGroup.Transitions>
+                                <VisualState x:Name="Closed">
+                                    <Storyboard>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="(UIElement.Opacity)">
+                                            <EasingDoubleKeyFrame KeyTime="0:0:0.4" Value="0" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Open">
+                                    <Storyboard>
+                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="(UIElement.Opacity)">
+                                            <EasingDoubleKeyFrame KeyTime="0:0:0.3" Value="1" />
+                                        </DoubleAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>
