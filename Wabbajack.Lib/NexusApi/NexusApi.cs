@@ -11,6 +11,7 @@ using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using System.Threading;
 using Wabbajack.Common.Exceptions;
+using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.NexusApi
@@ -85,9 +86,11 @@ namespace Wabbajack.Lib.NexusApi
         {
             updateStatus("Please log into the Nexus");
             await browser.NavigateTo(new Uri("https://users.nexusmods.com/auth/continue?client_id=nexus&redirect_uri=https://www.nexusmods.com/oauth/callback&response_type=code&referrer=//www.nexusmods.com"));
+
+            Helpers.Cookie[] cookies = {};
             while (true)
             {
-                var cookies = await browser.GetCookies("nexusmods.com");
+                cookies = await browser.GetCookies("nexusmods.com");
                 if (cookies.Any(c => c.Name == "member_id"))
                     break;
                 cancel.ThrowIfCancellationRequested();
@@ -97,7 +100,12 @@ namespace Wabbajack.Lib.NexusApi
 
             await browser.NavigateTo(new Uri("https://www.nexusmods.com/users/myaccount?tab=api"));
 
+            updateStatus("Saving login info");
+
+            await cookies.ToEcryptedJson("nexus-cookies");
+            
             updateStatus("Looking for API Key");
+
 
             
             var apiKey = new TaskCompletionSource<string>();

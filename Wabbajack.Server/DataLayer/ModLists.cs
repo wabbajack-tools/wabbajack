@@ -80,7 +80,19 @@ namespace Wabbajack.Server.DataLayer
         {
             await using var conn = await Open();
             var archives = await conn.QueryAsync<(string, Hash, long, AbstractDownloadState)>("SELECT Name, Hash, Size, State FROM dbo.ModListArchives WHERE MachineUrl = @MachineUrl",
-            new {MachineUrl = machineURL});
+                new {MachineUrl = machineURL});
+            return archives.Select(t => new Archive(t.Item4)
+            {
+                Name = string.IsNullOrWhiteSpace(t.Item1) ? t.Item4.PrimaryKeyString : t.Item1, 
+                Size = t.Item3, 
+                Hash = t.Item2
+            }).ToList();
+        }
+        
+        public async Task<List<Archive>> ModListArchives()
+        {
+            await using var conn = await Open();
+            var archives = await conn.QueryAsync<(string, Hash, long, AbstractDownloadState)>("SELECT Name, Hash, Size, State FROM dbo.ModListArchives");
             return archives.Select(t => new Archive(t.Item4)
             {
                 Name = string.IsNullOrWhiteSpace(t.Item1) ? t.Item4.PrimaryKeyString : t.Item1, 

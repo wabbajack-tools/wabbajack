@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
+using Wabbajack.Lib.LibCefHelpers;
 
 namespace Wabbajack.Lib.Http
 {
@@ -150,6 +151,11 @@ namespace Wabbajack.Lib.Http
             var newHeaders = Headers.Cons(header).ToList();
             var client = new Client {Headers = newHeaders, Cookies = Cookies,};
             return client;
+        }
+
+        public void AddCookies(Helpers.Cookie[] cookies)
+        {
+            Cookies.AddRange(cookies.Select(c => new Cookie {Domain = c.Domain, Name = c.Name, Value = c.Value, Path = c.Path}));
         }
     }
 }
