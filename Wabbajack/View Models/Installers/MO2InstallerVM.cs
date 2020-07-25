@@ -20,7 +20,8 @@ namespace Wabbajack
     {
         public InstallerVM Parent { get; }
 
-        public IObservable<bool> CanInstall { get; }
+        private readonly ObservableAsPropertyHelper<ErrorResponse> _CanInstall;
+        public ErrorResponse CanInstall => _CanInstall.Value;
 
         [Reactive]
         public AInstaller ActiveInstallation { get; private set; }
@@ -65,14 +66,15 @@ namespace Wabbajack
                 .Select(i => MO2Installer.CheckValidInstallPath(i.target, i.download))
                 .ObserveOnGuiThread();
 
-            CanInstall = Observable.CombineLatest(
-                this.WhenAny(x => x.Location.InError),
-                this.WhenAny(x => x.DownloadLocation.InError),
-                installerVM.WhenAny(x => x.ModListLocation.InError),
-                resultSelector: (loc, modlist, download) =>
-                {
-                    return !loc && !download && !modlist;
-                });
+            _CanInstall = Observable.CombineLatest(
+                    this.WhenAny(x => x.Location.ErrorState),
+                    this.WhenAny(x => x.DownloadLocation.ErrorState),
+                    installerVM.WhenAny(x => x.ModListLocation.ErrorState),
+                    resultSelector: (loc, modlist, download) =>
+                    {
+                        return ErrorResponse.FirstFail(loc, modlist, download);
+                    })
+                .ToProperty(this, nameof(CanInstall));
 
             // Have Installation location updates modify the downloads location if empty
             this.WhenAny(x => x.Location.TargetPath)

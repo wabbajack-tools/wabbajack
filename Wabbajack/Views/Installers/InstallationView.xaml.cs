@@ -110,19 +110,6 @@ namespace Wabbajack
                     .Select(started => started ? Visibility.Collapsed : Visibility.Visible)
                     .BindToStrict(this, x => x.InstallationConfigurationView.Visibility)
                     .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.Installer.ConfigVisualVerticalOffset)
-                    .Select(i => (double)i)
-                    .BindToStrict(this, x => x.InstallConfigSpacer.Height)
-                    .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.ModListLocation)
-                    .BindToStrict(this, x => x.ModListLocationPicker.PickerVM)
-                    .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.Installer)
-                    .BindToStrict(this, x => x.InstallerCustomizationContent.Content)
-                    .DisposeWith(dispose);
-                this.WhenAny(x => x.ViewModel.BeginCommand)
-                    .BindToStrict(this, x => x.BeginButton.Command)
-                    .DisposeWith(dispose);
 
                 // Bottom mid-install display
                 this.WhenAny(x => x.ViewModel.StartedInstallation)

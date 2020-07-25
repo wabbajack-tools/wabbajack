@@ -17,7 +17,7 @@ namespace Wabbajack
         bool SupportsAfterInstallNavigation { get; }
         void AfterInstallNavigation();
         int ConfigVisualVerticalOffset { get; }
-        IObservable<bool> CanInstall { get; }
+        ErrorResponse CanInstall { get; }
         Task<bool> Install();
         IUserIntervention InterventionConverter(IUserIntervention intervention);
     }

@@ -284,72 +284,9 @@
                     </Grid>
                 </Button>
             </Grid>
-            <Grid Grid.Column="2"
+            <local:InstallationConfigurationView Grid.Column="2"
                 x:Name="InstallationConfigurationView"
-                Background="{StaticResource WindowBackgroundBrush}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="20" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <Grid Grid.Column="0"
-                    Margin="5"
-                    VerticalAlignment="Center"
-                    Background="Transparent">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="5" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" MinWidth="120" />
-                        <ColumnDefinition Width="20" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Rectangle x:Name="InstallConfigSpacer" Grid.Row="0" />
-                    <TextBlock Grid.Row="1" Grid.Column="0"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Center"
-                        FontSize="14"
-                        Text="Target Modlist"
-                        TextAlignment="Center" />
-                    <local:FilePicker Grid.Row="1" Grid.Column="2"
-                        x:Name="ModListLocationPicker"
-                        Height="30"
-                        VerticalAlignment="Center"
-                        FontSize="14" />
-                    <ContentPresenter Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3"
-                        x:Name="InstallerCustomizationContent"
-                        VerticalAlignment="Top">
-                        <ContentPresenter.Resources>
-                            <DataTemplate DataType="{x:Type local:MO2InstallerVM}">
-                                <local:MO2InstallerConfigView />
-                            </DataTemplate>
-                        </ContentPresenter.Resources>
-                        <ContentPresenter.Style>
-                            <Style TargetType="ContentPresenter">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=Content}" Value="{x:Null}">
-                                        <Setter Property="ContentPresenter.ContentTemplate">
-                                            <Setter.Value>
-                                                <DataTemplate>
-                                                    <Rectangle Height="74" />
-                                                </DataTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ContentPresenter.Style>
-                    </ContentPresenter>
-                </Grid>
-                <local:BeginButton Grid.Column="2"
-                    x:Name="BeginButton"
-                    Margin="0,0,25,0"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center" />
-            </Grid>
+                ViewModel="{Binding}" />
         </Grid>
         <Grid Grid.Row="2"
             x:Name="MidInstallDisplayGrid"
