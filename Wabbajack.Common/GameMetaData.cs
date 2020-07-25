@@ -452,5 +452,11 @@ namespace Wabbajack.Common
             }	
         };
 
+        public static Dictionary<long, Game> ByNexusID =
+            Games.Values.Where(g => g.NexusGameId != 0)
+                .GroupBy(g => g.NexusGameId)
+                .Select(g => g.First())
+                .ToDictionary(d => d.NexusGameId, d => d.Game);
+
     }
 }

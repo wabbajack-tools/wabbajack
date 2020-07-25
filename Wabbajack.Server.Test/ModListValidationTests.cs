@@ -150,9 +150,6 @@ namespace Wabbajack.BuildServer.Test
             Assert.Equal(0, data.ValidationSummary.Failed);
             Assert.Equal(1, data.ValidationSummary.Passed);
             Assert.Equal(0, data.ValidationSummary.Updating);
-            
-
-
         }
         
         private async Task RevalidateLists(bool runNonNexus)

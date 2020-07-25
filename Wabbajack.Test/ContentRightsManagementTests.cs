@@ -7,6 +7,7 @@ using Wabbajack.Lib.Validation;
 using Game = Wabbajack.Common.Game;
 using Wabbajack.Common;
 using System.Threading.Tasks;
+using Wabbajack.Lib.NexusApi;
 using Xunit;
 
 namespace Wabbajack.Test
@@ -115,6 +116,14 @@ namespace Wabbajack.Test
             {
                 await new ValidateModlist().LoadListsFromGithub();
             }
+        }
+        
+        [Fact]
+        public async Task CanGetReuploadRights()
+        {
+            Assert.Equal(HTMLInterface.PermissionValue.No, await HTMLInterface.GetUploadPermissions(Game.SkyrimSpecialEdition, 266));
+            Assert.Equal(HTMLInterface.PermissionValue.Yes, await HTMLInterface.GetUploadPermissions(Game.SkyrimSpecialEdition, 1137));
+            Assert.Equal(HTMLInterface.PermissionValue.Hidden, await HTMLInterface.GetUploadPermissions(Game.SkyrimSpecialEdition, 34604));
         }
     }
 }

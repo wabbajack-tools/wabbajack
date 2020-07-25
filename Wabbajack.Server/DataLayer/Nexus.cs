@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Dapper;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.NexusApi;
+using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Server.DataLayer
 {
@@ -114,6 +117,34 @@ namespace Wabbajack.Server.DataLayer
             await using var conn = await Open();
             await conn.ExecuteAsync("DELETE FROM dbo.NexusModFiles WHERE ModId = @ModId", new {ModId = modId});
             await conn.ExecuteAsync("DELETE FROM dbo.NexusModInfos WHERE ModId = @ModId", new {ModId = modId});
+        }
+
+        public async Task<Dictionary<(Game, long), HTMLInterface.PermissionValue>> GetNexusPermissions()
+        {
+            await using var conn = await Open();
+
+            var results =
+                await conn.QueryAsync<(int, long, int)>("SELECT NexusGameID, ModID, Permissions FROM NexusModPermissions");
+            return results.ToDictionary(f => (GameRegistry.ByNexusID[f.Item1], f.Item2),
+                f => (HTMLInterface.PermissionValue)f.Item3);
+        }
+
+        public async Task SetNexusPermissions(IEnumerable<(Game, long, HTMLInterface.PermissionValue)> permissions)
+        {
+            await using var conn = await Open();
+            var tx = await conn.BeginTransactionAsync();
+
+            await conn.ExecuteAsync("DELETE FROM NexusModPermissions", transaction:tx);
+
+            foreach (var (game, modId, perm) in permissions)
+            {
+                await conn.ExecuteAsync(
+                    "INSERT INTO NexusModPermissions (NexusGameID, ModID, Permissions) VALUES (@NexusGameID, @ModID, @Permissions)",
+                    new {NexusGameID = game.MetaData().NexusGameId, ModID = modId, Permissions = (int)perm}, tx);
+            }
+
+            await tx.CommitAsync();
+
         }
     }
 }

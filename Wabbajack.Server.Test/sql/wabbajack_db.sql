@@ -589,6 +589,8 @@ CONSTRAINT [PK_NexusModFilesSlow] PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
+
+
 /****** Object:  Table [dbo].[Patches]    Script Date: 5/18/2020 6:26:07 AM ******/
 
 CREATE TABLE [dbo].[Patches](
@@ -652,6 +654,22 @@ CREATE TABLE [dbo].[VirusScanResults](
                                                  )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
+
+
+/****** Object:  Table [dbo].[NexusModPermissions]    Script Date: 7/25/2020 11:42:04 AM ******/
+CREATE TABLE [dbo].[NexusModPermissions](
+[NexusGameID] [int] NOT NULL,
+[ModID] [bigint] NOT NULL,
+[Permissions] [int] NOT NULL,
+CONSTRAINT [PK_NexusModPermissions] PRIMARY KEY CLUSTERED
+    (
+     [NexusGameID] ASC,
+     [ModID] ASC
+        )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+
 
 /****** Object:  StoredProcedure [dbo].[MergeAllFilesInArchive]    Script Date: 3/28/2020 4:58:59 PM ******/
 SET ANSI_NULLS ON

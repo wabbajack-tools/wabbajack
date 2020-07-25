@@ -68,6 +68,7 @@ namespace Wabbajack.Server
             services.AddSingleton<NexusKeyMaintainance>();
             services.AddSingleton<PatchBuilder>();
             services.AddSingleton<CDNMirrorList>();
+            services.AddSingleton<NexusPermissionsUpdater>();
             
             services.AddMvc();
             services.AddControllers()
@@ -123,6 +124,7 @@ namespace Wabbajack.Server
             app.UseService<NexusKeyMaintainance>();
             app.UseService<PatchBuilder>();
             app.UseService<CDNMirrorList>();
+            app.UseService<NexusPermissionsUpdater>();
 
             app.Use(next =>
             {
