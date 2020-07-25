@@ -18,9 +18,8 @@
             <RowDefinition Height="5" />
             <RowDefinition Height="25" />
         </Grid.RowDefinitions>
-        <Rectangle
+        <Rectangle Grid.Row="2"
             x:Name="OverhangShadowRect"
-            Grid.Row="2"
             Height="25"
             VerticalAlignment="Top"
             IsHitTestVisible="False">
@@ -32,10 +31,8 @@
             </Rectangle.Fill>
         </Rectangle>
         <Rectangle Grid.Row="1" Fill="{StaticResource BackgroundBrush}" />
-        <mahapps:MetroProgressBar
+        <mahapps:MetroProgressBar Grid.Row="1" Grid.RowSpan="2"
             x:Name="BottomProgressBarDarkGlow"
-            Grid.Row="1"
-            Grid.RowSpan="2"
             Height="16"
             Margin="-4"
             VerticalAlignment="Top"
@@ -53,10 +50,8 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <mahapps:MetroProgressBar
+            <mahapps:MetroProgressBar Grid.Column="0" Grid.ColumnSpan="4"
                 x:Name="LargeProgressBar"
-                Grid.Column="0"
-                Grid.ColumnSpan="4"
                 Background="#AA121212"
                 BorderThickness="0"
                 Maximum="1">
@@ -67,10 +62,8 @@
                     </LinearGradientBrush>
                 </mahapps:MetroProgressBar.Foreground>
             </mahapps:MetroProgressBar>
-            <mahapps:MetroProgressBar
+            <mahapps:MetroProgressBar Grid.Column="0" Grid.ColumnSpan="4"
                 x:Name="LargeProgressBarTopGlow"
-                Grid.Column="0"
-                Grid.ColumnSpan="4"
                 Background="Transparent"
                 BorderThickness="0"
                 Maximum="1">
@@ -81,9 +74,8 @@
                     </LinearGradientBrush>
                 </mahapps:MetroProgressBar.Foreground>
             </mahapps:MetroProgressBar>
-            <TextBlock
+            <TextBlock Grid.Column="0"
                 x:Name="StatePrefixText"
-                Grid.Column="0"
                 Width="130"
                 Margin="0,0,0,0"
                 VerticalAlignment="Center"
@@ -91,13 +83,11 @@
                 FontWeight="Black"
                 Foreground="{StaticResource ComplementaryBrush}"
                 TextAlignment="Right" />
-            <Rectangle
+            <Rectangle Grid.Column="0"
                 x:Name="PrefixSpacerRect"
-                Grid.Column="0"
                 Width="50" />
-            <TextBlock
+            <TextBlock Grid.Column="1"
                 x:Name="TitleText"
-                Grid.Column="1"
                 Margin="15,0,0,0"
                 VerticalAlignment="Center"
                 FontFamily="Lucida Sans"
@@ -105,10 +95,8 @@
                 FontWeight="Black" />
             <ContentControl Grid.Column="2" />
         </Grid>
-        <mahapps:MetroProgressBar
+        <mahapps:MetroProgressBar Grid.Row="1" Grid.RowSpan="2"
             x:Name="BottomProgressBarBrightGlow1"
-            Grid.Row="1"
-            Grid.RowSpan="2"
             Height="5"
             VerticalAlignment="Top"
             Background="Transparent"
@@ -119,10 +107,8 @@
                 <BlurEffect Radius="8" />
             </mahapps:MetroProgressBar.Effect>
         </mahapps:MetroProgressBar>
-        <mahapps:MetroProgressBar
+        <mahapps:MetroProgressBar Grid.Row="1" Grid.RowSpan="2"
             x:Name="BottomProgressBarBrightGlow2"
-            Grid.Row="1"
-            Grid.RowSpan="2"
             Height="5"
             VerticalAlignment="Top"
             Background="Transparent"
@@ -133,20 +119,16 @@
                 <BlurEffect Radius="15" />
             </mahapps:MetroProgressBar.Effect>
         </mahapps:MetroProgressBar>
-        <mahapps:MetroProgressBar
+        <mahapps:MetroProgressBar Grid.Row="1" Grid.RowSpan="2"
             x:Name="BottomProgressBar"
-            Grid.Row="1"
-            Grid.RowSpan="2"
             Height="5"
             VerticalAlignment="Top"
             Background="Transparent"
             BorderBrush="Transparent"
             Foreground="{StaticResource SecondaryBrush}"
             Maximum="1" />
-        <mahapps:MetroProgressBar
+        <mahapps:MetroProgressBar Grid.Row="1" Grid.RowSpan="2"
             x:Name="BottomProgressBarHighlight"
-            Grid.Row="1"
-            Grid.RowSpan="2"
             Height="5"
             VerticalAlignment="Top"
             Background="Transparent"

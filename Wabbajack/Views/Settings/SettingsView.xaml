@@ -23,14 +23,11 @@
             <RowDefinition Height="47" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <local:TopProgressView
+        <local:TopProgressView Grid.Row="0" Grid.RowSpan="2"
             Title="Settings"
-            Grid.Row="0"
-            Grid.RowSpan="2"
             ShadowMargin="False" />
-        <Button
+        <Button Grid.Row="0"
             x:Name="BackButton"
-            Grid.Row="0"
             Width="30"
             Height="30"
             Margin="7,5,0,0"
@@ -40,15 +37,14 @@
             ToolTip="Back to main menu">
             <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
         </Button>
-        <ScrollViewer
-            Grid.Row="1"
+        <ScrollViewer Grid.Row="1"
             Focusable="False"
             VerticalScrollBarVisibility="Auto">
             <WrapPanel>
                 <local:LoginSettingsView x:Name="LoginView" />
                 <local:PerformanceSettingsView x:Name="PerformanceView" />
                 <local:ModlistGallerySettingsView x:Name="ModlistGalleryView" />
-                <local:AuthorFilesView x:Name="AuthorFilesView"></local:AuthorFilesView>
+                <local:AuthorFilesView x:Name="AuthorFilesView" />
             </WrapPanel>
         </ScrollViewer>
     </Grid>

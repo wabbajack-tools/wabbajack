@@ -23,11 +23,8 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock
+            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4"
                 x:Name="TitleText"
-                Grid.Row="0"
-                Grid.Column="0"
-                Grid.ColumnSpan="4"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
                 FontFamily="Lucida Sans"
@@ -37,17 +34,14 @@
                     <DropShadowEffect BlurRadius="25" Opacity="0.5" />
                 </TextBlock.Effect>
             </TextBlock>
-            <Grid
-                Grid.Row="1"
-                Grid.Column="0"
+            <Grid Grid.Row="1" Grid.Column="0"
                 VerticalAlignment="Center">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Button
+                <Button Grid.Row="0"
                     x:Name="BackButton"
-                    Grid.Row="0"
                     Width="50"
                     Height="50"
                     Style="{StaticResource CircleButtonStyle}">
@@ -57,15 +51,12 @@
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         Kind="ArrowLeft" />
                 </Button>
-                <TextBlock
-                    Grid.Row="1"
+                <TextBlock Grid.Row="1"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
                     Text="Main Menu" />
             </Grid>
-            <Grid
-                Grid.Row="1"
-                Grid.Column="1"
+            <Grid Grid.Row="1" Grid.Column="1"
                 VerticalAlignment="Center"
                 Visibility="{Binding InstallerSupportsAfterInstallNavigation, Converter={StaticResource bool2VisibilityConverter}}">
                 <Grid.RowDefinitions>
@@ -83,15 +74,12 @@
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         Kind="FolderMove" />
                 </Button>
-                <TextBlock
-                    Grid.Row="1"
+                <TextBlock Grid.Row="1"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
                     Text="Install Folder" />
             </Grid>
-            <Grid
-                Grid.Row="1"
-                Grid.Column="2"
+            <Grid Grid.Row="1" Grid.Column="2"
                 VerticalAlignment="Center"
                 Background="Transparent">
                 <Grid.RowDefinitions>
@@ -109,15 +97,12 @@
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         Kind="ReadmeBrands" />
                 </Button>
-                <TextBlock
-                    Grid.Row="1"
+                <TextBlock Grid.Row="1"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
                     Text="Readme" />
             </Grid>
-            <Grid
-                Grid.Row="1"
-                Grid.Column="3"
+            <Grid Grid.Row="1" Grid.Column="3"
                 VerticalAlignment="Center"
                 Background="Transparent">
                 <Grid.RowDefinitions>
@@ -135,8 +120,7 @@
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         Kind="Check" />
                 </Button>
-                <TextBlock
-                    Grid.Row="1"
+                <TextBlock Grid.Row="1"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
                     Text="Close" />

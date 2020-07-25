@@ -13,8 +13,7 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Button
-            Grid.Column="0"
+        <Button Grid.Column="0"
             Width="40"
             Height="35"
             Click="GitHub_Click"
@@ -24,8 +23,7 @@
                 Height="25"
                 Kind="GitHub" />
         </Button>
-        <Button
-            Grid.Column="1"
+        <Button Grid.Column="1"
             Width="40"
             Height="35"
             Margin="4,0,0,0"
@@ -36,8 +34,7 @@
                 Height="25"
                 Kind="Patreon" />
         </Button>
-        <Button
-            Grid.Column="2"
+        <Button Grid.Column="2"
             Width="40"
             Height="35"
             Click="Discord_Click"

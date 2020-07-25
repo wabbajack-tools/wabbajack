@@ -20,39 +20,29 @@
             <RowDefinition Height="40" />
             <RowDefinition Height="20" />
         </Grid.RowDefinitions>
-        <TextBlock
-            Grid.Row="0"
-            Grid.Column="0"
+        <TextBlock Grid.Row="0" Grid.Column="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             FontSize="14"
             Text="Installation Location"
             TextAlignment="Center" />
-        <local:FilePicker
-            Grid.Row="0"
-            Grid.Column="2"
+        <local:FilePicker Grid.Row="0" Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
             FontSize="14"
             PickerVM="{Binding Location}" />
-        <TextBlock
-            Grid.Row="1"
-            Grid.Column="0"
+        <TextBlock Grid.Row="1" Grid.Column="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             FontSize="14"
             Text="Download Location"
             TextAlignment="Center" />
-        <local:FilePicker
-            Grid.Row="1"
-            Grid.Column="2"
+        <local:FilePicker Grid.Row="1" Grid.Column="2"
             Height="30"
             VerticalAlignment="Center"
             FontSize="14"
             PickerVM="{Binding DownloadLocation}" />
-        <CheckBox
-            Grid.Row="2"
-            Grid.Column="2"
+        <CheckBox Grid.Row="2" Grid.Column="2"
             HorizontalAlignment="Right"
             Content="Overwrite Installation"
             IsChecked="{Binding AutomaticallyOverwrite}"

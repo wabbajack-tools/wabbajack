@@ -31,10 +31,8 @@
             <RowDefinition Height="4*" />
             <RowDefinition Height="*" MinHeight="175" />
         </Grid.RowDefinitions>
-        <Rectangle
-            x:Name="BorderEdgeFadeDown"
-            Grid.Row="1"
-            Grid.RowSpan="2">
+        <Rectangle Grid.Row="1" Grid.RowSpan="2"
+            x:Name="BorderEdgeFadeDown">
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                     <GradientStop Offset="0" Color="#191919" />
@@ -42,13 +40,10 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
-        <local:HeatedBackgroundView
-            x:Name="HeatedBackground"
-            Grid.Row="0"
-            Grid.RowSpan="3" />
-        <Grid
+        <local:HeatedBackgroundView Grid.Row="0" Grid.RowSpan="3"
+            x:Name="HeatedBackground" />
+        <Grid Grid.Row="1"
             x:Name="Slideshow"
-            Grid.Row="1"
             Margin="5,0,5,5">
             <Border BorderBrush="{StaticResource BorderInterestBrush}" BorderThickness="1,0,1,1">
                 <Grid>
@@ -105,9 +100,8 @@
                         </Style.Triggers>
                     </Style>
                 </Grid.Style>
-                <Button
+                <Button Grid.Column="3"
                     x:Name="SkipSlideButton"
-                    Grid.Column="3"
                     Width="60"
                     Height="60"
                     Margin="6"
@@ -119,9 +113,8 @@
                         Height="28"
                         Kind="ChevronRightSolid" />
                 </Button>
-                <ToggleButton
+                <ToggleButton Grid.Column="2"
                     x:Name="PlayPauseButton"
-                    Grid.Column="2"
                     Margin="6"
                     Background="{StaticResource BackgroundBrush}"
                     Style="{StaticResource SlideshowButton}">
@@ -138,9 +131,8 @@
                         </icon:PackIconMaterial.Style>
                     </icon:PackIconMaterial>
                 </ToggleButton>
-                <Button
+                <Button Grid.Column="1"
                     x:Name="OpenWebsite"
-                    Grid.Column="1"
                     Margin="6"
                     Background="{StaticResource BackgroundBrush}"
                     Style="{StaticResource SlideshowButton}"
@@ -150,9 +142,8 @@
                         Height="28"
                         Kind="Web" />
                 </Button>
-                <ToggleButton
+                <ToggleButton Grid.Column="0"
                     x:Name="ShowNSFWButton"
-                    Grid.Column="0"
                     Background="{StaticResource BackgroundBrush}"
                     Style="{StaticResource SlideshowButton}">
                     <Grid>
@@ -177,10 +168,8 @@
             </Grid>
         </Grid>
         <!--  Comes after slideshow control, so that any effects/overlap goes on top  -->
-        <local:TopProgressView
-            x:Name="TopProgressBar"
-            Grid.Row="0"
-            Grid.RowSpan="2">
+        <local:TopProgressView Grid.Row="0" Grid.RowSpan="2"
+            x:Name="TopProgressBar">
             <!--  Readd when Pause/Stop implementations added  -->
             <!--<Button Grid.Column="2"
                     ToolTip="Pause Installation"
@@ -201,10 +190,8 @@
                     Kind="TimesCircleSolid" />
             </Button>-->
         </local:TopProgressView>
-        <Button
+        <Button Grid.Row="0" Grid.RowSpan="2"
             x:Name="BackButton"
-            Grid.Row="0"
-            Grid.RowSpan="2"
             Width="30"
             Height="30"
             Margin="7,5,0,0"
@@ -215,9 +202,8 @@
             <icon:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
         </Button>
         <!--  Bottom Area  -->
-        <Grid
+        <Grid Grid.Row="2"
             x:Name="BottomButtonInputGrid"
-            Grid.Row="2"
             Margin="5,0,5,5"
             ClipToBounds="True">
             <Grid.ColumnDefinitions>
@@ -231,9 +217,8 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <Button
+                <Button Grid.Row="0"
                     x:Name="OpenReadmePreInstallButton"
-                    Grid.Row="0"
                     Margin="30,5"
                     FontSize="20"
                     Style="{StaticResource LargeButtonStyle}"
@@ -243,22 +228,19 @@
                             <ColumnDefinition Width="30" />
                             <ColumnDefinition Width="82" />
                         </Grid.ColumnDefinitions>
-                        <icon:PackIconFontAwesome
-                            Grid.Column="0"
+                        <icon:PackIconFontAwesome Grid.Column="0"
                             Width="30"
                             Height="30"
                             VerticalAlignment="Center"
                             Kind="ReadmeBrands" />
-                        <TextBlock
-                            Grid.Column="1"
+                        <TextBlock Grid.Column="1"
                             Margin="10,0,0,0"
                             VerticalAlignment="Center"
                             Text="Readme" />
                     </Grid>
                 </Button>
-                <Button
+                <Button Grid.Row="1"
                     x:Name="VisitWebsitePreInstallButton"
-                    Grid.Row="1"
                     Margin="30,5"
                     FontSize="20"
                     Style="{StaticResource LargeButtonStyle}"
@@ -268,22 +250,19 @@
                             <ColumnDefinition Width="30" />
                             <ColumnDefinition Width="82" />
                         </Grid.ColumnDefinitions>
-                        <icon:PackIconMaterial
-                            Grid.Column="0"
+                        <icon:PackIconMaterial Grid.Column="0"
                             Width="30"
                             Height="30"
                             VerticalAlignment="Center"
                             Kind="Web" />
-                        <TextBlock
-                            Grid.Column="1"
+                        <TextBlock Grid.Column="1"
                             Margin="10,0,0,0"
                             VerticalAlignment="Center"
                             Text="Website" />
                     </Grid>
                 </Button>
-                <Button
+                <Button Grid.Row="2"
                     x:Name="ShowManifestPreInstallButton"
-                    Grid.Row="2"
                     Margin="30,5"
                     FontSize="20"
                     Style="{StaticResource LargeButtonStyle}"
@@ -293,31 +272,27 @@
                             <ColumnDefinition Width="30" />
                             <ColumnDefinition Width="82" />
                         </Grid.ColumnDefinitions>
-                        <icon:PackIconOcticons
-                            Grid.Column="0"
+                        <icon:PackIconOcticons Grid.Column="0"
                             Width="30"
                             Height="30"
                             VerticalAlignment="Center"
                             Kind="Checklist" />
-                        <TextBlock
-                            Grid.Column="1"
+                        <TextBlock Grid.Column="1"
                             Margin="10,0,0,0"
                             VerticalAlignment="Center"
                             Text="Manifest" />
                     </Grid>
                 </Button>
             </Grid>
-            <Grid
+            <Grid Grid.Column="2"
                 x:Name="InstallationConfigurationView"
-                Grid.Column="2"
                 Background="{StaticResource WindowBackgroundBrush}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Grid
-                    Grid.Column="0"
+                <Grid Grid.Column="0"
                     Margin="5"
                     VerticalAlignment="Center"
                     Background="Transparent">
@@ -333,26 +308,19 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
                     <Rectangle x:Name="InstallConfigSpacer" Grid.Row="0" />
-                    <TextBlock
-                        Grid.Row="1"
-                        Grid.Column="0"
+                    <TextBlock Grid.Row="1" Grid.Column="0"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Center"
                         FontSize="14"
                         Text="Target Modlist"
                         TextAlignment="Center" />
-                    <local:FilePicker
+                    <local:FilePicker Grid.Row="1" Grid.Column="2"
                         x:Name="ModListLocationPicker"
-                        Grid.Row="1"
-                        Grid.Column="2"
                         Height="30"
                         VerticalAlignment="Center"
                         FontSize="14" />
-                    <ContentPresenter
+                    <ContentPresenter Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3"
                         x:Name="InstallerCustomizationContent"
-                        Grid.Row="3"
-                        Grid.Column="0"
-                        Grid.ColumnSpan="3"
                         VerticalAlignment="Top">
                         <ContentPresenter.Resources>
                             <DataTemplate DataType="{x:Type local:MO2InstallerVM}">
@@ -376,17 +344,15 @@
                         </ContentPresenter.Style>
                     </ContentPresenter>
                 </Grid>
-                <local:BeginButton
+                <local:BeginButton Grid.Column="2"
                     x:Name="BeginButton"
-                    Grid.Column="2"
                     Margin="0,0,25,0"
                     HorizontalAlignment="Right"
                     VerticalAlignment="Center" />
             </Grid>
         </Grid>
-        <Grid
+        <Grid Grid.Row="2"
             x:Name="MidInstallDisplayGrid"
-            Grid.Row="2"
             Margin="5,0,5,5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="4*" />
@@ -394,13 +360,11 @@
                 <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
             <local:LogView x:Name="LogView" Grid.Column="0" />
-            <local:CpuView
+            <local:CpuView Grid.Column="2"
                 x:Name="CpuView"
-                Grid.Column="2"
                 ViewModel="{Binding}" />
-            <local:AttentionBorder
+            <local:AttentionBorder Grid.Column="2"
                 x:Name="UserInterventionsControl"
-                Grid.Column="2"
                 Content="{Binding ActiveGlobalUserIntervention}">
                 <local:AttentionBorder.Resources>
                     <DataTemplate DataType="{x:Type common:ConfirmationIntervention}">
@@ -411,9 +375,8 @@
                     </DataTemplate>
                 </local:AttentionBorder.Resources>
             </local:AttentionBorder>
-            <local:InstallationCompleteView
+            <local:InstallationCompleteView Grid.Column="2"
                 x:Name="InstallComplete"
-                Grid.Column="2"
                 ViewModel="{Binding}" />
         </Grid>
     </Grid>

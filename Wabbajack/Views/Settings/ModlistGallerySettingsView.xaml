@@ -32,20 +32,15 @@
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
+            <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
                 FontFamily="Lucida Sans"
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Misc Settings" />
-            <Grid
-                Grid.Row="2"
-                Grid.Column="0"
-                Grid.ColumnSpan="3">
+            <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3">
                 <Grid.RowDefinitions>
-                    <RowDefinition></RowDefinition>
-                    <RowDefinition></RowDefinition>
+                    <RowDefinition />
+                    <RowDefinition />
                 </Grid.RowDefinitions>
                 <Grid.Resources>
                     <Style BasedOn="{StaticResource MainButtonStyle}" TargetType="Button">
@@ -58,12 +53,20 @@
                         </Style.Triggers>
                     </Style>
                 </Grid.Resources>
-                <CheckBox Name="FilterPersistCheckBox" Content="Gallery filters are saved on exit" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top" Grid.Row = "0">
+                <CheckBox Grid.Row="0"
+                    Name="FilterPersistCheckBox"
+                    Margin="0,5,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Content="Gallery filters are saved on exit">
                     <CheckBox.LayoutTransform>
                         <ScaleTransform ScaleX="1.2" ScaleY="1.2" />
                     </CheckBox.LayoutTransform>
                 </CheckBox>
-                <Button Name="ClearCefCache" Content="Clear In-App Browser Cache" Margin="0,5,0,0" Grid.Row="1"></Button>
+                <Button Grid.Row="1"
+                    Name="ClearCefCache"
+                    Margin="0,5,0,0"
+                    Content="Clear In-App Browser Cache" />
             </Grid>
         </Grid>
     </Border>

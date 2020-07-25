@@ -269,15 +269,11 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <Rectangle
+                        <Rectangle Grid.Row="1" Grid.Column="1"
                             x:Name="Corner"
-                            Grid.Row="1"
-                            Grid.Column="1"
                             Fill="{TemplateBinding Background}" />
-                        <ScrollContentPresenter
+                        <ScrollContentPresenter Grid.Row="0" Grid.Column="0"
                             x:Name="PART_ScrollContentPresenter"
-                            Grid.Row="0"
-                            Grid.Column="0"
                             Margin="{TemplateBinding Padding}"
                             CanContentScroll="{TemplateBinding CanContentScroll}"
                             CanHorizontallyScroll="False"
@@ -285,10 +281,8 @@
                             Content="{TemplateBinding Content}"
                             ContentTemplate="{TemplateBinding ContentTemplate}"
                             Focusable="False" />
-                        <ScrollBar
+                        <ScrollBar Grid.Row="0" Grid.Column="1"
                             x:Name="PART_VerticalScrollBar"
-                            Grid.Row="0"
-                            Grid.Column="1"
                             AutomationProperties.AutomationId="VerticalScrollBar"
                             Cursor="Arrow"
                             Maximum="{TemplateBinding ScrollableHeight}"
@@ -297,10 +291,8 @@
                             ViewportSize="{TemplateBinding ViewportHeight}"
                             Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
                             Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" />
-                        <ScrollBar
+                        <ScrollBar Grid.Row="1" Grid.Column="0"
                             x:Name="PART_HorizontalScrollBar"
-                            Grid.Row="1"
-                            Grid.Column="0"
                             AutomationProperties.AutomationId="HorizontalScrollBar"
                             Cursor="Arrow"
                             Maximum="{TemplateBinding ScrollableWidth}"
@@ -465,9 +457,8 @@
                             Command="{x:Static ScrollBar.LineUpCommand}"
                             IsEnabled="{TemplateBinding IsMouseOver}"
                             Style="{StaticResource RepeatButtonUpStyle}" />
-                        <Track
+                        <Track Grid.Row="1"
                             x:Name="PART_Track"
-                            Grid.Row="1"
                             IsDirectionReversed="true"
                             IsEnabled="{TemplateBinding IsMouseOver}">
                             <Track.DecreaseRepeatButton>
@@ -480,8 +471,7 @@
                                 <Thumb Style="{StaticResource ScrollBarThumb}" />
                             </Track.Thumb>
                         </Track>
-                        <RepeatButton
-                            Grid.Row="2"
+                        <RepeatButton Grid.Row="2"
                             Command="{x:Static ScrollBar.LineDownCommand}"
                             IsEnabled="{TemplateBinding IsMouseOver}"
                             Style="{DynamicResource RepeatButtonDownStyle}" />
@@ -517,9 +507,8 @@
                                     Command="{x:Static ScrollBar.LineLeftCommand}"
                                     IsEnabled="{TemplateBinding IsMouseOver}"
                                     Style="{StaticResource RepeatButtonUpStyle}" />
-                                <Track
+                                <Track Grid.Column="1"
                                     x:Name="PART_Track"
-                                    Grid.Column="1"
                                     IsEnabled="{TemplateBinding IsMouseOver}">
                                     <Track.DecreaseRepeatButton>
                                         <RepeatButton Command="{x:Static ScrollBar.PageLeftCommand}" Style="{StaticResource HorizontalScrollBarPageButton}" />
@@ -531,8 +520,7 @@
                                         <Thumb Style="{StaticResource ScrollBarThumb}" />
                                     </Track.Thumb>
                                 </Track>
-                                <RepeatButton
-                                    Grid.Column="2"
+                                <RepeatButton Grid.Column="2"
                                     Command="{x:Static ScrollBar.LineRightCommand}"
                                     IsEnabled="{TemplateBinding IsMouseOver}"
                                     Style="{StaticResource RepeatButtonUpStyle}" />
@@ -578,9 +566,8 @@
                                     Command="{x:Static ScrollBar.LineLeftCommand}"
                                     IsEnabled="{TemplateBinding IsMouseOver}"
                                     Style="{DynamicResource RepeatLeftButtonStyle}" />
-                                <Track
+                                <Track Grid.Column="1"
                                     x:Name="PART_Track"
-                                    Grid.Column="1"
                                     IsEnabled="{TemplateBinding IsMouseOver}">
                                     <Track.DecreaseRepeatButton>
                                         <RepeatButton Command="{x:Static ScrollBar.PageLeftCommand}" Style="{StaticResource HorizontalScrollBarPageButton}" />
@@ -592,8 +579,7 @@
                                         <Thumb Style="{DynamicResource HorisontalThumbStyle}" />
                                     </Track.Thumb>
                                 </Track>
-                                <RepeatButton
-                                    Grid.Column="2"
+                                <RepeatButton Grid.Column="2"
                                     Command="{x:Static ScrollBar.LineRightCommand}"
                                     IsEnabled="{TemplateBinding IsMouseOver}"
                                     Style="{DynamicResource RepeatRightButtonStyle}" />
@@ -748,10 +734,8 @@
                                 x:Name="PART_ContentHost"
                                 Padding="{TemplateBinding Padding}"
                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                            <TextBlock
+                            <TextBlock Grid.Row="1" Grid.Column="0"
                                 x:Name="PART_Message"
-                                Grid.Row="1"
-                                Grid.Column="0"
                                 Padding="{TemplateBinding Padding}"
                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
@@ -918,9 +902,8 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Popup
+            <Popup Grid.ColumnSpan="2"
                 x:Name="PART_Popup"
-                Grid.ColumnSpan="2"
                 Margin="1"
                 AllowsTransparency="true"
                 IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
@@ -958,16 +941,14 @@
                     </Border>
                 </Border>
             </Popup>
-            <Border
+            <Border Grid.ColumnSpan="2"
                 x:Name="Border"
-                Grid.ColumnSpan="2"
                 Background="{TemplateBinding Background}"
                 BorderBrush="{TemplateBinding Background}"
                 BorderThickness="{TemplateBinding BorderThickness}"
                 CornerRadius="3" />
             <TextBox x:Name="PART_EditableTextBox" />
-            <ToggleButton
-                Grid.Column="1"
+            <ToggleButton Grid.Column="1"
                 IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                 Style="{StaticResource ComboBoxReadonlyToggleButton}" />
         </Grid>
@@ -1017,9 +998,8 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" MinWidth="18" />
                         </Grid.ColumnDefinitions>
-                        <Popup
+                        <Popup Grid.ColumnSpan="2"
                             x:Name="PART_Popup"
-                            Grid.ColumnSpan="2"
                             Margin="1"
                             AllowsTransparency="true"
                             IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}"
@@ -1057,8 +1037,7 @@
                                 </Border>
                             </Border>
                         </Popup>
-                        <ToggleButton
-                            Grid.ColumnSpan="2"
+                        <ToggleButton Grid.ColumnSpan="2"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
@@ -1452,8 +1431,7 @@
                                     Stroke="{StaticResource Expander.Static.Arrow.Stroke}"
                                     StrokeThickness="2" />
                             </Grid>
-                            <ContentPresenter
-                                Grid.Row="1"
+                            <ContentPresenter Grid.Row="1"
                                 Margin="0,4,0,0"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Top"
@@ -1505,8 +1483,7 @@
                                     Stroke="{StaticResource Expander.Static.Arrow.Stroke}"
                                     StrokeThickness="2" />
                             </Grid>
-                            <ContentPresenter
-                                Grid.Column="1"
+                            <ContentPresenter Grid.Column="1"
                                 Margin="4,0,0,0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
@@ -1558,8 +1535,7 @@
                                     Stroke="{StaticResource Expander.Static.Arrow.Stroke}"
                                     StrokeThickness="2" />
                             </Grid>
-                            <ContentPresenter
-                                Grid.Row="1"
+                            <ContentPresenter Grid.Row="1"
                                 Margin="0,4,0,0"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Top"
@@ -1616,8 +1592,7 @@
                                 SnapsToDevicePixels="false"
                                 Stroke="{StaticResource Expander.Static.Arrow.Stroke}"
                                 StrokeThickness="2" />
-                            <ContentPresenter
-                                Grid.Column="1"
+                            <ContentPresenter Grid.Column="1"
                                 Margin="4,0,0,0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
@@ -1727,9 +1702,8 @@
                                 <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Path
+                            <Path Grid.ColumnSpan="2"
                                 x:Name="arrow"
-                                Grid.ColumnSpan="2"
                                 Width="8"
                                 Height="4.5"
                                 Margin="2.068,6.27,0,0"
@@ -1748,8 +1722,7 @@
                                     </TransformGroup>
                                 </Path.RenderTransform>
                             </Path>
-                            <ContentPresenter
-                                Grid.Column="1"
+                            <ContentPresenter Grid.Column="1"
                                 Margin="4,0,0,0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
@@ -2157,16 +2130,14 @@
                                     <ColumnDefinition Width="15" />
                                     <ColumnDefinition />
                                 </Grid.ColumnDefinitions>
-                                <ToggleButton
+                                <ToggleButton Grid.Column="0"
                                     x:Name="Expander"
-                                    Grid.Column="0"
                                     ClickMode="Press"
                                     IsChecked="{Binding Path=IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
                                     Style="{DynamicResource TreeViewToggleButtonStyle}" />
 
-                                <ContentPresenter
+                                <ContentPresenter Grid.Column="1"
                                     x:Name="PART_Header"
-                                    Grid.Column="1"
                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                     ContentSource="Header" />
                             </Grid>
@@ -2233,9 +2204,8 @@
                                 <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Path
+                            <Path Grid.ColumnSpan="2"
                                 x:Name="arrow"
-                                Grid.ColumnSpan="2"
                                 Width="8"
                                 Height="4.5"
                                 Margin="2.068,6.27,0,0"
@@ -2254,8 +2224,7 @@
                                     </TransformGroup>
                                 </Path.RenderTransform>
                             </Path>
-                            <ContentPresenter
-                                Grid.Column="1"
+                            <ContentPresenter Grid.Column="1"
                                 Margin="4,0,0,0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
@@ -2311,9 +2280,8 @@
                                 <ColumnDefinition Width="8" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Path
+                            <Path Grid.ColumnSpan="2"
                                 x:Name="arrow"
-                                Grid.ColumnSpan="2"
                                 Width="8"
                                 Height="4.5"
                                 Margin="2.068,6.27,0,0"
@@ -2332,8 +2300,7 @@
                                     </TransformGroup>
                                 </Path.RenderTransform>
                             </Path>
-                            <ContentPresenter
-                                Grid.Column="1"
+                            <ContentPresenter Grid.Column="1"
                                 Margin="4,0,0,0"
                                 HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
@@ -2504,15 +2471,13 @@
                         FlowDirection="LeftToRight"
                         Stretch="Fill" />
                 </Border>
-                <ContentPresenter
+                <ContentPresenter Grid.Column="2"
                     x:Name="Content"
-                    Grid.Column="2"
                     Margin="{TemplateBinding Padding}"
                     ContentSource="Header"
                     RecognizesAccessKey="True"
                     SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                <TextBlock
-                    Grid.Column="4"
+                <TextBlock Grid.Column="4"
                     Margin="{TemplateBinding Padding}"
                     Text="{TemplateBinding InputGestureText}" />
             </Grid>
@@ -2588,9 +2553,7 @@
                         <Border Grid.Row="1" Grid.Column="0">
                             <ScrollContentPresenter Margin="{TemplateBinding Padding}" CanContentScroll="{TemplateBinding CanContentScroll}" />
                         </Border>
-                        <RepeatButton
-                            Grid.Row="0"
-                            Grid.Column="0"
+                        <RepeatButton Grid.Row="0" Grid.Column="0"
                             Command="{x:Static ScrollBar.LineUpCommand}"
                             CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
                             Focusable="false"
@@ -2611,9 +2574,7 @@
                                 Data="{StaticResource MenuScrollUpArrowGeometry}"
                                 Fill="{StaticResource ForegroundBrush}" />
                         </RepeatButton>
-                        <RepeatButton
-                            Grid.Row="2"
-                            Grid.Column="0"
+                        <RepeatButton Grid.Row="2" Grid.Column="0"
                             Command="{x:Static ScrollBar.LineDownCommand}"
                             CommandTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
                             Focusable="false"
@@ -2846,21 +2807,18 @@
                         FlowDirection="LeftToRight"
                         Stretch="Fill" />
                 </Border>
-                <ContentPresenter
+                <ContentPresenter Grid.Column="2"
                     x:Name="Content"
-                    Grid.Column="2"
                     Margin="{TemplateBinding Padding}"
                     ContentSource="Header"
                     RecognizesAccessKey="True"
                     SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                <TextBlock
-                    Grid.Column="4"
+                <TextBlock Grid.Column="4"
                     Margin="{TemplateBinding Padding}"
                     Text="{TemplateBinding InputGestureText}"
                     Visibility="Collapsed" />
-                <Path
+                <Path Grid.Column="5"
                     x:Name="RightArrowPath"
-                    Grid.Column="5"
                     Margin="4,0,0,0"
                     VerticalAlignment="Center"
                     Data="{StaticResource RightArrow}"
@@ -3102,11 +3060,7 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="6" />
                         </Grid.RowDefinitions>
-                        <Border
-                            Grid.Row="1"
-                            Grid.RowSpan="3"
-                            Grid.Column="0"
-                            Grid.ColumnSpan="4"
+                        <Border Grid.Row="1" Grid.RowSpan="3" Grid.Column="0" Grid.ColumnSpan="4"
                             Background="{TemplateBinding Background}"
                             BorderBrush="Transparent"
                             BorderThickness="{TemplateBinding BorderThickness}"
@@ -3131,21 +3085,15 @@
 											CornerRadius="4"/>-->
                             </Border>
                         </Border>
-                        <Border
+                        <Border Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
                             x:Name="Header"
-                            Grid.Row="0"
-                            Grid.RowSpan="2"
-                            Grid.Column="1"
                             Padding="3,1,3,0">
                             <ContentPresenter
                                 ContentSource="Header"
                                 RecognizesAccessKey="True"
                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                         </Border>
-                        <ContentPresenter
-                            Grid.Row="2"
-                            Grid.Column="1"
-                            Grid.ColumnSpan="2"
+                        <ContentPresenter Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
                             Margin="{TemplateBinding Padding}"
                             SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                     </Grid>
@@ -3235,19 +3183,14 @@
                                             Style="{DynamicResource {ComponentResourceKey ResourceId=DataGridSelectAllButtonStyle,
                                                                                           TypeInTargetAssembly={x:Type DataGrid}}}"
                                             Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.All}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
-                                        <DataGridColumnHeadersPresenter
+                                        <DataGridColumnHeadersPresenter Grid.Column="1"
                                             x:Name="PART_ColumnHeadersPresenter"
-                                            Grid.Column="1"
                                             Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Column}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
-                                        <ScrollContentPresenter
+                                        <ScrollContentPresenter Grid.Row="1" Grid.ColumnSpan="2"
                                             x:Name="PART_ScrollContentPresenter"
-                                            Grid.Row="1"
-                                            Grid.ColumnSpan="2"
                                             CanContentScroll="{TemplateBinding CanContentScroll}" />
-                                        <ScrollBar
+                                        <ScrollBar Grid.Row="1" Grid.Column="2"
                                             x:Name="PART_VerticalScrollBar"
-                                            Grid.Row="1"
-                                            Grid.Column="2"
                                             Maximum="{TemplateBinding ScrollableHeight}"
                                             Orientation="Vertical"
                                             Style="{StaticResource VerticalScrollBarStyle}"
@@ -3259,9 +3202,8 @@
                                                 <ColumnDefinition Width="{Binding NonFrozenColumnsViewportHorizontalOffset, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
                                                 <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
-                                            <ScrollBar
+                                            <ScrollBar Grid.Column="1"
                                                 x:Name="PART_HorizontalScrollBar"
-                                                Grid.Column="1"
                                                 Maximum="{TemplateBinding ScrollableWidth}"
                                                 Orientation="Horizontal"
                                                 Style="{StaticResource HorisontalScrollBarStyle}"
@@ -3384,17 +3326,13 @@
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="Auto" />
                             </SelectiveScrollingGrid.RowDefinitions>
-                            <DataGridCellsPresenter
-                                Grid.Column="1"
+                            <DataGridCellsPresenter Grid.Column="1"
                                 ItemsPanel="{TemplateBinding ItemsPanel}"
                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                            <DataGridDetailsPresenter
-                                Grid.Row="1"
-                                Grid.Column="1"
+                            <DataGridDetailsPresenter Grid.Row="1" Grid.Column="1"
                                 SelectiveScrollingGrid.SelectiveScrollingOrientation="{Binding AreRowDetailsFrozen, ConverterParameter={x:Static SelectiveScrollingOrientation.Vertical}, Converter={x:Static DataGrid.RowDetailsScrollingConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
                                 Visibility="{TemplateBinding DetailsVisibility}" />
-                            <DataGridRowHeader
-                                Grid.RowSpan="2"
+                            <DataGridRowHeader Grid.RowSpan="2"
                                 SelectiveScrollingGrid.SelectiveScrollingOrientation="Vertical"
                                 Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.Row}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" />
                         </SelectiveScrollingGrid>

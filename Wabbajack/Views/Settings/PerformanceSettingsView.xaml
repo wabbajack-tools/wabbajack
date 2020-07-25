@@ -32,17 +32,12 @@
                 <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
+            <TextBlock Grid.Column="0" Grid.ColumnSpan="2"
                 FontFamily="Lucida Sans"
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Performance" />
-            <Grid
-                Grid.Row="2"
-                Grid.Column="0"
-                Grid.ColumnSpan="3"
+            <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
                 Height="25"
                 Margin="0,0,0,10">
                 <Grid.Resources>
@@ -61,43 +56,33 @@
                     <ColumnDefinition Width="5" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Button
+                <Button Grid.Column="0"
                     x:Name="ManualButton"
-                    Grid.Column="0"
                     Content="Manual"
                     ToolTip="Control the number of cores by setting the max limit manually" />
-                <Button
+                <Button Grid.Column="2"
                     x:Name="AutoButton"
-                    Grid.Column="2"
                     Content="Auto"
                     ToolTip="Control the number of cores by scaling it to a percentage of what WJ would use at full speed" />
             </Grid>
-            <TextBlock
+            <TextBlock Grid.Row="3" Grid.Column="0"
                 x:Name="MaxCoresLabel"
-                Grid.Row="3"
-                Grid.Column="0"
                 VerticalAlignment="Center"
                 Text="Max Cores" />
-            <xwpf:IntegerUpDown
+            <xwpf:IntegerUpDown Grid.Row="3" Grid.Column="2"
                 x:Name="MaxCoresSpinner"
-                Grid.Row="3"
-                Grid.Column="2"
                 MinWidth="75"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
                 Foreground="White"
                 Maximum="255"
                 Minimum="1" />
-            <TextBlock
+            <TextBlock Grid.Row="3" Grid.Column="0"
                 x:Name="TargetUsageLabel"
-                Grid.Row="3"
-                Grid.Column="0"
                 VerticalAlignment="Center"
                 Text="Target Percent Usage" />
-            <xwpf:DoubleUpDown
+            <xwpf:DoubleUpDown Grid.Row="3" Grid.Column="2"
                 x:Name="TargetUsageSpinner"
-                Grid.Row="3"
-                Grid.Column="2"
                 MinWidth="75"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
@@ -106,11 +91,8 @@
                 Increment="0.1"
                 Maximum="1"
                 Minimum="0.1" />
-            <Slider
+            <Slider Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3"
                 x:Name="TargetUsageSlider"
-                Grid.Row="4"
-                Grid.Column="0"
-                Grid.ColumnSpan="3"
                 IsSnapToTickEnabled="True"
                 LargeChange="0.1"
                 Maximum="1"

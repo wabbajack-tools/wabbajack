@@ -17,10 +17,8 @@
             <RowDefinition Height="1*" />
             <RowDefinition Height="15" />
         </Grid.RowDefinitions>
-        <Viewbox
+        <Viewbox Grid.Row="0" Grid.RowSpan="3"
             Name="Banner"
-            Grid.Row="0"
-            Grid.RowSpan="3"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Stretch="UniformToFill">
@@ -40,10 +38,8 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Button
+            <Button Grid.Row="1" Grid.Column="0"
                 x:Name="BrowseButton"
-                Grid.Row="1"
-                Grid.Column="0"
                 Margin="15,0"
                 Background="Transparent"
                 BorderBrush="Transparent"
@@ -176,8 +172,7 @@
                             </icon:PackIconFontAwesome>
                         </Grid>
                     </Viewbox>
-                    <TextBlock
-                        Grid.Row="2"
+                    <TextBlock Grid.Row="2"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Top"
                         FontSize="25"
@@ -195,10 +190,8 @@
                     </TextBlock>
                 </Grid>
             </Button>
-            <Button
+            <Button Grid.Row="1" Grid.Column="1"
                 x:Name="InstallButton"
-                Grid.Row="1"
-                Grid.Column="1"
                 Margin="15,0"
                 Background="Transparent"
                 BorderBrush="Transparent"
@@ -331,8 +324,7 @@
                             </icon:PackIconFontAwesome>
                         </Grid>
                     </Viewbox>
-                    <TextBlock
-                        Grid.Row="2"
+                    <TextBlock Grid.Row="2"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Top"
                         FontSize="25"
@@ -350,13 +342,11 @@
                     </TextBlock>
                 </Grid>
             </Button>
-            <Button
-                Grid.Row="1"
-                Grid.Column="2"
+            <Button Grid.Row="1" Grid.Column="2"
+                x:Name="CompileButton"
                 Margin="15,0"
                 Background="Transparent"
                 BorderBrush="Transparent"
-                x:Name="CompileButton"
                 ClipToBounds="False">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
@@ -486,8 +476,7 @@
                             </icon:PackIconFontAwesome>
                         </Grid>
                     </Viewbox>
-                    <TextBlock
-                        Grid.Row="2"
+                    <TextBlock Grid.Row="2"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Top"
                         FontSize="25"
@@ -506,10 +495,7 @@
                 </Grid>
             </Button>
         </Grid>
-        <local:LinksView
-            Grid.Row="0"
-            Grid.RowSpan="3"
-            Grid.Column="0"
+        <local:LinksView Grid.Row="0" Grid.RowSpan="3" Grid.Column="0"
             Margin="10"
             HorizontalAlignment="Right"
             VerticalAlignment="Top" />

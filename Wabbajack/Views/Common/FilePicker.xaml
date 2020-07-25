@@ -15,15 +15,12 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="36" />
         </Grid.ColumnDefinitions>
-        <Border
+        <Border Grid.Column="0" Grid.ColumnSpan="2"
             x:Name="BackgroundCornerFillIn"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
             Margin="0,0,5,0"
             Background="{StaticResource TextBoxBackground}"
             CornerRadius="3" />
-        <TextBox
-            Grid.Column="0"
+        <TextBox Grid.Column="0"
             Margin="5,1,-2,1"
             VerticalContentAlignment="Center"
             Background="{StaticResource DarkBackgroundBrush}"

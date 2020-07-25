@@ -38,9 +38,8 @@
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Logins" />
-            <ItemsControl
+            <ItemsControl Grid.Row="1"
                 x:Name="DownloadersList"
-                Grid.Row="1"
                 Margin="5"
                 Background="{StaticResource BackgroundBrush}">
                 <ItemsControl.ItemTemplate>
