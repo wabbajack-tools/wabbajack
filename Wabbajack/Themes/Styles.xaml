@@ -39,6 +39,7 @@
     <Color x:Key="Yellow">#ffc400</Color>
     <Color x:Key="Red">#e83a40</Color>
     <Color x:Key="Green">#52b545</Color>
+    <Color x:Key="YellowDark">#967400</Color>
 
     <Color x:Key="Primary">#BB86FC</Color>
     <Color x:Key="PrimaryTransparent">#00BB86FC</Color>
@@ -101,6 +102,7 @@
     <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource Green}" />
     <SolidColorBrush x:Key="RedBrush" Color="{StaticResource Red}" />
     <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Yellow}" />
+    <SolidColorBrush x:Key="WarningDarkBrush" Color="{StaticResource YellowDark}" />
     <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource Red}" />
 
     <SolidColorBrush x:Key="DarkBackgroundBrush" Color="{StaticResource DarkBackgroundColor}" />
