@@ -57,35 +57,22 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Rectangle
-            Grid.Row="0"
-            Grid.RowSpan="4"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
+        <Rectangle Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
             Fill="{StaticResource WindowBackgroundBrush}" />
-        <Viewbox
-            Grid.Row="0"
-            Grid.RowSpan="4"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
+        <Viewbox Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Stretch="UniformToFill">
             <Image x:Name="ModlistImage" />
         </Viewbox>
-        <Image x:Name="BadgeImage"
-            Grid.Row="0"
-            Grid.RowSpan="4"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
+        <Image Grid.Row="0" Grid.RowSpan="4" Grid.Column="0" Grid.ColumnSpan="2"
+            x:Name="BadgeImage"
             Width="60"
             Height="60"
             HorizontalAlignment="Left"
             VerticalAlignment="Top" />
-        <TextBlock
+        <TextBlock Grid.Row="2" Grid.Column="0"
             x:Name="TitleTextShadow"
-            Grid.Row="2"
-            Grid.Column="0"
             Margin="-20,5,-20,-20"
             Padding="40,20"
             HorizontalAlignment="Left"
@@ -99,10 +86,8 @@
                 <BlurEffect Radius="85" />
             </TextBlock.Effect>
         </TextBlock>
-        <TextBlock
+        <TextBlock Grid.Row="3" Grid.Column="0"
             x:Name="AuthorTextShadow"
-            Grid.Row="3"
-            Grid.Column="0"
             Margin="35,-10,-10,10"
             Padding="30,10"
             HorizontalAlignment="Left"
@@ -117,9 +102,8 @@
             <Run FontSize="15" Text="by" />
             <Run x:Name="AuthorShadowTextRun" />
         </TextBlock>
-        <TextBlock x:Name="TitleTextBlock"
-            Grid.Row="2"
-            Grid.Column="0"
+        <TextBlock Grid.Row="2" Grid.Column="0"
+            x:Name="TitleTextBlock"
             Margin="20,25,20,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Bottom"
@@ -131,9 +115,8 @@
                 <DropShadowEffect />
             </TextBlock.Effect>
         </TextBlock>
-        <TextBlock x:Name="AuthorTextBlock"
-            Grid.Row="3"
-            Grid.Column="0"
+        <TextBlock Grid.Row="3" Grid.Column="0"
+            x:Name="AuthorTextBlock"
             Margin="55,0,20,20"
             FontFamily="Lucida Sans"
             FontSize="30"
@@ -145,11 +128,8 @@
             <Run FontSize="15" Text="by" />
             <Run x:Name="AuthorTextRun" />
         </TextBlock>
-        <TextBlock
+        <TextBlock Grid.Row="2" Grid.RowSpan="2" Grid.Column="1"
             x:Name="DescriptionTextShadow"
-            Grid.Row="2"
-            Grid.RowSpan="2"
-            Grid.Column="1"
             Margin="-10,15,-5,15"
             Padding="30,10"
             HorizontalAlignment="Right"
@@ -163,10 +143,8 @@
                 <BlurEffect Radius="55" />
             </TextBlock.Effect>
         </TextBlock>
-        <TextBlock x:Name="DescriptionTextBlock"
-            Grid.Row="2"
-            Grid.RowSpan="2"
-            Grid.Column="1"
+        <TextBlock Grid.Row="2" Grid.RowSpan="2" Grid.Column="1"
+            x:Name="DescriptionTextBlock"
             Margin="20,25,25,25"
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
@@ -178,12 +156,8 @@
                 <DropShadowEffect />
             </TextBlock.Effect>
         </TextBlock>
-        <Rectangle
+        <Rectangle Grid.Row="2" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2"
             x:Name="TextHoverTrigger"
-            Grid.Row="2"
-            Grid.RowSpan="2"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
             Fill="Transparent" />
     </Grid>
 </local:UserControlRx>

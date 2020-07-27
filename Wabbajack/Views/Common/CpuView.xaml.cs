@@ -64,7 +64,12 @@ namespace Wabbajack
                     .BindToStrict(this, x => x.CpuListControl.ItemsSource)
                     .DisposeWith(disposable);
 
-                this.Bind(this.ViewModel, x => x.MWVM.Settings.Performance.TargetUsage, x => x.TargetPercentageSlider.Value)
+                this.BindStrict(
+                        this.ViewModel,
+                        x => x.MWVM.Settings.Performance.TargetUsage,
+                        x => x.TargetPercentageSlider.Value,
+                        vmToViewConverter: p => p.Value,
+                        viewToVmConverter: d => new Percent(d))
                     .DisposeWith(disposable);
 
                 this.WhenAny(x => x.ViewModel.MWVM.Settings.Performance.TargetUsage)

@@ -12,34 +12,29 @@
     mc:Ignorable="d">
     <Grid Height="30" Margin="5">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="32"/>
+            <ColumnDefinition Width="32" />
             <ColumnDefinition Width="Auto" MinWidth="150" />
             <ColumnDefinition Width="100" />
             <ColumnDefinition Width="100" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Image
-            Margin="4"
+        <Image Grid.Column="0"
             x:Name="Favicon"
-            Grid.Column="0"
-            VerticalAlignment="Center"/>
-        <TextBlock
-            x:Name="SiteNameText"
-            Grid.Column="1"
+            Margin="4"
             VerticalAlignment="Center" />
-        <Button
+        <TextBlock Grid.Column="1"
+            x:Name="SiteNameText"
+            VerticalAlignment="Center" />
+        <Button Grid.Column="2"
             x:Name="LoginButton"
-            Grid.Column="2"
             Margin="5"
             Content="Login" />
-        <Button
+        <Button Grid.Column="3"
             x:Name="LogoutButton"
-            Grid.Column="3"
             Margin="5"
             Content="Logout" />
-        <TextBlock
+        <TextBlock Grid.Column="4"
             x:Name="MetaText"
-            Grid.Column="4"
             FontSize="14" />
     </Grid>
 </rxui:ReactiveUserControl>

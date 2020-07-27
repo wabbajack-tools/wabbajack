@@ -28,17 +28,10 @@
             <ColumnDefinition Width="5*" />
             <ColumnDefinition Width="5" />
         </Grid.ColumnDefinitions>
-        <local:HeatedBackgroundView
-            x:Name="HeatedBackground"
-            Grid.Row="0"
-            Grid.RowSpan="3"
-            Grid.Column="0"
-            Grid.ColumnSpan="5" />
-        <Border
+        <local:HeatedBackgroundView Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Grid.ColumnSpan="5"
+            x:Name="HeatedBackground" />
+        <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
             x:Name="ModlistDetailsBackground"
-            Grid.Row="1"
-            Grid.Column="1"
-            Grid.ColumnSpan="2"
             Margin="1,1,5,0"
             Background="{StaticResource WindowBackgroundBrush}"
             BorderThickness="0,0,1,1">
@@ -49,34 +42,22 @@
                 </LinearGradientBrush>
             </Border.BorderBrush>
         </Border>
-        <Border
+        <Border Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2"
             x:Name="ModlistDetailsHeatBorder"
-            Grid.Row="1"
-            Grid.Column="1"
-            Grid.ColumnSpan="2"
             Margin="1,1,5,0"
             BorderBrush="{StaticResource HeatedBorderBrush}"
             BorderThickness="1" />
-        <Border
-            Grid.Row="1"
-            Grid.Column="3"
+        <Border Grid.Row="1" Grid.Column="3"
             BorderBrush="{StaticResource BorderInterestBrush}"
             BorderThickness="1,0,1,1">
             <local:DetailImageView x:Name="DetailImage" BorderThickness="0" />
         </Border>
         <!--  Comes after image area so shadow can overlay  -->
-        <local:TopProgressView
+        <local:TopProgressView Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="5"
             x:Name="TopProgressBar"
-            Grid.Row="0"
-            Grid.RowSpan="2"
-            Grid.Column="0"
-            Grid.ColumnSpan="5"
             OverhangShadow="True" />
-        <Button
+        <Button Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5"
             x:Name="BackButton"
-            Grid.Row="0"
-            Grid.Column="0"
-            Grid.ColumnSpan="5"
             Width="30"
             Height="30"
             Margin="12,5,0,0"
@@ -86,10 +67,8 @@
             ToolTip="Back to main menu">
             <icon:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
         </Button>
-        <ScrollViewer
+        <ScrollViewer Grid.Row="1" Grid.Column="1"
             x:Name="SettingsScrollViewer"
-            Grid.Row="1"
-            Grid.Column="1"
             Margin="5"
             Background="Transparent"
             HorizontalScrollBarVisibility="Disabled"
@@ -122,7 +101,10 @@
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="ModList Name" />
                 <TextBox x:Name="ModListNameSetting" Style="{StaticResource ValueStyle}" />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Version" />
-                <TextBox x:Name="VersionSetting" Style="{StaticResource ValueStyle}" MaxLength="9" />
+                <TextBox
+                    x:Name="VersionSetting"
+                    MaxLength="9"
+                    Style="{StaticResource ValueStyle}" />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Author" />
                 <TextBox x:Name="AuthorNameSetting" Style="{StaticResource ValueStyle}" />
                 <TextBlock Margin="{StaticResource TitleMargin}" Text="Description" />
@@ -146,23 +128,18 @@
                     Margin="{StaticResource TitleMargin}"
                     Text="Readme"
                     ToolTip="Link to the Readme." />
-                <TextBox x:Name="ReadmeSetting" Style="{StaticResource ValueStyle}"/>
-                <CheckBox x:Name="NSFWSetting"
-                          Content="NSFW"
-                          ToolTip="Select this if your Modlist has adult themed content such as SexLab or other mods involving sexual acts. Nude body replacer do not fall under this category neither do revealing outfits or gore."/>
+                <TextBox x:Name="ReadmeSetting" Style="{StaticResource ValueStyle}" />
+                <CheckBox
+                    x:Name="NSFWSetting"
+                    Content="NSFW"
+                    ToolTip="Select this if your Modlist has adult themed content such as SexLab or other mods involving sexual acts. Nude body replacer do not fall under this category neither do revealing outfits or gore." />
             </StackPanel>
         </ScrollViewer>
-        <Border
+        <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
             x:Name="BottomBarBackground"
-            Grid.Row="2"
-            Grid.Column="0"
-            Grid.ColumnSpan="5"
             Margin="5"
             Background="{StaticResource WindowBackgroundBrush}" />
-        <Grid
-            Grid.Row="2"
-            Grid.Column="0"
-            Grid.ColumnSpan="5"
+        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
             MaxWidth="1000">
             <Grid
                 x:Name="BottomCompilerSettingsGrid"
@@ -180,19 +157,15 @@
                     <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Grid
-                    Grid.Row="0"
-                    Grid.RowSpan="5"
-                    Grid.Column="0"
+                <Grid Grid.Row="0" Grid.RowSpan="5" Grid.Column="0"
                     Margin="15"
                     VerticalAlignment="Center">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <local:ImageRadioButtonView
+                    <local:ImageRadioButtonView Grid.Row="0"
                         x:Name="MO2CompilerButton"
-                        Grid.Row="0"
                         Height="35"
                         Margin="4"
                         IsChecked="{Binding SelectedCompilerType, Converter={StaticResource EqualsToBoolConverter}, ConverterParameter={x:Static wabbacommon:ModManager.MO2}}">
@@ -201,28 +174,20 @@
                         </local:ImageRadioButtonView.Image>
                     </local:ImageRadioButtonView>
                 </Grid>
-                <ContentPresenter
-                    x:Name="CustomCompilerSettingsPresenter"
-                    Grid.Row="1"
-                    Grid.Column="1">
+                <ContentPresenter Grid.Row="1" Grid.Column="1"
+                    x:Name="CustomCompilerSettingsPresenter">
                     <ContentPresenter.Resources>
                         <DataTemplate DataType="{x:Type local:MO2CompilerVM}">
                             <local:MO2CompilerConfigView />
                         </DataTemplate>
                     </ContentPresenter.Resources>
                 </ContentPresenter>
-                <local:BeginButton
-                    x:Name="BeginButton"
-                    Grid.Row="0"
-                    Grid.RowSpan="3"
-                    Grid.Column="5" />
+                <local:BeginButton Grid.Row="0" Grid.RowSpan="3" Grid.Column="5"
+                    x:Name="BeginButton" />
             </Grid>
         </Grid>
-        <Grid
+        <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="5"
             x:Name="MidCompilationGrid"
-            Grid.Row="2"
-            Grid.Column="0"
-            Grid.ColumnSpan="5"
             Margin="5">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="4*" />
@@ -230,18 +195,16 @@
                 <ColumnDefinition Width="3*" />
             </Grid.ColumnDefinitions>
             <local:LogView x:Name="LogView" Grid.Column="0" />
-            <local:CpuView
+            <local:CpuView Grid.Column="2"
                 x:Name="CpuView"
-                Grid.Column="2"
                 ViewModel="{Binding}" />
             <local:AttentionBorder x:Name="UserInterventionsControl" Grid.Column="2">
                 <Grid>
                     <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />
                 </Grid>
             </local:AttentionBorder>
-            <local:CompilationCompleteView
+            <local:CompilationCompleteView Grid.Column="2"
                 x:Name="CompilationComplete"
-                Grid.Column="2"
                 ViewModel="{Binding}" />
         </Grid>
     </Grid>

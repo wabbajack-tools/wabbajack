@@ -437,7 +437,7 @@ namespace Wabbajack.Lib
                 return ErrorResponse.Success;
             }
 
-            return ErrorResponse.Fail($"Cannot install to this folder as it has unknown files that could be deleted");
+            return ErrorResponse.Fail($"Either delete everything except the downloads folder, or pick a new location.  Cannot install to this folder as it has unexpected files.");
         }
     }
 }

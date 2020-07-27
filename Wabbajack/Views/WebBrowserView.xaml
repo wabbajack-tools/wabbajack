@@ -1,12 +1,14 @@
-﻿<UserControl x:Class="Wabbajack.WebBrowserView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
-             xmlns:wabbajack="clr-namespace:Wabbajack"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+﻿<UserControl
+    x:Class="Wabbajack.WebBrowserView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:wabbajack="clr-namespace:Wabbajack"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
     <UserControl.Resources>
         <Color x:Key="TextBackgroundFill">#92000000</Color>
         <SolidColorBrush x:Key="TextBackgroundFillBrush" Color="{StaticResource TextBackgroundFill}" />
@@ -46,15 +48,12 @@
             <RowDefinition Height="47" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <wabbajack:TopProgressView
-            Background="#92000000"
+        <wabbajack:TopProgressView Grid.Row="0" Grid.RowSpan="1"
             Title="{Binding Instructions}"
-            Grid.Row="0"
-            Grid.RowSpan="1"
+            Background="#92000000"
             ShadowMargin="False" />
-        <Button
+        <Button Grid.Row="0"
             x:Name="BackButton"
-            Grid.Row="0"
             Width="30"
             Height="30"
             Margin="7,5,0,0"
@@ -65,7 +64,7 @@
             ToolTip="Back to main menu">
             <iconPacks:PackIconMaterial Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" Kind="ArrowLeft" />
         </Button>
-        <!-- Do it this way so we can access the browser directly from the VM -->
-        <ContentControl Grid.Row="1" Content="{Binding Browser}"></ContentControl>
+        <!--  Do it this way so we can access the browser directly from the VM  -->
+        <ContentControl Grid.Row="1" Content="{Binding Browser}" />
     </Grid>
 </UserControl>

@@ -79,10 +79,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Border
-                Grid.Row="0"
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
+            <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                 BorderBrush="{StaticResource ButtonNormalBorder}"
                 BorderThickness="0,0,0,1">
                 <Grid ClipToBounds="True">
@@ -149,33 +146,31 @@
                     <ItemsControl ItemsSource="{Binding ModListTagList}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <WrapPanel/>
+                                <WrapPanel />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border 
-                                    BorderThickness="1" 
-                                    Grid.Row="0" 
-                                    Grid.ColumnSpan="2"
-                                    CornerRadius="7,7,7,7"
-                                    Opacity="0.90"
+                                <Border Grid.Row="0" Grid.ColumnSpan="2"
+                                    Margin="10,5,0,5"
                                     Background="{StaticResource Analogous1Brush}"
-                                    Margin="10,5,0,5">
-                                    <TextBlock 
+                                    BorderThickness="1"
+                                    CornerRadius="7,7,7,7"
+                                    Opacity="0.90">
+                                    <TextBlock
                                         Margin="5,5,5,5"
                                         FontSize="15"
-                                        Text="{Binding Name}"/>
+                                        Text="{Binding Name}" />
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <Label 
-                        Content="{Binding DownloadSizeText}" 
-                        HorizontalAlignment="Left" 
-                        Margin="10,257,0,0" 
+                    <Label
+                        Margin="10,257,0,0"
+                        HorizontalAlignment="Left"
                         VerticalAlignment="Top"
-                        Opacity="0" >
+                        Content="{Binding DownloadSizeText}"
+                        Opacity="0">
                         <Label.Style>
                             <Style TargetType="Label">
                                 <Style.Triggers>
@@ -205,12 +200,12 @@
                             </Style>
                         </Label.Style>
                     </Label>
-                    <Label 
-                        Content="{Binding InstallSizeText}" 
-                        HorizontalAlignment="Left" 
-                        Margin="10,272,0,0" 
+                    <Label
+                        Margin="10,272,0,0"
+                        HorizontalAlignment="Left"
                         VerticalAlignment="Top"
-                        Opacity="0" >
+                        Content="{Binding InstallSizeText}"
+                        Opacity="0">
                         <Label.Style>
                             <Style TargetType="Label">
                                 <Style.Triggers>
@@ -242,17 +237,11 @@
                     </Label>
                 </Grid>
             </Border>
-            <local:UnderMaintenanceOverlay
+            <local:UnderMaintenanceOverlay Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                 x:Name="Overlay"
-                Grid.Row="0"
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
                 Visibility="Collapsed" />
-            <TextBlock
+            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                 x:Name="DescriptionTextShadow"
-                Grid.Row="0"
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
                 Margin="5"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
@@ -265,11 +254,8 @@
                     <BlurEffect Radius="25" />
                 </TextBlock.Effect>
             </TextBlock>
-            <TextBlock
+            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                 x:Name="ModListTitleShadow"
-                Grid.Row="0"
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
                 Margin="5"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
@@ -281,21 +267,16 @@
                     <DropShadowEffect />
                 </TextBlock.Effect>
             </TextBlock>
-            <mahapps:MetroProgressBar
+            <mahapps:MetroProgressBar Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                 x:Name="DownloadProgressBar"
-                Grid.Row="0"
-                Grid.Column="0"
-                Grid.ColumnSpan="2"
                 Height="3"
                 VerticalAlignment="Bottom"
                 Background="{StaticResource BackgroundBrush}"
                 Foreground="{StaticResource SecondaryBrush}"
                 Maximum="1"
                 Visibility="{Binding IsEnabled, ElementName=ExecuteButton, Converter={StaticResource bool2VisibilityHiddenConverter}, ConverterParameter=False}" />
-            <TextBlock
+            <TextBlock Grid.Row="1" Grid.Column="0"
                 x:Name="MetadataDescription"
-                Grid.Row="1"
-                Grid.Column="0"
                 Margin="8,5"
                 VerticalAlignment="Center"
                 FontSize="14"
@@ -305,9 +286,8 @@
                     <RowDefinition Height="*" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <Button
+                <Button Grid.Row="0"
                     x:Name="OpenWebsiteButton"
-                    Grid.Row="0"
                     Width="40"
                     Height="40"
                     Margin="5,0"
@@ -318,9 +298,8 @@
                         Height="20"
                         Kind="Web" />
                 </Button>
-                <Button
+                <Button Grid.Row="1"
                     x:Name="ExecuteButton"
-                    Grid.Row="1"
                     Width="40"
                     Height="40"
                     Margin="5,0"

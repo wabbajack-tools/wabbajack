@@ -26,8 +26,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="2*" />
         </Grid.RowDefinitions>
-        <Rectangle
-            Grid.Row="0"
+        <Rectangle Grid.Row="0"
             Height="65"
             Fill="{StaticResource LinesBrush}">
             <Rectangle.Effect>
@@ -37,24 +36,21 @@
                     ShadowDepth="10" />
             </Rectangle.Effect>
         </Rectangle>
-        <Grid
-            Grid.Row="1"
+        <Grid Grid.Row="1"
             Margin="30"
             Visibility="{Binding ShowHelp, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityConverter}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <TextBlock
-                Grid.Row="0"
+            <TextBlock Grid.Row="0"
                 Margin="0,0,0,10"
                 FontFamily="Lucida Sans"
                 FontSize="30"
                 FontWeight="Bold"
                 Foreground="{StaticResource YellowBrush}"
                 Text="UNDER MAINTENANCE" />
-            <TextBlock
-                Grid.Row="1"
+            <TextBlock Grid.Row="1"
                 FontFamily="Lucida Sans"
                 FontSize="15"
                 FontWeight="Bold"
@@ -62,8 +58,7 @@
                 Text="When mods are updated and the old versions are taken down, Wabbajack can no longer install the modlist for you. &#x0a; &#x0a;Modlist authors need to download the new mod and confirm its correctness before the modlist can be made available again."
                 TextWrapping="WrapWithOverflow" />
         </Grid>
-        <Viewbox
-            Grid.Row="1"
+        <Viewbox Grid.Row="1"
             Margin="20"
             VerticalAlignment="Top"
             Visibility="{Binding ShowHelp, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Converter={StaticResource bool2VisibilityConverter}, ConverterParameter=False}">
@@ -76,8 +71,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <TextBlock
-                    Grid.Row="0"
+                <TextBlock Grid.Row="0"
                     FontFamily="Lucida Sans"
                     FontSize="100"
                     FontWeight="Bold"
@@ -90,8 +84,7 @@
                             ShadowDepth="10" />
                     </TextBlock.Effect>
                 </TextBlock>
-                <Button
-                    Grid.Row="0"
+                <Button Grid.Row="0"
                     Width="45"
                     Height="45"
                     Margin="0,10"
@@ -108,8 +101,7 @@
                         Height="35"
                         Kind="HelpCircle" />
                 </Button>
-                <TextBlock
-                    Grid.Row="1"
+                <TextBlock Grid.Row="1"
                     FontFamily="Lucida Sans"
                     FontSize="100"
                     FontWeight="Bold"

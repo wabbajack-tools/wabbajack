@@ -22,11 +22,8 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBlock
+            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
                 x:Name="TitleText"
-                Grid.Row="0"
-                Grid.Column="0"
-                Grid.ColumnSpan="3"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Bottom"
                 FontFamily="Lucida Sans"
@@ -36,17 +33,14 @@
                     <DropShadowEffect BlurRadius="25" Opacity="0.5" />
                 </TextBlock.Effect>
             </TextBlock>
-            <Grid
-                Grid.Row="1"
-                Grid.Column="0"
+            <Grid Grid.Row="1" Grid.Column="0"
                 VerticalAlignment="Center">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Button
+                <Button Grid.Row="0"
                     x:Name="BackButton"
-                    Grid.Row="0"
                     Width="55"
                     Height="55"
                     Style="{StaticResource CircleButtonStyle}">
@@ -56,15 +50,12 @@
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         Kind="ArrowLeft" />
                 </Button>
-                <TextBlock
-                    Grid.Row="1"
+                <TextBlock Grid.Row="1"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
                     Text="Main Menu" />
             </Grid>
-            <Grid
-                Grid.Row="1"
-                Grid.Column="1"
+            <Grid Grid.Row="1" Grid.Column="1"
                 VerticalAlignment="Center">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -81,15 +72,12 @@
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         Kind="FolderMove" />
                 </Button>
-                <TextBlock
-                    Grid.Row="1"
+                <TextBlock Grid.Row="1"
+                    x:Name="ActionText"
                     Margin="0,10,0,0"
-                    HorizontalAlignment="Center"
-                    x:Name="ActionText" />
+                    HorizontalAlignment="Center" />
             </Grid>
-            <Grid
-                Grid.Row="1"
-                Grid.Column="2"
+            <Grid Grid.Row="1" Grid.Column="2"
                 VerticalAlignment="Center"
                 Background="Transparent">
                 <Grid.RowDefinitions>
@@ -129,8 +117,7 @@
                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}"
                         Kind="Check" />
                 </Button>
-                <TextBlock
-                    Grid.Row="1"
+                <TextBlock Grid.Row="1"
                     Margin="0,10,0,0"
                     HorizontalAlignment="Center"
                     Text="Close" />

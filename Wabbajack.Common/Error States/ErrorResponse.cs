@@ -1,4 +1,5 @@
 ﻿using System;
+using DynamicData.Kernel;
 
 namespace Wabbajack
 {
@@ -85,6 +86,15 @@ namespace Wabbajack
         {
             if (err == null) return Create(nullIsSuccess);
             return new ErrorResponse(err.Succeeded, err.Reason, err.Exception);
+        }
+
+        public static ErrorResponse FirstFail(params ErrorResponse[] responses)
+        {
+            foreach (var resp in responses)
+            {
+                if (resp.Failed) return resp;
+            }
+            return ErrorResponse.Success;
         }
     }
 

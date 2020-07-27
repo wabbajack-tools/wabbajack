@@ -356,7 +356,7 @@ namespace Wabbajack
 
             BeginCommand = ReactiveCommand.CreateFromTask(
                 canExecute: this.WhenAny(x => x.Installer.CanInstall)
-                    .Switch(),
+                    .Select(err => err.Succeeded),
                 execute: async () =>
                 {
                     try

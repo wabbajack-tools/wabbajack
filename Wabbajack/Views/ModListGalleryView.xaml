@@ -18,9 +18,7 @@
             <RowDefinition Height="47" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Rectangle
-            Grid.Row="1"
-            Grid.RowSpan="3"
+        <Rectangle Grid.Row="1" Grid.RowSpan="3"
             Margin="6,0">
             <Rectangle.Fill>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -29,8 +27,7 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
-        <Border
-            Grid.Row="1"
+        <Border Grid.Row="1"
             BorderBrush="Transparent"
             BorderThickness="1,0,1,1">
             <ScrollViewer Background="Transparent" VerticalScrollBarVisibility="Auto">
@@ -52,13 +49,11 @@
                 </ItemsControl>
             </ScrollViewer>
         </Border>
-        <mahapps:ProgressRing
+        <mahapps:ProgressRing Grid.Row="1"
             x:Name="LoadingRing"
-            Grid.Row="1"
             Visibility="Collapsed" />
-        <StackPanel
+        <StackPanel Grid.Row="1"
             x:Name="NoneFound"
-            Grid.Row="1"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Orientation="Vertical"
@@ -75,9 +70,8 @@
                 Foreground="{StaticResource ForegroundBrush}"
                 Text="No Matches" />
         </StackPanel>
-        <iconPacks:PackIconControl
+        <iconPacks:PackIconControl Grid.Row="1"
             x:Name="ErrorIcon"
-            Grid.Row="1"
             Width="55"
             Height="55"
             HorizontalAlignment="Center"
@@ -86,13 +80,10 @@
             Kind="{x:Static iconPacks:PackIconMaterialKind.AlertCircle}"
             ToolTip="Error loading modlist gallery"
             Visibility="Collapsed" />
-        <local:TopProgressView
+        <local:TopProgressView Grid.Row="0" Grid.RowSpan="2"
             Title="Browsing Modlists"
-            Grid.Row="0"
-            Grid.RowSpan="2"
             ShadowMargin="False" />
-        <WrapPanel
-            Grid.Row="0"
+        <WrapPanel Grid.Row="0"
             Height="25"
             Margin="5,5,5,10"
             HorizontalAlignment="Right"
@@ -102,14 +93,14 @@
                 VerticalAlignment="Center"
                 Content="Game" />
             <ComboBox
-                Margin="0,0,10,0" 
+                Width="130"
+                Margin="0,0,10,0"
                 VerticalAlignment="Center"
                 Foreground="{StaticResource ForegroundBrush}"
+                IsEnabled="{Binding OnlyInstalled, Converter={StaticResource InverseBooleanConverter}}"
                 ItemsSource="{Binding Path=GameTypeEntries}"
                 SelectedItem="{Binding GameType, Mode=TwoWay}"
-                ToolTip="Select a game"
-                IsEnabled="{Binding OnlyInstalled, Converter={StaticResource InverseBooleanConverter}}"
-                Width="130" />
+                ToolTip="Select a game" />
             <TextBlock
                 Margin="0,0,5,0"
                 VerticalAlignment="Center"
@@ -124,7 +115,7 @@
                 Margin="10,0,10,0"
                 VerticalAlignment="Center"
                 Content="Show NSFW"
-                Foreground="{StaticResource ForegroundBrush}"/>
+                Foreground="{StaticResource ForegroundBrush}" />
             <CheckBox
                 x:Name="OnlyInstalledCheckbox"
                 Margin="10,0,10,0"
@@ -139,9 +130,8 @@
                 <iconPacks:Material Kind="FilterRemove" />
             </Button>
         </WrapPanel>
-        <Button
+        <Button Grid.Row="0"
             x:Name="BackButton"
-            Grid.Row="0"
             Width="30"
             Height="30"
             Margin="7,5,0,0"

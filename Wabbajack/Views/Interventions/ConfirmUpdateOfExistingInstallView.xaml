@@ -23,40 +23,28 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="2*" />
         </Grid.RowDefinitions>
-        <TextBlock
+        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
             x:Name="ShortDescription"
-            Grid.Row="0"
-            Grid.Column="0"
-            Grid.ColumnSpan="3"
             Margin="0,0,0,5"
             FontFamily="Lucida Sans"
             FontSize="14"
             FontWeight="Bold"
             TextWrapping="WrapWithOverflow" />
-        <TextBlock
+        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
             x:Name="ExtendedDescription"
-            Grid.Row="1"
-            Grid.Column="0"
-            Grid.ColumnSpan="3"
             TextWrapping="WrapWithOverflow" />
-        <CheckBox
+        <CheckBox Grid.Row="2" Grid.Column="2"
             x:Name="AutoOverwriteCheckbox"
-            Grid.Row="2"
-            Grid.Column="2"
             Margin="4"
             HorizontalAlignment="Right"
             Content="Remember"
             IsChecked="{Binding Installer.AutomaticallyOverwrite}"
             ToolTip="If installing over an existing installation next time, automatically replace it without asking permission." />
-        <Button
+        <Button Grid.Row="3" Grid.Column="0"
             x:Name="CancelButton"
-            Grid.Row="3"
-            Grid.Column="0"
             Content="Cancel" />
-        <Button
+        <Button Grid.Row="3" Grid.Column="2"
             x:Name="ConfirmButton"
-            Grid.Row="3"
-            Grid.Column="2"
             Content="Confirm" />
     </Grid>
 </rxui:ReactiveUserControl>
