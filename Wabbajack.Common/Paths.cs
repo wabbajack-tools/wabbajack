@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
+using DriveInfo = Alphaleonis.Win32.Filesystem.DriveInfo;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
@@ -83,6 +84,11 @@ namespace Wabbajack.Common
         public string Normalize()
         {
             return _path.Replace("/", "\\").TrimEnd('\\');
+        }
+
+        public DriveInfo DriveInfo()
+        {
+            return new DriveInfo(Path.GetPathRoot(_path));
         }
 
         public Extension Extension => Extension.FromPath(_path);

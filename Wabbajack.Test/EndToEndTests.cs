@@ -62,7 +62,7 @@ namespace Wabbajack.Test
                 DownloadAndInstall(Game.Fallout4, 11925, "Anti-Tank Rifle"), 
                 DownloadAndInstall(Game.SkyrimSpecialEdition, 4783, "Frost Armor UNP"), 
                 DownloadAndInstall(Game.SkyrimSpecialEdition, 32359, "Frost Armor HDT"),
-                DownloadAndInstall(Game.SkyrimSpecialEdition, 31667, "Nemesis"),
+                DownloadAndInstall("https://github.com/ShikyoKira/Project-New-Reign---Nemesis-Main/releases/download/v0.84-beta/Nemesis.Unlimited.Behavior.Engine.v0.84-beta.rar", "Nemesis.Unlimited.Behavior.Engine.v0.84-beta.rar", "Nemesis"),
                 DownloadAndInstall(Game.Fallout4, 40136, "RAR test File"));
             
             // We're going to fully patch this mod from another source.
@@ -94,8 +94,10 @@ namespace Wabbajack.Test
 
         }
 
-        private async Task DownloadAndInstall(string url, string filename, string modName = null)
+        private async Task<(AbsolutePath Download, AbsolutePath ModFolder)> DownloadAndInstall(string url, string filename, string modName = null)
         {
+            if (modName != null)
+                await utils.AddMod(modName);
             var src = _downloadFolder.Combine(filename);
             if (!src.Exists)
             {
@@ -105,10 +107,13 @@ namespace Wabbajack.Test
 
             utils.DownloadsFolder.CreateDirectory();
 
-            await src.CopyToAsync(utils.DownloadsFolder.Combine(filename));
+            var destFile = utils.DownloadsFolder.Combine(filename);
+            await src.CopyToAsync(destFile);
 
             await using var dest = await FileExtractor.ExtractAll(Queue, src);
-            await dest.MoveAllTo(modName == null ? utils.MO2Folder : utils.ModsFolder.Combine(modName));
+            var modFolder = modName == null ? utils.MO2Folder : utils.ModsFolder.Combine(modName);
+            await dest.MoveAllTo(modFolder);
+            return (destFile, modFolder);
         }
 
         private async Task<(AbsolutePath Download, AbsolutePath ModFolder)> DownloadAndInstall(Game game, int modId, string modName)

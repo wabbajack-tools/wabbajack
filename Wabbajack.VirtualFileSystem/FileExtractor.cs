@@ -219,22 +219,24 @@ namespace Wabbajack.VirtualFileSystem
         /// <returns></returns>
         public static async Task<bool> CanExtract(AbsolutePath v)
         {
-            var ext = v.Extension;
-            if(ext != _exeExtension && !Consts.TestArchivesBeforeExtraction.Contains(ext))
-                return Consts.SupportedArchives.Contains(ext) || Consts.SupportedBSAs.Contains(ext);
-
-            var isArchive = await TestWith7z(v);
-
-            if (isArchive)
-                return true;
-
-            var process = new ProcessHelper
+            var found = await archiveSigs.MatchesAsync(v);
+            switch (found)
             {
-                Path = @"Extractors\innounp.exe".RelativeTo(AbsolutePath.EntryPoint),
-                Arguments = new object[] {"-t", v},
-            };
+                case null:
+                    return false;
+                case Definitions.FileType.EXE:
+                {
+                    var process = new ProcessHelper
+                    {
+                        Path = @"Extractors\innounp.exe".RelativeTo(AbsolutePath.EntryPoint),
+                        Arguments = new object[] {"-t", v},
+                    };
 
-            return await process.Start() == 0;
+                    return await process.Start() == 0;
+                }
+                default:
+                    return true;
+            }
         }
 
         public static async Task<bool> TestWith7z(AbsolutePath file)

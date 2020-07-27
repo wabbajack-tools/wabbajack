@@ -101,6 +101,14 @@ namespace Wabbajack.Lib
             Utils.Log($"MO2 Folder: {MO2Folder}");
             Utils.Log($"Downloads Folder: {MO2DownloadsFolder}");
             Utils.Log($"Game Folder: {GamePath}");
+            
+            var watcher = new DiskSpaceWatcher(cancel, new []{MO2Folder, MO2DownloadsFolder, GamePath, AbsolutePath.EntryPoint}, (long)2 << 31,
+                drive =>
+                {
+                    Utils.Log($"Aborting due to low space on {drive.Name}");
+                    Abort();
+                });
+            var watcherTask = watcher.Start();
 
             if (cancel.IsCancellationRequested) return false;
             
@@ -296,6 +304,11 @@ namespace Wabbajack.Lib
             var noMatch = results.OfType<NoMatch>().ToArray();
             PrintNoMatches(noMatch);
             if (CheckForNoMatchExit(noMatch)) return false;
+
+            foreach (var ignored in results.OfType<IgnoredDirectly>())
+            {
+                Utils.Log($"Ignored {ignored.To} because {ignored.Reason}");
+            }
 
             InstallDirectives.SetTo(results.Where(i => !(i is IgnoredDirectly)));
 
@@ -578,8 +591,6 @@ namespace Wabbajack.Lib
                 new IgnorePathContains(this,"temporary_logs"),
                 new IgnorePathContains(this, "GPUCache"),
                 new IgnorePathContains(this, "SSEEdit Cache"),
-                new IgnoreEndsWith(this, ".pyc"),
-                new IgnoreEndsWith(this, ".log"),
                 new IgnoreOtherProfiles(this),
                 new IgnoreDisabledMods(this),
                 new IncludeThisProfile(this),
@@ -594,6 +605,8 @@ namespace Wabbajack.Lib
                 new IncludeModIniData(this),
                 new DirectMatch(this),
                 new IncludeTaggedMods(this, Consts.WABBAJACK_INCLUDE),
+                new IgnoreEndsWith(this, ".pyc"),
+                new IgnoreEndsWith(this, ".log"),
                 new DeconstructBSAs(this), // Deconstruct BSAs before building patches so we don't generate massive patch files
                 new IncludePatches(this),
                 new IncludeDummyESPs(this),
