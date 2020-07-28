@@ -490,6 +490,7 @@ namespace Wabbajack.Test
             Assert.Equal(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});
         }
         
+        /*
         [Fact]
         public async Task YoutubeDownloader()
         {
@@ -515,6 +516,7 @@ namespace Wabbajack.Test
             await converted.Download(new Archive(state: null!) { Name = "yt_test.zip"}, tempFile.Path);
             Assert.Equal(Hash.FromBase64("pD7UoVNY4o8="), await tempFile.Path.FileHashAsync());
         }
+        */
         
         
         /// <summary>
