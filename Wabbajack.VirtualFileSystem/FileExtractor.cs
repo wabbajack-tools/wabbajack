@@ -27,7 +27,7 @@ namespace Wabbajack.VirtualFileSystem
             Definitions.FileType.RAR,
             Definitions.FileType._7Z);
         
-        public static async Task<ExtractedFiles> ExtractAll(WorkQueue queue, AbsolutePath source, IEnumerable<RelativePath> OnlyFiles = null)
+        public static async Task<ExtractedFiles> ExtractAll(WorkQueue queue, AbsolutePath source, IEnumerable<RelativePath> OnlyFiles = null, bool throwOnError = true)
         {
             try
             {
@@ -35,6 +35,8 @@ namespace Wabbajack.VirtualFileSystem
                 
                 if (source.Extension == Consts.OMOD)
                     return await ExtractAllWithOMOD(source);
+
+                Utils.Log($"Extracting {sig}");
                 
                 switch (sig)
                 {
@@ -53,6 +55,9 @@ namespace Wabbajack.VirtualFileSystem
             }
             catch (Exception ex)
             {
+                if (!throwOnError)
+                    return new ExtractedFiles(await TempFolder.Create());
+
                 Utils.ErrorThrow(ex, $"Error while extracting {source}");
                 throw new Exception();
             }
