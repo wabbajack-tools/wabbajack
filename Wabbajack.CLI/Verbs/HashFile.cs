@@ -15,7 +15,8 @@ namespace Wabbajack.CLI.Verbs
         protected override async Task<ExitCode> Run()
         {
             var abs = (AbsolutePath)Input;
-            Console.WriteLine($"{abs} hash: {await abs.FileHashAsync()}");
+            var hash = await abs.FileHashAsync();
+            Console.WriteLine($"{abs} hash: {hash} {hash.ToHex()} {(long)hash}");
             return ExitCode.Ok;
         }
     }

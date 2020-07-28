@@ -37,7 +37,7 @@ namespace Wabbajack.VirtualFileSystem
             return false;
         }
 
-        public Task<ExtractedFiles> ExtractAll(WorkQueue queue, IEnumerable<RelativePath> OnlyFiles)
+        public Task<ExtractedFiles> ExtractAll(WorkQueue queue, IEnumerable<RelativePath> OnlyFiles, bool throwOnError)
         {
             throw new Exception("BSAs can't contain archives");
         }

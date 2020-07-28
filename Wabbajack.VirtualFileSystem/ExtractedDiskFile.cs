@@ -33,9 +33,9 @@ namespace Wabbajack.VirtualFileSystem
             return await FileExtractor.CanExtract(_path);
         }
 
-        public Task<ExtractedFiles> ExtractAll(WorkQueue queue, IEnumerable<RelativePath> onlyFiles)
+        public Task<ExtractedFiles> ExtractAll(WorkQueue queue, IEnumerable<RelativePath> onlyFiles, bool throwOnError)
         {
-            return FileExtractor.ExtractAll(queue, _path, onlyFiles);
+            return FileExtractor.ExtractAll(queue, _path, onlyFiles, throwOnError);
         }
 
         public async Task MoveTo(AbsolutePath path)

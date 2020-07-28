@@ -27,7 +27,7 @@ namespace Wabbajack.VirtualFileSystem
             Definitions.FileType.RAR,
             Definitions.FileType._7Z);
         
-        public static async Task<ExtractedFiles> ExtractAll(WorkQueue queue, AbsolutePath source, IEnumerable<RelativePath> OnlyFiles = null)
+        public static async Task<ExtractedFiles> ExtractAll(WorkQueue queue, AbsolutePath source, IEnumerable<RelativePath> OnlyFiles = null, bool throwOnError = true)
         {
             try
             {
@@ -35,6 +35,8 @@ namespace Wabbajack.VirtualFileSystem
                 
                 if (source.Extension == Consts.OMOD)
                     return await ExtractAllWithOMOD(source);
+
+                Utils.Log($"Extracting {sig}");
                 
                 switch (sig)
                 {
@@ -53,6 +55,9 @@ namespace Wabbajack.VirtualFileSystem
             }
             catch (Exception ex)
             {
+                if (!throwOnError)
+                    return new ExtractedFiles(await TempFolder.Create());
+
                 Utils.ErrorThrow(ex, $"Error while extracting {source}");
                 throw new Exception();
             }
@@ -219,22 +224,24 @@ namespace Wabbajack.VirtualFileSystem
         /// <returns></returns>
         public static async Task<bool> CanExtract(AbsolutePath v)
         {
-            var ext = v.Extension;
-            if(ext != _exeExtension && !Consts.TestArchivesBeforeExtraction.Contains(ext))
-                return Consts.SupportedArchives.Contains(ext) || Consts.SupportedBSAs.Contains(ext);
-
-            var isArchive = await TestWith7z(v);
-
-            if (isArchive)
-                return true;
-
-            var process = new ProcessHelper
+            var found = await archiveSigs.MatchesAsync(v);
+            switch (found)
             {
-                Path = @"Extractors\innounp.exe".RelativeTo(AbsolutePath.EntryPoint),
-                Arguments = new object[] {"-t", v},
-            };
+                case null:
+                    return false;
+                case Definitions.FileType.EXE:
+                {
+                    var process = new ProcessHelper
+                    {
+                        Path = @"Extractors\innounp.exe".RelativeTo(AbsolutePath.EntryPoint),
+                        Arguments = new object[] {"-t", v},
+                    };
 
-            return await process.Start() == 0;
+                    return await process.Start() == 0;
+                }
+                default:
+                    return true;
+            }
         }
 
         public static async Task<bool> TestWith7z(AbsolutePath file)

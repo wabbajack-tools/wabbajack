@@ -181,6 +181,11 @@ namespace Wabbajack.Lib
             _isRunning.OnNext(false);
         }
 
+        public void Abort()
+        {
+            _cancel.Cancel();
+        }
+
         public void Add(IDisposable disposable) => _subs.Add(disposable);
     }
 }

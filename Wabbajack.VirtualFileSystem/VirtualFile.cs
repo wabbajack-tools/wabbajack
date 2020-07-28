@@ -233,7 +233,7 @@ namespace Wabbajack.VirtualFileSystem
             try
             {
 
-                await using var extracted = await extractedFile.ExtractAll(context.Queue);
+                await using var extracted = await extractedFile.ExtractAll(context.Queue, throwOnError:false);
 
                 var list = await extracted
                     .PMap(context.Queue,

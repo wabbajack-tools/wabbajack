@@ -81,6 +81,14 @@ namespace Wabbajack.Lib
                 Utils.Log("Exiting because we couldn't find the game folder.");
                 return false;
             }
+            
+            var watcher = new DiskSpaceWatcher(cancel, new[]{OutputFolder, DownloadFolder, GameFolder.Value, AbsolutePath.EntryPoint}, (long)2 << 31,
+                drive =>
+                {
+                    Utils.Log($"Aborting due to low space on {drive.Name}");
+                    Abort();
+                });
+            var watcherTask = watcher.Start();
 
             if (cancel.IsCancellationRequested) return false;
             UpdateTracker.NextStep("Validating Game ESMs");

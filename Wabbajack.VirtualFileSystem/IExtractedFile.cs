@@ -16,7 +16,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public Task<bool> CanExtract();
 
-        public Task<ExtractedFiles> ExtractAll(WorkQueue queue, IEnumerable<RelativePath> Only = null);
+        public Task<ExtractedFiles> ExtractAll(WorkQueue queue, IEnumerable<RelativePath> Only = null, bool throwOnError = false);
 
         public Task MoveTo(AbsolutePath path);
 
