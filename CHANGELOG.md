@@ -1,12 +1,13 @@
 ### Changelog
 
-#### Version - 2.1.3.4 - 7/27/2020
+#### Version - 2.1.3.4 - 7/28/2020
 * Fixes for Tar Files (for realz this time)
 * Watch disk usage, throw an error if disk usage gets too high
 * Added error icon triangle under install play button if there are blocking problems.
 * Added tooltip styling to limit width to 500.
 * Adjusted error text for MO2Installer unexpected files.
 * Added filepicker error glow
+* Disable WASM in the in-app browser so we can log into the Nexus again
 
 #### Version - 2.1.3.3 - 7/22/2020
 * Relax the RAR signature so it works with RAR 5 and RAR 4 formats

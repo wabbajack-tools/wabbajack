@@ -91,6 +91,7 @@ namespace Wabbajack.Lib.LibCefHelpers
             Inited = true;
             CefSettings settings = new CefSettings();
             settings.CachePath = Consts.CefCacheLocation.ToString();
+            settings.JavascriptFlags = "--noexpose_wasm";
             Cef.Initialize(settings);
         }
 
