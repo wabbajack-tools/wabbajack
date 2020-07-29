@@ -50,7 +50,7 @@
         <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0-preview.6.20305.6" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
         <PackageReference Include="Octodiff" Version="1.2.1" />
-        <PackageReference Include="ReactiveUI" Version="11.4.17" />
+        <PackageReference Include="ReactiveUI" Version="11.5.1" />
         <PackageReference Include="RocksDbNative" Version="6.2.2" />
         <PackageReference Include="RocksDbSharp" Version="6.2.2" />
         <PackageReference Include="SharpZipLib" Version="1.2.0" />

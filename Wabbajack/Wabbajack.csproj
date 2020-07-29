@@ -71,7 +71,7 @@
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.3.0" />
     <PackageReference Include="PInvoke.Gdi32" Version="0.6.49" />
     <PackageReference Include="PInvoke.User32" Version="0.6.49" />
-    <PackageReference Include="ReactiveUI" Version="11.4.17" />
+    <PackageReference Include="ReactiveUI" Version="11.5.1" />
     <PackageReference Include="ReactiveUI.Fody" Version="11.4.17" />
     <PackageReference Include="ReactiveUI.WPF" Version="11.4.17" />
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
