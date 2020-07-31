@@ -457,9 +457,11 @@ namespace Wabbajack.Common
                 {	
                     Game = Game.StardewValley,	
                     NexusName = "stardewvalley",
+                    MO2Name = "Stardew Valley",
                     NexusGameId = 1303,
                     SteamIDs = new List<int>{413150},	
                     GOGIDs = new List<int>{1453375253},
+                    IsGenericMO2Plugin = true,
                     RequiredFiles = new List<string>	
                     {	
                         "Stardew Valley.exe"	
