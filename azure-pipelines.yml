@@ -5,7 +5,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/apps/windows/dot-net
 
 trigger:
-- wabbajack-2.0
+- master
 
 pool:
   name: Default
