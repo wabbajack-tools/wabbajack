@@ -442,7 +442,8 @@ namespace Wabbajack.Common
                 {	
                     Game = Game.Witcher3,	
                     NexusName = "witcher3",	
-                    NexusGameId = 952,	
+                    NexusGameId = 952,
+                    MO2Name = "The Witcher 3: Wild Hunt",
                     SteamIDs = new List<int>{292030, 499450}, // normal and GotY	
                     GOGIDs = new List<int>{1207664643, 1495134320, 1207664663, 1640424747}, // normal, GotY and both in packages	
                     RequiredFiles = new List<string>	
