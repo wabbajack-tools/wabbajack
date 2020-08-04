@@ -669,6 +669,25 @@ CONSTRAINT [PK_NexusModPermissions] PRIMARY KEY CLUSTERED
 ) ON [PRIMARY]
 GO
 
+/****** Object:  Table [dbo].[MirroredArchives]    Script Date: 8/3/2020 8:39:33 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[MirroredArchives](
+ [Hash] [bigint] NOT NULL,
+ [Created] [datetime] NOT NULL,
+ [Uploaded] [datetime] NULL,
+ [Rationale] [nvarchar](max) NOT NULL,
+ CONSTRAINT [PK_MirroredArchives] PRIMARY KEY CLUSTERED
+     (
+      [Hash] ASC
+         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
 
 
 /****** Object:  StoredProcedure [dbo].[MergeAllFilesInArchive]    Script Date: 3/28/2020 4:58:59 PM ******/
