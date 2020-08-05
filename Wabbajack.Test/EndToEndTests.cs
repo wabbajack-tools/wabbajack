@@ -169,7 +169,10 @@ namespace Wabbajack.Test
                 modList: modlist,
                 outputFolder: utils.InstallFolder,
                 downloadFolder: utils.DownloadsFolder,
-                parameters: ACompilerTest.CreateDummySystemParameters());
+                parameters: ACompilerTest.CreateDummySystemParameters())
+            {
+                UseCompression = true
+            };
             installer.GameFolder = utils.GameFolder;
             await installer.Begin();
         }

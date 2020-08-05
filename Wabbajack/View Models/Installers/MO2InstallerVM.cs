@@ -156,6 +156,7 @@ namespace Wabbajack
                 downloadFolder: DownloadLocation.TargetPath,
                 parameters: SystemParametersConstructor.Create()))
             {
+                installer.UseCompression = Parent.MWVM.Settings.Filters.UseCompression;
                 Parent.MWVM.Settings.Performance.AttachToBatchProcessor(installer);
 
                 return await Task.Run(async () =>

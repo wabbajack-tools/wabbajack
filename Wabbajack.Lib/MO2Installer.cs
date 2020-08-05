@@ -286,6 +286,9 @@ namespace Wabbajack.Lib
                 Info($"Writing {bsa.To}");
                 await a.Build(OutputFolder.Combine(bsa.To));
                 streams.Do(s => s.Dispose());
+
+                if (UseCompression)
+                    await OutputFolder.Combine(bsa.To).Compact(FileCompaction.Algorithm.XPRESS16K);
             }
 
             var bsaDir = OutputFolder.Combine(Consts.BSACreationDir);
@@ -319,6 +322,9 @@ namespace Wabbajack.Lib
                             await outPath.WriteAllBytesAsync(await LoadBytesFromPath(directive.SourceDataID));
                             break;
                     }
+
+                    if (UseCompression)
+                        await outPath.Compact(FileCompaction.Algorithm.XPRESS16K);
                 });
         }
 

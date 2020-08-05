@@ -56,24 +56,24 @@
 
   <ItemGroup>
     <PackageReference Include="CefSharp.Wpf" Version="83.4.20" />
-    <PackageReference Include="DynamicData" Version="6.16.1" />
+    <PackageReference Include="DynamicData" Version="6.16.3" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.0.1" />
-    <PackageReference Include="Fody" Version="6.2.1">
+    <PackageReference Include="Fody" Version="6.2.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
-    <PackageReference Include="GitInfo" Version="2.0.30">
+    <PackageReference Include="GitInfo" Version="2.0.31">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MahApps.Metro" Version="2.1.1" />
-    <PackageReference Include="MahApps.Metro.IconPacks" Version="4.3.0" />
+    <PackageReference Include="MahApps.Metro" Version="2.2.0" />
+    <PackageReference Include="MahApps.Metro.IconPacks" Version="4.4.0" />
     <PackageReference Include="PInvoke.Gdi32" Version="0.6.49" />
     <PackageReference Include="PInvoke.User32" Version="0.6.49" />
-    <PackageReference Include="ReactiveUI" Version="11.4.17" />
-    <PackageReference Include="ReactiveUI.Fody" Version="11.4.17" />
-    <PackageReference Include="ReactiveUI.WPF" Version="11.4.17" />
+    <PackageReference Include="ReactiveUI" Version="11.5.17" />
+    <PackageReference Include="ReactiveUI.Fody" Version="11.5.17" />
+    <PackageReference Include="ReactiveUI.WPF" Version="11.5.17" />
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
     <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
