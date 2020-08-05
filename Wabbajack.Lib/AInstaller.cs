@@ -32,6 +32,8 @@ namespace Wabbajack.Lib
         public GameMetaData Game { get; }
 
         public SystemParameters? SystemParameters { get; set; }
+        
+        public bool UseCompression { get; set; }
 
 
         public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters? parameters, int steps, Game game)
@@ -163,8 +165,7 @@ namespace Wabbajack.Lib
                 to.LastModified = DateTime.Now;
             }
 
-            await vFiles.GroupBy(f => f.FromFile)
-                  .PDoIndexed(queue, async (idx, group) =>
+            foreach (var (idx, group) in vFiles.GroupBy(f => f.FromFile).Select((grp, i) => (i, grp)))
             {
                 Utils.Status("Installing files", Percent.FactoryPutInRange(idx, vFiles.Count));
                 if (group.Key == null)
@@ -186,14 +187,8 @@ namespace Wabbajack.Lib
                 {
                     await CopyFile(firstDest, OutputFolder.Combine(copy.To));
                 }
-            });
 
-            Status("Unstaging files");
-            await onFinish();
-
-            // Now patch all the files from this archive
-            await grouping.OfType<PatchedFromArchive>()
-                .PMap(queue, async toPatch =>
+                foreach (var toPatch in group.OfType<PatchedFromArchive>())
                 {
                     await using var patchStream = new MemoryStream();
                     Status($"Patching {toPatch.To.FileName}");
@@ -231,8 +226,20 @@ namespace Wabbajack.Lib
                         await toFile.DeleteAsync();
                         Utils.ErrorThrow(new Exception($"Virus scan of patched executable reported possible malware: {toFile.ToString()} ({(long)hash})"));
                     }
-                    
-                });
+                }
+
+                if (UseCompression)
+                {
+                    foreach (var file in group)
+                    {
+                        Utils.Status($"Compacting {file.To}");
+                        await file.To.RelativeTo(OutputFolder).Compact(FileCompaction.Algorithm.XPRESS16K);
+                    }
+                }
+            }
+
+            Status("Unstaging files");
+            await onFinish();
         }
 
         public async Task DownloadArchives()

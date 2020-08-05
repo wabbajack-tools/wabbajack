@@ -104,6 +104,9 @@ namespace Wabbajack
         public string Search { get; set; }
         private bool _isPersistent = true;
         public bool IsPersistent { get => _isPersistent; set => RaiseAndSetIfChanged(ref _isPersistent, value); }
+        
+        private bool _useCompression = true;
+        public bool UseCompression { get => _useCompression; set => RaiseAndSetIfChanged(ref _useCompression, value); }
     }
 
     [JsonName("PerformanceSettings")]

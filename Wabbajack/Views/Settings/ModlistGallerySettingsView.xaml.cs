@@ -34,6 +34,8 @@ namespace Wabbajack
                 // Bind Values
                 this.Bind(this.ViewModel, x => x.IsPersistent, x => x.FilterPersistCheckBox.IsChecked)
                     .DisposeWith(disposable);
+                this.Bind(this.ViewModel, x => x.UseCompression, x => x.UseCompressionCheckBox.IsChecked)
+                    .DisposeWith(disposable);
 
                 this.ClearCefCache.Click += (sender, args) => {Driver.ClearCache();};
             });
