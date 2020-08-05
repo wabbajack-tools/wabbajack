@@ -156,8 +156,8 @@ namespace Wabbajack.Server.DataLayer
             foreach (var add in missing.Where(g => g.NexusGameId != 0))
             {
                 await conn.ExecuteAsync(
-                    "INSERT INTO dbo.GameMetaData (NexusGameID, WabbajackName) VALUES (@NexusGameId, WabbajackName)",
-                    new {NexusGameId = add.NexusGameId, WabbajackName = add.ToString()});
+                    "INSERT INTO dbo.GameMetaData (NexusGameID, WabbajackName) VALUES (@NexusGameId, @WabbajackName)",
+                    new {NexusGameId = add.NexusGameId, WabbajackName = add.Game.ToString()});
             }
         }
 

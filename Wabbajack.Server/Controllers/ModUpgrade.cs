@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Server.DataLayer;
+using Wabbajack.Server.DTOs;
 using Wabbajack.Server.Services;
 
 namespace Wabbajack.BuildServer.Controllers
@@ -20,6 +21,7 @@ namespace Wabbajack.BuildServer.Controllers
         private DiscordWebHook _discord;
         private AppSettings _settings;
         private QuickSync _quickSync;
+        private Task<BunnyCdnFtpInfo> _creds;
 
         public ModUpgrade(ILogger<ModUpgrade> logger, SqlService sql, DiscordWebHook discord, QuickSync quickSync, AppSettings settings)
         {
@@ -28,6 +30,7 @@ namespace Wabbajack.BuildServer.Controllers
             _discord = discord;
             _settings = settings;
             _quickSync = quickSync;
+            _creds = BunnyCdnFtpInfo.GetCreds(StorageSpace.Patches);
         }
         
         [HttpPost]
@@ -93,7 +96,7 @@ namespace Wabbajack.BuildServer.Controllers
                     await _sql.MarkPatchUsage(oldDownload.Id, newDownload.Id);
                     return
                         Ok(
-                            $"https://{_settings.BunnyCDN_StorageZone}.b-cdn.net/{Consts.ArchiveUpdatesCDNFolder}/{request.OldArchive.Hash.ToHex()}_{request.NewArchive.Hash.ToHex()}");
+                            $"https://{(await _creds).Username}.b-cdn.net/{request.OldArchive.Hash.ToHex()}_{request.NewArchive.Hash.ToHex()}");
                 }
                 _logger.Log(LogLevel.Information, $"Upgrade requested from {oldDownload.Archive.Hash} to {newDownload.Archive.Hash} patch found but was failed");
 

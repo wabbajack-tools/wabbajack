@@ -50,6 +50,7 @@ namespace Wabbajack.Server.Services
                         await _quickSync.ResetToken<TP>();
                         try
                         {
+                            _logger.LogInformation($"Running: {GetType().Name}");
                             await Execute();
                         }
                         catch (Exception ex)
