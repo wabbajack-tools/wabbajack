@@ -39,7 +39,7 @@ namespace Wabbajack.Lib.AuthorApi
         }
 
 
-        public async Task<CDNFileDefinition> GenerateFileDefinition(WorkQueue queue, AbsolutePath path, Action<string, Percent> progressFn)
+        public static async Task<CDNFileDefinition> GenerateFileDefinition(WorkQueue queue, AbsolutePath path, Action<string, Percent> progressFn)
         {
             IEnumerable<CDNFilePartDefinition> Blocks(AbsolutePath path)
             {

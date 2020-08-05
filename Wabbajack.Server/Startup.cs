@@ -69,6 +69,7 @@ namespace Wabbajack.Server
             services.AddSingleton<PatchBuilder>();
             services.AddSingleton<CDNMirrorList>();
             services.AddSingleton<NexusPermissionsUpdater>();
+            services.AddSingleton<MirrorUploader>();
             
             services.AddMvc();
             services.AddControllers()
@@ -125,6 +126,7 @@ namespace Wabbajack.Server
             app.UseService<PatchBuilder>();
             app.UseService<CDNMirrorList>();
             app.UseService<NexusPermissionsUpdater>();
+            app.UseService<MirrorUploader>();
 
             app.Use(next =>
             {

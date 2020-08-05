@@ -149,6 +149,7 @@ namespace Wabbajack.Common
         public static long UPLOADED_FILE_BLOCK_SIZE = (long)1024 * 1024 * 2;
         
         public static string ArchiveUpdatesCDNFolder = "archive_updates";
+        public static Uri WabbajackMirror = new Uri("https://wabbajack-mirror.b-cdn.net");
 
     }
 }

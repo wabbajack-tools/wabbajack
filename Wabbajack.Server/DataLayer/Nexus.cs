@@ -146,5 +146,38 @@ namespace Wabbajack.Server.DataLayer
             await tx.CommitAsync();
 
         }
+
+        public async Task UpdateGameMetadata()
+        {
+            await using var conn = await Open();
+            var existing = (await conn.QueryAsync<string>("SELECT WabbajackName FROM dbo.GameMetadata")).ToHashSet();
+
+            var missing = GameRegistry.Games.Values.Where(g => !existing.Contains(g.Game.ToString())).ToList();
+            foreach (var add in missing.Where(g => g.NexusGameId != 0))
+            {
+                await conn.ExecuteAsync(
+                    "INSERT INTO dbo.GameMetaData (NexusGameID, WabbajackName) VALUES (@NexusGameId, WabbajackName)",
+                    new {NexusGameId = add.NexusGameId, WabbajackName = add.ToString()});
+            }
+        }
+
+        public async Task SetNexusPermission(Game game, long modId, HTMLInterface.PermissionValue perm)
+        {
+            await using var conn = await Open();
+            var tx = await conn.BeginTransactionAsync();
+
+            await conn.ExecuteAsync("DELETE FROM NexusModPermissions WHERE GameID = @GameID AND ModID = @ModID", new
+                {
+                    GameID = game.MetaData().NexusGameId,
+                    ModID = modId
+                },
+                transaction:tx);
+            
+            await conn.ExecuteAsync(
+                "INSERT INTO NexusModPermissions (NexusGameID, ModID, Permissions) VALUES (@NexusGameID, @ModID, @Permissions)",
+                new {NexusGameID = game.MetaData().NexusGameId, ModID = modId, Permissions = (int)perm}, tx);
+
+            await tx.CommitAsync();
+        }
     }
 }

@@ -677,15 +677,40 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE TABLE [dbo].[MirroredArchives](
- [Hash] [bigint] NOT NULL,
- [Created] [datetime] NOT NULL,
- [Uploaded] [datetime] NULL,
- [Rationale] [nvarchar](max) NOT NULL,
- CONSTRAINT [PK_MirroredArchives] PRIMARY KEY CLUSTERED
-     (
-      [Hash] ASC
-         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+                                         [Hash] [bigint] NOT NULL,
+                                         [Created] [datetime] NOT NULL,
+                                         [Uploaded] [datetime] NULL,
+                                         [Rationale] [nvarchar](max) NOT NULL,
+                                         [FailMessage] [nvarchar](max) NULL,
+                                         CONSTRAINT [PK_MirroredArchives] PRIMARY KEY CLUSTERED
+                                             (
+                                              [Hash] ASC
+                                                 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+/****** Object:  Table [dbo].[GameMetadata]    Script Date: 8/3/2020 8:39:33 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[GameMetadata](
+ [NexusGameId] [bigint] NULL,
+ [WabbajackName] [nvarchar](50) NOT NULL,
+ CONSTRAINT [PK_GameMetadata] PRIMARY KEY CLUSTERED
+     (
+      [WabbajackName] ASC
+         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+)
+GO
+
+CREATE NONCLUSTERED INDEX [IDX_GameAndName-20200804-164236] ON [dbo].[GameMetadata]
+    (
+     [NexusGameId] ASC,
+     [WabbajackName] ASC
+        )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
 
 

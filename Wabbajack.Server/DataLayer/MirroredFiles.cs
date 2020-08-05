@@ -16,11 +16,12 @@ namespace Wabbajack.Server.DataLayer
         public async Task<MirroredFile> GetNextMirroredFile()
         {
             await using var conn = await Open();
-            var results = await conn.QueryFirstOrDefaultAsync<(Hash, DateTime, DateTime, string)>(
-                "SELECT Hash, Created, Uploaded, Rationale from dbo.MirroredArchives WHERE Uploaded IS NULL");
+            var result = await conn.QueryFirstOrDefaultAsync<(Hash, DateTime, DateTime, string, string)>(
+                "SELECT Hash, Created, Uploaded, Rationale, FailMessage from dbo.MirroredArchives WHERE Uploaded IS NULL");
+            if (result == default) return null;
             return new MirroredFile
             {
-                Hash = results.Item1, Created = results.Item2, Uploaded = results.Item3, Rationale = results.Item4
+                Hash = result.Item1, Created = result.Item2, Uploaded = result.Item3, Rationale = result.Item4, FailMessage = result.Item5
             };
         }
         
@@ -37,8 +38,15 @@ namespace Wabbajack.Server.DataLayer
 
             await conn.ExecuteAsync("DELETE FROM dbo.MirroredArchives WHERE Hash = @Hash", new {file.Hash}, trans);
             await conn.ExecuteAsync(
-                "INSERT INTO dbo.MirroredArchives (Hash, Created, Updated, Rationale) VALUES (@Hash, @Created, @Updated, @Rationale)",
-                file, trans);
+                "INSERT INTO dbo.MirroredArchives (Hash, Created, Uploaded, Rationale, FailMessage) VALUES (@Hash, @Created, @Uploaded, @Rationale, @FailMessage)",
+                new
+                {
+                    Hash = file.Hash,
+                    Created = file.Created,
+                    Uploaded = file.Uploaded,
+                    Rationale = file.Rationale,
+                    FailMessage = file.FailMessage
+                }, trans);
             await trans.CommitAsync();
         }
 

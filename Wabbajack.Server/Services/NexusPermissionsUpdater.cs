@@ -24,6 +24,8 @@ namespace Wabbajack.Server.Services
 
         public override async Task<int> Execute()
         {
+            await _sql.UpdateGameMetadata();
+            
             var permissions = await _sql.GetNexusPermissions();
 
             var data = await _sql.ModListArchives();
@@ -33,38 +35,31 @@ namespace Wabbajack.Server.Services
             
             _logger.LogInformation($"Starting nexus permissions updates for {nexusArchives.Count} mods");
             
-            using var queue = new WorkQueue();
+            using var queue = new WorkQueue(2);
 
-            var results = await nexusArchives.PMap(queue, async archive =>
-            {
-                var permissions = await HTMLInterface.GetUploadPermissions(archive.Game, archive.ModID);
-                return (archive.Game, archive.ModID, permissions);
-            });
+            var prev = await _sql.GetNexusPermissions();
 
-            var updated = 0;
-            foreach (var result in results)
+            await nexusArchives.PMap(queue, async archive =>
             {
-                if (permissions.TryGetValue((result.Game, result.ModID), out var oldPermission))
+                var result = await HTMLInterface.GetUploadPermissions(archive.Game, archive.ModID);
+                await _sql.SetNexusPermission(archive.Game, archive.ModID, result);
+                
+                if (prev.TryGetValue((archive.Game, archive.ModID), out var oldPermission))
                 {
-                    if (oldPermission != result.permissions)
+                    if (oldPermission != result)
                     {
                         await _discord.Send(Channel.Spam,
                             new DiscordMessage {
-                                Content = $"Permissions status of {result.Game} {result.ModID} was {oldPermission} is now {result.permissions} "
+                                Content = $"Permissions status of {archive.Game} {archive.ModID} was {oldPermission} is now {result}"
                             });
-                        await _sql.PurgeNexusCache(result.ModID);
-                        updated += 1;
+                        await _sql.PurgeNexusCache(archive.ModID);
+                        await _quickSync.Notify<ListValidator>();
                     }
                 }
-            }
+            });
 
-            await _sql.SetNexusPermissions(results);
-
-            if (updated > 0)
-                await _quickSync.Notify<ListValidator>();
-
-
-            return updated;
+            return 1;
         }
+
     }
 }
