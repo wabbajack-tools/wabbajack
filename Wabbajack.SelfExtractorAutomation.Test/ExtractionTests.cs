@@ -31,7 +31,8 @@ namespace Wabbajack.SelfExtractorAutomation.Test
 
         }
         
-        [Fact]
+        // Disabled Use only for debugging
+        //[Fact]
         public async Task CanExecuteLongJob()
         {
 
