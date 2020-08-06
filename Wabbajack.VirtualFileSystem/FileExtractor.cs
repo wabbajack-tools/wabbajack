@@ -36,8 +36,6 @@ namespace Wabbajack.VirtualFileSystem
                 if (source.Extension == Consts.OMOD)
                     return await ExtractAllWithOMOD(source);
 
-                Utils.Log($"Extracting {sig}");
-                
                 switch (sig)
                 {
                     case Definitions.FileType.BSA:

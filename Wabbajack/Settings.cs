@@ -105,7 +105,7 @@ namespace Wabbajack
         private bool _isPersistent = true;
         public bool IsPersistent { get => _isPersistent; set => RaiseAndSetIfChanged(ref _isPersistent, value); }
         
-        private bool _useCompression = true;
+        private bool _useCompression = false;
         public bool UseCompression { get => _useCompression; set => RaiseAndSetIfChanged(ref _useCompression, value); }
     }
 
