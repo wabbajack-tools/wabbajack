@@ -56,6 +56,12 @@ namespace Wabbajack.Server.DataLayer
             await using var conn = await Open();
             return (await conn.QueryAsync<(Hash, string)>("SELECT Hash, PrimaryKeyString FROM ArchiveDownloads")).ToHashSet();
         }
+        
+        public async Task<HashSet<(Hash Hash, AbstractDownloadState State)>> GetAllArchiveDownloadStates()
+        {
+            await using var conn = await Open();
+            return (await conn.QueryAsync<(Hash, AbstractDownloadState)>("SELECT Hash, DownloadState FROM ArchiveDownloads")).ToHashSet();
+        }
 
         
         public async Task<ArchiveDownload> GetArchiveDownload(Guid id)

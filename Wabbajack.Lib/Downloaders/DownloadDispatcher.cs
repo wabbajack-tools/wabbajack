@@ -93,8 +93,14 @@ namespace Wabbajack.Lib.Downloaders
 
         public static async Task<bool> DownloadWithPossibleUpgrade(Archive archive, AbsolutePath destination)
         {
-            var success = await Download(archive, destination);
-            if (success)
+            if (await Download(archive, destination))
+            {
+                await destination.FileHashCachedAsync();
+                return true;
+            }
+
+            
+            if (await DownloadFromMirror(archive, destination))
             {
                 await destination.FileHashCachedAsync();
                 return true;
@@ -145,6 +151,24 @@ namespace Wabbajack.Lib.Downloaders
             }
 
             return true;
+        }
+
+        private static async Task<bool> DownloadFromMirror(Archive archive, AbsolutePath destination)
+        {
+            try
+            {
+                var newArchive =
+                    new Archive(
+                        new WabbajackCDNDownloader.State(new Uri($"{Consts.WabbajackMirror}{archive.Hash.ToHex()}")))
+                    {
+                        Hash = archive.Hash, Size = archive.Size, Name = archive.Name
+                    };
+                return await Download(newArchive, destination);
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         private static async Task<bool> Download(Archive archive, AbsolutePath destination)

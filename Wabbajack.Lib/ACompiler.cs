@@ -150,6 +150,9 @@ namespace Wabbajack.Lib
             await using (var of = await ModListOutputFolder.Combine("modlist").Create()) 
                 ModList.ToJson(of);
 
+            await ModListOutputFolder.Combine("sig")
+                .WriteAllBytesAsync((await ModListOutputFolder.Combine("modlist").FileHashAsync()).ToArray());
+
             await ClientAPI.SendModListDefinition(ModList);
 
             await ModListOutputFile.DeleteAsync();
@@ -157,6 +160,7 @@ namespace Wabbajack.Lib
             await using (var fs = await ModListOutputFile.Create())
             {
                 using var za = new ZipArchive(fs, ZipArchiveMode.Create);
+                
                 await ModListOutputFolder.EnumerateFiles()
                     .DoProgress("Compressing ModList",
                 async f =>

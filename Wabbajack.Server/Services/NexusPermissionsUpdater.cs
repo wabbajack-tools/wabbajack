@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer;
@@ -15,8 +16,10 @@ namespace Wabbajack.Server.Services
     {
         private DiscordWebHook _discord;
         private SqlService _sql;
+        
+        public static TimeSpan MaxSync = TimeSpan.FromHours(4);
 
-        public NexusPermissionsUpdater(ILogger<NexusKeyMaintainance> logger, AppSettings settings, QuickSync quickSync, DiscordWebHook discord, SqlService sql) : base(logger, settings, quickSync, TimeSpan.FromHours(4))
+        public NexusPermissionsUpdater(ILogger<NexusKeyMaintainance> logger, AppSettings settings, QuickSync quickSync, DiscordWebHook discord, SqlService sql) : base(logger, settings, quickSync, TimeSpan.FromSeconds(1))
         {
             _discord = discord;
             _sql = sql;
@@ -24,8 +27,9 @@ namespace Wabbajack.Server.Services
 
         public override async Task<int> Execute()
         {
-            var permissions = await _sql.GetNexusPermissions();
-
+            await _sql.UpdateGameMetadata();
+            
+            
             var data = await _sql.ModListArchives();
             var nexusArchives = data.Select(a => a.State).OfType<NexusDownloader.State>().Select(d => (d.Game, d.ModID))
                 .Distinct()
@@ -33,38 +37,37 @@ namespace Wabbajack.Server.Services
             
             _logger.LogInformation($"Starting nexus permissions updates for {nexusArchives.Count} mods");
             
-            using var queue = new WorkQueue();
+            using var queue = new WorkQueue(1);
 
-            var results = await nexusArchives.PMap(queue, async archive =>
-            {
-                var permissions = await HTMLInterface.GetUploadPermissions(archive.Game, archive.ModID);
-                return (archive.Game, archive.ModID, permissions);
-            });
+            var prev = await _sql.GetNexusPermissions();
 
-            var updated = 0;
-            foreach (var result in results)
+            var lag = MaxSync / nexusArchives.Count * 2; 
+
+
+            await nexusArchives.PMap(queue, async archive =>
             {
-                if (permissions.TryGetValue((result.Game, result.ModID), out var oldPermission))
+                _logger.LogInformation($"Checking permissions for {archive.Game} {archive.ModID}");
+                var result = await HTMLInterface.GetUploadPermissions(archive.Game, archive.ModID);
+                await _sql.SetNexusPermission(archive.Game, archive.ModID, result);
+                
+                if (prev.TryGetValue((archive.Game, archive.ModID), out var oldPermission))
                 {
-                    if (oldPermission != result.permissions)
+                    if (oldPermission != result)
                     {
                         await _discord.Send(Channel.Spam,
                             new DiscordMessage {
-                                Content = $"Permissions status of {result.Game} {result.ModID} was {oldPermission} is now {result.permissions} "
+                                Content = $"Permissions status of {archive.Game} {archive.ModID} was {oldPermission} is now {result}"
                             });
-                        await _sql.PurgeNexusCache(result.ModID);
-                        updated += 1;
+                        await _sql.PurgeNexusCache(archive.ModID);
+                        await _quickSync.Notify<ListValidator>();
                     }
                 }
-            }
+                
+                await Task.Delay(lag);
+            });
 
-            await _sql.SetNexusPermissions(results);
-
-            if (updated > 0)
-                await _quickSync.Notify<ListValidator>();
-
-
-            return updated;
+            return 1;
         }
+
     }
 }

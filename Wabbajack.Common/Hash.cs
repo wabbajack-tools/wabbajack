@@ -103,6 +103,16 @@ namespace Wabbajack.Common
         {
             return BitConverter.GetBytes(_code);
         }
+        
+        public static Hash Interpret(string input)
+        {
+            return input.Length switch
+            {
+                16 => FromHex(input),
+                12 when input.EndsWith('=') => FromBase64(input),
+                _ => FromLong(long.Parse(input))
+            };
+        }
     }
     
     public static partial class Utils

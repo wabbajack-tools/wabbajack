@@ -125,7 +125,7 @@ namespace Wabbajack.Server.Services
 
         private static string PatchName(Hash oldHash, Hash newHash)
         {
-            return $"{Consts.ArchiveUpdatesCDNFolder}\\{oldHash.ToHex()}_{newHash.ToHex()}";
+            return $"\\{oldHash.ToHex()}_{newHash.ToHex()}";
         }
 
         private async Task CleanupOldPatches()
@@ -155,7 +155,7 @@ namespace Wabbajack.Server.Services
                 if (pendingPatch != default) break;
             }
 
-            var files = await client.GetListingAsync($"{Consts.ArchiveUpdatesCDNFolder}\\");
+            var files = await client.GetListingAsync($"\\");
             _logger.LogInformation($"Found {files.Length} on the CDN");
 
             var sqlFiles = await _sql.AllPatchHashes();
@@ -206,9 +206,6 @@ namespace Wabbajack.Server.Services
                         $"Uploading {patchFile.Size.ToFileSizeString()} patch file to CDN");
                     using var client = await GetBunnyCdnFtpClient();
                     
-                    if (!await client.DirectoryExistsAsync(Consts.ArchiveUpdatesCDNFolder)) 
-                        await client.CreateDirectoryAsync(Consts.ArchiveUpdatesCDNFolder);
-                    
                     await client.UploadFileAsync((string)patchFile, patchName, FtpRemoteExists.Overwrite);
                     return;
                 }
@@ -230,7 +227,7 @@ namespace Wabbajack.Server.Services
 
         private async Task<FtpClient> GetBunnyCdnFtpClient()
         {
-            var info = await Utils.FromEncryptedJson<BunnyCdnFtpInfo>("bunny-cdn-ftp-info");
+            var info = await BunnyCdnFtpInfo.GetCreds(StorageSpace.Patches);
             var client = new FtpClient(info.Hostname) {Credentials = new NetworkCredential(info.Username, info.Password)};
             await client.ConnectAsync();
             return client;
