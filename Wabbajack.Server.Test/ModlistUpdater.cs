@@ -7,6 +7,7 @@ using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.FileUploader;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.Services;
 using Xunit;
@@ -71,6 +72,12 @@ namespace Wabbajack.Server.Test
             Assert.True(await patcher.Execute() > 1);
 
             Assert.Equal(new Uri("https://wabbajacktest.b-cdn.net/79223277e28e1b7b_3286c571d95f5666"),await ClientAPI.GetModUpgrade(oldArchive, newArchive, TimeSpan.Zero, TimeSpan.Zero));
+
+            Assert.Equal("Purged", await AuthorAPI.NoPatch(oldArchive.Hash, "Testing NoPatch"));
+            
+            await Assert.ThrowsAsync<HttpException>(async () => await ClientAPI.GetModUpgrade(oldArchive, newArchive, TimeSpan.Zero, TimeSpan.Zero));
+            Assert.True(await sql.IsNoPatch(oldArchive.Hash));
+
         }
 
         [Fact]
