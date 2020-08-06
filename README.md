@@ -23,6 +23,7 @@ Wabbajack is an automated Modlist Installer that can reproduce an entire modding
 | Enderal                   | Steam                 |           |       |
 | Fallout 4                 | Steam                 |           |       |
 | Skyrim VR                 | Steam                 |           |       |
+| Fallout 4 VR              | Steam                 |           |       |
 | Darkest Dungeon           | Steam, GOG            |           | Experimental |
 | The Witcher 3             | Steam, GOG            | Normal and GotY | Experimental |
 | Stardew Valley            | Steam, GOG            |           | Experimental |
