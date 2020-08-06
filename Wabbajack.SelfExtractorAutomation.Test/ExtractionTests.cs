@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Wabbajack.SelfExtractorAutomation.Test
 {
-    public class UnitTest1
+    public class AutomationTests
     {
         [Fact]
         public async Task CanGetSteps()
