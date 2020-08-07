@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -226,6 +226,11 @@ namespace Wabbajack.Lib
                         await toFile.DeleteAsync();
                         Utils.ErrorThrow(new Exception($"Virus scan of patched executable reported possible malware: {toFile.ToString()} ({(long)hash})"));
                     }
+                }
+
+                foreach (var file in group)
+                {
+                    file.To.RelativeTo(OutputFolder).FileHashWriteCache(file.Hash);
                 }
 
                 if (UseCompression)

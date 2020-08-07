@@ -202,6 +202,10 @@ namespace Wabbajack.Common
             bw.Write((ulong)hash);
             _hashCache.Put(Encoding.UTF8.GetBytes(file.Normalize()), ms.ToArray());
         }
+        public static void FileHashWriteCache(this AbsolutePath file, Hash hash)
+        {
+            WriteHashCache(file, hash);
+        }
 
         public static async Task<Hash> FileHashCachedAsync(this AbsolutePath file, bool nullOnIOError = false)
         {
