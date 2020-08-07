@@ -173,7 +173,7 @@ Official Modlists also get their own support channel on our Discord and often ha
 
 Managing a Modlist can be tricky if you have never done something like this. In the early days of Wabbajack we mostly relied on GDocs READMEs and hosted all accompanying files on GDrive while managing issues through the support channel on Discord. This system was later almost completely replaced through valiant effort by one of our developers: almost all new Modlists use GitHub for managing their Modlist.
 
-GitHub was made for developers and is the site you are currently on. It mostly hosts source code for open source projects, such as Wabbajack, but can also be used for project management. Another strong point is Markdown support. This README you are currently reading is, like very other GitHub README, written in Markdown and rendered on GitHub.
+GitHub was made for developers and is the site you are currently on. It mostly hosts source code for open source projects, such as Wabbajack, but can also be used for project management. Another strong point is Markdown support. This README you are currently reading is, like every other GitHub README, written in Markdown and rendered on GitHub.
 
 On the topic of READMEs: you should create a good one.
 
