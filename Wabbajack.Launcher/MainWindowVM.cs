@@ -114,6 +114,7 @@ namespace Wabbajack.Launcher
             var info = new ProcessStartInfo
             {
                 FileName = Path.Combine(wjFolder, "Wabbajack.exe"), 
+                Arguments = string.Join(" ", Environment.GetCommandLineArgs().Skip(1).Select(s => s.Contains(' ') ? '\"' + s + '\"' : s)),
                 WorkingDirectory = wjFolder,
             };
             Process.Start(info);
