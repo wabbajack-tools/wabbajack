@@ -94,9 +94,9 @@ Next up are Cleaned Master Files. Use xEdit through MO2 and clean the base game 
 
 You now know about `.meta` files and understand that every file has to come from somewhere, this also means that you also need to create `.meta` files for MO2 and files in your game folder. We recommend using the [MO2 GitHub Releases](https://github.com/ModOrganizer2/modorganizer/releases/) instead of the ones you find on the Nexus.
 
-Wabbajack will not only index your entire MO2 folder but also your entire. Mods that need to be installed to the game folder by the user are required to be installed to a `Game Folder Files` folder in your MO2 directory. Let's look at an example for better understanding:
+Mods that need to be installed to the game folder by the user are required to be installed to a `Game Folder Files` folder in your MO2 directory. Let's look at an example for better understanding:
 
-You will likely make use of SKSE/F4SE/OBSE or other Script Extender if you are modding Bethesda titles. Eg for SKSE you'd need to install `skse64_1_5_97.dll`, `skse64_loader.exe` and `skse64_steam_loader.dll` to your game folder. To make things easier for the end user, you can also put those files inside the `Game Folder Files` folder at `MO2\Game Folder Files`. You also need the archive and it's `.meta` file (see [Script Extender and Cleaned ESMs](#script-extender-and-cleaned-masters) section if you haven't) in your downloads folder so Wabbajack can match those files.
+You will likely make use of SKSE/F4SE/OBSE or other Script Extender if you are modding Bethesda titles. Eg for SKSE you'd need to install `skse64_1_5_97.dll`, `skse64_loader.exe` and `skse64_steam_loader.dll` to your game folder. To make things easier for the end user, you can should put those files inside the `Game Folder Files` folder at `MO2\Game Folder Files`. You also need the archive and it's `.meta` file (see [Script Extender and Cleaned ESMs](#script-extender-and-cleaned-masters) section if you haven't) in your downloads folder so Wabbajack can match those files.
 
 The user then only has to copy the files from the `Game Folder Files` directory to their game folder after installation. This also works for other files that need to be installed directly to the game folder like ENB or ReShade.
 
