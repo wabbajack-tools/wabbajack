@@ -98,7 +98,7 @@ Wabbajack will not only index your entire MO2 folder but also your entire Game f
 
 In your game folder you will likely have SKSE/F4SE/OBSE and in your downloads folder you would have the SKSE archive with it's `.meta` file (see [Script Extender and Cleaned ESMs](#script-extender-and-cleaned-masters) section if you haven't). Wabbajack will find the script extender files in your game folder, match them against the archive in your downloads folder and will put eg `skse64_1_5_97.dll`, `skse64_loader.exe` and `skse64_steam_loader.dll` in the `Game Folder Files` folder during installation.
 
-The user only has to copy the files in the `Game Folder Fils` directory to their game folder after installation in order for them to install the same files you have. This also works with other files in your game folder as long as you have a download with those files and a `.meta` file for them, eg: ENBs.
+The user only has to copy the files in the `Game Folder Files` directory to their game folder after installation in order for them to install the same files you have. This also works with other files in your game folder as long as you have a download with those files and a `.meta` file for them, eg: ENBs.
 
 #### Special Flags
 
