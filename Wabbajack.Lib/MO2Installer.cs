@@ -21,6 +21,7 @@ using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 using SectionData = Wabbajack.Common.SectionData;
+using System.Collections.Generic;
 
 namespace Wabbajack.Lib
 {
@@ -428,8 +429,18 @@ namespace Wabbajack.Lib
                 return ErrorResponse.Fail($"Cannot install into a folder with a Wabbajack ModList inside of it");
             }
 
-            // Check folder is either empty, or a likely valid previous install
+            // Check if folder is empty
             if (path.IsEmptyDirectory)
+            {
+                return ErrorResponse.Success;
+            }
+
+            // Check if folders indicative of a previous install exist
+            var checks = new List<RelativePath>() {
+                Consts.MO2ModFolderName, 
+                Consts.MO2ProfilesFolderName
+            };
+            if (checks.All(c => path.Combine(c).Exists))
             {
                 return ErrorResponse.Success;
             }
