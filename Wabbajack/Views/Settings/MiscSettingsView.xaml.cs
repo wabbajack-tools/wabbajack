@@ -23,7 +23,7 @@ namespace Wabbajack
     /// <summary>
     /// Interaction logic for MiscSettingsView.xaml
     /// </summary>
-    public partial class MiscSettingsView : ReactiveUserControl<FiltersSettings>
+    public partial class MiscSettingsView : ReactiveUserControl<SettingsVM>
     {
         public MiscSettingsView()
         {
@@ -32,9 +32,12 @@ namespace Wabbajack
             this.WhenActivated(disposable =>
             {
                 // Bind Values
-                this.Bind(this.ViewModel, x => x.IsPersistent, x => x.FilterPersistCheckBox.IsChecked)
+                this.BindStrict(this.ViewModel, x => x.Filters.IsPersistent, x => x.FilterPersistCheckBox.IsChecked)
                     .DisposeWith(disposable);
-                this.Bind(this.ViewModel, x => x.UseCompression, x => x.UseCompressionCheckBox.IsChecked)
+                this.BindStrict(this.ViewModel, x => x.Filters.UseCompression, x => x.UseCompressionCheckBox.IsChecked)
+                    .DisposeWith(disposable);
+                this.WhenAnyValue(x => x.ViewModel.OpenTerminalCommand)
+                    .BindToStrict(this, x => x.OpenTerminal.Command)
                     .DisposeWith(disposable);
 
                 this.ClearCefCache.Click += (sender, args) => {Driver.ClearCache();};

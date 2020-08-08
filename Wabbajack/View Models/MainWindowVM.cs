@@ -1,4 +1,4 @@
-using DynamicData;
+﻿using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -46,7 +46,6 @@ namespace Wabbajack
         public ICommand CopyVersionCommand { get; }
         public ICommand ShowLoginManagerVM { get; }
         public ICommand OpenSettingsCommand { get; }
-        public ICommand OpenTerminalCommand { get; }
 
         public string VersionDisplay { get; }
 
@@ -142,21 +141,6 @@ namespace Wabbajack
                 canExecute: this.WhenAny(x => x.ActivePane)
                     .Select(active => !SettingsPane.IsValueCreated || !object.ReferenceEquals(active, SettingsPane.Value)),
                 execute: () => NavigateTo(SettingsPane.Value));
-
-            OpenTerminalCommand = ReactiveCommand.CreateFromTask(() => OpenTerminal());
-            
-
-        }
-
-        private async Task OpenTerminal()
-        {
-            var process = new ProcessStartInfo
-            {
-                FileName = "cmd.exe", 
-                WorkingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)
-            };
-            Process.Start(process);
-            await ShutdownApplication();
         }
 
         private static bool IsStartingFromModlist(out AbsolutePath modlistPath)
@@ -170,7 +154,6 @@ namespace Wabbajack
             modlistPath = (AbsolutePath)CLIArguments.InstallPath;
             return true;
         }
-
 
         public void OpenInstaller(AbsolutePath path)
         {
