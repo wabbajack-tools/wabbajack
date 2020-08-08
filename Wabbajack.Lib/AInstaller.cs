@@ -230,17 +230,23 @@ namespace Wabbajack.Lib
 
                 foreach (var file in group)
                 {
-                    file.To.RelativeTo(OutputFolder).FileHashWriteCache(file.Hash);
-                }
-
-                if (UseCompression)
-                {
-                    foreach (var file in group)
+                    if (file is PatchedFromArchive)
+                    {
+                        await file.To.RelativeTo(OutputFolder).FileHashAsync();
+                    }
+                    else 
+                    {
+                        file.To.RelativeTo(OutputFolder).FileHashWriteCache(file.Hash);
+                    }
+                    
+                    if (UseCompression)
                     {
                         Utils.Status($"Compacting {file.To}");
                         await file.To.RelativeTo(OutputFolder).Compact(FileCompaction.Algorithm.XPRESS16K);
                     }
                 }
+
+
             }
 
             Status("Unstaging files");
