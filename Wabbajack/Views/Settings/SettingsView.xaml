@@ -43,7 +43,7 @@
             <WrapPanel>
                 <local:LoginSettingsView x:Name="LoginView" />
                 <local:PerformanceSettingsView x:Name="PerformanceView" />
-                <local:ModlistGallerySettingsView x:Name="ModlistGalleryView" />
+                <local:MiscSettingsView x:Name="MiscGalleryView" />
                 <local:AuthorFilesView x:Name="AuthorFilesView" />
             </WrapPanel>
         </ScrollViewer>

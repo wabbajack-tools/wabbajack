@@ -21,11 +21,11 @@ using Wabbajack.Lib.WebAutomation;
 namespace Wabbajack
 {
     /// <summary>
-    /// Interaction logic for ModlistGallerySettingsView.xaml
+    /// Interaction logic for MiscSettingsView.xaml
     /// </summary>
-    public partial class ModlistGallerySettingsView : ReactiveUserControl<FiltersSettings>
+    public partial class MiscSettingsView : ReactiveUserControl<FiltersSettings>
     {
-        public ModlistGallerySettingsView()
+        public MiscSettingsView()
         {
             InitializeComponent();
 
