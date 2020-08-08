@@ -226,5 +226,28 @@ namespace Wabbajack.Server.DataLayer
             
         }
 
+        public async Task PurgePatch(Hash hash, string rationale)
+        {
+            await using var conn = await Open();
+            await using var tx = await conn.BeginTransactionAsync();
+
+            await conn.ExecuteAsync(
+                "DELETE p FROM dbo.Patches p LEFT JOIN dbo.ArchiveDownloads ad ON ad.Id = p.SrcId WHERE ad.Hash = @Hash ",
+                new {Hash = hash}, tx);
+            await conn.ExecuteAsync(
+                "INSERT INTO dbo.NoPatch (Hash, Created, Rationale) VALUES (@Hash, GETUTCDATE(), @Rationale)",
+                new
+                {
+                    Hash = hash,
+                    Rationale = rationale
+                }, tx);
+            await tx.CommitAsync();
+        }
+
+        public async Task<bool> IsNoPatch(Hash hash)
+        {
+            await using var conn = await Open();
+            return await conn.QueryFirstOrDefaultAsync<Hash>("SELECT Hash FROM NoPatch WHERE Hash = @Hash", new {Hash = hash}) != default;
+        }
     }
 }

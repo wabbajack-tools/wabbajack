@@ -73,5 +73,12 @@ namespace Wabbajack.Lib.FileUploader
         {
             return await (await GetAuthorizedClient()).GetStringAsync($"{Consts.WabbajackBuildServerUri}purge_nexus_cache/{modId}");
         }
+
+        public static async Task<string> NoPatch(Hash hash, string rationale)
+        {
+            var client = await GetAuthorizedClient();
+            return await client.GetStringAsync(
+                $"{Consts.WabbajackBuildServerUri}mod_upgrade/no_patch/{hash.ToHex()}/{Encoding.UTF8.GetBytes(rationale).ToHex()}");
+        }
     }
 }

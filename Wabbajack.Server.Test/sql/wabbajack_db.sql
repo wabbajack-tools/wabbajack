@@ -689,6 +689,26 @@ CREATE TABLE [dbo].[MirroredArchives](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
+/****** Object:  Table [dbo].[NoPatch]    Script Date: 8/3/2020 8:39:33 PM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[NoPatch](
+ [Hash] [bigint] NOT NULL,
+ [Created] [datetime] NOT NULL,
+ [Rationale] [nvarchar](max) NOT NULL,
+ CONSTRAINT [PK_NoPatch] PRIMARY KEY CLUSTERED
+     (
+      [Hash] ASC
+         )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+
+
 /****** Object:  Table [dbo].[GameMetadata]    Script Date: 8/3/2020 8:39:33 PM ******/
 SET ANSI_NULLS ON
 GO

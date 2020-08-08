@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -85,6 +86,12 @@ namespace Wabbajack.BuildServer.Controllers
             }
 
             var oldDownload = await _sql.GetOrEnqueueArchive(request.OldArchive);
+
+            if (await _sql.IsNoPatch(oldDownload.Archive.Hash))
+            {
+                return BadRequest("File has NoPatch attached");
+            }
+            
             var newDownload = await _sql.GetOrEnqueueArchive(request.NewArchive);
 
             var patch = await _sql.FindOrEnqueuePatch(oldDownload.Id, newDownload.Id);
@@ -126,6 +133,17 @@ namespace Wabbajack.BuildServer.Controllers
 
             var patches = await _sql.PatchesForSource(hash);
             return Ok(patches.Select(p => p.Dest.Archive).ToList().ToJson());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Author")]
+        [Route("/mod_upgrade/no_patch/{hashAsHex}/{rationaleAsHex}")]
+        public async Task<IActionResult> PurgePatch(string hashAsHex, string rationaleAsHex)
+        {
+            var hash = Hash.FromHex(hashAsHex);
+            var rationale = Encoding.UTF8.GetString(rationaleAsHex.FromHex());
+            await _sql.PurgePatch(hash, rationale);
+            return Ok("Purged");
         }
       
 

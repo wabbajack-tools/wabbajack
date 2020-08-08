@@ -28,7 +28,8 @@ namespace Wabbajack.CLI
             typeof(PurgeNexusCache),
             typeof(ForceHealing),
             typeof(HashVariants),
-            typeof(ParseMeta)
+            typeof(ParseMeta),
+            typeof(NoPatch)
         };
     }
 }
