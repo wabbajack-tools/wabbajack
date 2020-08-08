@@ -139,6 +139,9 @@ namespace Wabbajack.Lib.ModListRegistry
         public int Passed { get; set; }
         [JsonProperty("updating")]
         public int Updating { get; set; }
+        
+        [JsonProperty("mirrored")]
+        public int Mirrored { get; set; }
 
         [JsonProperty("link")]
         public string Link => $"/lists/status/{MachineURL}.json";

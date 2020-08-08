@@ -102,6 +102,18 @@ namespace Wabbajack.BuildServer.Controllers
                 {{/each}}
                 </ul>
 
+                <h3>Mirrored ({{mirrored.Count}}):</h3>
+                <ul>
+                {{each $.mirrored }}
+                {{if $.HasUrl}}
+                <li><a href='{{$.Url}}'>{{$.Name}}</a></li>
+                {{else}}
+                <li>{{$.Name}}</li>
+                {{/if}}
+
+                {{/each}}
+                </ul>
+
                 <h3>Updating ({{updating.Count}}):</h3>
                 <ul>
                 {{each $.updating }}
@@ -141,6 +153,7 @@ namespace Wabbajack.BuildServer.Controllers
                 passed = lst.Archives.Where(a => !a.IsFailing).ToList(),
                 updated = lst.Archives.Where(a => a.ArchiveStatus == ArchiveStatus.Updated).ToList(),
                 updating = lst.Archives.Where(a => a.ArchiveStatus == ArchiveStatus.Updating).ToList(),
+                mirrored = lst.Archives.Where(a => a.ArchiveStatus == ArchiveStatus.Mirrored).ToList()
             });
             return new ContentResult
             {

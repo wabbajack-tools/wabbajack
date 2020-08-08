@@ -12,5 +12,6 @@ namespace Wabbajack.Server.DTOs
         public List<ModlistMetadata> ModLists { get; set; }
         
         public ConcurrentHashSet<(Game Game, long ModId)> SlowQueriedFor { get; set; } = new ConcurrentHashSet<(Game Game, long ModId)>();
+        public HashSet<Hash> Mirrors { get; set; }
     }
 }

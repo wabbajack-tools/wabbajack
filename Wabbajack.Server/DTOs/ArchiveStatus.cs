@@ -6,5 +6,6 @@
         InValid,
         Updating,
         Updated,
+        Mirrored
     }
 }

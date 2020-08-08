@@ -17,11 +17,13 @@ namespace Wabbajack.Server.DataLayer
             var nexusFiles = AllNexusFiles();
             var archiveStatus = AllModListArchivesStatus();
             var modLists = AllModLists();
+            var mirrors = GetAllMirroredHashes();
             return new ValidationData
             {
                 NexusFiles = new ConcurrentHashSet<(long Game, long ModId, long FileId)>((await nexusFiles).Select(f => (f.NexusGameId, f.ModId, f.FileId))),
                 ArchiveStatus = await archiveStatus,
                 ModLists = await modLists,
+                Mirrors = await mirrors,
             };
         }
         

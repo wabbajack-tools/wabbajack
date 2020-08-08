@@ -56,13 +56,19 @@ namespace Wabbajack.Server.Services
                 {
                     var (_, result) = await ValidateArchive(data, archive);
                     if (result == ArchiveStatus.InValid)
+                    {
+                        if (data.Mirrors.Contains(archive.Hash))
+                            return (archive, ArchiveStatus.Mirrored);
                         return await TryToHeal(data, archive, metadata);
+                    }
+
                     return (archive, result);
                 });
 
                 var failedCount = archives.Count(f => f.Item2 == ArchiveStatus.InValid);
                 var passCount = archives.Count(f => f.Item2 == ArchiveStatus.Valid || f.Item2 == ArchiveStatus.Updated);
                 var updatingCount = archives.Count(f => f.Item2 == ArchiveStatus.Updating);
+                var mirroredCount = archives.Count(f => f.Item2 == ArchiveStatus.Mirrored);
 
                 var summary =  new ModListSummary
                 {
@@ -70,6 +76,7 @@ namespace Wabbajack.Server.Services
                     Failed = failedCount,
                     Passed = passCount,
                     Updating = updatingCount,
+                    Mirrored = mirroredCount,
                     MachineURL = metadata.Links.MachineURL,
                     Name = metadata.Title,
                 };
@@ -84,7 +91,7 @@ namespace Wabbajack.Server.Services
                     Archives = archives.Select(a => new DetailedStatusItem
                     {
                         Archive = a.Item1, 
-                        IsFailing = a.Item2 == ArchiveStatus.InValid || a.Item2 == ArchiveStatus.Updating,
+                        IsFailing = a.Item2 == ArchiveStatus.InValid,
                         ArchiveStatus = a.Item2
                     }).ToList()
                 };
