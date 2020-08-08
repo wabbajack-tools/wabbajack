@@ -1,4 +1,4 @@
-﻿using DynamicData;
+using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
@@ -127,7 +127,7 @@ namespace Wabbajack
                 VersionDisplay = $"v{fvi.FileVersion}";
                 Utils.Log($"Wabbajack Version: {fvi.FileVersion}");
                 
-                Task.Run(() => Metrics.Send("started_wabbajack", fvi.FileVersion));
+                Task.Run(() => Metrics.Send("started_wabbajack", fvi.FileVersion)).FireAndForget();
             }
             catch (Exception ex)
             {
