@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
 using Wabbajack.BuildServer;
 using Wabbajack.BuildServer.Test;
 using Wabbajack.Common;
@@ -25,6 +26,10 @@ namespace Wabbajack.Server.Test
         [Fact]
         public async Task CanIndexAndUpdateFiles()
         {
+            var _sql = Fixture.GetService<SqlService>();
+            await using var conn = await _sql.Open();
+            await conn.ExecuteAsync("DELETE FROM dbo.NoPatch");
+            
             var settings = Fixture.GetService<AppSettings>();
             settings.ValidateModUpgrades = false;
             var validator = Fixture.GetService<ListValidator>();
@@ -83,6 +88,10 @@ namespace Wabbajack.Server.Test
         [Fact]
         public async Task TestEndToEndArchiveUpdating()
         {
+            var _sql = Fixture.GetService<SqlService>();
+            await using var conn = await _sql.Open();
+            await conn.ExecuteAsync("DELETE FROM dbo.NoPatch");
+            
             var settings = Fixture.GetService<AppSettings>();
             settings.ValidateModUpgrades = false;
 
