@@ -105,7 +105,7 @@ namespace Wabbajack.Server.Test
             patcher.NoCleaning = true;
             
             var sql = Fixture.GetService<SqlService>();
-            var oldFileData = Encoding.UTF8.GetBytes("Cheese for Everyone!");
+            var oldFileData = Encoding.UTF8.GetBytes("Cheese for Everyone!" + Guid.NewGuid());
             var newFileData = Encoding.UTF8.GetBytes("Forks for Everyone!");
             var oldDataHash = oldFileData.xxHash();
             var newDataHash = newFileData.xxHash();
