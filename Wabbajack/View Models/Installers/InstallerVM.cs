@@ -412,12 +412,12 @@ namespace Wabbajack
                 .QueryWhenChanged(query => query.FirstOrDefault())
                 .ToGuiProperty(this, nameof(ActiveGlobalUserIntervention));
 
-            CloseWhenCompleteCommand = ReactiveCommand.Create(
+            CloseWhenCompleteCommand = ReactiveCommand.CreateFromTask(
                 canExecute: this.WhenAny(x => x.Completed)
                     .Select(x => x != null),
-                execute: () =>
+                execute: async () =>
                 {
-                    MWVM.ShutdownApplication();
+                    await MWVM.ShutdownApplication();
                 });
 
             GoToInstallCommand = ReactiveCommand.Create(

@@ -162,7 +162,7 @@ namespace Wabbajack
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            _mwvm.ShutdownApplication();
+            _mwvm.ShutdownApplication().Wait();
         }
     }
 }

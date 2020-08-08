@@ -143,12 +143,12 @@ namespace Wabbajack
                     .Select(active => !SettingsPane.IsValueCreated || !object.ReferenceEquals(active, SettingsPane.Value)),
                 execute: () => NavigateTo(SettingsPane.Value));
 
-            OpenTerminalCommand = ReactiveCommand.Create(() => OpenTerminal());
+            OpenTerminalCommand = ReactiveCommand.CreateFromTask(() => OpenTerminal());
             
 
         }
 
-        private void OpenTerminal()
+        private async Task OpenTerminal()
         {
             var process = new ProcessStartInfo
             {
@@ -156,7 +156,7 @@ namespace Wabbajack
                 WorkingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)
             };
             Process.Start(process);
-            ShutdownApplication();
+            await ShutdownApplication();
         }
 
         private static bool IsStartingFromModlist(out AbsolutePath modlistPath)
@@ -193,14 +193,14 @@ namespace Wabbajack
             ActivePane = vm;
         }
 
-        public void ShutdownApplication()
+        public async Task ShutdownApplication()
         {
             Dispose();
             Settings.PosX = MainWindow.Left;
             Settings.PosY = MainWindow.Top;
             Settings.Width = MainWindow.Width;
             Settings.Height = MainWindow.Height;
-            MainSettings.SaveSettings(Settings).AsTask().Wait();
+            await MainSettings.SaveSettings(Settings);
             Application.Current.Shutdown();
         }
     }
