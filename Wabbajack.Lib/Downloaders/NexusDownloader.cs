@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reactive;
@@ -38,11 +38,6 @@ namespace Wabbajack.Lib.Downloaders
 
         public NexusDownloader()
         {
-            if (CLIArguments.ApiKey != null)
-            {
-                CLIArguments.ApiKey.ToEcryptedJson("nexusapikey");
-            }
-
             TriggerLogin = ReactiveCommand.CreateFromTask(
                 execute: () => Utils.CatchAndLog(NexusApiClient.RequestAndCacheAPIKey), 
                 canExecute: IsLoggedIn.Select(b => !b).ObserveOnGuiThread());
@@ -115,6 +110,11 @@ namespace Wabbajack.Lib.Downloaders
                 // Could have become prepared while we waited for the lock
                 if (!_prepared)
                 {
+                    if (CLIArguments.ApiKey != null)
+                    {
+                        await CLIArguments.ApiKey.ToEcryptedJson("nexusapikey");
+                    }
+
                     _client = await NexusApiClient.Get();
                     _status = await _client.GetUserStatus();
                     if (!_client.IsAuthenticated)

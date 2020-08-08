@@ -34,8 +34,7 @@ namespace Wabbajack
                     .DisposeWith(disposable);
                 this.OneWayBindStrict(this.ViewModel, x => x.Performance, x => x.PerformanceView.ViewModel)
                     .DisposeWith(disposable);
-                this.OneWayBindStrict(this.ViewModel, x => x.Filters, x => x.ModlistGalleryView.ViewModel)
-                    .DisposeWith(disposable);
+                this.MiscGalleryView.ViewModel = this.ViewModel;
             });
         }
     }

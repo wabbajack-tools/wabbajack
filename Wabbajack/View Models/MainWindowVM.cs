@@ -46,7 +46,6 @@ namespace Wabbajack
         public ICommand CopyVersionCommand { get; }
         public ICommand ShowLoginManagerVM { get; }
         public ICommand OpenSettingsCommand { get; }
-        public ICommand OpenTerminalCommand { get; }
 
         public string VersionDisplay { get; }
 
@@ -77,14 +76,11 @@ namespace Wabbajack
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
             
-            var singleton_lock = new AsyncLock();
-
             Utils.LogMessages
                 .OfType<IUserIntervention>()
                 .ObserveOnGuiThread()
                 .SelectTask(async msg =>
                 {
-                    using var _ = await singleton_lock.WaitAsync();
                     try
                     {
                         await UserInterventionHandlers.Handle(msg);
@@ -127,7 +123,7 @@ namespace Wabbajack
                 VersionDisplay = $"v{fvi.FileVersion}";
                 Utils.Log($"Wabbajack Version: {fvi.FileVersion}");
                 
-                Task.Run(() => Metrics.Send("started_wabbajack", fvi.FileVersion));
+                Task.Run(() => Metrics.Send("started_wabbajack", fvi.FileVersion)).FireAndForget();
             }
             catch (Exception ex)
             {
@@ -142,21 +138,6 @@ namespace Wabbajack
                 canExecute: this.WhenAny(x => x.ActivePane)
                     .Select(active => !SettingsPane.IsValueCreated || !object.ReferenceEquals(active, SettingsPane.Value)),
                 execute: () => NavigateTo(SettingsPane.Value));
-
-            OpenTerminalCommand = ReactiveCommand.Create(() => OpenTerminal());
-            
-
-        }
-
-        private void OpenTerminal()
-        {
-            var process = new ProcessStartInfo
-            {
-                FileName = "cmd.exe", 
-                WorkingDirectory = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)
-            };
-            Process.Start(process);
-            ShutdownApplication();
         }
 
         private static bool IsStartingFromModlist(out AbsolutePath modlistPath)
@@ -170,7 +151,6 @@ namespace Wabbajack
             modlistPath = (AbsolutePath)CLIArguments.InstallPath;
             return true;
         }
-
 
         public void OpenInstaller(AbsolutePath path)
         {
@@ -193,14 +173,14 @@ namespace Wabbajack
             ActivePane = vm;
         }
 
-        public void ShutdownApplication()
+        public async Task ShutdownApplication()
         {
             Dispose();
             Settings.PosX = MainWindow.Left;
             Settings.PosY = MainWindow.Top;
             Settings.Width = MainWindow.Width;
             Settings.Height = MainWindow.Height;
-            MainSettings.SaveSettings(Settings).AsTask().Wait();
+            await MainSettings.SaveSettings(Settings);
             Application.Current.Shutdown();
         }
     }

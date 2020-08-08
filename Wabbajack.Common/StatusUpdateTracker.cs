@@ -40,16 +40,23 @@ namespace Wabbajack.Common
             MakeUpdate(Percent.Zero);
         }
 
-        private Percent OverAllStatus(Percent sub_status)
+        /// <summary>
+        /// Converts a percent that's within the scope of a single step
+        /// to the overall percent when all steps are considered
+        /// </summary>
+        /// <param name="singleStepPercent">Percent progress of the current single step</param>
+        /// <returns>Overall progress in relation to all steps</returns>
+        private Percent OverAllStatus(Percent singleStepPercent)
         {
             var per_step = 1.0f / _internalMaxStep;
             var macro = _internalCurrentStep * per_step;
-            return Percent.FactoryPutInRange(macro + (per_step * sub_status.Value));
+            return Percent.FactoryPutInRange(macro + (per_step * singleStepPercent.Value));
         }
 
         public void MakeUpdate(Percent progress)
         {
-            _progress.OnNext(progress);
+            // Need to convert from single step progress to overall progress for output subject
+            _progress.OnNext(OverAllStatus(progress));
         }
 
         public void MakeUpdate(int max, int curr)
