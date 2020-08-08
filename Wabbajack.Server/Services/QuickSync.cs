@@ -36,11 +36,15 @@ namespace Wabbajack.Server.Services
 
         public async Task Notify<T>()
         {
+            // Needs debugging
+            /*
             using var _ = await _lock.WaitAsync();
             if (_syncs.TryGetValue(typeof(T), out var ct))
             {
                 ct.Cancel();
             }
+            */ 
+            
         }
         
         

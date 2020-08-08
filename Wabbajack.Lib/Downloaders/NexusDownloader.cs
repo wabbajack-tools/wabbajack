@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reactive;
@@ -124,6 +124,8 @@ namespace Wabbajack.Lib.Downloaders
                         return;
                     }
 
+                    
+                    /* Disabled for better User experience
                     if (!await _client.IsPremium())
                     {
                         var result = await Utils.Log(new YesNoIntervention(
@@ -134,6 +136,7 @@ namespace Wabbajack.Lib.Downloaders
                             Utils.ErrorThrow(new UnconvertedError($"Aborting at the request of the user"));
                         }
                     }
+                    */
                     _prepared = true;
                 }
             }
