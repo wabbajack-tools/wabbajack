@@ -128,11 +128,12 @@ namespace Wabbajack.Lib.Downloaders
             Utils.Log($"Looking for patch for {archive.Name} ({(long)archive.Hash} {archive.Hash.ToHex()} -> {(long)result.Archive!.Hash} {result.Archive!.Hash.ToHex()})");
             var patchResult = await ClientAPI.GetModUpgrade(archive, result.Archive!);
 
-            Utils.Log($"Downloading patch for {archive.Name}");
+            Utils.Log($"Downloading patch for {archive.Name} from {patchResult}");
             
             var tempFile = new TempFile();
 
             using var response = await (await ClientAPI.GetClient()).GetAsync(patchResult);
+
             await tempFile.Path.WriteAllAsync(await response.Content.ReadAsStreamAsync());
             response.Dispose();
 
@@ -157,9 +158,12 @@ namespace Wabbajack.Lib.Downloaders
         {
             try
             {
+                var url = await ClientAPI.GetMirrorUrl(archive.Hash);
+                if (url == null) return false;
+                
                 var newArchive =
                     new Archive(
-                        new WabbajackCDNDownloader.State(new Uri($"{Consts.WabbajackMirror}{archive.Hash.ToHex()}")))
+                        new WabbajackCDNDownloader.State(url))
                     {
                         Hash = archive.Hash, Size = archive.Size, Name = archive.Name
                     };

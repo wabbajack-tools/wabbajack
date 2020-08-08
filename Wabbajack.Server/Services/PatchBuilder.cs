@@ -203,7 +203,7 @@ namespace Wabbajack.Server.Services
                 try
                 {
                     _logger.Log(LogLevel.Information,
-                        $"Uploading {patchFile.Size.ToFileSizeString()} patch file to CDN");
+                        $"Uploading {patchFile.Size.ToFileSizeString()} patch file to CDN {patchName}");
                     using var client = await GetBunnyCdnFtpClient();
                     
                     await client.UploadFileAsync((string)patchFile, patchName, FtpRemoteExists.Overwrite);

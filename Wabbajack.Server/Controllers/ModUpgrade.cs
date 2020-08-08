@@ -145,6 +145,16 @@ namespace Wabbajack.BuildServer.Controllers
             await _sql.PurgePatch(hash, rationale);
             return Ok("Purged");
         }
+        
+        [HttpGet]
+        [Authorize(Roles = "User")]
+        [Route("/mirror/{hashAsHex}")]
+        public async Task<IActionResult> HaveHash(string hashAsHex)
+        {
+            var result = await _sql.HaveMirror(Hash.FromHex(hashAsHex));
+            if (result) return Ok($"https://{(await _creds).Username}.b-cdn.net/{hashAsHex}");
+            return NotFound("Not Mirrored");
+        }
       
 
     }
