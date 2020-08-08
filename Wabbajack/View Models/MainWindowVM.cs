@@ -76,14 +76,11 @@ namespace Wabbajack
                 .Subscribe()
                 .DisposeWith(CompositeDisposable);
             
-            var singleton_lock = new AsyncLock();
-
             Utils.LogMessages
                 .OfType<IUserIntervention>()
                 .ObserveOnGuiThread()
                 .SelectTask(async msg =>
                 {
-                    using var _ = await singleton_lock.WaitAsync();
                     try
                     {
                         await UserInterventionHandlers.Handle(msg);
