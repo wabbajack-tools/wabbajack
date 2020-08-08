@@ -239,5 +239,20 @@ namespace Wabbajack.Lib
             }
             throw new HttpException(result);
         }
+
+        public static async Task<Uri?> GetMirrorUrl(Hash archiveHash)
+        {
+            var client  = await GetClient();
+            try
+            {
+                var result =
+                    await client.GetStringAsync($"{Consts.WabbajackBuildServerUri}/mirror/{archiveHash.ToHex()}");
+                return new Uri(result);
+            }
+            catch (HttpException ex)
+            {
+                return null;
+            }
+        }
     }
 }

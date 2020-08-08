@@ -75,5 +75,13 @@ namespace Wabbajack.Server.DataLayer
                 });
             }
         }
+
+        public async Task<bool> HaveMirror(Hash hash)
+        {
+            await using var conn = await Open();
+
+            return await conn.QueryFirstOrDefaultAsync<Hash>("SELECT Hash FROM dbo.MirroredFiles WHERE Hash = @Hash",
+                new {Hash = hash}) != default;
+        }
     }
 }

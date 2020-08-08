@@ -1,5 +1,13 @@
 ### Changelog
 
+#### Version - 2.2.0.0 - 8/7/2020
+* Can now use NTFS XPRESS16 compression to reduce install sizes (optional in the settings panel)
+* Better valid directory detection during install
+* Prime the Hash cache during install so that we don't have to re-hash during a modlist update
+* Better detection and handling of midden files
+* Reworked the installer to use less temporary storage during install, keeps fewer archives open at once
+* Launcher now passes arguments to the main Wabbajack.exe application
+
 #### Version - 2.1.3.4 - 7/28/2020
 * Fixes for Tar Files (for realz this time)
 * Watch disk usage, throw an error if disk usage gets too high

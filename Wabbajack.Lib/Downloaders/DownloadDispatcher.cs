@@ -157,9 +157,12 @@ namespace Wabbajack.Lib.Downloaders
         {
             try
             {
+                var url = await ClientAPI.GetMirrorUrl(archive.Hash);
+                if (url == null) return false;
+                
                 var newArchive =
                     new Archive(
-                        new WabbajackCDNDownloader.State(new Uri($"{Consts.WabbajackMirror}{archive.Hash.ToHex()}")))
+                        new WabbajackCDNDownloader.State(url))
                     {
                         Hash = archive.Hash, Size = archive.Size, Name = archive.Name
                     };
