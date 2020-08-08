@@ -113,6 +113,7 @@ namespace Wabbajack.Common
         public static int WabbajackCachePort = 80;
         public static int MaxHTTPRetries = 4;
         public static RelativePath MO2ModFolderName = (RelativePath)"mods";
+        public static RelativePath MO2ProfilesFolderName = (RelativePath)"profiles";
 
         public static AbsolutePath PatchCacheFolder => LocalAppDataPath.Combine("patch_cache");
         public static int MaxConnectionsPerServer = 4;
