@@ -15,13 +15,16 @@ namespace Wabbajack.Lib.CompilationSteps
         public IgnoreDisabledMods(ACompiler compiler) : base(compiler)
         {
             _mo2Compiler = (MO2Compiler) compiler;
-            var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IsAlwaysEnabled(f.Value)).Select(f => f.Key).Distinct();
+            var alwaysEnabled = _mo2Compiler.ModInis.Where(f => HasFlagInNotes(f.Value, Consts.WABBAJACK_ALWAYS_ENABLE)).Select(f => f.Key).Distinct();
+            var alwaysDisabled = _mo2Compiler.ModInis
+                .Where(f => HasFlagInNotes(f.Value, Consts.WABBAJACK_ALWAYS_DISABLE)).Select(f => f.Key).Distinct();
 
             _allEnabledMods = _mo2Compiler.SelectedProfiles
                 .SelectMany(p => _mo2Compiler.MO2Folder.Combine("profiles", p, "modlist.txt").ReadAllLines())
                 .Where(line => line.StartsWith("+") || line.EndsWith("_separator"))
                 .Select(line => line.Substring(1).RelativeTo(_mo2Compiler.MO2ModsFolder))
                 .Concat(alwaysEnabled)
+                .Except(alwaysDisabled)
                 .ToList();
         }
 
@@ -35,18 +38,17 @@ namespace Wabbajack.Lib.CompilationSteps
             return r;
         }
 
-        public static bool IsAlwaysEnabled(dynamic data)
+        public static bool HasFlagInNotes(dynamic data, string flag)
         {
             if (data == null)
                 return false;
             if (data.General != null && data.General.notes != null &&
                 data.General.notes.Contains(
-                    Consts.WABBAJACK_ALWAYS_ENABLE))
+                    flag))
                 return true;
-            if (data.General != null && data.General.comments != null &&
-                data.General.comments.Contains(Consts.WABBAJACK_ALWAYS_ENABLE))
-                return true;
-            return false;
+            
+            return data.General != null && data.General.comments != null &&
+                   data.General.comments.Contains(flag);
         }
     }
 }
