@@ -36,7 +36,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         private async Task<byte[]> ReadAndCleanModlist(AbsolutePath absolutePath)
         {
-            var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IgnoreDisabledMods.IsAlwaysEnabled(f.Value))
+            var alwaysEnabled = _mo2Compiler.ModInis.Where(f => IgnoreDisabledMods.HasFlagInNotes(f.Value, Consts.WABBAJACK_ALWAYS_ENABLE))
                 .Select(f => f.Key)
                 .Select(f => f.FileName.ToString())
                 .Distinct();
