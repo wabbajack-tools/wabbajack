@@ -52,9 +52,7 @@ namespace Compression.BSA
 
     public class BSAReader : IBSAReader
     {
-        internal uint _archiveFlags;
         internal uint _fileCount;
-        internal uint _fileFlags;
         internal AbsolutePath _fileName;
         internal uint _folderCount;
         internal uint _folderRecordOffset;
@@ -62,7 +60,6 @@ namespace Compression.BSA
         internal string _magic;
         internal uint _totalFileNameLength;
         internal uint _totalFolderNameLength;
-        internal uint _version;
         
         public void Dump(Action<string> print)
         {
@@ -107,26 +104,25 @@ namespace Compression.BSA
 
         public ArchiveStateObject State => new BSAStateObject(this);
 
-        public VersionType HeaderType => (VersionType) _version;
+        public VersionType HeaderType { get; set; }
 
-        public ArchiveFlags ArchiveFlags => (ArchiveFlags) _archiveFlags;
+        public ArchiveFlags ArchiveFlags { get; set; }
 
-        public FileFlags FileFlags => (FileFlags)_fileFlags;
+        public FileFlags FileFlags { get; set; }
 
+        public bool HasFolderNames => ArchiveFlags.HasFlag(ArchiveFlags.HasFolderNames);
 
-        public bool HasFolderNames => (_archiveFlags & 0x1) > 0;
+        public bool HasFileNames => ArchiveFlags.HasFlag(ArchiveFlags.HasFileNames);
 
-        public bool HasFileNames => (_archiveFlags & 0x2) > 0;
+        public bool CompressedByDefault => ArchiveFlags.HasFlag(ArchiveFlags.Compressed);
 
-        public bool CompressedByDefault => (_archiveFlags & 0x4) > 0;
-
-        public bool Bit9Set => (_archiveFlags & 0x100) > 0;
+        public bool Bit9Set => ArchiveFlags.HasFlag(ArchiveFlags.HasFileNameBlobs);
 
         public bool HasNameBlobs
         {
             get
             {
-                if (HeaderType == VersionType.FO3 || HeaderType == VersionType.SSE) return (_archiveFlags & 0x100) > 0;
+                if (HeaderType == VersionType.FO3 || HeaderType == VersionType.SSE) return Bit9Set;
                 return false;
             }
         }
@@ -139,14 +135,14 @@ namespace Compression.BSA
                 throw new InvalidDataException("Archive is not a BSA");
 
             _magic = fourcc;
-            _version = rdr.ReadUInt32();
+            HeaderType = (VersionType)rdr.ReadUInt32();
             _folderRecordOffset = rdr.ReadUInt32();
-            _archiveFlags = rdr.ReadUInt32();
+            ArchiveFlags = (ArchiveFlags)rdr.ReadUInt32();
             _folderCount = rdr.ReadUInt32();
             _fileCount = rdr.ReadUInt32();
             _totalFolderNameLength = rdr.ReadUInt32();
             _totalFileNameLength = rdr.ReadUInt32();
-            _fileFlags = rdr.ReadUInt32();
+            FileFlags = (FileFlags)rdr.ReadUInt32();
 
             LoadFolderRecords(rdr);
         }
@@ -173,9 +169,9 @@ namespace Compression.BSA
         public BSAStateObject(BSAReader bsaReader)
         {
             Magic = bsaReader._magic;
-            Version = bsaReader._version;
-            ArchiveFlags = bsaReader._archiveFlags;
-            FileFlags = bsaReader._fileFlags;
+            Version = (uint)bsaReader.HeaderType;
+            ArchiveFlags = (uint)bsaReader.ArchiveFlags;
+            FileFlags = (uint)bsaReader.FileFlags;
 
         }
 

@@ -15,15 +15,12 @@ namespace Compression.BSA
 {
     public class BSABuilder : IBSABuilder
     {
-        internal uint _archiveFlags;
-        internal uint _fileFlags;
         internal byte[] _fileId;
 
         private List<FileEntry> _files = new List<FileEntry>();
         internal List<FolderRecordBuilder> _folders = new List<FolderRecordBuilder>();
         internal uint _offset;
         internal uint _totalFileNameLength;
-        internal uint _version;
         internal DiskSlabAllocator _slab;
 
         public static async Task<BSABuilder> Create(long size)
@@ -39,32 +36,20 @@ namespace Compression.BSA
 
         public static async Task<BSABuilder> Create(BSAStateObject bsaStateObject, long size)
         {
-            var self = await Create(size);
-            self._version = bsaStateObject.Version;
-            self._fileFlags = bsaStateObject.FileFlags;
-            self._archiveFlags = bsaStateObject.ArchiveFlags;
+            var self = await Create(size).ConfigureAwait(false);
+            self.HeaderType = (VersionType)bsaStateObject.Version;
+            self.FileFlags = (FileFlags)bsaStateObject.FileFlags;
+            self.ArchiveFlags = (ArchiveFlags)bsaStateObject.ArchiveFlags;
             return self;
         }
 
         public IEnumerable<FileEntry> Files => _files;
 
-        public ArchiveFlags ArchiveFlags
-        {
-            get => (ArchiveFlags) _archiveFlags;
-            set => _archiveFlags = (uint) value;
-        }
+        public ArchiveFlags ArchiveFlags { get; set; }
 
-        public FileFlags FileFlags
-        {
-            get => (FileFlags) _archiveFlags;
-            set => _archiveFlags = (uint) value;
-        }
+        public FileFlags FileFlags { get; set; }
 
-        public VersionType HeaderType
-        {
-            get => (VersionType) _version;
-            set => _version = (uint) value;
-        }
+        public VersionType HeaderType { get; set; }
 
         public IEnumerable<RelativePath> FolderNames
         {
@@ -74,13 +59,13 @@ namespace Compression.BSA
             }
         }
 
-        public bool HasFolderNames => (_archiveFlags & 0x1) > 0;
+        public bool HasFolderNames => ArchiveFlags.HasFlag(ArchiveFlags.HasFileNames);
 
-        public bool HasFileNames => (_archiveFlags & 0x2) > 0;
+        public bool HasFileNames => ArchiveFlags.HasFlag(ArchiveFlags.HasFileNames);
 
-        public bool CompressedByDefault => (_archiveFlags & 0x4) > 0;
+        public bool CompressedByDefault => ArchiveFlags.HasFlag(ArchiveFlags.Compressed);
 
-        public bool HasNameBlobs => (_archiveFlags & 0x100) > 0;
+        public bool HasNameBlobs => ArchiveFlags.HasFlag(ArchiveFlags.HasFileNameBlobs);
 
         public async ValueTask DisposeAsync()
         {
@@ -105,9 +90,9 @@ namespace Compression.BSA
             await using var wtr = new BinaryWriter(fs);
             
             wtr.Write(_fileId);
-            wtr.Write(_version);
+            wtr.Write((uint)HeaderType);
             wtr.Write(_offset);
-            wtr.Write(_archiveFlags);
+            wtr.Write((uint)ArchiveFlags);
             var folders = FolderNames.ToList();
             wtr.Write((uint) folders.Count);
             wtr.Write((uint) _files.Count);
@@ -115,7 +100,7 @@ namespace Compression.BSA
             var s = _files.Select(f => f._pathBytes.Count()).Sum();
             _totalFileNameLength = (uint) _files.Select(f => f._nameBytes.Count()).Sum();
             wtr.Write(_totalFileNameLength); // totalFileNameLength
-            wtr.Write(_fileFlags);
+            wtr.Write((uint)FileFlags);
 
             foreach (var folder in _folders) folder.WriteFolderRecord(wtr);
 
