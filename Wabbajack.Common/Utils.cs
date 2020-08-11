@@ -1098,13 +1098,6 @@ namespace Wabbajack.Common
             return bytes;
         }
 
-        public static async Task CopyFileAsync(string src, string dest)
-        {
-            await using var s = File.OpenRead(src);
-            await using var d = File.Create(dest);
-            await s.CopyToAsync(d);
-        }
-
         public static string ToNormalString(this SecureString value)
         {
             var valuePtr = IntPtr.Zero;
