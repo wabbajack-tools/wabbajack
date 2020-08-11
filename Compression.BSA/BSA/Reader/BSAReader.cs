@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
@@ -28,15 +29,9 @@ namespace Compression.BSA
 
         public FileFlags FileFlags { get; private set; }
 
-        public IEnumerable<IFile> Files
-        {
-            get
-            {
-                foreach (var folder in _folders.Value)
-                    foreach (var file in folder._files.Value)
-                        yield return file;
-            }
-        }
+        public IEnumerable<IFile> Files => _folders.Value.SelectMany(f => f.Files);
+
+        public IEnumerable<IFolder> Folders => _folders.Value;
 
         public ArchiveStateObject State => new BSAStateObject(this);
 

@@ -9,34 +9,30 @@ using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
 {
-    public class FolderRecord
+    public class FolderRecord : IFolder
     {
         internal readonly BSAReader BSA;
         private readonly ReadOnlyMemorySlice<byte> _data;
         internal Lazy<FileRecord[]> _files;
-        private ReadOnlyMemorySlice<byte>? _nameData;
         private int _prevFileCount;
         internal FileNameBlock FileNameBlock;
-        private readonly Lazy<string> _name;
+        internal int Index { get; }
+        public string Name { get; private set; }
 
-        public int Index { get; }
-        public string Name => _name.Value;
+        public IEnumerable<IFile> Files => _files.Value;
 
         internal FolderRecord(BSAReader bsa, ReadOnlyMemorySlice<byte> data, int index)
         {
             BSA = bsa;
             _data = data;
             Index = index;
-            _name = new Lazy<string>(
-                () => _nameData.HasValue ? _nameData.Value.ReadStringTerm(BSA.HeaderType) : string.Empty,
-                isThreadSafe: true);
         }
 
         private bool IsLongform => BSA.HeaderType == VersionType.SSE;
 
         public ulong Hash => BinaryPrimitives.ReadUInt64LittleEndian(_data);
 
-        public uint FileCount => BinaryPrimitives.ReadUInt32LittleEndian(_data.Slice(0x8));
+        public int FileCount => checked((int)BinaryPrimitives.ReadUInt32LittleEndian(_data.Slice(0x8)));
 
         public uint Unknown => IsLongform ?
             BinaryPrimitives.ReadUInt32LittleEndian(_data.Slice(0xC)) : 
@@ -65,7 +61,7 @@ namespace Compression.BSA
             {
                 var len = rdr.ReadByte();
                 data = rdr.ReadBytes(len + totalFileLen);
-                _nameData = data.Slice(0, len);
+                Name = data.Slice(0, len).ReadStringTerm(BSA.HeaderType);
                 data = data.Slice(len);
             }
             else
