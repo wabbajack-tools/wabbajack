@@ -15,6 +15,7 @@
         <PackageIconUrl>https://www.wabbajack.org/favicon.ico</PackageIconUrl>
         <RepositoryUrl>https://github.com/wabbajack-tools/wabbajack</RepositoryUrl>
         <Version>3.0</Version>
+        <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       <DocumentationFile>Wabbajack.Common.xml</DocumentationFile>
