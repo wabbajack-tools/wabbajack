@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
+#nullable disable
 
 namespace Compression.BSA
 {

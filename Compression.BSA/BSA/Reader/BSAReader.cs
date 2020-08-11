@@ -18,8 +18,8 @@ namespace Compression.BSA
         internal AbsolutePath _fileName;
         internal uint _folderCount;
         internal uint _folderRecordOffset;
-        private Lazy<FolderRecord[]> _folders;
-        internal string _magic;
+        private Lazy<FolderRecord[]> _folders = null!;
+        internal string _magic = string.Empty;
         internal uint _totalFileNameLength;
         internal uint _totalFolderNameLength;
 

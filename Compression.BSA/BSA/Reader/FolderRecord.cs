@@ -13,11 +13,11 @@ namespace Compression.BSA
     {
         internal readonly BSAReader BSA;
         private readonly ReadOnlyMemorySlice<byte> _data;
-        internal Lazy<FileRecord[]> _files;
+        internal Lazy<FileRecord[]> _files = null!;
         private int _prevFileCount;
-        internal FileNameBlock FileNameBlock;
+        internal FileNameBlock FileNameBlock = null!;
         internal int Index { get; }
-        public string Name { get; private set; }
+        public string? Name { get; private set; }
 
         public IEnumerable<IFile> Files => _files.Value;
 

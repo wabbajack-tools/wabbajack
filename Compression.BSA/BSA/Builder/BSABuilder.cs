@@ -10,6 +10,7 @@ using K4os.Compression.LZ4.Streams;
 using Wabbajack.Common;
 using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
+#nullable disable
 
 namespace Compression.BSA
 {
