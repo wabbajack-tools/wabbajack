@@ -120,6 +120,7 @@ namespace Wabbajack
             {
                 var assembly = Assembly.GetExecutingAssembly();
                 var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+                Consts.CurrentWabbajackVersion = Version.Parse(fvi.FileVersion);
                 VersionDisplay = $"v{fvi.FileVersion}";
                 Utils.Log($"Wabbajack Version: {fvi.FileVersion}");
                 

@@ -210,8 +210,10 @@ namespace Wabbajack
             ModListLocation.AdditionalError = this.WhenAny(x => x.ModList)
                 .Select<ModListVM, IErrorResponse>(modList =>
                 {
-                    if (modList == null) return ErrorResponse.Fail("ModList path resulted in a null object.");
-                    if (modList.Error != null) return ErrorResponse.Fail("ModList is corrupt", modList.Error);
+                    if (modList == null) return ErrorResponse.Fail("Modlist path resulted in a null object.");
+                    if (modList.Error != null) return ErrorResponse.Fail("Modlist is corrupt", modList.Error);
+                    if (modList.Version != null && modList.Version > Consts.CurrentWabbajackVersion)
+                        return ErrorResponse.Fail("The Modlist you are trying to install was made using a newer Version of Wabbajack. Please update Wabbajack before installing!");
                     return ErrorResponse.Success;
                 });
 
