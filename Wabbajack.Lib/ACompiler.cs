@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reactive.Subjects;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
@@ -54,6 +56,8 @@ namespace Wabbajack.Lib
         public ACompiler(int steps)
             : base(steps)
         {
+            //set in MainWindowVM
+            WabbajackVersion = Consts.CurrentWabbajackVersion;
         }
 
         public static void Info(string msg)

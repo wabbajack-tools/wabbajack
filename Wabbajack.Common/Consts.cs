@@ -11,6 +11,8 @@ namespace Wabbajack.Common
 {
     public static class Consts
     {
+        public static Version? CurrentWabbajackVersion { get; set; }
+        
         public static bool TestMode { get; set; } = false;
 
         public static RelativePath GameFolderFilesDir = (RelativePath)"Game Folder Files";

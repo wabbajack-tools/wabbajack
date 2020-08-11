@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - next
+* Added `WABBAJACK_ALWAYS_DISABLE` flag (see Readme for more info)
+* Modlist can't be installed if the current Wabbajack Version is smaller than the Version used during Compilation of the Modlist
+
 #### Version - 2.2.0.0 - 8/7/2020
 * Can now use NTFS XPRESS16 compression to reduce install sizes (optional in the settings panel)
 * Better valid directory detection during install
