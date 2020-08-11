@@ -31,10 +31,8 @@ namespace Compression.BSA
                         var str = names[i].ReadStringTerm(bsa.HeaderType);
                         data = data.Slice(index + 1);
                     }
-                    if (data.Length > 0)
-                    {
-                        throw new InvalidDataException("File name block did not parse all of its data");
-                    }
+                    // Data doesn't seem to need to be fully consumed.
+                    // Official BSAs have overflow of zeros
                     return names;
                 });
         }
