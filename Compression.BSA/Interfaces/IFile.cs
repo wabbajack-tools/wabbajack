@@ -1,43 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 
 namespace Compression.BSA
 {
-    public interface IBSAReader
-    {
-        /// <summary>
-        /// The files defined by the archive
-        /// </summary>
-        IEnumerable<IFile> Files { get; }
-
-        ArchiveStateObject State { get; }
-
-        void Dump(Action<string> print);
-    }
-
-    public interface IBSABuilder : IAsyncDisposable
-    {
-        Task AddFile(FileStateObject state, Stream src);
-        Task Build(AbsolutePath filename);
-    }
-
-    public class ArchiveStateObject
-    {
-        public virtual async Task<IBSABuilder> MakeBuilder(long size)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class FileStateObject
-    {
-        public int Index { get; set; }
-        public RelativePath Path { get; set; }
-    }
-    
     public interface IFile
     {
         /// <summary>
