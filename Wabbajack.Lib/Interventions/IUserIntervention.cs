@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using Wabbajack.Common.StatusFeed;
 
-namespace Wabbajack.Common
+namespace Wabbajack.Lib
 {
     /// <summary>
     /// Defines a message that requires user interaction. The user must perform some action

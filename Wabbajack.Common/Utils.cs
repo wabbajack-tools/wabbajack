@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
@@ -23,7 +24,6 @@ using IniParser.Model.Configuration;
 using IniParser.Parser;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using ReactiveUI;
 using RocksDbSharp;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Common.StatusFeed.Errors;
@@ -107,7 +107,7 @@ namespace Wabbajack.Common
             AppLocalEvents = Observable.Merge(Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Changed += h, h => watcher.Changed -= h).Select(e => (FileEventType.Changed, e.EventArgs)),
                                                 Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Created += h, h => watcher.Created -= h).Select(e => (FileEventType.Created, e.EventArgs)),
                                                 Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Deleted += h, h => watcher.Deleted -= h).Select(e => (FileEventType.Deleted, e.EventArgs)))
-                                       .ObserveOn(RxApp.TaskpoolScheduler);
+                                       .ObserveOn(Scheduler.Default);
             watcher.EnableRaisingEvents = true;
             InitPatches();
         }
@@ -1096,13 +1096,6 @@ namespace Wabbajack.Common
             byte[] bytes = new byte[size];
             random.NextBytes(bytes);
             return bytes;
-        }
-
-        public static async Task CopyFileAsync(string src, string dest)
-        {
-            await using var s = File.OpenRead(src);
-            await using var d = File.Create(dest);
-            await s.CopyToAsync(d);
         }
 
         public static string ToNormalString(this SecureString value)

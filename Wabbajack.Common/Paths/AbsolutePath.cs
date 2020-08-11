@@ -397,14 +397,14 @@ namespace Wabbajack.Common
         {
             var path = _path;
             return CircuitBreaker.WithAutoRetryAsync<FileStream, IOException>(async () =>
-                File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+                File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, bufferSize: 1048576, useAsync: true));
         }
 
         public ValueTask<FileStream> WriteShared()
         {
             var path = _path;
             return CircuitBreaker.WithAutoRetryAsync<FileStream, IOException>(async () =>
-                File.Open(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite));
+                File.Open(path, FileMode.Open, FileAccess.Write, FileShare.ReadWrite, bufferSize: 1048576, useAsync: true));
         }
 
         public async Task CopyDirectoryToAsync(AbsolutePath destination)

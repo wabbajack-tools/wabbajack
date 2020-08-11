@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Wabbajack.Common;
+#nullable disable
 
 namespace Compression.BSA
 {

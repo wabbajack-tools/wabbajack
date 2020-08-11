@@ -15,6 +15,7 @@
         <PackageIconUrl>https://www.wabbajack.org/favicon.ico</PackageIconUrl>
         <RepositoryUrl>https://github.com/wabbajack-tools/wabbajack</RepositoryUrl>
         <Version>3.0</Version>
+        <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       <DocumentationFile>Wabbajack.Common.xml</DocumentationFile>
@@ -50,12 +51,12 @@
         <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0-preview.6.20305.6" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
         <PackageReference Include="Octodiff" Version="1.2.1" />
-        <PackageReference Include="ReactiveUI" Version="11.5.17" />
         <PackageReference Include="RocksDbNative" Version="6.2.2" />
         <PackageReference Include="RocksDbSharp" Version="6.2.2" />
         <PackageReference Include="SharpZipLib" Version="1.2.0" />
         <PackageReference Include="System.Data.HashFunction.xxHash" Version="2.0.0" />
         <PackageReference Include="System.Net.Http" Version="4.3.4" />
+        <PackageReference Include="System.Reactive" Version="4.4.1" />
         <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="5.0.0-preview.6.20305.6" />
         <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0-preview.6.20305.6" />
         <PackageReference Include="YamlDotNet" Version="8.1.2" />

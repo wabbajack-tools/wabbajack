@@ -6,7 +6,10 @@
       <Platforms>x64</Platforms>
       <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
       <Version>3.0</Version>
+      <Nullable>enable</Nullable>
+      <WarningsAsErrors>nullable</WarningsAsErrors>
       <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+      <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       <DocumentationFile>Compression.BSA.xml</DocumentationFile>

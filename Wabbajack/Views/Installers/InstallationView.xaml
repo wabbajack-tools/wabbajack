@@ -304,7 +304,7 @@
                 x:Name="UserInterventionsControl"
                 Content="{Binding ActiveGlobalUserIntervention}">
                 <local:AttentionBorder.Resources>
-                    <DataTemplate DataType="{x:Type common:ConfirmationIntervention}">
+                    <DataTemplate DataType="{x:Type lib:ConfirmationIntervention}">
                         <local:ConfirmationInterventionView ViewModel="{Binding}" />
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type local:ConfirmUpdateOfExistingInstallVM}">
