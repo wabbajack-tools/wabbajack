@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -19,6 +20,7 @@ namespace Compression.BSA
         internal uint _folderCount;
         internal uint _folderRecordOffset;
         private Lazy<FolderRecord[]> _folders = null!;
+        private Lazy<Dictionary<string, FolderRecord>> _foldersByName = null!;
         internal string _magic = string.Empty;
         internal uint _totalFileNameLength;
         internal uint _totalFolderNameLength;
@@ -107,6 +109,9 @@ namespace Compression.BSA
             _folders = new Lazy<FolderRecord[]>(
                 isThreadSafe: true,
                 valueFactory: () => LoadFolderRecords());
+            _foldersByName = new Lazy<Dictionary<string, FolderRecord>>(
+                isThreadSafe: true,
+                valueFactory: GetFolderDictionary);
         }
 
         private FolderRecord[] LoadFolderRecords()
@@ -138,6 +143,32 @@ namespace Compression.BSA
             }
 
             return ret;
+        }
+
+        private Dictionary<string, FolderRecord> GetFolderDictionary()
+        {
+            if (!HasFolderNames)
+            {
+                throw new ArgumentException("Cannot get folders by name if the BSA does not have folder names.");
+            }
+            var ret = new Dictionary<string, FolderRecord>();
+            foreach (var folder in _folders.Value)
+            {
+                ret.Add(folder.Name!, folder);
+            }
+            return ret;
+        }
+
+        public bool TryGetFolder(string path, [MaybeNullWhen(false)] out IFolder folder)
+        {
+            if (!HasFolderNames
+                || !_foldersByName.Value.TryGetValue(path, out var folderRec))
+            {
+                folder = default;
+                return false;
+            }
+            folder = folderRec;
+            return true;
         }
     }
 }
