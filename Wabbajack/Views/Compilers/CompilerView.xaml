@@ -2,7 +2,7 @@
     x:Class="Wabbajack.CompilerView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:common="clr-namespace:Wabbajack.Common;assembly=Wabbajack.Common"
+    xmlns:lib="clr-namespace:Wabbajack.Lib;assembly=Wabbajack.Lib"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:icon="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:local="clr-namespace:Wabbajack"
@@ -200,7 +200,7 @@
                 ViewModel="{Binding}" />
             <local:AttentionBorder x:Name="UserInterventionsControl" Grid.Column="2">
                 <Grid>
-                    <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type common:ConfirmationIntervention}}" />
+                    <local:ConfirmationInterventionView DataContext="{Binding ActiveGlobalUserIntervention}" Visibility="{Binding ActiveGlobalUserIntervention, Converter={StaticResource IsTypeVisibilityConverter}, ConverterParameter={x:Type lib:ConfirmationIntervention}}" />
                 </Grid>
             </local:AttentionBorder>
             <local:CompilationCompleteView Grid.Column="2"

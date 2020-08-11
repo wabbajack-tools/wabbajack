@@ -8,7 +8,6 @@ using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using DynamicData;
 using Wabbajack.Common.StatusFeed;
 
 [assembly: InternalsVisibleTo("Wabbajack.Test")]
@@ -26,6 +25,7 @@ namespace Wabbajack.Common
         public static bool WorkerThread => AsyncLocalCurrentQueue.Value != null;
         public bool IsWorkerThread => WorkerThread;
         internal static readonly AsyncLocal<WorkQueue?> AsyncLocalCurrentQueue = new AsyncLocal<WorkQueue?>();
+        public static WorkQueue? AsyncLocalQueue => AsyncLocalCurrentQueue.Value;
 
         private readonly Subject<CPUStatus> _Status = new Subject<CPUStatus>();
         public IObservable<CPUStatus> Status => _Status;
@@ -69,15 +69,14 @@ namespace Wabbajack.Common
         public WorkQueue(IObservable<int>? numThreads)
         {
             // Hook onto the number of active threads subject, and subscribe to it for changes
-            _activeNumThreadsObservable
+            _disposables.Add(_activeNumThreadsObservable
                 // Select the latest driving observable
                 .Select(x => x ?? Observable.Return(Environment.ProcessorCount))
                 .Switch()
                 .DistinctUntilChanged()
                 // Add new threads if it increases
                 .SelectTask(AddNewThreadsIfNeeded)
-                .Subscribe()
-                .DisposeWith(_disposables);
+                .Subscribe());
             // Set the incoming driving observable to be active
             SetActiveThreadsObservable(numThreads);
         }

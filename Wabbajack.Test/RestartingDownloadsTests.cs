@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
+using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
 using Xunit;
 using Xunit.Abstractions;

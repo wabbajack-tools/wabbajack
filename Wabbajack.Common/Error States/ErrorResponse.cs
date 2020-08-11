@@ -1,5 +1,4 @@
 ﻿using System;
-using DynamicData.Kernel;
 
 namespace Wabbajack
 {
