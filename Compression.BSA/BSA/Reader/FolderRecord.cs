@@ -1,44 +1,93 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using NativeImport;
+using Wabbajack.Common;
 using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
 {
     public class FolderRecord
     {
-        private readonly uint _fileCount;
-        internal List<FileRecord> _files;
-        private ulong _offset;
-        private uint _unk;
+        internal readonly BSAReader BSA;
+        private readonly ReadOnlyMemorySlice<byte> _data;
+        internal Lazy<FileRecord[]> _files;
+        private ReadOnlyMemorySlice<byte>? _nameData;
+        private int _prevFileCount;
+        internal FileNameBlock FileNameBlock;
+        private readonly Lazy<string> _name;
 
-        public string Name { get; private set; }
+        public int Index { get; }
+        public string Name => _name.Value;
 
-        public ulong Hash { get; }
-
-        internal FolderRecord(BSAReader bsa, BinaryReader src)
+        internal FolderRecord(BSAReader bsa, ReadOnlyMemorySlice<byte> data, int index)
         {
-            Hash = src.ReadUInt64();
-            _fileCount = src.ReadUInt32();
-            if (bsa.HeaderType == VersionType.SSE)
+            BSA = bsa;
+            _data = data;
+            Index = index;
+            _name = new Lazy<string>(
+                () => _nameData.HasValue ? _nameData.Value.ReadStringTerm(BSA.HeaderType) : string.Empty,
+                isThreadSafe: true);
+        }
+
+        private bool IsLongform => BSA.HeaderType == VersionType.SSE;
+
+        public ulong Hash => BinaryPrimitives.ReadUInt64LittleEndian(_data);
+
+        public uint FileCount => BinaryPrimitives.ReadUInt32LittleEndian(_data.Slice(0x8));
+
+        public uint Unknown => IsLongform ?
+            BinaryPrimitives.ReadUInt32LittleEndian(_data.Slice(0xC)) : 
+            0;
+
+        public ulong Offset => IsLongform ?
+            BinaryPrimitives.ReadUInt64LittleEndian(_data.Slice(0x10)) : 
+            BinaryPrimitives.ReadUInt32LittleEndian(_data.Slice(0xC));
+
+        public static int HeaderLength(VersionType version)
+        {
+            return version switch
             {
-                _unk = src.ReadUInt32();
-                _offset = src.ReadUInt64();
+                VersionType.SSE => 0x18,
+                _ => 0x10,
+            };
+        }
+
+        internal void ProcessFileRecordHeadersBlock(BinaryReader rdr, int fileCountTally)
+        {
+            _prevFileCount = fileCountTally;
+            var totalFileLen = checked((int)(FileCount * FileRecord.HeaderLength));
+
+            ReadOnlyMemorySlice<byte> data;
+            if (BSA.HasFolderNames)
+            {
+                var len = rdr.ReadByte();
+                data = rdr.ReadBytes(len + totalFileLen);
+                _nameData = data.Slice(0, len);
+                data = data.Slice(len);
             }
             else
             {
-                _offset = src.ReadUInt32();
+                data = rdr.ReadBytes(totalFileLen);
             }
+
+            _files = new Lazy<FileRecord[]>(
+                isThreadSafe: true,
+                valueFactory: () => ParseFileRecords(data));
         }
 
-        internal void LoadFileRecordBlock(BSAReader bsa, BinaryReader src)
+        private FileRecord[] ParseFileRecords(ReadOnlyMemorySlice<byte> data)
         {
-            if (bsa.HasFolderNames) Name = src.ReadStringLen(bsa.HeaderType);
-
-            _files = new List<FileRecord>();
-            for (var idx = 0; idx < _fileCount; idx += 1)
-                _files.Add(new FileRecord(bsa, this, src, idx));
+            var fileCount = FileCount;
+            var ret = new FileRecord[fileCount];
+            for (var idx = 0; idx < fileCount; idx += 1)
+            {
+                var fileData = data.Slice(idx * FileRecord.HeaderLength, FileRecord.HeaderLength);
+                ret[idx] = new FileRecord(this, fileData, idx, idx + _prevFileCount, FileNameBlock);
+            }
+            return ret;
         }
     }
 }

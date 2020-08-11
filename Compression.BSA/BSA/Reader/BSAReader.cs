@@ -11,11 +11,13 @@ namespace Compression.BSA
 {
     public class BSAReader : IBSAReader
     {
+        public const int HeaderLength = 0x24;
+
         internal uint _fileCount;
         internal AbsolutePath _fileName;
         internal uint _folderCount;
         internal uint _folderRecordOffset;
-        private List<FolderRecord> _folders;
+        private Lazy<FolderRecord[]> _folders;
         internal string _magic;
         internal uint _totalFileNameLength;
         internal uint _totalFolderNameLength;
@@ -30,8 +32,8 @@ namespace Compression.BSA
         {
             get
             {
-                foreach (var folder in _folders)
-                    foreach (var file in folder._files)
+                foreach (var folder in _folders.Value)
+                    foreach (var file in folder._files.Value)
                         yield return file;
             }
         }
@@ -79,11 +81,15 @@ namespace Compression.BSA
 
         public static BSAReader Load(AbsolutePath filename)
         {
-            using var stream = File.Open(filename.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read);
-            using var br = new BinaryReader(stream);
             var bsa = new BSAReader { _fileName = filename };
-            bsa.LoadHeaders(br);
+            using var rdr = bsa.GetStream();
+            bsa.LoadHeaders(rdr);
             return bsa;
+        }
+
+        internal BinaryReader GetStream()
+        {
+            return new BinaryReader(File.Open(_fileName.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read));
         }
 
         private void LoadHeaders(BinaryReader rdr)
@@ -103,21 +109,40 @@ namespace Compression.BSA
             _totalFileNameLength = rdr.ReadUInt32();
             FileFlags = (FileFlags)rdr.ReadUInt32();
 
-            LoadFolderRecords(rdr);
+            _folders = new Lazy<FolderRecord[]>(
+                isThreadSafe: true,
+                valueFactory: () => LoadFolderRecords());
         }
 
-        private void LoadFolderRecords(BinaryReader rdr)
+        private FolderRecord[] LoadFolderRecords()
         {
-            _folders = new List<FolderRecord>();
+            using var rdr = GetStream();
+            rdr.BaseStream.Position = _folderRecordOffset;
+            var folderHeaderLength = FolderRecord.HeaderLength(HeaderType);
+            ReadOnlyMemorySlice<byte> folderHeaderData = rdr.ReadBytes(checked((int)(folderHeaderLength * _folderCount)));
+
+            var ret = new FolderRecord[_folderCount];
             for (var idx = 0; idx < _folderCount; idx += 1)
-                _folders.Add(new FolderRecord(this, rdr));
+                ret[idx] = new FolderRecord(this, folderHeaderData.Slice(idx * folderHeaderLength, folderHeaderLength), idx);
 
-            foreach (var folder in _folders)
-                folder.LoadFileRecordBlock(this, rdr);
+            // Slice off appropriate file header data per folder
+            int fileCountTally = 0;
+            foreach (var folder in ret)
+            {
+                folder.ProcessFileRecordHeadersBlock(rdr, fileCountTally);
+                fileCountTally = checked((int)(fileCountTally + folder.FileCount));
+            }
 
-            foreach (var folder in _folders)
-            foreach (var file in folder._files)
-                file.LoadFileRecord(this, folder, file, rdr);
+            if (HasFileNames)
+            {
+                var filenameBlock = new FileNameBlock(this, rdr.BaseStream.Position);
+                foreach (var folder in ret)
+                {
+                    folder.FileNameBlock = filenameBlock;
+                }
+            }
+
+            return ret;
         }
     }
 }

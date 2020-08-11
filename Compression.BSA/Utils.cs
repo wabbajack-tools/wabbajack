@@ -30,9 +30,7 @@ namespace Compression.BSA
         public static string ReadStringLen(this BinaryReader rdr, VersionType version)
         {
             var len = rdr.ReadByte();
-            if (len == 0)
-                //rdr.ReadByte();
-                return "";
+            if (len == 0) return string.Empty;
 
             var bytes = rdr.ReadBytes(len - 1);
             rdr.ReadByte();
@@ -59,6 +57,18 @@ namespace Compression.BSA
             }
 
             return GetEncoding(version).GetString(acc.ToArray());
+        }
+
+        public static string ReadStringLenTerm(this ReadOnlyMemorySlice<byte> bytes, VersionType version)
+        {
+            if (bytes.Length <= 1) return string.Empty;
+            return GetEncoding(version).GetString(bytes.Slice(1, bytes[0]));
+        }
+
+        public static string ReadStringTerm(this ReadOnlyMemorySlice<byte> bytes, VersionType version)
+        {
+            if (bytes.Length <= 1) return string.Empty;
+            return GetEncoding(version).GetString(bytes[0..^1]);
         }
 
         /// <summary>

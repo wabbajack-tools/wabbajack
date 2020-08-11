@@ -13,7 +13,7 @@ namespace Wabbajack.Common
         private readonly string? _nullable_path;
         private string _path => _nullable_path ?? string.Empty;
 
-        public RelativePath(string path)
+        public RelativePath(string path, bool skipValidation = false)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
@@ -28,7 +28,10 @@ namespace Wabbajack.Common
             }
 
             _nullable_path = trimmed;
-            Validate();
+            if (!skipValidation)
+            {
+                Validate();
+            }
         }
 
         public override string ToString()
