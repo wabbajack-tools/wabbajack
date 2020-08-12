@@ -637,6 +637,7 @@ CREATE TABLE [dbo].[NexusKeys](
                                   [ApiKey] [nvarchar](162) NOT NULL,
                                   [DailyRemain] [int] NOT NULL,
                                   [HourlyRemain] [int] NOT NULL,
+                                  [IsPremium] [tinyint] NOT NULL,
                                   CONSTRAINT [PK_NexusKeys] PRIMARY KEY CLUSTERED
                                       (
                                        [ApiKey] ASC

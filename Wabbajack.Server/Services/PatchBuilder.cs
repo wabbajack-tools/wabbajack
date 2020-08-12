@@ -55,7 +55,7 @@ namespace Wabbajack.Server.Services
                                 $"Building patch from {patch.Src.Archive.State.PrimaryKeyString} to {patch.Dest.Archive.State.PrimaryKeyString}"
                         });
 
-                    if (patch.Src.Archive.Hash == patch.Dest.Archive.Hash)
+                    if (patch.Src.Archive.Hash == patch.Dest.Archive.Hash && patch.Src.Archive.State.PrimaryKeyString == patch.Dest.Archive.State.PrimaryKeyString)
                     {
                         await patch.Fail(_sql, "Hashes match");
                         continue;
@@ -76,7 +76,7 @@ namespace Wabbajack.Server.Services
                     await using var destStream = await destPath.OpenShared();
                     await using var sigStream = await sigFile.Path.Create();
                     await using var patchOutput = await patchFile.Path.Create();
-                    OctoDiff.Create(destStream, srcStream, sigStream, patchOutput);
+                    OctoDiff.Create(destStream, srcStream, sigStream, patchOutput, new OctoDiff.ProgressReporter(TimeSpan.FromSeconds(1), (s, p) => _logger.LogInformation($"Patch Builder: {p} {s}")));
                     await patchOutput.DisposeAsync();
                     var size = patchFile.Path.Size;
 

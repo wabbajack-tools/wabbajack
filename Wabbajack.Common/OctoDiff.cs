@@ -36,24 +36,39 @@ namespace Wabbajack.Common
             sigStream.Position = 0;
         }
         
-        public static void Create(Stream oldData, Stream newData, Stream signature, Stream output)
+        public static void Create(Stream oldData, Stream newData, Stream signature, Stream output, ProgressReporter? reporter = null)
         {
             CreateSignature(oldData, signature);
-            var db = new DeltaBuilder {ProgressReporter = reporter};
+            var db = new DeltaBuilder {ProgressReporter = reporter ?? new ProgressReporter()};
             db.BuildDelta(newData, new SignatureReader(signature, reporter), new AggregateCopyOperationsDecorator(new BinaryDeltaWriter(output)));
         }
 
-        private class ProgressReporter : IProgressReporter
+        public class ProgressReporter : IProgressReporter
         {
             private DateTime _lastUpdate = DateTime.UnixEpoch;
-            private readonly TimeSpan _updateInterval = TimeSpan.FromMilliseconds(100);
+            private TimeSpan _updateInterval;
+            private Action<string, Percent> _report;
+
+            public ProgressReporter()
+            {
+                _updateInterval = TimeSpan.FromMilliseconds(100);
+                _report = (s, percent) => Utils.Status(s, percent);
+            }
+            
+            public ProgressReporter(TimeSpan updateInterval, Action<string, Percent> report)
+            {
+                _updateInterval = updateInterval;
+                _report = report;
+            }
+            
+             
             public void ReportProgress(string operation, long currentPosition, long total)
             {
                 if (DateTime.Now - _lastUpdate < _updateInterval) return;
                 _lastUpdate = DateTime.Now;
                 if (currentPosition >= total || total < 1 || currentPosition < 0)
                     return;
-                Utils.Status(operation, new Percent(total, currentPosition));
+                _report(operation, new Percent(total, currentPosition));
             }
         }
 

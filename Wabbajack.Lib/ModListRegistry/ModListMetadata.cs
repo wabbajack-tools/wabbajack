@@ -89,7 +89,7 @@ namespace Wabbajack.Lib.ModListRegistry
             try
             {
                 var client = new Http.Client();
-                return (await client.GetStringAsync(Consts.ModlistMetadataURL)).FromJsonString<List<ModlistMetadata>>();
+                return (await client.GetStringAsync(Consts.UnlistedModlistMetadataURL)).FromJsonString<List<ModlistMetadata>>();
             }
             catch (Exception ex)
             {

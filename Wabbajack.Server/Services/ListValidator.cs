@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -46,6 +47,9 @@ namespace Wabbajack.Server.Services
             using var queue = new WorkQueue();
             var oldSummaries = Summaries;
 
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             var results = await data.ModLists.PMap(queue, async metadata =>
             {
                 var oldSummary =
@@ -54,15 +58,24 @@ namespace Wabbajack.Server.Services
                 var listArchives = await _sql.ModListArchives(metadata.Links.MachineURL);
                 var archives = await listArchives.PMap(queue, async archive =>
                 {
-                    var (_, result) = await ValidateArchive(data, archive);
-                    if (result == ArchiveStatus.InValid)
+                    try
                     {
-                        if (data.Mirrors.Contains(archive.Hash))
-                            return (archive, ArchiveStatus.Mirrored);
-                        return await TryToHeal(data, archive, metadata);
-                    }
+                        var (_, result) = await ValidateArchive(data, archive);
+                        if (result == ArchiveStatus.InValid)
+                        {
+                            if (data.Mirrors.Contains(archive.Hash))
+                                return (archive, ArchiveStatus.Mirrored);
+                            return await TryToHeal(data, archive, metadata);
+                        }
 
-                    return (archive, result);
+                        
+                        return (archive, result);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"During Validation of {archive.Hash} {archive.State.PrimaryKeyString}");
+                        return (archive, ArchiveStatus.InValid);
+                    }
                 });
 
                 var failedCount = archives.Count(f => f.Item2 == ArchiveStatus.InValid);
@@ -141,20 +154,16 @@ namespace Wabbajack.Server.Services
                 return (summary, detailed);
             });
             Summaries = results;
+            
+            stopwatch.Stop();
+            _logger.LogInformation($"Finished Validation in {stopwatch.Elapsed}");
+
             return Summaries.Count(s => s.Summary.HasFailures);
         }
 
         private AsyncLock _healLock = new AsyncLock();
         private async Task<(Archive, ArchiveStatus)> TryToHeal(ValidationData data, Archive archive, ModlistMetadata modList)
         {
-            using var _ = await _healLock.WaitAsync();
-
-            if (!(archive.State is IUpgradingState))
-            {
-                _logger.Log(LogLevel.Information, $"Cannot heal {archive.State.PrimaryKeyString} because it's not a healable state");
-                return (archive, ArchiveStatus.InValid);
-            }
-
             var srcDownload = await _sql.GetArchiveDownload(archive.State.PrimaryKeyString, archive.Hash, archive.Size);
             if (srcDownload == null || srcDownload.IsFailed == true)
             {
@@ -163,7 +172,7 @@ namespace Wabbajack.Server.Services
             }
 
             
-            var patches = await _sql.PatchesForSource(srcDownload.Id);
+            var patches = await _sql.PatchesForSource(archive.Hash);
             foreach (var patch in patches)
             {
                 if (patch.Finished is null)
@@ -176,28 +185,80 @@ namespace Wabbajack.Server.Services
                 if (status == ArchiveStatus.Valid)
                     return (archive, ArchiveStatus.Updated);
             }
-            
-            
+
+            using var _ = await _healLock.WaitAsync();
             var upgradeTime = DateTime.UtcNow;
+            _logger.LogInformation($"Validator Finding Upgrade for {archive.Hash} {archive.State.PrimaryKeyString}");
+
+            NexusDownloader.State.DownloadShortcut = async findIt =>
+            {
+                _logger.LogInformation($"Quick find for {findIt.State.PrimaryKeyString}");
+                var foundArchive = await _sql.GetArchiveDownload(findIt.State.PrimaryKeyString);
+                if (foundArchive == null)
+                {
+                    _logger.LogInformation($"No Quick find for {findIt.State.PrimaryKeyString}");
+                    return default;
+                }
+
+                return _archives.TryGetPath(foundArchive.Archive.Hash, out var path) ? path : default;
+            };
+            
             var upgrade = await (archive.State as IUpgradingState)?.FindUpgrade(archive);
+            
+            
             if (upgrade == default)
             {
                 _logger.Log(LogLevel.Information, $"Cannot heal {archive.State.PrimaryKeyString} because an alternative wasn't found");
                 return (archive, ArchiveStatus.InValid);
             }
+            
+            _logger.LogInformation($"Upgrade {upgrade.Archive.State.PrimaryKeyString} found for {archive.State.PrimaryKeyString}");
 
-            await _archives.Ingest(upgrade.NewFile.Path);
 
-            var id = await _sql.AddKnownDownload(upgrade.Archive, upgradeTime);
+            {
+            }
+
+            var found = await _sql.GetArchiveDownload(upgrade.Archive.State.PrimaryKeyString, upgrade.Archive.Hash,
+                upgrade.Archive.Size);
+            Guid id;
+            if (found == null)
+            {
+                 if (upgrade.NewFile.Path.Exists)
+                    await _archives.Ingest(upgrade.NewFile.Path);
+                 id = await _sql.AddKnownDownload(upgrade.Archive, upgradeTime);
+            }
+            else
+            {
+                id = found.Id;
+            }
+
             var destDownload = await _sql.GetArchiveDownload(id);
-            
-            await _sql.AddPatch(new Patch {Src = srcDownload, Dest = destDownload});
-            
-            _logger.Log(LogLevel.Information, $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}");
-            await _discord.Send(Channel.Ham, new DiscordMessage { Content = $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash} to auto-heal `{modList.Links.MachineURL}`" });
+
+            if (destDownload.Archive.Hash == srcDownload.Archive.Hash && destDownload.Archive.State.PrimaryKeyString == srcDownload.Archive.State.PrimaryKeyString)
+            {
+                _logger.Log(LogLevel.Information, $"Can't heal because src and dest match");
+                return (archive, ArchiveStatus.InValid);
+            }
+
+
+            var existing = await _sql.FindPatch(srcDownload.Id, destDownload.Id);
+            if (existing == null)
+            {
+                await _sql.AddPatch(new Patch {Src = srcDownload, Dest = destDownload});
+
+                _logger.Log(LogLevel.Information,
+                    $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash}");
+                await _discord.Send(Channel.Ham,
+                    new DiscordMessage
+                    {
+                        Content =
+                            $"Enqueued Patch from {srcDownload.Archive.Hash} to {destDownload.Archive.Hash} to auto-heal `{modList.Links.MachineURL}`"
+                    });
+            }
 
             await upgrade.NewFile.DisposeAsync();
 
+            _logger.LogInformation($"Patch in progress {archive.Hash} {archive.State.PrimaryKeyString}");
             return (archive, ArchiveStatus.Updating);
         }
 

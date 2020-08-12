@@ -117,6 +117,7 @@ namespace Wabbajack.Server.DataLayer
             await using var conn = await Open();
             await conn.ExecuteAsync("DELETE FROM dbo.NexusModFiles WHERE ModId = @ModId", new {ModId = modId});
             await conn.ExecuteAsync("DELETE FROM dbo.NexusModInfos WHERE ModId = @ModId", new {ModId = modId});
+            await conn.ExecuteAsync("DELETE FROM dbo.NexusModPermissions WHERE ModId = @ModId", new {ModId = modId});
         }
 
         public async Task<Dictionary<(Game, long), HTMLInterface.PermissionValue>> GetNexusPermissions()
@@ -125,6 +126,17 @@ namespace Wabbajack.Server.DataLayer
 
             var results =
                 await conn.QueryAsync<(int, long, int)>("SELECT NexusGameID, ModID, Permissions FROM NexusModPermissions");
+            return results.ToDictionary(f => (GameRegistry.ByNexusID[f.Item1], f.Item2),
+                f => (HTMLInterface.PermissionValue)f.Item3);
+        }
+        
+        public async Task<Dictionary<(Game, long), HTMLInterface.PermissionValue>> GetHiddenNexusMods()
+        {
+            await using var conn = await Open();
+
+            var results =
+                await conn.QueryAsync<(int, long, int)>("SELECT NexusGameID, ModID, Permissions FROM NexusModPermissions WHERE Permissions = @Permissions",
+                    new {Permissions = (int)HTMLInterface.PermissionValue.Hidden});
             return results.ToDictionary(f => (GameRegistry.ByNexusID[f.Item1], f.Item2),
                 f => (HTMLInterface.PermissionValue)f.Item3);
         }
@@ -166,7 +178,7 @@ namespace Wabbajack.Server.DataLayer
             await using var conn = await Open();
             var tx = await conn.BeginTransactionAsync();
 
-            await conn.ExecuteAsync("DELETE FROM NexusModPermissions WHERE GameID = @GameID AND ModID = @ModID", new
+            await conn.ExecuteAsync("DELETE FROM NexusModPermissions WHERE NexusGameID = @GameID AND ModID = @ModID", new
                 {
                     GameID = game.MetaData().NexusGameId,
                     ModID = modId
