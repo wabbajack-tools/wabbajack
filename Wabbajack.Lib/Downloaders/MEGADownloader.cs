@@ -194,7 +194,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
             }
 
-            public override Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
+            public override Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
             {
                 return ServerFindUpgrade(a);
             }

@@ -112,11 +112,9 @@ namespace Wabbajack.Lib.Downloaders
                 return false;
             }
 
-            var upgrade = (IUpgradingState)archive.State;
-
             Utils.Log($"Trying to find solution to broken download for {archive.Name}");
             
-            var result = await upgrade.FindUpgrade(archive);
+            var result = await FindUpgrade(archive);
             if (result == default)
             {
                 Utils.Log(
@@ -153,7 +151,14 @@ namespace Wabbajack.Lib.Downloaders
 
             return true;
         }
+        
+        public static async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>>? downloadResolver = null)
+        {
+            downloadResolver ??= async a => default;
+            return await a.State.FindUpgrade(a, downloadResolver);
+        }
 
+        
         private static async Task<bool> DownloadFromMirror(Archive archive, AbsolutePath destination)
         {
             try

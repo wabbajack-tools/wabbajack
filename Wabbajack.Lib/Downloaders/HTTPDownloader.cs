@@ -212,7 +212,7 @@ TOP:
 
             }
 
-            public virtual async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
+            public virtual async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
             {
                 var tmpFile = new TempFile();
                 

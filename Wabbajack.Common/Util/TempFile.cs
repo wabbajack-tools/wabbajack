@@ -37,7 +37,7 @@ namespace Wabbajack.Common
         }
         public async ValueTask DisposeAsync()
         {
-            if (DeleteAfter)
+            if (DeleteAfter && Path.Exists)
             {
                 await Path.DeleteAsync();
             }

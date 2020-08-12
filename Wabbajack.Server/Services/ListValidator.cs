@@ -190,7 +190,7 @@ namespace Wabbajack.Server.Services
             var upgradeTime = DateTime.UtcNow;
             _logger.LogInformation($"Validator Finding Upgrade for {archive.Hash} {archive.State.PrimaryKeyString}");
 
-            NexusDownloader.State.DownloadShortcut = async findIt =>
+            Func<Archive, Task<AbsolutePath>> resolver = async findIt =>
             {
                 _logger.LogInformation($"Quick find for {findIt.State.PrimaryKeyString}");
                 var foundArchive = await _sql.GetArchiveDownload(findIt.State.PrimaryKeyString);
@@ -203,7 +203,7 @@ namespace Wabbajack.Server.Services
                 return _archives.TryGetPath(foundArchive.Archive.Hash, out var path) ? path : default;
             };
             
-            var upgrade = await (archive.State as IUpgradingState)?.FindUpgrade(archive);
+            var upgrade = await DownloadDispatcher.FindUpgrade(archive, resolver);
             
             
             if (upgrade == default)

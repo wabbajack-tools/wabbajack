@@ -237,8 +237,7 @@ namespace Wabbajack.Lib.Downloaders
                 return new[] {"[General]", $"gameName={Game.MetaData().MO2ArchiveName}", $"modID={ModID}", $"fileID={FileID}"};
             }
 
-            public static Func<Archive, Task<AbsolutePath>> DownloadShortcut = async a => default;
-            public async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
+            public async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
             {
                 var client = await NexusApiClient.Get();
 
@@ -267,7 +266,7 @@ namespace Wabbajack.Lib.Downloaders
                     Name = newFile.file_name,
                 };
 
-                var fastPath = await DownloadShortcut(newArchive);
+                var fastPath = await downloadResolver(newArchive);
                 if (fastPath != default)
                 {
                     newArchive.Size = fastPath.Size;

@@ -7,14 +7,13 @@ namespace Wabbajack.Common
 {
     public class OctoDiff
     {
-        private static ProgressReporter reporter = new ProgressReporter();
         public static void Create(byte[] oldData, byte[] newData, Stream output)
         {
             using var signature = CreateSignature(oldData);
             using var oldStream = new MemoryStream(oldData);
             using var newStream = new MemoryStream(newData);
-            var db = new DeltaBuilder {ProgressReporter = reporter};
-            db.BuildDelta(newStream, new SignatureReader(signature, reporter), new AggregateCopyOperationsDecorator(new BinaryDeltaWriter(output)));
+            var db = new DeltaBuilder {ProgressReporter = new ProgressReporter()};
+            db.BuildDelta(newStream, new SignatureReader(signature, new ProgressReporter()), new AggregateCopyOperationsDecorator(new BinaryDeltaWriter(output)));
         }
 
         private static Stream CreateSignature(byte[] oldData)
@@ -40,7 +39,7 @@ namespace Wabbajack.Common
         {
             CreateSignature(oldData, signature);
             var db = new DeltaBuilder {ProgressReporter = reporter ?? new ProgressReporter()};
-            db.BuildDelta(newData, new SignatureReader(signature, reporter), new AggregateCopyOperationsDecorator(new BinaryDeltaWriter(output)));
+            db.BuildDelta(newData, new SignatureReader(signature, reporter ?? new ProgressReporter()), new AggregateCopyOperationsDecorator(new BinaryDeltaWriter(output)));
         }
 
         public class ProgressReporter : IProgressReporter
@@ -76,13 +75,13 @@ namespace Wabbajack.Common
         {
             using var deltaStream = openPatchStream();
             var deltaApplier = new DeltaApplier();
-            deltaApplier.Apply(input, new BinaryDeltaReader(deltaStream, reporter), output);
+            deltaApplier.Apply(input, new BinaryDeltaReader(deltaStream, new ProgressReporter()), output);
         }
         
         public static void Apply(FileStream input, FileStream patchStream, FileStream output)
         {
             var deltaApplier = new DeltaApplier();
-            deltaApplier.Apply(input, new BinaryDeltaReader(patchStream, reporter), output);
+            deltaApplier.Apply(input, new BinaryDeltaReader(patchStream, new ProgressReporter()), output);
         }
     }
 }
