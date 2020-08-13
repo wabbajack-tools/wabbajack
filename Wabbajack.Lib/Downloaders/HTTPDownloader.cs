@@ -212,19 +212,22 @@ TOP:
 
             }
 
-            public virtual async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
+            public override async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
             {
                 var tmpFile = new TempFile();
                 
                 var newArchive = new Archive(this) {Name = a.Name};
+
+                Utils.Log($"Downloading via HTTP to find Upgrade for {Url}");
 
                 try
                 {
                     if (!await Download(newArchive, tmpFile.Path))
                         return default;
                 }
-                catch (HttpException)
+                catch (HttpException ex)
                 {
+                    Utils.Log($"Error finding upgrade via HTTP to find Upgrade for {Url} {ex}");
                     return default;
                 }
 
