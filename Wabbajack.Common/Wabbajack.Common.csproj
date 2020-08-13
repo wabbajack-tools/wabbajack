@@ -6,7 +6,6 @@
         <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageVersion>3.0</PackageVersion>
         <Title>Wabbajack Common Lib</Title>
         <Authors>Wabbajack Team</Authors>
         <Copyright>2020</Copyright>
@@ -14,10 +13,11 @@
         <PackageLicenseUrl>https://raw.githubusercontent.com/wabbajack-tools/wabbajack/master/LICENSE.txt</PackageLicenseUrl>
         <PackageIconUrl>https://www.wabbajack.org/favicon.ico</PackageIconUrl>
         <RepositoryUrl>https://github.com/wabbajack-tools/wabbajack</RepositoryUrl>
-        <Version>3.0</Version>
         <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+        <PackageVersion>2.2.1.0</PackageVersion>
+        <Version>2.2.1.0</Version>
         <AssemblyVersion>2.2.1.0</AssemblyVersion>
-        <FileVersion>2.2.1.0</FileVersion>        
+        <FileVersion>2.2.1.0</FileVersion>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       <DocumentationFile>Wabbajack.Common.xml</DocumentationFile>

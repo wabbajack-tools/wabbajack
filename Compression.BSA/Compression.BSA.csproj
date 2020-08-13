@@ -10,6 +10,8 @@
       <WarningsAsErrors>nullable</WarningsAsErrors>
       <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
       <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+      <PackageVersion>2.2.1.0</PackageVersion>
+      <Version>2.2.1.0</Version>
       <AssemblyVersion>2.2.1.0</AssemblyVersion>
       <FileVersion>2.2.1.0</FileVersion>
     </PropertyGroup>
