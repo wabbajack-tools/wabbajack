@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Wabbajack.BuildServer;
+using Wabbajack.Common;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Server.DataLayer;
 
@@ -12,6 +13,7 @@ namespace Wabbajack.Server.Services
     public class NexusKeyMaintainance : AbstractService<NexusKeyMaintainance, int>
     {
         private SqlService _sql;
+        private string _selfKey;
 
         public NexusKeyMaintainance(ILogger<NexusKeyMaintainance> logger, AppSettings settings, SqlService sql, QuickSync quickSync) : base(logger, settings, quickSync, TimeSpan.FromHours(4))
         {
@@ -21,7 +23,7 @@ namespace Wabbajack.Server.Services
         public async Task<NexusApiClient> GetClient()
         {
             var keys = await _sql.GetNexusApiKeysWithCounts(1500);
-            foreach (var key in keys)
+            foreach (var key in keys.Where(k => k.Key != _selfKey))
             {
                 return new TrackingClient(_sql, key);
             }
@@ -31,6 +33,7 @@ namespace Wabbajack.Server.Services
         
         public override async Task<int> Execute()
         {
+            _selfKey ??= await Utils.FromEncryptedJson<string>("nexusapikey");
             var keys = await _sql.GetNexusApiKeysWithCounts(0);
             _logger.Log(LogLevel.Information, $"Verifying {keys.Count} API Keys");
             foreach (var key in keys)
@@ -70,7 +73,7 @@ namespace Wabbajack.Server.Services
             HourlyRemaining = key.Hourly;
         }
 
-        protected virtual async Task UpdateRemaining(HttpResponseMessage response)
+        protected override async Task UpdateRemaining(HttpResponseMessage response)
         {
             await base.UpdateRemaining(response);
             try

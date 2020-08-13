@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Wabbajack.Common;
 
 namespace Wabbajack.Server.Services
@@ -11,6 +12,12 @@ namespace Wabbajack.Server.Services
     {
         private Dictionary<Type, CancellationTokenSource> _syncs = new Dictionary<Type, CancellationTokenSource>();
         private AsyncLock _lock = new AsyncLock();
+        private ILogger<QuickSync> _logger;
+
+        public QuickSync(ILogger<QuickSync> logger)
+        {
+            _logger = logger;
+        }
 
         public async Task<CancellationToken> GetToken<T>()
         {
@@ -36,18 +43,13 @@ namespace Wabbajack.Server.Services
 
         public async Task Notify<T>()
         {
+            _logger.LogInformation($"Quicksync {typeof(T).Name}");
             // Needs debugging
-            /*
             using var _ = await _lock.WaitAsync();
             if (_syncs.TryGetValue(typeof(T), out var ct))
             {
                 ct.Cancel();
             }
-            */ 
-            
         }
-        
-        
-        
     }
 }

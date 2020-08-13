@@ -141,7 +141,7 @@ namespace Wabbajack.Lib.Downloaders
 
         }
 
-        public virtual async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
+        public virtual async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
         {
             return await ServerFindUpgrade(a);
         }

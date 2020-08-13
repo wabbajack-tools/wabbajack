@@ -29,7 +29,8 @@ namespace Wabbajack.CLI
             typeof(ForceHealing),
             typeof(HashVariants),
             typeof(ParseMeta),
-            typeof(NoPatch)
+            typeof(NoPatch),
+            typeof(NexusPermissions)
         };
     }
 }

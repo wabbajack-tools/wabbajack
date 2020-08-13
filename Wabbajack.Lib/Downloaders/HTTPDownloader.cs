@@ -98,11 +98,13 @@ namespace Wabbajack.Lib.Downloaders
                     var bufferSize = 1024 * 32;
 
                     Utils.Status($"Starting Download {a.Name ?? Url}", Percent.Zero);
-                    var response = await client.GetAsync(Url);
+                    var response = await client.GetAsync(Url, errorsAsExceptions:false, retry:false);
 TOP:
 
-                    if (!response.IsSuccessStatusCode)
+                    if (!response.IsSuccessStatusCode) 
+                    {
                         return false;
+                    }
 
                     Stream stream;
                     try
@@ -212,19 +214,22 @@ TOP:
 
             }
 
-            public virtual async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
+            public override async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
             {
                 var tmpFile = new TempFile();
                 
                 var newArchive = new Archive(this) {Name = a.Name};
+
+                Utils.Log($"Downloading via HTTP to find Upgrade for {Url}");
 
                 try
                 {
                     if (!await Download(newArchive, tmpFile.Path))
                         return default;
                 }
-                catch (HttpException)
+                catch (HttpException ex)
                 {
+                    Utils.Log($"Error finding upgrade via HTTP to find Upgrade for {Url} {ex}");
                     return default;
                 }
 

@@ -127,7 +127,7 @@ namespace Wabbajack.BuildServer.Controllers
 
         private async Task Log(DateTime timestamp, string action, string subject, string metricsKey = null)
         {
-            _logger.Log(LogLevel.Information, $"Log - {timestamp} {action} {subject} {metricsKey}");
+            //_logger.Log(LogLevel.Information, $"Log - {timestamp} {action} {subject} {metricsKey}");
             await _sql.IngestMetric(new Metric
             {
                 Timestamp = timestamp, Action = action, Subject = subject, MetricsKey = metricsKey

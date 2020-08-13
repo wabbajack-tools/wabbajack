@@ -308,6 +308,18 @@ namespace Wabbajack.Test
             Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
+
+            var files = await ((LoversLabDownloader.State)converted).GetFilesInGroup();
+            
+            Assert.NotEmpty(files);
+            Assert.Equal("WABBAJACK_TEST_FILE.zip", files.First().Name);
+
+            ((LoversLabDownloader.State)converted).FileID = "42";
+
+            var upgrade = await DownloadDispatcher.FindUpgrade(new Archive(converted) {Name = "WABBAJACK_TEST_FILE.zip"});
+            Assert.True(upgrade != default);
+
+
         }
         
         [Fact]
@@ -336,6 +348,7 @@ namespace Wabbajack.Test
             Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.Path.FileHashAsync());
 
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
+            
         }
         
         [Fact]

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -6,6 +7,8 @@ using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
+using F23.StringSimilarity;
+using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Lib.Validation;
@@ -25,9 +28,13 @@ namespace Wabbajack.Lib.Downloaders
         }
 
         public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
-        {
+        { 
             Uri url = DownloaderUtils.GetDirectURL(archiveINI);
+            return await GetDownloaderStateFromUrl(url, quickMode);
+        }
 
+        public async Task<AbstractDownloadState?> GetDownloaderStateFromUrl(Uri url, bool quickMode)
+        {
             var absolute = true;
             if (url == null || url.Host != SiteURL.Host) return null;
 
@@ -81,7 +88,7 @@ namespace Wabbajack.Lib.Downloaders
                 FileName = file
             };
         }
-
+        
         public class State<TStateDownloader> : AbstractDownloadState, IMetaState 
             where TStateDownloader : IDownloader
         {
@@ -223,10 +230,57 @@ namespace Wabbajack.Lib.Downloaders
                 stream.Dispose();
                 return true;
             }
-
+            
             public override IDownloader GetDownloader()
             {
                 return DownloadDispatcher.GetInstance<TDownloader>();
+            }
+
+            public override async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
+            {
+                var files = await GetFilesInGroup();
+                var nl = new Levenshtein();
+                var newFile = files.OrderBy(f => nl.Distance(a.Name.ToLowerInvariant(), f.Name.ToLowerInvariant())).FirstOrDefault();
+                if (newFile == null) return default;
+
+                var existing = await downloadResolver(newFile);
+                if (existing != default) return (newFile, new TempFile());
+                
+                var tmp = new TempFile();
+                await DownloadDispatcher.PrepareAll(new []{newFile.State});
+                if (await newFile.State.Download(newFile, tmp.Path))
+                {
+                    newFile.Size = tmp.Path.Size;
+                    newFile.Hash = await tmp.Path.FileHashAsync();
+                    return (newFile, tmp);
+                }
+
+                await tmp.DisposeAsync();
+                return default;
+
+            }
+
+            public async Task<List<Archive>> GetFilesInGroup()
+            {
+                var others = await Downloader.AuthedClient.GetHtmlAsync($"{Site}/files/file/{FileName}?do=download");
+
+                var pairs = others.DocumentNode.SelectNodes("//a[@data-action='download']")
+                    .Select(item => (item.GetAttributeValue("href", ""),
+                        item.ParentNode.ParentNode.SelectNodes("//div//h4//span").First().InnerText));
+                
+                List<Archive> archives = new List<Archive>();
+                foreach (var (url, name) in pairs)
+                {
+                    var ini = new[] {"[General]", $"directURL={url}"};
+                    var state = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(
+                        string.Join("\n", ini).LoadIniString(), false));
+                    if (state == null) continue;
+                    
+                    archives.Add(new Archive(state) {Name = name});
+                    
+                }
+
+                return archives;
             }
 
             public override string GetManifestURL(Archive a)

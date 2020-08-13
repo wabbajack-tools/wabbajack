@@ -18,13 +18,15 @@ namespace Wabbajack.Server.Services
         private AppSettings _settings;
         private GlobalInformation _globalInformation;
         private ILogger<NexusPoll> _logger;
+        private NexusKeyMaintainance _keys;
 
-        public NexusPoll(ILogger<NexusPoll> logger, AppSettings settings, SqlService service, GlobalInformation globalInformation)
+        public NexusPoll(ILogger<NexusPoll> logger, AppSettings settings, SqlService service, GlobalInformation globalInformation, NexusKeyMaintainance keys)
         {
             _sql = service;
             _settings = settings;
             _globalInformation = globalInformation;
             _logger = logger;
+            _keys = keys;
         }
 
         public async Task UpdateNexusCacheRSS()
@@ -67,7 +69,7 @@ namespace Wabbajack.Server.Services
         {
             using var _ = _logger.BeginScope("Nexus Update via API");
             _logger.Log(LogLevel.Information, "Starting Nexus Update via API");
-            var api = await NexusApiClient.Get();
+            var api = await _keys.GetClient();
             
             var gameTasks = GameRegistry.Games.Values
                 .Where(game => game.NexusName != null)

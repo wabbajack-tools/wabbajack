@@ -73,15 +73,15 @@ namespace Wabbajack.BuildServer.Controllers
             {
                 if (await request.OldArchive.State.Verify(request.OldArchive))
                 {
-                    _logger.LogInformation(
-                        $"Refusing to upgrade ({request.OldArchive.State.PrimaryKeyString}), old archive is valid");
+                    //_logger.LogInformation(
+                    //    $"Refusing to upgrade ({request.OldArchive.State.PrimaryKeyString}), old archive is valid");
                     return NotFound("File is Valid");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogInformation(
-                    $"Refusing to upgrade ({request.OldArchive.State.PrimaryKeyString}), due to upgrade failure");
+                //_logger.LogInformation(
+               //     $"Refusing to upgrade ({request.OldArchive.State.PrimaryKeyString}), due to upgrade failure");
                 return NotFound("File is Valid");
             }
 
@@ -99,13 +99,13 @@ namespace Wabbajack.BuildServer.Controllers
             {
                 if (patch.PatchSize != 0)
                 {
-                    _logger.Log(LogLevel.Information, $"Upgrade requested from {oldDownload.Archive.Hash} to {newDownload.Archive.Hash} patch Found");
+                    //_logger.Log(LogLevel.Information, $"Upgrade requested from {oldDownload.Archive.Hash} to {newDownload.Archive.Hash} patch Found");
                     await _sql.MarkPatchUsage(oldDownload.Id, newDownload.Id);
                     return
                         Ok(
                             $"https://{(await _creds).Username}.b-cdn.net/{request.OldArchive.Hash.ToHex()}_{request.NewArchive.Hash.ToHex()}");
                 }
-                _logger.Log(LogLevel.Information, $"Upgrade requested from {oldDownload.Archive.Hash} to {newDownload.Archive.Hash} patch found but was failed");
+                //_logger.Log(LogLevel.Information, $"Upgrade requested from {oldDownload.Archive.Hash} to {newDownload.Archive.Hash} patch found but was failed");
 
                 return NotFound("Patch creation failed");
             }
@@ -119,7 +119,7 @@ namespace Wabbajack.BuildServer.Controllers
                 await _quickSync.Notify<PatchBuilder>();
             }
             
-            _logger.Log(LogLevel.Information, $"Upgrade requested from {oldDownload.Archive.Hash} to {newDownload.Archive.Hash} patch found is processing");
+            //_logger.Log(LogLevel.Information, $"Upgrade requested from {oldDownload.Archive.Hash} to {newDownload.Archive.Hash} patch found is processing");
             // Still processing
             return Accepted();
         }

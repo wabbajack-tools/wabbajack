@@ -16,7 +16,7 @@ using Wabbajack.Lib.WebAutomation;
 
 namespace Wabbajack.Lib.NexusApi
 {
-    public class NexusApiClient : ViewModel
+    public class NexusApiClient : ViewModel, INexusApi
     {
         private static readonly string API_KEY_CACHE_FILE = "nexus.key_cache";
        
@@ -24,7 +24,7 @@ namespace Wabbajack.Lib.NexusApi
 
         #region Authentication
 
-        public string? ApiKey { get; }
+        public static string? ApiKey { get; set; }
 
         public bool IsAuthenticated => ApiKey != null;
 
@@ -313,7 +313,11 @@ namespace Wabbajack.Lib.NexusApi
         public async Task<string> GetNexusDownloadLink(NexusDownloader.State archive)
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
+            
+            var info = await GetModInfo(archive.Game, archive.ModID);
+            if (!info.available)
+                throw new Exception("Mod unavailable");
+            
             var url = $"https://api.nexusmods.com/v1/games/{archive.Game.MetaData().NexusName}/mods/{archive.ModID}/files/{archive.FileID}/download_link.json";
             try
             {
@@ -321,6 +325,8 @@ namespace Wabbajack.Lib.NexusApi
             }
             catch (HttpException ex)
             {
+
+                
                 if (ex.Code != 403 || await IsPremium())
                 {
                     throw;
@@ -381,20 +387,6 @@ namespace Wabbajack.Lib.NexusApi
         private class DownloadLink
         {
             public string URI { get; set; } = string.Empty;
-        }
-
-        private static string? _localCacheDir;
-        public static string LocalCacheDir
-        {
-            get
-            {
-                if (_localCacheDir == null)
-                    _localCacheDir = Environment.GetEnvironmentVariable("NEXUSCACHEDIR");
-                if (_localCacheDir == null)
-                    throw new ArgumentNullException($"Enviornment variable could not be located: NEXUSCACHEDIR");
-                return _localCacheDir;
-            }
-            set => _localCacheDir = value;
         }
 
         public static Uri ManualDownloadUrl(NexusDownloader.State state)

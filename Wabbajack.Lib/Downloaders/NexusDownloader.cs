@@ -21,7 +21,7 @@ namespace Wabbajack.Lib.Downloaders
         private bool _prepared;
         private AsyncLock _lock = new AsyncLock();
         private UserStatus? _status;
-        private NexusApiClient? _client;
+        public INexusApi? Client;
 
         public IObservable<bool> IsLoggedIn => Utils.HaveEncryptedJsonObservable("nexusapikey");
 
@@ -115,9 +115,9 @@ namespace Wabbajack.Lib.Downloaders
                         await CLIArguments.ApiKey.ToEcryptedJson("nexusapikey");
                     }
 
-                    _client = await NexusApiClient.Get();
-                    _status = await _client.GetUserStatus();
-                    if (!_client.IsAuthenticated)
+                    Client = await NexusApiClient.Get();
+                    _status = await Client.GetUserStatus();
+                    if (!Client.IsAuthenticated)
                     {
                         Utils.ErrorThrow(new UnconvertedError(
                             $"Authenticating for the Nexus failed. A nexus account is required to automatically download mods."));
@@ -205,18 +205,11 @@ namespace Wabbajack.Lib.Downloaders
                 try
                 {
                     var client = await NexusApiClient.Get();
+                    var modInfo = await client.GetModInfo(Game, ModID);
+                    if (!modInfo.available) return false;
                     var modFiles = await client.GetModFiles(Game, ModID);
 
                     var found = modFiles.files
-                        .FirstOrDefault(file => file.file_id == FileID && file.category_name != null);
-
-                    if (found != null)
-                        return true;
-
-                    Utils.Log($"Could not validate {URL} with cache, validating manually");
-                    modFiles = await client.GetModFiles(Game, ModID, false);
-
-                    found = modFiles.files
                         .FirstOrDefault(file => file.file_id == FileID && file.category_name != null);
 
                     return found != null;
@@ -244,11 +237,14 @@ namespace Wabbajack.Lib.Downloaders
                 return new[] {"[General]", $"gameName={Game.MetaData().MO2ArchiveName}", $"modID={ModID}", $"fileID={FileID}"};
             }
 
-            public async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a)
+            public async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
             {
                 var client = await NexusApiClient.Get();
 
                 var mod = await client.GetModInfo(Game, ModID);
+                if (!mod.available) 
+                    return default;
+                
                 var files = await client.GetModFiles(Game, ModID);
                 var oldFile = files.files.FirstOrDefault(f => f.file_id == FileID);
                 var nl = new Levenshtein();
@@ -265,13 +261,21 @@ namespace Wabbajack.Lib.Downloaders
                     return default;
                 }
                 
-                var tempFile = new TempFile();
-
                 var newArchive = new Archive(new State {Game = Game, ModID = ModID, FileID = newFile.file_id})
                 {
                     Name = newFile.file_name,
                 };
 
+                var fastPath = await downloadResolver(newArchive);
+                if (fastPath != default)
+                {
+                    newArchive.Size = fastPath.Size;
+                    newArchive.Hash = await fastPath.FileHashAsync();
+                    return (newArchive, new TempFile());
+                }
+
+                var tempFile = new TempFile();
+                 
                 await newArchive.State.Download(newArchive, tempFile.Path);
 
                 newArchive.Size = tempFile.Path.Size;

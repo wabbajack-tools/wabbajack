@@ -7,14 +7,13 @@ namespace Wabbajack.Common
 {
     public class OctoDiff
     {
-        private static ProgressReporter reporter = new ProgressReporter();
         public static void Create(byte[] oldData, byte[] newData, Stream output)
         {
             using var signature = CreateSignature(oldData);
             using var oldStream = new MemoryStream(oldData);
             using var newStream = new MemoryStream(newData);
-            var db = new DeltaBuilder {ProgressReporter = reporter};
-            db.BuildDelta(newStream, new SignatureReader(signature, reporter), new AggregateCopyOperationsDecorator(new BinaryDeltaWriter(output)));
+            var db = new DeltaBuilder {ProgressReporter = new ProgressReporter()};
+            db.BuildDelta(newStream, new SignatureReader(signature, new ProgressReporter()), new AggregateCopyOperationsDecorator(new BinaryDeltaWriter(output)));
         }
 
         private static Stream CreateSignature(byte[] oldData)
@@ -36,24 +35,39 @@ namespace Wabbajack.Common
             sigStream.Position = 0;
         }
         
-        public static void Create(Stream oldData, Stream newData, Stream signature, Stream output)
+        public static void Create(Stream oldData, Stream newData, Stream signature, Stream output, ProgressReporter? reporter = null)
         {
             CreateSignature(oldData, signature);
-            var db = new DeltaBuilder {ProgressReporter = reporter};
-            db.BuildDelta(newData, new SignatureReader(signature, reporter), new AggregateCopyOperationsDecorator(new BinaryDeltaWriter(output)));
+            var db = new DeltaBuilder {ProgressReporter = reporter ?? new ProgressReporter()};
+            db.BuildDelta(newData, new SignatureReader(signature, reporter ?? new ProgressReporter()), new AggregateCopyOperationsDecorator(new BinaryDeltaWriter(output)));
         }
 
-        private class ProgressReporter : IProgressReporter
+        public class ProgressReporter : IProgressReporter
         {
             private DateTime _lastUpdate = DateTime.UnixEpoch;
-            private readonly TimeSpan _updateInterval = TimeSpan.FromMilliseconds(100);
+            private TimeSpan _updateInterval;
+            private Action<string, Percent> _report;
+
+            public ProgressReporter()
+            {
+                _updateInterval = TimeSpan.FromMilliseconds(100);
+                _report = (s, percent) => Utils.Status(s, percent);
+            }
+            
+            public ProgressReporter(TimeSpan updateInterval, Action<string, Percent> report)
+            {
+                _updateInterval = updateInterval;
+                _report = report;
+            }
+            
+             
             public void ReportProgress(string operation, long currentPosition, long total)
             {
                 if (DateTime.Now - _lastUpdate < _updateInterval) return;
                 _lastUpdate = DateTime.Now;
                 if (currentPosition >= total || total < 1 || currentPosition < 0)
                     return;
-                Utils.Status(operation, new Percent(total, currentPosition));
+                _report(operation, new Percent(total, currentPosition));
             }
         }
 
@@ -61,13 +75,13 @@ namespace Wabbajack.Common
         {
             using var deltaStream = openPatchStream();
             var deltaApplier = new DeltaApplier();
-            deltaApplier.Apply(input, new BinaryDeltaReader(deltaStream, reporter), output);
+            deltaApplier.Apply(input, new BinaryDeltaReader(deltaStream, new ProgressReporter()), output);
         }
         
         public static void Apply(FileStream input, FileStream patchStream, FileStream output)
         {
             var deltaApplier = new DeltaApplier();
-            deltaApplier.Apply(input, new BinaryDeltaReader(patchStream, reporter), output);
+            deltaApplier.Apply(input, new BinaryDeltaReader(patchStream, new ProgressReporter()), output);
         }
     }
 }

@@ -170,7 +170,8 @@ namespace Wabbajack.BuildServer.Test
 
             Consts.ModlistSummaryURL = MakeURL("lists/status.json");
             Consts.ServerWhitelistURL = MakeURL("ServerWhitelist.yaml");
-           
+            Consts.UnlistedModlistMetadataURL = MakeURL("lists/none.json");
+
         }
 
         public WorkQueue Queue { get; set; }

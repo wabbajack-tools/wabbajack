@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Wabbajack.Common;
 
 namespace Wabbajack.Lib.Downloaders
@@ -11,7 +12,7 @@ namespace Wabbajack.Lib.Downloaders
         /// </summary>
         /// <param name="a"></param>
         /// <returns></returns>
-        public Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a);
+        public Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver);
 
         Task<bool> ValidateUpgrade(Hash srcHash, AbstractDownloadState newArchiveState);
     }

@@ -10,9 +10,11 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 using Wabbajack.Common;
+using Wabbajack.Common.Exceptions;
 using Wabbajack.Lib;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Server.DataLayer;
+using Wabbajack.Server.Services;
 
 namespace Wabbajack.BuildServer.Controllers
 {
@@ -27,12 +29,14 @@ namespace Wabbajack.BuildServer.Controllers
         private static long ForwardCount = 0;
         private SqlService _sql;
         private ILogger<NexusCache> _logger;
+        private NexusKeyMaintainance _keys;
 
-        public NexusCache(ILogger<NexusCache> logger, SqlService sql, AppSettings settings)
+        public NexusCache(ILogger<NexusCache> logger, SqlService sql, AppSettings settings, NexusKeyMaintainance keys)
         {
             _settings = settings;
             _sql = sql;
             _logger = logger;
+            _keys = keys;
         }
 
         /// <summary>
@@ -74,7 +78,7 @@ namespace Wabbajack.BuildServer.Controllers
         {
             var key = Request.Headers["apikey"].FirstOrDefault();
             if (key == null)
-                return await NexusApiClient.Get(null);
+                return await _keys.GetClient();
 
             if (await _sql.HaveKey(key))
                 return await NexusApiClient.Get(key);
@@ -89,18 +93,31 @@ namespace Wabbajack.BuildServer.Controllers
         [Route("{GameName}/mods/{ModId}/files.json")]
         public async Task<NexusApiClient.GetModFilesResponse> GetModFiles(string GameName, long ModId)
         {
-            _logger.Log(LogLevel.Information, $"{GameName} {ModId}");
+            //_logger.Log(LogLevel.Information, $"{GameName} {ModId}");
             var game = GameRegistry.GetByFuzzyName(GameName).Game;
             var result = await _sql.GetModFiles(game, ModId);
 
             string method = "CACHED";
             if (result == null)
             {
-                var api = await NexusApiClient.Get(Request.Headers["apikey"].FirstOrDefault());
-                result = await api.GetModFiles(game, ModId, false);
+                var api = await GetClient();
+                var permission = HTMLInterface.GetUploadPermissions(game, ModId);
+                try
+                {
+                    result = await api.GetModFiles(game, ModId, false);
+                }
+                catch (HttpException ex)
+                {
+                    if (ex.Code == 403)
+                        result = new NexusApiClient.GetModFilesResponse {files = new List<NexusFileInfo>()};
+                    else
+                        throw;
+                }
+
                 var date = result.files.Select(f => f.uploaded_time).OrderByDescending(o => o).FirstOrDefault();
                 date = date == default ? DateTime.UtcNow : date;
                 await _sql.AddNexusModFiles(game, ModId, date, result);
+                await _sql.SetNexusPermission(game, ModId, await permission);
 
                 method = "NOT_CACHED";
                 Interlocked.Increment(ref ForwardCount);

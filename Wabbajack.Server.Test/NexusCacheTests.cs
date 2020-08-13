@@ -152,5 +152,19 @@ namespace Wabbajack.BuildServer.Test
             Assert.Equal(ts, (long)ts.AsUnixTime().AsUnixTime());
 
         }
+
+        [Fact]
+        public async Task CanGetAndSetPermissions()
+        {
+            var game = Game.Oblivion;
+            var modId = 4424;
+            var sql = Fixture.GetService<SqlService>();
+
+            foreach (HTMLInterface.PermissionValue result in Enum.GetValues(typeof(HTMLInterface.PermissionValue)))
+            {
+                await sql.SetNexusPermission(game, modId, result);
+                Assert.Equal(result, (await sql.GetNexusPermissions())[(game, modId)]);
+            }
+        }
     }
 }
