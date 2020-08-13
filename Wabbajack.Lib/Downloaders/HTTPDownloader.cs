@@ -98,11 +98,13 @@ namespace Wabbajack.Lib.Downloaders
                     var bufferSize = 1024 * 32;
 
                     Utils.Status($"Starting Download {a.Name ?? Url}", Percent.Zero);
-                    var response = await client.GetAsync(Url);
+                    var response = await client.GetAsync(Url, errorsAsExceptions:false, retry:false);
 TOP:
 
-                    if (!response.IsSuccessStatusCode)
+                    if (!response.IsSuccessStatusCode) 
+                    {
                         return false;
+                    }
 
                     Stream stream;
                     try

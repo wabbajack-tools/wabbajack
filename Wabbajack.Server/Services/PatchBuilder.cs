@@ -170,6 +170,10 @@ namespace Wabbajack.Server.Services
                         var lst = p.Split("_", StringSplitOptions.RemoveEmptyEntries).Select(Hash.FromHex).ToArray();
                         return (lst[0], lst[1]);
                     }
+                    catch (ArgumentException ex)
+                    {
+                        return default;
+                    }
                     catch (FormatException ex)
                     {
                         return default;

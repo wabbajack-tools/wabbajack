@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
@@ -54,6 +55,10 @@ namespace Wabbajack.BuildServer.Test
         [Fact]
         public async Task CanValidateModLists()
         {
+            var sql = Fixture.GetService<SqlService>();
+            await using var conn = await sql.Open();
+            await conn.ExecuteAsync("DELETE from Patches");
+
             var modlists = await MakeModList("CanValidateModlistsFile.txt");
             Consts.ModlistMetadataURL = modlists.ToString();
             Utils.Log("Updating modlists");

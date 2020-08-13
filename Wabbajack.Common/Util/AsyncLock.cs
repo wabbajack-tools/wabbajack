@@ -5,7 +5,6 @@ using System.Reactive.Disposables;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
 namespace Wabbajack.Common
 {
     public class AsyncLock
