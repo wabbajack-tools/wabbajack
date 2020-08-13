@@ -10,6 +10,8 @@
       <WarningsAsErrors>nullable</WarningsAsErrors>
       <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
       <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+      <AssemblyVersion>2.2.1.0</AssemblyVersion>
+      <FileVersion>2.2.1.0</FileVersion>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       <DocumentationFile>Compression.BSA.xml</DocumentationFile>

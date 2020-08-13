@@ -16,6 +16,8 @@
         <RepositoryUrl>https://github.com/wabbajack-tools/wabbajack</RepositoryUrl>
         <Version>3.0</Version>
         <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+        <AssemblyVersion>2.2.1.0</AssemblyVersion>
+        <FileVersion>2.2.1.0</FileVersion>        
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       <DocumentationFile>Wabbajack.Common.xml</DocumentationFile>
