@@ -7,16 +7,16 @@ using RocksDbSharp;
 
 namespace Wabbajack.Common
 {
-    public static partial class Utils
+    public static class PatchCache
     {
-
+        // Keep rock DB out of Utils, as it causes lock problems for users of Wabbajack.Common that aren't interested in it, otherwise
         private static RocksDb? _patchCache;
-        private static void InitPatches()
+
+        static PatchCache()
         {
-            var options = new DbOptions().SetCreateIfMissing(true); 
+            var options = new DbOptions().SetCreateIfMissing(true);
             _patchCache = RocksDb.Open(options, (string)Consts.LocalAppDataPath.Combine("PatchCache.rocksDb"));
         }
-
 
         private static byte[] PatchKey(Hash src, Hash dest)
         {
@@ -25,6 +25,7 @@ namespace Wabbajack.Common
             Array.Copy(BitConverter.GetBytes((ulong)dest), 0, arr, 8, 8);
             return arr;
         }
+
         public static async Task CreatePatchCached(byte[] a, byte[] b, Stream output)
         {
             var dataA = a.xxHash();
@@ -40,9 +41,9 @@ namespace Wabbajack.Common
 
             await using var patch = new MemoryStream();
 
-            Status("Creating Patch");
+            Utils.Status("Creating Patch");
             OctoDiff.Create(a, b, patch);
-            
+
             _patchCache.Put(key, patch.ToArray());
             patch.Position = 0;
 
@@ -57,19 +58,19 @@ namespace Wabbajack.Common
             if (patch != null)
             {
                 if (patchOutStream == null) return patch.Length;
-                
+
                 await patchOutStream.WriteAsync(patch);
                 return patch.Length;
             }
-            
-            Status("Creating Patch");
+
+            Utils.Status("Creating Patch");
             await using var sigStream = new MemoryStream();
             await using var patchStream = new MemoryStream();
             OctoDiff.Create(srcStream, destStream, sigStream, patchStream);
             _patchCache.Put(key, patchStream.ToArray());
 
             if (patchOutStream == null) return patchStream.Position;
-            
+
             patchStream.Position = 0;
             await patchStream.CopyToAsync(patchOutStream);
 
@@ -116,5 +117,21 @@ namespace Wabbajack.Common
                     throw new Exception($"No diff dispatch for: {str}");
             }
         }
+    }
+
+    // Convenience hook ins to offer the API from Utils, without having the init fire until they're actually called
+    public static partial class Utils
+    {
+        public static void ApplyPatch(Stream input, Func<Stream> openPatchStream, Stream output) =>
+            PatchCache.ApplyPatch(input, openPatchStream, output);
+
+        public static Task CreatePatchCached(byte[] a, byte[] b, Stream output) =>
+            PatchCache.CreatePatchCached(a, b, output);
+
+        public static Task<long> CreatePatchCached(Stream srcStream, Hash srcHash, FileStream destStream, Hash destHash, Stream? patchOutStream = null) =>
+            PatchCache.CreatePatchCached(srcStream, srcHash, destStream, destHash, patchOutStream);
+
+        public static bool TryGetPatch(Hash foundHash, Hash fileHash, [MaybeNullWhen(false)] out byte[] ePatch) =>
+            PatchCache.TryGetPatch(foundHash, fileHash, out ePatch);
     }
 }
