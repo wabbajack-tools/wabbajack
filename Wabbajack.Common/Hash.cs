@@ -114,10 +114,19 @@ namespace Wabbajack.Common
             };
         }
     }
-    
-    public static partial class Utils
+
+    public static class HashCache
     {
+        private const uint HashCacheVersion = 0x01;
+
+        // Keep rock DB out of Utils, as it causes lock problems for users of Wabbajack.Common that aren't interested in it, otherwise
         private static RocksDb _hashCache;
+
+        static HashCache()
+        {
+            var options = new DbOptions().SetCreateIfMissing(true);
+            _hashCache = RocksDb.Open(options, (string)Consts.LocalAppDataPath.Combine("GlobalHashCache.rocksDb"));
+        }
 
         public static Hash ReadHash(this BinaryReader br)
         {
@@ -146,36 +155,37 @@ namespace Wabbajack.Common
             hash.HashSizeInBits = 64;
             hash.Seed = 0x42;
             using var fs = new MemoryStream(data);
-            var config = new xxHashConfig {HashSizeInBits = 64};
+            var config = new xxHashConfig { HashSizeInBits = 64 };
             using var f = new StatusFileStream(fs, $"Hashing memory stream");
             var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
             return Hash.FromULong(BitConverter.ToUInt64(value.Hash));
         }
-        
+
         public static Hash xxHash(this Stream stream)
         {
             var hash = new xxHashConfig();
             hash.HashSizeInBits = 64;
             hash.Seed = 0x42;
-            var config = new xxHashConfig {HashSizeInBits = 64};
+            var config = new xxHashConfig { HashSizeInBits = 64 };
             using var f = new StatusFileStream(stream, $"Hashing memory stream");
             var value = xxHashFactory.Instance.Create(config).ComputeHash(f);
             return Hash.FromULong(BitConverter.ToUInt64(value.Hash));
         }
-        
+
         public static async Task<Hash> xxHashAsync(this Stream stream)
         {
-            var config = new xxHashConfig {HashSizeInBits = 64};
+            var config = new xxHashConfig { HashSizeInBits = 64 };
             await using var f = new StatusFileStream(stream, $"Hashing memory stream");
             var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(f);
             return Hash.FromULong(BitConverter.ToUInt64(value.Hash));
         }
-        public static bool TryGetHashCache(AbsolutePath file, out Hash hash)
+
+        public static bool TryGetHashCache(this AbsolutePath file, out Hash hash)
         {
             var normPath = Encoding.UTF8.GetBytes(file.Normalize());
             var value = _hashCache.Get(normPath);
             hash = default;
-            
+
             if (value == null) return false;
             if (value.Length != 20) return false;
 
@@ -190,9 +200,7 @@ namespace Wabbajack.Common
             return true;
         }
 
-
-        private const uint HashCacheVersion = 0x01;
-        private static void WriteHashCache(AbsolutePath file, Hash hash)
+        private static void WriteHashCache(this AbsolutePath file, Hash hash)
         {
             using var ms = new MemoryStream(20);
             using var bw = new BinaryWriter(ms);
@@ -202,6 +210,7 @@ namespace Wabbajack.Common
             bw.Write((ulong)hash);
             _hashCache.Put(Encoding.UTF8.GetBytes(file.Normalize()), ms.ToArray());
         }
+
         public static void FileHashWriteCache(this AbsolutePath file, Hash hash)
         {
             WriteHashCache(file, hash);
@@ -212,7 +221,7 @@ namespace Wabbajack.Common
             if (TryGetHashCache(file, out var foundHash)) return foundHash;
 
             var hash = await file.FileHashAsync(nullOnIOError);
-            if (hash != Hash.Empty) 
+            if (hash != Hash.Empty)
                 WriteHashCache(file, hash);
             return hash;
         }
@@ -222,7 +231,7 @@ namespace Wabbajack.Common
             try
             {
                 await using var fs = await file.OpenRead();
-                var config = new xxHashConfig {HashSizeInBits = 64};
+                var config = new xxHashConfig { HashSizeInBits = 64 };
                 await using var hs = new StatusFileStream(fs, $"Hashing {file}");
                 var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(hs);
                 return new Hash(BitConverter.ToUInt64(value.Hash));
@@ -233,6 +242,5 @@ namespace Wabbajack.Common
                 throw;
             }
         }
-
     }
 }
