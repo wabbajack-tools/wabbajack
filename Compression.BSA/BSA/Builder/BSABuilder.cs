@@ -152,7 +152,7 @@ namespace Compression.BSA
             Name = folderName;
             _bsa = bsa;
             // Folders don't have extensions, so let's make sure we cut it out
-            _hash = Name.GetBSAHash();
+            _hash = Name.GetFolderBSAHash();
             _fileCount = (uint) files.Count();
             _nameBytes = folderName.ToBZString(_bsa.HeaderType);
             _recordSize = sizeof(ulong) + sizeof(uint) + sizeof(uint);

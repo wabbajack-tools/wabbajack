@@ -8,11 +8,11 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Compression.BSA
 {
-    internal static class Utils
+    public static class BSAUtils
     {
         private static readonly Encoding Windows1252;
 
-        static Utils()
+        static BSAUtils()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Windows1252 = Encoding.GetEncoding(1252);
@@ -128,6 +128,11 @@ namespace Compression.BSA
         public static ulong GetBSAHash(this RelativePath name)
         {
             return ((string)name).GetBSAHash();
+        }
+        
+        public static ulong GetFolderBSAHash(this RelativePath name)
+        {
+            return GetBSAHash((string)name, "");
         }
 
         public static ulong GetBSAHash(this string name, string ext)
