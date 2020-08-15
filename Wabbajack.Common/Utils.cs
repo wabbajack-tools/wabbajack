@@ -1034,6 +1034,8 @@ namespace Wabbajack.Common
             {
                 var to_read = Math.Min(buff.Length, limit);
                 var read = await frm.ReadAsync(buff, 0, (int)to_read);
+                if (read == 0)
+                    throw new Exception("End of stream before end of limit");
                 await tw.WriteAsync(buff, 0, read);
                 limit -= read;
             }
