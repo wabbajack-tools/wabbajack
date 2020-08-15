@@ -23,7 +23,7 @@ namespace Wabbajack.Common.Test
             await testFile.WriteAllTextAsync(data);
             File.WriteAllText("test.data", data);
             Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await testFile.FileHashCachedAsync());
-            Assert.True(Utils.TryGetHashCache(testFile, out var fileHash));
+            Assert.True(testFile.TryGetHashCache(out var fileHash));
             Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), fileHash);
         }
 

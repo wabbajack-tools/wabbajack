@@ -24,7 +24,6 @@ using IniParser.Model.Configuration;
 using IniParser.Parser;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using RocksDbSharp;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Common.StatusFeed.Errors;
 using YamlDotNet.Serialization;
@@ -60,9 +59,6 @@ namespace Wabbajack.Common
             LogFile = Consts.LogFile;
             Consts.LocalAppDataPath.CreateDirectory();
             Consts.LogsFolder.CreateDirectory();
-            
-            var options = new DbOptions().SetCreateIfMissing(true);
-            _hashCache = RocksDb.Open(options, (string)Consts.LocalAppDataPath.Combine("GlobalHashCache.rocksDb"));
 
             _startTime = DateTime.Now;
 
@@ -109,7 +105,6 @@ namespace Wabbajack.Common
                                                 Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Deleted += h, h => watcher.Deleted -= h).Select(e => (FileEventType.Deleted, e.EventArgs)))
                                        .ObserveOn(Scheduler.Default);
             watcher.EnableRaisingEvents = true;
-            InitPatches();
         }
 
         private static readonly Subject<IStatusMessage> LoggerSubj = new Subject<IStatusMessage>();
