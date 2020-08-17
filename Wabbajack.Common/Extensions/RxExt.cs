@@ -108,7 +108,7 @@ namespace Wabbajack
                         // We have another value that came in to fire.
                         // Reregister for callback
                         dueTimeDisposable.Disposable = scheduler.Schedule(interval, internalCallback);
-                        o.OnNext(value);
+                        o.OnNext(value!);
                         value = default;
                         hasValue = false;
                     }
