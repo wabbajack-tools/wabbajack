@@ -392,6 +392,7 @@ namespace Wabbajack.Common
                     SupportedModManager = ModManager.MO2,
                     Game = Game.Enderal,
                     NexusName = "enderal",
+                    NexusGameId = 2736,
                     MO2Name = "Enderal",
                     MO2ArchiveName = "enderal",
                     SteamIDs = new List<int>{1027920, 933480},

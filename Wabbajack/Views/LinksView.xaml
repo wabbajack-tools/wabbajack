@@ -12,33 +12,43 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <Button Grid.Column="0"
-            Width="40"
-            Height="35"
-            Click="GitHub_Click"
-            Style="{StaticResource IconBareButtonStyle}">
+        <TextBlock
+            Text="Wabbajack is free, but supported by users like you. Please consider supporting us on Patreon to help offset the costs of distributing these modlists."
+            TextWrapping="Wrap"
+            FontWeight="Bold"
+            FontSize="14"
+            MouseDown="Patreon_Click"
+            Foreground="Cyan"
+            />
+        <Button Grid.Column="1"
+                Width="40"
+                Height="35"
+                Margin="4,0,0,0"
+                Click="Patreon_Click"
+                Style="{StaticResource IconBareButtonStyle}">
+            <icon:PackIconMaterial
+                Width="25"
+                Height="25"
+                Kind="Patreon"
+                Foreground="Cyan"/>
+        </Button>
+        <Button Grid.Column="2"
+                Width="40"
+                Height="35"
+                Click="GitHub_Click"
+                Style="{StaticResource IconBareButtonStyle}">
             <icon:PackIconMaterial
                 Width="25"
                 Height="25"
                 Kind="GitHub" />
         </Button>
-        <Button Grid.Column="1"
-            Width="40"
-            Height="35"
-            Margin="4,0,0,0"
-            Click="Patreon_Click"
-            Style="{StaticResource IconBareButtonStyle}">
-            <icon:PackIconMaterial
-                Width="25"
-                Height="25"
-                Kind="Patreon" />
-        </Button>
-        <Button Grid.Column="2"
-            Width="40"
-            Height="35"
-            Click="Discord_Click"
-            Style="{StaticResource IconBareButtonStyle}">
+        <Button Grid.Column="3"
+                Width="40"
+                Height="35"
+                Click="Discord_Click"
+                Style="{StaticResource IconBareButtonStyle}">
             <icon:PackIconMaterial
                 Width="25"
                 Height="25"
