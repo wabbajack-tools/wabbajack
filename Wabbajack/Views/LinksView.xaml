@@ -15,12 +15,11 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <TextBlock
-            Text="Wabbajack is free, but supported by users like you. Please consider supporting us on Patreon to help offset the costs of distributing these modlists."
+            Text="Wabbajack is free, but supported by users like you. Please consider supporting us on Patreon to help offset the costs of hosting these modlists."
             TextWrapping="Wrap"
             FontWeight="Bold"
             FontSize="14"
             MouseDown="Patreon_Click"
-            Foreground="Cyan"
             />
         <Button Grid.Column="1"
                 Width="40"
@@ -31,8 +30,7 @@
             <icon:PackIconMaterial
                 Width="25"
                 Height="25"
-                Kind="Patreon"
-                Foreground="Cyan"/>
+                Kind="Patreon"/>
         </Button>
         <Button Grid.Column="2"
                 Width="40"
