@@ -210,6 +210,7 @@ namespace Wabbajack.Lib
                     {
                         var files = await ClientAPI.GetExistingGameFiles(Queue, ag);
                         Utils.Log($"Including {files.Length} stock game files from {ag} as download sources");
+                        GameHashes[ag] = files.Select(f => f.Hash).ToHashSet();
 
                         IndexedArchives.AddRange(files.Select(f =>
                         {
@@ -228,6 +229,10 @@ namespace Wabbajack.Lib
                         Utils.Error(e, "Unable to find existing game files, skipping.");
                     }
                 }
+
+                GamesWithHashes = GameHashes.SelectMany(g => g.Value.Select(h => (g, h)))
+                    .GroupBy(gh => gh.h)
+                    .ToDictionary(gh => gh.Key, gh => gh.Select(p => p.g.Key).ToArray());
             }
 
             IndexedArchives = IndexedArchives.DistinctBy(a => a.File.AbsoluteName).ToList();
@@ -363,6 +368,9 @@ namespace Wabbajack.Lib
             return true;
         }
 
+
+        public Dictionary<Game, HashSet<Hash>> GameHashes { get; set; } = new Dictionary<Game, HashSet<Hash>>();
+        public Dictionary<Hash, Game[]> GamesWithHashes { get; set; } = new Dictionary<Hash, Game[]>();
 
         public bool UseGamePaths { get; set; } = true;
 
@@ -508,7 +516,7 @@ namespace Wabbajack.Lib
 
                     if (patches.All(p => p.Item1))
                     {
-                        var (_, bytes, file) = patches.OrderBy(f => f.data!.Length).First();
+                        var (_, bytes, file) = IncludePatches.PickPatch(this, patches);
                         pfa.FromFile = file;
                         pfa.FromHash = file.Hash;
                         pfa.ArchiveHashPath = file.MakeRelativePaths();
