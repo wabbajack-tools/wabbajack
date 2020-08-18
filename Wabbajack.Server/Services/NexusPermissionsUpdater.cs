@@ -12,12 +12,12 @@ using Wabbajack.Server.DTOs;
 
 namespace Wabbajack.Server.Services
 {
-    public class NexusPermissionsUpdater : AbstractService<NexusKeyMaintainance, int>
+    public class NexusPermissionsUpdater : AbstractService<NexusPermissionsUpdater, int>
     {
         private DiscordWebHook _discord;
         private SqlService _sql;
         
-        public NexusPermissionsUpdater(ILogger<NexusKeyMaintainance> logger, AppSettings settings, QuickSync quickSync, DiscordWebHook discord, SqlService sql) : base(logger, settings, quickSync, TimeSpan.FromMinutes(5))
+        public NexusPermissionsUpdater(ILogger<NexusPermissionsUpdater> logger, AppSettings settings, QuickSync quickSync, DiscordWebHook discord, SqlService sql) : base(logger, settings, quickSync, TimeSpan.FromMinutes(5))
         {
             _discord = discord;
             _sql = sql;

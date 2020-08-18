@@ -11,9 +11,9 @@ using Wabbajack.Common;
 
 namespace Wabbajack.Server.Services
 {
-    public class CDNMirrorList : AbstractService<ListValidator, int>
+    public class CDNMirrorList : AbstractService<CDNMirrorList, int>
     {
-        public CDNMirrorList(ILogger<ListValidator> logger, AppSettings settings, QuickSync quickSync) : base(logger, settings, quickSync, TimeSpan.FromHours(1))
+        public CDNMirrorList(ILogger<CDNMirrorList> logger, AppSettings settings, QuickSync quickSync) : base(logger, settings, quickSync, TimeSpan.FromHours(6))
         {
         }
         public string[] Mirrors { get; private set; }
