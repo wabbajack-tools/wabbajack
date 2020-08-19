@@ -6,6 +6,7 @@ using Alphaleonis.Win32.Filesystem;
 using F23.StringSimilarity;
 using Newtonsoft.Json;
 using Wabbajack.Common;
+using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.Lib.CompilationSteps
@@ -104,7 +105,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             if (patches.All(p => p.Item1))
             {
-                var (_, bytes, file) = patches.OrderBy(f => f.data!.Length).First();
+                var (_, bytes, file) = PickPatch(_mo2Compiler, patches);
                 e.FromHash = file.Hash;
                 e.ArchiveHashPath = file.MakeRelativePaths();
                 e.PatchID = await _compiler.IncludeFile(bytes!);
@@ -123,6 +124,29 @@ namespace Wabbajack.Lib.CompilationSteps
             }
             
             return e;
+        }
+
+        public static (bool, byte[], VirtualFile) PickPatch(MO2Compiler mo2Compiler, IEnumerable<(bool foundHash, byte[]? data, VirtualFile file)> patches)
+        {
+            var ordered = patches
+                .Select(f => (f.foundHash, f.data!, f.file))
+                .OrderBy(f => f.Item2.Length)
+                .ToArray();
+
+            var primaryChoice = ordered.FirstOrDefault(itm =>
+            {
+                var baseHash = itm.file.TopParent.Hash;
+                
+                // If this file doesn't come from a game use it
+                if (!mo2Compiler.GamesWithHashes.TryGetValue(baseHash, out var games))
+                    return true;
+
+                // Otherwise skip files that are not from the primary game
+                return games.Contains(mo2Compiler.CompilingGame.Game);
+            });
+            
+            // If we didn't find a file from an archive or the primary game, use a secondary game file.
+            return primaryChoice != default ? primaryChoice : ordered.FirstOrDefault();
         }
 
         private AbsolutePath ModForFile(AbsolutePath file)
