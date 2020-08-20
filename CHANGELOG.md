@@ -1,8 +1,10 @@
 ### Changelog
 
-#### Version - next
+#### Version - 2.2.1.2 - 8/20/2020
 * Added `WABBAJACK_ALWAYS_DISABLE` flag (see Readme for more info)
 * Modlist can't be installed if the current Wabbajack Version is smaller than the Version used during Compilation of the Modlist
+* Updates to use the latest version of the Wabbajack Common libs
+* Don't require more than one game to be installed, unless absolutely required (this was a compiler bug)
 
 #### Version - 2.2.0.0 - 8/7/2020
 * Can now use NTFS XPRESS16 compression to reduce install sizes (optional in the settings panel)
