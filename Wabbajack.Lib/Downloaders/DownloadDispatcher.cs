@@ -91,25 +91,33 @@ namespace Wabbajack.Lib.Downloaders
                   .Select(t => Downloaders.First(d => d.GetType() == t).Prepare()));
         }
 
-        public static async Task<bool> DownloadWithPossibleUpgrade(Archive archive, AbsolutePath destination)
+        public enum DownloadResult
+        {
+            Failure,
+            Update,
+            Mirror,
+            Success
+        }
+
+        public static async Task<DownloadResult> DownloadWithPossibleUpgrade(Archive archive, AbsolutePath destination)
         {
             if (await Download(archive, destination))
             {
                 await destination.FileHashCachedAsync();
-                return true;
+                return DownloadResult.Success;
             }
 
             
             if (await DownloadFromMirror(archive, destination))
             {
                 await destination.FileHashCachedAsync();
-                return true;
+                return DownloadResult.Mirror;
             }
 
             if (!(archive.State is IUpgradingState))
             {
                 Utils.Log($"Download failed for {archive.Name} and no upgrade from this download source is possible");
-                return false;
+                return DownloadResult.Failure;
             }
 
             Utils.Log($"Trying to find solution to broken download for {archive.Name}");
@@ -119,7 +127,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 Utils.Log(
                     $"No solution for broken download {archive.Name} {archive.State.PrimaryKeyString} could be found");
-                return false;
+                return DownloadResult.Failure;
 
             }
 
@@ -146,10 +154,10 @@ namespace Wabbajack.Lib.Downloaders
             if (hash != archive.Hash && archive.Hash != default)
             {
                 Utils.Log("Archive hash didn't match after patching");
-                return false;
+                return DownloadResult.Failure;
             }
 
-            return true;
+            return DownloadResult.Update;
         }
         
         public static async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>>? downloadResolver = null)

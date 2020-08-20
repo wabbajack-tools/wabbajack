@@ -304,9 +304,13 @@ namespace Wabbajack.Lib
         {
             try
             {
-                if (destination == null) 
-                    destination = DownloadFolder.Combine(archive.Name);
-                await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, destination.Value);
+                destination ??= DownloadFolder.Combine(archive.Name);
+                
+                var result = await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, destination.Value);
+                if (result == DownloadDispatcher.DownloadResult.Update)
+                {
+                    await destination.Value.MoveToAsync(destination.Value.Parent.Combine(archive.Hash.ToHex()));
+                }
             }
             catch (Exception ex)
             {
@@ -323,7 +327,6 @@ namespace Wabbajack.Lib
             Utils.Log("Looking for files to hash");
             var toHash = DownloadFolder.EnumerateFiles()
                 .Concat(Game.GameLocation().EnumerateFiles())
-                .Where(e => e.Extension != Consts.HashFileExtension)
                 .ToList();
             
             Utils.Log($"Found {toHash.Count} files to hash");
