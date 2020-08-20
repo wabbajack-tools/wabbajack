@@ -142,7 +142,7 @@ namespace Wabbajack.Server.Test
                 await Task.Delay(TimeSpan.FromMilliseconds(200));
             }
 
-            Assert.True(await pendingRequest);
+            Assert.Equal(DownloadDispatcher.DownloadResult.Update, await pendingRequest);
             Assert.Equal(oldDataHash, await tempFile.Path.FileHashAsync());
         }
 
