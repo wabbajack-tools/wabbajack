@@ -216,89 +216,98 @@ namespace Wabbajack.Common.StoreHandlers
                 Utils.Log($"Found Steam Workshop item file {f} for \"{game.Name}\"");
 
                 var lines = f.ReadAllLines().ToList();
-                var end = false;
+                //var end = false;
                 var foundAppID = false;
-                var workshopItemsInstalled = 0;
-                var workshopItemDetails = 0;
-                var bracketStart = 0;
-                var bracketEnd = 0;
+                var workshopItemsInstalled = -1;
+                var workshopItemDetails = -1;
+                var bracketStart = -1;
+                var bracketEnd = -1;
 
-                SteamWorkshopItem? currentItem = new SteamWorkshopItem(game);
+                SteamWorkshopItem currentItem = new SteamWorkshopItem(game);
 
-                lines.Do(l =>
+                for (var i = 0; i < lines.Count; i++)
                 {
-                    if (end)
-                        return;
-
-                    currentItem ??= new SteamWorkshopItem(game);
-
-                    var currentLine = lines.IndexOf(l);
+                    var l = lines[i];
                     if (l.ContainsCaseInsensitive("\"appid\"") && !foundAppID)
                     {
                         if (!int.TryParse(GetVdfValue(l), out var appID))
-                            return;
+                            continue;
 
                         foundAppID = true;
 
                         if (appID != game.ID)
-                            return;
+                            break;
                     }
 
                     if (!foundAppID)
-                        return;
+                        continue;
 
                     if (l.ContainsCaseInsensitive("\"SizeOnDisk\""))
                     {
                         if (!int.TryParse(GetVdfValue(l), out var sizeOnDisk))
-                            return;
+                            continue;
 
                         game.WorkshopItemsSizeOnDisk += sizeOnDisk;
                     }
 
                     if (l.ContainsCaseInsensitive("\"WorkshopItemsInstalled\""))
-                        workshopItemsInstalled = currentLine;
+                    {
+                        workshopItemsInstalled = i;
+                        continue;
+                    }
 
                     if (l.ContainsCaseInsensitive("\"WorkshopItemDetails\""))
-                        workshopItemDetails = currentLine;
+                    {
+                        workshopItemDetails = i;
+                        continue;
+                    }
 
-                    if (workshopItemsInstalled == 0)
-                        return;
+                    if (workshopItemsInstalled == -1)
+                        continue;
 
-                    if (currentLine <= workshopItemsInstalled + 1 && currentLine >= workshopItemDetails - 1)
-                        return;
+                    /*if (currentLine <= workshopItemsInstalled + 1 && currentLine >= workshopItemDetails - 1)
+                        return;*/
 
                     if (currentItem.ItemID == 0)
-                        if (!int.TryParse(GetSingleVdfValue(l), out currentItem.ItemID))
-                            return;
+                    {
+                        int.TryParse(GetSingleVdfValue(l), out currentItem.ItemID);
+                        continue;
+                    }
 
                     if (currentItem.ItemID == 0)
-                        return;
+                        continue;
 
-                    if (bracketStart == 0 && l.Contains("{"))
-                        bracketStart = currentLine;
+                    if (bracketStart == -1 && l.Contains("{"))
+                    {
+                        bracketStart = i;
+                        continue;
+                    }
 
-                    if (bracketEnd == 0 && l.Contains("}"))
-                        bracketEnd = currentLine;
+                    if (bracketEnd == -1 && l.Contains("}"))
+                    {
+                        bracketEnd = i;
+                    }
 
-                    if (bracketStart == 0)
-                        return;
+                    if (bracketStart == -1)
+                        continue;
 
-                    if (currentLine == bracketStart + 1)
+                    if (i == bracketStart + 1)
                         if (!long.TryParse(GetVdfValue(l), out currentItem.Size))
-                            return;
+                            continue;
 
-                    if (bracketStart == 0 || bracketEnd == 0 || currentItem.ItemID == 0 || currentItem.Size == 0)
-                        return;
+                    if (bracketEnd == -1 || currentItem.ItemID == 0 || currentItem.Size == 0)
+                        continue;
 
-                    bracketStart = 0;
-                    bracketEnd = 0;
+                    bracketStart = -1;
+                    bracketEnd = -1;
                     game.WorkshopItems.Add(currentItem);
 
-                    Utils.Log($"Found Steam Workshop item {currentItem.ItemID}");
+                    //Utils.Log($"Found Steam Workshop item {currentItem.ItemID}");
 
-                    currentItem = null;
-                    end = true;
-                });
+                    currentItem = new SteamWorkshopItem(game);
+                }
+
+                Utils.Log($"Found {game.WorkshopItems.Count} workshop items");
             });
         }
 
