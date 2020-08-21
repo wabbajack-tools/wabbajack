@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 2.2.1.3 - 8/21/2020
+#### Version - 2.2.1.4 - 8/21/2020
 * HOTFIX - No really...stop doing that
 
 #### Version - 2.2.1.3 - 8/20/2020
