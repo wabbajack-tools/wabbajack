@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.2.1.3 - 8/20/2020
+* HOTFIX - We broke installation of existing lists...let's stop doing that
+
 #### Version - 2.2.1.2 - 8/20/2020
 * Added `WABBAJACK_ALWAYS_DISABLE` flag (see Readme for more info)
 * Modlist can't be installed if the current Wabbajack Version is smaller than the Version used during Compilation of the Modlist

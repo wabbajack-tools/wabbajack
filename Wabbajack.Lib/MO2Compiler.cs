@@ -337,7 +337,7 @@ namespace Wabbajack.Lib
             ModList = new ModList
             {
                 GameType = CompilingGame.Game,
-                WabbajackVersion = WabbajackVersion,
+                WabbajackVersion = Consts.CurrentWabbajackVersion,
                 Archives = SelectedArchives.ToList(),
                 ModManager = ModManager.MO2,
                 Directives = InstallDirectives,

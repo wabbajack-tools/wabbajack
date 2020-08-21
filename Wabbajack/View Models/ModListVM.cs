@@ -22,6 +22,7 @@ namespace Wabbajack
         public Uri Website => SourceModList?.Website;
         public ModManager ModManager => SourceModList?.ModManager ?? ModManager.MO2;
         public Version Version => SourceModList?.Version;
+        public Version WabbajackVersion => SourceModList?.WabbajackVersion;
         public bool IsNSFW => SourceModList?.IsNSFW ?? false;
 
         // Image isn't exposed as a direct property, but as an observable.
