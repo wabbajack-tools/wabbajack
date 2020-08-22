@@ -196,9 +196,6 @@ namespace Wabbajack.Lib
                     
                     Status($"Verifying unpatched file {toPatch.To.FileName}");
                     var toFile = OutputFolder.Combine(toPatch.To);
-                    var hash = await toFile.FileHashAsync();
-                    if (hash != toPatch.FromHash)
-                        throw new InvalidDataException($"Invalid Hash for {toPatch.To} before patching");
 
                     byte[] patchData = await LoadBytesFromPath(toPatch.PatchID);
 
@@ -213,18 +210,11 @@ namespace Wabbajack.Lib
                         Utils.ApplyPatch(oldData, () => new MemoryStream(patchData), outStream);
                     }
 
-                    Status($"Verifying Patch {toPatch.To.FileName}");
-                    hash = await toFile.FileHashAsync();
-                    if (hash != toPatch.Hash)
-                    {
-                        Utils.Log($"NOTE: Invalid Hash for {toPatch.To} after patching {hash} vs {toPatch.Hash}");
-                    }
-
                     if (await VirusScanner.ShouldScan(toFile) &&
                         await ClientAPI.GetVirusScanResult(toFile) == VirusScanner.Result.Malware)
                     {
                         await toFile.DeleteAsync();
-                        Utils.ErrorThrow(new Exception($"Virus scan of patched executable reported possible malware: {toFile.ToString()} ({(long)hash})"));
+                        Utils.ErrorThrow(new Exception($"Virus scan of patched executable reported possible malware: {toFile.ToString()} ({(long)await toFile.FileHashCachedAsync()})"));
                     }
                 }
 

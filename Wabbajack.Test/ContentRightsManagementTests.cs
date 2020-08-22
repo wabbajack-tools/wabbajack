@@ -124,6 +124,8 @@ namespace Wabbajack.Test
             Assert.Equal(HTMLInterface.PermissionValue.No, await HTMLInterface.GetUploadPermissions(Game.SkyrimSpecialEdition, 266));
             Assert.Equal(HTMLInterface.PermissionValue.Yes, await HTMLInterface.GetUploadPermissions(Game.SkyrimSpecialEdition, 1137));
             Assert.Equal(HTMLInterface.PermissionValue.Hidden, await HTMLInterface.GetUploadPermissions(Game.SkyrimSpecialEdition, 34604));
+            Assert.Equal(HTMLInterface.PermissionValue.NotFound, await HTMLInterface.GetUploadPermissions(Game.SkyrimSpecialEdition, 24287));
+            
         }
     }
 }

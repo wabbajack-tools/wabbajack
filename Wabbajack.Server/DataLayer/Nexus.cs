@@ -137,7 +137,9 @@ namespace Wabbajack.Server.DataLayer
             var results =
                 await conn.QueryAsync<(int, long, int)>(@"SELECT NexusGameID, ModID, Permissions FROM NexusModPermissions WHERE Permissions = @Permissions
                                                               UNION
-                                                              SELECT Game, ModID, @Permissions from dbo.NexusModFiles where JSON_QUERY(Data, '$.files') = '[]'",
+                                                              SELECT Game, mf.ModID, 3 from dbo.NexusModFiles mf
+			                                                    LEFT JOIN NexusModPermissions mp on mf.Game = mp.NexusGameID AND mf.ModId = mp.ModID
+			                                                    WHERE JSON_QUERY(Data, '$.files') = '[]' AND mp.Permissions != 4",
                     new {Permissions = (int)HTMLInterface.PermissionValue.Hidden});
             return results.ToDictionary(f => (GameRegistry.ByNexusID[f.Item1], f.Item2),
                 f => (HTMLInterface.PermissionValue)f.Item3);

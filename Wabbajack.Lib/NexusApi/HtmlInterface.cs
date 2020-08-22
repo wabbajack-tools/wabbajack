@@ -31,6 +31,12 @@ namespace Wabbajack.Lib.NexusApi
                 .SelectMany(d => d.ParentNode.ParentNode.GetClasses())
                 .FirstOrDefault(perm => perm.StartsWith("permission-"));
 
+            var not_found = response.DocumentNode.Descendants()
+                .Where(d => d.Id == $"{modId}-title")
+                .Select(d => d.InnerText)
+                .FirstOrDefault() == "Not found";
+            if (not_found) return PermissionValue.NotFound;
+
             return perm switch
             {
                 "permission-no" => PermissionValue.No,
@@ -46,6 +52,7 @@ namespace Wabbajack.Lib.NexusApi
             Yes = 1,
             Maybe = 2,
             Hidden = 3,
+            NotFound = 4
         }
     }
 }
