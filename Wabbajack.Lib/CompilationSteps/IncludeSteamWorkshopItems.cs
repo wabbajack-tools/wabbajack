@@ -19,8 +19,10 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             var mo2Compiler = (MO2Compiler)compiler;
             _isGenericGame = mo2Compiler.CompilingGame.IsGenericMO2Plugin;
-            _game = (SteamGame)StoreHandler.Instance.SteamHandler.Games.FirstOrDefault(x =>
-                mo2Compiler.CompilingGame.SteamIDs!.Contains(x.ID));
+            var game = StoreHandler.Instance.SteamHandler.Games.FirstOrDefault(x =>
+                x.Game == mo2Compiler.CompilingGame.Game);
+            if (game != null)
+                _game = (SteamGame)game;
         }
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)
@@ -37,7 +39,8 @@ namespace Wabbajack.Lib.CompilationSteps
             try
             {
                 var lines = await source.AbsolutePath.ReadAllLinesAsync();
-                var sID = lines.FirstOrDefault(l => l.StartsWith("itemID="))?.Replace("itemID=", "");
+                var list = lines.ToList();
+                var sID = list.FirstOrDefault(l => l.StartsWith("itemID="))?.Replace("itemID=", "");
                 if (string.IsNullOrEmpty(sID))
                 {
                     Utils.Error($"Found no itemID= in file {source.AbsolutePath}!");
@@ -62,14 +65,19 @@ namespace Wabbajack.Lib.CompilationSteps
                 }
 
                 var fromSteam = source.EvolveTo<SteamMeta>();
-                fromSteam.SourceDataID = await _compiler.IncludeFile(source.AbsolutePath);
+                var str = list.Aggregate((x, y) => $"{x}\n{y}");
+                if (!str.Contains("steamID="))
+                    str += $"\nsteamID={item.SteamGameID}";
+                var (sourceID, path) = await _compiler.IncludeString(str);
+                fromSteam.SourceDataID = sourceID;
+                fromSteam.Hash = await path.FileHashAsync();
+                fromSteam.ItemSize = item.Size;
                 fromSteam.ItemID = item.ItemID;
-                fromSteam.Size = item.Size;
                 return fromSteam;
             }
             catch (Exception e)
             {
-                Utils.Error(e, $"Exception while trying to evolve source to FromSteam");
+                Utils.Error(e, $"Exception while trying to read {source.AbsolutePath}");
                 return null;
             }
         }

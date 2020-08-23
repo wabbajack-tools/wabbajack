@@ -4,30 +4,46 @@ using System.IO;
 using System.Linq;
 using System.Security;
 using Microsoft.Win32;
+using Newtonsoft.Json;
+using Wabbajack.Common.Serialization.Json;
+
 #nullable enable
 
 namespace Wabbajack.Common.StoreHandlers
 {
+    [JsonName("SteamGame")]
     public class SteamGame : AStoreGame
     {
         public override Game Game { get; internal set; }
+        [JsonIgnore]
         public override StoreType Type { get; internal set; } = StoreType.STEAM;
 
+        [JsonIgnore]
         public AbsolutePath Universe;
-
+        
+        [JsonIgnore]
         public readonly List<SteamWorkshopItem> WorkshopItems = new List<SteamWorkshopItem>();
+        [JsonIgnore]
         public int WorkshopItemsSizeOnDisk;
     }
 
+    [JsonName("SteamWorkshopItem")]
+    [Serializable]
     public class SteamWorkshopItem
     {
-        public readonly SteamGame Game;
+        public int SteamGameID { get; set; }
+        [JsonIgnore] 
+        public SteamGame? SteamGame { get; set; }
         public int ItemID;
         public long Size;
-
-        public SteamWorkshopItem(SteamGame game)
+        
+        [JsonConstructor]
+        public SteamWorkshopItem(){}
+        
+        public SteamWorkshopItem(SteamGame steamGame)
         {
-            Game = game;
+            SteamGame = steamGame;
+            SteamGameID = steamGame.ID;
         }
     }
 

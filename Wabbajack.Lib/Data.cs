@@ -195,9 +195,10 @@ namespace Wabbajack.Lib
     }
 
     [JsonName("SteamMeta")]
-    public class SteamMeta : ArchiveMeta
+    public class SteamMeta : InlineFile
     {
         public int ItemID { get; set; }
+        public long ItemSize { get; set; }
     }
 
     [JsonName("FromArchive")]

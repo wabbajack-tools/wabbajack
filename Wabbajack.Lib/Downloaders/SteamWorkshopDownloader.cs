@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Common.StoreHandlers;
 using Wabbajack.Lib.Validation;
 
@@ -14,16 +15,23 @@ namespace Wabbajack.Lib.Downloaders
         public async Task<AbstractDownloadState?> GetDownloaderState(dynamic archiveINI, bool quickMode)
         {
             var id = archiveINI?.General?.itemID;
+            if (id == null) return null;
             var steamID = archiveINI?.General?.steamID;
-            var size = archiveINI?.General?.itemSize;
             if (steamID == null)
             {
-                throw new ArgumentException("Steam workshop item had no steam ID.");
+                Utils.Error($"Steam Workshop Item {id} has no Steam Game ID!");
+                return null;
             }
-            var item = new SteamWorkshopItem(GameRegistry.GetBySteamID(int.Parse(steamID)))
+
+            var game = StoreHandler.Instance.SteamHandler.Games.FirstOrDefault(x => x.ID == int.Parse(steamID));
+            if (game == null)
             {
-                ItemID = id != null ? int.Parse(id) : 0,
-                Size = size != null ? int.Parse(size) : 0,
+                Utils.Error($"Unable to find Steam Game {steamID}");
+                return null;
+            }
+            var item = new SteamWorkshopItem((SteamGame)game)
+            {
+                ItemID = int.Parse(id)
             };
             return new State(item);
         }
@@ -37,11 +45,12 @@ namespace Wabbajack.Lib.Downloaders
             throw new NotImplementedException();
         }
 
+        [JsonName(("SteamWorkshopDownloader"))]
         public class State : AbstractDownloadState
         {
             public SteamWorkshopItem Item { get; }
 
-            public override object[] PrimaryKey => new object[] { Item.Game, Item.ItemID };
+            public override object[] PrimaryKey => new object[] { Item.SteamGameID, Item.ItemID };
 
             public State(SteamWorkshopItem item)
             {
@@ -55,35 +64,46 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
-                var currentLib = Item.Game.Universe;
+                if (Item.SteamGame == null)
+                {
+                    var game = StoreHandler.Instance.SteamHandler.Games.FirstOrDefault(x => x.ID == Item.SteamGameID);
+                    if(game == null)
+                        return false;
+                    Item.SteamGame = (SteamGame)game;
+                }
+                var currentLib = Item.SteamGame.Universe;
 
-                var downloadFolder = new RelativePath($"workshop//downloads//{Item.Game.ID}").RelativeTo(currentLib);
-                var contentFolder = new RelativePath($"workshop//content//{Item.Game.ID}").RelativeTo(currentLib);
+                var downloadFolder = new RelativePath($"workshop//downloads//{Item.SteamGame.ID}").RelativeTo(currentLib);
+                var contentFolder = new RelativePath($"workshop//content//{Item.SteamGame.ID}").RelativeTo(currentLib);
                 var p = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = new RelativePath("steam.exe").RelativeTo(StoreHandler.Instance.SteamHandler.SteamPath).ToString(),
                         CreateNoWindow = true,
-                        Arguments = $"console +workshop_download_item {Item.Game.ID} {Item.ItemID}"
+                        Arguments = $"console +workshop_download_item {Item.SteamGame.ID} {Item.ItemID}"
                     }
                 };
 
                 p.Start();
-
-                //TODO: async
+                
                 var finished = false;
                 var itemDownloadPath = new RelativePath(Item.ItemID.ToString()).RelativeTo(downloadFolder);
                 var itemContentPath = new RelativePath(Item.ItemID.ToString()).RelativeTo(contentFolder);
-                while (!finished)
+
+                await Task.Run(() =>
                 {
-                    if(!itemDownloadPath.Exists)
-                        if(itemContentPath.Exists)
-                            finished = true;
+                    while (!finished)
+                    {
+                        if (!itemDownloadPath.Exists)
+                            if (itemContentPath.Exists)
+                                finished = true;
 
-                    Thread.Sleep(1000);
-                }
-
+                        if (finished) break;
+                        Thread.Sleep(1000);
+                    }
+                });
+                
                 return true;
             }
 
@@ -109,7 +129,7 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     "[General]", 
                     $"itemID={Item.ItemID}", 
-                    $"steamID={Item.Game.Game.MetaData().SteamIDs.First()}",
+                    $"steamID={Item.SteamGameID}",
                     $"itemSize={Item.Size}"
                 };
             }

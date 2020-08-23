@@ -30,6 +30,7 @@ namespace Wabbajack.Lib.Downloaders
             new YouTubeDownloader(),
             new WabbajackCDNDownloader(),
             new YandexDownloader(),
+            new SteamWorkshopDownloader(),
             new HTTPDownloader(),
             new ManualDownloader(),
         };
