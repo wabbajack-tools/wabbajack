@@ -313,11 +313,19 @@ namespace Wabbajack.Test
             
             Assert.NotEmpty(files);
             Assert.Equal("WABBAJACK_TEST_FILE.zip", files.First().Name);
+            Assert.True(files.All(f => !string.IsNullOrWhiteSpace(((LoversLabDownloader.State)f.State).FileID)));
 
             ((LoversLabDownloader.State)converted).FileID = "42";
 
             var upgrade = await DownloadDispatcher.FindUpgrade(new Archive(converted) {Name = "WABBAJACK_TEST_FILE.zip"});
             Assert.True(upgrade != default);
+
+            var newState = ((LoversLabDownloader.State)upgrade.Archive.State);
+            Assert.False(string.IsNullOrWhiteSpace(newState.FileID));
+
+            var roundTripped = newState.ViaJSON();
+            Assert.False(string.IsNullOrWhiteSpace(roundTripped.FileID));
+
 
 
         }

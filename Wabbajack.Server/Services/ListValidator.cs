@@ -240,6 +240,12 @@ namespace Wabbajack.Server.Services
                 return (archive, ArchiveStatus.InValid);
             }
 
+            if (destDownload.Archive.Hash == default)
+            {
+                _logger.Log(LogLevel.Information, "Can't heal because we got back a default hash for the downloaded file");
+                return (archive, ArchiveStatus.InValid);
+            }
+
 
             var existing = await _sql.FindPatch(srcDownload.Id, destDownload.Id);
             if (existing == null)

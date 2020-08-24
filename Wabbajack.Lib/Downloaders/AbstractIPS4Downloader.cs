@@ -122,7 +122,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 get
                 {
-                    return FileID == null
+                    return string.IsNullOrWhiteSpace(FileID)
                         ? IsAttachment 
                             ? new object[] {Downloader.SiteURL, IsAttachment, FullURL}
                             : new object[] {Downloader.SiteURL, FileName}
@@ -240,22 +240,23 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var files = await GetFilesInGroup();
                 var nl = new Levenshtein();
-                var newFile = files.OrderBy(f => nl.Distance(a.Name.ToLowerInvariant(), f.Name.ToLowerInvariant())).FirstOrDefault();
-                if (newFile == null) return default;
 
-                var existing = await downloadResolver(newFile);
-                if (existing != default) return (newFile, new TempFile());
-                
-                var tmp = new TempFile();
-                await DownloadDispatcher.PrepareAll(new []{newFile.State});
-                if (await newFile.State.Download(newFile, tmp.Path))
+                foreach (var newFile in files.OrderBy(f => nl.Distance(a.Name.ToLowerInvariant(), f.Name.ToLowerInvariant())))
                 {
-                    newFile.Size = tmp.Path.Size;
-                    newFile.Hash = await tmp.Path.FileHashAsync();
-                    return (newFile, tmp);
-                }
+                    var existing = await downloadResolver(newFile);
+                    if (existing != default) return (newFile, new TempFile());
 
-                await tmp.DisposeAsync();
+                    var tmp = new TempFile();
+                    await DownloadDispatcher.PrepareAll(new[] {newFile.State});
+                    if (await newFile.State.Download(newFile, tmp.Path))
+                    {
+                        newFile.Size = tmp.Path.Size;
+                        newFile.Hash = await tmp.Path.FileHashAsync();
+                        return (newFile, tmp);
+                    }
+
+                    await tmp.DisposeAsync();
+                }
                 return default;
 
             }
@@ -271,7 +272,8 @@ namespace Wabbajack.Lib.Downloaders
                 List<Archive> archives = new List<Archive>();
                 foreach (var (url, name) in pairs)
                 {
-                    var ini = new[] {"[General]", $"directURL={url}"};
+                    var urlDecoded = HttpUtility.HtmlDecode(url);
+                    var ini = new[] {"[General]", $"directURL={urlDecoded}"};
                     var state = (AbstractDownloadState)(await DownloadDispatcher.ResolveArchive(
                         string.Join("\n", ini).LoadIniString(), false));
                     if (state == null) continue;
