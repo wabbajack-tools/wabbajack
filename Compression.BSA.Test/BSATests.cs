@@ -72,6 +72,7 @@ namespace Compression.BSA.Test
         [InlineData(Game.SkyrimSpecialEdition, 12604)] // SkyUI
         [InlineData(Game.Skyrim, 3863)] // SkyUI
         [InlineData(Game.Skyrim, 51473)] // INeed
+        [InlineData(Game.Skyrim, 41634)] // DVA
         [InlineData(Game.Fallout4, 22223)] // 10mm SMG
         [InlineData(Game.Fallout4, 4472)] // True Storms
         [InlineData(Game.Morrowind, 44537)]

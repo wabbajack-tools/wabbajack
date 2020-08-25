@@ -129,6 +129,8 @@ namespace Compression.BSA
                 nameBlobOffset = rdr.ReadByte();
                 // Just skip, not using
                 rdr.BaseStream.Position += nameBlobOffset;
+                // Minus one more for the size of the name blob offset size
+                nameBlobOffset++;
             }
             else
             {

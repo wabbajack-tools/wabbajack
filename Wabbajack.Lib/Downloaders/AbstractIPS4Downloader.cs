@@ -155,7 +155,7 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 else
                 {
-                    var csrfURL = FileID == null
+                    var csrfURL = string.IsNullOrWhiteSpace(FileID)
                         ? $"{Site}/files/file/{FileName}/?do=download"
                         : $"{Site}/files/file/{FileName}/?do=download&r={FileID}";
                     var html = await Downloader.AuthedClient.GetStringAsync(csrfURL);
@@ -166,7 +166,10 @@ namespace Wabbajack.Lib.Downloaders
                     var csrfKey = matches.Where(m => m.Length == 32).Select(m => m.ToString()).FirstOrDefault();
 
                     if (csrfKey == null)
+                    {
+                        Utils.Log($"Returning null from IPS4 Downloader because no csrfKey was found");
                         return null;
+                    }
 
                     var sep = Site.EndsWith("?") ? "&" : "?";
                     url = FileID == null
@@ -193,10 +196,12 @@ namespace Wabbajack.Lib.Downloaders
                             long.TryParse(headerVar, out headerContentSize);
                     }
 
-
-                    if (a.Size != 0 && headerContentSize != 0 && a.Size != headerContentSize) 
+                    if (a.Size != 0 && headerContentSize != 0 && a.Size != headerContentSize)
+                    {
+                        Utils.Log($"Bad Header Content sizes {a.Size} vs {headerContentSize}");
                         return null;
-                    
+                    }
+
                     return streamResult;
                 }
 
@@ -259,6 +264,11 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 return default;
 
+            }
+
+            public override async Task<bool> ValidateUpgrade(Hash srcHash, AbstractDownloadState newArchiveState)
+            {
+                return !string.IsNullOrWhiteSpace(FileID);
             }
 
             public async Task<List<Archive>> GetFilesInGroup()

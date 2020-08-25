@@ -68,7 +68,12 @@ namespace Wabbajack.Server.Services
                     await DownloadDispatcher.PrepareAll(new[] {nextDownload.Archive.State});
 
                     await using var tempPath = new TempFile();
-                    await nextDownload.Archive.State.Download(nextDownload.Archive, tempPath.Path);
+                    if (!await nextDownload.Archive.State.Download(nextDownload.Archive, tempPath.Path))
+                    {
+                        _logger.LogError($"Downloader returned false for {nextDownload.Archive.State.PrimaryKeyString}");
+                        await nextDownload.Fail(_sql, "Downloader returned false");
+                        continue;
+                    }
 
                     var hash = await tempPath.Path.FileHashAsync();
                     

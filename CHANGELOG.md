@@ -2,6 +2,7 @@
 
 #### Version - 2.2.1.6 - 8/21/2020
 * HOTFIX - Make LoversLab auto-update work again
+* HOTFIX - Fix for "End of Stream before End of Limit" symptom on BSA extraction
 
 #### Version - 2.2.1.5 - 8/21/2020
 * HOTFIX - Fix for broken patching in RGE and other lists

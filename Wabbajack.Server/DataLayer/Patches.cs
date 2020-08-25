@@ -207,7 +207,8 @@ namespace Wabbajack.Server.DataLayer
             return (await conn.QueryAsync<(Hash, Hash)>(@"SELECT a1.Hash, a2.Hash
                       FROM dbo.Patches p
                       LEFT JOIN dbo.ArchiveDownloads a1 ON a1.Id = p.SrcId
-                      LEFT JOIN dbo.ArchiveDownloads a2 on a2.Id = p.DestId")).ToHashSet();
+                      LEFT JOIN dbo.ArchiveDownloads a2 on a2.Id = p.DestId
+                      WHERE p.Finished IS NOT NULL")).ToHashSet();
         }
 
         public async Task DeletePatchesForHashPair((Hash, Hash) sqlFile)

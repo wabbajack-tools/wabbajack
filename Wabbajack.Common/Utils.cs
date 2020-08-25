@@ -1030,6 +1030,7 @@ namespace Wabbajack.Common
         public static async Task CopyToLimitAsync(this Stream frm, Stream tw, long limit)
         {
             var buff = new byte[1024];
+            var initalLimit = limit;
             while (limit > 0)
             {
                 var to_read = Math.Min(buff.Length, limit);
