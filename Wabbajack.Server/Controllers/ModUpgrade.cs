@@ -23,6 +23,7 @@ namespace Wabbajack.BuildServer.Controllers
         private AppSettings _settings;
         private QuickSync _quickSync;
         private Task<BunnyCdnFtpInfo> _creds;
+        private Task<BunnyCdnFtpInfo> _mirrorCreds;
 
         public ModUpgrade(ILogger<ModUpgrade> logger, SqlService sql, DiscordWebHook discord, QuickSync quickSync, AppSettings settings)
         {
@@ -32,6 +33,7 @@ namespace Wabbajack.BuildServer.Controllers
             _settings = settings;
             _quickSync = quickSync;
             _creds = BunnyCdnFtpInfo.GetCreds(StorageSpace.Patches);
+            _mirrorCreds = BunnyCdnFtpInfo.GetCreds(StorageSpace.Mirrors);
         }
         
         [HttpPost]
@@ -152,7 +154,7 @@ namespace Wabbajack.BuildServer.Controllers
         public async Task<IActionResult> HaveHash(string hashAsHex)
         {
             var result = await _sql.HaveMirror(Hash.FromHex(hashAsHex));
-            if (result) return Ok($"https://{(await _creds).Username}.b-cdn.net/{hashAsHex}");
+            if (result) return Ok($"https://{(await _mirrorCreds).Username}.b-cdn.net/{hashAsHex}");
             return NotFound("Not Mirrored");
         }
       

@@ -195,7 +195,7 @@ namespace Wabbajack.Lib.Downloaders
                         if (headerVar != null)
                             long.TryParse(headerVar, out headerContentSize);
                     }
-
+                    
                     if (a.Size != 0 && headerContentSize != 0 && a.Size != headerContentSize)
                     {
                         Utils.Log($"Bad Header Content sizes {a.Size} vs {headerContentSize}");
@@ -248,8 +248,9 @@ namespace Wabbajack.Lib.Downloaders
 
                 foreach (var newFile in files.OrderBy(f => nl.Distance(a.Name.ToLowerInvariant(), f.Name.ToLowerInvariant())))
                 {
+                    /*
                     var existing = await downloadResolver(newFile);
-                    if (existing != default) return (newFile, new TempFile());
+                    if (existing != default) return (newFile, new TempFile());*/
 
                     var tmp = new TempFile();
                     await DownloadDispatcher.PrepareAll(new[] {newFile.State});

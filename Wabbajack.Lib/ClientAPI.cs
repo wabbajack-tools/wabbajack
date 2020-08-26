@@ -246,7 +246,7 @@ namespace Wabbajack.Lib
             try
             {
                 var result =
-                    await client.GetStringAsync($"{Consts.WabbajackBuildServerUri}/mirror/{archiveHash.ToHex()}");
+                    await client.GetStringAsync($"{Consts.WabbajackBuildServerUri}mirror/{archiveHash.ToHex()}");
                 return new Uri(result);
             }
             catch (HttpException ex)

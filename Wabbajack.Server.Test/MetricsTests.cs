@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Dapper;
 using Wabbajack.Lib;
@@ -30,7 +31,8 @@ namespace Wabbajack.BuildServer.Test
             Assert.Equal(subject, result);
 
 
-            var report = await _client.GetJsonAsync<MetricResult[]>(MakeURL($"metrics/report/{action}"));
+            using var response = await _client.GetAsync(MakeURL($"metrics/report/{action}"));
+            Assert.Equal(TimeSpan.FromHours(1), response.Headers.CacheControl.MaxAge);
             // we'll just make sure this doesn't error, with limited data that's about all we can do atm
            
         }

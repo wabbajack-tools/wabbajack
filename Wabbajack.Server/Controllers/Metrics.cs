@@ -40,6 +40,7 @@ namespace Wabbajack.BuildServer.Controllers
 
         [HttpGet]
         [Route("report/{subject}")]
+        [ResponseCache(Duration = 60 * 60)]
         public async Task<IActionResult> MetricsReport(string subject)
         {
             var results = (await _sql.MetricsReport(subject))

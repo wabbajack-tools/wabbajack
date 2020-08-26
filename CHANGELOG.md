@@ -1,6 +1,9 @@
 ### Changelog
 
-#### Version - 2.2.1.6 - 8/21/2020
+#### Version - 2.2.1.7 - 8/25/2020
+* HOTFIX - Fix 404 errors with mirrors
+
+#### Version - 2.2.1.6 - 8/24/2020
 * HOTFIX - Make LoversLab auto-update work again
 * HOTFIX - Fix for "End of Stream before End of Limit" symptom on BSA extraction
 

@@ -142,7 +142,8 @@ namespace Wabbajack.Server
                         headers.Add("Access-Control-Allow-Methods", "POST, GET");
                         headers.Add("Access-Control-Allow-Headers", "Accept, Origin, Content-type");
                         headers.Add("X-ResponseTime-Ms", stopWatch.ElapsedMilliseconds.ToString());
-                        headers.Add("Cache-Control", "no-cache");
+                        if (!headers.ContainsKey("Cache-Control")) 
+                            headers.Add("Cache-Control", "no-cache");
                         return Task.CompletedTask;
                     });
                     await next(context);

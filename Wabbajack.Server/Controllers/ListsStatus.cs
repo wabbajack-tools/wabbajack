@@ -165,6 +165,7 @@ namespace Wabbajack.BuildServer.Controllers
         
         [HttpGet]
         [Route("status/{Name}.json")]
+        [ResponseCache(Duration = 60 * 5)]
         public async Task<IActionResult> HandleGetListJson(string Name)
         {
             return Ok((await DetailedStatus(Name)).ToJson());

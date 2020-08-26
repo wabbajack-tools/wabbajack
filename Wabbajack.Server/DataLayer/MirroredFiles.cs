@@ -80,7 +80,7 @@ namespace Wabbajack.Server.DataLayer
         {
             await using var conn = await Open();
 
-            return await conn.QueryFirstOrDefaultAsync<Hash>("SELECT Hash FROM dbo.MirroredFiles WHERE Hash = @Hash",
+            return await conn.QueryFirstOrDefaultAsync<Hash>("SELECT Hash FROM dbo.MirroredArchives WHERE Hash = @Hash",
                 new {Hash = hash}) != default;
         }
     }
