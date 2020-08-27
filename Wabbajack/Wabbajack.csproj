@@ -55,7 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Wpf" Version="83.4.20" />
+    <PackageReference Include="CefSharp.Wpf" Version="84.4.10" />
     <PackageReference Include="DynamicData" Version="6.16.6" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.0.1" />
     <PackageReference Include="Fody" Version="6.2.4">
