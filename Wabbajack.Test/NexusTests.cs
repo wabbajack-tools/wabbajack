@@ -15,8 +15,6 @@ namespace Wabbajack.Test
         {
             var results = (await NexusUpdatesFeeds.GetUpdates()).ToArray();
             
-            Assert.NotEmpty(results);
-
             Utils.Log($"Loaded {results.Length} updates from the Nexus");
 
             foreach (var result in results)

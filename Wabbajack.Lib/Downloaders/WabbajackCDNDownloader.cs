@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.IO.MemoryMappedFiles;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using AngleSharp;
 using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
@@ -13,8 +15,18 @@ using Wabbajack.Lib.Validation;
 
 namespace Wabbajack.Lib.Downloaders
 {
+    
     public class WabbajackCDNDownloader : IDownloader, IUrlDownloader
     {
+        public static Dictionary<string, string> DomainRemaps = new Dictionary<string, string>
+        {
+            {"wabbajack.b-cdn.net", "authored-files.wabbajack.org"},
+            {"wabbajack-mirror.b-cdn.net", "mirror.wabbajack.org"},
+            {"wabbajack-patches.b-cdn-net", "patches.wabbajack.org"},
+            {"wabbajacktest.b-cdn.net", "test-files.wabbajack.org"}
+        };
+
+        
         public string[]? Mirrors;
         public long TotalRetries;
         
@@ -65,16 +77,34 @@ namespace Wabbajack.Lib.Downloaders
                 await using var fs = await destination.Create();
                 using var mmfile = MemoryMappedFile.CreateFromFile(fs, null, definition.Size, MemoryMappedFileAccess.ReadWrite, HandleInheritability.None, false);
                 var client = new Wabbajack.Lib.Http.Client();
-                client.Headers.Add(("Host", Url.Host));
+                
+                if (!DomainRemaps.ContainsKey(Url.Host)) 
+                    client.Headers.Add(("Host", Url.Host));
+                
                 using var queue = new WorkQueue();
                 await definition.Parts.PMap(queue, async part =>
                 {
                     Utils.Status($"Downloading {a.Name}", Percent.FactoryPutInRange(definition.Parts.Length - part.Index, definition.Parts.Length));
                     await using var ostream = mmfile.CreateViewStream(part.Offset, part.Size);
-                    using var response = await GetWithMirroredRetry(client, $"{Url}/parts/{part.Index}");
-                    if (!response.IsSuccessStatusCode)
-                        throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
-                    await response.Content.CopyToAsync(ostream);
+
+                    if (DomainRemaps.TryGetValue(Url.Host, out var remap))
+                    {
+                        var builder = new UriBuilder(Url) {Host = remap};
+                        using var response = await client.GetAsync($"{builder}/parts/{part.Index}");
+                        if (!response.IsSuccessStatusCode)
+                            throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
+                        await response.Content.CopyToAsync(ostream);
+                        
+                    }
+                    else
+                    {
+                        using var response = await GetWithMirroredRetry(client, $"{Url}/parts/{part.Index}");
+                        if (!response.IsSuccessStatusCode)
+                            throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
+                        await response.Content.CopyToAsync(ostream);
+
+                    }
+
                 });
                 return true;
             }
@@ -121,14 +151,26 @@ namespace Wabbajack.Lib.Downloaders
                 var builder = new UriBuilder(url) {Host = hosts[rnd.Next(0, hosts.Length)]};
                 return builder.ToString();
             }
-
+            
             private async Task<CDNFileDefinition> GetDefinition()
             {
                 var client = new Wabbajack.Lib.Http.Client();
-                client.Headers.Add(("Host", Url.Host));
-                using var data = await GetWithMirroredRetry(client, Url + "/definition.json.gz");
-                await using var gz = new GZipStream(await data.Content.ReadAsStreamAsync(), CompressionMode.Decompress);
-                return gz.FromJson<CDNFileDefinition>();
+                if (DomainRemaps.TryGetValue(Url.Host, out var remap))
+                {
+                    var builder = new UriBuilder(Url) {Host = remap};
+                    using var data = await client.GetAsync(builder + "/definition.json.gz");
+                    await using var gz = new GZipStream(await data.Content.ReadAsStreamAsync(),
+                        CompressionMode.Decompress);
+                    return gz.FromJson<CDNFileDefinition>();
+                }
+                else
+                {
+                    client.Headers.Add(("Host", Url.Host));
+                    using var data = await GetWithMirroredRetry(client, Url + "/definition.json.gz");
+                    await using var gz = new GZipStream(await data.Content.ReadAsStreamAsync(),
+                        CompressionMode.Decompress);
+                    return gz.FromJson<CDNFileDefinition>();
+                }
             }
 
             public override IDownloader GetDownloader()

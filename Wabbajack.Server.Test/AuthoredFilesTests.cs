@@ -61,8 +61,7 @@ namespace Wabbajack.BuildServer.Test
             
             await Assert.ThrowsAsync<HttpException>(async () => await state.Download(new Archive(state) {Name = "test"}, tmp.Path));
             var downloader = DownloadDispatcher.GetInstance<WabbajackCDNDownloader>();
-            Assert.Equal(servers, downloader.Mirrors);
-            Assert.Equal(6, downloader.TotalRetries);
+            Assert.Null(downloader.Mirrors); // Now works through a host remap
         }
 
     }

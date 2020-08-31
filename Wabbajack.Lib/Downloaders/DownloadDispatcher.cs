@@ -138,6 +138,12 @@ namespace Wabbajack.Lib.Downloaders
             
             var tempFile = new TempFile();
 
+            if (WabbajackCDNDownloader.DomainRemaps.TryGetValue(patchResult.Host, out var remap))
+            {
+                var builder = new UriBuilder(patchResult) {Host = remap};
+                patchResult = builder.Uri;
+            }
+
             using var response = await (await ClientAPI.GetClient()).GetAsync(patchResult);
 
             await tempFile.Path.WriteAllAsync(await response.Content.ReadAsStreamAsync());

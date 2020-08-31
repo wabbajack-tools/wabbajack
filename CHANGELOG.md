@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.2.2.0 - 8/31/2020
+* Route CDN requests through a reverse proxy to improve reliability
+
 #### Version - 2.2.1.7 - 8/25/2020
 * HOTFIX - Fix 404 errors with mirrors
 
