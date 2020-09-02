@@ -11,6 +11,7 @@ using Wabbajack.Common.StatusFeed;
 using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.Common;
 using Wabbajack.Common.FileSignatures;
+using Wabbajack.VirtualFileSystem.SevenZipExtractor;
 using Utils = Wabbajack.Common.Utils;
 
 
@@ -29,6 +30,8 @@ namespace Wabbajack.VirtualFileSystem
         
         public static async Task<ExtractedFiles> ExtractAll(WorkQueue queue, AbsolutePath source, IEnumerable<RelativePath> OnlyFiles = null, bool throwOnError = true)
         {
+            OnlyFiles ??= new RelativePath[0];
+
             try
             {
                 var sig = await archiveSigs.MatchesAsync(source);
@@ -56,6 +59,7 @@ namespace Wabbajack.VirtualFileSystem
                 if (!throwOnError)
                     return new ExtractedFiles(await TempFolder.Create());
 
+                Utils.Log(ex.ToString());
                 Utils.ErrorThrow(ex, $"Error while extracting {source}");
                 throw new Exception();
             }
@@ -150,66 +154,23 @@ namespace Wabbajack.VirtualFileSystem
 
         private static async Task<ExtractedFiles> ExtractAllWith7Zip(AbsolutePath source, IEnumerable<RelativePath> onlyFiles)
         {
-            TempFile tmpFile = null;
             var dest = await TempFolder.Create();
             Utils.Log(new GenericInfo($"Extracting {(string)source.FileName}", $"The contents of {(string)source.FileName} are being extracted to {(string)source.FileName} using 7zip.exe"));
 
-            var process = new ProcessHelper
-            {
-                Path = @"Extractors\7z.exe".RelativeTo(AbsolutePath.EntryPoint),
-                
-            };
+            var files = onlyFiles.ToHashSet();
             
-            if (onlyFiles != null)
+            using var archive = await ArchiveFile.Open(source);
+            if (files.Count > 0)
             {
-                //It's stupid that we have to do this, but 7zip's file pattern matching isn't very fuzzy
-                IEnumerable<string> AllVariants(string input)
+                await archive.Extract(path =>
                 {
-                    yield return $"\"{input}\"";
-                    yield return $"\"\\{input}\"";
-                }
-                
-                tmpFile = new TempFile();
-                await tmpFile.Path.WriteAllLinesAsync(onlyFiles.SelectMany(f => AllVariants((string)f)).ToArray());
-                process.Arguments = new object[]
-                {
-                    "x", "-bsp1", "-y", $"-o\"{dest.Dir}\"", source, $"@\"{tmpFile.Path}\"", "-mmt=off"
-                };
-            }
-            else
-            {
-                process.Arguments = new object[] {"x", "-bsp1", "-y", $"-o\"{dest.Dir}\"", source, "-mmt=off"};
-            }
-
-
-            var result = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
-                .ForEachAsync(p =>
-                {
-                    var (_, line) = p;
-                    if (line == null)
-                        return;
-
-                    if (line.Length <= 4 || line[3] != '%') return;
-
-                    int.TryParse(line.Substring(0, 3), out var percentInt);
-                    Utils.Status($"Extracting {(string)source.FileName} - {line.Trim()}", Percent.FactoryPutInRange(percentInt / 100d));
+                    Utils.Log($"Extract file {path} {files.Contains(path)} {dest.Dir.Combine(path)}");
+                    return files.Contains(path) ? dest.Dir.Combine(path) : default;
                 });
-
-            var exitCode = await process.Start();
-
-            
-            if (exitCode != 0)
-            {
-                Utils.ErrorThrow(new _7zipReturnError(exitCode, source, dest.Dir, ""));
             }
             else
             {
-                Utils.Status($"Extracting {source.FileName} - done", Percent.One, alsoLog: true);
-            }
-
-            if (tmpFile != null)
-            {
-                await tmpFile.DisposeAsync();
+                await archive.Extract(path => dest.Dir.Combine(path));
             }
 
             return new ExtractedFiles(dest);

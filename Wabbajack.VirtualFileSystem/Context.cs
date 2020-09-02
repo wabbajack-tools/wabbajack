@@ -212,7 +212,7 @@ namespace Wabbajack.VirtualFileSystem
             foreach (var group in grouped)
             {
                 var only = group.Select(f => f.RelativeName);
-                var extracted = await group.Key.StagedFile.ExtractAll(Queue, only);
+                var extracted = await group.Key.StagedFile.ExtractAll(Queue, only, true);
                 paths.Add(extracted);
                 foreach (var file in group)
                     file.StagedFile = extracted[file.RelativeName];

@@ -54,7 +54,7 @@ namespace Wabbajack.Server.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, ex.ToJson());
+                _logger.LogError(ex, ex.ToString());
             }
         }
 
