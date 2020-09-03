@@ -16,7 +16,7 @@
       <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
       <PackageReference Include="K4os.Hash.Crc" Version="1.1.4" />
       <PackageReference Include="OMODFramework" Version="2.0.1" />
-      <PackageReference Include="System.Collections.Immutable" Version="5.0.0-preview.6.20305.6" />
+      <PackageReference Include="System.Collections.Immutable" Version="5.0.0-preview.8.20407.11" />
     </ItemGroup>
     <ItemGroup>
       <None Update="Extractors\7z.dll">
