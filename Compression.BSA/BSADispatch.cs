@@ -19,7 +19,7 @@ namespace Compression.BSA
                 _ => throw new InvalidDataException("Filename is not a .bsa or .ba2")
             };
         }
-
+        
         private static SignatureChecker BSASignatures = new SignatureChecker(Definitions.FileType.BSA, Definitions.FileType.BA2, Definitions.FileType.TES3);
         public static async ValueTask<bool> MightBeBSA(AbsolutePath filename)
         {

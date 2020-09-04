@@ -113,6 +113,10 @@ namespace Wabbajack.Lib
 
         public async Task InstallArchives()
         {
+            await VFS.CopyTo(Queue, ModList.Directives
+                .OfType<FromArchive>()
+                .Select(a => (VFS.Index.FileForArchiveHashPath(a.ArchiveHashPath), a.To.RelativeTo(OutputFolder))));
+            /*
             Info("Installing Archives");
             Info("Grouping Install Files");
             var grouped = ModList.Directives
@@ -125,7 +129,7 @@ namespace Wabbajack.Lib
                 .ToList();
 
             Info("Installing Archives");
-            await archives.PMap(Queue, UpdateTracker,a => InstallArchive(Queue, a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));
+            await archives.PMap(Queue, UpdateTracker,a => InstallArchive(Queue, a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));*/
         }
 
         private async Task InstallArchive(WorkQueue queue, Archive archive, AbsolutePath absolutePath, IGrouping<Hash, FromArchive> grouping)

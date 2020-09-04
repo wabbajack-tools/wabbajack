@@ -71,7 +71,7 @@ namespace Wabbajack.VirtualFileSystem
                                         return found;
                                 }
 
-                                return await VirtualFile.Analyze(this, null, new RootDiskFile(f), f, 0);
+                                return await VirtualFile.Analyze(this, null, new NativeFileStreamFactory(f), f, 0);
                             });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
@@ -103,7 +103,7 @@ namespace Wabbajack.VirtualFileSystem
                             return found;
                     }
 
-                    return await VirtualFile.Analyze(this, null, new RootDiskFile(f), f, 0);
+                    return await VirtualFile.Analyze(this, null, new NativeFileStreamFactory(f), f, 0);
                 });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
@@ -196,6 +196,40 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
+        /// <summary>
+        /// Extract the set of files and call the callback for each, handing it a stream factory and the virtual file,
+        /// top level archives (native archives) will be processed in parallel. Duplicate files will not be 
+        /// </summary>
+        /// <param name="files"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public async Task Extract(WorkQueue queue, HashSet<VirtualFile> files, Func<VirtualFile, IStreamFactory, ValueTask> callback)
+        {
+            var top = new VirtualFile();
+            var filesByParent = files.SelectMany(f => f.FilesInFullPath)
+                .Distinct()
+                .GroupBy(f => f.Parent ?? top)
+                .ToDictionary(f => f.Key);
+
+            async Task HandleFile(VirtualFile file, IStreamFactory sfn)
+            {
+                if (files.Contains(file)) await callback(file, sfn);
+                if (filesByParent.TryGetValue(file, out var children))
+                {
+                    var fileNames = children.ToDictionary(c => c.RelativeName);
+                    await FileExtractor2.GatheringExtract(sfn,
+                        r => fileNames.ContainsKey(r),
+                        async (rel, csf) =>
+                        {
+                            await HandleFile(fileNames[rel], sfn);
+                            return 0;
+                        });
+                }
+
+            }
+            await filesByParent[top].PMap(queue, async file => await HandleFile(file, new NativeFileStreamFactory(file.AbsoluteName)));
+        }
+
         public async Task<Func<Task>> Stage(IEnumerable<VirtualFile> files)
         {
             await _cleanupTask;
@@ -225,6 +259,12 @@ namespace Wabbajack.VirtualFileSystem
                     await p.DisposeAsync();
                 }
             };
+        }
+
+        public async Task CopyTo(WorkQueue queue, IEnumerable<(VirtualFile src, AbsolutePath dest)> directives)
+        {
+            var plans = StagingPlan.StagingPlan.CreatePlan(directives).ToArray();
+            await StagingPlan.StagingPlan.ExecutePlans(queue, plans);
         }
 
         public async Task<AsyncDisposableList<VirtualFile>> StageWith(IEnumerable<VirtualFile> files)

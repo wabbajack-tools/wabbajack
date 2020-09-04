@@ -136,14 +136,14 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
         //string CryptoGetTextPassword();
     }
 
-    internal enum AskMode : int
+    public enum AskMode : int
     {
         kExtract = 0,
         kTest,
         kSkip
     }
 
-    internal enum OperationResult : int
+    public enum OperationResult : int
     {
         kOK = 0,
         kUnSupportedMethod,
@@ -203,11 +203,11 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
     [ComImport]
     [Guid("23170F69-40C1-278A-0000-000300020000")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    internal interface ISequentialOutStream
+    public interface ISequentialOutStream
     {
         [PreserveSig]
         int Write(
-            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[] data,
+            IntPtr data,
             uint size,
             IntPtr processedSize); // ref uint processedSize
         /*
@@ -246,7 +246,7 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
     {
         [PreserveSig]
         int Write(
-            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[] data,
+            IntPtr data,
             uint size,
             IntPtr processedSize); // ref uint processedSize
 
@@ -444,15 +444,17 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
             return 0;
         }
 
-        public int Write(byte[] data, uint size, IntPtr processedSize)
+        public int Write(IntPtr data, uint size, IntPtr processedSize)
         {
+            throw new NotImplementedException();
+            /*
             this.BaseStream.Write(data, 0, (int) size);
 
             if (processedSize != IntPtr.Zero)
             {
                 Marshal.WriteInt32(processedSize, (int) size);
             }
-
+*/
             return 0;
         }
     }

@@ -76,6 +76,7 @@ namespace Compression.BSA
             return bsa;
         }
 
+
         public static BSAReader Load(AbsolutePath filename)
         {
             var bsa = new BSAReader { _fileName = filename };

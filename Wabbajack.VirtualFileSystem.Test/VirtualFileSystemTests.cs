@@ -139,15 +139,15 @@ namespace Wabbajack.VirtualFileSystem.Test
             await AddTestRoot();
 
             var res = new FullPath(TEST_ZIP, new[] {(RelativePath)"test.txt"});
-            var file = context.Index.ByFullPath[res];
+            var files = new [] {context.Index.ByFullPath[res]};
 
-            var cleanup = await context.Stage(new List<VirtualFile> {file});
-            
-            await using var stream = await file.StagedFile.OpenRead();
-           
-            Assert.Equal("This is a test", await stream.ReadAllTextAsync());
+            var queue = new WorkQueue();
+            await context.Extract(queue, files.ToHashSet(), async (file, factory) =>
+            {
+                await using var s = await factory.GetStream();
+                Assert.Equal("This is a test", await s.ReadAllTextAsync());
+            });
 
-            await cleanup();
         }
 
         [Fact]
@@ -165,16 +165,13 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             var files = context.Index.ByHash[Hash.FromBase64("qX0GZvIaTKM=")];
 
-            var cleanup = await context.Stage(files);
-
-            foreach (var file in files)
+            var queue = new WorkQueue();
+            await context.Extract(queue, files.ToHashSet(), async (file, factory) =>
             {
-                await using var stream = await file.StagedFile.OpenRead();
-                
-                Assert.Equal("This is a test", await stream.ReadAllTextAsync());
-            }
+                await using var s = await factory.GetStream();
+                Assert.Equal("This is a test", await s.ReadAllTextAsync());
+            });
 
-            await cleanup();
         }
 
         private static async Task AddFile(AbsolutePath filename, string text)

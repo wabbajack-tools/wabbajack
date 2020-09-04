@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -19,22 +20,21 @@ namespace Wabbajack.VirtualFileSystem
 {
     public class FileExtractor
     {
-
-        private static SignatureChecker archiveSigs = new SignatureChecker(Definitions.FileType.TES3, 
+        public static readonly SignatureChecker ArchiveSigs = new SignatureChecker(Definitions.FileType.TES3, 
             Definitions.FileType.BSA,
             Definitions.FileType.BA2,
             Definitions.FileType.ZIP,
             Definitions.FileType.EXE,
             Definitions.FileType.RAR,
             Definitions.FileType._7Z);
-        
+
         public static async Task<ExtractedFiles> ExtractAll(WorkQueue queue, AbsolutePath source, IEnumerable<RelativePath> OnlyFiles = null, bool throwOnError = true)
         {
             OnlyFiles ??= new RelativePath[0];
 
             try
             {
-                var sig = await archiveSigs.MatchesAsync(source);
+                var sig = await ArchiveSigs.MatchesAsync(source);
                 
                 if (source.Extension == Consts.OMOD)
                     return await ExtractAllWithOMOD(source);
@@ -71,7 +71,7 @@ namespace Wabbajack.VirtualFileSystem
 
             if (isArchive)
             {
-                return await ExtractAllWith7Zip(source, null);
+                return await ExtractAllWith7Zip(source, (IEnumerable<RelativePath>) null);
             }
 
             var dest = await TempFolder.Create();
@@ -183,7 +183,7 @@ namespace Wabbajack.VirtualFileSystem
         /// <returns></returns>
         public static async Task<bool> CanExtract(AbsolutePath v)
         {
-            var found = await archiveSigs.MatchesAsync(v);
+            var found = await ArchiveSigs.MatchesAsync(v);
             switch (found)
             {
                 case null:
@@ -219,6 +219,65 @@ namespace Wabbajack.VirtualFileSystem
         public static bool MightBeArchive(Extension ext)
         {
             return ext == _exeExtension || Consts.SupportedArchives.Contains(ext) || Consts.SupportedBSAs.Contains(ext);
+        }
+
+        /// <summary>
+        /// Extract the specific files to the specific locations
+        /// </summary>
+        /// <param name="queue"></param>
+        /// <param name="archive"></param>
+        /// <param name="indexed"></param>
+        /// <exception cref="NotImplementedException"></exception>
+        public static async Task ExtractTo(WorkQueue queue, AbsolutePath source, Dictionary<RelativePath,AbsolutePath> indexed)
+        {
+            try
+            {
+                var sig = await ArchiveSigs.MatchesAsync(source);
+                
+                /*if (source.Extension == Consts.OMOD)
+                    return await ExtractAllWithOMOD(source);*/
+
+                switch (sig)
+                {
+                    case Definitions.FileType.BSA:
+                    case Definitions.FileType.TES3:
+                    case Definitions.FileType.BA2:
+                        await ExtractAllWithBSA(queue, source, indexed);
+                        return;
+                    case Definitions.FileType.EXE:
+                        await ExtractAllExe(source, indexed);
+                        return;
+                    case Definitions.FileType._7Z:
+                    case Definitions.FileType.ZIP:
+                    case Definitions.FileType.RAR:
+                        await ExtractAllWith7Zip(source, indexed);
+                        return;
+                }
+                throw new Exception("Invalid archive format");
+            }
+            catch (Exception ex)
+            {
+                Utils.Log(ex.ToString());
+                Utils.ErrorThrow(ex, $"Error while extracting {source}");
+                throw new Exception();
+            }
+        }
+
+        private static async Task ExtractAllWith7Zip(AbsolutePath source, Dictionary<RelativePath,AbsolutePath> onlyFiles)
+        {
+            using var archive = await ArchiveFile.Open(source);
+            await archive.Extract(f => onlyFiles.TryGetValue(f, out var dest) ? dest : default);
+        }
+
+        private static async Task ExtractAllExe(AbsolutePath source, Dictionary<RelativePath,AbsolutePath> indexed)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static async Task ExtractAllWithBSA(WorkQueue queue, AbsolutePath source, Dictionary<RelativePath,AbsolutePath> indexed)
+        {
+            throw new NotImplementedException();
+
         }
     }
 }

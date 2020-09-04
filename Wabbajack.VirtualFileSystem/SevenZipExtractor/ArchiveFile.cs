@@ -12,7 +12,7 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
     public class ArchiveFile : IDisposable
     {
         private SevenZipHandle _sevenZipHandle;
-        private IInArchive _archive;
+        internal IInArchive _archive;
         private InStreamWrapper _archiveStream;
         private IList<Entry> _entries;
 
@@ -42,11 +42,11 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
             return self;
         }
         
-        public static async Task<ArchiveFile> Open(Stream archiveStream, SevenZipFormat? format = null, string libraryFilePath = null)
+        public static async Task<ArchiveFile> Open(Stream archiveStream, Definitions.FileType format)
         {
             var self = new ArchiveFile();
             self.InitializeAndValidateLibrary();
-            self._archive = self._sevenZipHandle.CreateInArchive(Formats.FormatGuidMapping[SevenZipFormat.SevenZip]);
+            self._archive = self._sevenZipHandle.CreateInArchive(Formats.FileTypeGuidMapping[format]);
             self._archiveStream = new InStreamWrapper(archiveStream);
             return self;
         }
