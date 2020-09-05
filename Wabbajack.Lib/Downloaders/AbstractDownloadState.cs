@@ -100,7 +100,7 @@ namespace Wabbajack.Lib.Downloaders
 
         public string GetMetaIniString()
         {
-            return return $"{string.Join("\n", GetMetaIni())}\ninstalled=true";
+            return return $"{string.Join("\n", GetMetaIni())} installed=true";
         }
 
         public async Task<(Archive? Archive, TempFile NewFile)> ServerFindUpgrade(Archive a)
