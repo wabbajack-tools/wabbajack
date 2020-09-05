@@ -76,7 +76,7 @@ namespace Wabbajack.Lib.CompilationSteps
             Func<Task>? _cleanup = null;
             if (defaultInclude)
             {
-                _cleanup = await source.File.Context.Stage(source.File.Children);
+                //_cleanup = await source.File.Context.Stage(source.File.Children);
             }
 
             var matches = await sourceFiles.PMap(_mo2Compiler.Queue, e => _mo2Compiler.RunStack(stack, new RawSourceFile(e, Consts.BSACreationDir.Combine((RelativePath)id, (RelativePath)e.Name))));

@@ -87,7 +87,11 @@ namespace Wabbajack.Lib
 
         public async Task<byte[]> LoadBytesFromPath(RelativePath path)
         {
-            return await ExtractedModlistFolder!.Dir.Combine(path).ReadAllBytesAsync();
+            var fullPath = ExtractedModlistFolder!.Dir.Combine(path);
+            if (!fullPath.IsFile) 
+                throw new Exception($"Cannot load inlined data {path} file does not exist");
+            
+            return await fullPath.ReadAllBytesAsync();
         }
 
         public static ModList LoadFromFile(AbsolutePath path)
@@ -140,7 +144,27 @@ namespace Wabbajack.Lib
                 foreach (var directive in grouped[vf])
                 {
                     s.Position = 0;
-                    await directive.Directive.To.RelativeTo(OutputFolder).WriteAllAsync(s, false);
+
+                    switch (directive.Directive)
+                    {
+                        case PatchedFromArchive pfa:
+                        {
+                            var patchData = await LoadBytesFromPath(pfa.PatchID);
+                            await using var os = await directive.Directive.To.RelativeTo(OutputFolder).Create();
+                            Utils.ApplyPatch(s, () => new MemoryStream(patchData), os);
+                        }
+                            break;
+
+
+
+                        case FromArchive _:
+                            await directive.Directive.To.RelativeTo(OutputFolder).WriteAllAsync(s, false);
+                            break;
+                        default:
+                            throw new Exception($"No handler for {directive}");
+
+
+                    }
                 }
             });
         }

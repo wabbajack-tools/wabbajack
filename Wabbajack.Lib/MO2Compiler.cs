@@ -57,7 +57,7 @@ namespace Wabbajack.Lib
         public HashSet<string> SelectedProfiles { get; set; } = new HashSet<string>();
 
         public MO2Compiler(AbsolutePath mo2Folder, string mo2Profile, AbsolutePath outputFile)
-            : base(steps: 20)
+            : base(steps: 21)
         {
             MO2Folder = mo2Folder;
             MO2Profile = mo2Profile;
@@ -352,6 +352,9 @@ namespace Wabbajack.Lib
                 Version = ModlistVersion ?? new Version(1,0,0,0),
                 IsNSFW = ModlistIsNSFW
             };
+            
+            UpdateTracker.NextStep("Including required files");
+            await InlineFiles();
 
             UpdateTracker.NextStep("Running Validation");
 
@@ -369,7 +372,6 @@ namespace Wabbajack.Lib
 
             return true;
         }
-
 
         public Dictionary<Game, HashSet<Hash>> GameHashes { get; set; } = new Dictionary<Game, HashSet<Hash>>();
         public Dictionary<Hash, Game[]> GamesWithHashes { get; set; } = new Dictionary<Hash, Game[]>();
