@@ -16,7 +16,6 @@ namespace Compression.BSA
         public const int HeaderLength = 0x24;
 
         internal uint _fileCount;
-        internal AbsolutePath _fileName;
         internal uint _folderCount;
         internal uint _folderRecordOffset;
         private Lazy<FolderRecord[]> _folders = null!;
@@ -24,6 +23,7 @@ namespace Compression.BSA
         internal string _magic = string.Empty;
         internal uint _totalFileNameLength;
         internal uint _totalFolderNameLength;
+        public IStreamFactory _streamFactory = new NativeFileStreamFactory(default);
 
         public VersionType HeaderType { get; private set; }
 
@@ -56,7 +56,7 @@ namespace Compression.BSA
 
         public void Dump(Action<string> print)
         {
-            print($"File Name: {_fileName}");
+            print($"File Name: {_streamFactory.Name}");
             print($"File Count: {_fileCount}");
             print($"Magic: {_magic}");
 
@@ -67,11 +67,11 @@ namespace Compression.BSA
             }
         }
 
-        public static async ValueTask<BSAReader> LoadAsync(AbsolutePath filename)
+        public static async ValueTask<BSAReader> LoadAsync(IStreamFactory factory)
         {
-            using var stream = await filename.OpenRead().ConfigureAwait(false);
+            await using var stream = await factory.GetStream().ConfigureAwait(false);
             using var br = new BinaryReader(stream);
-            var bsa = new BSAReader { _fileName = filename };
+            var bsa = new BSAReader { _streamFactory = factory };
             bsa.LoadHeaders(br);
             return bsa;
         }
@@ -79,7 +79,7 @@ namespace Compression.BSA
 
         public static BSAReader Load(AbsolutePath filename)
         {
-            var bsa = new BSAReader { _fileName = filename };
+            var bsa = new BSAReader { _streamFactory = new NativeFileStreamFactory(filename)};
             using var rdr = bsa.GetStream();
             bsa.LoadHeaders(rdr);
             return bsa;
@@ -87,7 +87,7 @@ namespace Compression.BSA
 
         internal BinaryReader GetStream()
         {
-            return new BinaryReader(File.Open(_fileName.ToString(), FileMode.Open, FileAccess.Read, FileShare.Read));
+            return new BinaryReader(_streamFactory.GetStream().Result);
         }
 
         private void LoadHeaders(BinaryReader rdr)

@@ -180,6 +180,7 @@ namespace Wabbajack.Lib
             SetScreenSizeInPrefs();
 
             UpdateTracker.NextStep("Installation complete! You may exit the program.");
+            await ExtractedModlistFolder!.DisposeAsync();
             await Metrics.Send(Metrics.FinishInstall, ModList.Name);
 
             return true;
@@ -243,7 +244,8 @@ namespace Wabbajack.Lib
                        Status($"Writing included .meta file {directive.To}");
                        var outPath = DownloadFolder.Combine(directive.To);
                        if (outPath.IsFile) await outPath.DeleteAsync();
-                       await outPath.WriteAllBytesAsync(await LoadBytesFromPath(directive.SourceDataID));
+                       var bytes = await LoadBytesFromPath(directive.SourceDataID);
+                       await outPath.WriteAllBytesAsync(bytes);
                    });
         }
 

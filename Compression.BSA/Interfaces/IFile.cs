@@ -32,5 +32,6 @@ namespace Compression.BSA
         ValueTask CopyDataTo(Stream output);
 
         void Dump(Action<string> print);
+        ValueTask<IStreamFactory> GetStreamFactory();
     }
 }

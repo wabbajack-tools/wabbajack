@@ -9,6 +9,7 @@ using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
+using Wabbajack.VirtualFileSystem.SevenZipExtractor;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -35,6 +36,8 @@ namespace Wabbajack.Lib
         
         public bool UseCompression { get; set; }
 
+        public TempFolder? ExtractedModlistFolder { get; set; } = null;
+
 
         public AInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters? parameters, int steps, Game game)
             : base(steps)
@@ -45,12 +48,23 @@ namespace Wabbajack.Lib
             DownloadFolder = downloadFolder;
             SystemParameters = parameters;
             Game = game.MetaData();
+ 
         }
 
+        
         private ExtractedFiles? ExtractedModListFiles { get; set; } = null;
         public async Task ExtractModlist()
         {
-            ExtractedModListFiles = await FileExtractor.ExtractAll(Queue, ModListArchive);
+            ExtractedModlistFolder = await TempFolder.Create();
+            await FileExtractor2.GatheringExtract(new NativeFileStreamFactory(ModListArchive), _ => true, 
+                async (path, sfn) =>
+                {
+                    await using var s = await sfn.GetStream();
+                    var fp = ExtractedModlistFolder.Dir.Combine(path);
+                    fp.Parent.CreateDirectory();
+                    await fp.WriteAllAsync(s);
+                    return 0; 
+                });
         }
 
 
@@ -73,8 +87,7 @@ namespace Wabbajack.Lib
 
         public async Task<byte[]> LoadBytesFromPath(RelativePath path)
         {
-            await using var e = await ExtractedModListFiles![path].OpenRead();
-            return await e.ReadAllAsync();
+            return await ExtractedModlistFolder!.Dir.Combine(path).ReadAllBytesAsync();
         }
 
         public static ModList LoadFromFile(AbsolutePath path)
@@ -113,23 +126,23 @@ namespace Wabbajack.Lib
 
         public async Task InstallArchives()
         {
-            await VFS.CopyTo(Queue, ModList.Directives
-                .OfType<FromArchive>()
-                .Select(a => (VFS.Index.FileForArchiveHashPath(a.ArchiveHashPath), a.To.RelativeTo(OutputFolder))));
-            /*
-            Info("Installing Archives");
-            Info("Grouping Install Files");
             var grouped = ModList.Directives
                 .OfType<FromArchive>()
-                .GroupBy(e => e.ArchiveHashPath.BaseHash)
-                .ToDictionary(k => k.Key);
-            var archives = ModList.Archives
-                .Select(a => new { Archive = a, AbsolutePath = HashedArchives.GetOrDefault(a.Hash) })
-                .Where(a => a.AbsolutePath != null)
-                .ToList();
+                .Select(a => new {VF = VFS.Index.FileForArchiveHashPath(a.ArchiveHashPath), Directive = a})
+                .GroupBy(a => a.VF)
+                .ToDictionary(a => a.Key);
 
-            Info("Installing Archives");
-            await archives.PMap(Queue, UpdateTracker,a => InstallArchive(Queue, a.Archive, a.AbsolutePath, grouped[a.Archive.Hash]));*/
+            if (grouped.Count == 0) return;
+            
+            await VFS.Extract(Queue, grouped.Keys.ToHashSet(), async (vf, sf) =>
+            {
+                await using var s = await sf.GetStream();
+                foreach (var directive in grouped[vf])
+                {
+                    s.Position = 0;
+                    await directive.Directive.To.RelativeTo(OutputFolder).WriteAllAsync(s, false);
+                }
+            });
         }
 
         private async Task InstallArchive(WorkQueue queue, Archive archive, AbsolutePath absolutePath, IGrouping<Hash, FromArchive> grouping)

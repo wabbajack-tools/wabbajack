@@ -141,7 +141,7 @@ namespace Wabbajack.VirtualFileSystem
                 itm.ThisAndAllChildrenReduced(fn);
         }
         
-        private static VirtualFile ConvertFromIndexedFile(Context context, IndexedVirtualFile file, IPath path, VirtualFile vparent, IExtractedFile extractedFile)
+        private static VirtualFile ConvertFromIndexedFile(Context context, IndexedVirtualFile file, IPath path, VirtualFile vparent, IStreamFactory extractedFile)
         {
             var vself = new VirtualFile
             {
@@ -161,7 +161,7 @@ namespace Wabbajack.VirtualFileSystem
             return vself;
         }
 
-        private static bool TryGetFromCache(Context context, VirtualFile parent, IPath path, IExtractedFile extractedFile, Hash hash, out VirtualFile found)
+        private static bool TryGetFromCache(Context context, VirtualFile parent, IPath path, IStreamFactory extractedFile, Hash hash, out VirtualFile found)
         {
             var result = _vfsCache.Get(hash.ToArray());
             if (result == null)
@@ -199,11 +199,9 @@ namespace Wabbajack.VirtualFileSystem
 
             var sig = await FileExtractor2.ArchiveSigs.MatchesAsync(stream);
             
-                /* TODO
             if (TryGetFromCache(context, parent, relPath, extractedFile, hash, out var vself))
                 return vself;
-                */
-
+            
             var self = new VirtualFile
             {
                 Context = context,

@@ -5,13 +5,6 @@ using Wabbajack.Common;
 
 namespace Wabbajack.VirtualFileSystem
 {
-    public interface IStreamFactory
-    {
-        Task<Stream> GetStream();
-        
-        DateTime LastModifiedUtc { get; }
-        
-    }
 
     public class UnmanagedStreamFactory : IStreamFactory
     {
@@ -23,7 +16,7 @@ namespace Wabbajack.VirtualFileSystem
             _data = data;
             _size = size;
         }
-        public async Task<Stream> GetStream()
+        public async ValueTask<Stream> GetStream()
         {
             unsafe
             {
@@ -32,21 +25,8 @@ namespace Wabbajack.VirtualFileSystem
         }
 
         public DateTime LastModifiedUtc => DateTime.UtcNow;
+        public IPath Name => (RelativePath)"Unmanaged Memory Stream";
     }
 
-    public class NativeFileStreamFactory : IStreamFactory
-    {
-        private AbsolutePath _file;
 
-        public NativeFileStreamFactory(AbsolutePath file)
-        {
-            _file = file;
-        }
-        public async Task<Stream> GetStream()
-        {
-            return await _file.OpenRead();
-        }
-
-        public DateTime LastModifiedUtc => _file.LastModifiedUtc;
-    }
 }

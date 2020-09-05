@@ -6,10 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AngleSharp.Common;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.Validation;
+using Wabbajack.VirtualFileSystem;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
@@ -495,17 +497,35 @@ namespace Wabbajack.Lib
                 .ToArray();
 
             if (toBuild.Length == 0) return;
+
+            // Extract all the source files
+            var indexed = toBuild.GroupBy(f => (VFS.Index.FileForArchiveHashPath(f.ArchiveHashPath)))
+                .ToDictionary(f => f.Key);
+            await VFS.Extract(Queue, indexed.Keys.ToHashSet(), 
+                async (vf, sf) =>
+            {
+                // For each, extract the destination
+                var matches = indexed[vf];
+                using var iqueue = new WorkQueue(1);
+                foreach (var match in matches)
+                {
+                    var destFile = FindDestFile(match.To);
+                    // Build the patch
+                    await VFS.Extract(iqueue, new[] {destFile}.ToHashSet(), 
+                        async (destvf, destsfn) =>
+                    {
+                        Info($"Patching {match.To}");
+                        Status($"Patching {match.To}");
+                        await using var srcStream = await sf.GetStream();
+                        await using var destStream = await destsfn.GetStream();
+                        var patchSize = await Utils.CreatePatchCached(srcStream, vf.Hash, destStream, destvf.Hash);
+                        Info($"Patch size {patchSize} for {match.To}");
+                    });
+                }
+
+            });
  
-            var groups = toBuild
-                .Where(p => p.PatchID == default)
-                .GroupBy(p => p.ArchiveHashPath.BaseHash)
-                .ToList();
-
-            Info($"Patching building patches from {groups.Count} archives");
-            var absolutePaths = AllFiles.ToDictionary(e => e.Path, e => e.AbsolutePath);
-            await groups.PMap(Queue, group => BuildArchivePatches(group.Key, group, absolutePaths));
-
-
+            // Load in the patches
             await InstallDirectives.OfType<PatchedFromArchive>()
                 .Where(p => p.PatchID == default)
                 .PMap(Queue, async pfa =>
@@ -514,6 +534,7 @@ namespace Wabbajack.Lib
                         .Select(c => (Utils.TryGetPatch(c.Hash, pfa.Hash, out var data), data, c))
                         .ToArray();
 
+                    // Pick the best patch
                     if (patches.All(p => p.Item1))
                     {
                         var (_, bytes, file) = IncludePatches.PickPatch(this, patches);
@@ -529,42 +550,19 @@ namespace Wabbajack.Lib
                 Error($"Missing patches after generation, this should not happen. First failure: {firstFailedPatch.FullPath}");
         }
 
-        private async Task BuildArchivePatches(Hash archiveSha, IEnumerable<PatchedFromArchive> group,
-            Dictionary<RelativePath, AbsolutePath> absolutePaths)
+        private VirtualFile FindDestFile(RelativePath to)
         {
-            await using var files = await VFS.StageWith(@group.Select(g => VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath)));
-            var byPath = files.GroupBy(f => string.Join("|", f.FilesInFullPath.Skip(1).Select(i => i.Name)))
-                .ToDictionary(f => f.Key, f => f.First());
-            // Now Create the patches
-            await @group.PMap(Queue, async entry =>
-            {
-                Info($"Patching {entry.To}");
-                Status($"Patching {entry.To}");
-                var srcFile = byPath[string.Join("|", entry.ArchiveHashPath.Paths)];
-                await using var srcStream = await srcFile.OpenRead();
-                await using var destStream = await LoadDataForTo(entry.To, absolutePaths);
-                var patchSize = await Utils.CreatePatchCached(srcStream, srcFile.Hash, destStream, entry.Hash);
-                Info($"Patch size {patchSize} for {entry.To}");
-            });
-        }
-
-        private async Task<FileStream> LoadDataForTo(RelativePath to, Dictionary<RelativePath, AbsolutePath> absolutePaths)
-        {
-            if (absolutePaths.TryGetValue(to, out var absolute))
-                return await absolute.OpenRead();
+            var abs = to.RelativeTo(MO2Folder);
+            if (abs.Exists)
+                return VFS.Index.ByRootPath[abs];
 
             if (to.StartsWith(Consts.BSACreationDir))
             {
                 var bsaId = (RelativePath)((string)to).Split('\\')[1];
                 var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsaId);
-
-                var a = await BSADispatch.OpenRead(MO2Folder.Combine(bsa.To));
                 var find = (RelativePath)Path.Combine(((string)to).Split('\\').Skip(2).ToArray());
-                var file = a.Files.First(e => e.Path == find);
-                var returnStream = new TempStream();
-                await file.CopyDataTo(returnStream);
-                returnStream.Position = 0;
-                return returnStream;
+
+                return VFS.Index.ByRootPath[MO2Folder.Combine(bsa.To)].Children.First(c => c.RelativeName == find);
             }
 
             throw new ArgumentException($"Couldn't load data for {to}");

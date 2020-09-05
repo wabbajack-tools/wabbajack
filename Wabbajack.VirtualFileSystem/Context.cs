@@ -221,7 +221,7 @@ namespace Wabbajack.VirtualFileSystem
                         r => fileNames.ContainsKey(r),
                         async (rel, csf) =>
                         {
-                            await HandleFile(fileNames[rel], sfn);
+                            await HandleFile(fileNames[rel], csf);
                             return 0;
                         });
                 }
@@ -259,12 +259,6 @@ namespace Wabbajack.VirtualFileSystem
                     await p.DisposeAsync();
                 }
             };
-        }
-
-        public async Task CopyTo(WorkQueue queue, IEnumerable<(VirtualFile src, AbsolutePath dest)> directives)
-        {
-            var plans = StagingPlan.StagingPlan.CreatePlan(directives).ToArray();
-            await StagingPlan.StagingPlan.ExecutePlans(queue, plans);
         }
 
         public async Task<AsyncDisposableList<VirtualFile>> StageWith(IEnumerable<VirtualFile> files)

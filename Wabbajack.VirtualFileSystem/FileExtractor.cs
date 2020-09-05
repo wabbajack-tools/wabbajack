@@ -30,6 +30,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public static async Task<ExtractedFiles> ExtractAll(WorkQueue queue, AbsolutePath source, IEnumerable<RelativePath> OnlyFiles = null, bool throwOnError = true)
         {
+            throw new NotImplementedException();
             OnlyFiles ??= new RelativePath[0];
 
             try
