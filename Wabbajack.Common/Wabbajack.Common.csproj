@@ -18,6 +18,7 @@
         <Version>2.2.1.2</Version>
         <AssemblyVersion>2.2.1.2</AssemblyVersion>
         <FileVersion>2.2.1.2</FileVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       <DocumentationFile>Wabbajack.Common.xml</DocumentationFile>

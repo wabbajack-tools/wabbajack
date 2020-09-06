@@ -17,7 +17,7 @@ namespace Wabbajack.Common
             _inner = fs;
             _message = message;
             _lastUpdate = DateTime.UnixEpoch;
-            _span = TimeSpan.FromMilliseconds(500);
+            _span = TimeSpan.FromMilliseconds(100);
         }
 
         public override void Flush()

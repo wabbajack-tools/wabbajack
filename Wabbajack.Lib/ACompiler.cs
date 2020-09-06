@@ -315,6 +315,7 @@ namespace Wabbajack.Lib
                 .GroupBy(f => f.SourceDataFile)
                 .ToDictionary(f => f.Key);
 
+            if (grouped.Count == 0) return;
             await VFS.Extract(Queue, grouped.Keys.ToHashSet(), async (vf, sfn) =>
             {
                 await using var stream = await sfn.GetStream();

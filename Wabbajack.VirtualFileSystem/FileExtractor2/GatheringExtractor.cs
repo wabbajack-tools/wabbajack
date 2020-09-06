@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Compression.BSA;
 using Wabbajack.Common;
 using Wabbajack.Common.FileSignatures;
 using Wabbajack.VirtualFileSystem.SevenZipExtractor;
@@ -17,7 +18,7 @@ namespace Wabbajack.VirtualFileSystem
         private Predicate<RelativePath> _shouldExtract;
         private Func<RelativePath, IStreamFactory, ValueTask<T>> _mapFn;
         private Dictionary<RelativePath, T> _results;
-        private Dictionary<uint, RelativePath> _indexes;
+        private Dictionary<uint, (RelativePath, ulong)> _indexes;
         private Stream _stream;
         private Definitions.FileType _sig;
 
@@ -41,10 +42,11 @@ namespace Wabbajack.VirtualFileSystem
                 {
                     _archive = ArchiveFile.Open(_stream, _sig).Result;
                     _indexes = _archive.Entries
-                        .Where(f => !f.IsFolder)
-                        .Select((entry, idx) => ((RelativePath)entry.FileName, (uint)idx))
+                        .Select((entry, idx) => (entry, (uint)idx))
+                        .Where(f => !f.entry.IsFolder)
+                        .Select(t => ((RelativePath)t.entry.FileName, t.Item2, t.entry.Size))
                         .Where(t => _shouldExtract(t.Item1))
-                        .ToDictionary(t => t.Item2, t => t.Item1);
+                        .ToDictionary(t => t.Item2, t => (t.Item1, t.Size));
 
 
                     _archive._archive.Extract(null, 0xFFFFFFFF, 0, this);
@@ -101,27 +103,52 @@ namespace Wabbajack.VirtualFileSystem
         {
             private GatheringExtractor<T> _extractor;
             private uint _index;
+            private bool _written;
+            private ulong _totalSize;
+            private MemoryStream _tmpStream;
 
             public GatheringExtractorStream(GatheringExtractor<T> extractor, uint index)
             {
                 _extractor = extractor;
                 _index = index;
+                _written = false;
+                _totalSize = extractor._indexes[index].Item2;
+                _tmpStream = new MemoryStream();
             }
 
             public int Write(IntPtr data, uint size, IntPtr processedSize)
             {
                 unsafe
                 {
-                    var result = _extractor._mapFn(_extractor._indexes[_index], new UnmanagedStreamFactory((byte*)data, size)).AsTask().Result;
+                    var ums = new UnmanagedMemoryStream((byte*)data, size);
+                    ums.CopyTo(_tmpStream);
+                    if ((ulong)_tmpStream.Length >= _totalSize)
+                    {
+                        _tmpStream.Position = 0;
+                        var result = _extractor._mapFn(_extractor._indexes[_index].Item1, new MemoryStreamFactory(_tmpStream)).AsTask().Result;
 
-                    _extractor._results[_extractor._indexes[_index]] = result;
-                
+                        _extractor._results[_extractor._indexes[_index].Item1] = result;
+                    }
+                    
                     if (processedSize != IntPtr.Zero)
                     {
                         Marshal.WriteInt32(processedSize, (int) size);
                     }
+                }
+
+                return 0;
+                
+                if (_written) throw new Exception("TODO");
+                unsafe
+                {
+
+                
+
+
+                    _written = true;
 
                     return 0;
+                    
                 }
             }
 

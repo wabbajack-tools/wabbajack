@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Hash.Crc;
 using RocksDbSharp;
 using Wabbajack.Common;
@@ -198,8 +199,9 @@ namespace Wabbajack.VirtualFileSystem
             stream.Position = 0;
 
             var sig = await FileExtractor2.ArchiveSigs.MatchesAsync(stream);
+            stream.Position = 0;
             
-            if (TryGetFromCache(context, parent, relPath, extractedFile, hash, out var vself))
+            if (sig.HasValue && TryGetFromCache(context, parent, relPath, extractedFile, hash, out var vself))
                 return vself;
             
             var self = new VirtualFile
