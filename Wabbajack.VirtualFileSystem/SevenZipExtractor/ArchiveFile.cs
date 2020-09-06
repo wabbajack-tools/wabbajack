@@ -18,30 +18,7 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
 
         private static readonly AbsolutePath LibraryFilePath = @"Extractors\7z.dll".RelativeTo(AbsolutePath.EntryPoint);
         private static SignatureChecker _checker = new SignatureChecker(Formats.FileTypeGuidMapping.Keys.ToArray());
-
-        public static async Task<ArchiveFile> Open(AbsolutePath archiveFilePath)
-        {
-            var self = new ArchiveFile();
-            
-            self.InitializeAndValidateLibrary();
-
-            if (!archiveFilePath.IsFile)
-            {
-                throw new SevenZipException("Archive file not found");
-            }
-
-            var format = await _checker.MatchesAsync(archiveFilePath);
-
-            if (format == null)
-            {
-                throw new SevenZipException($"Unknown format for {archiveFilePath}");
-            }
-
-            self._archive = self._sevenZipHandle.CreateInArchive(Formats.FileTypeGuidMapping[format.Value]);
-            self._archiveStream = new InStreamWrapper(await archiveFilePath.OpenRead());
-            return self;
-        }
-        
+       
         public static async Task<ArchiveFile> Open(Stream archiveStream, Definitions.FileType format)
         {
             var self = new ArchiveFile();
@@ -49,64 +26,6 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
             self._archive = self._sevenZipHandle.CreateInArchive(Formats.FileTypeGuidMapping[format]);
             self._archiveStream = new InStreamWrapper(archiveStream);
             return self;
-        }
-
-        public async Task Extract(AbsolutePath outputFolder, bool overwrite = false) 
-        {
-            await this.Extract(entry => 
-            {
-                var fileName = outputFolder.Combine(entry.FileName);
-
-                if (!fileName.Exists || overwrite) 
-                {
-                    return fileName;
-                }
-
-                return default;
-            });
-        }
-
-        public async Task Extract(Func<RelativePath, AbsolutePath> getOutputPath) 
-        {
-            IList<Stream> fileStreams = new List<Stream>();
-
-            try 
-            {
-                foreach (Entry entry in Entries)
-                {
-                    
-                    AbsolutePath outputPath = entry.IsFolder ? default : getOutputPath((RelativePath)entry.FileName);
-
-                    if (outputPath == default) // getOutputPath = null means SKIP
-                    {
-                        fileStreams.Add(null);
-                        continue;
-                    }
-
-                    if (entry.IsFolder)
-                    {
-                        outputPath.CreateDirectory();
-                        fileStreams.Add(null);
-                        continue;
-                    }
-
-                    var directoryName = outputPath.Parent;
-                    directoryName.CreateDirectory();
-
-                    fileStreams.Add(await outputPath.Create());
-                }
-
-                this._archive.Extract(null, 0xFFFFFFFF, 0, new ArchiveStreamsCallback(fileStreams));
-            }
-            finally
-            {
-                foreach (Stream stream in fileStreams)
-                {
-                    if (stream == null) continue;
-                    var tsk = stream?.DisposeAsync();
-                    await tsk.Value;
-                }
-            }
         }
 
         public IList<Entry> Entries
@@ -123,7 +42,7 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
 
                 if (open != 0)
                 {
-                    throw new SevenZipException("Unable to open archive");
+                    throw new Exception("Unable to open archive");
                 }
 
                 uint itemsCount = this._archive.GetNumberOfItems();
@@ -221,7 +140,7 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
             }
             catch (Exception e)
             {
-                throw new SevenZipException("Unable to initialize SevenZipHandle", e);
+                throw new Exception("Unable to initialize SevenZipHandle", e);
             }
         }
 

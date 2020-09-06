@@ -230,43 +230,6 @@ namespace Wabbajack.VirtualFileSystem
             await filesByParent[top].PMap(queue, async file => await HandleFile(file, new NativeFileStreamFactory(file.AbsoluteName)));
         }
 
-        public async Task<Func<Task>> Stage(IEnumerable<VirtualFile> files)
-        {
-            await _cleanupTask;
-
-            var grouped = files.SelectMany(f => f.FilesInFullPath)
-                .Distinct()
-                .Where(f => f.Parent != null)
-                .GroupBy(f => f.Parent)
-                .OrderBy(f => f.Key?.NestingFactor ?? 0)
-                .ToList();
-
-            var paths = new List<IAsyncDisposable>();
-
-            foreach (var group in grouped)
-            {
-                var only = group.Select(f => f.RelativeName);
-                var extracted = await group.Key.StagedFile.ExtractAll(Queue, only, true);
-                paths.Add(extracted);
-                foreach (var file in group)
-                    file.StagedFile = extracted[file.RelativeName];
-            }
-
-            return async () =>
-            {
-                foreach (var p in paths)
-                {
-                    await p.DisposeAsync();
-                }
-            };
-        }
-
-        public async Task<AsyncDisposableList<VirtualFile>> StageWith(IEnumerable<VirtualFile> files)
-        {
-            return new AsyncDisposableList<VirtualFile>(await Stage(files), files);
-        }
-
-
         #region KnownFiles
 
         private List<HashRelativePath> _knownFiles = new List<HashRelativePath>();

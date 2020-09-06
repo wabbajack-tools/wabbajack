@@ -85,35 +85,5 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
         /// True if there are parts of this file in next split archive parts
         /// </summary>
         public bool IsSplitAfter { get; set; }
-
-        public void Extract(string fileName, bool preserveTimestamp = true)
-        {
-            if (this.IsFolder)
-            {
-                Directory.CreateDirectory(fileName);
-                return;
-            }
-
-            string directoryName = Path.GetDirectoryName(fileName);
-
-            if (!string.IsNullOrWhiteSpace(directoryName))
-            {
-                Directory.CreateDirectory(directoryName);
-            }
-
-            using (FileStream fileStream = File.Create(fileName))
-            {
-                this.Extract(fileStream);
-            }
-
-            if (preserveTimestamp)
-            {
-                File.SetLastWriteTime(fileName, this.LastWriteTime);
-            }
-        }
-        public void Extract(Stream stream)
-        {
-            this.archive.Extract(new[] { this.index }, 1, 0, new ArchiveStreamCallback(this.index, stream));
-        }
     }
 }

@@ -49,23 +49,6 @@ namespace Wabbajack.VirtualFileSystem
 
         public Context Context { get; set; }
 
-        private IExtractedFile _stagedFile = null;
-        public IExtractedFile StagedFile  
-        {
-            get
-            {
-                if (IsNative) return new ExtractedDiskFile(AbsoluteName);
-                if (_stagedFile == null)
-                    throw new InvalidDataException("File is unstaged");
-                return _stagedFile;
-            }
-            set
-            {
-                _stagedFile = value;
-            }
-            
-        }
-
         /// <summary>
         ///     Returns the nesting factor for this file. Native files will have a nesting of 1, the factor
         ///     goes up for each nesting of a file in an archive.
@@ -381,11 +364,6 @@ namespace Wabbajack.VirtualFileSystem
 
             var path = new HashRelativePath(FilesInFullPath.First().Hash, paths);
             return path;
-        }
-
-        public async ValueTask<Stream> OpenRead()
-        {
-            return await StagedFile.OpenRead();
         }
     }
 

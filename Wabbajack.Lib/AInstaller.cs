@@ -51,8 +51,6 @@ namespace Wabbajack.Lib
  
         }
 
-        
-        private ExtractedFiles? ExtractedModListFiles { get; set; } = null;
         public async Task ExtractModlist()
         {
             ExtractedModlistFolder = await TempFolder.Create();
@@ -143,19 +141,26 @@ namespace Wabbajack.Lib
                 await using var s = await sf.GetStream();
                 foreach (var directive in grouped[vf])
                 {
+                    var file = directive.Directive;
                     s.Position = 0;
 
-                    switch (directive.Directive)
+                    switch (file)
                     {
                         case PatchedFromArchive pfa:
                         {
                             var patchData = await LoadBytesFromPath(pfa.PatchID);
-                            await using var os = await directive.Directive.To.RelativeTo(OutputFolder).Create();
+                            var toFile = file.To.RelativeTo(OutputFolder);
+                            await using var os = await toFile.Create();
                             Utils.ApplyPatch(s, () => new MemoryStream(patchData), os);
+                            
+                            if (await VirusScanner.ShouldScan(toFile) &&
+                                await ClientAPI.GetVirusScanResult(toFile) == VirusScanner.Result.Malware)
+                            {
+                                await toFile.DeleteAsync();
+                                Utils.ErrorThrow(new Exception($"Virus scan of patched executable reported possible malware: {toFile.ToString()} ({(long)await toFile.FileHashCachedAsync()})"));
+                            }
                         }
                             break;
-
-
 
                         case FromArchive _:
                             await directive.Directive.To.RelativeTo(OutputFolder).WriteAllAsync(s, false);
@@ -165,102 +170,7 @@ namespace Wabbajack.Lib
 
 
                     }
-                }
-            });
-        }
-
-        private async Task InstallArchive(WorkQueue queue, Archive archive, AbsolutePath absolutePath, IGrouping<Hash, FromArchive> grouping)
-        {
-            Status($"Extracting {archive.Name}");
-
-            List<FromArchive> vFiles = grouping.Select(g =>
-            {
-                var file = VFS.Index.FileForArchiveHashPath(g.ArchiveHashPath);
-                g.FromFile = file;
-                return g;
-            }).ToList();
-
-            var onFinish = await VFS.Stage(vFiles.Select(f => f.FromFile).Distinct());
-
-
-            Status($"Copying files for {archive.Name}");
-
-            async ValueTask CopyFile(AbsolutePath from, AbsolutePath to)
-            {
-                if (to.Exists)
-                {
-                    if (to.IsReadOnly)
-                        to.IsReadOnly = false;
-                    await to.DeleteAsync();
-                }
-
-                if (from.Exists)
-                {
-                    if (from.IsReadOnly)
-                        from.IsReadOnly = false;
-                }
-
-                await @from.CopyToAsync(to);
-                // If we don't do this, the file will use the last-modified date of the file when it was compressed
-                // into an archive, which isn't really what we want in the case of files installed archives
-                to.LastModified = DateTime.Now;
-            }
-
-            foreach (var (idx, group) in vFiles.GroupBy(f => f.FromFile).Select((grp, i) => (i, grp)))
-            {
-                Utils.Status("Installing files", Percent.FactoryPutInRange(idx, vFiles.Count));
-                if (group.Key == null)
-                {
-                    throw new ArgumentNullException("FromFile was null");
-                }
-                var firstDest = OutputFolder.Combine(group.First().To);
-
-                if (group.Key.IsNative)
-                {
-                    await group.Key.AbsoluteName.HardLinkIfOversize(firstDest);
-                }
-                else
-                {
-                    await group.Key.StagedFile.MoveTo(firstDest);
-                }
-
-                foreach (var copy in group.Skip(1))
-                {
-                    await CopyFile(firstDest, OutputFolder.Combine(copy.To));
-                }
-
-                foreach (var toPatch in group.OfType<PatchedFromArchive>())
-                {
-                    await using var patchStream = new MemoryStream();
-                    Status($"Patching {toPatch.To.FileName}");
-                    // Read in the patch data
                     
-                    Status($"Verifying unpatched file {toPatch.To.FileName}");
-                    var toFile = OutputFolder.Combine(toPatch.To);
-
-                    byte[] patchData = await LoadBytesFromPath(toPatch.PatchID);
-
-                    var oldData = new MemoryStream(await toFile.ReadAllBytesAsync());
-
-                    // Remove the file we're about to patch
-                    await toFile.DeleteAsync();
-
-                    // Patch it
-                    await using (var outStream = await toFile.Create())
-                    {
-                        Utils.ApplyPatch(oldData, () => new MemoryStream(patchData), outStream);
-                    }
-
-                    if (await VirusScanner.ShouldScan(toFile) &&
-                        await ClientAPI.GetVirusScanResult(toFile) == VirusScanner.Result.Malware)
-                    {
-                        await toFile.DeleteAsync();
-                        Utils.ErrorThrow(new Exception($"Virus scan of patched executable reported possible malware: {toFile.ToString()} ({(long)await toFile.FileHashCachedAsync()})"));
-                    }
-                }
-
-                foreach (var file in group)
-                {
                     if (file is PatchedFromArchive)
                     {
                         await file.To.RelativeTo(OutputFolder).FileHashAsync();
@@ -276,12 +186,7 @@ namespace Wabbajack.Lib
                         await file.To.RelativeTo(OutputFolder).Compact(FileCompaction.Algorithm.XPRESS16K);
                     }
                 }
-
-
-            }
-
-            Status("Unstaging files");
-            await onFinish();
+            });
         }
 
         public async Task DownloadArchives()
