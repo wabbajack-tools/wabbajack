@@ -209,11 +209,15 @@ namespace Wabbajack.VirtualFileSystem
             try
             {
 
-                var list = await FileExtractor2.GatheringExtract(extractedFile, 
-                    _ => true, 
+                var list = await FileExtractor2.GatheringExtract(extractedFile,
+                    _ => true,
                     async (path, sfactory) => await Analyze(context, self, sfactory, path, depth + 1));
-               
+
                 self.Children = list.Values.ToImmutableList();
+            }
+            catch (EndOfStreamException ex)
+            {
+                return self;
             }
             catch (Exception ex)
             {

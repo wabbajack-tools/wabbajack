@@ -27,6 +27,10 @@ namespace Wabbajack.VirtualFileSystem
         public static async Task<Dictionary<RelativePath, T>> GatheringExtract<T>(IStreamFactory sFn,
             Predicate<RelativePath> shouldExtract, Func<RelativePath, IStreamFactory, ValueTask<T>> mapfn)
         {
+            if (sFn is NativeFileStreamFactory)
+            {
+                Utils.Log($"Extracting {sFn.Name}");
+            }
             await using var archive = await sFn.GetStream();
             var sig = await ArchiveSigs.MatchesAsync(archive);
             archive.Position = 0;

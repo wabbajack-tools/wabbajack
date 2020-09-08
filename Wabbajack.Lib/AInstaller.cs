@@ -150,9 +150,11 @@ namespace Wabbajack.Lib
                         {
                             var patchData = await LoadBytesFromPath(pfa.PatchID);
                             var toFile = file.To.RelativeTo(OutputFolder);
-                            await using var os = await toFile.Create();
-                            Utils.ApplyPatch(s, () => new MemoryStream(patchData), os);
-                            
+                            {
+                                await using var os = await toFile.Create();
+                                Utils.ApplyPatch(s, () => new MemoryStream(patchData), os);
+                            }
+
                             if (await VirusScanner.ShouldScan(toFile) &&
                                 await ClientAPI.GetVirusScanResult(toFile) == VirusScanner.Result.Malware)
                             {

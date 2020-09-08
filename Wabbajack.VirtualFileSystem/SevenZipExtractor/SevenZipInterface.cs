@@ -207,7 +207,7 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
     {
         [PreserveSig]
         int Write(
-            IntPtr data,
+            [In, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)]byte[] data,
             uint size,
             IntPtr processedSize); // ref uint processedSize
         /*
@@ -246,7 +246,7 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
     {
         [PreserveSig]
         int Write(
-            IntPtr data,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[] data,
             uint size,
             IntPtr processedSize); // ref uint processedSize
 
@@ -444,7 +444,7 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
             return 0;
         }
 
-        public int Write(IntPtr data, uint size, IntPtr processedSize)
+        public int Write(byte[] data, uint size, IntPtr processedSize)
         {
             throw new NotImplementedException();
             /*

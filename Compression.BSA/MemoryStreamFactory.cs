@@ -21,4 +21,23 @@ namespace Compression.BSA
         public DateTime LastModifiedUtc => DateTime.UtcNow;
         public IPath Name => (RelativePath)"BSA Memory Stream";
     }
+    
+    public class MemoryBufferFactory : IStreamFactory
+    {
+        private readonly byte[] _data;
+        private int _size;
+
+        public MemoryBufferFactory(byte[] data, int size)
+        {
+            _data = data;
+            _size = size;
+        }
+        public async ValueTask<Stream> GetStream()
+        {
+            return new MemoryStream(_data, 0, _size);
+        }
+
+        public DateTime LastModifiedUtc => DateTime.UtcNow;
+        public IPath Name => (RelativePath)"BSA Memory Stream";
+    }
 }
