@@ -40,7 +40,7 @@ namespace Wabbajack.Lib
                   outputFolder: outputFolder, 
                   downloadFolder: downloadFolder,
                   parameters: parameters,
-                  steps: 21,
+                  steps: 22,
                   game: modList.GameType)
         {
             var gameExe = Consts.GameFolderFilesDir.Combine(modList.GameType.MetaData().MainExecutable!);
@@ -178,12 +178,23 @@ namespace Wabbajack.Lib
 
             UpdateTracker.NextStep("Updating System-specific ini settings");
             SetScreenSizeInPrefs();
+            
+            UpdateTracker.NextStep("Compacting files");
+            await CompactFiles();
 
             UpdateTracker.NextStep("Installation complete! You may exit the program.");
             await ExtractedModlistFolder!.DisposeAsync();
             await Metrics.Send(Metrics.FinishInstall, ModList.Name);
 
             return true;
+        }
+
+        private async Task CompactFiles()
+        {
+            if (this.UseCompression)
+            {
+                await OutputFolder.CompactFolder(Queue, FileCompaction.Algorithm.XPRESS16K);
+            }
         }
 
         private void CreateOutputMods()

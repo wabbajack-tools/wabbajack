@@ -9,9 +9,10 @@ namespace Compression.BSA
     {
         private readonly MemoryStream _data;
 
-        public MemoryStreamFactory(MemoryStream data)
+        public MemoryStreamFactory(MemoryStream data, IPath path)
         {
             _data = data;
+            Name = path;
         }
         public async ValueTask<Stream> GetStream()
         {
@@ -19,7 +20,7 @@ namespace Compression.BSA
         }
 
         public DateTime LastModifiedUtc => DateTime.UtcNow;
-        public IPath Name => (RelativePath)"BSA Memory Stream";
+        public IPath Name { get; }
     }
     
     public class MemoryBufferFactory : IStreamFactory
@@ -27,10 +28,11 @@ namespace Compression.BSA
         private readonly byte[] _data;
         private int _size;
 
-        public MemoryBufferFactory(byte[] data, int size)
+        public MemoryBufferFactory(byte[] data, int size, IPath path)
         {
             _data = data;
             _size = size;
+            Name = path;
         }
         public async ValueTask<Stream> GetStream()
         {
@@ -38,6 +40,6 @@ namespace Compression.BSA
         }
 
         public DateTime LastModifiedUtc => DateTime.UtcNow;
-        public IPath Name => (RelativePath)"BSA Memory Stream";
+        public IPath Name { get; }
     }
 }

@@ -126,6 +126,11 @@ namespace Wabbajack.VirtualFileSystem
                 _diskCached = _totalSize >= 500_000_000;
             }
 
+            private IPath GetPath()
+            {
+                return _extractor._indexes[_index].Item1;
+            }
+
             public int Write(byte[] data, uint size, IntPtr processedSize)
             {
                 try
@@ -155,7 +160,7 @@ namespace Wabbajack.VirtualFileSystem
 
             private void WriteSingleCall(byte[] data, in uint size)
             {
-                var result = _extractor._mapFn(_extractor._indexes[_index].Item1, new MemoryBufferFactory(data, (int)size)).Result;
+                var result = _extractor._mapFn(_extractor._indexes[_index].Item1, new MemoryBufferFactory(data, (int)size, GetPath())).Result;
                 AddResult(result);
                 Cleanup();
             }
@@ -181,7 +186,7 @@ namespace Wabbajack.VirtualFileSystem
 
                 _tmpStream.Flush();
                 _tmpStream.Position = 0;
-                var result = _extractor._mapFn(_extractor._indexes[_index].Item1, new MemoryStreamFactory((MemoryStream)_tmpStream)).Result;
+                var result = _extractor._mapFn(_extractor._indexes[_index].Item1, new MemoryStreamFactory((MemoryStream)_tmpStream, GetPath())).Result;
                 AddResult(result);
                 Cleanup();
             }
@@ -201,7 +206,7 @@ namespace Wabbajack.VirtualFileSystem
                 _tmpStream.Flush();
                 _tmpStream.Close();
                 
-                var result = _extractor._mapFn(_extractor._indexes[_index].Item1, new NativeFileStreamFactory(_tmpFile.Path)).Result;
+                var result = _extractor._mapFn(_extractor._indexes[_index].Item1, new NativeFileStreamFactory(_tmpFile.Path, GetPath())).Result;
                 AddResult(result);
                 Cleanup();
             }

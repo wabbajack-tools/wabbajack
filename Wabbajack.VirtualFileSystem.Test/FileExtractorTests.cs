@@ -1,7 +1,10 @@
 ﻿using System;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.NexusApi;
 using Xunit;
 
 namespace Wabbajack.VirtualFileSystem.Test
@@ -33,8 +36,26 @@ namespace Wabbajack.VirtualFileSystem.Test
             {
                 Assert.Equal(await temp.Dir.Combine(path).FileHashAsync(), hash);
             }
+        }
+        
+        private static Extension OMODExtension = new Extension(".omod");
+        private static Extension CRCExtension = new Extension(".crc");
 
+        [Fact]
+        public async Task CanGatherDataFromOMODFiles()
+        {
+            var src = await DownloadMod(Game.Oblivion, 18498);
 
+            await FileExtractor2.GatheringExtract(new NativeFileStreamFactory(src),
+                p => p.Extension == OMODExtension, async (path, sfn) =>
+                {
+                    await FileExtractor2.GatheringExtract(sfn, _ => true, async (ipath, isfn) => {
+                    // We shouldn't have any .crc files because this file should be recognized as a OMOD and extracted correctly
+                    Assert.NotEqual(CRCExtension, ipath.Extension);
+                    return 0;
+                    });
+                    return 0;
+                });
         }
 
 
@@ -57,6 +78,28 @@ namespace Wabbajack.VirtualFileSystem.Test
             ZipFile.CreateFromDirectory((string)folder, (string)output);
             if (deleteSource) 
                 await folder.DeleteDirectory();
+        }
+        
+        
+        private static AbsolutePath _stagingFolder = ((RelativePath)"NexusDownloads").RelativeToEntryPoint();
+        private static async Task<AbsolutePath> DownloadMod(Game game, int mod)
+        {
+            using var client = await NexusApiClient.Get();
+            var results = await client.GetModFiles(game, mod);
+            var file = results.files.FirstOrDefault(f => f.is_primary) ??
+                       results.files.OrderByDescending(f => f.uploaded_timestamp).First();
+            var src = _stagingFolder.Combine(file.file_name);
+
+            if (src.Exists) return src;
+
+            var state = new NexusDownloader.State
+            {
+                ModID = mod,
+                Game = game,
+                FileID = file.file_id
+            };
+            await state.Download(src);
+            return src;
         }
         
     }

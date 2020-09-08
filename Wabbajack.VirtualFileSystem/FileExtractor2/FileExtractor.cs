@@ -4,11 +4,13 @@ using System.IO;
 using System.Threading.Tasks;
 using Compression.BSA;
 using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
+using OMODFramework;
 using SharpCompress.Archives.SevenZip;
 using SharpCompress.Readers;
 using Wabbajack.Common;
 using Wabbajack.Common.FileSignatures;
 using Wabbajack.VirtualFileSystem.SevenZipExtractor;
+using Utils = Wabbajack.Common.Utils;
 
 namespace Wabbajack.VirtualFileSystem
 {
@@ -22,6 +24,8 @@ namespace Wabbajack.VirtualFileSystem
             Definitions.FileType.RAR_OLD,
             Definitions.FileType.RAR_NEW,
             Definitions.FileType._7Z);
+        
+        private static Extension OMODExtension = new Extension(".omod");
 
 
         public static async Task<Dictionary<RelativePath, T>> GatheringExtract<T>(IStreamFactory sFn,
@@ -39,10 +43,21 @@ namespace Wabbajack.VirtualFileSystem
             {
                 case Definitions.FileType.RAR_OLD:
                 case Definitions.FileType.RAR_NEW:
-                case Definitions.FileType._7Z:    
+                case Definitions.FileType._7Z:
                 case Definitions.FileType.ZIP:
-                    return await GatheringExtractWith7Zip<T>(archive, (Definitions.FileType)sig, shouldExtract, mapfn);
-                
+                {
+                    if (sFn.Name.FileName.Extension == OMODExtension)
+                    {
+                        return await GatheringExtractWithOMOD(archive, shouldExtract, mapfn);
+
+                    }
+                    else
+                    {
+                        return await GatheringExtractWith7Zip<T>(archive, (Definitions.FileType)sig, shouldExtract,
+                            mapfn);
+                    }
+                }
+
                 case Definitions.FileType.TES3:
                 case Definitions.FileType.BSA:
                 case Definitions.FileType.BA2:
@@ -53,6 +68,54 @@ namespace Wabbajack.VirtualFileSystem
                     throw new Exception($"Invalid file format {sFn.Name}");
             }
         }
+
+        private static async Task<Dictionary<RelativePath,T>> GatheringExtractWithOMOD<T>(Stream archive, Predicate<RelativePath> shouldExtract, Func<RelativePath,IStreamFactory,ValueTask<T>> mapfn)
+        {
+            var tmpFile = new TempFile();
+            await tmpFile.Path.WriteAllAsync(archive);
+            var dest = await TempFolder.Create();
+            Utils.Log($"Extracting {(string)tmpFile.Path}");
+
+            Framework.Settings.TempPath = (string)dest.Dir;
+            Framework.Settings.CodeProgress = new OMODProgress();
+
+            var omod = new OMOD((string)tmpFile.Path);
+            omod.GetDataFiles();
+            omod.GetPlugins();
+            
+            var results = new Dictionary<RelativePath, T>();
+            foreach (var file in dest.Dir.EnumerateFiles())
+            {
+                var path = file.RelativeTo(dest.Dir);
+                if (!shouldExtract(path)) continue;
+
+                var result = await mapfn(path, new NativeFileStreamFactory(file, path));
+                results.Add(path, result);
+            }
+
+            return results;
+        }
+        
+        private class OMODProgress : ICodeProgress
+        {
+            private long _total;
+
+            public void SetProgress(long inSize, long outSize)
+            {
+                Utils.Status("Extracting OMOD", Percent.FactoryPutInRange(inSize, _total));
+            }
+
+            public void Init(long totalSize, bool compressing)
+            {
+                _total = totalSize;
+            }
+
+            public void Dispose()
+            {
+                //
+            }
+        }
+
 
         private static async Task<Dictionary<RelativePath,T>> GatheringExtractWithBSA<T>(IStreamFactory sFn, Definitions.FileType sig, Predicate<RelativePath> shouldExtract, Func<RelativePath,IStreamFactory,ValueTask<T>> mapfn)
         {
@@ -73,31 +136,6 @@ namespace Wabbajack.VirtualFileSystem
         private static async Task<Dictionary<RelativePath,T>> GatheringExtractWith7Zip<T>(Stream stream, Definitions.FileType sig, Predicate<RelativePath> shouldExtract, Func<RelativePath,IStreamFactory,ValueTask<T>> mapfn)
         {
             return await new GatheringExtractor<T>(stream, sig, shouldExtract, mapfn).Extract();
-            /*
-            IReader reader;
-            if (sig == Definitions.FileType._7Z)
-                reader = SevenZipArchive.Open(stream).ExtractAllEntries();
-            else
-            {
-                reader = ReaderFactory.Open(stream);
-            }
-
-            var results = new Dictionary<RelativePath, T>();
-            while (reader.MoveToNextEntry())
-            {
-                var path = (RelativePath)reader.Entry.Key;
-                if (!reader.Entry.IsDirectory && shouldExtract(path))
-                {
-                    var ms = new MemoryStream();
-                    reader.WriteEntryTo(ms);
-                    ms.Position = 0;
-                    var result = await mapfn(path, new MemoryStreamFactory(ms));
-                    results.Add(path, result);
-                }
-            }
-
-            return results;
-            */
         }
 
         public static async Task ExtractAll(AbsolutePath src, AbsolutePath dest)

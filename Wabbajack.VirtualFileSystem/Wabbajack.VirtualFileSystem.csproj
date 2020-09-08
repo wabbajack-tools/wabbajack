@@ -31,4 +31,7 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Extractors\OMOD" />
+    </ItemGroup>
 </Project>

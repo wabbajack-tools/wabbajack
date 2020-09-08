@@ -57,5 +57,15 @@ namespace Wabbajack.Common
                 return await proc.Start() == 0;
             }
         }
+
+        public static async Task CompactFolder(this AbsolutePath folder, WorkQueue queue, Algorithm algorithm)
+        {
+            await folder.EnumerateFiles(true)
+                .PMap(queue, async path =>
+                {
+                    Utils.Status($"Compacting {path.FileName}");
+                    await path.Compact(algorithm);
+                });
+        }
     }
 }

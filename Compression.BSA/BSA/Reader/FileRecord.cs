@@ -171,7 +171,7 @@ namespace Compression.BSA
             var ms = new MemoryStream();
             await CopyDataTo(ms);
             ms.Position = 0;
-            return new MemoryStreamFactory(ms);
+            return new MemoryStreamFactory(ms, Path);
         }
     }
 }

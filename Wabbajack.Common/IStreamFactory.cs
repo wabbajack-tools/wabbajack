@@ -18,9 +18,16 @@ namespace Wabbajack.Common
     {
         private AbsolutePath _file;
 
+        public NativeFileStreamFactory(AbsolutePath file, IPath path)
+        {
+            _file = file;
+            Name = path;
+        }
+        
         public NativeFileStreamFactory(AbsolutePath file)
         {
             _file = file;
+            Name = file;
         }
         public async ValueTask<Stream> GetStream()
         {
@@ -28,7 +35,7 @@ namespace Wabbajack.Common
         }
 
         public DateTime LastModifiedUtc => _file.LastModifiedUtc;
-        public IPath Name => _file;
+        public IPath Name { get; }
     }
     
 }
