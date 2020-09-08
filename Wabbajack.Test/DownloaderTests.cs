@@ -485,6 +485,7 @@ namespace Wabbajack.Test
             Consts.TestMode = true;
         }
         
+        /* Disabled, will be removed in the future
         [Fact]
         public async Task BethesdaNetDownload()
         {
@@ -510,7 +511,7 @@ namespace Wabbajack.Test
             using var archive = new ZipArchive(fs);
             var entries = archive.Entries.Select(e => e.FullName).ToList();
             Assert.Equal(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});
-        }
+        }*/ 
         
         /*
         [Fact]
