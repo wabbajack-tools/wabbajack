@@ -6,11 +6,30 @@ using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.NexusApi;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Wabbajack.VirtualFileSystem.Test
 {
-    public class FileExtractorTests
+    public class FileExtractorTests : IAsyncLifetime
     {
+        private ITestOutputHelper _helper;
+        private IDisposable _unsub;
+
+        public FileExtractorTests(ITestOutputHelper helper)
+        {
+            _helper = helper;
+            _unsub = Utils.LogMessages.Subscribe(f => _helper.WriteLine(f.ShortDescription));
+        }
+
+        public async Task InitializeAsync()
+        {
+        }
+
+        public async Task DisposeAsync()
+        {
+            _unsub.Dispose();
+        }
+        
         [Fact]
         public async Task CanGatherDataFromZipFiles()
         {
@@ -82,6 +101,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         
         
         private static AbsolutePath _stagingFolder = ((RelativePath)"NexusDownloads").RelativeToEntryPoint();
+
         private static async Task<AbsolutePath> DownloadMod(Game game, int mod)
         {
             using var client = await NexusApiClient.Get();
