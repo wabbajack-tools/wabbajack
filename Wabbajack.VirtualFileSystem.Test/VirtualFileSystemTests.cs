@@ -19,12 +19,23 @@ namespace Wabbajack.VirtualFileSystem.Test
         private Context context;
 
         private readonly ITestOutputHelper _helper;
+        private IDisposable _unsub;
         private WorkQueue Queue { get; } = new WorkQueue();
 
         public VFSTests(ITestOutputHelper helper)
         {
             _helper = helper;
-            Utils.LogMessages.Subscribe(f => _helper.WriteLine(f.ShortDescription));
+            _unsub = Utils.LogMessages.Subscribe(f =>
+            {
+                try
+                {
+                    _helper.WriteLine(f.ShortDescription);
+                }
+                catch (Exception ex)
+                {
+                    // ignored
+                }
+            });
             context = new Context(Queue);
         }
 
@@ -36,6 +47,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
         public async Task DisposeAsync()
         {
+            _unsub.Dispose();
             await VFS_TEST_DIR.DeleteDirectory();
         }
 
