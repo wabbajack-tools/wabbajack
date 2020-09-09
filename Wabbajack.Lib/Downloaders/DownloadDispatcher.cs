@@ -56,8 +56,13 @@ namespace Wabbajack.Lib.Downloaders
                 if (state != null)
                     return state;
             }
-            return null;
-
+            
+            var meta = string.Join("\n", new string[]
+            {
+                "[General]",
+                $"directURL={uri}"    
+            });
+            return (AbstractDownloadState)(await ResolveArchive(meta.LoadIniString()));
         }
 
         public static T GetInstance<T>() where T : IDownloader

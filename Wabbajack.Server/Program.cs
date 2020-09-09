@@ -4,6 +4,7 @@ using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Wabbajack.Common;
 
 namespace Wabbajack.Server
 {
@@ -11,6 +12,7 @@ namespace Wabbajack.Server
     {
         public static void Main(string[] args)
         {
+            Consts.IsServer = true;
             bool testMode = args.Contains("TESTMODE");
             CreateHostBuilder(args, testMode).Build().Run();
         }

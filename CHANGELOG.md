@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 2.3.0.0 - ???
+* Rewrote the file extraction routines. New code uses less memory, less disk space, and performs less thrashing on HDDs
+* Reworked IPS4 integration to reduce download failures
+
+
 #### Version - 2.2.2.0 - 8/31/2020
 * Route CDN requests through a reverse proxy to improve reliability
 
