@@ -86,18 +86,24 @@ namespace Wabbajack.Lib.Downloaders
             return cookies;
         }
         
-        public async Task<Wabbajack.Lib.Http.Client> GetAuthedClient()
+        public async Task<Http.Client> GetAuthedClient()
         {
             Helpers.Cookie[] cookies;
-            try
+            if (Consts.IsServer)
             {
-                cookies = await Utils.FromEncryptedJson<Helpers.Cookie[]>(_encryptedKeyName);
-                if (cookies != null)
-                    return Helpers.GetClient(cookies, SiteURL.ToString());
-            }
-            catch (FileNotFoundException) { }
+                try
+                {
+                    cookies = await Utils.FromEncryptedJson<Helpers.Cookie[]>(_encryptedKeyName);
+                    if (cookies != null)
+                        return Helpers.GetClient(cookies, SiteURL.ToString());
+                }
+                catch (FileNotFoundException) { }
 
-            cookies = await Utils.Log(new RequestSiteLogin(this)).Task;
+                cookies = await Utils.Log(new RequestSiteLogin(this)).Task;
+                return Helpers.GetClient(cookies, SiteURL.ToString());
+            }
+
+            cookies = await ClientAPI.GetAuthInfo<Helpers.Cookie[]>(_encryptedKeyName);
             return Helpers.GetClient(cookies, SiteURL.ToString());
         }
         

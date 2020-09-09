@@ -13,8 +13,9 @@ using System.Threading.Tasks;
 using Wabbajack.Common.Exceptions;
 using Wabbajack.Common.Serialization.Json;
 using Wabbajack.Lib.Downloaders;
- 
-namespace Wabbajack.Lib
+ using Wabbajack.Lib.LibCefHelpers;
+
+ namespace Wabbajack.Lib
 {
     public static class BuildServerStatus
     {
@@ -253,6 +254,13 @@ namespace Wabbajack.Lib
             {
                 return null;
             }
+        }
+
+        public static async Task<Helpers.Cookie[]> GetAuthInfo<T>(string key)
+        {
+            var client = await GetClient();
+            return await client.GetJsonAsync<Helpers.Cookie[]>(
+                $"{Consts.WabbajackBuildServerUri}site-integration/auth-info/{key}");
         }
     }
 }
