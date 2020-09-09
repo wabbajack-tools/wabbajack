@@ -329,6 +329,7 @@ namespace Wabbajack.Common
         {
             await using var fs = await Create();
             await data.CopyToAsync(fs);
+            await data.FlushAsync();
             if (disposeDataAfter) await data.DisposeAsync();
         }
 
