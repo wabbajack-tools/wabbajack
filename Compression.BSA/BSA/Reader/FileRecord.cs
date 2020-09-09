@@ -86,7 +86,7 @@ namespace Compression.BSA
 
             if (BSA.HeaderType == VersionType.SSE)
             {
-                if (Compressed)
+                if (Compressed && size.Size != size.OnDisk)
                 {
                     using var r = LZ4Stream.Decode(rdr.BaseStream);
                     await r.CopyToLimitAsync(output, size.Original).ConfigureAwait(false);
