@@ -252,12 +252,32 @@ namespace Wabbajack.Lib
                    .OfType<ArchiveMeta>()
                    .PMap(Queue, async directive =>
                    {
-                       Status($"Writing included .meta file {directive.To}");
-                       var outPath = DownloadFolder.Combine(directive.To);
-                       if (outPath.IsFile) await outPath.DeleteAsync();
-                       var bytes = await LoadBytesFromPath(directive.SourceDataID);
-                       await outPath.WriteAllBytesAsync(bytes);
+                       Status($"Writing .meta file {directive.To}");
+                       foreach (var archive in ModList.Archives)
+                       {
+                           if (HashedArchives.TryGetValue(archive.Hash, out var paths))
+                           {
+                               var metaPath = paths.WithExtension(Consts.MetaFileExtension);
+                               if (!metaPath.Exists)
+                               {
+                                   var meta = AddInstalled(archive.State.GetMetaIni()).ToArray();
+                                   await metaPath.WriteAllLinesAsync(meta);
+                               }
+                           }
+                       } 
                    });
+        }
+
+        private IEnumerable<string> AddInstalled(string[] getMetaIni)
+        {
+            foreach (var f in getMetaIni)
+            {
+                yield return f;
+                if (f == "[General]")
+                {
+                    yield return "installed=true";
+                }
+            }
         }
 
         private async ValueTask ValidateGameESMs()
