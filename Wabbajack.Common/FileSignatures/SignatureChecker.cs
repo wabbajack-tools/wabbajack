@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -21,9 +22,14 @@ namespace Wabbajack.Common.FileSignatures
         public async Task<Definitions.FileType?> MatchesAsync(AbsolutePath path)
         {
             await using var fs = await path.OpenShared();
+            return await MatchesAsync(fs);
+        }
+        
+        public async Task<Definitions.FileType?> MatchesAsync(Stream stream)
+        {
             var buffer = new byte[_maxLength];
-            fs.Position = 0;
-            await fs.ReadAsync(buffer);
+            stream.Position = 0;
+            await stream.ReadAsync(buffer);
 
             foreach (var (fileType, signature) in _signatures)
             {

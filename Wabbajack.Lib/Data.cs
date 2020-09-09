@@ -161,6 +161,9 @@ namespace Wabbajack.Lib
         ///     Data that will be written as-is to the destination location;
         /// </summary>
         public RelativePath SourceDataID { get; set; }
+
+        [JsonIgnore]
+        public VirtualFile? SourceDataFile { get; set; }
     }
 
     [JsonName("ArchiveMeta")]

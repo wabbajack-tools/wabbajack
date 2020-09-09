@@ -4,6 +4,7 @@
       <TargetFramework>netstandard2.1</TargetFramework>
       <Platforms>x64</Platforms>
       <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       <DocumentationFile>Wabbajack.VirtualFileSystem.xml</DocumentationFile>
@@ -16,7 +17,8 @@
       <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
       <PackageReference Include="K4os.Hash.Crc" Version="1.1.4" />
       <PackageReference Include="OMODFramework" Version="2.0.1" />
-      <PackageReference Include="System.Collections.Immutable" Version="5.0.0-preview.8.20407.11" />
+      <PackageReference Include="SharpCompress" Version="0.26.0" />
+      <PackageReference Include="System.Collections.Immutable" Version="5.0.0-preview.6.20305.11" />
     </ItemGroup>
     <ItemGroup>
       <None Update="Extractors\7z.dll">
@@ -28,5 +30,8 @@
       <None Update="Extractors\innounp.exe">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Extractors\OMOD" />
     </ItemGroup>
 </Project>

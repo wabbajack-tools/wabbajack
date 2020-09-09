@@ -50,7 +50,7 @@ namespace Wabbajack.Common
             await patch.CopyToAsync(output);
         }
 
-        public static async Task<long> CreatePatchCached(Stream srcStream, Hash srcHash, FileStream destStream, Hash destHash,
+        public static async Task<long> CreatePatchCached(Stream srcStream, Hash srcHash, Stream destStream, Hash destHash,
             Stream? patchOutStream = null)
         {
             var key = PatchKey(srcHash, destHash);
@@ -128,7 +128,7 @@ namespace Wabbajack.Common
         public static Task CreatePatchCached(byte[] a, byte[] b, Stream output) =>
             PatchCache.CreatePatchCached(a, b, output);
 
-        public static Task<long> CreatePatchCached(Stream srcStream, Hash srcHash, FileStream destStream, Hash destHash, Stream? patchOutStream = null) =>
+        public static Task<long> CreatePatchCached(Stream srcStream, Hash srcHash, Stream destStream, Hash destHash, Stream? patchOutStream = null) =>
             PatchCache.CreatePatchCached(srcStream, srcHash, destStream, destHash, patchOutStream);
 
         public static bool TryGetPatch(Hash foundHash, Hash fileHash, [MaybeNullWhen(false)] out byte[] ePatch) =>

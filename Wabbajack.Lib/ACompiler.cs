@@ -101,11 +101,17 @@ namespace Wabbajack.Lib
             return id;
         }
         
-        internal async Task<RelativePath> IncludeFile(AbsolutePath data)
+        internal async Task<RelativePath> IncludeFile(Stream data)
         {
             var id = IncludeId();
-            await data.CopyToAsync(ModListOutputFolder.Combine(id));
+            await ModListOutputFolder.Combine(id).WriteAllAsync(data);
             return id;
+        }
+        
+        internal async Task<RelativePath> IncludeFile(AbsolutePath data)
+        {
+            await using var stream = await data.OpenRead();
+            return await IncludeFile(stream);
         }
 
         
@@ -301,6 +307,28 @@ namespace Wabbajack.Lib
                 }
             }
         }
+
+        protected async Task InlineFiles()
+        {
+            var grouped = ModList.Directives.OfType<InlineFile>()
+                .Where(f => f.SourceDataID == default)
+                .GroupBy(f => f.SourceDataFile)
+                .ToDictionary(f => f.Key);
+
+            if (grouped.Count == 0) return;
+            await VFS.Extract(Queue, grouped.Keys.ToHashSet(), async (vf, sfn) =>
+            {
+                await using var stream = await sfn.GetStream();
+                var id = await IncludeFile(stream);
+                foreach (var file in grouped[vf])
+                {
+                    file.SourceDataID = id;
+                    file.SourceDataFile = null;
+                }
+
+            });
+        }
+
 
         public bool CheckForNoMatchExit(ICollection<NoMatch> noMatches)
         {

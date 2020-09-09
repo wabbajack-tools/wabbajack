@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Wabbajack.Lib\Wabbajack.Lib.csproj" />
     <ProjectReference Include="..\Wabbajack.VirtualFileSystem\Wabbajack.VirtualFileSystem.csproj" />
   </ItemGroup>
 

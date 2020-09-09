@@ -307,6 +307,8 @@ namespace Wabbajack.Common.FileSignatures {
           RA,
           RAM,
           RAR,
+          RAR_NEW,
+          RAR_OLD,
           RBI,
           RDATA,
           REG,
@@ -442,6 +444,12 @@ namespace Wabbajack.Common.FileSignatures {
 
                 // Relaxed RAR format
         (FileType.RAR, new byte[] {0x52, 0x61, 0x72, 0x21}),
+
+                // RAR5 or newer
+        (FileType.RAR_NEW, new byte[] {0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00}),
+
+                // RAR4 or older
+        (FileType.RAR_OLD, new byte[] {0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x00}),
 
                 // JPEG2000 image files
         (FileType.JP2, new byte[] {0x00, 0x00, 0x00, 0x0C, 0x6A, 0x50, 0x20, 0x20}),

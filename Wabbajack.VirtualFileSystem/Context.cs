@@ -71,7 +71,7 @@ namespace Wabbajack.VirtualFileSystem
                                         return found;
                                 }
 
-                                return await VirtualFile.Analyze(this, null, new RootDiskFile(f), f, 0);
+                                return await VirtualFile.Analyze(this, null, new NativeFileStreamFactory(f), f, 0);
                             });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
@@ -103,7 +103,7 @@ namespace Wabbajack.VirtualFileSystem
                             return found;
                     }
 
-                    return await VirtualFile.Analyze(this, null, new RootDiskFile(f), f, 0);
+                    return await VirtualFile.Analyze(this, null, new NativeFileStreamFactory(f), f, 0);
                 });
 
             var newIndex = await IndexRoot.Empty.Integrate(filtered.Concat(allFiles).ToList());
@@ -196,42 +196,39 @@ namespace Wabbajack.VirtualFileSystem
             }
         }
 
-        public async Task<Func<Task>> Stage(IEnumerable<VirtualFile> files)
+        /// <summary>
+        /// Extract the set of files and call the callback for each, handing it a stream factory and the virtual file,
+        /// top level archives (native archives) will be processed in parallel. Duplicate files will not be 
+        /// </summary>
+        /// <param name="files"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        public async Task Extract(WorkQueue queue, HashSet<VirtualFile> files, Func<VirtualFile, IStreamFactory, ValueTask> callback)
         {
-            await _cleanupTask;
-
-            var grouped = files.SelectMany(f => f.FilesInFullPath)
+            var top = new VirtualFile();
+            var filesByParent = files.SelectMany(f => f.FilesInFullPath)
                 .Distinct()
-                .Where(f => f.Parent != null)
-                .GroupBy(f => f.Parent)
-                .OrderBy(f => f.Key?.NestingFactor ?? 0)
-                .ToList();
+                .GroupBy(f => f.Parent ?? top)
+                .ToDictionary(f => f.Key);
 
-            var paths = new List<IAsyncDisposable>();
-
-            foreach (var group in grouped)
+            async Task HandleFile(VirtualFile file, IStreamFactory sfn)
             {
-                var only = group.Select(f => f.RelativeName);
-                var extracted = await group.Key.StagedFile.ExtractAll(Queue, only);
-                paths.Add(extracted);
-                foreach (var file in group)
-                    file.StagedFile = extracted[file.RelativeName];
-            }
-
-            return async () =>
-            {
-                foreach (var p in paths)
+                if (files.Contains(file)) await callback(file, sfn);
+                if (filesByParent.TryGetValue(file, out var children))
                 {
-                    await p.DisposeAsync();
+                    var fileNames = children.ToDictionary(c => c.RelativeName);
+                    await FileExtractor2.GatheringExtract(sfn,
+                        r => fileNames.ContainsKey(r),
+                        async (rel, csf) =>
+                        {
+                            await HandleFile(fileNames[rel], csf);
+                            return 0;
+                        });
                 }
-            };
-        }
 
-        public async Task<AsyncDisposableList<VirtualFile>> StageWith(IEnumerable<VirtualFile> files)
-        {
-            return new AsyncDisposableList<VirtualFile>(await Stage(files), files);
+            }
+            await filesByParent[top].PMap(queue, async file => await HandleFile(file, new NativeFileStreamFactory(file.AbsoluteName)));
         }
-
 
         #region KnownFiles
 

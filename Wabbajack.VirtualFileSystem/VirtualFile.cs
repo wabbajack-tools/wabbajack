@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using K4os.Hash.Crc;
 using RocksDbSharp;
 using Wabbajack.Common;
@@ -47,23 +48,6 @@ namespace Wabbajack.VirtualFileSystem
         public VirtualFile Parent { get; internal set; }
 
         public Context Context { get; set; }
-
-        private IExtractedFile _stagedFile = null;
-        public IExtractedFile StagedFile  
-        {
-            get
-            {
-                if (IsNative) return new ExtractedDiskFile(AbsoluteName);
-                if (_stagedFile == null)
-                    throw new InvalidDataException("File is unstaged");
-                return _stagedFile;
-            }
-            set
-            {
-                _stagedFile = value;
-            }
-            
-        }
 
         /// <summary>
         ///     Returns the nesting factor for this file. Native files will have a nesting of 1, the factor
@@ -141,7 +125,7 @@ namespace Wabbajack.VirtualFileSystem
                 itm.ThisAndAllChildrenReduced(fn);
         }
         
-        private static VirtualFile ConvertFromIndexedFile(Context context, IndexedVirtualFile file, IPath path, VirtualFile vparent, IExtractedFile extractedFile)
+        private static VirtualFile ConvertFromIndexedFile(Context context, IndexedVirtualFile file, IPath path, VirtualFile vparent, IStreamFactory extractedFile)
         {
             var vself = new VirtualFile
             {
@@ -161,7 +145,7 @@ namespace Wabbajack.VirtualFileSystem
             return vself;
         }
 
-        private static bool TryGetFromCache(Context context, VirtualFile parent, IPath path, IExtractedFile extractedFile, Hash hash, out VirtualFile found)
+        private static bool TryGetFromCache(Context context, VirtualFile parent, IPath path, IStreamFactory extractedFile, Hash hash, out VirtualFile found)
         {
             var result = _vfsCache.Get(hash.ToArray());
             if (result == null)
@@ -190,34 +174,25 @@ namespace Wabbajack.VirtualFileSystem
         }
 
 
-        public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, IExtractedFile extractedFile,
+        public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, IStreamFactory extractedFile,
             IPath relPath, int depth = 0)
         {
-            var hash = await extractedFile.HashAsync();
+            await using var stream = await extractedFile.GetStream();
+            var hash = await stream.xxHashAsync();
+            stream.Position = 0;
 
-            if (!context.UseExtendedHashes && FileExtractor.MightBeArchive(relPath.FileName.Extension))
-            {
-                // Disabled because it isn't enabled on the server
-                IndexedVirtualFile result = null; //await TryGetContentsFromServer(hash);
-
-                if (result != null)
-                {
-                    Utils.Log($"Downloaded VFS data for {relPath.FileName}");
-
-
-                    return ConvertFromIndexedFile(context, result, relPath, parent, extractedFile);
-                }
-            }
-
-            if (TryGetFromCache(context, parent, relPath, extractedFile, hash, out var vself))
+            var sig = await FileExtractor2.ArchiveSigs.MatchesAsync(stream);
+            stream.Position = 0;
+            
+            if (sig.HasValue && TryGetFromCache(context, parent, relPath, extractedFile, hash, out var vself))
                 return vself;
-
+            
             var self = new VirtualFile
             {
                 Context = context,
                 Name = relPath,
                 Parent = parent,
-                Size = extractedFile.Size,
+                Size = stream.Length,
                 LastModified = extractedFile.LastModifiedUtc.AsUnixTime(),
                 LastAnalyzed = DateTime.Now.AsUnixTime(),
                 Hash = hash
@@ -226,20 +201,23 @@ namespace Wabbajack.VirtualFileSystem
             self.FillFullPath(depth);
             
             if (context.UseExtendedHashes)
-                self.ExtendedHashes = await ExtendedHashes.FromFile(extractedFile);
+                self.ExtendedHashes = await ExtendedHashes.FromStream(stream);
 
-            if (!await extractedFile.CanExtract()) return self;
+            // Can't extract, so return
+            if (!sig.HasValue) return self;
 
             try
             {
 
-                await using var extracted = await extractedFile.ExtractAll(context.Queue, throwOnError:false);
+                var list = await FileExtractor2.GatheringExtract(extractedFile,
+                    _ => true,
+                    async (path, sfactory) => await Analyze(context, self, sfactory, path, depth + 1));
 
-                var list = await extracted
-                    .PMap(context.Queue,
-                        file => Analyze(context, self, file.Value, file.Key, depth + 1));
-
-                self.Children = list.ToImmutableList();
+                self.Children = list.Values.ToImmutableList();
+            }
+            catch (EndOfStreamException ex)
+            {
+                return self;
             }
             catch (Exception ex)
             {
@@ -391,11 +369,6 @@ namespace Wabbajack.VirtualFileSystem
             var path = new HashRelativePath(FilesInFullPath.First().Hash, paths);
             return path;
         }
-
-        public async ValueTask<Stream> OpenRead()
-        {
-            return await StagedFile.OpenRead();
-        }
     }
 
     public class ExtendedHashes
@@ -405,10 +378,10 @@ namespace Wabbajack.VirtualFileSystem
         public string MD5 { get; set; }
         public string CRC { get; set; }
 
-        public static async ValueTask<ExtendedHashes> FromFile(IExtractedFile file)
+        public static async ValueTask<ExtendedHashes> FromStream(Stream stream)
         {
             var hashes = new ExtendedHashes();
-            await using var stream = await file.OpenRead();
+            stream.Position = 0;
             hashes.SHA256 = System.Security.Cryptography.SHA256.Create().ComputeHash(stream).ToHex();
             stream.Position = 0;
             hashes.SHA1 = System.Security.Cryptography.SHA1.Create().ComputeHash(stream).ToHex();

@@ -110,9 +110,8 @@ namespace Wabbajack.Test
             var destFile = utils.DownloadsFolder.Combine(filename);
             await src.CopyToAsync(destFile);
 
-            await using var dest = await FileExtractor.ExtractAll(Queue, src);
             var modFolder = modName == null ? utils.MO2Folder : utils.ModsFolder.Combine(modName);
-            await dest.MoveAllTo(modFolder);
+            await FileExtractor2.ExtractAll(src, modFolder);
             return (destFile, modFolder);
         }
 
@@ -147,9 +146,8 @@ namespace Wabbajack.Test
             await src.CopyToAsync(dest);
 
             var modFolder = utils.ModsFolder.Combine(modName);
-            await using var files = await FileExtractor.ExtractAll(Queue, src);
-            await files.MoveAllTo(modFolder);
-
+            await FileExtractor2.ExtractAll(src, modFolder);
+            
             await dest.WithExtension(Consts.MetaFileExtension).WriteAllTextAsync(ini);
             return (dest, modFolder);
         }

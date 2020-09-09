@@ -17,15 +17,15 @@ namespace Compression.BSA
         private uint _fileCount;
         private TES3FileEntry[] _files;
         internal long _dataOffset;
-        internal AbsolutePath _filename;
+        public IStreamFactory _streamFactory;
 
-        public static async ValueTask<TES3Reader> Load(AbsolutePath filename)
+        public static async ValueTask<TES3Reader> Load(IStreamFactory factory)
         {
-            await using var fs = await filename.OpenRead();
+            await using var fs = await factory.GetStream();
             using var br = new BinaryReader(fs);
             var rdr = new TES3Reader
             {
-                _filename = filename,
+                _streamFactory = factory,
                 _versionNumber = br.ReadUInt32(),
                 _hashTableOffset = br.ReadUInt32(),
                 _fileCount = br.ReadUInt32()
@@ -125,15 +125,26 @@ namespace Compression.BSA
 
         public async ValueTask CopyDataTo(Stream output)
         {
-            await using var fs = await Archive._filename.OpenRead();
+            await using var fs = await Archive._streamFactory.GetStream();
             fs.Position = Archive._dataOffset + Offset;
             await fs.CopyToLimitAsync(output, (int)Size);
         }
 
+        public async ValueTask<IStreamFactory> GetStreamFactory()
+        {
+            var ms = new MemoryStream();
+            await CopyDataTo(ms);
+            ms.Position = 0;
+            return new MemoryStreamFactory(ms, Path);
+        }
+
+
+        
         public void Dump(Action<string> print)
         {
             throw new NotImplementedException();
         }
+
 
         public uint Offset { get; set; }
         public uint NameOffset { get; set; }

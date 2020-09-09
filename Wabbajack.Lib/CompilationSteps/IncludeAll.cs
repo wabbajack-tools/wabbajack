@@ -14,8 +14,7 @@ namespace Wabbajack.Lib.CompilationSteps
         public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
             var inline = source.EvolveTo<InlineFile>();
-            await using var file = await source.File.StagedFile.OpenRead();
-            inline.SourceDataID = await _compiler.IncludeFile(await file.ReadAllAsync());
+            inline.SourceDataFile = source.File;
             return inline;
         }
     }

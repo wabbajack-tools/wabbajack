@@ -74,7 +74,7 @@ namespace Compression.BSA
 
         public async ValueTask CopyDataTo(Stream output)
         {
-            await using var in_file = await BSA._fileName.OpenRead().ConfigureAwait(false);
+            await using var in_file = await BSA._streamFactory.GetStream().ConfigureAwait(false);
             using var rdr = new BinaryReader(in_file);
             rdr.BaseStream.Position = Offset;
 
@@ -164,6 +164,14 @@ namespace Compression.BSA
             print($"Offset: {Offset}");
             print($"Raw Size: {RawSize}");
             print($"Index: {_index}");
+        }
+
+        public async ValueTask<IStreamFactory> GetStreamFactory()
+        {
+            var ms = new MemoryStream();
+            await CopyDataTo(ms);
+            ms.Position = 0;
+            return new MemoryStreamFactory(ms, Path);
         }
     }
 }
