@@ -18,7 +18,17 @@ namespace Wabbajack.VirtualFileSystem.Test
         public FileExtractorTests(ITestOutputHelper helper)
         {
             _helper = helper;
-            _unsub = Utils.LogMessages.Subscribe(f => _helper.WriteLine(f.ShortDescription));
+            _unsub = Utils.LogMessages.Subscribe(f =>
+            {
+                try
+                {
+                    _helper.WriteLine(f.ShortDescription);
+                }
+                catch (Exception _)
+                {
+                    // ignored
+                }
+            });
         }
 
         public async Task InitializeAsync()
