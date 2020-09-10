@@ -87,8 +87,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="Resources\GameGridIcons\Fallout4.png" />
-    <Resource Include="Resources\GameGridIcons\SkyrimSpecialEdition.png" />
     <Resource Include="Resources\middle_mouse_button.png" />
     <Resource Include="Resources\MO2Button.png" />
     <Resource Include="Resources\VortexButton.png" />

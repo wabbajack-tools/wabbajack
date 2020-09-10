@@ -39,8 +39,6 @@ namespace Wabbajack.Lib.Downloaders
             typeof(DeadlyStreamDownloader.State),
             typeof(TESAllianceDownloader.State),
             typeof(TESAllDownloader.State),
-            typeof(BethesdaNetDownloader.State),
-            typeof(YouTubeDownloader.State),
             typeof(YandexDownloader.State),
             typeof(WabbajackCDNDownloader.State)
         };

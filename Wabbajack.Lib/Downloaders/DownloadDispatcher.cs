@@ -24,10 +24,8 @@ namespace Wabbajack.Lib.Downloaders
             new LoversLabDownloader(),
             new VectorPlexusDownloader(),
             new DeadlyStreamDownloader(),
-            new BethesdaNetDownloader(),
             new TESAllianceDownloader(),
             new TESAllDownloader(),
-            new YouTubeDownloader(),
             new WabbajackCDNDownloader(),
             new YandexDownloader(),
             new HTTPDownloader(),
@@ -36,8 +34,6 @@ namespace Wabbajack.Lib.Downloaders
 
         public static readonly List<IUrlInferencer> Inferencers = new List<IUrlInferencer>()
         {
-            new BethesdaNetInferencer(),
-            new YoutubeInferencer(),
             new WabbajackCDNInfluencer()
         };
 

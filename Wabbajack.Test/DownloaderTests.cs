@@ -485,63 +485,6 @@ namespace Wabbajack.Test
             Consts.TestMode = true;
         }
         
-        /* Disabled, will be removed in the future
-        [Fact]
-        public async Task BethesdaNetDownload()
-        {
-
-            var downloader = DownloadDispatcher.GetInstance<BethesdaNetDownloader>();
-            Assert.True(await downloader.IsLoggedIn.FirstAsync());
-
-            var ini = $@"[General]
-                              directURL=https://bethesda.net/en/mods/skyrim/mod-detail/4145641";
-
-            await using var filename = new TempFile();
-            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
-            Assert.NotNull(state);
-
-            var converted = state.ViaJSON();
-            Assert.True(await converted.Verify(new Archive(state: null!) { Name = "mod.ckm"}));
-
-            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
-
-            await converted.Download(new Archive(state: null!) { Name = "mod.zip" }, filename.Path);
-
-            await using var fs = await filename.Path.OpenRead();
-            using var archive = new ZipArchive(fs);
-            var entries = archive.Entries.Select(e => e.FullName).ToList();
-            Assert.Equal(entries, new List<string> {@"Data\TestCK.esp", @"Data\TestCK.ini"});
-        }*/ 
-        
-        /*
-        [Fact]
-        public async Task YoutubeDownloader()
-        {
-
-            var infered_ini = await DownloadDispatcher.Infer(new Uri("https://www.youtube.com/watch?v=4ceowgHn8BE"));
-            Assert.IsAssignableFrom<YouTubeDownloader.State>(infered_ini);
-            Assert.Equal(15, ((YouTubeDownloader.State)infered_ini).Tracks.Count);
-            
-            var ini = string.Join("\n", infered_ini.GetMetaIni());
-            
-            var state = (YouTubeDownloader.State)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
-            Assert.Equal(15, state.Tracks.Count);
-            Assert.NotNull(state);
-
-            
-            
-            var converted = RoundTripState(state);
-            Assert.True(await converted.Verify(new Archive(state: null!) { Name = "yt_test.zip"}));
-
-            Assert.True(converted.IsWhitelisted(new ServerWhitelist { AllowedPrefixes = new List<string>() }));
-
-            await using var tempFile = new TempFile();
-            await converted.Download(new Archive(state: null!) { Name = "yt_test.zip"}, tempFile.Path);
-            Assert.Equal(Hash.FromBase64("pD7UoVNY4o8="), await tempFile.Path.FileHashAsync());
-        }
-        */
-        
-        
         /// <summary>
         /// Tests that files from different sources don't overwrite eachother when downloaded by AInstaller
         /// </summary>
