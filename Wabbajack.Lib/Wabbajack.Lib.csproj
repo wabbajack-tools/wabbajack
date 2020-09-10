@@ -102,8 +102,4 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Downloaders\BethesdaNet" />
-      <Folder Include="Downloaders\Converters" />
-    </ItemGroup>
 </Project>
