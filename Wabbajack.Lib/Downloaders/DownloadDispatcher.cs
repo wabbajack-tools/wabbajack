@@ -126,10 +126,13 @@ namespace Wabbajack.Lib.Downloaders
             var result = await FindUpgrade(archive);
             if (result == default)
             {
-                Utils.Log(
-                    $"No solution for broken download {archive.Name} {archive.State.PrimaryKeyString} could be found");
-                return DownloadResult.Failure;
-
+                result = await AbstractDownloadState.ServerFindUpgrade(archive);
+                if (result == default)
+                {
+                    Utils.Log(
+                        $"No solution for broken download {archive.Name} {archive.State.PrimaryKeyString} could be found");
+                    return DownloadResult.Failure;
+                }
             }
 
             Utils.Log($"Looking for patch for {archive.Name} ({(long)archive.Hash} {archive.Hash.ToHex()} -> {(long)result.Archive!.Hash} {result.Archive!.Hash.ToHex()})");

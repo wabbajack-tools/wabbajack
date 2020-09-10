@@ -101,7 +101,7 @@ namespace Wabbajack.Lib.Downloaders
             return string.Join("\n", GetMetaIni());
         }
 
-        public async Task<(Archive? Archive, TempFile NewFile)> ServerFindUpgrade(Archive a)
+        public static async Task<(Archive? Archive, TempFile NewFile)> ServerFindUpgrade(Archive a)
         {
             var alternatives = await ClientAPI.GetModUpgrades(a.Hash);
             if (alternatives == default)
