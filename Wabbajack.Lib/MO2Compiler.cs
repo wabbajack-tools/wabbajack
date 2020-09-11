@@ -31,11 +31,8 @@ namespace Wabbajack.Lib
         public override AbsolutePath GamePath { get; }
 
         public GameMetaData CompilingGame { get; }
-        
-        /// <summary>
-        /// All games available for sourcing during compilation (including the Compiling Game)
-        /// </summary>
-        public List<Game> AvailableGames { get; }
+     
+        public CompilerSettings Settings { get; set; }
 
         public override AbsolutePath ModListOutputFolder => ((RelativePath)"output_folder").RelativeToEntryPoint();
 
@@ -66,8 +63,7 @@ namespace Wabbajack.Lib
             CompilingGame = GameRegistry.Games.First(g => g.Value.MO2Name == mo2game).Value;
             GamePath = new AbsolutePath((string)MO2Ini.General.gamePath.Replace("\\\\", "\\"));
             ModListOutputFile = outputFile;
-
-            AvailableGames = CompilingGame.CanSourceFrom.Cons(CompilingGame.Game).Where(g => g.MetaData().IsInstalled).ToList();
+            Settings = new CompilerSettings();
         }
 
         public AbsolutePath MO2DownloadsFolder
@@ -91,6 +87,11 @@ namespace Wabbajack.Lib
             Queue.SetActiveThreadsObservable(ConstructDynamicNumThreads(await RecommendQueueSize()));
             UpdateTracker.Reset();
             UpdateTracker.NextStep("Gathering information");
+
+            Utils.Log($"Loading compiler Settings");
+            Settings = await CompilerSettings.Load(MO2ProfileDir);
+            Settings.IncludedGames = Settings.IncludedGames.Add(CompilingGame.Game);
+            
             Info("Looking for other profiles");
             var otherProfilesPath = MO2ProfileDir.Combine("otherprofiles.txt");
             SelectedProfiles = new HashSet<string>();
@@ -121,7 +122,7 @@ namespace Wabbajack.Lib
                 {
                     MO2Folder, GamePath, MO2DownloadsFolder
                 };
-                roots.AddRange(AvailableGames.Select(g => g.MetaData().GameLocation()));
+                roots.AddRange(Settings.IncludedGames.Select(g => g.MetaData().GameLocation()));
             }
             else
             {
@@ -206,7 +207,7 @@ namespace Wabbajack.Lib
 
             if (UseGamePaths)
             {
-                foreach (var ag in AvailableGames)
+                foreach (var ag in Settings.IncludedGames)
                 {
                     try
                     {

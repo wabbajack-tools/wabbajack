@@ -783,6 +783,14 @@ namespace Wabbajack.Common
                 .Build();
             return d.Deserialize<T>(new StringReader(s));
         }
+        
+        public static T FromYaml<T>(this AbsolutePath s)
+        {
+            var d = new DeserializerBuilder()
+                .WithNamingConvention(PascalCaseNamingConvention.Instance)
+                .Build();
+            return d.Deserialize<T>(new StringReader((string)s));
+        }
         public static void LogStatus(string s)
         {
             Status(s);

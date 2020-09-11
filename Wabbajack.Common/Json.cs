@@ -51,18 +51,18 @@ namespace Wabbajack.Common
             File.WriteAllText(filename, JsonConvert.SerializeObject(obj, Formatting.Indented, JsonSettings));
         }
         
-        public static void ToJson<T>(this T obj, Stream stream)
+        public static void ToJson<T>(this T obj, Stream stream, bool useGenericSettings = false)
         {
             using var tw = new StreamWriter(stream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
             using var writer = new JsonTextWriter(tw);
-            var ser = JsonSerializer.Create(JsonSettings);
+            var ser = JsonSerializer.Create(useGenericSettings ? GenericJsonSettings : JsonSettings);
             ser.Serialize(writer, obj);
         }
         
-        public static async ValueTask ToJsonAsync<T>(this T obj, AbsolutePath path)
+        public static async ValueTask ToJsonAsync<T>(this T obj, AbsolutePath path, bool useGenericSettings = false)
         {
             await using var fs = await path.Create();
-            obj.ToJson(fs);
+            obj.ToJson(fs, useGenericSettings);
         }
 
         public static string ToJson<T>(this T obj, bool useGenericSettings = false)
