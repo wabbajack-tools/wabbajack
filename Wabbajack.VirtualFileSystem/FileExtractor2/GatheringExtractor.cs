@@ -25,7 +25,6 @@ namespace Wabbajack.VirtualFileSystem
 
         public GatheringExtractor(Stream stream, Definitions.FileType sig, Predicate<RelativePath> shouldExtract, Func<RelativePath,IStreamFactory, ValueTask<T>> mapfn)
         {
-            
             _shouldExtract = shouldExtract;
             _mapFn = mapfn;
             _results = new Dictionary<RelativePath, T>();
@@ -89,6 +88,14 @@ namespace Wabbajack.VirtualFileSystem
         {
             if (_indexes.ContainsKey(index))
             {
+                var path = _indexes[index].Item1;
+                Utils.Status($"Extracting {path}", Percent.FactoryPutInRange(_results.Count, _indexes.Count));
+                // Empty files are never extracted via a write call, so we have to fake that now
+                if (_indexes[index].Item2 == 0)
+                {
+                    var result = _mapFn(path, new MemoryStreamFactory(new MemoryStream(), path)).Result;
+                    _results.Add(path, result);
+                }
                 outStream =  new GatheringExtractorStream<T>(this, index);
                 return 0;
             }

@@ -55,12 +55,41 @@ namespace Wabbajack.VirtualFileSystem.Test
             var results = await FileExtractor2.GatheringExtract(new NativeFileStreamFactory(archive.Path), 
                 _ => true,
                 async (path, sfn) =>
-            {
-                await using var s = await sfn.GetStream();
-                return await s.xxHashAsync();
-            });
+                {
+                    await using var s = await sfn.GetStream();
+                    return await s.xxHashAsync();
+                });
             
             Assert.Equal(10, results.Count);
+            foreach (var (path, hash) in results)
+            {
+                Assert.Equal(await temp.Dir.Combine(path).FileHashAsync(), hash);
+            }
+        }
+        
+        [Fact]
+        public async Task CanExtractEmptyFiles()
+        {
+            await using var temp = await TempFolder.Create();
+            await using var archive = new TempFile();
+            
+            for (int i = 0; i < 1; i ++)
+            {
+                await WriteRandomData(temp.Dir.Combine($"{i}.bin"), _rng.Next(10, 1024));
+            }
+            await (await temp.Dir.Combine("empty.txt").Create()).DisposeAsync();
+
+            await ZipUpFolder(temp.Dir, archive.Path, false);
+            
+            var results = await FileExtractor2.GatheringExtract(new NativeFileStreamFactory(archive.Path), 
+                _ => true,
+                async (path, sfn) =>
+                {
+                    await using var s = await sfn.GetStream();
+                    return await s.xxHashAsync();
+                });
+            
+            Assert.Equal(2, results.Count);
             foreach (var (path, hash) in results)
             {
                 Assert.Equal(await temp.Dir.Combine(path).FileHashAsync(), hash);

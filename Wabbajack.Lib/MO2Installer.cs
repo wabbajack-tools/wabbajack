@@ -248,23 +248,19 @@ namespace Wabbajack.Lib
 
         private async Task InstallIncludedDownloadMetas()
         {
-            await ModList.Directives
-                   .OfType<ArchiveMeta>()
-                   .PMap(Queue, async directive =>
+            await ModList.Archives
+                   .PMap(Queue, async archive =>
                    {
-                       Status($"Writing .meta file {directive.To}");
-                       foreach (var archive in ModList.Archives)
+                       if (HashedArchives.TryGetValue(archive.Hash, out var paths))
                        {
-                           if (HashedArchives.TryGetValue(archive.Hash, out var paths))
+                           var metaPath = paths.WithExtension(Consts.MetaFileExtension);
+                           if (!metaPath.Exists)
                            {
-                               var metaPath = paths.WithExtension(Consts.MetaFileExtension);
-                               if (!metaPath.Exists)
-                               {
-                                   var meta = AddInstalled(archive.State.GetMetaIni()).ToArray();
-                                   await metaPath.WriteAllLinesAsync(meta);
-                               }
+                               Status($"Writing {metaPath.FileName}");
+                               var meta = AddInstalled(archive.State.GetMetaIni()).ToArray();
+                               await metaPath.WriteAllLinesAsync(meta);
                            }
-                       } 
+                       }
                    });
         }
 
