@@ -83,7 +83,7 @@ namespace Wabbajack.VirtualFileSystem
         {
             var entry = _archive.GetEntry(index);
             var path = (RelativePath)entry.FileName;
-            if (!_shouldExtract(path))
+            if (entry.IsFolder || !_shouldExtract(path))
             {
                 outStream = null;
                 return 0;
