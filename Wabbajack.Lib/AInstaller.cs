@@ -334,7 +334,6 @@ namespace Wabbajack.Lib
                 .PMap(Queue, UpdateTracker, async f =>
                 {
                     var relativeTo = f.RelativeTo(OutputFolder);
-                    Utils.Status($"Checking if ModList file {relativeTo}");
                     if (indexed.ContainsKey(relativeTo) || f.InFolder(DownloadFolder))
                         return;
 
@@ -378,17 +377,19 @@ namespace Wabbajack.Lib
                 Utils.Log("Error when trying to clean empty folders. This doesn't really matter.");
             }
 
+            var existingfiles = OutputFolder.EnumerateFiles().ToHashSet();
+            
             UpdateTracker.NextStep("Looking for unmodified files");
             (await indexed.Values.PMap(Queue, UpdateTracker, async d =>
             {
                 // Bit backwards, but we want to return null for 
                 // all files we *want* installed. We return the files
                 // to remove from the install list.
-                Status($"Optimizing {d.To}");
                 var path = OutputFolder.Combine(d.To);
-                if (!path.Exists) return null;
+                if (!existingfiles.Contains(path)) return null;
 
                 if (path.Size != d.Size) return null;
+                Status($"Optimizing {d.To}");
                 
                 return await path.FileHashCachedAsync() == d.Hash ? d : null;
             }))

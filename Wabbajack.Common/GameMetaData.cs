@@ -4,10 +4,13 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using Wabbajack.Common.StoreHandlers;
 
 namespace Wabbajack.Common
 {
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum Game 
     {
         //MO2 GAMES

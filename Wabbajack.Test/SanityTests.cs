@@ -508,6 +508,11 @@ namespace Wabbajack.Test
             var profile = utils.AddProfile();
             var mod = await utils.AddMod();
 
+            await new CompilerSettings()
+            {
+                IncludedGames = new []{Game.Morrowind}
+            }.ToJsonAsync(utils.MO2Folder.Combine("profiles", profile, CompilerSettings.FileName), true);
+
             Game.SkyrimSpecialEdition.MetaData().CanSourceFrom = new[] {Game.Morrowind, Game.Skyrim};
             
             // Morrowind file with different name
