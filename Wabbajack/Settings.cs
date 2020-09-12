@@ -113,26 +113,28 @@ namespace Wabbajack
     [JsonObject(MemberSerialization.OptOut)]
     public class PerformanceSettings : ViewModel
     {
-        private bool _manual;
-        public bool Manual { get => _manual; set => RaiseAndSetIfChanged(ref _manual, value); }
-
-        private byte _maxCores = byte.MaxValue;
-        public byte MaxCores { get => _maxCores; set => RaiseAndSetIfChanged(ref _maxCores, value); }
-
-        private Percent _targetUsage = Percent.One;
-        public Percent TargetUsage { get => _targetUsage; set => RaiseAndSetIfChanged(ref _targetUsage, value); }
-
-        public void AttachToBatchProcessor(ABatchProcessor processor)
+        public PerformanceSettings()
         {
-            processor.Add(
-                this.WhenAny(x => x.Manual)
-                    .Subscribe(processor.ManualCoreLimit));
-            processor.Add(
-                this.WhenAny(x => x.MaxCores)
-                    .Subscribe(processor.MaxCores));
-            processor.Add(
-                this.WhenAny(x => x.TargetUsage)
-                    .Subscribe(processor.TargetUsagePercent));
+            _favorPerfOverRam = false;
+            _diskThreads = Environment.ProcessorCount;
+            _downloadThreads = Environment.ProcessorCount;
+        }
+
+        private int _downloadThreads;
+        public int DownloadThreads { get => _downloadThreads; set => RaiseAndSetIfChanged(ref _downloadThreads, value); }
+        
+        private int _diskThreads;
+        public int DiskThreads { get => _diskThreads; set => RaiseAndSetIfChanged(ref _diskThreads, value); }
+        
+        private bool _favorPerfOverRam;
+        public bool FavorPerfOverRam { get => _favorPerfOverRam; set => RaiseAndSetIfChanged(ref _favorPerfOverRam, value); }
+
+
+        public void SetProcessorSettings(ABatchProcessor processor)
+        {
+            processor.DownloadThreads = DownloadThreads;
+            processor.DiskThreads = DiskThreads;
+            processor.FavorPerfOverRam = FavorPerfOverRam;
         }
     }
 

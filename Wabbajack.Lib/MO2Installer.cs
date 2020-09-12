@@ -22,6 +22,7 @@ using File = Alphaleonis.Win32.Filesystem.File;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 using SectionData = Wabbajack.Common.SectionData;
 using System.Collections.Generic;
+using Wabbajack.VirtualFileSystem;
 
 namespace Wabbajack.Lib
 {
@@ -55,7 +56,8 @@ namespace Wabbajack.Lib
             await Metrics.Send(Metrics.BeginInstall, ModList.Name);
             Utils.Log("Configuring Processor");
 
-            Queue.SetActiveThreadsObservable(ConstructDynamicNumThreads(await RecommendQueueSize()));
+            DesiredThreads.OnNext(DiskThreads);
+            FileExtractor2.FavorPerfOverRAM = FavorPerfOverRam;
 
             if (GameFolder == null)
                 GameFolder = Game.TryGetGameLocation();

@@ -569,7 +569,7 @@ namespace Wabbajack.Test
             public TestInstaller(AbsolutePath archive, ModList modList, AbsolutePath outputFolder, AbsolutePath downloadFolder, SystemParameters parameters)
                 : base(archive, modList, outputFolder, downloadFolder, parameters, steps: 1, modList.GameType)
             {
-                Queue.SetActiveThreadsObservable(Observable.Return(1));
+                DesiredThreads.OnNext(1);
             }
 
             protected override Task<bool> _Begin(CancellationToken cancel)

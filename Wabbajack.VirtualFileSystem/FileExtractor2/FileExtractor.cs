@@ -26,6 +26,12 @@ namespace Wabbajack.VirtualFileSystem
             Definitions.FileType._7Z);
         
         private static Extension OMODExtension = new Extension(".omod");
+        
+        /// <summary>
+        /// When true, will allow 7z to use multiple threads and cache more data in memory, potentially
+        /// using many GB of RAM during extraction but vastly reducing extraction times in the process.
+        /// </summary>
+        public static bool FavorPerfOverRAM { get; set; }
 
 
         public static async Task<Dictionary<RelativePath, T>> GatheringExtract<T>(IStreamFactory sFn,

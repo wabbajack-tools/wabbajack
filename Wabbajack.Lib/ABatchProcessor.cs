@@ -15,6 +15,10 @@ namespace Wabbajack.Lib
     {
         public WorkQueue Queue { get; } = new WorkQueue();
 
+        public int DownloadThreads { get; set; }
+        public int DiskThreads { get; set; }
+        public bool FavorPerfOverRam { get; set; }
+        
         public Context VFS { get; }
 
         protected StatusUpdateTracker UpdateTracker { get; }
@@ -51,6 +55,7 @@ namespace Wabbajack.Lib
         public BehaviorSubject<bool> ManualCoreLimit = new BehaviorSubject<bool>(true);
         public BehaviorSubject<byte> MaxCores = new BehaviorSubject<byte>(byte.MaxValue);
         public BehaviorSubject<Percent> TargetUsagePercent = new BehaviorSubject<Percent>(Percent.One);
+        public Subject<int> DesiredThreads { get; set; }
 
         public ABatchProcessor(int steps)
         {
@@ -62,8 +67,11 @@ namespace Wabbajack.Lib
                 .DisposeWith(_subs);
             UpdateTracker.Progress.Subscribe(_percentCompleted);
             UpdateTracker.StepName.Subscribe(_textStatus);
+            DesiredThreads = new Subject<int>();
+            Queue.SetActiveThreadsObservable(DesiredThreads);
         }
 
+        
         /// <summary>
         /// Gets the recommended maximum number of threads that should be used for the current machine.
         /// This will either run a heavy processing job to do the measurement in the current folder, or refer to caches.

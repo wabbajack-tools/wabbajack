@@ -157,7 +157,7 @@ namespace Wabbajack
                 parameters: SystemParametersConstructor.Create()))
             {
                 installer.UseCompression = Parent.MWVM.Settings.Filters.UseCompression;
-                Parent.MWVM.Settings.Performance.AttachToBatchProcessor(installer);
+                Parent.MWVM.Settings.Performance.SetProcessorSettings(installer);
 
                 return await Task.Run(async () =>
                 {

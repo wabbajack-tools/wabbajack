@@ -51,30 +51,9 @@ namespace Wabbajack
             InitializeComponent();
             this.WhenActivated(disposable =>
             {
-                Observable.CombineLatest(
-                        this.WhenAny(x => x.ControlGrid.IsMouseOver),
-                        this.WhenAny(x => x.SettingsHook.Performance.Manual)
-                            .StartWith(true),
-                        resultSelector: (over, manual) => over && !manual)
-                    .Select(showing => showing ? Visibility.Visible : Visibility.Collapsed)
-                    .BindToStrict(this, x => x.SettingsBar.Visibility)
-                    .DisposeWith(disposable);
-                
+               
                 this.WhenAny(x => x.ViewModel.StatusList)
                     .BindToStrict(this, x => x.CpuListControl.ItemsSource)
-                    .DisposeWith(disposable);
-
-                this.BindStrict(
-                        this.ViewModel,
-                        x => x.MWVM.Settings.Performance.TargetUsage,
-                        x => x.TargetPercentageSlider.Value,
-                        vmToViewConverter: p => p.Value,
-                        viewToVmConverter: d => new Percent(d))
-                    .DisposeWith(disposable);
-
-                this.WhenAny(x => x.ViewModel.MWVM.Settings.Performance.TargetUsage)
-                    .Select(p => p.ToString(0))
-                    .BindToStrict(this, x => x.PercentageText.Text)
                     .DisposeWith(disposable);
 
                 this.WhenAny(x => x.ViewModel.CurrentCpuCount)

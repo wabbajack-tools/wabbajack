@@ -216,6 +216,7 @@ namespace Wabbajack.Lib
                 }
             }
 
+            DesiredThreads.OnNext(DownloadThreads);
             await missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
                 .PMap(Queue, async archive =>
                 {
@@ -236,6 +237,9 @@ namespace Wabbajack.Lib
 
                     return await DownloadArchive(archive, download, outputPath);
                 });
+            
+            DesiredThreads.OnNext(DiskThreads);
+
         }
 
         public async Task<bool> DownloadArchive(Archive archive, bool download, AbsolutePath? destination = null)
