@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentFTP;
 using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.Utilities.Collections;
 using Wabbajack.BuildServer;
 using Wabbajack.BuildServer.Controllers;
 using Wabbajack.Common;
@@ -38,14 +41,28 @@ namespace Wabbajack.Server.Services
 
             try
             {
+                var creds = await BunnyCdnFtpInfo.GetCreds(StorageSpace.Mirrors);
+
                 using var queue = new WorkQueue();
                 if (_archives.TryGetPath(toUpload.Hash, out var path))
                 {
                     _logger.LogInformation($"Uploading mirror file {toUpload.Hash} {path.Size.FileSizeToString()}");
 
+                    bool exists = false;
+                    using (var client = await GetClient(creds))
+                    {
+                        exists = await client.FileExistsAsync($"{toUpload.Hash.ToHex()}/definition.json.gz");
+                    }
+                    
+                    if (exists)
+                    {
+                        _logger.LogInformation($"Skipping {toUpload.Hash} it's already on the server");
+                        await toUpload.Finish(_sql);
+                        goto TOP;
+                    }
+
                     var definition = await Client.GenerateFileDefinition(queue, path, (s, percent) => { });
 
-                    var creds = await BunnyCdnFtpInfo.GetCreds(StorageSpace.Mirrors);
                     using (var client = await GetClient(creds))
                     {
                         await client.CreateDirectoryAsync($"{definition.Hash.ToHex()}");
