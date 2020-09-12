@@ -6,7 +6,7 @@ Wabbajack is an automated Modlist Installer that can reproduce an entire modding
 
 ## Social Links
 
-- [wabbajack.org](https://www.wabbajack.org) The official Wabbajack website with a [Gallery](https://www.wabbajack.org/#/modlists/gallery), [Status Dashboard](https://www.wabbajack.org/#/modlists/status) and [Archvie Search](https://www.wabbajack.org/#/modlists/search/all) for official Modlists.
+- [wabbajack.org](https://www.wabbajack.org) The official Wabbajack website with a [Gallery](https://www.wabbajack.org/#/modlists/gallery), [Status Dashboard](https://www.wabbajack.org/#/modlists/status) and [Archive Search](https://www.wabbajack.org/#/modlists/search/all) for official Modlists.
 - [Discord](https://discord.gg/wabbajack) The official Wabbajack discord for instructions, Modlists, support or friendly chatting with fellow modders.
 - [Patreon](https://www.patreon.com/user?u=11907933) contains update posts and keeps the [Code Signing Certificate](https://www.digicert.com/code-signing/) as well as our supplementary build server alive.
 
