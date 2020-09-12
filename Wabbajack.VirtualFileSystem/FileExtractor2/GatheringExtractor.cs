@@ -18,10 +18,10 @@ namespace Wabbajack.VirtualFileSystem
         private Predicate<RelativePath> _shouldExtract;
         private Func<RelativePath, IStreamFactory, ValueTask<T>> _mapFn;
         private Dictionary<RelativePath, T> _results;
-        private Dictionary<uint, (RelativePath, ulong)> _indexes;
         private Stream _stream;
         private Definitions.FileType _sig;
         private Exception _killException;
+        private uint _itemsCount;
 
         public GatheringExtractor(Stream stream, Definitions.FileType sig, Predicate<RelativePath> shouldExtract, Func<RelativePath,IStreamFactory, ValueTask<T>> mapfn)
         {
@@ -41,14 +41,9 @@ namespace Wabbajack.VirtualFileSystem
                 try
                 {
                     _archive = ArchiveFile.Open(_stream, _sig).Result;
-                    _indexes = _archive.Entries
-                        .Select((entry, idx) => (entry, (uint)idx))
-                        .Where(f => !f.entry.IsFolder)
-                        .Select(t => ((RelativePath)t.entry.FileName, t.Item2, t.entry.Size))
-                        .Where(t => _shouldExtract(t.Item1))
-                        .ToDictionary(t => t.Item2, t => (t.Item1, t.Size));
-
-
+                    ulong checkPos = 1024 * 32;
+                    _archive._archive.Open(_archive._archiveStream, ref checkPos, null);
+                    _itemsCount = _archive._archive.GetNumberOfItems();
                     _archive._archive.Extract(null, 0xFFFFFFFF, 0, this);
                     _archive.Dispose();
                     if (_killException != null)
@@ -86,21 +81,22 @@ namespace Wabbajack.VirtualFileSystem
 
         public int GetStream(uint index, out ISequentialOutStream outStream, AskMode askExtractMode)
         {
-            if (_indexes.ContainsKey(index))
+            var entry = _archive.GetEntry(index);
+            var path = (RelativePath)entry.FileName;
+            if (entry.IsFolder || !_shouldExtract(path))
             {
-                var path = _indexes[index].Item1;
-                Utils.Status($"Extracting {path}", Percent.FactoryPutInRange(_results.Count, _indexes.Count));
-                // Empty files are never extracted via a write call, so we have to fake that now
-                if (_indexes[index].Item2 == 0)
-                {
-                    var result = _mapFn(path, new MemoryStreamFactory(new MemoryStream(), path)).Result;
-                    _results.Add(path, result);
-                }
-                outStream =  new GatheringExtractorStream<T>(this, index);
+                outStream = null;
                 return 0;
             }
 
-            outStream = null;
+            Utils.Status($"Extracting {path}", Percent.FactoryPutInRange(_results.Count, _itemsCount));
+            // Empty files are never extracted via a write call, so we have to fake that now
+            if (entry.Size == 0)
+            {
+                var result = _mapFn(path, new MemoryStreamFactory(new MemoryStream(), path)).Result;
+                _results.Add(path, result);
+            }
+            outStream =  new GatheringExtractorStream<T>(this, entry, path);
             return 0;
         }
 
@@ -117,25 +113,23 @@ namespace Wabbajack.VirtualFileSystem
         private class GatheringExtractorStream<T> : ISequentialOutStream, IOutStream
         {
             private GatheringExtractor<T> _extractor;
-            private uint _index;
-            private bool _written;
             private ulong _totalSize;
             private Stream _tmpStream;
             private TempFile _tmpFile;
-            private IStreamFactory _factory;
             private bool _diskCached;
+            private RelativePath _path;
 
-            public GatheringExtractorStream(GatheringExtractor<T> extractor, uint index)
+            public GatheringExtractorStream(GatheringExtractor<T> extractor, Entry entry, RelativePath path)
             {
+                _path = path;
                 _extractor = extractor;
-                _index = index;
-                _totalSize = extractor._indexes[index].Item2;
-                _diskCached = _totalSize >= 500_000_000;
+                _totalSize = entry.Size;
+                _diskCached = _totalSize >= int.MaxValue - 1024;
             }
 
             private IPath GetPath()
             {
-                return _extractor._indexes[_index].Item1;
+                return _path;
             }
 
             public int Write(byte[] data, uint size, IntPtr processedSize)
@@ -167,7 +161,7 @@ namespace Wabbajack.VirtualFileSystem
 
             private void WriteSingleCall(byte[] data, in uint size)
             {
-                var result = _extractor._mapFn(_extractor._indexes[_index].Item1, new MemoryBufferFactory(data, (int)size, GetPath())).Result;
+                var result = _extractor._mapFn(_path, new MemoryBufferFactory(data, (int)size, GetPath())).Result;
                 AddResult(result);
                 Cleanup();
             }
@@ -180,7 +174,7 @@ namespace Wabbajack.VirtualFileSystem
 
             private void AddResult(T result)
             {
-                _extractor._results.Add(_extractor._indexes[_index].Item1, result);
+                _extractor._results.Add(_path, result);
             }
 
             private void WriteMemoryCached(byte[] data, in uint size)
@@ -193,7 +187,7 @@ namespace Wabbajack.VirtualFileSystem
 
                 _tmpStream.Flush();
                 _tmpStream.Position = 0;
-                var result = _extractor._mapFn(_extractor._indexes[_index].Item1, new MemoryStreamFactory((MemoryStream)_tmpStream, GetPath())).Result;
+                var result = _extractor._mapFn(_path, new MemoryStreamFactory((MemoryStream)_tmpStream, GetPath())).Result;
                 AddResult(result);
                 Cleanup();
             }
@@ -213,7 +207,7 @@ namespace Wabbajack.VirtualFileSystem
                 _tmpStream.Flush();
                 _tmpStream.Close();
                 
-                var result = _extractor._mapFn(_extractor._indexes[_index].Item1, new NativeFileStreamFactory(_tmpFile.Path, GetPath())).Result;
+                var result = _extractor._mapFn(_path, new NativeFileStreamFactory(_tmpFile.Path, GetPath())).Result;
                 AddResult(result);
                 Cleanup();
             }

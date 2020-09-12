@@ -84,7 +84,10 @@ namespace Wabbajack.Lib
         {
             await Metrics.Send("begin_compiling", MO2Profile ?? "unknown");
             if (cancel.IsCancellationRequested) return false;
-            Queue.SetActiveThreadsObservable(ConstructDynamicNumThreads(await RecommendQueueSize()));
+
+            DesiredThreads.OnNext(DiskThreads);
+            FileExtractor2.FavorPerfOverRAM = FavorPerfOverRam;
+
             UpdateTracker.Reset();
             UpdateTracker.NextStep("Gathering information");
 

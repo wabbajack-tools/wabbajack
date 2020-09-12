@@ -28,45 +28,18 @@ namespace Wabbajack
         {
             InitializeComponent();
 
-            this.AutoButton.Command = ReactiveCommand.Create(
-                execute: () => this.ViewModel.Manual = false,
-                canExecute: this.WhenAny(x => x.ViewModel.Manual)
-                    .ObserveOnGuiThread());
-            this.ManualButton.Command = ReactiveCommand.Create(
-                execute: () => this.ViewModel.Manual = true,
-                canExecute: this.WhenAny(x => x.ViewModel.Manual)
-                    .Select(x => !x)
-                    .ObserveOnGuiThread());
-
             this.WhenActivated(disposable =>
             {
-                // Bind mode buttons
-
-                // Modify visibility of controls based on if auto
-                this.OneWayBindStrict(this.ViewModel, x => x.Manual, x => x.MaxCoresLabel.Visibility,
-                        b => b ? Visibility.Visible : Visibility.Collapsed)
-                    .DisposeWith(disposable);
-                this.OneWayBindStrict(this.ViewModel, x => x.Manual, x => x.MaxCoresSpinner.Visibility,
-                        b => b ? Visibility.Visible : Visibility.Collapsed)
-                    .DisposeWith(disposable);
-                this.OneWayBindStrict(this.ViewModel, x => x.Manual, x => x.TargetUsageLabel.Visibility,
-                        b => b ? Visibility.Collapsed : Visibility.Visible)
-                    .DisposeWith(disposable);
-                this.OneWayBindStrict(this.ViewModel, x => x.Manual, x => x.TargetUsageSpinner.Visibility,
-                        b => b ? Visibility.Collapsed : Visibility.Visible)
-                    .DisposeWith(disposable);
-                this.OneWayBindStrict(this.ViewModel, x => x.Manual, x => x.TargetUsageSlider.Visibility,
-                        b => b ? Visibility.Collapsed : Visibility.Visible)
-                    .DisposeWith(disposable);
-
                 // Bind Values
-                this.BindStrict(this.ViewModel, x => x.MaxCores, x => x.MaxCoresSpinner.Value,
+                this.BindStrict(this.ViewModel, x => x.DiskThreads, x => x.DiskThreads.Value,
                         vmToViewConverter: x => x,
-                        viewToVmConverter: x => (byte)(x ?? 0))
+                        viewToVmConverter: x => (int)(x ?? 0))
                     .DisposeWith(disposable);
-                this.Bind(this.ViewModel, x => x.TargetUsage, x => x.TargetUsageSpinner.Value)
+                this.BindStrict(this.ViewModel, x => x.DownloadThreads, x => x.DownloadThreads.Value,
+                        vmToViewConverter: x => x,
+                        viewToVmConverter: x => (int)(x ?? 0))
                     .DisposeWith(disposable);
-                this.Bind(this.ViewModel, x => x.TargetUsage, x => x.TargetUsageSlider.Value)
+                this.BindStrict(this.ViewModel, x => x.FavorPerfOverRam, x => x.FavorPerfOverRam.IsChecked)
                     .DisposeWith(disposable);
             });
         }

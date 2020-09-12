@@ -42,6 +42,8 @@ namespace Wabbajack.VirtualFileSystem
 
         public WorkQueue  Queue { get; }
         public bool UseExtendedHashes { get; set; }
+        
+        public bool FavorPerfOverRAM { get; set; }
 
         public Context(WorkQueue queue, bool extendedHashes = false)
         {
@@ -234,6 +236,7 @@ namespace Wabbajack.VirtualFileSystem
 
         private List<HashRelativePath> _knownFiles = new List<HashRelativePath>();
         private Dictionary<Hash, AbsolutePath> _knownArchives = new Dictionary<Hash, AbsolutePath>();
+
         public void AddKnown(IEnumerable<HashRelativePath> known, Dictionary<Hash, AbsolutePath> archives)
         {
             _knownFiles.AddRange(known);

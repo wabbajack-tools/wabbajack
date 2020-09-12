@@ -195,7 +195,7 @@ namespace Wabbajack
                     ModlistIsNSFW = ModlistSettings.IsNSFW
                 })
                 {
-                    Parent.MWVM.Settings.Performance.AttachToBatchProcessor(ActiveCompilation);
+                    Parent.MWVM.Settings.Performance.SetProcessorSettings(ActiveCompilation);
 
                     var success = await ActiveCompilation.Begin();
                     return GetResponse<ModList>.Create(success, ActiveCompilation.ModList);

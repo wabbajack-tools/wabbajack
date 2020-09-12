@@ -25,6 +25,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="25" />
                 <RowDefinition Height="25" />
+                <RowDefinition Height="25" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
@@ -37,67 +38,44 @@
                 FontSize="20"
                 FontWeight="Bold"
                 Text="Performance" />
-            <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
-                Height="25"
-                Margin="0,0,0,10">
-                <Grid.Resources>
-                    <Style BasedOn="{StaticResource MainButtonStyle}" TargetType="Button">
-                        <Style.Triggers>
-                            <Trigger Property="IsEnabled" Value="false">
-                                <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}" />
-                                <Setter Property="Background" Value="{StaticResource SecondaryBackgroundBrush}" />
-                                <Setter Property="BorderBrush" Value="{StaticResource DarkSecondaryBrush}" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </Grid.Resources>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="5" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Button Grid.Column="0"
-                    x:Name="ManualButton"
-                    Content="Manual"
-                    ToolTip="Control the number of cores by setting the max limit manually" />
-                <Button Grid.Column="2"
-                    x:Name="AutoButton"
-                    Content="Auto"
-                    ToolTip="Control the number of cores by scaling it to a percentage of what WJ would use at full speed" />
-            </Grid>
             <TextBlock Grid.Row="3" Grid.Column="0"
-                x:Name="MaxCoresLabel"
-                VerticalAlignment="Center"
-                Text="Max Cores" />
-            <xwpf:IntegerUpDown Grid.Row="3" Grid.Column="2"
-                x:Name="MaxCoresSpinner"
-                MinWidth="75"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Center"
-                Foreground="White"
-                Maximum="255"
-                Minimum="1" />
-            <TextBlock Grid.Row="3" Grid.Column="0"
-                x:Name="TargetUsageLabel"
-                VerticalAlignment="Center"
-                Text="Target Percent Usage" />
+                       x:Name="DownloadThreadsLabel"
+                       VerticalAlignment="Center"
+                       Text="Download Threads" />
             <xwpf:DoubleUpDown Grid.Row="3" Grid.Column="2"
-                x:Name="TargetUsageSpinner"
-                MinWidth="75"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Center"
-                Foreground="White"
-                FormatString="F2"
-                Increment="0.1"
-                Maximum="1"
-                Minimum="0.1" />
-            <Slider Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3"
-                x:Name="TargetUsageSlider"
-                IsSnapToTickEnabled="True"
-                LargeChange="0.1"
-                Maximum="1"
-                Minimum="0.1"
-                TickFrequency="0.05" />
+                               x:Name="DownloadThreads"
+                               MinWidth="75"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               Foreground="White"
+                               FormatString="F0"
+                               Increment="2"
+                               Maximum="128"
+                               Minimum="2" />
+            <TextBlock Grid.Row="4" Grid.Column="0"
+                       x:Name="DiskThreadsLabel"
+                       VerticalAlignment="Center"
+                       Text="Disk Threads" />
+            <xwpf:DoubleUpDown Grid.Row="4" Grid.Column="2"
+                               x:Name="DiskThreads"
+                               MinWidth="75"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               Foreground="White"
+                               FormatString="F0"
+                               Increment="2"
+                               Maximum="128"
+                               Minimum="2" />
+            <TextBlock Grid.Row="5" Grid.Column="0"
+                       x:Name="FavorPerfOverRamLabel"
+                       VerticalAlignment="Center"
+                       Text="Favor performance over RAM Usage" />
+            <CheckBox Grid.Row="5" Grid.Column="2"
+                      x:Name="FavorPerfOverRam"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Center"
+                      Foreground="White"
+                ></CheckBox>
         </Grid>
     </Border>
 </rxui:ReactiveUserControl>
