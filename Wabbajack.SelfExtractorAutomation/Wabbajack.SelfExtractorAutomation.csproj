@@ -9,8 +9,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="FlaUI.Core" Version="3.1.0" />
-      <PackageReference Include="FlaUI.UIA2" Version="3.1.0" />
+      <PackageReference Include="FlaUI.Core" Version="3.2.0" />
+      <PackageReference Include="FlaUI.UIA2" Version="3.2.0" />
     </ItemGroup>
 
 </Project>
