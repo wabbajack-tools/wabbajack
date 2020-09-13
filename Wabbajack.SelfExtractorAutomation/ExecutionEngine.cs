@@ -41,11 +41,19 @@ namespace Wabbajack.SelfExtractorAutomation
 
             foreach (var step in _steps)
             {
+                Utils.Log($"Step {step}");
                 await step.Execute(this);
                 Application.WaitWhileBusy();
-                if (!Window.IsAvailable)
+                try
                 {
-                    SetMainWindow();
+                    if (!Window.IsAvailable)
+                    {
+                        SetMainWindow();
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    break;
                 }
             }
         }

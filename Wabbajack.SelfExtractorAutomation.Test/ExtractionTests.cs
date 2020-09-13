@@ -29,6 +29,10 @@ namespace Wabbajack.SelfExtractorAutomation.Test
                     steps);
             await execution.Run();
 
+            var filename = tmp.Dir.Combine("WABBAJACK_TEST_FILE.txt");
+            Assert.Equal(Hash.FromBase64("eSIyd+KOG3s="), await filename.FileHashAsync());
+            Assert.Equal("Cheese for Everyone!", await filename.ReadAllTextAsync());
+
         }
         
         // Disabled Use only for debugging
