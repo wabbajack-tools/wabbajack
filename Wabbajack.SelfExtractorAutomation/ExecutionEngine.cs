@@ -41,20 +41,9 @@ namespace Wabbajack.SelfExtractorAutomation
 
             foreach (var step in _steps)
             {
-                int retries = 0;
                 Utils.Log($"Step {step}");
-                TOP:
-                try
-                {
-                    await step.Execute(this);
-                }
-                catch (Exception ex)
-                {
-                    if (retries > 5) throw ex;
-                    await Task.Delay(1000);
-                    retries += 1;
-                    goto TOP;
-                }
+                await Task.Delay(1000);
+                await step.Execute(this);
 
                 Application.WaitWhileBusy();
                 try
