@@ -17,7 +17,7 @@ namespace Wabbajack.SelfExtractorAutomation.Steps
             var button = engine.Window.FindAllChildren().Where(e => e.ControlType == ControlType.Button && e.Name == Name)
                 .Select(f => f.AsButton())
                 .FirstOrDefault();
-            if (button == null)
+            if (button == null || !button.IsAvailable || !button.IsEnabled)
             {
                 engine.SetMainWindow();
                 await Task.Delay(250);

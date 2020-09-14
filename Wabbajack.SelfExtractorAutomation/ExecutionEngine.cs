@@ -41,8 +41,6 @@ namespace Wabbajack.SelfExtractorAutomation
 
             foreach (var step in _steps)
             {
-                Utils.Log($"Step {step}");
-                await Task.Delay(1000);
                 await step.Execute(this);
 
                 Application.WaitWhileBusy();
