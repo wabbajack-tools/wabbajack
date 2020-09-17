@@ -60,11 +60,17 @@ namespace Wabbajack.Common
 
         public static async Task CompactFolder(this AbsolutePath folder, WorkQueue queue, Algorithm algorithm)
         {
+            var driveInfo = folder.DriveInfo().DiskSpaceInfo;
+            var clusterSize = driveInfo.SectorsPerCluster * driveInfo.BytesPerSector;
+
             await folder.EnumerateFiles(true)
                 .PMap(queue, async path =>
                 {
-                    Utils.Status($"Compacting {path.FileName}");
-                    await path.Compact(algorithm);
+                    if (path.Size > clusterSize)
+                    {
+                        Utils.Status($"Compacting {path.FileName}");
+                        await path.Compact(algorithm);
+                    }
                 });
         }
     }
