@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Wabbajack.Common.IO;
 
 namespace Wabbajack.Common
@@ -63,14 +64,13 @@ namespace Wabbajack.Common
             var driveInfo = folder.DriveInfo().DiskSpaceInfo;
             var clusterSize = driveInfo.SectorsPerCluster * driveInfo.BytesPerSector;
 
-            await folder.EnumerateFiles(true)
+            await folder
+                .EnumerateFiles(true)
+                .Where(f => f.Size > clusterSize)
                 .PMap(queue, async path =>
                 {
-                    if (path.Size > clusterSize)
-                    {
-                        Utils.Status($"Compacting {path.FileName}");
-                        await path.Compact(algorithm);
-                    }
+                    Utils.Status($"Compacting {path.FileName}");
+                    await path.Compact(algorithm);
                 });
         }
     }
