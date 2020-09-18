@@ -177,15 +177,26 @@ namespace Wabbajack.VirtualFileSystem
         public static async Task<VirtualFile> Analyze(Context context, VirtualFile parent, IStreamFactory extractedFile,
             IPath relPath, int depth = 0)
         {
-            await using var stream = await extractedFile.GetStream();
-            var hash = await stream.xxHashAsync();
-            stream.Position = 0;
+            Hash hash = default;
+            if (extractedFile is NativeFileStreamFactory)
+            {
+                hash = await ((AbsolutePath)extractedFile.Name).FileHashCachedAsync();
+            } 
+            else
+            {
+                await using var hstream = await extractedFile.GetStream();
+                hash = await hstream.xxHashAsync();
+            }
 
+            if (TryGetFromCache(context, parent, relPath, extractedFile, hash, out var vself))
+            {
+                return vself;
+            }
+
+            
+            await using var stream = await extractedFile.GetStream();
             var sig = await FileExtractor2.ArchiveSigs.MatchesAsync(stream);
             stream.Position = 0;
-            
-            if (sig.HasValue && TryGetFromCache(context, parent, relPath, extractedFile, hash, out var vself))
-                return vself;
             
             var self = new VirtualFile
             {
@@ -204,7 +215,7 @@ namespace Wabbajack.VirtualFileSystem
                 self.ExtendedHashes = await ExtendedHashes.FromStream(stream);
 
             // Can't extract, so return
-            if (!sig.HasValue) return self;
+            if (!sig.HasValue || !FileExtractor2.ExtractableExtensions.Contains(relPath.FileName.Extension)) return self;
 
             try
             {

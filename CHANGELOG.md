@@ -9,6 +9,7 @@ This is now the only way to include extra games in the install process, implicit
 * Includes a "Favor performance over RAM" optional mode (defaults to off) that will use excessive amounts of RAM in exchange
 for almost 1GB/sec install speed on the correct hardware. Don't enable this unless you have a fast SSD and at least 2.5GB of RAM for every
 install thread.
+* If a downloaded file doesn't match the expected hash, try alternative download locations, if allowed
 
 
 #### Version - 2.2.2.0 - 8/31/2020
