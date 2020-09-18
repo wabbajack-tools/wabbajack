@@ -24,8 +24,21 @@ namespace Wabbajack.VirtualFileSystem
             Definitions.FileType.RAR_OLD,
             Definitions.FileType.RAR_NEW,
             Definitions.FileType._7Z);
-        
+
         private static Extension OMODExtension = new Extension(".omod");
+        private static Extension BSAExtension = new Extension(".bsa");
+
+        public static readonly HashSet<Extension> ExtractableExtensions = new HashSet<Extension>
+        {
+            new Extension(".bsa"),
+            new Extension(".ba2"),
+            new Extension(".7z"),
+            new Extension(".7zip"),
+            new Extension(".rar"),
+            new Extension(".zip"),
+            OMODExtension
+        };
+        
         
         /// <summary>
         /// When true, will allow 7z to use multiple threads and cache more data in memory, potentially
@@ -64,11 +77,16 @@ namespace Wabbajack.VirtualFileSystem
                     }
                 }
 
-                case Definitions.FileType.TES3:
                 case Definitions.FileType.BSA:
                 case Definitions.FileType.BA2:
                     return await GatheringExtractWithBSA(sFn, (Definitions.FileType)sig, shouldExtract, mapfn);
-                
+
+                case Definitions.FileType.TES3:
+                    if (sFn.Name.FileName.Extension == BSAExtension) 
+                        return await GatheringExtractWithBSA(sFn, (Definitions.FileType)sig, shouldExtract, mapfn);
+                    else
+                        throw new Exception($"Invalid file format {sFn.Name}");
+
 
                 default:
                     throw new Exception($"Invalid file format {sFn.Name}");
