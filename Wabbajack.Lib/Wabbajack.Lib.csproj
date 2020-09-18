@@ -25,7 +25,7 @@
         <Version>2.2.2.1</Version>
       </PackageReference>
       <PackageReference Include="GraphQL.Client">
-        <Version>3.1.6</Version>
+        <Version>3.1.9</Version>
       </PackageReference>
       <PackageReference Include="HtmlAgilityPack">
         <Version>1.11.24</Version>
