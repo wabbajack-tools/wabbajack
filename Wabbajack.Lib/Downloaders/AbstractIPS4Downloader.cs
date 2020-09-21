@@ -137,15 +137,16 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Download(Archive a, AbsolutePath destination)
             {
-                using var stream = await ResolveDownloadStream(a);
-                if (stream == null) return false;
+                var (isValid, istream) = await ResolveDownloadStream(a, false);
+                if (!isValid) return false;
+                using var stream = istream!;
                 await using var fromStream = await stream.Content.ReadAsStreamAsync();
                 await using var toStream = await destination.Create();
                 await fromStream.CopyToAsync(toStream);
                 return true;
             }
 
-            private async Task<HttpResponseMessage?> ResolveDownloadStream(Archive a)
+            private async Task<(bool, HttpResponseMessage?)> ResolveDownloadStream(Archive a, bool quickMode)
             {
                 TOP:
                 string url;
@@ -168,7 +169,7 @@ namespace Wabbajack.Lib.Downloaders
                     if (csrfKey == null)
                     {
                         Utils.Log($"Returning null from IPS4 Downloader because no csrfKey was found");
-                        return null;
+                        return (false, null);
                     }
 
                     var sep = Site.EndsWith("?") ? "&" : "?";
@@ -199,10 +200,10 @@ namespace Wabbajack.Lib.Downloaders
                     if (a.Size != 0 && headerContentSize != 0 && a.Size != headerContentSize)
                     {
                         Utils.Log($"Bad Header Content sizes {a.Size} vs {headerContentSize}");
-                        return null;
+                        return (false, null);
                     }
 
-                    return streamResult;
+                    return (true, streamResult);
                 }
 
                 // Sometimes LL hands back a json object telling us to wait until a certain time
@@ -210,6 +211,7 @@ namespace Wabbajack.Lib.Downloaders
                 var secs = times.Download - times.CurrentTime;
                 for (int x = 0; x < secs; x++)
                 {
+                    if (quickMode) return (true, default);
                     Utils.Status($"Waiting for {secs} at the request of {Downloader.SiteName}", Percent.FactoryPutInRange(x, secs));
                     await Task.Delay(1000);
                 }
@@ -228,7 +230,8 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<bool> Verify(Archive a)
             {
-                var stream = await ResolveDownloadStream(a);
+                var (isValid, stream) = await ResolveDownloadStream(a, true);
+                if (!isValid) return false;
                 if (stream == null)
                     return false;
 
