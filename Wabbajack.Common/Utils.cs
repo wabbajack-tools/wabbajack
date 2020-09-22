@@ -46,13 +46,6 @@ namespace Wabbajack.Common
         public static AbsolutePath LogFile { get; }
         public static AbsolutePath LogFolder { get; }
 
-        public enum FileEventType
-        {
-            Created,
-            Changed,
-            Deleted
-        }
-
         static Utils()
         {
             LogFolder = Consts.LogsFolder;
@@ -98,13 +91,6 @@ namespace Wabbajack.Common
 
                 Log($"Deleted {success} log files, failed to delete {failed} logs");
             }
-
-            var watcher = new FileSystemWatcher((string)Consts.LocalAppDataPath);
-            AppLocalEvents = Observable.Merge(Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Changed += h, h => watcher.Changed -= h).Select(e => (FileEventType.Changed, e.EventArgs)),
-                                                Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Created += h, h => watcher.Created -= h).Select(e => (FileEventType.Created, e.EventArgs)),
-                                                Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Deleted += h, h => watcher.Deleted -= h).Select(e => (FileEventType.Deleted, e.EventArgs)))
-                                       .ObserveOn(Scheduler.Default);
-            watcher.EnableRaisingEvents = true;
         }
 
         private static readonly Subject<IStatusMessage> LoggerSubj = new Subject<IStatusMessage>();
@@ -997,16 +983,14 @@ namespace Wabbajack.Common
             return false;
         }
 
-
-        public static IObservable<(FileEventType, FileSystemEventArgs)> AppLocalEvents { get; }
-
         public static IObservable<bool> HaveEncryptedJsonObservable(string key)
         {
             var path = Consts.LocalAppDataPath.Combine(key);
-            return AppLocalEvents.Where(t => (AbsolutePath)t.Item2.FullPath.ToLower() == path)
-                                 .Select(_ => path.Exists)
-                                 .StartWith(path.Exists)
-                                 .DistinctUntilChanged();
+            return WJFileWatcher.AppLocalEvents
+                .Where(t => (AbsolutePath)t.Item2.FullPath.ToLower() == path)
+                .Select(_ => path.Exists)
+                .StartWith(path.Exists)
+                .DistinctUntilChanged();
         }
 
         public static async ValueTask DeleteEncryptedJson(string key)
