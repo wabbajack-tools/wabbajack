@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Subjects;
@@ -12,6 +12,12 @@ using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Common
 {
+    public static class LoggingSettings
+    {
+        // False by default, so that library users do not have to swap it
+        public static bool LogToFile = false;
+    }
+
     public static partial class Utils
     {
         public static AbsolutePath LogFile { get; private set; }
@@ -26,50 +32,56 @@ namespace Wabbajack.Common
 
         private static async Task InitalizeLogging()
         {
-            LogFolder = Consts.LogsFolder;
-            LogFile = Consts.LogFile;
-            Consts.LocalAppDataPath.CreateDirectory();
-            Consts.LogsFolder.CreateDirectory();
-
             _startTime = DateTime.Now;
 
-            if (LogFile.Exists)
+            if (LoggingSettings.LogToFile)
             {
-                var newPath = Consts.LogsFolder.Combine(Consts.EntryPoint.FileNameWithoutExtension + LogFile.LastModified.ToString(" yyyy-MM-dd HH_mm_ss") + ".log");
-                await LogFile.MoveToAsync(newPath, true);
-            }
+                LogFolder = Consts.LogsFolder;
+                LogFile = Consts.LogFile;
+                Consts.LocalAppDataPath.CreateDirectory();
+                Consts.LogsFolder.CreateDirectory();
 
-            var logFiles = LogFolder.EnumerateFiles(false).ToList();
-            if (logFiles.Count >= Consts.MaxOldLogs)
-            {
-                Log($"Maximum amount of old logs reached ({logFiles.Count} >= {Consts.MaxOldLogs})");
-                var filesToDelete = logFiles
-                    .Where(f => f.IsFile)
-                    .OrderBy(f => f.LastModified)
-                    .Take(logFiles.Count - Consts.MaxOldLogs)
-                    .ToList();
-
-                Log($"Found {filesToDelete.Count} old log files to delete");
-
-                var success = 0;
-                var failed = 0;
-                filesToDelete.Do(f =>
+                if (LogFile.Exists)
                 {
-                    try
-                    {
-                        f.Delete();
-                        success++;
-                    }
-                    catch (Exception e)
-                    {
-                        failed++;
-                        Log($"Could not delete log at {f}!\n{e}");
-                    }
-                });
+                    var newPath = Consts.LogsFolder.Combine(Consts.EntryPoint.FileNameWithoutExtension + LogFile.LastModified.ToString(" yyyy-MM-dd HH_mm_ss") + ".log");
+                    await LogFile.MoveToAsync(newPath, true);
+                }
 
-                Log($"Deleted {success} log files, failed to delete {failed} logs");
+                var logFiles = LogFolder.EnumerateFiles(false).ToList();
+                if (logFiles.Count >= Consts.MaxOldLogs)
+                {
+                    Log($"Maximum amount of old logs reached ({logFiles.Count} >= {Consts.MaxOldLogs})");
+                    var filesToDelete = logFiles
+                        .Where(f => f.IsFile)
+                        .OrderBy(f => f.LastModified)
+                        .Take(logFiles.Count - Consts.MaxOldLogs)
+                        .ToList();
+
+                    Log($"Found {filesToDelete.Count} old log files to delete");
+
+                    var success = 0;
+                    var failed = 0;
+                    filesToDelete.Do(f =>
+                    {
+                        try
+                        {
+                            f.Delete();
+                            success++;
+                        }
+                        catch (Exception e)
+                        {
+                            failed++;
+                            Log($"Could not delete log at {f}!\n{e}");
+                        }
+                    });
+
+                    Log($"Deleted {success} log files, failed to delete {failed} logs");
+                }
             }
         }
+
+
+
         public static void Log(string msg)
         {
             Log(new GenericInfo(msg));
@@ -112,7 +124,7 @@ namespace Wabbajack.Common
 
         public static void LogStraightToFile(string msg)
         {
-            if (LogFile == default) return;
+            if (!LoggingSettings.LogToFile || LogFile == default) return;
             lock (_logLock)
             {
                 File.AppendAllText(LogFile.ToString(), $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n");
