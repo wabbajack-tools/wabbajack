@@ -42,7 +42,7 @@ namespace Wabbajack.VirtualFileSystem
                 {
                     _archive = ArchiveFile.Open(_stream, _sig).Result;
                     ulong checkPos = 1024 * 32;
-                    _archive._archive.Open(_archive._archiveStream, ref checkPos, null);
+                    _archive._archive.Open(_archive._archiveStream, ref checkPos, new ArchiveCallback());
                     _itemsCount = _archive._archive.GetNumberOfItems();
                     _archive._archive.Extract(null, 0xFFFFFFFF, 0, this);
                     _archive.Dispose();
@@ -226,6 +226,19 @@ namespace Wabbajack.VirtualFileSystem
         private void Kill(Exception ex)
         {
             _killException = ex;
+        }
+
+        class ArchiveCallback : IArchiveOpenCallback
+        {
+            public void SetTotal(IntPtr files, IntPtr bytes)
+            {
+                
+            }
+
+            public void SetCompleted(IntPtr files, IntPtr bytes)
+            {
+                
+            }
         }
     }
 }
