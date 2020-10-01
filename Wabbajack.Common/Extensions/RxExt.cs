@@ -65,10 +65,6 @@ namespace Wabbajack
         /// When the switch is on, the source will be subscribed to, and its updates passed through.
         /// When the switch is off, the subscription to the source observable will be stopped, and no signal will be published.
         /// </summary>
-        /// <param name="source">Source observable to subscribe to if on</param>
-        /// <param name="filterSwitch">On/Off signal of whether to subscribe to source observable</param>
-        /// <param name="valueOnOff">Value to fire when switching off</param>
-        /// <returns>Observable that publishes data from source, if the switch is on.</returns>
         public static IObservable<T> FlowSwitch<T>(this IObservable<T> source, IObservable<bool> filterSwitch, T valueWhenOff)
         {
             return filterSwitch

@@ -17,7 +17,6 @@ namespace Wabbajack.Server.Services
         private TimeSpan _delay;
         protected ILogger<TP> _logger;
         protected QuickSync _quickSync;
-        private bool _isSetup;
 
         public AbstractService(ILogger<TP> logger, AppSettings settings, QuickSync quickSync, TimeSpan delay)
         {
@@ -26,7 +25,6 @@ namespace Wabbajack.Server.Services
             _logger = logger;
             _quickSync = quickSync;
 
-            _isSetup = false;
         }
 
         public virtual async Task Setup()
@@ -42,7 +40,6 @@ namespace Wabbajack.Server.Services
                 Task.Run(async () =>
                 {
                     await Setup();
-                    _isSetup = true;
 
                     
                     while (true)

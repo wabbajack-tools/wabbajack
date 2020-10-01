@@ -742,10 +742,6 @@ namespace Wabbajack.Common
         /// <summary>
         /// Roundtrips the value through the JSON routines
         /// </summary>
-        /// <typeparam name="TV"></typeparam>
-        /// <typeparam name="TR"></typeparam>
-        /// <param name="tv"></param>
-        /// <returns></returns>
         public static T ViaJSON<T>(this T tv)
         {
             var json = tv.ToJson();
@@ -844,7 +840,7 @@ namespace Wabbajack.Common
                 {
                     return benchmarkFile.FromJson<long>();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     // ignored
                 }

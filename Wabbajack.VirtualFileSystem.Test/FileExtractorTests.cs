@@ -25,7 +25,7 @@ namespace Wabbajack.VirtualFileSystem.Test
                 {
                     _helper.WriteLine(f.ShortDescription);
                 }
-                catch (Exception _)
+                catch (Exception)
                 {
                     // ignored
                 }

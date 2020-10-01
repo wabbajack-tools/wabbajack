@@ -202,6 +202,7 @@ namespace Wabbajack.VirtualFileSystem
         /// Extract the set of files and call the callback for each, handing it a stream factory and the virtual file,
         /// top level archives (native archives) will be processed in parallel. Duplicate files will not be 
         /// </summary>
+        /// <<param name="queue"></param>
         /// <param name="files"></param>
         /// <param name="callback"></param>
         /// <returns></returns>

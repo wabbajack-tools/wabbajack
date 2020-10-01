@@ -284,7 +284,7 @@ namespace Wabbajack.Lib.Downloaders
                 return (newArchive, tempFile);
             }
 
-            public async Task<bool> ValidateUpgrade(Hash srcHash, AbstractDownloadState newArchiveState)
+            public override async Task<bool> ValidateUpgrade(Hash srcHash, AbstractDownloadState newArchiveState)
             {
                 var state = (State)newArchiveState;
                 return Game == state.Game && ModID == state.ModID;

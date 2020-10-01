@@ -212,7 +212,7 @@ namespace Wabbajack
                 {
                     if (modList == null) return ErrorResponse.Fail("Modlist path resulted in a null object.");
                     if (modList.Error != null) return ErrorResponse.Fail("Modlist is corrupt", modList.Error);
-                    if (modList.WabbajackVersion != null && modList.WabbajackVersion > Consts.CurrentWabbajackVersion)
+                    if (modList.WabbajackVersion != null && modList.WabbajackVersion > Consts.CurrentMinimumWabbajackVersion)
                         return ErrorResponse.Fail("The Modlist you are trying to install was made using a newer Version of Wabbajack. Please update Wabbajack before installing!");
                     return ErrorResponse.Success;
                 });

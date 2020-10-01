@@ -3,15 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AngleSharp.Io;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 using Wabbajack.Common;
 using Wabbajack.Common.Exceptions;
-using Wabbajack.Lib;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Server.DataLayer;
 using Wabbajack.Server.Services;
