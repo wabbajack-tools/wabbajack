@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 2.3.0.0 - ???
+#### Version - 2.3.0.1 - 10/1/2020
 * Rewrote the file extraction routines. New code uses less memory, less disk space, and performs less thrashing on HDDs
 * Reworked IPS4 integration to reduce download failures
 * Profiles can now contain an (optional) file `compiler_settings.json` that includes options for other games to be used during install.
@@ -9,6 +9,9 @@ This is now the only way to include extra games in the install process, implicit
 * Includes a "Favor performance over RAM" optional mode (defaults to off) that will use excessive amounts of RAM in exchange
 for almost 1GB/sec install speed on the correct hardware. Don't enable this unless you have a fast SSD and at least 2.5GB of RAM for every
 install thread.
+* Fixed Extraction so that zip files no longer cause WJ to CTD
+* Better path logging during install and compilation
+* Fix the "this was created with a newer version of Wabbajack" issue
 
 
 #### Version - 2.2.2.0 - 8/31/2020

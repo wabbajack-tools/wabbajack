@@ -57,7 +57,7 @@ namespace Wabbajack.Lib
             : base(steps)
         {
             //set in MainWindowVM
-            WabbajackVersion = Consts.CurrentWabbajackVersion;
+            WabbajackVersion = Consts.CurrentMinimumWabbajackVersion;
         }
 
         public static void Info(string msg)

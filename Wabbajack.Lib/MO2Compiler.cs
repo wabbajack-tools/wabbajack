@@ -58,7 +58,7 @@ namespace Wabbajack.Lib
             MO2Ini = MO2Folder.Combine("ModOrganizer.ini").LoadIniFile();
             var mo2game = (string)MO2Ini.General.gameName;
             CompilingGame = GameRegistry.Games.First(g => g.Value.MO2Name == mo2game).Value;
-            GamePath = new AbsolutePath((string)MO2Ini.General.gamePath.Replace("\\\\", "\\"));
+            GamePath = CompilingGame.GameLocation();
             ModListOutputFile = outputFile;
             Settings = new CompilerSettings();
         }
@@ -99,6 +99,13 @@ namespace Wabbajack.Lib
             SelectedProfiles.Add(MO2Profile!);
 
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
+
+            Utils.Log($"Compiling Game: {CompilingGame}");
+            Utils.Log($"Games from setting files:");
+            foreach (var game in Settings.IncludedGames)
+            {
+                Utils.Log($"- {game}");
+            }
 
             Utils.Log($"VFS File Location: {VFSCacheName}");
             Utils.Log($"MO2 Folder: {MO2Folder}");
@@ -340,7 +347,7 @@ namespace Wabbajack.Lib
             ModList = new ModList
             {
                 GameType = CompilingGame.Game,
-                WabbajackVersion = Consts.CurrentWabbajackVersion,
+                WabbajackVersion = Consts.CurrentMinimumWabbajackVersion,
                 Archives = SelectedArchives.ToList(),
                 ModManager = ModManager.MO2,
                 Directives = InstallDirectives,

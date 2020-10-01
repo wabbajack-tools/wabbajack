@@ -84,6 +84,12 @@ namespace Wabbajack.Lib
                 Utils.Log("Exiting because we couldn't find the game folder.");
                 return false;
             }
+
+            Utils.Log($"Install Folder: {OutputFolder}");
+            Utils.Log($"Downloads Folder: {DownloadFolder}");
+            Utils.Log($"Game Folder: {GameFolder.Value}");
+            Utils.Log($"Wabbajack Folder: {AbsolutePath.EntryPoint}");
+            
             
             var watcher = new DiskSpaceWatcher(cancel, new[]{OutputFolder, DownloadFolder, GameFolder.Value, AbsolutePath.EntryPoint}, (long)2 << 31,
                 drive =>
