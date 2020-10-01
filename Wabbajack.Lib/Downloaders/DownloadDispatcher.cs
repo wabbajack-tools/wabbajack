@@ -192,7 +192,7 @@ namespace Wabbajack.Lib.Downloaders
                     };
                 return await Download(newArchive, destination);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }

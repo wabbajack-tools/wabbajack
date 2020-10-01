@@ -80,7 +80,7 @@ namespace Wabbajack.BuildServer.Controllers
                     return NotFound("File is Valid");
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 //_logger.LogInformation(
                //     $"Refusing to upgrade ({request.OldArchive.State.PrimaryKeyString}), due to upgrade failure");

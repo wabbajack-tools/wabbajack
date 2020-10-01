@@ -52,7 +52,7 @@ namespace Wabbajack.Server.Services
                     var (daily, hourly) = await client.GetRemainingApiCalls();
                     await _sql.SetNexusAPIKey(key.Key, daily, hourly);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     _logger.Log(LogLevel.Warning, "Update error, purging API key");
                     await _sql.DeleteNexusAPIKey(key.Key);
@@ -82,7 +82,7 @@ namespace Wabbajack.Server.Services
                 var hourlyRemaining = int.Parse(response.Headers.GetValues("x-rl-hourly-remaining").First());
                 await _sql.SetNexusAPIKey(ApiKey, dailyRemaining, hourlyRemaining);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }

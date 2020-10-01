@@ -118,7 +118,7 @@ namespace Wabbajack.Server.Services
                         {
                             modlist = entry.FromJson<ModList>();
                         }
-                        catch (JsonReaderException ex)
+                        catch (JsonReaderException)
                         {
                             _logger.LogWarning($"Bad Modlist {list.Links.MachineURL}");
                             await _discord.Send(Channel.Ham,

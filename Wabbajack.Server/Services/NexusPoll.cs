@@ -35,7 +35,6 @@ namespace Wabbajack.Server.Services
             _logger.Log(LogLevel.Information, "Starting");
 
             var results = await NexusUpdatesFeeds.GetUpdates();
-            NexusApiClient client = null;
             long updated = 0;
             foreach (var result in results)
             {

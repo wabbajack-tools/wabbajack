@@ -1,11 +1,9 @@
-﻿using System.Net;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Wabbajack.BuildServer.Test;
 using Wabbajack.Common;
 using Wabbajack.Lib;
 using Xunit;
 using Xunit.Abstractions;
-using Wabbajack.Common;
 
 namespace Wabbajack.Server.Test
 {

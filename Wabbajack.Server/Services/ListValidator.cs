@@ -345,7 +345,7 @@ namespace Wabbajack.Server.Services
                             {
                                 await _sql.AddNexusModInfo(ns.Game, ns.ModID, queryTime, mod);
                             }
-                            catch (Exception _)
+                            catch (Exception)
                             {
                                 // Could be a PK constraint failure
                             }
@@ -368,13 +368,13 @@ namespace Wabbajack.Server.Services
                             {
                                 await _sql.AddNexusModFiles(ns.Game, ns.ModID, queryTime, files);
                             }
-                            catch (Exception _)
+                            catch (Exception)
                             {
                                 // Could be a PK constraint failure
                             }
                         }
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         return ArchiveStatus.InValid;
                     }

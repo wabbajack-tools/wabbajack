@@ -23,8 +23,6 @@ namespace Wabbajack.VirtualFileSystem
             _vfsCache = RocksDb.Open(options, (string)Consts.LocalAppDataPath.Combine("GlobalVFSCache2.rocksDb"));
         }
         
-        private AbsolutePath _stagedPath;
-
         private IEnumerable<VirtualFile> _thisAndAllChildren;
 
         public IPath Name { get; internal set; }

@@ -91,7 +91,7 @@ namespace Wabbajack.Lib.ModListRegistry
                 var client = new Http.Client();
                 return (await client.GetStringAsync(Consts.UnlistedModlistMetadataURL)).FromJsonString<List<ModlistMetadata>>();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Utils.LogStatus("Error loading unlisted modlists");
                 return new List<ModlistMetadata>();

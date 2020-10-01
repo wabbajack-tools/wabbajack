@@ -49,7 +49,7 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
                 {
                     setter = (ISetProperties)_archive;
                 }
-                catch (InvalidCastException _)
+                catch (InvalidCastException)
                 {
                     return;
                 }
