@@ -81,7 +81,6 @@ namespace Wabbajack.Common
         }
 
 
-
         public static void Log(string msg)
         {
             Log(new GenericInfo(msg));
