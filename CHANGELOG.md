@@ -1,6 +1,6 @@
 ### Changelog
 
-#### Version - 2.3.0.1 - 10/1/2020
+#### Version - 2.3.0.1 - 10/4/2020
 * Rewrote the file extraction routines. New code uses less memory, less disk space, and performs less thrashing on HDDs
 * Reworked IPS4 integration to reduce download failures
 * Profiles can now contain an (optional) file `compiler_settings.json` that includes options for other games to be used during install.
