@@ -12,6 +12,7 @@ namespace Wabbajack.Server
     {
         public static void Main(string[] args)
         {
+            LoggingSettings.LogToFile = true;
             Consts.IsServer = true;
             bool testMode = args.Contains("TESTMODE");
             CreateHostBuilder(args, testMode).Build().Run();
