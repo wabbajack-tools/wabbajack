@@ -29,6 +29,7 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
             if (!FileExtractor2.FavorPerfOverRAM)
             {
                 self.SetCompressionProperties(new Dictionary<string, string>() {{"mt", "off"}});
+
             }
 
 
@@ -130,38 +131,6 @@ namespace Wabbajack.VirtualFileSystem.SevenZipExtractor
 
             }
         }
-        
-        public IList<Entry> Entries
-        {
-            get
-            {
-                if (this._entries != null)
-                {
-                    return this._entries;
-                }
-
-                ulong checkPos = 32 * 1024;
-                int open = this._archive.Open(this._archiveStream, ref checkPos, null);
-
-                if (open != 0)
-                {
-                    throw new Exception("Unable to open archive");
-                }
-
-                uint itemsCount = this._archive.GetNumberOfItems();
-
-                this._entries = new List<Entry>();
-
-                for (uint fileIndex = 0; fileIndex < itemsCount; fileIndex++)
-                {
-                    var entry = GetEntry(fileIndex);
-                    this._entries.Add(entry);
-                }
-
-                return this._entries;
-            }
-        }
-
         internal Entry GetEntry(uint fileIndex)
         {
             string fileName = this.GetProperty<string>(fileIndex, ItemPropId.kpidPath);

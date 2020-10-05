@@ -325,6 +325,8 @@ namespace Wabbajack.Lib
                 await a.Build(OutputFolder.Combine(bsa.To));
                 streams.Do(s => s.Dispose());
 
+                await sourceDir.DeleteDirectory();
+
                 if (UseCompression)
                     await OutputFolder.Combine(bsa.To).Compact(FileCompaction.Algorithm.XPRESS16K);
             }
