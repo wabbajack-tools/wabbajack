@@ -557,7 +557,17 @@ namespace Wabbajack.Lib
 
             var firstFailedPatch = InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.PatchID == default);
             if (firstFailedPatch != null)
-                Error($"Missing patches after generation, this should not happen. First failure: {firstFailedPatch.FullPath}");
+            {
+                Utils.Log($"Missing data from failed patch, starting data dump");
+                Utils.Log($"Dest File: {firstFailedPatch.To}");
+                Utils.Log($"Options ({firstFailedPatch.Choices.Length}:");
+                foreach (var choice in firstFailedPatch.Choices)
+                {
+                    Utils.Log($"  {choice.FullPath}");
+                }
+                Error(
+                    $"Missing patches after generation, this should not happen. First failure: {firstFailedPatch.FullPath}");
+            }
         }
 
         private VirtualFile FindDestFile(RelativePath to)

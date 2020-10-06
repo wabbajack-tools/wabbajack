@@ -72,7 +72,7 @@ namespace Wabbajack.VirtualFileSystem
                     }
                     else
                     {
-                        return await GatheringExtractWith7Zip<T>(archive, (Definitions.FileType)sig, shouldExtract,
+                        return await GatheringExtractWith7Zip<T>(sFn, (Definitions.FileType)sig, shouldExtract,
                             mapfn);
                     }
                 }
@@ -157,9 +157,9 @@ namespace Wabbajack.VirtualFileSystem
             return results;
         }
 
-        private static async Task<Dictionary<RelativePath,T>> GatheringExtractWith7Zip<T>(Stream stream, Definitions.FileType sig, Predicate<RelativePath> shouldExtract, Func<RelativePath,IStreamFactory,ValueTask<T>> mapfn)
+        private static async Task<Dictionary<RelativePath,T>> GatheringExtractWith7Zip<T>(IStreamFactory sf, Definitions.FileType sig, Predicate<RelativePath> shouldExtract, Func<RelativePath,IStreamFactory,ValueTask<T>> mapfn)
         {
-            return await new GatheringExtractor<T>(stream, sig, shouldExtract, mapfn).Extract();
+            return await new GatheringExtractor<T>(sf, sig, shouldExtract, mapfn).Extract();
         }
 
         public static async Task ExtractAll(AbsolutePath src, AbsolutePath dest)

@@ -95,6 +95,27 @@ namespace Wabbajack.VirtualFileSystem.Test
             }
         }
 
+        /* Takes to long to run in CI, enable when needed for verification
+
+        [Fact]
+        public async Task MissingFileFromArchiveShouldBeFound()
+        {
+            FileExtractor2.FavorPerfOverRAM = true;
+
+            // From a bug in 2.3.0.1
+            var src = await DownloadMod(Game.SkyrimSpecialEdition, 21166, 136259);
+                        
+            var results = await FileExtractor2.GatheringExtract(new NativeFileStreamFactory(src), 
+                f => true,
+                async (p, s) =>
+                {
+                    await using var stream = await s.GetStream();
+                    return stream.Length;
+                });
+            
+            Assert.NotEmpty(results);
+        }
+*/
 
         [Fact]
         public async Task CanExtractEmptyFiles()

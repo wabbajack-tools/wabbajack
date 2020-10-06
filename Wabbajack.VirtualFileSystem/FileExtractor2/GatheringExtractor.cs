@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Compression.BSA;
 using Wabbajack.Common;
 using Wabbajack.Common.FileSignatures;
+using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.VirtualFileSystem.SevenZipExtractor;
 
 namespace Wabbajack.VirtualFileSystem
@@ -18,17 +20,17 @@ namespace Wabbajack.VirtualFileSystem
         private Predicate<RelativePath> _shouldExtract;
         private Func<RelativePath, IStreamFactory, ValueTask<T>> _mapFn;
         private Dictionary<RelativePath, T> _results;
-        private Stream _stream;
         private Definitions.FileType _sig;
         private Exception _killException;
         private uint _itemsCount;
+        private IStreamFactory _streamFactory;
 
-        public GatheringExtractor(Stream stream, Definitions.FileType sig, Predicate<RelativePath> shouldExtract, Func<RelativePath,IStreamFactory, ValueTask<T>> mapfn)
+        public GatheringExtractor(IStreamFactory sF, Definitions.FileType sig, Predicate<RelativePath> shouldExtract, Func<RelativePath,IStreamFactory, ValueTask<T>> mapfn)
         {
             _shouldExtract = shouldExtract;
             _mapFn = mapfn;
             _results = new Dictionary<RelativePath, T>();
-            _stream = stream;
+            _streamFactory = sF;
             _sig = sig;
         }
 
@@ -40,11 +42,18 @@ namespace Wabbajack.VirtualFileSystem
             {
                 try
                 {
-                    _archive = ArchiveFile.Open(_stream, _sig).Result;
-                    ulong checkPos = 1024 * 32;
-                    _archive._archive.Open(_archive._archiveStream, ref checkPos, new ArchiveCallback());
+                    using var stream = _streamFactory.GetStream().Result;
+                    _archive = ArchiveFile.Open(stream, _sig).Result;
+                    ulong checkPos = (ulong)stream.Length;
+                    var oresult = _archive._archive.Open(_archive._archiveStream, ref checkPos, new ArchiveCallback());
+                    // Can't read this with the COM interface for some reason
+                    if (oresult != 0)
+                    {
+                        var _ = ExtractSlow(source, _streamFactory);
+                        return;
+                    }
                     _itemsCount = _archive._archive.GetNumberOfItems();
-                    _archive._archive.Extract(null, 0xFFFFFFFF, 0, this);
+                    var result = _archive._archive.Extract(null, 0xFFFFFFFF, 0, this);
                     _archive.Dispose();
                     if (_killException != null)
                     {
@@ -68,6 +77,82 @@ namespace Wabbajack.VirtualFileSystem
             await source.Task;
             return _results;
         }
+
+        private async Task ExtractSlow(TaskCompletionSource<bool> tcs, IStreamFactory streamFactory)
+        {
+            try
+            {
+                TempFile tempFile = null;
+                AbsolutePath source;
+                if (streamFactory is NativeFileStreamFactory nsf)
+                {
+                    source = (AbsolutePath)nsf.Name;
+                }
+                else
+                {
+                    await using var stream = await streamFactory.GetStream();
+                    tempFile = new TempFile();
+                    await tempFile.Path.WriteAllAsync(stream);
+                }
+
+                var dest = await TempFolder.Create();
+                Utils.Log(
+                    $"The contents of {(string)source.FileName} are being extracted to {(string)source.FileName} using 7zip.exe");
+
+                var process = new ProcessHelper {Path = @"Extractors\7z.exe".RelativeTo(AbsolutePath.EntryPoint),};
+
+
+                process.Arguments = new object[] {"x", "-bsp1", "-y", $"-o\"{dest.Dir}\"", source, "-mmt=off"};
+
+
+                var _ = process.Output.Where(d => d.Type == ProcessHelper.StreamType.Output)
+                    .ForEachAsync(p =>
+                    {
+                        var (_, line) = p;
+                        if (line == null)
+                            return;
+
+                        if (line.Length <= 4 || line[3] != '%') return;
+
+                        int.TryParse(line.Substring(0, 3), out var percentInt);
+                        Utils.Status($"Extracting {(string)source.FileName} - {line.Trim()}",
+                            Percent.FactoryPutInRange(percentInt / 100d));
+                    });
+
+                var exitCode = await process.Start();
+
+
+                if (exitCode != 0)
+                {
+                    Utils.ErrorThrow(new _7zipReturnError(exitCode, source, dest.Dir, ""));
+                }
+                else
+                {
+                    Utils.Status($"Extracting {source.FileName} - done", Percent.One, alsoLog: true);
+                }
+
+                if (tempFile != null)
+                {
+                    await tempFile.DisposeAsync();
+                }
+
+                foreach (var file in dest.Dir.EnumerateFiles())
+                {
+                    var relPath = file.RelativeTo(dest.Dir);
+                    if (!_shouldExtract(relPath)) continue;
+
+                    var result = await _mapFn(relPath, new NativeFileStreamFactory(file));
+                    _results[relPath] = result;
+                    await file.DeleteAsync();
+                }
+
+                tcs.SetResult(true);
+            }
+            catch (Exception ex)
+            {
+                tcs.SetException(ex);
+            }
+        }       
 
         public void SetTotal(ulong total)
         {

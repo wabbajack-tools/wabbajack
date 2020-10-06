@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.3.0.2 - 10/5/2020
+* Fixed a situation where 7zip would refuse to extract very large archives
+
 #### Version - 2.3.0.1 - 10/4/2020
 * Rewrote the file extraction routines. New code uses less memory, less disk space, and performs less thrashing on HDDs
 * Reworked IPS4 integration to reduce download failures
