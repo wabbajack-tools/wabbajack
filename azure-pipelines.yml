@@ -65,12 +65,12 @@ steps:
 
 - task: DownloadSecureFile@1
   inputs:
-    secureFile: 'CertFile.p12'
+    secureFile: 'CodeCert2020.pfx'
 - task: codesigning@2
   displayName: "Sign main app"
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
   inputs:
-    secureFileId: 'CertFile.p12'
+    secureFileId: 'CodeCert2020.pfx'
     signCertPassword: '$(CertPassword)'
     files: '$(System.DefaultWorkingDirectory)/PublishApp/*abbajack*.exe'
     hashingAlgorithm: 'SHA256'
@@ -80,7 +80,7 @@ steps:
   displayName: "Sign launcher"
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
   inputs:
-    secureFileId: 'CertFile.p12'
+    secureFileId: 'CodeCert2020.pfx'
     signCertPassword: '$(CertPassword)'
     files: '$(System.DefaultWorkingDirectory)/PublishLauncher/*abbajack*.exe'
     hashingAlgorithm: 'SHA256'
