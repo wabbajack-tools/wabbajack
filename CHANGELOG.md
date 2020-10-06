@@ -15,6 +15,7 @@ install thread.
 * Fixed Extraction so that zip files no longer cause WJ to CTD
 * Better path logging during install and compilation
 * Fix the "this was created with a newer version of Wabbajack" issue
+* If a downloaded file doesn't match the expected hash, try alternative download locations, if allowed
 
 
 #### Version - 2.2.2.0 - 8/31/2020

@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data.HashFunction.xxHash;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
@@ -23,9 +19,6 @@ using IniParser;
 using IniParser.Model.Configuration;
 using IniParser.Parser;
 using Microsoft.Win32;
-using Newtonsoft.Json;
-using Wabbajack.Common.StatusFeed;
-using Wabbajack.Common.StatusFeed.Errors;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Directory = System.IO.Directory;
@@ -43,166 +36,12 @@ namespace Wabbajack.Common
             return processList.Where(process => process.ProcessName == "ModOrganizer").Any(process => Path.GetDirectoryName(process.MainModule?.FileName) == mo2Path);
         }
 
-        public static AbsolutePath LogFile { get; }
-        public static AbsolutePath LogFolder { get; }
-
-        public enum FileEventType
-        {
-            Created,
-            Changed,
-            Deleted
-        }
-
         static Utils()
         {
-            LogFolder = Consts.LogsFolder;
-            LogFile = Consts.LogFile;
-            Consts.LocalAppDataPath.CreateDirectory();
-            Consts.LogsFolder.CreateDirectory();
-
-            _startTime = DateTime.Now;
-
-            if (LogFile.Exists)
-            {
-                var newPath = Consts.LogsFolder.Combine(Consts.EntryPoint.FileNameWithoutExtension + LogFile.LastModified.ToString(" yyyy-MM-dd HH_mm_ss") + ".log");
-                LogFile.MoveToAsync(newPath, true).Wait();
-            }
-
-            var logFiles = LogFolder.EnumerateFiles(false).ToList();
-            if (logFiles.Count >= Consts.MaxOldLogs)
-            {
-                Log($"Maximum amount of old logs reached ({logFiles.Count} >= {Consts.MaxOldLogs})");
-                var filesToDelete = logFiles
-                    .Where(f => f.IsFile)
-                    .OrderBy(f => f.LastModified)
-                    .Take(logFiles.Count - Consts.MaxOldLogs)
-                    .ToList();
-
-                Log($"Found {filesToDelete.Count} old log files to delete");
-
-                var success = 0;
-                var failed = 0;
-                filesToDelete.Do(f =>
-                {
-                    try
-                    {
-                        f.Delete();
-                        success++;
-                    }
-                    catch (Exception e)
-                    {
-                        failed++;
-                        Log($"Could not delete log at {f}!\n{e}");
-                    }
-                });
-
-                Log($"Deleted {success} log files, failed to delete {failed} logs");
-            }
-
-            var watcher = new FileSystemWatcher((string)Consts.LocalAppDataPath);
-            AppLocalEvents = Observable.Merge(Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Changed += h, h => watcher.Changed -= h).Select(e => (FileEventType.Changed, e.EventArgs)),
-                                                Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Created += h, h => watcher.Created -= h).Select(e => (FileEventType.Created, e.EventArgs)),
-                                                Observable.FromEventPattern<FileSystemEventHandler, FileSystemEventArgs>(h => watcher.Deleted += h, h => watcher.Deleted -= h).Select(e => (FileEventType.Deleted, e.EventArgs)))
-                                       .ObserveOn(Scheduler.Default);
-            watcher.EnableRaisingEvents = true;
+            InitalizeLogging().Wait();
         }
-
-        private static readonly Subject<IStatusMessage> LoggerSubj = new Subject<IStatusMessage>();
-        public static IObservable<IStatusMessage> LogMessages => LoggerSubj;
 
         private static readonly string[] Suffix = {"B", "KB", "MB", "GB", "TB", "PB", "EB"}; // Longs run out around EB
-
-        private static object _lock = new object();
-
-        private static DateTime _startTime;
-
-        
-        public static void Log(string msg)
-        {
-            Log(new GenericInfo(msg));
-        }
-
-        public static T Log<T>(T msg) where T : IStatusMessage
-        {
-            LogStraightToFile(string.IsNullOrWhiteSpace(msg.ExtendedDescription) ? msg.ShortDescription : msg.ExtendedDescription);
-            LoggerSubj.OnNext(msg);
-            return msg;
-        }
-
-        public static void Error(string errMessage)
-        {
-            Log(errMessage);
-        }
-
-        public static void Error(Exception ex, string? extraMessage = null)
-        {
-            Log(new GenericException(ex, extraMessage));
-        }
-
-        public static void ErrorThrow(Exception ex, string? extraMessage = null)
-        {
-            Error(ex, extraMessage);
-            throw ex;
-        }
-
-        public static void Error(IException err)
-        {
-            LogStraightToFile($"{err.ShortDescription}\n{err.Exception.StackTrace}");
-            LoggerSubj.OnNext(err);
-        }
-
-        public static void ErrorThrow(IException err)
-        {
-            Error(err);
-            throw err.Exception;
-        }
-
-        public static void LogStraightToFile(string msg)
-        {
-            if (LogFile == default) return;
-            lock (_lock)
-            {
-                File.AppendAllText(LogFile.ToString(), $"{(DateTime.Now - _startTime).TotalSeconds:0.##} - {msg}\r\n");
-            }
-        }
-
-        public static void Status(string msg, Percent progress, bool alsoLog = false)
-        {
-            WorkQueue.AsyncLocalCurrentQueue.Value?.Report(msg, progress);
-            if (alsoLog)
-            {
-                Utils.Log(msg);
-            }
-        }
-
-        public static void Status(string msg, bool alsoLog = false)
-        {
-            Status(msg, Percent.Zero, alsoLog: alsoLog);
-        }
-
-        public static void CatchAndLog(Action a)
-        {
-            try
-            {
-                a();
-            }
-            catch (Exception ex)
-            {
-                Utils.Error(ex);
-            }
-        }
-
-        public static async Task CatchAndLog(Func<Task> f)
-        {
-            try
-            {
-                await f();
-            }
-            catch (Exception ex)
-            {
-                Utils.Error(ex);
-            }
-        }
 
         public static void CopyToWithStatus(this Stream istream, long maxSize, Stream ostream, string status)
         {
@@ -993,16 +832,14 @@ namespace Wabbajack.Common
             return false;
         }
 
-
-        public static IObservable<(FileEventType, FileSystemEventArgs)> AppLocalEvents { get; }
-
         public static IObservable<bool> HaveEncryptedJsonObservable(string key)
         {
             var path = Consts.LocalAppDataPath.Combine(key);
-            return AppLocalEvents.Where(t => (AbsolutePath)t.Item2.FullPath.ToLower() == path)
-                                 .Select(_ => path.Exists)
-                                 .StartWith(path.Exists)
-                                 .DistinctUntilChanged();
+            return WJFileWatcher.AppLocalEvents
+                .Where(t => (AbsolutePath)t.Item2.FullPath.ToLower() == path)
+                .Select(_ => path.Exists)
+                .StartWith(path.Exists)
+                .DistinctUntilChanged();
         }
 
         public static async ValueTask DeleteEncryptedJson(string key)

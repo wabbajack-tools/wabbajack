@@ -104,8 +104,9 @@ namespace Wabbajack.Lib.Downloaders
         {
             if (await Download(archive, destination))
             {
-                await destination.FileHashCachedAsync();
-                return DownloadResult.Success;
+                var downloadedHash = await destination.FileHashCachedAsync();
+                if (downloadedHash == archive.Hash || archive.Hash == default) 
+                    return DownloadResult.Success;
             }
 
             

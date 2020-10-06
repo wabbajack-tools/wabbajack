@@ -11,6 +11,8 @@ namespace Wabbajack
     {
         public App()
         {
+            LoggingSettings.LogToFile = true;
+
             CLIOld.ParseOptions(Environment.GetCommandLineArgs());
             if (CLIArguments.Help)
                 CLIOld.DisplayHelpText();
