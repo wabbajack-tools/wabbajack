@@ -68,7 +68,6 @@ namespace Wabbajack.VirtualFileSystem.Test
             }
         }
         
-        /* Takes to long to run in CI, enable when needed for verification
         [Fact]
         public async Task SmallFilesShouldntCrash()
         {
@@ -95,7 +94,8 @@ namespace Wabbajack.VirtualFileSystem.Test
                 Assert.Equal(await temp.Dir.Combine(path).FileHashAsync(), hash);
             }
         }
-        */
+
+        /* Takes to long to run in CI, enable when needed for verification
 
         [Fact]
         public async Task MissingFileFromArchiveShouldBeFound()
@@ -115,7 +115,7 @@ namespace Wabbajack.VirtualFileSystem.Test
             
             Assert.NotEmpty(results);
         }
-
+*/
 
         [Fact]
         public async Task CanExtractEmptyFiles()
