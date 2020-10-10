@@ -16,7 +16,7 @@ namespace Wabbajack.Common
     }
     public class NativeFileStreamFactory : IStreamFactory
     {
-        private AbsolutePath _file;
+        protected AbsolutePath _file;
 
         public NativeFileStreamFactory(AbsolutePath file, IPath path)
         {

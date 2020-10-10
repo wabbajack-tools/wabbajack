@@ -13,9 +13,11 @@ namespace Wabbajack.Common
         public bool DeleteAfter = true;
         private static Task _cleanTask;
 
+        public static AbsolutePath BaseFolder => AbsolutePath.EntryPoint.Combine("tmp_files");
+
         static TempFolder()
         {
-            _cleanTask = Task.Run(() => "tmp_files".RelativeTo(AbsolutePath.EntryPoint).DeleteDirectory());
+            _cleanTask = Task.Run(() => BaseFolder.DeleteDirectory());
         }
 
         /// <summary>
@@ -28,7 +30,7 @@ namespace Wabbajack.Common
 
         private TempFolder(bool deleteAfter = true)
         {
-            Dir = Path.Combine("tmp_files", Guid.NewGuid().ToString()).RelativeTo(AbsolutePath.EntryPoint);
+            Dir = BaseFolder.Combine(Guid.NewGuid().ToString());
             if (!Dir.Exists) 
                 Dir.CreateDirectory();
             DeleteAfter = deleteAfter;

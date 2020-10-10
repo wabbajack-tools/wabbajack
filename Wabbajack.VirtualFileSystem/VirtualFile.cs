@@ -218,7 +218,7 @@ namespace Wabbajack.VirtualFileSystem
             try
             {
 
-                var list = await FileExtractor2.GatheringExtract(extractedFile,
+                var list = await FileExtractor2.GatheringExtract(context.Queue, extractedFile,
                     _ => true,
                     async (path, sfactory) => await Analyze(context, self, sfactory, path, depth + 1));
 
