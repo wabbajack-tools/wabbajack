@@ -83,7 +83,7 @@ namespace Compression.BSA.Test
             var folder = _bsaFolder.Combine(game.ToString(), modid.ToString());
             await folder.DeleteDirectory();
             folder.CreateDirectory();
-            await FileExtractor2.ExtractAll(filename, folder);
+            await FileExtractor2.ExtractAll(Queue, filename, folder);
 
             foreach (var bsa in folder.EnumerateFiles().Where(f => Consts.SupportedBSAs.Contains(f.Extension)))
             {

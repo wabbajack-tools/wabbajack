@@ -111,7 +111,7 @@ namespace Wabbajack.Test
             await src.CopyToAsync(destFile);
 
             var modFolder = modName == null ? utils.MO2Folder : utils.ModsFolder.Combine(modName);
-            await FileExtractor2.ExtractAll(src, modFolder);
+            await FileExtractor2.ExtractAll(Queue, src, modFolder);
             return (destFile, modFolder);
         }
 
@@ -146,7 +146,7 @@ namespace Wabbajack.Test
             await src.CopyToAsync(dest);
 
             var modFolder = utils.ModsFolder.Combine(modName);
-            await FileExtractor2.ExtractAll(src, modFolder);
+            await FileExtractor2.ExtractAll(Queue, src, modFolder);
             
             await dest.WithExtension(Consts.MetaFileExtension).WriteAllTextAsync(ini);
             return (dest, modFolder);

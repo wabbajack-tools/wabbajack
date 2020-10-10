@@ -18,6 +18,11 @@ namespace Wabbajack.Common
             : this(new FileInfo((string)GetTempFilePath()))
         {
         }
+        
+        public TempFile(AbsolutePath path, bool deleteAfter = true, bool createFolder = true)
+            : this(new FileInfo((string)path))
+        {
+        }
 
         private static AbsolutePath GetTempFilePath()
         {

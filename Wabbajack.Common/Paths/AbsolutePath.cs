@@ -171,7 +171,7 @@ namespace Wabbajack.Common
         /// </summary>
         /// <param name="otherPath"></param>
         /// <param name="overwrite">Replace the destination file if it exists</param>
-        public async Task MoveToAsync(AbsolutePath otherPath, bool overwrite = false)
+        public async ValueTask MoveToAsync(AbsolutePath otherPath, bool overwrite = false)
         {
             if (Root != otherPath.Root)
             {

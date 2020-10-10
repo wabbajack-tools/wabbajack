@@ -3,16 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.VirtualFileSystem;
-using Wabbajack.VirtualFileSystem.SevenZipExtractor;
-using Directory = Alphaleonis.Win32.Filesystem.Directory;
-using File = Alphaleonis.Win32.Filesystem.File;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
@@ -54,18 +48,8 @@ namespace Wabbajack.Lib
         public async Task ExtractModlist()
         {
             ExtractedModlistFolder = await TempFolder.Create();
-            await FileExtractor2.GatheringExtract(new NativeFileStreamFactory(ModListArchive), _ => true, 
-                async (path, sfn) =>
-                {
-                    await using var s = await sfn.GetStream();
-                    var fp = ExtractedModlistFolder.Dir.Combine(path);
-                    fp.Parent.CreateDirectory();
-                    await fp.WriteAllAsync(s);
-                    return 0; 
-                });
+            await FileExtractor2.ExtractAll(Queue, ModListArchive, ExtractedModlistFolder.Dir);
         }
-
-
 
         public void Info(string msg)
         {
@@ -138,16 +122,16 @@ namespace Wabbajack.Lib
             
             await VFS.Extract(Queue, grouped.Keys.ToHashSet(), async (vf, sf) =>
             {
-                await using var s = await sf.GetStream();
                 foreach (var directive in grouped[vf])
                 {
                     var file = directive.Directive;
-                    s.Position = 0;
 
                     switch (file)
                     {
                         case PatchedFromArchive pfa:
                         {
+                            await using var s = await sf.GetStream();
+                            s.Position = 0;
                             var patchData = await LoadBytesFromPath(pfa.PatchID);
                             var toFile = file.To.RelativeTo(OutputFolder);
                             {
@@ -165,7 +149,16 @@ namespace Wabbajack.Lib
                             break;
 
                         case FromArchive _:
-                            await directive.Directive.To.RelativeTo(OutputFolder).WriteAllAsync(s, false);
+                            if (grouped[vf].Count() == 1)
+                            {
+                                await sf.Move(directive.Directive.To.RelativeTo(OutputFolder));
+                            }
+                            else
+                            {
+                                await using var s = await sf.GetStream();
+                                await directive.Directive.To.RelativeTo(OutputFolder).WriteAllAsync(s, false);
+                            }
+
                             break;
                         default:
                             throw new Exception($"No handler for {directive}");
@@ -188,7 +181,7 @@ namespace Wabbajack.Lib
                         await file.To.RelativeTo(OutputFolder).Compact(FileCompaction.Algorithm.XPRESS16K);
                     }
                 }
-            });
+            }, tempFolder: OutputFolder);
         }
 
         public async Task DownloadArchives()

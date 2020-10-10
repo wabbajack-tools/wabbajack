@@ -15,6 +15,7 @@ namespace Wabbajack.VirtualFileSystem.Test
     {
         private ITestOutputHelper _helper;
         private IDisposable _unsub;
+        private WorkQueue _queue;
 
         public FileExtractorTests(ITestOutputHelper helper)
         {
@@ -30,6 +31,7 @@ namespace Wabbajack.VirtualFileSystem.Test
                     // ignored
                 }
             });
+            _queue = new WorkQueue();
         }
 
         public async Task InitializeAsync()
@@ -53,7 +55,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             await ZipUpFolder(temp.Dir, archive.Path, false);
             
-            var results = await FileExtractor2.GatheringExtract(new NativeFileStreamFactory(archive.Path), 
+            var results = await FileExtractor2.GatheringExtract(_queue, new NativeFileStreamFactory(archive.Path), 
                 _ => true,
                 async (path, sfn) =>
                 {
@@ -80,7 +82,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             await ZipUpFolder(temp.Dir, archive.Path, false);
 
-            var results = await FileExtractor2.GatheringExtract(new NativeFileStreamFactory(archive.Path), 
+            var results = await FileExtractor2.GatheringExtract(_queue, new NativeFileStreamFactory(archive.Path), 
                 _ => true,
                 async (path, sfn) =>
                 {
@@ -131,7 +133,7 @@ namespace Wabbajack.VirtualFileSystem.Test
 
             await ZipUpFolder(temp.Dir, archive.Path, false);
             
-            var results = await FileExtractor2.GatheringExtract(new NativeFileStreamFactory(archive.Path), 
+            var results = await FileExtractor2.GatheringExtract(_queue, new NativeFileStreamFactory(archive.Path), 
                 _ => true,
                 async (path, sfn) =>
                 {
@@ -154,10 +156,10 @@ namespace Wabbajack.VirtualFileSystem.Test
         {
             var src = await DownloadMod(Game.Oblivion, 18498);
 
-            await FileExtractor2.GatheringExtract(new NativeFileStreamFactory(src),
+            await FileExtractor2.GatheringExtract(_queue, new NativeFileStreamFactory(src),
                 p => p.Extension == OMODExtension, async (path, sfn) =>
                 {
-                    await FileExtractor2.GatheringExtract(sfn, _ => true, async (ipath, isfn) => {
+                    await FileExtractor2.GatheringExtract(_queue, sfn, _ => true, async (ipath, isfn) => {
                         // We shouldn't have any .crc files because this file should be recognized as a OMOD and extracted correctly
                         Assert.NotEqual(CRCExtension, ipath.Extension);
                         return 0;
@@ -171,7 +173,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         {
             var src = await DownloadMod(Game.Fallout4, 29596, 120918);
             await using var tmpFolder = await TempFolder.Create();
-            await FileExtractor2.ExtractAll(src, tmpFolder.Dir);
+            await FileExtractor2.ExtractAll(_queue, src, tmpFolder.Dir);
         }
 
 

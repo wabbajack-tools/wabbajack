@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
+using Wabbajack.VirtualFileSystem.ExtractedFiles;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = System.IO.File;
 using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
@@ -206,7 +207,7 @@ namespace Wabbajack.VirtualFileSystem
         /// <param name="files"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public async Task Extract(WorkQueue queue, HashSet<VirtualFile> files, Func<VirtualFile, IStreamFactory, ValueTask> callback)
+        public async Task Extract(WorkQueue queue, HashSet<VirtualFile> files, Func<VirtualFile, IExtractedFile, ValueTask> callback, AbsolutePath? tempFolder = null)
         {
             var top = new VirtualFile();
             var filesByParent = files.SelectMany(f => f.FilesInFullPath)
@@ -214,23 +215,28 @@ namespace Wabbajack.VirtualFileSystem
                 .GroupBy(f => f.Parent ?? top)
                 .ToDictionary(f => f.Key);
 
-            async Task HandleFile(VirtualFile file, IStreamFactory sfn)
+            async Task HandleFile(VirtualFile file, IExtractedFile sfn)
             {
+                if (filesByParent.ContainsKey(file))
+                    sfn.CanMove = false;
+                
                 if (files.Contains(file)) await callback(file, sfn);
                 if (filesByParent.TryGetValue(file, out var children))
                 {
                     var fileNames = children.ToDictionary(c => c.RelativeName);
-                    await FileExtractor2.GatheringExtract(sfn,
+                    await FileExtractor2.GatheringExtract(queue, sfn,
                         r => fileNames.ContainsKey(r),
                         async (rel, csf) =>
                         {
                             await HandleFile(fileNames[rel], csf);
                             return 0;
-                        });
+                        },
+                        tempFolder: tempFolder,
+                        onlyFiles: fileNames.Keys.ToHashSet());
                 }
 
             }
-            await filesByParent[top].PMap(queue, async file => await HandleFile(file, new NativeFileStreamFactory(file.AbsoluteName)));
+            await filesByParent[top].PMap(queue, async file => await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName)));
         }
 
         #region KnownFiles
