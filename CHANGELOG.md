@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.3.0.3 - 10/12/2020
+* Revert some 7zip changes due to 7zip crashing the app
+
 #### Version - 2.3.0.2 - 10/5/2020
 * Fixed a situation where 7zip would refuse to extract very large archives
 
