@@ -27,6 +27,8 @@ namespace Wabbajack.VirtualFileSystem
             Definitions.FileType._7Z);
 
         private static Extension OMODExtension = new Extension(".omod");
+        private static Extension FOMODExtension = new Extension(".fomod");
+        
         private static Extension BSAExtension = new Extension(".bsa");
 
         public static readonly HashSet<Extension> ExtractableExtensions = new HashSet<Extension>
@@ -37,7 +39,8 @@ namespace Wabbajack.VirtualFileSystem
             new Extension(".7zip"),
             new Extension(".rar"),
             new Extension(".zip"),
-            OMODExtension
+            OMODExtension,
+            FOMODExtension
         };
         
         
@@ -109,7 +112,7 @@ namespace Wabbajack.VirtualFileSystem
             }
             return results;
         }
-
+        
         private static async Task<Dictionary<RelativePath,T>> GatheringExtractWithOMOD<T>(Stream archive, Predicate<RelativePath> shouldExtract, Func<RelativePath,IExtractedFile,ValueTask<T>> mapfn)
         {
             var tmpFile = new TempFile();
@@ -119,7 +122,7 @@ namespace Wabbajack.VirtualFileSystem
 
             Framework.Settings.TempPath = (string)dest.Dir;
             Framework.Settings.CodeProgress = new OMODProgress();
-
+            
             var omod = new OMOD((string)tmpFile.Path);
             omod.GetDataFiles();
             omod.GetPlugins();

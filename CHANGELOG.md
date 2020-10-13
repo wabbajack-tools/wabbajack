@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.3.0.4 - 10/13/2020
+* Fix FOMOD extraction (for FNV)
+
 #### Version - 2.3.0.3 - 10/12/2020
 * Revert some 7zip changes due to 7zip crashing the app
 
