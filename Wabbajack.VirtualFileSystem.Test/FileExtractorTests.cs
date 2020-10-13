@@ -169,6 +169,21 @@ namespace Wabbajack.VirtualFileSystem.Test
         }
 
         [Fact]
+        public async Task CanExtractFOMODFiles()
+        {
+            var tmpFolder = await TempFolder.Create();
+            var src = await DownloadMod(Game.FalloutNewVegas, 52510);
+            var newName = src.FileName.RelativeTo(tmpFolder.Dir);
+            await src.CopyToAsync(newName);
+            
+            var ctx = new Context(_queue);
+            await ctx.AddRoot(tmpFolder.Dir);
+
+            Assert.NotEmpty(ctx.Index.ByName.Where(f => f.Key.FileName == (RelativePath)"Alternative Repairing.esp"));
+        }
+        
+
+        [Fact]
         public async Task SmallZipNoLongerCrashes()
         {
             var src = await DownloadMod(Game.Fallout4, 29596, 120918);
