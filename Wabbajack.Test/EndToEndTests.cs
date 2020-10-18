@@ -86,10 +86,10 @@ namespace Wabbajack.Test
             await utils.InstallFolder.Combine(Consts.LOOTFolderFilesDir).DeleteDirectory();
 
             var compiler = new MO2Compiler(
-                mo2Folder: utils.InstallFolder,
+                sourcePath: utils.InstallFolder,
+                downloadsPath: utils.DownloadsFolder,
                 mo2Profile: profile,
                 outputFile: profile.RelativeTo(AbsolutePath.EntryPoint).WithExtension(Consts.ModListExtension));
-            compiler.MO2DownloadsFolder = utils.DownloadsFolder;
             Assert.True(await compiler.Begin());
 
         }
@@ -178,7 +178,8 @@ namespace Wabbajack.Test
         private async Task<MO2Compiler> ConfigureAndRunCompiler(string profile)
         {
             var compiler = new MO2Compiler(
-                mo2Folder: utils.MO2Folder,
+                sourcePath: utils.MO2Folder,
+                downloadsPath: utils.DownloadsFolder,
                 mo2Profile: profile,
                 outputFile: profile.RelativeTo(AbsolutePath.EntryPoint).WithExtension(Consts.ModListExtension));
             Assert.True(await compiler.Begin());

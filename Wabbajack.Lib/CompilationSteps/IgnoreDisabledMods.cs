@@ -20,7 +20,7 @@ namespace Wabbajack.Lib.CompilationSteps
                 .Where(f => HasFlagInNotes(f.Value, Consts.WABBAJACK_ALWAYS_DISABLE)).Select(f => f.Key).Distinct();
 
             _allEnabledMods = _mo2Compiler.SelectedProfiles
-                .SelectMany(p => _mo2Compiler.MO2Folder.Combine("profiles", p, "modlist.txt").ReadAllLines())
+                .SelectMany(p => _mo2Compiler.SourcePath.Combine("profiles", p, "modlist.txt").ReadAllLines())
                 .Where(line => line.StartsWith("+") || line.EndsWith("_separator"))
                 .Select(line => line.Substring(1).RelativeTo(_mo2Compiler.MO2ModsFolder))
                 .Concat(alwaysEnabled)

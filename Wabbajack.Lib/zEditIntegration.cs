@@ -50,21 +50,21 @@ namespace Wabbajack.Lib
                             return false;
                         }
 
-                        if (settings.managerPath != _mo2Compiler.MO2Folder)
+                        if (settings.managerPath != _mo2Compiler.SourcePath)
                         {
-                            Utils.Log($"zEdit settings file {f}: managerPath is not {_mo2Compiler.MO2Folder} but {settings.managerPath}!");
+                            Utils.Log($"zEdit settings file {f}: managerPath is not {_mo2Compiler.SourcePath} but {settings.managerPath}!");
                             return false;
                         }
 
-                        if (settings.modsPath != _mo2Compiler.MO2Folder.Combine(Consts.MO2ModFolderName))
+                        if (settings.modsPath != _mo2Compiler.SourcePath.Combine(Consts.MO2ModFolderName))
                         {
-                            Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.MO2Folder}\\{Consts.MO2ModFolderName} but {settings.modsPath}!");
+                            Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.SourcePath}\\{Consts.MO2ModFolderName} but {settings.modsPath}!");
                             return false;
                         }
 
-                        if (settings.mergePath != _mo2Compiler.MO2Folder.Combine(Consts.MO2ModFolderName))
+                        if (settings.mergePath != _mo2Compiler.SourcePath.Combine(Consts.MO2ModFolderName))
                         {
-                            Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.MO2Folder}\\{Consts.MO2ModFolderName} but {settings.modsPath}!");
+                            Utils.Log($"zEdit settings file {f}: modsPath is not {_mo2Compiler.SourcePath}\\{Consts.MO2ModFolderName} but {settings.modsPath}!");
                             return false;
                         }
 
@@ -103,7 +103,7 @@ namespace Wabbajack.Lib
 
                 _mergesIndexed =
                     merges.ToDictionary(
-                        m => _mo2Compiler.MO2Folder.Combine((string)Consts.MO2ModFolderName, m.Key.name, m.Key.filename),
+                        m => _mo2Compiler.SourcePath.Combine((string)Consts.MO2ModFolderName, m.Key.name, m.Key.filename),
                         m => m.First());
 
                 _disabled = false;
@@ -180,12 +180,12 @@ namespace Wabbajack.Lib
 
                     return new SourcePatch
                     {
-                        RelativePath = absPath.RelativeTo(_mo2Compiler.MO2Folder),
+                        RelativePath = absPath.RelativeTo(_mo2Compiler.SourcePath),
                         Hash = hash
                     };
                 }));
 
-                var srcData = (await result.Sources.SelectAsync(async f => await _mo2Compiler.MO2Folder.Combine(f.RelativePath).ReadAllBytesAsync()).ToList())
+                var srcData = (await result.Sources.SelectAsync(async f => await _mo2Compiler.SourcePath.Combine(f.RelativePath).ReadAllBytesAsync()).ToList())
                     .ConcatArrays();
 
                 var dstData = await source.AbsolutePath.ReadAllBytesAsync();

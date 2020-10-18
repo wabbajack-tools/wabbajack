@@ -36,7 +36,8 @@ namespace Wabbajack.Test
         protected async Task<MO2Compiler> ConfigureAndRunCompiler(string profile, bool useGameFiles= false)
         {
             var compiler = new MO2Compiler(
-                mo2Folder: utils.MO2Folder,
+                sourcePath: utils.MO2Folder,
+                downloadsPath: utils.DownloadsFolder,
                 mo2Profile: profile,
                 outputFile: OutputFile(profile));
             compiler.UseGamePaths = useGameFiles;

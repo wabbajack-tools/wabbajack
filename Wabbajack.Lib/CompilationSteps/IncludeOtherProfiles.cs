@@ -16,7 +16,7 @@ namespace Wabbajack.Lib.CompilationSteps
         public IgnoreOtherProfiles(ACompiler compiler) : base(compiler)
         {
             _mo2Compiler = (MO2Compiler) compiler;
-            _modProfilesFolder = _mo2Compiler.MO2Folder.Combine("profiles");
+            _modProfilesFolder = _mo2Compiler.SourcePath.Combine("profiles");
 
             _profiles = _mo2Compiler.SelectedProfiles
                 .Select(p => _modProfilesFolder.Combine(p))

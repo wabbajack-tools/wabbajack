@@ -11,7 +11,7 @@ namespace Wabbajack.Lib.CompilationSteps
         public IgnoreSaveFiles(ACompiler compiler) : base(compiler)
         {
             _profilePaths =
-                MO2Compiler.SelectedProfiles.Select(p => MO2Compiler.MO2Folder.Combine("profiles", p, "saves")).ToArray();
+                MO2Compiler.SelectedProfiles.Select(p => MO2Compiler.SourcePath.Combine("profiles", p, "saves")).ToArray();
         }
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)

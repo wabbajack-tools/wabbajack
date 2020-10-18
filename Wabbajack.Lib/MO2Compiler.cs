@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Alphaleonis.Win32.Filesystem;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
 using Wabbajack.Lib.Validation;
 using Wabbajack.VirtualFileSystem;
-using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Lib
 {
@@ -17,9 +17,19 @@ namespace Wabbajack.Lib
     {
         private AbsolutePath _mo2DownloadsFolder;
         
-        public AbsolutePath MO2Folder;
+        public MO2Compiler(AbsolutePath sourcePath, AbsolutePath downloadsPath, string mo2Profile, AbsolutePath outputFile)
+            : base(21, mo2Profile, sourcePath, downloadsPath, outputFile)
+        {
+            MO2Profile = mo2Profile;
+            MO2Ini = SourcePath.Combine("ModOrganizer.ini").LoadIniFile();
+            var mo2game = (string)MO2Ini.General.gameName;
+            CompilingGame = GameRegistry.Games.First(g => g.Value.MO2Name == mo2game).Value;
+            GamePath = CompilingGame.GameLocation();
+            ModListOutputFile = outputFile;
+            Settings = new CompilerSettings();
+        }
 
-        public AbsolutePath MO2ModsFolder => MO2Folder.Combine(Consts.MO2ModFolderName);
+        public AbsolutePath MO2ModsFolder => SourcePath.Combine(Consts.MO2ModFolderName);
 
         public string MO2Profile { get; }
 
@@ -28,59 +38,44 @@ namespace Wabbajack.Lib
         public override AbsolutePath GamePath { get; }
 
         public GameMetaData CompilingGame { get; }
-     
+
         public CompilerSettings Settings { get; set; }
 
         public override AbsolutePath ModListOutputFolder => ((RelativePath)"output_folder").RelativeToEntryPoint();
 
         public override AbsolutePath ModListOutputFile { get; }
 
-        public override AbsolutePath VFSCacheName => 
-            Consts.LocalAppDataPath.Combine( 
-            $"vfs_compile_cache-2-{Path.Combine((string)MO2Folder ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
+        public override AbsolutePath VFSCacheName =>
+            Consts.LocalAppDataPath.Combine(
+                $"vfs_compile_cache-2-{Path.Combine((string)SourcePath ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
 
         public dynamic MO2Ini { get; }
 
-        public static AbsolutePath GetTypicalDownloadsFolder(AbsolutePath mo2Folder) => mo2Folder.Combine("downloads");
-
-        public AbsolutePath MO2ProfileDir => MO2Folder.Combine("profiles", MO2Profile);
+        public AbsolutePath MO2ProfileDir => SourcePath.Combine("profiles", MO2Profile);
 
         public ConcurrentBag<Directive> ExtraFiles { get; private set; } = new ConcurrentBag<Directive>();
         public Dictionary<AbsolutePath, dynamic> ModInis { get; } = new Dictionary<AbsolutePath, dynamic>();
 
         public HashSet<string> SelectedProfiles { get; set; } = new HashSet<string>();
 
-        public MO2Compiler(AbsolutePath mo2Folder, string mo2Profile, AbsolutePath outputFile)
-            : base(steps: 21)
-        {
-            MO2Folder = mo2Folder;
-            MO2Profile = mo2Profile;
-            MO2Ini = MO2Folder.Combine("ModOrganizer.ini").LoadIniFile();
-            var mo2game = (string)MO2Ini.General.gameName;
-            CompilingGame = GameRegistry.Games.First(g => g.Value.MO2Name == mo2game).Value;
-            GamePath = CompilingGame.GameLocation();
-            ModListOutputFile = outputFile;
-            Settings = new CompilerSettings();
-        }
 
-        public AbsolutePath MO2DownloadsFolder
+        public Dictionary<Game, HashSet<Hash>> GameHashes { get; set; } = new Dictionary<Game, HashSet<Hash>>();
+        public Dictionary<Hash, Game[]> GamesWithHashes { get; set; } = new Dictionary<Hash, Game[]>();
+
+        public bool UseGamePaths { get; set; } = true;
+
+        public static AbsolutePath GetTypicalDownloadsFolder(AbsolutePath mo2Folder)
         {
-            get
-            {
-                if (_mo2DownloadsFolder != default) return _mo2DownloadsFolder;
-                if (MO2Ini != null)
-                    if (MO2Ini.Settings != null)
-                        if (MO2Ini.Settings.download_directory != null)
-                            return MO2Ini.Settings.download_directory.Replace("/", "\\");
-                return GetTypicalDownloadsFolder(MO2Folder);
-            }
-            set => _mo2DownloadsFolder = value;
+            return mo2Folder.Combine("downloads");
         }
 
         protected override async Task<bool> _Begin(CancellationToken cancel)
         {
             await Metrics.Send("begin_compiling", MO2Profile ?? "unknown");
-            if (cancel.IsCancellationRequested) return false;
+            if (cancel.IsCancellationRequested)
+            {
+                return false;
+            }
 
             DesiredThreads.OnNext(DiskThreads);
             FileExtractor2.FavorPerfOverRAM = FavorPerfOverRam;
@@ -88,31 +83,36 @@ namespace Wabbajack.Lib
             UpdateTracker.Reset();
             UpdateTracker.NextStep("Gathering information");
 
-            Utils.Log($"Loading compiler Settings");
+            Utils.Log("Loading compiler Settings");
             Settings = await CompilerSettings.Load(MO2ProfileDir);
             Settings.IncludedGames = Settings.IncludedGames.Add(CompilingGame.Game);
-            
+
             Info("Looking for other profiles");
             var otherProfilesPath = MO2ProfileDir.Combine("otherprofiles.txt");
             SelectedProfiles = new HashSet<string>();
-            if (otherProfilesPath.Exists) SelectedProfiles = (await otherProfilesPath.ReadAllLinesAsync()).ToHashSet();
+            if (otherProfilesPath.Exists)
+            {
+                SelectedProfiles = (await otherProfilesPath.ReadAllLinesAsync()).ToHashSet();
+            }
+
             SelectedProfiles.Add(MO2Profile!);
 
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
 
             Utils.Log($"Compiling Game: {CompilingGame}");
-            Utils.Log($"Games from setting files:");
+            Utils.Log("Games from setting files:");
             foreach (var game in Settings.IncludedGames)
             {
                 Utils.Log($"- {game}");
             }
 
             Utils.Log($"VFS File Location: {VFSCacheName}");
-            Utils.Log($"MO2 Folder: {MO2Folder}");
-            Utils.Log($"Downloads Folder: {MO2DownloadsFolder}");
+            Utils.Log($"MO2 Folder: {SourcePath}");
+            Utils.Log($"Downloads Folder: {DownloadsPath}");
             Utils.Log($"Game Folder: {GamePath}");
-            
-            var watcher = new DiskSpaceWatcher(cancel, new []{MO2Folder, MO2DownloadsFolder, GamePath, AbsolutePath.EntryPoint}, (long)2 << 31,
+
+            var watcher = new DiskSpaceWatcher(cancel,
+                new[] {SourcePath, DownloadsPath, GamePath, AbsolutePath.EntryPoint}, (long)2 << 31,
                 drive =>
                 {
                     Utils.Log($"Aborting due to low space on {drive.Name}");
@@ -120,40 +120,42 @@ namespace Wabbajack.Lib
                 });
             var watcherTask = watcher.Start();
 
-            if (cancel.IsCancellationRequested) return false;
-            
+            if (cancel.IsCancellationRequested)
+            {
+                return false;
+            }
+
             List<AbsolutePath> roots;
             if (UseGamePaths)
             {
-                roots = new List<AbsolutePath>
-                {
-                    MO2Folder, GamePath, MO2DownloadsFolder
-                };
+                roots = new List<AbsolutePath> {SourcePath, GamePath, DownloadsPath};
                 roots.AddRange(Settings.IncludedGames.Select(g => g.MetaData().GameLocation()));
             }
             else
             {
-                roots = new List<AbsolutePath>
-                {
-                    MO2Folder, MO2DownloadsFolder
-                };
-                
+                roots = new List<AbsolutePath> {SourcePath, DownloadsPath};
             }
 
             // TODO: make this generic so we can add more paths
 
-            var lootPath = (AbsolutePath)Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            var lootPath = (AbsolutePath)Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "LOOT");
             IEnumerable<RawSourceFile> lootFiles = new List<RawSourceFile>();
             if (lootPath.Exists)
             {
-                roots.Add((AbsolutePath)lootPath);
+                roots.Add(lootPath);
             }
+
             UpdateTracker.NextStep("Indexing folders");
 
-            if (cancel.IsCancellationRequested) return false;
+            if (cancel.IsCancellationRequested)
+            {
+                return false;
+            }
+
             await VFS.AddRoots(roots);
-            
+
             if (lootPath.Exists)
             {
                 if (CompilingGame.MO2Name == null)
@@ -161,7 +163,7 @@ namespace Wabbajack.Lib
                     throw new ArgumentException("Compiling game had no MO2 name specified.");
                 }
 
-                var lootGameDirs = new []
+                var lootGameDirs = new[]
                 {
                     CompilingGame.MO2Name, // most of the games use the MO2 name
                     CompilingGame.MO2Name.Replace(" ", "") //eg: Fallout 4 -> Fallout4
@@ -180,36 +182,55 @@ namespace Wabbajack.Lib
                             Consts.LOOTFolderFilesDir.Combine(p.RelativeTo(lootPath))));
 
                     if (!lootFiles.Any())
+                    {
                         Utils.Log(
                             $"Found no LOOT user data for {CompilingGame.HumanFriendlyGameName} at {lootGameDir}!");
+                    }
                 }
             }
-            
-            if (cancel.IsCancellationRequested) return false;
+
+            if (cancel.IsCancellationRequested)
+            {
+                return false;
+            }
+
             UpdateTracker.NextStep("Cleaning output folder");
             await ModListOutputFolder.DeleteDirectory();
-            
-            if (cancel.IsCancellationRequested) return false;
+
+            if (cancel.IsCancellationRequested)
+            {
+                return false;
+            }
+
             UpdateTracker.NextStep("Inferring metas for game file downloads");
             await InferMetas();
 
-            if (cancel.IsCancellationRequested) return false;
+            if (cancel.IsCancellationRequested)
+            {
+                return false;
+            }
+
             UpdateTracker.NextStep("Reindexing downloads after meta inferring");
-            await VFS.AddRoot(MO2DownloadsFolder);
-            
-            if (cancel.IsCancellationRequested) return false;
+            await VFS.AddRoot(DownloadsPath);
+
+            if (cancel.IsCancellationRequested)
+            {
+                return false;
+            }
+
             UpdateTracker.NextStep("Pre-validating Archives");
-            
+
 
             // Find all Downloads
-            IndexedArchives = (await MO2DownloadsFolder.EnumerateFiles()
+            IndexedArchives = (await DownloadsPath.EnumerateFiles()
                 .Where(f => f.WithExtension(Consts.MetaFileExtension).Exists)
-                .PMap(Queue, async f => new IndexedArchive(VFS.Index.ByRootPath[f])
-                {
-                    Name = (string)f.FileName,
-                    IniData = f.WithExtension(Consts.MetaFileExtension).LoadIniFile(),
-                    Meta = await f.WithExtension(Consts.MetaFileExtension).ReadAllTextAsync()
-                })).ToList();
+                .PMap(Queue,
+                    async f => new IndexedArchive(VFS.Index.ByRootPath[f])
+                    {
+                        Name = (string)f.FileName,
+                        IniData = f.WithExtension(Consts.MetaFileExtension).LoadIniFile(),
+                        Meta = await f.WithExtension(Consts.MetaFileExtension).ReadAllTextAsync()
+                    })).ToList();
 
 
             if (UseGamePaths)
@@ -230,7 +251,7 @@ namespace Wabbajack.Lib
                             return new IndexedArchive(
                                 VFS.Index.ByRootPath[ag.MetaData().GameLocation().Combine(state.GameFile)])
                             {
-                                IniData = ini, Meta = meta,
+                                IniData = ini, Meta = meta
                             };
                         }));
                     }
@@ -252,14 +273,16 @@ namespace Wabbajack.Lib
             UpdateTracker.NextStep("Finding Install Files");
             ModListOutputFolder.CreateDirectory();
 
-            var mo2Files = MO2Folder.EnumerateFiles()
+            var mo2Files = SourcePath.EnumerateFiles()
                 .Where(p => p.IsFile)
                 .Select(p =>
                 {
                     if (!VFS.Index.ByRootPath.ContainsKey(p))
+                    {
                         Utils.Log($"WELL THERE'S YOUR PROBLEM: {p} {VFS.Index.ByRootPath.Count}");
-                    
-                    return new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(MO2Folder));
+                    }
+
+                    return new RawSourceFile(VFS.Index.ByRootPath[p], p.RelativeTo(SourcePath));
                 });
 
             // If Game Folder Files exists, ignore the game folder
@@ -274,14 +297,19 @@ namespace Wabbajack.Lib
 
             Info($"Found {AllFiles.Count} files to build into mod list");
 
-            if (cancel.IsCancellationRequested) return false;
+            if (cancel.IsCancellationRequested)
+            {
+                return false;
+            }
+
             UpdateTracker.NextStep("Verifying destinations");
 
             var dups = AllFiles.GroupBy(f => f.Path)
                 .Where(fs => fs.Count() > 1)
                 .Select(fs =>
                 {
-                    Utils.Log($"Duplicate files installed to {fs.Key} from : {String.Join(", ", fs.Select(f => f.AbsolutePath))}");
+                    Utils.Log(
+                        $"Duplicate files installed to {fs.Key} from : {String.Join(", ", fs.Select(f => f.AbsolutePath))}");
                     return fs;
                 }).ToList();
 
@@ -290,10 +318,14 @@ namespace Wabbajack.Lib
                 Error($"Found {dups.Count} duplicates, exiting");
             }
 
-            if (cancel.IsCancellationRequested) return false;
+            if (cancel.IsCancellationRequested)
+            {
+                return false;
+            }
+
             UpdateTracker.NextStep("Loading INIs");
 
-            ModInis.SetTo(MO2Folder.Combine(Consts.MO2ModFolderName)
+            ModInis.SetTo(SourcePath.Combine(Consts.MO2ModFolderName)
                 .EnumerateDirectories()
                 .Select(f =>
                 {
@@ -306,19 +338,30 @@ namespace Wabbajack.Lib
 
             ArchivesByFullPath = IndexedArchives.ToDictionary(a => a.File.AbsoluteName);
 
-            if (cancel.IsCancellationRequested) return false;
+            if (cancel.IsCancellationRequested)
+            {
+                return false;
+            }
+
             var stack = MakeStack();
             UpdateTracker.NextStep("Running Compilation Stack");
             var results = await AllFiles.PMap(Queue, UpdateTracker, f => RunStack(stack, f));
 
             // Add the extra files that were generated by the stack
-            if (cancel.IsCancellationRequested) return false;
+            if (cancel.IsCancellationRequested)
+            {
+                return false;
+            }
+
             UpdateTracker.NextStep($"Adding {ExtraFiles.Count} that were generated by the stack");
             results = results.Concat(ExtraFiles).ToArray();
 
             var noMatch = results.OfType<NoMatch>().ToArray();
             PrintNoMatches(noMatch);
-            if (CheckForNoMatchExit(noMatch)) return false;
+            if (CheckForNoMatchExit(noMatch))
+            {
+                return false;
+            }
 
             foreach (var ignored in results.OfType<IgnoredDirectly>())
             {
@@ -334,10 +377,10 @@ namespace Wabbajack.Lib
 
             UpdateTracker.NextStep("Building Patches");
             await BuildPatches();
-            
+
             UpdateTracker.NextStep("Gathering Archives");
             await GatherArchives();
-            
+
             UpdateTracker.NextStep("Including Archive Metadata");
             await IncludeArchiveMetadata();
 
@@ -357,10 +400,10 @@ namespace Wabbajack.Lib
                 Readme = ModlistReadme ?? "",
                 Image = ModListImage != default ? ModListImage.FileName : default,
                 Website = !string.IsNullOrWhiteSpace(ModListWebsite) ? new Uri(ModListWebsite) : null,
-                Version = ModlistVersion ?? new Version(1,0,0,0),
+                Version = ModlistVersion ?? new Version(1, 0, 0, 0),
                 IsNSFW = ModlistIsNSFW
             };
-            
+
             UpdateTracker.NextStep("Including required files");
             await InlineFiles();
 
@@ -381,11 +424,6 @@ namespace Wabbajack.Lib
             return true;
         }
 
-        public Dictionary<Game, HashSet<Hash>> GameHashes { get; set; } = new Dictionary<Game, HashSet<Hash>>();
-        public Dictionary<Hash, Game[]> GamesWithHashes { get; set; } = new Dictionary<Hash, Game[]>();
-
-        public bool UseGamePaths { get; set; } = true;
-
         private async Task CleanInvalidArchivesAndFillState()
         {
             var remove = (await IndexedArchives.PMap(Queue, async a =>
@@ -402,7 +440,9 @@ namespace Wabbajack.Lib
             })).NotNull().ToHashSet();
 
             if (remove.Count == 0)
+            {
                 return;
+            }
 
             Utils.Log(
                 $"Removing {remove.Count} archives from the compilation state, this is probably not an issue but reference this if you have compilation failures");
@@ -415,7 +455,11 @@ namespace Wabbajack.Lib
             async Task<bool> HasInvalidMeta(AbsolutePath filename)
             {
                 var metaname = filename.WithExtension(Consts.MetaFileExtension);
-                if (!metaname.Exists) return true;
+                if (!metaname.Exists)
+                {
+                    return true;
+                }
+
                 try
                 {
                     return await DownloadDispatcher.ResolveArchive(metaname.LoadIniFile()) == null;
@@ -427,13 +471,16 @@ namespace Wabbajack.Lib
                 }
             }
 
-            var to_find = (await MO2DownloadsFolder.EnumerateFiles()
-                .Where(f => f.Extension != Consts.MetaFileExtension && f.Extension !=Consts.HashFileExtension)
-                .PMap(Queue, async f => await HasInvalidMeta(f) ? f : default))
+            var to_find = (await DownloadsPath.EnumerateFiles()
+                    .Where(f => f.Extension != Consts.MetaFileExtension && f.Extension != Consts.HashFileExtension)
+                    .PMap(Queue, async f => await HasInvalidMeta(f) ? f : default))
                 .Where(f => f.Exists)
                 .ToList();
 
-            if (to_find.Count == 0) return;
+            if (to_find.Count == 0)
+            {
+                return;
+            }
 
             Utils.Log($"Attempting to infer {to_find.Count} metas from the server.");
 
@@ -446,13 +493,14 @@ namespace Wabbajack.Lib
                 if (meta == null)
                 {
                     await vf.AbsoluteName.WithExtension(Consts.MetaFileExtension).WriteAllLinesAsync(
-                        "[General]", 
+                        "[General]",
                         "unknownArchive=true");
                     return;
                 }
 
                 Utils.Log($"Inferred .meta for {vf.FullPath.FileName}, writing to disk");
-                await vf.AbsoluteName.WithExtension(Consts.MetaFileExtension).WriteAllTextAsync(meta.GetMetaIniString());
+                await vf.AbsoluteName.WithExtension(Consts.MetaFileExtension)
+                    .WriteAllTextAsync(meta.GetMetaIniString());
             });
         }
 
@@ -461,9 +509,12 @@ namespace Wabbajack.Lib
             Utils.Log($"Including {SelectedArchives.Count} .meta files for downloads");
             await SelectedArchives.PMap(Queue, async a =>
             {
-                if (a.State is GameFileSourceDownloader.State) return;
-                
-                var source = MO2DownloadsFolder.Combine(a.Name + Consts.MetaFileExtension);
+                if (a.State is GameFileSourceDownloader.State)
+                {
+                    return;
+                }
+
+                var source = DownloadsPath.Combine(a.Name + Consts.MetaFileExtension);
                 var ini = a.State.GetMetaIniString();
                 var (id, fullPath) = await IncludeString(ini);
                 InstallDirectives.Add(new ArchiveMeta
@@ -497,44 +548,47 @@ namespace Wabbajack.Lib
             var toBuild = InstallDirectives.OfType<PatchedFromArchive>()
                 .Where(p => p.Choices.Length > 0)
                 .SelectMany(p => p.Choices.Select(c => new PatchedFromArchive
-                    {
-                        To = p.To,
-                        Hash = p.Hash,
-                        ArchiveHashPath = c.MakeRelativePaths(),
-                        FromFile = c,
-                        Size = p.Size,
-                    }))
+                {
+                    To = p.To,
+                    Hash = p.Hash,
+                    ArchiveHashPath = c.MakeRelativePaths(),
+                    FromFile = c,
+                    Size = p.Size
+                }))
                 .ToArray();
 
-            if (toBuild.Length == 0) return;
+            if (toBuild.Length == 0)
+            {
+                return;
+            }
 
             // Extract all the source files
-            var indexed = toBuild.GroupBy(f => (VFS.Index.FileForArchiveHashPath(f.ArchiveHashPath)))
+            var indexed = toBuild.GroupBy(f => VFS.Index.FileForArchiveHashPath(f.ArchiveHashPath))
                 .ToDictionary(f => f.Key);
-            await VFS.Extract(Queue, indexed.Keys.ToHashSet(), 
+            await VFS.Extract(Queue, indexed.Keys.ToHashSet(),
                 async (vf, sf) =>
-            {
-                // For each, extract the destination
-                var matches = indexed[vf];
-                using var iqueue = new WorkQueue(1);
-                foreach (var match in matches)
                 {
-                    var destFile = FindDestFile(match.To);
-                    // Build the patch
-                    await VFS.Extract(iqueue, new[] {destFile}.ToHashSet(), 
-                        async (destvf, destsfn) =>
+                    // For each, extract the destination
+                    var matches = indexed[vf];
+                    using var iqueue = new WorkQueue(1);
+                    foreach (var match in matches)
                     {
-                        Info($"Patching {match.To}");
-                        Status($"Patching {match.To}");
-                        await using var srcStream = await sf.GetStream();
-                        await using var destStream = await destsfn.GetStream();
-                        var patchSize = await Utils.CreatePatchCached(srcStream, vf.Hash, destStream, destvf.Hash);
-                        Info($"Patch size {patchSize} for {match.To}");
-                    });
-                }
+                        var destFile = FindDestFile(match.To);
+                        // Build the patch
+                        await VFS.Extract(iqueue, new[] {destFile}.ToHashSet(),
+                            async (destvf, destsfn) =>
+                            {
+                                Info($"Patching {match.To}");
+                                Status($"Patching {match.To}");
+                                await using var srcStream = await sf.GetStream();
+                                await using var destStream = await destsfn.GetStream();
+                                var patchSize =
+                                    await Utils.CreatePatchCached(srcStream, vf.Hash, destStream, destvf.Hash);
+                                Info($"Patch size {patchSize} for {match.To}");
+                            });
+                    }
+                });
 
-            });
- 
             // Load in the patches
             await InstallDirectives.OfType<PatchedFromArchive>()
                 .Where(p => p.PatchID == default)
@@ -555,16 +609,18 @@ namespace Wabbajack.Lib
                     }
                 });
 
-            var firstFailedPatch = InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.PatchID == default);
+            var firstFailedPatch =
+                InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.PatchID == default);
             if (firstFailedPatch != null)
             {
-                Utils.Log($"Missing data from failed patch, starting data dump");
+                Utils.Log("Missing data from failed patch, starting data dump");
                 Utils.Log($"Dest File: {firstFailedPatch.To}");
                 Utils.Log($"Options ({firstFailedPatch.Choices.Length}:");
                 foreach (var choice in firstFailedPatch.Choices)
                 {
                     Utils.Log($"  {choice.FullPath}");
                 }
+
                 Error(
                     $"Missing patches after generation, this should not happen. First failure: {firstFailedPatch.FullPath}");
             }
@@ -572,9 +628,11 @@ namespace Wabbajack.Lib
 
         private VirtualFile FindDestFile(RelativePath to)
         {
-            var abs = to.RelativeTo(MO2Folder);
+            var abs = to.RelativeTo(SourcePath);
             if (abs.Exists)
+            {
                 return VFS.Index.ByRootPath[abs];
+            }
 
             if (to.StartsWith(Consts.BSACreationDir))
             {
@@ -582,7 +640,7 @@ namespace Wabbajack.Lib
                 var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsaId);
                 var find = (RelativePath)Path.Combine(((string)to).Split('\\').Skip(2).ToArray());
 
-                return VFS.Index.ByRootPath[MO2Folder.Combine(bsa.To)].Children.First(c => c.RelativeName == find);
+                return VFS.Index.ByRootPath[SourcePath.Combine(bsa.To)].Children.First(c => c.RelativeName == find);
             }
 
             throw new ArgumentException($"Couldn't load data for {to}");
@@ -591,7 +649,6 @@ namespace Wabbajack.Lib
         public override IEnumerable<ICompilationStep> GetStack()
         {
             return MakeStack();
-
         }
 
         /// <summary>
@@ -609,12 +666,12 @@ namespace Wabbajack.Lib
                 new IncludePropertyFiles(this),
                 //new IncludeSteamWorkshopItems(this),
                 new IgnoreSaveFiles(this),
-                new IgnoreStartsWith(this,"logs\\"),
+                new IgnoreStartsWith(this, "logs\\"),
                 new IgnoreStartsWith(this, "downloads\\"),
-                new IgnoreStartsWith(this,"webcache\\"),
+                new IgnoreStartsWith(this, "webcache\\"),
                 new IgnoreStartsWith(this, "overwrite\\"),
                 new IgnoreStartsWith(this, "crashDumps\\"),
-                new IgnorePathContains(this,"temporary_logs"),
+                new IgnorePathContains(this, "temporary_logs"),
                 new IgnorePathContains(this, "GPUCache"),
                 new IgnorePathContains(this, "SSEEdit Cache"),
                 new IgnoreOtherProfiles(this),
@@ -625,7 +682,7 @@ namespace Wabbajack.Lib
                 new IncludeLootFiles(this),
                 new IgnoreStartsWith(this, Path.Combine((string)Consts.GameFolderFilesDir, "Data")),
                 new IgnoreStartsWith(this, Path.Combine((string)Consts.GameFolderFilesDir, "Papyrus Compiler")),
-                new IgnoreStartsWith(this, Path.Combine((string)Consts.GameFolderFilesDir, "Skyrim")),                
+                new IgnoreStartsWith(this, Path.Combine((string)Consts.GameFolderFilesDir, "Skyrim")),
                 new IgnoreRegex(this, Consts.GameFolderFilesDir + "\\\\.*\\.bsa"),
                 new IncludeRegex(this, "^[^\\\\]*\\.bat$"),
                 new IncludeModIniData(this),
@@ -633,7 +690,8 @@ namespace Wabbajack.Lib
                 new IncludeTaggedMods(this, Consts.WABBAJACK_INCLUDE),
                 new IgnoreEndsWith(this, ".pyc"),
                 new IgnoreEndsWith(this, ".log"),
-                new DeconstructBSAs(this), // Deconstruct BSAs before building patches so we don't generate massive patch files
+                new DeconstructBSAs(
+                    this), // Deconstruct BSAs before building patches so we don't generate massive patch files
                 new IncludePatches(this),
                 new IncludeDummyESPs(this),
 
@@ -647,12 +705,11 @@ namespace Wabbajack.Lib
                 // Theme file MO2 downloads somehow
                 new IgnoreEndsWith(this, "splash.png"),
                 // File to force MO2 into portable mode
-                new IgnoreEndsWith(this, "portable.txt"), 
+                new IgnoreEndsWith(this, "portable.txt"),
                 new IgnoreEndsWith(this, ".bin"),
                 new IgnoreEndsWith(this, ".refcache"),
                 //Include custom categories  
                 new IncludeRegex(this, "categories.dat$"),
-
                 new IgnoreWabbajackInstallCruft(this),
 
                 //new PatchStockESMs(this),
@@ -660,7 +717,6 @@ namespace Wabbajack.Lib
                 new IncludeAllConfigs(this),
                 new zEditIntegration.IncludeZEditPatches(this),
                 new IncludeTaggedMods(this, Consts.WABBAJACK_NOMATCH_INCLUDE),
-
                 new DropAll(this)
             };
         }

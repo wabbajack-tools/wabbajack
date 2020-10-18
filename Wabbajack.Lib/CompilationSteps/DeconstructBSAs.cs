@@ -28,7 +28,7 @@ namespace Wabbajack.Lib.CompilationSteps
                     if (general.comments != null && (general.notes.Contains(Consts.WABBAJACK_INCLUDE) || general.notes.Contains(Consts.WABBAJACK_NOMATCH_INCLUDE))) return true;
                     return false;
                 })
-                .Select(kv => kv.Key.RelativeTo(_mo2Compiler.MO2Folder))
+                .Select(kv => kv.Key.RelativeTo(_mo2Compiler.SourcePath))
                 .ToList();
 
             _microstack = bsa => new List<ICompilationStep>
@@ -51,7 +51,7 @@ namespace Wabbajack.Lib.CompilationSteps
             if (!Consts.SupportedBSAs.Contains(source.Path.Extension)) return null;
 
             var defaultInclude = false;
-            if (source.Path.RelativeTo(_mo2Compiler.MO2Folder).InFolder(_mo2Compiler.MO2Folder.Combine(Consts.MO2ModFolderName)))
+            if (source.Path.RelativeTo(_mo2Compiler.SourcePath).InFolder(_mo2Compiler.SourcePath.Combine(Consts.MO2ModFolderName)))
                 if (_includeDirectly.Any(path => source.Path.StartsWith(path)))
                     defaultInclude = true;
 

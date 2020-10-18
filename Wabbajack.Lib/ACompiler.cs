@@ -37,6 +37,10 @@ namespace Wabbajack.Lib
         public abstract ModManager ModManager { get; }
 
         public abstract AbsolutePath GamePath { get; }
+        
+        public AbsolutePath SourcePath { get;}
+        public AbsolutePath DownloadsPath { get;}
+
 
         public abstract AbsolutePath ModListOutputFolder { get; }
         public abstract AbsolutePath ModListOutputFile { get; }
@@ -53,9 +57,10 @@ namespace Wabbajack.Lib
         
         public Dictionary<Hash, IEnumerable<VirtualFile>> IndexedFiles = new Dictionary<Hash, IEnumerable<VirtualFile>>();
 
-        public ACompiler(int steps)
+        public ACompiler(int steps, string modlistName, AbsolutePath sourcePath, AbsolutePath downloadsPath, AbsolutePath outputModListName)
             : base(steps)
         {
+
             //set in MainWindowVM
             WabbajackVersion = Consts.CurrentMinimumWabbajackVersion;
         }

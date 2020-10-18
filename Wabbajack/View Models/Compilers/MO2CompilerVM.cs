@@ -180,7 +180,8 @@ namespace Wabbajack
             try
             {
                 using (ActiveCompilation = new MO2Compiler(
-                    mo2Folder: Mo2Folder,
+                    sourcePath: Mo2Folder,
+                    downloadsPath: DownloadLocation.TargetPath,
                     mo2Profile: MOProfile,
                     outputFile: outputFile)
                 {
@@ -190,7 +191,6 @@ namespace Wabbajack
                     ModListImage = ModlistSettings.ImagePath.TargetPath,
                     ModListWebsite = ModlistSettings.Website,
                     ModlistReadme = ModlistSettings.Readme,
-                    MO2DownloadsFolder = DownloadLocation.TargetPath,
                     ModlistVersion = ModlistSettings.Version,
                     ModlistIsNSFW = ModlistSettings.IsNSFW
                 })
