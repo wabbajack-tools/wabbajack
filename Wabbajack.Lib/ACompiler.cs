@@ -19,6 +19,14 @@ namespace Wabbajack.Lib
 {
     public abstract class ACompiler : ABatchProcessor
     {
+        /// <summary>
+        /// Set to true to include game files during compilation, only ever disabled
+        /// in testing (to speed up tests)
+        /// </summary>
+        public bool UseGamePaths { get; set; } = true;
+        
+        public CompilerSettings Settings { get; set; }
+        
         public string? ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModlistReadme;
         public Version? ModlistVersion;
         public AbsolutePath ModListImage;
@@ -38,6 +46,8 @@ namespace Wabbajack.Lib
         protected readonly Subject<(string, float)> _progressUpdates = new Subject<(string, float)>();
 
         public abstract AbsolutePath GamePath { get; }
+        public Dictionary<Game, HashSet<Hash>> GameHashes { get; set; } = new Dictionary<Game, HashSet<Hash>>();
+        public Dictionary<Hash, Game[]> GamesWithHashes { get; set; } = new Dictionary<Hash, Game[]>();
         
         public AbsolutePath SourcePath { get;}
         public AbsolutePath DownloadsPath { get;}
@@ -61,9 +71,9 @@ namespace Wabbajack.Lib
         public ACompiler(int steps, string modlistName, AbsolutePath sourcePath, AbsolutePath downloadsPath, AbsolutePath outputModListName)
             : base(steps)
         {
-
             //set in MainWindowVM
             WabbajackVersion = Consts.CurrentMinimumWabbajackVersion;
+            Settings = new CompilerSettings();
         }
 
         public static void Info(string msg)
@@ -151,6 +161,42 @@ namespace Wabbajack.Lib
             });
 
             return true;
+        }
+        
+        protected async Task IndexGameFileHashes()
+        {
+            if (UseGamePaths)
+            {
+                foreach (var ag in Settings.IncludedGames)
+                {
+                    try
+                    {
+                        var files = await ClientAPI.GetExistingGameFiles(Queue, ag);
+                        Utils.Log($"Including {files.Length} stock game files from {ag} as download sources");
+                        GameHashes[ag] = files.Select(f => f.Hash).ToHashSet();
+
+                        IndexedArchives.AddRange(files.Select(f =>
+                        {
+                            var meta = f.State.GetMetaIniString();
+                            var ini = meta.LoadIniString();
+                            var state = (GameFileSourceDownloader.State) f.State;
+                            return new IndexedArchive(
+                                VFS.Index.ByRootPath[ag.MetaData().GameLocation().Combine(state.GameFile)])
+                            {
+                                IniData = ini, Meta = meta
+                            };
+                        }));
+                    }
+                    catch (Exception e)
+                    {
+                        Utils.Error(e, "Unable to find existing game files, skipping.");
+                    }
+                }
+
+                GamesWithHashes = GameHashes.SelectMany(g => g.Value.Select(h => (g, h)))
+                    .GroupBy(gh => gh.h)
+                    .ToDictionary(gh => gh.Key, gh => gh.Select(p => p.g.Key).ToArray());
+            }
         }
 
         public async Task ExportModList()

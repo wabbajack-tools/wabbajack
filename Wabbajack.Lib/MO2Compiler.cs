@@ -26,7 +26,6 @@ namespace Wabbajack.Lib
             CompilingGame = GameRegistry.Games.First(g => g.Value.MO2Name == mo2game).Value;
             GamePath = CompilingGame.GameLocation();
             ModListOutputFile = outputFile;
-            Settings = new CompilerSettings();
         }
 
         public AbsolutePath MO2ModsFolder => SourcePath.Combine(Consts.MO2ModFolderName);
@@ -37,7 +36,6 @@ namespace Wabbajack.Lib
 
         public GameMetaData CompilingGame { get; }
 
-        public CompilerSettings Settings { get; set; }
 
         public override AbsolutePath ModListOutputFolder => ((RelativePath)"output_folder").RelativeToEntryPoint();
 
@@ -51,12 +49,6 @@ namespace Wabbajack.Lib
         public Dictionary<AbsolutePath, dynamic> ModInis { get; } = new Dictionary<AbsolutePath, dynamic>();
 
         public HashSet<string> SelectedProfiles { get; set; } = new HashSet<string>();
-
-
-        public Dictionary<Game, HashSet<Hash>> GameHashes { get; set; } = new Dictionary<Game, HashSet<Hash>>();
-        public Dictionary<Hash, Game[]> GamesWithHashes { get; set; } = new Dictionary<Hash, Game[]>();
-
-        public bool UseGamePaths { get; set; } = true;
 
         public static AbsolutePath GetTypicalDownloadsFolder(AbsolutePath mo2Folder)
         {
@@ -227,38 +219,7 @@ namespace Wabbajack.Lib
                     })).ToList();
 
 
-            if (UseGamePaths)
-            {
-                foreach (var ag in Settings.IncludedGames)
-                {
-                    try
-                    {
-                        var files = await ClientAPI.GetExistingGameFiles(Queue, ag);
-                        Utils.Log($"Including {files.Length} stock game files from {ag} as download sources");
-                        GameHashes[ag] = files.Select(f => f.Hash).ToHashSet();
-
-                        IndexedArchives.AddRange(files.Select(f =>
-                        {
-                            var meta = f.State.GetMetaIniString();
-                            var ini = meta.LoadIniString();
-                            var state = (GameFileSourceDownloader.State)f.State;
-                            return new IndexedArchive(
-                                VFS.Index.ByRootPath[ag.MetaData().GameLocation().Combine(state.GameFile)])
-                            {
-                                IniData = ini, Meta = meta
-                            };
-                        }));
-                    }
-                    catch (Exception e)
-                    {
-                        Utils.Error(e, "Unable to find existing game files, skipping.");
-                    }
-                }
-
-                GamesWithHashes = GameHashes.SelectMany(g => g.Value.Select(h => (g, h)))
-                    .GroupBy(gh => gh.h)
-                    .ToDictionary(gh => gh.Key, gh => gh.Select(p => p.g.Key).ToArray());
-            }
+            await IndexGameFileHashes();
 
             IndexedArchives = IndexedArchives.DistinctBy(a => a.File.AbsoluteName).ToList();
 
