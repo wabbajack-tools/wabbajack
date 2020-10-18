@@ -33,8 +33,6 @@ namespace Wabbajack.Lib
 
         public override AbsolutePath GamePath { get; }
 
-        public GameMetaData CompilingGame { get; }
-
         public dynamic MO2Ini { get; }
 
         public AbsolutePath MO2ProfileDir => SourcePath.Combine("profiles", MO2Profile);
@@ -405,114 +403,6 @@ namespace Wabbajack.Lib
             InstallDirectives = new List<Directive>();
             SelectedArchives = new List<Archive>();
             ExtraFiles = new ConcurrentBag<Directive>();
-        }
-
-        /// <summary>
-        ///     Fills in the Patch fields in files that require them
-        /// </summary>
-        private async Task BuildPatches()
-        {
-            Info("Gathering patch files");
-
-            var toBuild = InstallDirectives.OfType<PatchedFromArchive>()
-                .Where(p => p.Choices.Length > 0)
-                .SelectMany(p => p.Choices.Select(c => new PatchedFromArchive
-                {
-                    To = p.To,
-                    Hash = p.Hash,
-                    ArchiveHashPath = c.MakeRelativePaths(),
-                    FromFile = c,
-                    Size = p.Size
-                }))
-                .ToArray();
-
-            if (toBuild.Length == 0)
-            {
-                return;
-            }
-
-            // Extract all the source files
-            var indexed = toBuild.GroupBy(f => VFS.Index.FileForArchiveHashPath(f.ArchiveHashPath))
-                .ToDictionary(f => f.Key);
-            await VFS.Extract(Queue, indexed.Keys.ToHashSet(),
-                async (vf, sf) =>
-                {
-                    // For each, extract the destination
-                    var matches = indexed[vf];
-                    using var iqueue = new WorkQueue(1);
-                    foreach (var match in matches)
-                    {
-                        var destFile = FindDestFile(match.To);
-                        // Build the patch
-                        await VFS.Extract(iqueue, new[] {destFile}.ToHashSet(),
-                            async (destvf, destsfn) =>
-                            {
-                                Info($"Patching {match.To}");
-                                Status($"Patching {match.To}");
-                                await using var srcStream = await sf.GetStream();
-                                await using var destStream = await destsfn.GetStream();
-                                var patchSize =
-                                    await Utils.CreatePatchCached(srcStream, vf.Hash, destStream, destvf.Hash);
-                                Info($"Patch size {patchSize} for {match.To}");
-                            });
-                    }
-                });
-
-            // Load in the patches
-            await InstallDirectives.OfType<PatchedFromArchive>()
-                .Where(p => p.PatchID == default)
-                .PMap(Queue, async pfa =>
-                {
-                    var patches = pfa.Choices
-                        .Select(c => (Utils.TryGetPatch(c.Hash, pfa.Hash, out var data), data, c))
-                        .ToArray();
-
-                    // Pick the best patch
-                    if (patches.All(p => p.Item1))
-                    {
-                        var (_, bytes, file) = IncludePatches.PickPatch(this, patches);
-                        pfa.FromFile = file;
-                        pfa.FromHash = file.Hash;
-                        pfa.ArchiveHashPath = file.MakeRelativePaths();
-                        pfa.PatchID = await IncludeFile(bytes!);
-                    }
-                });
-
-            var firstFailedPatch =
-                InstallDirectives.OfType<PatchedFromArchive>().FirstOrDefault(f => f.PatchID == default);
-            if (firstFailedPatch != null)
-            {
-                Utils.Log("Missing data from failed patch, starting data dump");
-                Utils.Log($"Dest File: {firstFailedPatch.To}");
-                Utils.Log($"Options ({firstFailedPatch.Choices.Length}:");
-                foreach (var choice in firstFailedPatch.Choices)
-                {
-                    Utils.Log($"  {choice.FullPath}");
-                }
-
-                Error(
-                    $"Missing patches after generation, this should not happen. First failure: {firstFailedPatch.FullPath}");
-            }
-        }
-
-        private VirtualFile FindDestFile(RelativePath to)
-        {
-            var abs = to.RelativeTo(SourcePath);
-            if (abs.Exists)
-            {
-                return VFS.Index.ByRootPath[abs];
-            }
-
-            if (to.StartsWith(Consts.BSACreationDir))
-            {
-                var bsaId = (RelativePath)((string)to).Split('\\')[1];
-                var bsa = InstallDirectives.OfType<CreateBSA>().First(b => b.TempID == bsaId);
-                var find = (RelativePath)Path.Combine(((string)to).Split('\\').Skip(2).ToArray());
-
-                return VFS.Index.ByRootPath[SourcePath.Combine(bsa.To)].Children.First(c => c.RelativeName == find);
-            }
-
-            throw new ArgumentException($"Couldn't load data for {to}");
         }
 
         public override IEnumerable<ICompilationStep> GetStack()

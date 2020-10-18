@@ -126,7 +126,7 @@ namespace Wabbajack.Lib.CompilationSteps
             return e;
         }
 
-        public static (bool, byte[], VirtualFile) PickPatch(MO2Compiler mo2Compiler, IEnumerable<(bool foundHash, byte[]? data, VirtualFile file)> patches)
+        public static (bool, byte[], VirtualFile) PickPatch(ACompiler compiler, IEnumerable<(bool foundHash, byte[]? data, VirtualFile file)> patches)
         {
             var ordered = patches
                 .Select(f => (f.foundHash, f.data!, f.file))
@@ -138,11 +138,11 @@ namespace Wabbajack.Lib.CompilationSteps
                 var baseHash = itm.file.TopParent.Hash;
                 
                 // If this file doesn't come from a game use it
-                if (!mo2Compiler.GamesWithHashes.TryGetValue(baseHash, out var games))
+                if (!compiler.GamesWithHashes.TryGetValue(baseHash, out var games))
                     return true;
 
                 // Otherwise skip files that are not from the primary game
-                return games.Contains(mo2Compiler.CompilingGame.Game);
+                return games.Contains(compiler.CompilingGame.Game);
             });
             
             // If we didn't find a file from an archive or the primary game, use a secondary game file.
