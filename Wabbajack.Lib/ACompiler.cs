@@ -19,57 +19,23 @@ namespace Wabbajack.Lib
 {
     public abstract class ACompiler : ABatchProcessor
     {
-        /// <summary>
-        /// Set to true to include game files during compilation, only ever disabled
-        /// in testing (to speed up tests)
-        /// </summary>
-        public bool UseGamePaths { get; set; } = true;
-        
-        public CompilerSettings Settings { get; set; }
-        
-        public string? ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModlistReadme;
-        public Version? ModlistVersion;
-        public AbsolutePath ModListImage;
-        public bool ModlistIsNSFW;
-        protected Version? WabbajackVersion;
-
-        public AbsolutePath VFSCacheName =>
-            Consts.LocalAppDataPath.Combine(
-                $"vfs_compile_cache-2-{Path.Combine((string)SourcePath ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
-
-        //protected string VFSCacheName => Path.Combine(Consts.LocalAppDataPath, $"vfs_compile_cache.bin");
-        /// <summary>
-        /// A stream of tuples of ("Update Title", 0.25) which represent the name of the current task
-        /// and the current progress.
-        /// </summary>
-        public IObservable<(string, float)> ProgressUpdates => _progressUpdates;
         protected readonly Subject<(string, float)> _progressUpdates = new Subject<(string, float)>();
 
-        public abstract AbsolutePath GamePath { get; }
-        public Dictionary<Game, HashSet<Hash>> GameHashes { get; set; } = new Dictionary<Game, HashSet<Hash>>();
-        public Dictionary<Hash, Game[]> GamesWithHashes { get; set; } = new Dictionary<Hash, Game[]>();
-        
-        public AbsolutePath SourcePath { get;}
-        public AbsolutePath DownloadsPath { get;}
-        
-        public GameMetaData CompilingGame { get; set; }
-
-        public AbsolutePath ModListOutputFolder { get; }
-        public AbsolutePath ModListOutputFile { get; }
-
-        public bool IgnoreMissingFiles { get; set; }
-
-        public List<Archive> SelectedArchives { get; protected set; } = new List<Archive>();
-        public List<Directive> InstallDirectives { get; protected set; } = new List<Directive>();
-        public List<RawSourceFile> AllFiles { get; protected set; } = new List<RawSourceFile>();
-        public ModList ModList = new ModList();
-
         public List<IndexedArchive> IndexedArchives = new List<IndexedArchive>();
-        public Dictionary<AbsolutePath, IndexedArchive> ArchivesByFullPath { get; set; } = new Dictionary<AbsolutePath, IndexedArchive>();
-        
-        public Dictionary<Hash, IEnumerable<VirtualFile>> IndexedFiles = new Dictionary<Hash, IEnumerable<VirtualFile>>();
 
-        public ACompiler(int steps, string modlistName, AbsolutePath sourcePath, AbsolutePath downloadsPath, AbsolutePath outputModListName)
+        public Dictionary<Hash, IEnumerable<VirtualFile>> IndexedFiles =
+            new Dictionary<Hash, IEnumerable<VirtualFile>>();
+
+        public ModList ModList = new ModList();
+        public AbsolutePath ModListImage;
+        public bool ModlistIsNSFW;
+
+        public string? ModListName, ModListAuthor, ModListDescription, ModListWebsite, ModlistReadme;
+        public Version? ModlistVersion;
+        protected Version? WabbajackVersion;
+
+        public ACompiler(int steps, string modlistName, AbsolutePath sourcePath, AbsolutePath downloadsPath,
+            AbsolutePath outputModListName)
             : base(steps)
         {
             SourcePath = sourcePath;
@@ -82,6 +48,46 @@ namespace Wabbajack.Lib
             ModListOutputFolder = AbsolutePath.EntryPoint.Combine("output_folder", Guid.NewGuid().ToString());
             CompilingGame = new GameMetaData();
         }
+
+        /// <summary>
+        /// Set to true to include game files during compilation, only ever disabled
+        /// in testing (to speed up tests)
+        /// </summary>
+        public bool UseGamePaths { get; set; } = true;
+
+        public CompilerSettings Settings { get; set; }
+
+        public AbsolutePath VFSCacheName =>
+            Consts.LocalAppDataPath.Combine(
+                $"vfs_compile_cache-2-{Path.Combine((string)SourcePath ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
+
+        //protected string VFSCacheName => Path.Combine(Consts.LocalAppDataPath, $"vfs_compile_cache.bin");
+        /// <summary>
+        /// A stream of tuples of ("Update Title", 0.25) which represent the name of the current task
+        /// and the current progress.
+        /// </summary>
+        public IObservable<(string, float)> ProgressUpdates => _progressUpdates;
+
+        public abstract AbsolutePath GamePath { get; }
+        public Dictionary<Game, HashSet<Hash>> GameHashes { get; set; } = new Dictionary<Game, HashSet<Hash>>();
+        public Dictionary<Hash, Game[]> GamesWithHashes { get; set; } = new Dictionary<Hash, Game[]>();
+
+        public AbsolutePath SourcePath { get; }
+        public AbsolutePath DownloadsPath { get; }
+
+        public GameMetaData CompilingGame { get; set; }
+
+        public AbsolutePath ModListOutputFolder { get; }
+        public AbsolutePath ModListOutputFile { get; }
+
+        public bool IgnoreMissingFiles { get; set; }
+
+        public List<Archive> SelectedArchives { get; protected set; } = new List<Archive>();
+        public List<Directive> InstallDirectives { get; protected set; } = new List<Directive>();
+        public List<RawSourceFile> AllFiles { get; protected set; } = new List<RawSourceFile>();
+
+        public Dictionary<AbsolutePath, IndexedArchive> ArchivesByFullPath { get; set; } =
+            new Dictionary<AbsolutePath, IndexedArchive>();
 
         public static void Info(string msg)
         {
@@ -123,21 +129,21 @@ namespace Wabbajack.Lib
             await ModListOutputFolder.Combine(id).WriteAllTextAsync(data);
             return id;
         }
-        
+
         internal async Task<RelativePath> IncludeFile(Stream data)
         {
             var id = IncludeId();
             await ModListOutputFolder.Combine(id).WriteAllAsync(data);
             return id;
         }
-        
+
         internal async Task<RelativePath> IncludeFile(AbsolutePath data)
         {
             await using var stream = await data.OpenRead();
             return await IncludeFile(stream);
         }
 
-        
+
         internal async Task<(RelativePath, AbsolutePath)> IncludeString(string str)
         {
             var id = IncludeId();
@@ -169,7 +175,7 @@ namespace Wabbajack.Lib
 
             return true;
         }
-        
+
         protected async Task IndexGameFileHashes()
         {
             if (UseGamePaths)
@@ -186,7 +192,7 @@ namespace Wabbajack.Lib
                         {
                             var meta = f.State.GetMetaIniString();
                             var ini = meta.LoadIniString();
-                            var state = (GameFileSourceDownloader.State) f.State;
+                            var state = (GameFileSourceDownloader.State)f.State;
                             return new IndexedArchive(
                                 VFS.Index.ByRootPath[ag.MetaData().GameLocation().Combine(state.GameFile)])
                             {
@@ -205,7 +211,7 @@ namespace Wabbajack.Lib
                     .ToDictionary(gh => gh.Key, gh => gh.Select(p => p.g.Key).ToArray());
             }
         }
-        
+
         protected async Task CleanInvalidArchivesAndFillState()
         {
             var remove = (await IndexedArchives.PMap(Queue, async a =>
@@ -286,7 +292,7 @@ namespace Wabbajack.Lib
             });
         }
 
-        public async Task ExportModList()
+        protected async Task ExportModList()
         {
             Utils.Log($"Exporting ModList to {ModListOutputFile}");
 
@@ -296,7 +302,7 @@ namespace Wabbajack.Lib
                 ModList.Image = (RelativePath)"modlist-image.png";
             }
 
-            await using (var of = await ModListOutputFolder.Combine("modlist").Create()) 
+            await using (var of = await ModListOutputFolder.Combine("modlist").Create())
                 ModList.ToJson(of);
 
             await ModListOutputFolder.Combine("sig")
@@ -309,16 +315,16 @@ namespace Wabbajack.Lib
             await using (var fs = await ModListOutputFile.Create())
             {
                 using var za = new ZipArchive(fs, ZipArchiveMode.Create);
-                
+
                 await ModListOutputFolder.EnumerateFiles()
                     .DoProgress("Compressing ModList",
-                async f =>
-                {
-                    var ze = za.CreateEntry((string)f.FileName);
-                    await using var os = ze.Open();
-                    await using var ins = await f.OpenRead();
-                    await ins.CopyToAsync(os);
-                });
+                        async f =>
+                        {
+                            var ze = za.CreateEntry((string)f.FileName);
+                            await using var os = ze.Open();
+                            await using var ins = await f.OpenRead();
+                            await ins.CopyToAsync(os);
+                        });
 
                 // Copy in modimage
                 if (ModListImage.Exists)
@@ -345,8 +351,8 @@ namespace Wabbajack.Lib
             Utils.Log("Removing ModList staging folder");
             await Utils.DeleteDirectory(ModListOutputFolder);
         }
-        
-                /// <summary>
+
+        /// <summary>
         ///     Fills in the Patch fields in files that require them
         /// </summary>
         protected async Task BuildPatches()
@@ -487,7 +493,7 @@ namespace Wabbajack.Lib
 
         public async Task<Archive> ResolveArchive([NotNull] IndexedArchive archive)
         {
-            if (!string.IsNullOrWhiteSpace(archive.Name)) 
+            if (!string.IsNullOrWhiteSpace(archive.Name))
                 Utils.Status($"Checking link for {archive.Name}", alsoLog: true);
 
             if (archive.IniData == null)
@@ -511,7 +517,7 @@ namespace Wabbajack.Lib
 
             result.Meta = string.Join("\n", result.State!.GetMetaIni());
 
-            
+
             return result;
         }
 
@@ -547,6 +553,7 @@ namespace Wabbajack.Lib
                     {
                         Utils.LogStraightToFile($"     {file.To} - {file.Reason}");
                     }
+
                     if (count == max && noMatches.Count > max)
                     {
                         Utils.Log($"     ...");
@@ -572,7 +579,6 @@ namespace Wabbajack.Lib
                     file.SourceDataID = id;
                     file.SourceDataFile = null;
                 }
-
             });
         }
 
@@ -591,6 +597,7 @@ namespace Wabbajack.Lib
                     return true;
                 }
             }
+
             return false;
         }
     }
