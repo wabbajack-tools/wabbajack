@@ -25,7 +25,10 @@ namespace Wabbajack.Lib
         public bool ModlistIsNSFW;
         protected Version? WabbajackVersion;
 
-        public abstract AbsolutePath VFSCacheName { get; }
+        public AbsolutePath VFSCacheName =>
+            Consts.LocalAppDataPath.Combine(
+                $"vfs_compile_cache-2-{Path.Combine((string)SourcePath ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
+
         //protected string VFSCacheName => Path.Combine(Consts.LocalAppDataPath, $"vfs_compile_cache.bin");
         /// <summary>
         /// A stream of tuples of ("Update Title", 0.25) which represent the name of the current task
@@ -33,8 +36,6 @@ namespace Wabbajack.Lib
         /// </summary>
         public IObservable<(string, float)> ProgressUpdates => _progressUpdates;
         protected readonly Subject<(string, float)> _progressUpdates = new Subject<(string, float)>();
-
-        public abstract ModManager ModManager { get; }
 
         public abstract AbsolutePath GamePath { get; }
         

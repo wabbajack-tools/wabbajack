@@ -33,8 +33,6 @@ namespace Wabbajack.Lib
 
         public string MO2Profile { get; }
 
-        public override ModManager ModManager => ModManager.MO2;
-
         public override AbsolutePath GamePath { get; }
 
         public GameMetaData CompilingGame { get; }
@@ -44,10 +42,6 @@ namespace Wabbajack.Lib
         public override AbsolutePath ModListOutputFolder => ((RelativePath)"output_folder").RelativeToEntryPoint();
 
         public override AbsolutePath ModListOutputFile { get; }
-
-        public override AbsolutePath VFSCacheName =>
-            Consts.LocalAppDataPath.Combine(
-                $"vfs_compile_cache-2-{Path.Combine((string)SourcePath ?? "Unknown", "ModOrganizer.exe").StringSha256Hex()}.bin");
 
         public dynamic MO2Ini { get; }
 
