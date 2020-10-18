@@ -52,9 +52,8 @@ namespace Wabbajack.Lib
         public AbsolutePath SourcePath { get;}
         public AbsolutePath DownloadsPath { get;}
 
-
-        public abstract AbsolutePath ModListOutputFolder { get; }
-        public abstract AbsolutePath ModListOutputFile { get; }
+        public AbsolutePath ModListOutputFolder { get; }
+        public AbsolutePath ModListOutputFile { get; }
 
         public bool IgnoreMissingFiles { get; set; }
 
@@ -71,9 +70,14 @@ namespace Wabbajack.Lib
         public ACompiler(int steps, string modlistName, AbsolutePath sourcePath, AbsolutePath downloadsPath, AbsolutePath outputModListName)
             : base(steps)
         {
+            SourcePath = sourcePath;
+            DownloadsPath = downloadsPath;
+            ModListName = modlistName;
+            ModListOutputFile = outputModListName;
             //set in MainWindowVM
             WabbajackVersion = Consts.CurrentMinimumWabbajackVersion;
             Settings = new CompilerSettings();
+            ModListOutputFolder = AbsolutePath.EntryPoint.Combine("output_folder", Guid.NewGuid().ToString());
         }
 
         public static void Info(string msg)

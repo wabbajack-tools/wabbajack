@@ -25,7 +25,6 @@ namespace Wabbajack.Lib
             var mo2game = (string)MO2Ini.General.gameName;
             CompilingGame = GameRegistry.Games.First(g => g.Value.MO2Name == mo2game).Value;
             GamePath = CompilingGame.GameLocation();
-            ModListOutputFile = outputFile;
         }
 
         public AbsolutePath MO2ModsFolder => SourcePath.Combine(Consts.MO2ModFolderName);
@@ -35,11 +34,6 @@ namespace Wabbajack.Lib
         public override AbsolutePath GamePath { get; }
 
         public GameMetaData CompilingGame { get; }
-
-
-        public override AbsolutePath ModListOutputFolder => ((RelativePath)"output_folder").RelativeToEntryPoint();
-
-        public override AbsolutePath ModListOutputFile { get; }
 
         public dynamic MO2Ini { get; }
 
