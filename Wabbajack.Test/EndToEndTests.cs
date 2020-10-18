@@ -52,7 +52,7 @@ namespace Wabbajack.Test
             await DownloadAndInstall(
                 "https://github.com/ModOrganizer2/modorganizer/releases/download/v2.2.1/Mod.Organizer.2.2.1.7z",
                 "Mod.Organizer.2.2.1.7z");
-            await utils.DownloadsFolder.Combine("Mod.Organizer.2.2.1.7z.meta").WriteAllLinesAsync(
+            await utils.DownloadsPath.Combine("Mod.Organizer.2.2.1.7z.meta").WriteAllLinesAsync(
                     "[General]",
                     "directURL=https://github.com/ModOrganizer2/modorganizer/releases/download/v2.2.1/Mod.Organizer.2.2.1.7z"
                 );
@@ -75,7 +75,7 @@ namespace Wabbajack.Test
                 $"matchAll= {modfiles[2].Download.FileName}"
             );
             
-            await utils.MO2Folder.Combine("startup.bat").WriteAllLinesAsync(
+            await utils.SourcePath.Combine("startup.bat").WriteAllLinesAsync(
                 "ModOrganizer2.exe SKSE"
             );
 
@@ -83,11 +83,11 @@ namespace Wabbajack.Test
             await CompileAndInstall(profile);
             await utils.VerifyAllFiles();
 
-            await utils.InstallFolder.Combine(Consts.LOOTFolderFilesDir).DeleteDirectory();
+            await utils.InstallPath.Combine(Consts.LOOTFolderFilesDir).DeleteDirectory();
 
             var compiler = new MO2Compiler(
-                sourcePath: utils.InstallFolder,
-                downloadsPath: utils.DownloadsFolder,
+                sourcePath: utils.InstallPath,
+                downloadsPath: utils.DownloadsPath,
                 mo2Profile: profile,
                 outputFile: profile.RelativeTo(AbsolutePath.EntryPoint).WithExtension(Consts.ModListExtension));
             Assert.True(await compiler.Begin());
@@ -105,12 +105,12 @@ namespace Wabbajack.Test
                 await state.Download(new Archive(state: null!) { Name = "Unknown"}, src);
             }
 
-            utils.DownloadsFolder.CreateDirectory();
+            utils.DownloadsPath.CreateDirectory();
 
-            var destFile = utils.DownloadsFolder.Combine(filename);
+            var destFile = utils.DownloadsPath.Combine(filename);
             await src.CopyToAsync(destFile);
 
-            var modFolder = modName == null ? utils.MO2Folder : utils.ModsFolder.Combine(modName);
+            var modFolder = modName == null ? utils.SourcePath : utils.ModsPath.Combine(modName);
             await FileExtractor2.ExtractAll(Queue, src, modFolder);
             return (destFile, modFolder);
         }
@@ -140,12 +140,12 @@ namespace Wabbajack.Test
                 await state.Download(src);
             }
             
-            utils.DownloadsFolder.CreateDirectory();
+            utils.DownloadsPath.CreateDirectory();
 
-            var dest = utils.DownloadsFolder.Combine(file.file_name);
+            var dest = utils.DownloadsPath.Combine(file.file_name);
             await src.CopyToAsync(dest);
 
-            var modFolder = utils.ModsFolder.Combine(modName);
+            var modFolder = utils.ModsPath.Combine(modName);
             await FileExtractor2.ExtractAll(Queue, src, modFolder);
             
             await dest.WithExtension(Consts.MetaFileExtension).WriteAllTextAsync(ini);
@@ -165,8 +165,8 @@ namespace Wabbajack.Test
             var installer = new MO2Installer(
                 archive: compiler.ModListOutputFile, 
                 modList: modlist,
-                outputFolder: utils.InstallFolder,
-                downloadFolder: utils.DownloadsFolder,
+                outputFolder: utils.InstallPath,
+                downloadFolder: utils.DownloadsPath,
                 parameters: ACompilerTest.CreateDummySystemParameters())
             {
                 UseCompression = true
@@ -178,8 +178,8 @@ namespace Wabbajack.Test
         private async Task<MO2Compiler> ConfigureAndRunCompiler(string profile)
         {
             var compiler = new MO2Compiler(
-                sourcePath: utils.MO2Folder,
-                downloadsPath: utils.DownloadsFolder,
+                sourcePath: utils.SourcePath,
+                downloadsPath: utils.DownloadsPath,
                 mo2Profile: profile,
                 outputFile: profile.RelativeTo(AbsolutePath.EntryPoint).WithExtension(Consts.ModListExtension));
             Assert.True(await compiler.Begin());

@@ -180,7 +180,7 @@ namespace Wabbajack.Lib
         {
             if (UseGamePaths)
             {
-                foreach (var ag in Settings.IncludedGames)
+                foreach (var ag in Settings.IncludedGames.Cons(CompilingGame.Game))
                 {
                     try
                     {

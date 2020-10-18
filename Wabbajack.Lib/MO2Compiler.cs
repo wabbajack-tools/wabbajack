@@ -77,7 +77,7 @@ namespace Wabbajack.Lib
 
             Info("Using Profiles: " + string.Join(", ", SelectedProfiles.OrderBy(p => p)));
 
-            Utils.Log($"Compiling Game: {CompilingGame}");
+            Utils.Log($"Compiling Game: {CompilingGame.Game}");
             Utils.Log("Games from setting files:");
             foreach (var game in Settings.IncludedGames)
             {

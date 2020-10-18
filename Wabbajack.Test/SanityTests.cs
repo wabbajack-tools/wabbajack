@@ -54,7 +54,7 @@ namespace Wabbajack.Test
             await utils.AddManualDownload(
                 new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
             
-            await utils.DownloadsFolder.Combine("some_other_file.7z").WriteAllTextAsync("random data");
+            await utils.DownloadsPath.Combine("some_other_file.7z").WriteAllTextAsync("random data");
 
             await CompileAndInstall(profile);
 
@@ -90,14 +90,14 @@ namespace Wabbajack.Test
 
             await utils.Configure();
 
-            utils.MO2Folder.Combine(Consts.GameFolderFilesDir).CreateDirectory();
+            utils.SourcePath.Combine(Consts.GameFolderFilesDir).CreateDirectory();
 
             await utils.AddManualDownload(
                 new Dictionary<string, byte[]> {{"/baz/biz.pex", await testPex.ReadAllBytesAsync()}});
 
             await CompileAndInstall(profile);
 
-            Assert.False(utils.InstallFolder.Combine(Consts.GameFolderFilesDir, (RelativePath)@"enbstuff\test.pex").IsFile);
+            Assert.False(utils.InstallPath.Combine(Consts.GameFolderFilesDir, (RelativePath)@"enbstuff\test.pex").IsFile);
         }
 
         [Fact]
@@ -188,12 +188,12 @@ namespace Wabbajack.Test
             var profile = utils.AddProfile();
             var mod = await utils.AddMod("dummy");
 
-            var saveFolder = utils.MO2Folder.Combine("profiles", profile, "saves");
+            var saveFolder = utils.SourcePath.Combine("profiles", profile, "saves");
             saveFolder.CreateDirectory();
             await saveFolder.Combine("incompilation").WriteAllTextAsync("ignore this");
 
-            var installSaveFolderThisProfile = utils.InstallFolder.Combine("profiles", profile, "saves");
-            var installSaveFolderOtherProfile = utils.InstallFolder.Combine("profiles", "Other Profile", "saves");
+            var installSaveFolderThisProfile = utils.InstallPath.Combine("profiles", profile, "saves");
+            var installSaveFolderOtherProfile = utils.InstallPath.Combine("profiles", "Other Profile", "saves");
             installSaveFolderThisProfile.CreateDirectory();
             installSaveFolderOtherProfile.CreateDirectory();
 
@@ -215,7 +215,7 @@ namespace Wabbajack.Test
             var mod = await utils.AddMod("dummy");
 
             await utils.Configure();
-            await utils.MO2Folder.Combine("profiles", profile, "somegameprefs.ini").WriteAllLinesAsync(
+            await utils.SourcePath.Combine("profiles", profile, "somegameprefs.ini").WriteAllLinesAsync(
                 // Beth inis are messy, let's make ours just as messy to catch some parse failures
                 "[Display]",
                 "foo=4",
@@ -231,7 +231,7 @@ namespace Wabbajack.Test
 
             var modlist = await CompileAndInstall(profile);
 
-            var ini = utils.InstallFolder.Combine("profiles", profile, "somegameprefs.ini").LoadIniFile();
+            var ini = utils.InstallPath.Combine("profiles", profile, "somegameprefs.ini").LoadIniFile();
 
             var sysinfo = CreateDummySystemParameters();
 
@@ -511,7 +511,7 @@ namespace Wabbajack.Test
             await new CompilerSettings()
             {
                 IncludedGames = new []{Game.Morrowind}
-            }.ToJsonAsync(utils.MO2Folder.Combine("profiles", profile, CompilerSettings.FileName), true);
+            }.ToJsonAsync(utils.SourcePath.Combine("profiles", profile, CompilerSettings.FileName), true);
 
             Game.SkyrimSpecialEdition.MetaData().CanSourceFrom = new[] {Game.Morrowind, Game.Skyrim};
             
@@ -540,7 +540,7 @@ namespace Wabbajack.Test
             await utils.VerifyInstalledFile(mod, @"Data\SkyrimSE\Update.esm.old");
             await utils.VerifyInstalledFile(mod, @"Data\SkyrimSE\Update.esm");
             
-            Assert.False(utils.InstallFolder.Combine(Consts.GameFolderFilesDir).IsDirectory);
+            Assert.False(utils.InstallPath.Combine(Consts.GameFolderFilesDir).IsDirectory);
             
         }
 
@@ -554,8 +554,8 @@ namespace Wabbajack.Test
 
             await utils.Configure();
 
-            utils.MO2Folder.Combine(Consts.GameFolderFilesDir).CreateDirectory();
-            await utils.MO2Folder.Combine(Consts.GameFolderFilesDir).Combine("dx4242.dll")
+            utils.SourcePath.Combine(Consts.GameFolderFilesDir).CreateDirectory();
+            await utils.SourcePath.Combine(Consts.GameFolderFilesDir).Combine("dx4242.dll")
                 .WriteAllBytesAsync(utils.RandomData());
 
             await utils.AddManualDownload(
@@ -580,7 +580,7 @@ namespace Wabbajack.Test
             var disabledMod = await utils.AddMod();
             var disabledTestPex = await utils.AddModFile(disabledMod, @"Data\scripts\disabledTestPex.pex", 10);
 
-            await disabledMod.RelativeTo(utils.ModsFolder).Combine("meta.ini").WriteAllLinesAsync(
+            await disabledMod.RelativeTo(utils.ModsPath).Combine("meta.ini").WriteAllLinesAsync(
                 "[General]",
                 $"notes={Consts.WABBAJACK_ALWAYS_ENABLE}");
 
@@ -602,12 +602,50 @@ namespace Wabbajack.Test
             await utils.VerifyInstalledFile(enabledMod, @"Data\scripts\enabledTestPex.pex");
             await utils.VerifyInstalledFile(disabledMod, @"Data\scripts\disabledTestPex.pex");
 
-            var modlistTxt = await utils.InstallFolder.Combine("profiles", profile, "modlist.txt").ReadAllLinesAsync();
+            var modlistTxt = await utils.InstallPath.Combine("profiles", profile, "modlist.txt").ReadAllLinesAsync();
             Assert.Equal(new string[]
             {
                 $"-{disabledMod}",
                 $"+{enabledMod}"
             }, modlistTxt.ToArray());
+        }
+
+        [Fact]
+        public async Task CanCompileFromNativeSource()
+        {
+            utils.CreatePaths();
+
+            var gameFolder = Game.SkyrimSpecialEdition.MetaData().GameLocation();
+            await gameFolder.Combine("SkyrimSE.exe").CopyToAsync(utils.SourcePath.Combine("SkyrimSE.exe"));
+
+            var some_dds = utils.SourcePath.Combine("some_file.dds");
+            await some_dds.WriteAllBytesAsync(utils.RandomData());
+            
+            await utils.AddManualDownload(
+                new Dictionary<string, byte[]>
+                {
+                    {"/file1.blerg", await some_dds.ReadAllBytesAsync()},
+                });
+
+            var settings = new NativeCompilerSettings
+            {
+                CompilingGame = Game.SkyrimSpecialEdition,
+                CompilationSteps = new []
+                {
+                    new []{"IgnoreStartsWith", "downloads"},
+                    new []{"IncludeConfigs"},
+                    new []{"IncludeDirectMatches"},
+                }
+            };
+
+            var settingsPath = utils.SourcePath.Combine("native_compiler_settings.json");
+            await settings.ToJsonAsync(utils.SourcePath.Combine("native_compiler_settings.json"), true);
+
+            await CompileAndInstall(settingsPath, true);
+            
+            Assert.Equal(await some_dds.FileHashAsync(), await utils.InstallPath.Combine("some_file.dds").FileHashAsync());
+            Assert.Equal(await gameFolder.Combine("SkyrimSE.exe").FileHashAsync(), 
+                await utils.InstallPath.Combine("SkyrimSE.exe").FileHashAsync());
         }
 
     }
