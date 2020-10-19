@@ -16,13 +16,13 @@ namespace Wabbajack.Lib.CompilationSteps
         private readonly Dictionary<RelativePath, IGrouping<RelativePath, VirtualFile>> _indexed;
         private VirtualFile? _bsa;
         private Dictionary<RelativePath, IEnumerable<VirtualFile>> _indexedByName;
-        private MO2Compiler _mo2Compiler;
+        private ACompiler _compiler;
         private bool _isGenericGame;
 
         public IncludePatches(ACompiler compiler, VirtualFile? constructingFromBSA = null) : base(compiler)
         {
             _bsa = constructingFromBSA;
-            _mo2Compiler = (MO2Compiler)compiler;
+            _compiler = compiler;
             _indexed = _compiler.IndexedFiles.Values
                 .SelectMany(f => f)
                 .GroupBy(f => f.Name.FileName)
@@ -33,7 +33,7 @@ namespace Wabbajack.Lib.CompilationSteps
                                      .GroupBy(f => f.Name.FileName)
                                      .ToDictionary(f => f.Key, f => (IEnumerable<VirtualFile>)f);
 
-            _isGenericGame = _mo2Compiler.CompilingGame.IsGenericMO2Plugin;
+            _isGenericGame = _compiler.CompilingGame.IsGenericMO2Plugin;
         }
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)
@@ -53,13 +53,16 @@ namespace Wabbajack.Lib.CompilationSteps
                 _indexed.TryGetValue(nameWithoutExt, out choices);
 
             dynamic? modIni = null;
-            
-            if (_bsa == null && source.File.IsNative && source.AbsolutePath.InFolder(_mo2Compiler.MO2ModsFolder))
-                ((MO2Compiler)_compiler).ModInis.TryGetValue(ModForFile(source.AbsolutePath), out modIni);
-            else if (_bsa != null)
+
+            if (_compiler is MO2Compiler)
             {
-                var bsaPath = _bsa.FullPath.Base;
-                ((MO2Compiler)_compiler).ModInis.TryGetValue(ModForFile(bsaPath), out modIni);
+                if (_bsa == null && source.File.IsNative && source.AbsolutePath.InFolder(((MO2Compiler)_compiler).MO2ModsFolder))
+                    ((MO2Compiler)_compiler).ModInis.TryGetValue(ModForFile(source.AbsolutePath), out modIni);
+                else if (_bsa != null)
+                {
+                    var bsaPath = _bsa.FullPath.Base;
+                    ((MO2Compiler)_compiler).ModInis.TryGetValue(ModForFile(bsaPath), out modIni);
+                }
             }
 
             var installationFile = (string?)modIni?.General?.installationFile;
@@ -105,7 +108,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
             if (patches.All(p => p.Item1))
             {
-                var (_, bytes, file) = PickPatch(_mo2Compiler, patches);
+                var (_, bytes, file) = PickPatch(_compiler, patches);
                 e.FromHash = file.Hash;
                 e.ArchiveHashPath = file.MakeRelativePaths();
                 e.PatchID = await _compiler.IncludeFile(bytes!);

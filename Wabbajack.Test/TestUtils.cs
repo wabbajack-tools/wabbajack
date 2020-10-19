@@ -163,12 +163,13 @@ namespace Wabbajack.Test
 
             await using FileStream fs = await DownloadsPath.Combine(name).Create();
             using ZipArchive archive = new ZipArchive(fs, ZipArchiveMode.Create);
-            contents.Do(kv =>
+            foreach (var (key, value) in contents)
             {
-                var entry = archive.CreateEntry(kv.Key);
-                using var os = entry.Open();
-                os.Write(kv.Value, 0, kv.Value.Length);
-            });
+                Utils.Log($"Adding {value.Length.ToFileSizeString()} entry {key}");
+                var entry = archive.CreateEntry(key);
+                await using var os = entry.Open();
+                await os.WriteAsync(value, 0, value.Length);
+            }
 
             await DownloadsPath.Combine(name + Consts.MetaFileExtension).WriteAllLinesAsync(
                     "[General]",

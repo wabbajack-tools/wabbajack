@@ -620,11 +620,14 @@ namespace Wabbajack.Test
 
             var some_dds = utils.SourcePath.Combine("some_file.dds");
             await some_dds.WriteAllBytesAsync(utils.RandomData());
+
+            var blerg = utils.SourcePath.Combine("file1.blerg");
+            await blerg.WriteAllBytesAsync(utils.RandomData());
             
             await utils.AddManualDownload(
                 new Dictionary<string, byte[]>
                 {
-                    {"/file1.blerg", await some_dds.ReadAllBytesAsync()},
+                    {"file1.blerg", await some_dds.ReadAllBytesAsync()},
                 });
 
             var settings = new NativeCompilerSettings
@@ -635,6 +638,7 @@ namespace Wabbajack.Test
                     new []{"IgnoreStartsWith", "downloads"},
                     new []{"IncludeConfigs"},
                     new []{"IncludeDirectMatches"},
+                    new []{"IncludePatches"}
                 }
             };
 
