@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using DynamicData;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using WebSocketSharp;
 
 namespace Wabbajack
 {
@@ -49,7 +50,7 @@ namespace Wabbajack
                 PathType = FilePickerVM.PathTypeOptions.File,
                 PromptTitle = "Select a Modlist"
             };
-            ModListLocation.Filters.Add(new CommonFileDialogFilter("MO2 Profile (modlist.txt)", ".txt"));
+            ModListLocation.Filters.Add(new CommonFileDialogFilter("MO2 Profile (modlist.txt) or Native Settings (native_compiler_settings.json)", ".txt,.json"));
 
             DownloadLocation = new FilePickerVM()
             {
@@ -63,8 +64,18 @@ namespace Wabbajack
                 {
                     try
                     {
-                        var profileFolder = loc.Parent;
-                        return profileFolder.Parent.Parent;
+                        if (loc.FileName == Consts.ModListTxt)
+                        {
+                            var profileFolder = loc.Parent;
+                            return profileFolder.Parent.Parent;
+                        }
+
+                        if (loc.FileName == Consts.NativeSettingsJson)
+                        {
+                            return loc.Parent;
+                        }
+
+                        return default;
                     }
                     catch (Exception)
                     {
@@ -77,6 +88,11 @@ namespace Wabbajack
                 {
                     try
                     {
+                        if (loc.FileName == Consts.NativeSettingsJson)
+                        {
+                            var settings = loc.FromJson<NativeCompilerSettings>();
+                            return settings.ModListName;
+                        }
                         return (string)loc.Parent.FileName;
                     }
                     catch (Exception)
@@ -179,24 +195,45 @@ namespace Wabbajack
 
             try
             {
-                using (ActiveCompilation = new MO2Compiler(
-                    mo2Folder: Mo2Folder,
-                    mo2Profile: MOProfile,
-                    outputFile: outputFile)
+                ACompiler compiler;
+                
+                if (ModListLocation.TargetPath.FileName == Consts.NativeSettingsJson)
                 {
-                    ModListName = ModlistSettings.ModListName,
-                    ModListAuthor = ModlistSettings.AuthorText,
-                    ModListDescription = ModlistSettings.Description,
-                    ModListImage = ModlistSettings.ImagePath.TargetPath,
-                    ModListWebsite = ModlistSettings.Website,
-                    ModlistReadme = ModlistSettings.Readme,
-                    MO2DownloadsFolder = DownloadLocation.TargetPath,
-                    ModlistVersion = ModlistSettings.Version,
-                    ModlistIsNSFW = ModlistSettings.IsNSFW
-                })
+                    var settings = ModListLocation.TargetPath.FromJson<NativeCompilerSettings>();
+                    compiler = new NativeCompiler(settings, Mo2Folder, DownloadLocation.TargetPath, outputFile)
+                    {
+                        ModListName = ModlistSettings.ModListName,
+                        ModListAuthor = ModlistSettings.AuthorText,
+                        ModListDescription = ModlistSettings.Description,
+                        ModListImage = ModlistSettings.ImagePath.TargetPath,
+                        ModListWebsite = ModlistSettings.Website,
+                        ModlistReadme = ModlistSettings.Readme,
+                        ModlistVersion = ModlistSettings.Version,
+                        ModlistIsNSFW = ModlistSettings.IsNSFW
+                    };
+                }
+                else
+                {
+                    compiler = new MO2Compiler(
+                        sourcePath: Mo2Folder,
+                        downloadsPath: DownloadLocation.TargetPath,
+                        mo2Profile: MOProfile,
+                        outputFile: outputFile)
+                    {
+                        ModListName = ModlistSettings.ModListName,
+                        ModListAuthor = ModlistSettings.AuthorText,
+                        ModListDescription = ModlistSettings.Description,
+                        ModListImage = ModlistSettings.ImagePath.TargetPath,
+                        ModListWebsite = ModlistSettings.Website,
+                        ModlistReadme = ModlistSettings.Readme,
+                        ModlistVersion = ModlistSettings.Version,
+                        ModlistIsNSFW = ModlistSettings.IsNSFW
+                    };
+                }
+                using (ActiveCompilation = compiler
+)
                 {
                     Parent.MWVM.Settings.Performance.SetProcessorSettings(ActiveCompilation);
-
                     var success = await ActiveCompilation.Begin();
                     return GetResponse<ModList>.Create(success, ActiveCompilation.ModList);
                 }

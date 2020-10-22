@@ -130,6 +130,8 @@ namespace Wabbajack.Common
         public static AbsolutePath SettingsFile => LocalAppDataPath.Combine("settings.json");
         public static RelativePath SettingsIni = (RelativePath)"settings.ini";
         public static byte SettingsVersion => 2;
+        public static RelativePath NativeSettingsJson = (RelativePath)"native_compiler_settings.json";
+
         public static bool IsServer = false;
 
         public static string CompressedBodyHeader = "x-compressed-body";

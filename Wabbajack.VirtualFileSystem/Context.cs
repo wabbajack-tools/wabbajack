@@ -236,7 +236,7 @@ namespace Wabbajack.VirtualFileSystem
                 }
 
             }
-            await filesByParent[top].PMap(queue, async file => await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName)));
+            await filesByParent[top].PMap(queue, async file => await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false}));
         }
 
         #region KnownFiles

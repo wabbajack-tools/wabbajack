@@ -36,7 +36,8 @@ namespace Wabbajack.Test
         protected async Task<MO2Compiler> ConfigureAndRunCompiler(string profile, bool useGameFiles= false)
         {
             var compiler = new MO2Compiler(
-                mo2Folder: utils.MO2Folder,
+                sourcePath: utils.SourcePath,
+                downloadsPath: utils.DownloadsPath,
                 mo2Profile: profile,
                 outputFile: OutputFile(profile));
             compiler.UseGamePaths = useGameFiles;
@@ -51,13 +52,35 @@ namespace Wabbajack.Test
             await Install(compiler);
             return compiler.ModList;
         }
+        
+        protected async Task<NativeCompiler> ConfigureAndRunCompiler(AbsolutePath configPath, bool useGameFiles= false)
+        {
+            var settings = configPath.FromJson<NativeCompilerSettings>();
+            var profile = utils.AddProfile();
+
+            var compiler = new NativeCompiler(
+                settings: settings,
+                sourcePath: utils.SourcePath,
+                downloadsPath: utils.DownloadsPath,
+                outputModListPath: OutputFile(profile)) 
+                {UseGamePaths = useGameFiles};
+            Assert.True(await compiler.Begin());
+            return compiler;
+        }
+        protected async Task<ModList> CompileAndInstall(AbsolutePath settingsPath, bool useGameFiles = false)
+        {
+            var compiler = await ConfigureAndRunCompiler(settingsPath, useGameFiles: useGameFiles);
+            Utils.Log("Finished Compiling");
+            await Install(compiler);
+            return compiler.ModList;
+        }
 
         private static AbsolutePath OutputFile(string profile)
         {
             return ((RelativePath)profile).RelativeToEntryPoint().WithExtension(Consts.ModListExtension);
         }
 
-        protected async Task Install(MO2Compiler compiler)
+        protected async Task Install(ACompiler compiler)
         {
             Utils.Log("Loading Modlist");
             var modlist = AInstaller.LoadFromFile(compiler.ModListOutputFile);
@@ -65,8 +88,8 @@ namespace Wabbajack.Test
             var installer = new MO2Installer(
                 archive: compiler.ModListOutputFile,
                 modList: modlist,
-                outputFolder: utils.InstallFolder,
-                downloadFolder: utils.DownloadsFolder,
+                outputFolder: utils.InstallPath,
+                downloadFolder: utils.DownloadsPath,
                 parameters: CreateDummySystemParameters());
             installer.WarnOnOverwrite = false;
             installer.GameFolder = utils.GameFolder;

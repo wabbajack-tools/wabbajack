@@ -11,7 +11,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public IgnoreGameFilesIfGameFolderFilesExist(ACompiler compiler) : base(compiler)
         {
-            _gameFolderFilesExists = ((MO2Compiler)compiler).MO2Folder.Combine(Consts.GameFolderFilesDir).IsDirectory;
+            _gameFolderFilesExists = ((MO2Compiler)compiler).SourcePath.Combine(Consts.GameFolderFilesDir).IsDirectory;
             _gameFolder = compiler.GamePath;
         }
 

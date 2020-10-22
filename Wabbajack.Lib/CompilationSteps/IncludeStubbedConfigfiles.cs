@@ -28,14 +28,14 @@ namespace Wabbajack.Lib.CompilationSteps
             data = data.Replace(((string)_mo2Compiler.GamePath).Replace("\\", "\\\\"), Consts.GAME_PATH_MAGIC_DOUBLE_BACK);
             data = data.Replace(((string)_mo2Compiler.GamePath).Replace("\\", "/"), Consts.GAME_PATH_MAGIC_FORWARD);
 
-            data = data.Replace((string)_mo2Compiler.MO2Folder, Consts.MO2_PATH_MAGIC_BACK);
-            data = data.Replace(((string)_mo2Compiler.MO2Folder).Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(((string)_mo2Compiler.MO2Folder).Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
+            data = data.Replace((string)_mo2Compiler.SourcePath, Consts.MO2_PATH_MAGIC_BACK);
+            data = data.Replace(((string)_mo2Compiler.SourcePath).Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
+            data = data.Replace(((string)_mo2Compiler.SourcePath).Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
 
-            data = data.Replace((string)_mo2Compiler.MO2DownloadsFolder, Consts.DOWNLOAD_PATH_MAGIC_BACK);
-            data = data.Replace(((string)_mo2Compiler.MO2DownloadsFolder).Replace("\\", "\\\\"),
+            data = data.Replace((string)_mo2Compiler.DownloadsPath, Consts.DOWNLOAD_PATH_MAGIC_BACK);
+            data = data.Replace(((string)_mo2Compiler.DownloadsPath).Replace("\\", "\\\\"),
                 Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(((string)_mo2Compiler.MO2DownloadsFolder).Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD);
+            data = data.Replace(((string)_mo2Compiler.DownloadsPath).Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD);
 
             if (data == originalData)
                 return null;
