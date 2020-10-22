@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
 using Newtonsoft.Json;
@@ -24,24 +25,33 @@ namespace Wabbajack.Lib.CompilationSteps
             var data = await source.AbsolutePath.ReadAllTextAsync();
             var originalData = data;
 
-            data = data.Replace((string)_mo2Compiler.GamePath, Consts.GAME_PATH_MAGIC_BACK);
-            data = data.Replace(((string)_mo2Compiler.GamePath).Replace("\\", "\\\\"), Consts.GAME_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(((string)_mo2Compiler.GamePath).Replace("\\", "/"), Consts.GAME_PATH_MAGIC_FORWARD);
-
-            data = data.Replace((string)_mo2Compiler.SourcePath, Consts.MO2_PATH_MAGIC_BACK);
-            data = data.Replace(((string)_mo2Compiler.SourcePath).Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(((string)_mo2Compiler.SourcePath).Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
-
-            data = data.Replace((string)_mo2Compiler.DownloadsPath, Consts.DOWNLOAD_PATH_MAGIC_BACK);
-            data = data.Replace(((string)_mo2Compiler.DownloadsPath).Replace("\\", "\\\\"),
-                Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK);
-            data = data.Replace(((string)_mo2Compiler.DownloadsPath).Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD);
+            data = RemapData(_mo2Compiler, data);
 
             if (data == originalData)
                 return null;
             var result = source.EvolveTo<RemappedInlineFile>();
             result.SourceDataID = await _compiler.IncludeFile(Encoding.UTF8.GetBytes(data));
             return result;
+        }
+
+        public static string RemapData(ACompiler compiler, string data)
+        {
+            var gamePath = compiler.GamePath.Normalize();
+            data = data.Replace(gamePath, Consts.GAME_PATH_MAGIC_BACK, StringComparison.InvariantCultureIgnoreCase);
+            data = data.Replace(gamePath.Replace("\\", "\\\\"), Consts.GAME_PATH_MAGIC_DOUBLE_BACK, StringComparison.InvariantCultureIgnoreCase);
+            data = data.Replace(gamePath.Replace("\\", "/"), Consts.GAME_PATH_MAGIC_FORWARD, StringComparison.InvariantCultureIgnoreCase);
+
+            var sourcePath = compiler.SourcePath.Normalize();
+            data = data.Replace(sourcePath, Consts.MO2_PATH_MAGIC_BACK);
+            data = data.Replace(sourcePath.Replace("\\", "\\\\"), Consts.MO2_PATH_MAGIC_DOUBLE_BACK);
+            data = data.Replace(sourcePath.Replace("\\", "/"), Consts.MO2_PATH_MAGIC_FORWARD);
+
+            var downloadsPath = compiler.DownloadsPath.Normalize();
+            data = data.Replace(downloadsPath, Consts.DOWNLOAD_PATH_MAGIC_BACK);
+            data = data.Replace(downloadsPath.Replace("\\", "\\\\"),
+                Consts.DOWNLOAD_PATH_MAGIC_DOUBLE_BACK);
+            data = data.Replace(downloadsPath.Replace("\\", "/"), Consts.DOWNLOAD_PATH_MAGIC_FORWARD);
+            return data;
         }
     }
 }

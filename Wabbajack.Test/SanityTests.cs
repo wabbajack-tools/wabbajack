@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Compression.BSA;
 using Wabbajack.Common;
 using Wabbajack.Lib;
+using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.CompilationSteps.CompilationErrors;
 using Xunit;
 using Xunit.Abstractions;
@@ -650,6 +651,34 @@ namespace Wabbajack.Test
             Assert.Equal(await some_dds.FileHashAsync(), await utils.InstallPath.Combine("some_file.dds").FileHashAsync());
             Assert.Equal(await gameFolder.Combine("SkyrimSE.exe").FileHashAsync(), 
                 await utils.InstallPath.Combine("SkyrimSE.exe").FileHashAsync());
+        }
+
+        [Fact]
+        public async Task IniFilesRemapAsExpected()
+        {
+            var file1 = await @"Resources\test_ini01.ini".RelativeTo(AbsolutePath.EntryPoint).ReadAllTextAsync();
+            ACompiler compiler = new NativeCompiler(new NativeCompilerSettings()
+            {
+                CompilingGame = Game.SkyrimSpecialEdition,
+                
+            }, sourcePath: (AbsolutePath)@"C:/Modlists/Living Skyrim 2/", 
+                downloadsPath: AbsolutePath.EntryPoint,
+                AbsolutePath.EntryPoint);
+
+            var file = new[]
+            {
+                "[General]",
+                $@"path1={Game.SkyrimSpecialEdition.MetaData().GameLocation()}\blerg",
+                $@"path2={Game.SkyrimSpecialEdition.MetaData().GameLocation().Normalize().Replace("\\", "/")}//blerg",
+                $@"path3={Game.SkyrimSpecialEdition.MetaData().GameLocation().Normalize().Replace("\\", "\\\\")}//blerg",
+            };
+
+            var newData = IncludeStubbedConfigFiles.RemapData(compiler, string.Join("\n", file1));
+
+            var ini = newData.LoadIniString().customExecutables;
+            Assert.Equal($"{Consts.GAME_PATH_MAGIC_FORWARD}/skse64_loader.exe", ini[@"1\binary"]);
+            Assert.Equal($"\\\"{Consts.GAME_PATH_MAGIC_DOUBLE_BACK}\\\\data\\\"", ini[@"5\arguments"]);
+            Assert.Equal($"{Consts.MO2_PATH_MAGIC_FORWARD}/mods/Fores New Idles in Skyrim SE - FNIS SE/tools/GenerateFNIS_for_Users/GenerateFNISforUsers.exe", ini[@"8\binary"]);
         }
 
     }
