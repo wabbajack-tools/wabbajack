@@ -55,25 +55,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CefSharp.Wpf" Version="84.4.10" />
-    <PackageReference Include="DynamicData" Version="6.16.9" />
+    <PackageReference Include="CefSharp.Wpf" Version="85.3.121" />
+    <PackageReference Include="DynamicData" Version="6.17.14" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.0.1" />
-    <PackageReference Include="Fody" Version="6.2.5">
+    <PackageReference Include="Fody" Version="6.3.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
-    <PackageReference Include="GitInfo" Version="2.0.33">
+    <PackageReference Include="GitInfo" Version="2.1.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MahApps.Metro" Version="2.2.0" />
-    <PackageReference Include="MahApps.Metro.IconPacks" Version="4.4.0" />
-    <PackageReference Include="PInvoke.Gdi32" Version="0.6.49" />
-    <PackageReference Include="PInvoke.User32" Version="0.6.49" />
-    <PackageReference Include="ReactiveUI" Version="11.5.35" />
-    <PackageReference Include="ReactiveUI.Fody" Version="11.5.35" />
-    <PackageReference Include="ReactiveUI.WPF" Version="11.5.35" />
+    <PackageReference Include="MahApps.Metro" Version="2.3.0" />
+    <PackageReference Include="MahApps.Metro.IconPacks" Version="4.6.0" />
+    <PackageReference Include="PInvoke.Gdi32" Version="0.7.78" />
+    <PackageReference Include="PInvoke.User32" Version="0.7.78" />
+    <PackageReference Include="ReactiveUI" Version="12.1.1" />
+    <PackageReference Include="ReactiveUI.Fody" Version="12.1.1" />
+    <PackageReference Include="ReactiveUI.WPF" Version="12.1.1" />
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
     <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
     <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
