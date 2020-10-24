@@ -56,12 +56,6 @@ namespace Wabbajack
                     .BindToStrict(this, x => x.CpuListControl.ItemsSource)
                     .DisposeWith(disposable);
 
-                this.WhenAny(x => x.ViewModel.CurrentCpuCount)
-                    .DistinctUntilChanged()
-                    .Select(x => $"{x.CurrentCPUs} / {x.DesiredCPUs}")
-                    .BindToStrict(this, x => x.CpuCountText.Text)
-                    .DisposeWith(disposable);
-
                 // Progress
                 this.WhenAny(x => x.ProgressPercent)
                     .Select(p => p.Value)
