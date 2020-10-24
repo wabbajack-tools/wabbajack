@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.3.1.0 - 10/24/2020
+* Fixed a long standing issue with path remapping, lots of edge cases were resolved here
+* Implemented a basic compiler for non MO2 games, will expand as we get feedback
+
 #### Version - 2.3.0.4 - 10/13/2020
 * Fix FOMOD extraction (for FNV)
 
