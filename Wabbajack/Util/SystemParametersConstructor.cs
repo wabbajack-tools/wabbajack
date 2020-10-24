@@ -33,7 +33,7 @@ namespace Wabbajack.Util
                         bool success = GetMonitorInfo(hMonitor, (MONITORINFO*)&mi);
                         if (success)
                         {
-                            col.Add(((mi.Monitor.right - mi.Monitor.left), (mi.Monitor.bottom - mi.Monitor.top),  mi.Flags == 1));
+                            col.Add(((mi.Monitor.right - mi.Monitor.left), (mi.Monitor.bottom - mi.Monitor.top),  mi.Flags == MONITORINFO_Flags.MONITORINFOF_PRIMARY));
                         }
 
                         return true;
