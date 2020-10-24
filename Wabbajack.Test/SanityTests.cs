@@ -665,12 +665,13 @@ namespace Wabbajack.Test
                 downloadsPath: AbsolutePath.EntryPoint,
                 AbsolutePath.EntryPoint);
 
-            var newData = IncludeStubbedConfigFiles.RemapData(compiler, string.Join("\n", file1));
 
             var gamePath = Game.SkyrimSpecialEdition.MetaData().GameLocation().Normalize();
-            newData = newData.Replace(@"C:\\Steam\\steamapps\\common\\Skyrim Special Edition", gamePath.Replace(@"\", @"\\"));
-            newData = newData.Replace(@"C:\Steam\steamapps\common\Skyrim Special Edition", gamePath);
-            newData = newData.Replace("C:/Steam/steamapps/common/Skyrim Special Edition", gamePath.Replace(@"\", "/"));
+            file1 = file1.Replace(@"C:\\Steam_SUBS\\steamapps\\common\\Skyrim Special Edition", gamePath.Replace(@"\", @"\\"), StringComparison.InvariantCultureIgnoreCase);
+            file1 = file1.Replace(@"C:\Steam_SUBS\steamapps\common\Skyrim Special Edition", gamePath, StringComparison.InvariantCultureIgnoreCase);
+            file1 = file1.Replace("C:/Steam_SUBS/steamapps/common/Skyrim Special Edition", gamePath.Replace(@"\", "/"), StringComparison.InvariantCultureIgnoreCase);
+
+            var newData = IncludeStubbedConfigFiles.RemapData(compiler, string.Join("\n", file1));
             var ini = newData.LoadIniString().customExecutables;
             Assert.Equal($"{Consts.GAME_PATH_MAGIC_FORWARD}/skse64_loader.exe", ini[@"1\binary"]);
             Assert.Equal($"\\\"{Consts.GAME_PATH_MAGIC_DOUBLE_BACK}\\\\data\\\"", ini[@"5\arguments"]);
