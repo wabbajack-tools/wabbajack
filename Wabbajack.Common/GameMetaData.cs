@@ -34,6 +34,7 @@ namespace Wabbajack.Common
         //MO2 Non-BGS Games
         [Description("Darkest Dungeon")]
         DarkestDungeon,
+        Dishonored,
         Witcher3,
         [Description("Stardew Valley")]
         StardewValley
@@ -441,6 +442,22 @@ namespace Wabbajack.Common
                     MainExecutable = "_windows\\Darkest.exe"
                 }
             },
+            {
+                Game.Dishonored, new GameMetaData
+                {
+                    Game = Game.Dishonored,
+                    NexusName = "dishonored",
+                    MO2Name = "Dishonored",
+                    NexusGameId = 802,
+                    SteamIDs = new List<int> {205100},
+                    GOGIDs = new List<int>{1701063787},
+                    RequiredFiles = new List<string>
+                    {
+                        "Binaries\\Win32\\Dishonored.exe"
+                    },
+                    MainExecutable = "Binaries\\Win32\\Dishonored.exe"
+                }
+            },
             {	
                 Game.Witcher3, new GameMetaData	
                 {	
@@ -484,3 +501,4 @@ namespace Wabbajack.Common
 
     }
 }
+
