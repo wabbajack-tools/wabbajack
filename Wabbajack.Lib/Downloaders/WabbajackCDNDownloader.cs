@@ -47,7 +47,7 @@ namespace Wabbajack.Lib.Downloaders
 
         public static AbstractDownloadState? StateFromUrl(Uri url)
         {
-            if (url.Host == "wabbajacktest.b-cdn.net" || url.Host == "wabbajack.b-cdn.net")
+            if (DomainRemaps.ContainsKey(url.Host) || DomainRemaps.ContainsValue(url.Host))
             {
                 return new State(url);
             }
