@@ -49,6 +49,13 @@ namespace Wabbajack.Server.DataLayer
             await trans.CommitAsync();
         }
 
+        public async Task DeleteMirroredFile(Hash hash)
+        {
+            await using var conn = await Open();
+            await conn.ExecuteAsync("DELETE FROM dbo.MirroredArchives WHERE Hash = @Hash",
+                new {Hash = hash});
+        }
+
         public async Task InsertAllNexusMirrors()
         {
             var permissions = (await GetNexusPermissions()).Where(p => p.Value == HTMLInterface.PermissionValue.Yes);
@@ -81,6 +88,47 @@ namespace Wabbajack.Server.DataLayer
 
             return await conn.QueryFirstOrDefaultAsync<Hash>("SELECT Hash FROM dbo.MirroredArchives WHERE Hash = @Hash",
                 new {Hash = hash}) != default;
+        }
+
+        public async Task QueueMirroredFiles()
+        {
+            await using var conn = await Open();
+
+            await conn.ExecuteAsync(@"
+
+                INSERT INTO dbo.MirroredArchives (Hash, Created, Rationale)
+
+                SELECT hs.Hash, GETUTCDATE(), 'File has re-upload permissions on the Nexus' FROM
+                (SELECT DISTINCT ad.Hash FROM dbo.NexusModPermissions p
+                INNER JOIN GameMetadata md on md.NexusGameId = p.NexusGameID
+                INNER JOIN dbo.ArchiveDownloads ad on ad.PrimaryKeyString like 'NexusDownloader+State|'+md.WabbajackName+'|'+CAST(p.ModID as nvarchar)+'|%'
+                WHERE p.Permissions = 1
+                AND ad.Hash not in (SELECT Hash from dbo.MirroredArchives)
+                ) hs
+
+                INSERT INTO dbo.MirroredArchives (Hash, Created, Rationale)
+                SELECT DISTINCT Hash, GETUTCDATE(), 'File is hosted on GitHub'
+                FROM dbo.ArchiveDownloads ad WHERE PrimaryKeyString like '%github.com/%'
+                AND ad.Hash not in (SELECT Hash from dbo.MirroredArchives)
+
+
+                INSERT INTO dbo.MirroredArchives (Hash, Created, Rationale)
+                SELECT DISTINCT Hash, GETUTCDATE(), 'File license allows uploading to any Non-nexus site'
+                FROM dbo.ArchiveDownloads ad WHERE PrimaryKeyString like '%enbdev.com/%'
+                AND ad.Hash not in (SELECT Hash from dbo.MirroredArchives)
+
+                INSERT INTO dbo.MirroredArchives (Hash, Created, Rationale)
+                SELECT DISTINCT Hash, GETUTCDATE(), 'DynDOLOD file' /*, Name*/
+                from dbo.ModListArchives mla WHERE Name like '%DynDoLOD%standalone%'
+                and Hash not in (select Hash from dbo.MirroredArchives)
+
+                INSERT INTO dbo.MirroredArchives (Hash, Created, Rationale)
+                SELECT DISTINCT Hash, GETUTCDATE(), 'Distribution allowed by author' /*, Name*/
+                from dbo.ModListArchives mla WHERE Name like '%particle%patch%'
+                and Hash not in (select Hash from dbo.MirroredArchives)
+
+
+                ");
         }
     }
 }

@@ -50,6 +50,13 @@ namespace Wabbajack.Server.Test
             var file2 = new TempFile();
             await DownloadDispatcher.DownloadWithPossibleUpgrade(archive, file2.Path);
         }
+
+        [Fact]
+        public async Task CanQueueFiles()
+        {
+            var service = Fixture.GetService<MirrorQueueService>();
+            Assert.Equal(1, await service.Execute());
+        }
         
     }
 }

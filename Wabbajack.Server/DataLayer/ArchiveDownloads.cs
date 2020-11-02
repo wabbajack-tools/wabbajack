@@ -241,10 +241,19 @@ namespace Wabbajack.Server.DataLayer
             var files = (await conn.QueryAsync<(long, Hash, AbstractDownloadState)>(
                     @"SELECT Size, Hash,  DownloadState from dbo.ArchiveDownloads WHERE Hash = @Hash AND IsFailed = 0 AND DownloadFinished IS NOT NULL ORDER BY DownloadFinished DESC",
                     new {Hash = hash})
-                );
-            return files.Select(e =>
-                new Archive(e.Item3) {Size = e.Item1, Hash = e.Item2}
-            ).ToArray();
+                ).Select(e =>
+                    new Archive(e.Item3) {Size = e.Item1, Hash = e.Item2}
+                ).ToList();
+
+            if (await HaveMirror(hash) && files.Count > 0)
+            {
+                var ffile = files.First();
+                var url = new Uri($"https://{(await _mirrorCreds).Username}.b-cdn.net/{hash.ToHex()}");
+                files.Add(new Archive(
+                    new WabbajackCDNDownloader.State(url)) {Hash = hash, Size = ffile.Size, Name = ffile.Name});
+            }
+
+            return files.ToArray();
         }
     }
 }

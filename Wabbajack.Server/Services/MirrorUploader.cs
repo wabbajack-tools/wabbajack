@@ -23,11 +23,14 @@ namespace Wabbajack.Server.Services
     {
         private SqlService _sql;
         private ArchiveMaintainer _archives;
+        private DiscordWebHook _discord;
 
-        public MirrorUploader(ILogger<MirrorUploader> logger, AppSettings settings, SqlService sql, QuickSync quickSync, ArchiveMaintainer archives) : base(logger, settings, quickSync, TimeSpan.FromHours(1))
+        public MirrorUploader(ILogger<MirrorUploader> logger, AppSettings settings, SqlService sql, QuickSync quickSync, ArchiveMaintainer archives, DiscordWebHook discord)
+            : base(logger, settings, quickSync, TimeSpan.FromHours(1))
         {
             _sql = sql;
             _archives = archives;
+            _discord = discord;
         }
 
         public override async Task<int> Execute()
@@ -60,6 +63,12 @@ namespace Wabbajack.Server.Services
                         await toUpload.Finish(_sql);
                         goto TOP;
                     }
+
+                    await _discord.Send(Channel.Spam,
+                        new DiscordMessage
+                        {
+                            Content = $"Uploading {toUpload.Hash} - {toUpload.Created} because {toUpload.Rationale}"
+                        });
 
                     var definition = await Client.GenerateFileDefinition(queue, path, (s, percent) => { });
 
