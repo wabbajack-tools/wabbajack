@@ -1,5 +1,12 @@
 ### Changelog
 
+#### Version - 2.3.2.0 - 11/2/2020
+* 7Zip errors now re-hash the extracted file to check for file corruption issues. Should provide
+better feedback in cases that a file is modified after being downloaded (perhaps by a disk failure)
+* Fixed a file extraction issue with nested archives, most often seen whith the `Lucian` mod
+* Fixed several small bugs and typeos with how open permission mirrored files are handled by Wabbajack
+* Fixed a bug in the `download-url` cli command. It can now download from any Wabbajack CDN domain.
+
 #### Version - 2.3.1.0 - 10/24/2020
 * Fixed a long standing issue with path remapping, lots of edge cases were resolved here
 * Implemented a basic compiler for non MO2 games, will expand as we get feedback
