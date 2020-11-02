@@ -8,10 +8,10 @@
     </PropertyGroup>
     <ItemGroup>
       <PackageReference Include="CefSharp.Common">
-        <Version>85.3.121</Version>
+        <Version>85.3.130</Version>
       </PackageReference>
       <PackageReference Include="CefSharp.OffScreen">
-        <Version>85.3.121</Version>
+        <Version>85.3.130</Version>
       </PackageReference>
       <PackageReference Include="F23.StringSimilarity">
         <Version>3.1.0</Version>
@@ -25,7 +25,7 @@
         <Version>2.2.2.1</Version>
       </PackageReference>
       <PackageReference Include="HtmlAgilityPack">
-        <Version>1.11.25</Version>
+        <Version>1.11.26</Version>
       </PackageReference>
       <PackageReference Include="MegaApiClient">
         <Version>1.8.2</Version>
@@ -37,10 +37,10 @@
         <Version>2.1.1</Version>
       </PackageReference>
       <PackageReference Include="ReactiveUI">
-        <Version>12.1.1</Version>
+        <Version>12.1.5</Version>
       </PackageReference>
       <PackageReference Include="ReactiveUI.Fody">
-        <Version>12.1.1</Version>
+        <Version>12.1.5</Version>
       </PackageReference>
       <PackageReference Include="SharpCompress">
         <Version>0.26.0</Version>
