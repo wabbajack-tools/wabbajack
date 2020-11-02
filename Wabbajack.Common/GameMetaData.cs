@@ -455,7 +455,7 @@ namespace Wabbajack.Common
                     {
                         "Binaries\\Win32\\Dishonored.exe"
                     },
-                    MainExecutable = "Binaries\\Win32\\Dishonored.exe"
+                    MainExecutable = @"Binaries\Win32\Dishonored.exe"
                 }
             },
             {	
