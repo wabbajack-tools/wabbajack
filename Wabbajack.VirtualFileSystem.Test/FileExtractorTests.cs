@@ -224,7 +224,7 @@ namespace Wabbajack.VirtualFileSystem.Test
         }
         
         
-        private static AbsolutePath _stagingFolder = ((RelativePath)"NexusDownloads").RelativeToEntryPoint();
+        public static AbsolutePath StagingFolder = ((RelativePath)"NexusDownloads").RelativeToEntryPoint();
 
         private static async Task<AbsolutePath> DownloadMod(Game game, int mod)
         {
@@ -235,9 +235,9 @@ namespace Wabbajack.VirtualFileSystem.Test
             return await DownloadNexusFile(game, mod, file);
         }
 
-        private static async Task<AbsolutePath> DownloadNexusFile(Game game, int mod, NexusFileInfo file)
+        public static async Task<AbsolutePath> DownloadNexusFile(Game game, int mod, NexusFileInfo file)
         {
-            var src = _stagingFolder.Combine(file.file_name);
+            var src = StagingFolder.Combine(file.file_name);
 
             if (src.Exists) return src;
 
@@ -251,7 +251,7 @@ namespace Wabbajack.VirtualFileSystem.Test
             return src;
         }
 
-        private async Task<AbsolutePath> DownloadMod(Game game, int mod, int fileId)
+        public static async Task<AbsolutePath> DownloadMod(Game game, int mod, int fileId)
         {
             using var client = await NexusApiClient.Get();
             var results = await client.GetModFiles(game, mod);

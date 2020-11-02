@@ -199,6 +199,7 @@ namespace Wabbajack.VirtualFileSystem
                         .WithExtension(source.Extension));
                     await using var s = await sf.GetStream();
                     await spoolFile.Path.WriteAllAsync(s);
+                    source = spoolFile.Path;
                 }
 
                 Utils.Log(new GenericInfo($"Extracting {(string)source.FileName}",
