@@ -8,7 +8,9 @@ using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
 using Alphaleonis.Win32.Filesystem;
+using ICSharpCode.SharpZipLib.Zip.Compression.Streams;
 using Wabbajack.Common;
+using Wabbajack.Common.StatusFeed.Errors;
 using Wabbajack.VirtualFileSystem.ExtractedFiles;
 using Directory = Alphaleonis.Win32.Filesystem.Directory;
 using File = System.IO.File;
@@ -224,15 +226,28 @@ namespace Wabbajack.VirtualFileSystem
                 if (filesByParent.TryGetValue(file, out var children))
                 {
                     var fileNames = children.ToDictionary(c => c.RelativeName);
-                    await FileExtractor2.GatheringExtract(queue, sfn,
-                        r => fileNames.ContainsKey(r),
-                        async (rel, csf) =>
+                    try
+                    {
+                        await FileExtractor2.GatheringExtract(queue, sfn,
+                            r => fileNames.ContainsKey(r),
+                            async (rel, csf) =>
+                            {
+                                await HandleFile(fileNames[rel], csf);
+                                return 0;
+                            },
+                            tempFolder: tempFolder,
+                            onlyFiles: fileNames.Keys.ToHashSet());
+                    }
+                    catch (_7zipReturnError ex)
+                    {
+                        await using var stream = await sfn.GetStream();
+                        var hash = await stream.xxHashAsync();
+                        if (hash != file.Hash)
                         {
-                            await HandleFile(fileNames[rel], csf);
-                            return 0;
-                        },
-                        tempFolder: tempFolder,
-                        onlyFiles: fileNames.Keys.ToHashSet());
+                            throw new Exception($"File {file.FullPath} is corrupt, please delete it and retry the installation");
+                        }
+                        throw;
+                    }
                 }
 
             }
