@@ -172,13 +172,13 @@ namespace Wabbajack.Test
             }
 
             await DownloadsPath.Combine(name + Consts.MetaFileExtension).WriteAllLinesAsync(
-                    "[General]",
-                    "manualURL=<TESTING>"
-                );
+                "[General]",
+                "manualURL=<TESTING>"
+            );
 
             return name;
         }
-
+        
         public async Task VerifyInstalledFile(string mod, string file)
         {
             var src = SourcePath.Combine((string)Consts.MO2ModFolderName, mod, file);

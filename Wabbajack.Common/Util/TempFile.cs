@@ -40,6 +40,12 @@ namespace Wabbajack.Common
             }
             this.DeleteAfter = deleteAfter;
         }
+
+        public TempFile(Extension ext)
+        :this(new FileInfo((string)GetTempFilePath().WithExtension(ext)))
+        {
+        }
+
         public async ValueTask DisposeAsync()
         {
             if (DeleteAfter && Path.Exists)

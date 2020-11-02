@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
+using Wabbajack.Lib;
+using Wabbajack.Lib.Downloaders;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -184,6 +186,22 @@ namespace Wabbajack.VirtualFileSystem.Test
                 Assert.Equal("This is a test", await s.ReadAllTextAsync());
             });
 
+        }
+
+        
+        [Theory]
+        [InlineData(Game.SkyrimSpecialEdition, 20035, 130759)] // Lucian
+        public async Task CanAnalyzeMods(Game game, int modid, int fileId)
+        {
+            await using var tmpFolder = await TempFolder.Create();
+            
+            var path = await FileExtractorTests.DownloadMod(game, modid, fileId);
+            await path.CopyToAsync(path.FileName.RelativeTo(tmpFolder.Dir));
+            
+            var context = new Context(Queue);
+            await context.AddRoot(tmpFolder.Dir);
+
+            Assert.True(context.Index.ByFullPath.Count >= 3);
         }
 
         private static async Task AddFile(AbsolutePath filename, string text)

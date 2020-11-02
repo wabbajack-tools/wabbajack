@@ -63,7 +63,7 @@ namespace Wabbajack.Test
                 DownloadAndInstall(Game.SkyrimSpecialEdition, 4783, "Frost Armor UNP"), 
                 DownloadAndInstall(Game.SkyrimSpecialEdition, 32359, "Frost Armor HDT"),
                 DownloadAndInstall("https://github.com/ShikyoKira/Project-New-Reign---Nemesis-Main/releases/download/v0.84-beta/Nemesis.Unlimited.Behavior.Engine.v0.84-beta.rar", "Nemesis.Unlimited.Behavior.Engine.v0.84-beta.rar", "Nemesis"),
-                DownloadAndInstall(Game.Fallout4, 40136, "RAR test File"));
+                DownloadAndInstall(Game.Fallout4, 40136, "RAR test File")); // ShouldPullFrom Mirror
             
             // We're going to fully patch this mod from another source.
             await modfiles[3].Download.DeleteAsync();
