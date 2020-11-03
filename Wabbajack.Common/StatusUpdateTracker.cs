@@ -7,7 +7,7 @@ namespace Wabbajack.Common
     public class StatusUpdateTracker
     {
         private Subject<string> _stepName = new Subject<string>();
-        public IObservable<string> StepName => _stepName;
+        public IObservable<string> StepName => _stepName.Debounce(TimeSpan.FromMilliseconds(100));
 
         private Subject<int> _step = new Subject<int>();
         public IObservable<int> Step => _step;
@@ -20,6 +20,7 @@ namespace Wabbajack.Common
 
         private int _internalCurrentStep;
         private int _internalMaxStep;
+        private string _currentStepName = "";
 
         public StatusUpdateTracker(int maxStep)
         {
@@ -33,10 +34,11 @@ namespace Wabbajack.Common
 
         public void NextStep(string name)
         {
+            _currentStepName = name;
             _internalCurrentStep += 1;
             Utils.Log(name);
             _step.OnNext(_internalCurrentStep);
-            _stepName.OnNext(name);
+            _stepName.OnNext($"({_internalCurrentStep}/{_internalMaxStep}) {_currentStepName}");
             MakeUpdate(Percent.Zero);
         }
 
@@ -62,6 +64,7 @@ namespace Wabbajack.Common
         public void MakeUpdate(int max, int curr)
         {
             MakeUpdate(Percent.FactoryPutInRange(curr, max == 0 ? 1 : max));
+            _stepName.OnNext($"({_internalCurrentStep}/{_internalMaxStep}) {_currentStepName}, {curr} of {max}");
         }
     }
 

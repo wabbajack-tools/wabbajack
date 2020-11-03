@@ -306,6 +306,9 @@ namespace Wabbajack
                         if (err) return "Corrupted Modlist";
                         return name;
                     })
+                .Merge(this.WhenAny(x => x.Installer.ActiveInstallation)
+                    .Where(c => c != null)
+                    .SelectMany(c => c.TextStatus))
                 .ToGuiProperty(this, nameof(ModListName));
 
             ShowManifestCommand = ReactiveCommand.Create(() =>

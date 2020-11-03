@@ -181,7 +181,7 @@ namespace Wabbajack.Lib
                         await file.To.RelativeTo(OutputFolder).Compact(FileCompaction.Algorithm.XPRESS16K);
                     }
                 }
-            }, tempFolder: OutputFolder);
+            }, tempFolder: OutputFolder, updateTracker: UpdateTracker);
         }
 
         public async Task DownloadArchives()
@@ -211,7 +211,7 @@ namespace Wabbajack.Lib
 
             DesiredThreads.OnNext(DownloadThreads);
             await missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
-                .PMap(Queue, async archive =>
+                .PMap(Queue, UpdateTracker, async archive =>
                 {
                     Info($"Downloading {archive.Name}");
                     var outputPath = DownloadFolder.Combine(archive.Name);
@@ -268,7 +268,7 @@ namespace Wabbajack.Lib
             
             var hashResults = await 
                 toHash
-                .PMap(Queue, async e => (await e.FileHashCachedAsync(), e)); 
+                .PMap(Queue, UpdateTracker,async e => (await e.FileHashCachedAsync(), e)); 
             
             HashedArchives.SetTo(hashResults
                 .OrderByDescending(e => e.Item2.LastModified)
@@ -385,9 +385,6 @@ namespace Wabbajack.Lib
                 var path = OutputFolder.Combine(d.To);
                 if (!existingfiles.Contains(path)) return null;
 
-                if (path.Size != d.Size) return null;
-                Status($"Optimizing {d.To}");
-                
                 return await path.FileHashCachedAsync() == d.Hash ? d : null;
             }))
               .Do(d =>
