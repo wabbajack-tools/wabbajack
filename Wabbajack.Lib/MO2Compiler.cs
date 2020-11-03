@@ -202,7 +202,7 @@ namespace Wabbajack.Lib
             // Find all Downloads
             IndexedArchives = (await DownloadsPath.EnumerateFiles()
                 .Where(f => f.WithExtension(Consts.MetaFileExtension).Exists)
-                .PMap(Queue,
+                .PMap(Queue, UpdateTracker,
                     async f => new IndexedArchive(VFS.Index.ByRootPath[f])
                     {
                         Name = (string)f.FileName,

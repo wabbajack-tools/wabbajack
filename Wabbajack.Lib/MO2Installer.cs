@@ -257,7 +257,7 @@ namespace Wabbajack.Lib
         private async Task InstallIncludedDownloadMetas()
         {
             await ModList.Archives
-                   .PMap(Queue, async archive =>
+                   .PMap(Queue, UpdateTracker, async archive =>
                    {
                        if (HashedArchives.TryGetValue(archive.Hash, out var paths))
                        {
@@ -313,7 +313,7 @@ namespace Wabbajack.Lib
                 var bsaSize = bsa.FileStates.Select(state => sourceDir.Combine(state.Path).Size).Sum();
 
                 await using var a = await bsa.State.MakeBuilder(bsaSize);
-                var streams = await bsa.FileStates.PMap(Queue, async state =>
+                var streams = await bsa.FileStates.PMap(Queue, UpdateTracker, async state =>
                 {
                     Status($"Adding {state.Path} to BSA");
                     var fs = await sourceDir.Combine(state.Path).OpenRead();
@@ -344,7 +344,7 @@ namespace Wabbajack.Lib
             Info("Writing inline files");
             await ModList.Directives
                 .OfType<InlineFile>()
-                .PMap(Queue, async directive =>
+                .PMap(Queue, UpdateTracker, async directive =>
                 {
                     Status($"Writing included file {directive.To}");
                     var outPath = OutputFolder.Combine(directive.To);
