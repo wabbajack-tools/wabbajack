@@ -67,6 +67,14 @@ namespace Wabbajack.BuildServer.Controllers
             return Ok(files.ToJson());
         }
 
+        [Authorize(Roles = "User")]
+        [HttpGet]
+        public async Task<IActionResult> GetAllGames()
+        {
+            var registeredGames = await _sql.GetAllRegisteredGames();
+            return Ok(registeredGames.ToArray().ToJson());
+        }
+
 
 
     }

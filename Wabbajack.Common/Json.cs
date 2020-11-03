@@ -36,6 +36,15 @@ namespace Wabbajack.Common
                 Converters = Converters,
                 DateTimeZoneHandling = DateTimeZoneHandling.Utc
             };
+        
+        public static JsonSerializerSettings JsonSettingsPretty  =>
+            new JsonSerializerSettings {
+                TypeNameHandling = TypeNameHandling.Objects,
+                SerializationBinder = new JsonNameSerializationBinder(),
+                Converters = Converters,
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                Formatting = Formatting.Indented
+            };
 
         public static JsonSerializerSettings GenericJsonSettings =>
             new JsonSerializerSettings
@@ -51,18 +60,27 @@ namespace Wabbajack.Common
             File.WriteAllText(filename, JsonConvert.SerializeObject(obj, Formatting.Indented, JsonSettings));
         }
         
-        public static void ToJson<T>(this T obj, Stream stream, bool useGenericSettings = false)
+        public static void ToJson<T>(this T obj, Stream stream, bool useGenericSettings = false, bool prettyPrint = false)
         {
             using var tw = new StreamWriter(stream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
             using var writer = new JsonTextWriter(tw);
-            var ser = JsonSerializer.Create(useGenericSettings ? GenericJsonSettings : JsonSettings);
+
+            JsonSerializerSettings settings = (useGenericSettings, prettyPrint) switch
+            {
+                (true, true) => GenericJsonSettings,
+                (false, true) => JsonSettingsPretty,
+                (false, false) => JsonSettings,
+                (true, false) => GenericJsonSettings
+            };
+
+            var ser = JsonSerializer.Create(settings);
             ser.Serialize(writer, obj);
         }
         
-        public static async ValueTask ToJsonAsync<T>(this T obj, AbsolutePath path, bool useGenericSettings = false)
+        public static async ValueTask ToJsonAsync<T>(this T obj, AbsolutePath path, bool useGenericSettings = false, bool prettyPrint = false)
         {
             await using var fs = await path.Create();
-            obj.ToJson(fs, useGenericSettings);
+            obj.ToJson(fs, useGenericSettings, prettyPrint: prettyPrint);
         }
 
         public static string ToJson<T>(this T obj, bool useGenericSettings = false)

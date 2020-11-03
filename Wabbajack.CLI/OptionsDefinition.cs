@@ -30,7 +30,9 @@ namespace Wabbajack.CLI
             typeof(HashVariants),
             typeof(ParseMeta),
             typeof(NoPatch),
-            typeof(NexusPermissions)
+            typeof(NexusPermissions),
+            typeof(ExportServerGameFiles),
+            typeof(HashGamefiles)
         };
     }
 }
