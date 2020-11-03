@@ -255,5 +255,16 @@ namespace Wabbajack.Server.DataLayer
 
             return files.ToArray();
         }
+
+        public async Task<IEnumerable<(Game, string)>> GetAllRegisteredGames()
+        {
+            await using var conn = await Open();
+            var pks = (await conn.QueryAsync<string>(
+                    @"SELECT PrimaryKeyString FROM dbo.ArchiveDownloads WHERE PrimaryKeyString like 'GameFileSourceDownloader+State|%'")
+                );
+            return pks.Select(p => p.Split("|"))
+                .Select(t => (GameRegistry.GetByFuzzyName(t[1]).Game, t[2]))
+                .Distinct();
+        }
     }
 }
