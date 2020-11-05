@@ -1,5 +1,13 @@
 ### Changelog
 
+#### Version - 2.3.3.0 - 11/5/2020
+* Game file hashes are now stored on Github instead of on the build server
+* Added CLI Verb to produce these hash files for the Github repo
+* When a user runs out of Nexus API calls we no longer bombard the Nexus with download attempts
+* Check API limits before attempting a modlist download
+* Logger is less chatty about recoverable download errors
+* Display integer progress values during install so users know how far along in the process they are #issue-1156
+
 #### Version - 2.3.2.0 - 11/2/2020
 * 7Zip errors now re-hash the extracted file to check for file corruption issues. Should provide
 better feedback in cases that a file is modified after being downloaded (perhaps by a disk failure)
