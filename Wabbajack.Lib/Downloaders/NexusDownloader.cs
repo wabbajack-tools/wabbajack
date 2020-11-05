@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reactive;
@@ -142,6 +143,16 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
+        public async Task<bool> HaveEnoughAPICalls(IEnumerable<Archive> archives)
+        {
+            if (await Client!.IsPremium())
+                return true;
+            
+            var count = archives.Select(a => a.State).OfType<State>().Count();
+
+            return count < Client!.RemainingAPICalls;
+        }
+
         [JsonName("NexusDownloader")]
         public class State : AbstractDownloadState, IMetaState, IUpgradingState
         {
@@ -191,11 +202,8 @@ namespace Wabbajack.Lib.Downloaders
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log($"{a.Name} - Error getting Nexus download URL - {ex.Message}");
                     return false;
                 }
-
-                Utils.Log($"Downloading Nexus Archive - {a.Name} - {Game} - {ModID} - {FileID}");
 
                 return await new HTTPDownloader.State(url).Download(a, destination);
             }

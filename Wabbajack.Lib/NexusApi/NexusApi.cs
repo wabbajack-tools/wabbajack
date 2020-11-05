@@ -27,6 +27,7 @@ namespace Wabbajack.Lib.NexusApi
         public static string? ApiKey { get; set; }
 
         public bool IsAuthenticated => ApiKey != null;
+        public int RemainingAPICalls => Math.Max(HourlyRemaining, DailyRemaining);
 
         private Task<UserStatus>? _userStatus;
         public Task<UserStatus> UserStatus
@@ -213,24 +214,12 @@ namespace Wabbajack.Lib.NexusApi
 
         }
 
-
         protected virtual async Task UpdateRemaining(HttpResponseMessage response)
         {
             try
             {
-                var oldDaily = _dailyRemaining;
-                var oldHourly = _hourlyRemaining;
-                var dailyRemaining = int.Parse(response.Headers.GetValues("x-rl-daily-remaining").First());
-                var hourlyRemaining = int.Parse(response.Headers.GetValues("x-rl-hourly-remaining").First());
-
-                lock (RemainingLock)
-                {
-                    _dailyRemaining = Math.Min(_dailyRemaining, dailyRemaining);
-                    _hourlyRemaining = Math.Min(_hourlyRemaining, hourlyRemaining);
-                }
-                
-                if (oldDaily != _dailyRemaining || oldHourly != _hourlyRemaining) 
-                    Utils.Log($"Nexus requests remaining: {_dailyRemaining} daily - {_hourlyRemaining} hourly");
+                _dailyRemaining = int.Parse(response.Headers.GetValues("x-rl-daily-remaining").First());
+                _hourlyRemaining = int.Parse(response.Headers.GetValues("x-rl-hourly-remaining").First());
 
                 this.RaisePropertyChanged(nameof(DailyRemaining));
                 this.RaisePropertyChanged(nameof(HourlyRemaining));
@@ -317,20 +306,17 @@ namespace Wabbajack.Lib.NexusApi
             var info = await GetModInfo(archive.Game, archive.ModID);
             if (!info.available)
                 throw new Exception("Mod unavailable");
-            
-            var url = $"https://api.nexusmods.com/v1/games/{archive.Game.MetaData().NexusName}/mods/{archive.ModID}/files/{archive.FileID}/download_link.json";
-            try
-            {
-                return (await Get<List<DownloadLink>>(url)).First().URI;
-            }
-            catch (HttpException ex)
-            {
 
-                
-                if (ex.Code != 403 || await IsPremium())
+            if (await IsPremium())
+            {
+                if (HourlyRemaining <= 0 && DailyRemaining <= 0)
                 {
-                    throw;
+                    throw new Exception($"You have run out of Nexus API requests, please try again after midnight GMT when the API limits reset");
                 }
+
+                var url =
+                    $"https://api.nexusmods.com/v1/games/{archive.Game.MetaData().NexusName}/mods/{archive.ModID}/files/{archive.FileID}/download_link.json";
+                return (await Get<List<DownloadLink>>(url)).First().URI;
             }
 
             try

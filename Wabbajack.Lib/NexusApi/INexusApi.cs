@@ -13,5 +13,7 @@ namespace Wabbajack.Lib.NexusApi
         public Task<UserStatus> GetUserStatus();
         public Task<bool> IsPremium();
         public bool IsAuthenticated { get; }
+        
+        public int RemainingAPICalls { get; }
     }
 }
