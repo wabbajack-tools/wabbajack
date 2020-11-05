@@ -195,6 +195,12 @@ namespace Wabbajack.Lib
 
             await Task.WhenAll(dispatchers.Select(d => d.Prepare()));
 
+            var nexusDownloader = dispatchers.OfType<NexusDownloader>().FirstOrDefault();
+            if (nexusDownloader != null && !await nexusDownloader.HaveEnoughAPICalls(missing))
+            {
+                throw new Exception($"Not enough Nexus API calls to download this list, please try again after midnight GMT when your API limits reset");
+            }
+
             await DownloadMissingArchives(missing);
         }
 
@@ -210,6 +216,7 @@ namespace Wabbajack.Lib
             }
 
             DesiredThreads.OnNext(DownloadThreads);
+
             await missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
                 .PMap(Queue, UpdateTracker, async archive =>
                 {
