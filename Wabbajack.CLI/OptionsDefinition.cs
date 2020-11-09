@@ -32,7 +32,9 @@ namespace Wabbajack.CLI
             typeof(NoPatch),
             typeof(NexusPermissions),
             typeof(ExportServerGameFiles),
-            typeof(HashGamefiles)
+            typeof(HashGamefiles),
+            typeof(Backup),
+            typeof(Restore)
         };
     }
 }
