@@ -51,7 +51,7 @@
         <PackageReference Include="Genbox.AlphaFS" Version="2.2.2.1" />
         <PackageReference Include="HtmlAgilityPack" Version="1.11.26" />
         <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-        <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0-preview.8.20407.11" />
+        <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
         <PackageReference Include="Octodiff" Version="1.2.1" />
         <PackageReference Include="RocksDbNative" Version="6.2.2" />
