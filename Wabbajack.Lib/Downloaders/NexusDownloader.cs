@@ -282,12 +282,15 @@ namespace Wabbajack.Lib.Downloaders
                     return (newArchive, new TempFile());
                 }
 
+                Utils.Log($"Downloading possible upgrade {newArchive.State.PrimaryKeyString}");
                 var tempFile = new TempFile();
                  
                 await newArchive.State.Download(newArchive, tempFile.Path);
 
                 newArchive.Size = tempFile.Path.Size;
                 newArchive.Hash = await tempFile.Path.FileHashAsync();
+
+                Utils.Log($"Possible upgrade {newArchive.State.PrimaryKeyString} downloaded");
 
                 return (newArchive, tempFile);
             }
