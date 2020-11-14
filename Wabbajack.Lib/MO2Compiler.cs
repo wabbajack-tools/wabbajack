@@ -15,8 +15,6 @@ namespace Wabbajack.Lib
 {
     public class MO2Compiler : ACompiler
     {
-        private AbsolutePath _mo2DownloadsFolder;
-        
         public MO2Compiler(AbsolutePath sourcePath, AbsolutePath downloadsPath, string mo2Profile, AbsolutePath outputFile)
             : base(21, mo2Profile, sourcePath, downloadsPath, outputFile)
         {

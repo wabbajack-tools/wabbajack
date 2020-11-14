@@ -238,7 +238,7 @@ namespace Wabbajack.VirtualFileSystem
                             tempFolder: tempFolder,
                             onlyFiles: fileNames.Keys.ToHashSet());
                     }
-                    catch (_7zipReturnError ex)
+                    catch (_7zipReturnError)
                     {
                         await using var stream = await sfn.GetStream();
                         var hash = await stream.xxHashAsync();

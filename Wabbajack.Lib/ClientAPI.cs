@@ -264,7 +264,7 @@ using Wabbajack.Lib.Downloaders;
                     await client.GetStringAsync($"{Consts.WabbajackBuildServerUri}mirror/{archiveHash.ToHex()}");
                 return new Uri(result);
             }
-            catch (HttpException ex)
+            catch (HttpException)
             {
                 return null;
             }

@@ -205,7 +205,7 @@ namespace Wabbajack.Lib.Downloaders
                     Utils.Log(ex.ExtendedDescription);
                     throw;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     return false;
                 }
