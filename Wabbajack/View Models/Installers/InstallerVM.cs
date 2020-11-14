@@ -313,7 +313,7 @@ namespace Wabbajack
 
             ShowManifestCommand = ReactiveCommand.Create(() =>
             {
-                new ManifestWindow(ModList.SourceModList).Show();
+                Utils.OpenWebsite(new Uri("https://www.wabbajack.org/#/modlists/manifest"));
             }, this.WhenAny(x => x.ModList)
                     .Select(x => x?.SourceModList != null)
                 .ObserveOnGuiThread());

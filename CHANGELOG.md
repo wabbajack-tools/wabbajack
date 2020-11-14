@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - next
+* Removed the internal Manifest Viewer, you can still view the Manifest of any Modlist on the website
+
 #### Version - 2.3.3.0 - 11/5/2020
 * Game file hashes are now stored on Github instead of on the build server
 * Added CLI Verb to produce these hash files for the Github repo
