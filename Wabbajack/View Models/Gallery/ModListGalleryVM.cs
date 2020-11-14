@@ -64,6 +64,7 @@ namespace Wabbajack
             {
                 GameType = !string.IsNullOrEmpty(settings.Game) ? settings.Game : ALL_GAME_TYPE;
                 ShowNSFW = settings.ShowNSFW;
+                ShowUtilityLists = settings.ShowUtilityLists;
                 OnlyInstalled = settings.OnlyInstalled;
                 Search = settings.Search;
             }
@@ -155,11 +156,7 @@ namespace Wabbajack
                         return vm.Metadata.NSFW && showNSFW;
                     }))
                 .Filter(this.WhenAny(x => x.ShowUtilityLists)
-                    .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
-                    {
-                        if (!vm.Metadata.UtilityList) return true;
-                        return vm.Metadata.UtilityList && showNSFW;
-                    }))
+                    .Select<bool, Func<ModListMetadataVM, bool>>(showUtilityLists => vm => showUtilityLists ? vm.Metadata.UtilityList : !vm.Metadata.UtilityList))
                 // Filter by Game
                 .Filter(this.WhenAny(x => x.GameType)
                     .Debounce(TimeSpan.FromMilliseconds(150), RxApp.MainThreadScheduler)
@@ -172,18 +169,6 @@ namespace Wabbajack
 
                         return GameType == vm.Metadata.Game.GetDescription<Game>().ToString();
 
-                    }))
-                .Filter(this.WhenAny(x => x.ShowNSFW)
-                    .Select<bool, Func<ModListMetadataVM, bool>>(showNSFW => vm =>
-                    {
-                        if (!vm.Metadata.NSFW) return true;
-                        return vm.Metadata.NSFW && showNSFW;
-                    }))
-                .Filter(this.WhenAny(x => x.ShowUtilityLists)
-                    .Select<bool, Func<ModListMetadataVM, bool>>(showUtilityLists => vm =>
-                    {
-                        if (!vm.Metadata.UtilityList) return true;
-                        return vm.Metadata.UtilityList && showUtilityLists;
                     }))
                 // Put broken lists at bottom
                 .Sort(Comparer<ModListMetadataVM>.Create((a, b) => a.IsBroken.CompareTo(b.IsBroken)))
@@ -220,6 +205,7 @@ namespace Wabbajack
             settings.Game = GameType;
             settings.Search = Search;
             settings.ShowNSFW = ShowNSFW;
+            settings.ShowUtilityLists = ShowUtilityLists;
             settings.OnlyInstalled = OnlyInstalled;
         }
     }
