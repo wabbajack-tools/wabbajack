@@ -34,6 +34,9 @@ namespace Wabbajack.Lib.ModListRegistry
 
         [JsonProperty("nsfw")]
         public bool NSFW { get; set; }
+        
+        [JsonProperty("utility_list")]
+        public bool UtilityList { get; set; }
 
         [JsonProperty("links")]
         public LinksObject Links { get; set; } = new LinksObject();

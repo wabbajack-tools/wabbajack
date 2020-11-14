@@ -116,6 +116,14 @@
                 VerticalAlignment="Center"
                 Content="Show NSFW"
                 Foreground="{StaticResource ForegroundBrush}" />
+            
+            <CheckBox
+                x:Name="ShowUtilityLists"
+                Margin="10,0,10,0"
+                VerticalAlignment="Center"
+                Content="Show Utility Lists"
+                Foreground="{StaticResource ForegroundBrush}" />
+            
             <CheckBox
                 x:Name="OnlyInstalledCheckbox"
                 Margin="10,0,10,0"
