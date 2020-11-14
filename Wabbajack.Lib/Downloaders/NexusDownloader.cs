@@ -200,6 +200,11 @@ namespace Wabbajack.Lib.Downloaders
                     var client = await NexusApiClient.Get();
                     url = await client.GetNexusDownloadLink(this);
                 }
+                catch (NexusAPIQuotaExceeded ex)
+                {
+                    Utils.Log(ex.ExtendedDescription);
+                    throw;
+                }
                 catch (Exception ex)
                 {
                     return false;
@@ -248,6 +253,8 @@ namespace Wabbajack.Lib.Downloaders
             public override async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
             {
                 var client = await NexusApiClient.Get();
+                if (client.RemainingAPICalls <= 0)
+                    throw new NexusAPIQuotaExceeded();
 
                 var mod = await client.GetModInfo(Game, ModID);
                 if (!mod.available) 

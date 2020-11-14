@@ -311,7 +311,7 @@ namespace Wabbajack.Lib.NexusApi
             {
                 if (HourlyRemaining <= 0 && DailyRemaining <= 0)
                 {
-                    throw new Exception($"You have run out of Nexus API requests, please try again after midnight GMT when the API limits reset");
+                    throw new NexusAPIQuotaExceeded();
                 }
 
                 var url =
