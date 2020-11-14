@@ -16,7 +16,6 @@ namespace Wabbajack.Lib.CompilationSteps
         private readonly Dictionary<RelativePath, IGrouping<RelativePath, VirtualFile>> _indexed;
         private VirtualFile? _bsa;
         private Dictionary<RelativePath, IEnumerable<VirtualFile>> _indexedByName;
-        private ACompiler _compiler;
         private bool _isGenericGame;
 
         public IncludePatches(ACompiler compiler, VirtualFile? constructingFromBSA = null) : base(compiler)
