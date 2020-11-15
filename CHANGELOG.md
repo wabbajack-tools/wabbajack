@@ -1,7 +1,9 @@
 ### Changelog
 
-#### Version - next
+#### Version - 2.3.4.0 - 11/15/2020
 * Removed the internal Manifest Viewer, you can still view the Manifest of any Modlist on the website
+* Improved Nexus warnings about being low on API calls
+* Added marker for "utility modlists" we will expand on this feature further in later releases
 
 #### Version - 2.3.3.0 - 11/5/2020
 * Game file hashes are now stored on Github instead of on the build server

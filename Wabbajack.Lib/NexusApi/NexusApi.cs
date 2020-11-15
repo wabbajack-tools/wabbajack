@@ -71,7 +71,7 @@ namespace Wabbajack.Lib.NexusApi
                 {
                     return env_key;
                 }
-
+                
                 return await RequestAndCacheAPIKey();
             }
         }
@@ -155,7 +155,12 @@ namespace Wabbajack.Lib.NexusApi
         public async Task<UserStatus> GetUserStatus()
         {
             var url = "https://api.nexusmods.com/v1/users/validate.json";
-            return await Get<UserStatus>(url);
+            var result = await Get<UserStatus>(url);
+
+            Utils.Log($"Logged into the nexus as {result.name}");
+            Utils.Log($"Nexus calls remaining: {DailyRemaining} daily, {HourlyRemaining} hourly");
+
+            return result;
         }
 
         public async Task<(int, int)> GetRemainingApiCalls()
