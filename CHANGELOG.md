@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.3.4.1 - 11/15/2020
+* Tell the mod updater to use the existing Nexus Client instead of creating a new one
+
 #### Version - 2.3.4.0 - 11/15/2020
 * Removed the internal Manifest Viewer, you can still view the Manifest of any Modlist on the website
 * Improved Nexus warnings about being low on API calls

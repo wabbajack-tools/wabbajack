@@ -252,7 +252,9 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
             {
-                var client = await NexusApiClient.Get();
+                var client = DownloadDispatcher.GetInstance<NexusDownloader>().Client ?? await NexusApiClient.Get();
+                await client.IsPremium();
+                
                 if (client.RemainingAPICalls <= 0)
                     throw new NexusAPIQuotaExceeded();
 
