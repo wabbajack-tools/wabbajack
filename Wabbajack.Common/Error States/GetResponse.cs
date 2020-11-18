@@ -33,7 +33,7 @@ namespace Wabbajack
             string? reason = null,
             Exception? ex = null)
         {
-            Value = val;
+            Value = val!;
             Succeeded = succeeded;
             _reason = reason ?? string.Empty;
             Exception = ex;
@@ -128,7 +128,7 @@ namespace Wabbajack
 
         public static GetResponse<T> Create(bool successful, T val = default(T), string? reason = null)
         {
-            return new GetResponse<T>(successful, val, reason);
+            return new GetResponse<T>(successful, val!, reason);
         }
         #endregion
     }

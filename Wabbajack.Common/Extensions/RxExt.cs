@@ -204,7 +204,7 @@ namespace Wabbajack
                 var prev = prevStorage;
                 prevStorage = i;
                 return (prev, i);
-            });
+            })!;
         }
 
         public static IObservable<T> DelayInitial<T>(this IObservable<T> source, TimeSpan delay, IScheduler scheduler)
