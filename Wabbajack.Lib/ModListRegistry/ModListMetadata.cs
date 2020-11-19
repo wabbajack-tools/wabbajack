@@ -38,6 +38,9 @@ namespace Wabbajack.Lib.ModListRegistry
         [JsonProperty("utility_list")]
         public bool UtilityList { get; set; }
 
+        [JsonProperty("force_down")]
+        public bool ForceDown { get; set; }
+
         [JsonProperty("links")]
         public LinksObject Links { get; set; } = new LinksObject();
 
@@ -68,9 +71,11 @@ namespace Wabbajack.Lib.ModListRegistry
             var client = new Http.Client();
             Utils.Log("Loading ModLists from GitHub");
             var metadataResult = client.GetStringAsync(Consts.ModlistMetadataURL);
+            var utilityResult = client.GetStringAsync(Consts.UtilityModlistMetadataURL);
             var summaryResult = client.GetStringAsync(Consts.ModlistSummaryURL);
 
             var metadata = (await metadataResult).FromJsonString<List<ModlistMetadata>>();
+            metadata = metadata.Concat((await utilityResult).FromJsonString<List<ModlistMetadata>>()).ToList();
             try
             {
                 var summaries = (await summaryResult).FromJsonString<List<ModListSummary>>().ToDictionary(d => d.MachineURL);

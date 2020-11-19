@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -27,8 +28,9 @@ namespace Wabbajack.Server.Services
         private NexusKeyMaintainance _nexus;
         private ArchiveMaintainer _archives;
 
-        public IEnumerable<(ModListSummary Summary, DetailedStatus Detailed)> Summaries { get; private set; } =
-            new (ModListSummary Summary, DetailedStatus Detailed)[0];
+        public IEnumerable<(ModListSummary Summary, DetailedStatus Detailed)> Summaries => ValidationInfo.Values.Select(e => (e.Summary, e.Detailed));
+        
+        public ConcurrentDictionary<string, (ModListSummary Summary, DetailedStatus Detailed, TimeSpan ValidationTime)> ValidationInfo = new ConcurrentDictionary<string, (ModListSummary Summary, DetailedStatus Detailed, TimeSpan ValidationTime)>();
 
 
         public ListValidator(ILogger<ListValidator> logger, AppSettings settings, SqlService sql, DiscordWebHook discord, NexusKeyMaintainance nexus, ArchiveMaintainer archives, QuickSync quickSync) 
@@ -50,14 +52,21 @@ namespace Wabbajack.Server.Services
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var results = await data.ModLists.PMap(queue, async metadata =>
+            var results = await data.ModLists.Where(m => !m.ForceDown).PMap(queue, async metadata =>
             {
+                var timer = new Stopwatch();
+                timer.Start();
                 var oldSummary =
                     oldSummaries.FirstOrDefault(s => s.Summary.MachineURL == metadata.Links.MachineURL);
                 
                 var listArchives = await _sql.ModListArchives(metadata.Links.MachineURL);
                 var archives = await listArchives.PMap(queue, async archive =>
                 {
+                    if (timer.Elapsed > Delay)
+                    {
+                        return (archive, ArchiveStatus.InValid);
+                    }
+
                     try
                     {
                         var (_, result) = await ValidateArchive(data, archive);
@@ -109,6 +118,24 @@ namespace Wabbajack.Server.Services
                     }).ToList()
                 };
 
+                if (timer.Elapsed > Delay)
+                {
+                    await _discord.Send(Channel.Ham,
+                        new DiscordMessage
+                        {
+                            Embeds = new[]
+                            {
+                                new DiscordEmbed
+                                {
+                                    Title =
+                                        $"Failing {summary.Name} (`{summary.MachineURL}`) because the max validation time expired",
+                                    Url = new Uri(
+                                        $"https://build.wabbajack.org/lists/status/{summary.MachineURL}.html")
+                                }
+                            }
+                        });
+                }
+
                 if (oldSummary != default && oldSummary.Summary.Failed != summary.Failed)
                 {
                     _logger.Log(LogLevel.Information, $"Number of failures {oldSummary.Summary.Failed} -> {summary.Failed}");
@@ -151,9 +178,14 @@ namespace Wabbajack.Server.Services
 
                 }
                 
+                timer.Stop();
+                
+
+                
+                ValidationInfo[summary.MachineURL] = (summary, detailed, timer.Elapsed);
+                
                 return (summary, detailed);
             });
-            Summaries = results;
             
             stopwatch.Stop();
             _logger.LogInformation($"Finished Validation in {stopwatch.Elapsed}");
