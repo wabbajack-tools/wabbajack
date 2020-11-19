@@ -105,7 +105,7 @@ namespace Wabbajack
         {
             return source
                 .ToProperty(vm, property, initialValue, deferSubscription, RxApp.MainThreadScheduler)
-                .DisposeWith(vm.CompositeDisposable);
+                .DisposeWith(vm.CompositeDisposable)!;
         }
 
         public static void ToGuiProperty<TRet>(
@@ -116,7 +116,7 @@ namespace Wabbajack
             TRet initialValue = default,
             bool deferSubscription = false)
         {
-            source.ToProperty(vm, property, out result, initialValue, deferSubscription, RxApp.MainThreadScheduler)
+            source.ToProperty(vm, property, out result!, initialValue, deferSubscription, RxApp.MainThreadScheduler)
                 .DisposeWith(vm.CompositeDisposable);
         }
 
