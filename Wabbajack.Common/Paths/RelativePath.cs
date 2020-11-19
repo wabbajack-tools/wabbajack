@@ -136,12 +136,12 @@ namespace Wabbajack.Common
 
         public bool StartsWith(string s)
         {
-            return _path.StartsWith(s);
+            return _path.StartsWith(s, StringComparison.OrdinalIgnoreCase);
         }
         
         public bool StartsWith(RelativePath s)
         {
-            return _path.StartsWith(s._path);
+            return _path.StartsWith(s._path, StringComparison.OrdinalIgnoreCase);
         }
 
         public RelativePath Combine(params RelativePath[] paths )
@@ -156,7 +156,7 @@ namespace Wabbajack.Common
 
         public int CompareTo(RelativePath other)
         {
-            return string.Compare(_path, other._path, StringComparison.Ordinal);
+            return string.Compare(_path, other._path, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

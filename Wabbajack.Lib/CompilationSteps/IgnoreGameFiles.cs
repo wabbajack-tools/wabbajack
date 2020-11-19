@@ -15,7 +15,7 @@ namespace Wabbajack.Lib.CompilationSteps
 
         public override async ValueTask<Directive?> Run(RawSourceFile source)
         {
-            if (!((string)source.Path).StartsWith(_startDir)) return null;
+            if (!((string)source.Path).StartsWith(_startDir, System.StringComparison.OrdinalIgnoreCase)) return null;
             var i = source.EvolveTo<IgnoredDirectly>();
             i.Reason = "Default game file";
             return i;
