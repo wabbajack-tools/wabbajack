@@ -51,7 +51,7 @@
                         return {
                             label: series.seriesName,
                             fill: false,
-                            data: _.last(series.values, 30)
+                            data: _.last(series.values, 90)
                         }});
                     var ctx = document.getElementById(ele).getContext('2d');
                     var chart = new Chart(ctx, {
@@ -60,7 +60,7 @@
 
                         // The data for our dataset
                         data: {
-                            labels: _.last(labels, 30),
+                            labels: _.last(labels, 90),
                             datasets: datasets},
 
                         // Configuration options go here

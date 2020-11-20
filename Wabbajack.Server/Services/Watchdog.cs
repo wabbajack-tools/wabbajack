@@ -20,7 +20,7 @@ namespace Wabbajack.Server.Services
             var report = await _quickSync.Report();
             foreach (var service in report)
             {
-                if (service.Value.LastRunTime >= service.Value.Delay * 2)
+                if (service.Value.LastRunTime != default && service.Value.LastRunTime >= service.Value.Delay * 2)
                 {
                     await _discord.Send(Channel.Spam,
                         new DiscordMessage {Content = $"Service {service.Key.Name} has missed it's scheduled execution window"});

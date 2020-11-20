@@ -94,7 +94,7 @@ namespace Wabbajack.BuildServer.Controllers
             var response = HandleGetReport(new
             {
                 services = (await _quickSync.Report())
-                    .Select(s => new {Name = s.Key, Time = s.Value.LastRunTime, MaxTime = s.Value.Delay, IsLate = s.Value.LastRunTime > s.Value.Delay})
+                    .Select(s => new {Name = s.Key.Name, Time = s.Value.LastRunTime, MaxTime = s.Value.Delay, IsLate = s.Value.LastRunTime > s.Value.Delay})
                     .OrderBy(s => s.Name)
                     .ToArray(),
                 lists = _listValidator.ValidationInfo.Select(s => new {Name = s.Key, Time = s.Value.ValidationTime})

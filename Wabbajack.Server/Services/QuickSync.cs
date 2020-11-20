@@ -32,7 +32,7 @@ namespace Wabbajack.Server.Services
         where T : IReportingService
         {
             using var _ = await _lock.WaitAsync();
-            _services[typeof(T)] = service;
+            _services[service.GetType()] = service;
         }
 
         public async Task<CancellationToken> GetToken<T>()

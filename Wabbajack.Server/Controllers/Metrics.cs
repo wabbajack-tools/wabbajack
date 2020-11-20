@@ -43,13 +43,23 @@ namespace Wabbajack.BuildServer.Controllers
         [ResponseCache(Duration = 60 * 60)]
         public async Task<IActionResult> MetricsReport(string subject)
         {
-            var results = (await _sql.MetricsReport(subject))
+            var metrics = (await _sql.MetricsReport(subject)).ToList();
+            var labels = metrics.GroupBy(m => m.Date)
+                .OrderBy(m => m.Key)
+                .Select(m => m.Key)
+                .ToArray();
+            var labelStrings = labels.Select(l => l.ToString("MM-dd-yyy")).ToList();
+            var results = metrics
                 .GroupBy(m => m.Subject)
-                .Select(g => new MetricResult
+                .Select(g =>
                 {
-                    SeriesName = g.Key,
-                    Labels = g.Select(m => m.Date.ToString(CultureInfo.InvariantCulture)).ToList(),
-                    Values = g.Select(m => m.Count).ToList()
+                    var indexed = g.ToDictionary(m => m.Date, m => m.Count);
+                    return new MetricResult
+                    {
+                        SeriesName = g.Key,
+                        Labels = labelStrings,
+                        Values = labels.Select(l => indexed.TryGetValue(l, out var found) ? found : 0).ToList()
+                    };
                 });
             return Ok(results.ToList());
         }
