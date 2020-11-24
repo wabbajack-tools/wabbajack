@@ -72,6 +72,7 @@ namespace Wabbajack.Server
             services.AddSingleton<MirrorUploader>();
             services.AddSingleton<MirrorQueueService>();
             services.AddSingleton<Watchdog>();
+            services.AddSingleton<DiscordFrontend>();
             
             services.AddMvc();
             services.AddControllers()
@@ -131,6 +132,7 @@ namespace Wabbajack.Server
             app.UseService<MirrorUploader>();
             app.UseService<MirrorQueueService>();
             app.UseService<Watchdog>();
+            app.UseService<DiscordFrontend>();
 
             app.Use(next =>
             {
