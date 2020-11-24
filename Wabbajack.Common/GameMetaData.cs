@@ -37,7 +37,8 @@ namespace Wabbajack.Common
         Dishonored,
         Witcher3,
         [Description("Stardew Valley")]
-        StardewValley
+        StardewValley,
+        KingdomComeDeliverance
     }
 
     public static class GameExtensions
@@ -489,6 +490,22 @@ namespace Wabbajack.Common
                         "Stardew Valley.exe"	
                     },
                     MainExecutable = "Stardew Valley.exe"
+                }
+            },
+            {
+                Game.KingdomComeDeliverance, new GameMetaData
+                {
+                    Game = Game.KingdomComeDeliverance,
+                    NexusName = "kingdomcomedeliverance",
+                    MO2Name = "Kingdom Come: Deliverance",
+                    NexusGameId = 2298,
+                    SteamIDs = new List<int>{379430},
+                    IsGenericMO2Plugin = true,
+                    RequiredFiles = new List<string>
+                    {
+                        @"bin\Win64\KingdomCome.exe"
+                    },
+                    MainExecutable = @"bin\Win64\KingdomCome.exe"
                 }
             }
         };

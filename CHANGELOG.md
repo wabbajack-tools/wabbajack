@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.3.4.2 - 11/24/2020
+* Add Support for Kingdom Come : Deliverance (via MO2)
+* Several other small bug fixes and deps updates
+
 #### Version - 2.3.4.1 - 11/15/2020
 * Tell the mod updater to use the existing Nexus Client instead of creating a new one
 

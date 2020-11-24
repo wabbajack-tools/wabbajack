@@ -208,6 +208,7 @@ namespace Wabbajack.Lib
         {
             if (download)
             {
+                var result = SendDownloadMetrics(missing);
                 foreach (var a in missing.Where(a => a.State.GetType() == typeof(ManualDownloader.State)))
                 {
                     var outputPath = DownloadFolder.Combine(a.Name);
@@ -240,6 +241,15 @@ namespace Wabbajack.Lib
             
             DesiredThreads.OnNext(DiskThreads);
 
+        }
+
+        private async Task SendDownloadMetrics(List<Archive> missing)
+        {
+            var grouped = missing.GroupBy(m => m.State.GetType());
+            foreach (var group in grouped)
+            {
+                await Metrics.Send($"downloading_{group.Key.Name}", group.Sum(g => g.Size).ToString());
+            }
         }
 
         public async Task<bool> DownloadArchive(Archive archive, bool download, AbsolutePath? destination = null)
