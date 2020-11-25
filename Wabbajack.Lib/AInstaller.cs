@@ -248,7 +248,7 @@ namespace Wabbajack.Lib
             var grouped = missing.GroupBy(m => m.State.GetType());
             foreach (var group in grouped)
             {
-                await Metrics.Send($"downloading_{group.Key.Name}", group.Sum(g => g.Size).ToString());
+                await Metrics.Send($"downloading_{group.Key.FullName!.Split(".").Last().Split("+").First()}", group.Sum(g => g.Size).ToString());
             }
         }
 
