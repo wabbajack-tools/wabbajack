@@ -36,12 +36,17 @@ namespace Wabbajack.CLI.Verbs
                 .PMap(queue, async f =>
                 {
                     var hash = await f.FileHashCachedAsync();
-                    return new GameFileSourceDownloader.State
+                    return new Archive(new GameFileSourceDownloader.State
                     {
                         Game = _game, 
                         GameFile = f.RelativeTo(gameLocation), 
                         Hash = hash, 
                         GameVersion = version
+                    })
+                    {
+                        Name = f.FileName.ToString(),
+                        Hash = hash,
+                        Size = f.Size
                     };
 
                 });

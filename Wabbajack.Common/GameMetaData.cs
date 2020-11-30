@@ -498,6 +498,7 @@ namespace Wabbajack.Common
                     Game = Game.KingdomComeDeliverance,
                     NexusName = "kingdomcomedeliverance",
                     MO2Name = "Kingdom Come: Deliverance",
+                    MO2ArchiveName = "kingdomcomedeliverance",
                     NexusGameId = 2298,
                     SteamIDs = new List<int>{379430},
                     IsGenericMO2Plugin = true,
