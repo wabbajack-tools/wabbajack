@@ -9,7 +9,8 @@ namespace Wabbajack.Common.StoreHandlers
     {
         STEAM,
         GOG,
-        BethNet
+        BethNet,
+        EpicGameStore
     }
 
     public class StoreHandler
@@ -25,6 +26,9 @@ namespace Wabbajack.Common.StoreHandlers
 
         private static readonly Lazy<BethNetHandler> _bethNetHandler = new Lazy<BethNetHandler>(() => new BethNetHandler());
         public BethNetHandler BethNetHandler = _bethNetHandler.Value;
+        
+        private static readonly Lazy<EpicGameStoreHandler> _epicGameStoreHandler = new Lazy<EpicGameStoreHandler>(() => new EpicGameStoreHandler());
+        public EpicGameStoreHandler EpicGameStoreHandler = _epicGameStoreHandler.Value;
 
         public List<AStoreGame> StoreGames;
 
@@ -66,6 +70,18 @@ namespace Wabbajack.Common.StoreHandlers
             else
             {
                 Utils.Error(new StoreException("Could not Init the BethNetHandler, check previous error messages!"));
+            }
+            
+            if (EpicGameStoreHandler.Init())
+            {
+                if (EpicGameStoreHandler.LoadAllGames())
+                    StoreGames.AddRange(EpicGameStoreHandler.Games);
+                else
+                    Utils.Error(new StoreException("Could not load all Games from the EpicGameStoreHandler, check previous error messages!"));
+            }
+            else
+            {
+                Utils.Error(new StoreException("Could not Init the EpicGameStoreHandler, check previous error messages!"));
             }
         }
 
