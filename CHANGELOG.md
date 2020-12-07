@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.3.4.3 - 12/6/2020
+* Disable the back button during install/compilation
+
 #### Version - 2.3.4.2 - 11/24/2020
 * Add Support for Kingdom Come : Deliverance (via MO2)
 * Several other small bug fixes and deps updates

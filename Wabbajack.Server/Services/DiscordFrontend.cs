@@ -6,6 +6,7 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using OMODFramework;
 using Wabbajack.BuildServer;
+using Wabbajack.Common;
 using Wabbajack.Server.DataLayer;
 using Utils = Wabbajack.Common.Utils;
 
@@ -57,6 +58,25 @@ namespace Wabbajack.Server.Services
                     }
                     await PurgeNexusCache(arg, parts[2]);
                 }
+                else if (parts[1] == "cyberpunk")
+                {
+                    var random = new Random();
+                    var releaseDate = new DateTime(2020, 12, 10, 0, 0, 0, DateTimeKind.Utc);
+                    var r = releaseDate - DateTime.UtcNow;
+                    if (r < TimeSpan.Zero)
+                    {
+                        await ReplyTo(arg, "It's out, what are you doing here?");
+                    }
+                    else
+                    {
+                        var msgs = (await "cyberpunk_message.txt".RelativeTo(AbsolutePath.EntryPoint)
+                            .ReadAllLinesAsync()).ToArray();
+                        var msg = msgs[random.Next(0, msgs.Length)];
+                        var fullmsg = String.Format(msg,
+                            $"{r.Days} days, {r.Hours} hours, {r.Minutes} minutes, {r.Seconds} seconds");
+                        await ReplyTo(arg, fullmsg);
+                    }
+                }
             }
         }
 
@@ -64,7 +84,7 @@ namespace Wabbajack.Server.Services
         {
             if (Uri.TryCreate(mod, UriKind.Absolute, out var url))
             {
-                mod = url.AbsolutePath.Split("/", StringSplitOptions.RemoveEmptyEntries).Last();
+                mod = Enumerable.Last(url.AbsolutePath.Split("/", StringSplitOptions.RemoveEmptyEntries));
             }
             
             if (int.TryParse(mod, out var mod_id))
