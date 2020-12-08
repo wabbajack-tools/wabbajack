@@ -198,7 +198,7 @@ Some Modlists that host all their stuff on GitHub:
 - [Total Visual Overhaul](https://github.com/NotTotal/Total-Visual-Overhaul)
 - [Serenity](https://github.com/ixanza/serenity)
 - [MOISE](https://github.com/ForgottenGlory/MOISE)
-- [Dungeons & Deviousness](https://github.com/ForgottenGlory/MOISE)
+- [Dungeons & Deviousness](https://github.com/ForgottenGlory/Dungeons-Deviousness)
 
 ### Meta Files
 
