@@ -72,7 +72,7 @@
     <PackageReference Include="PInvoke.Gdi32" Version="0.7.78" />
     <PackageReference Include="PInvoke.User32" Version="0.7.78" />
     <PackageReference Include="ReactiveUI" Version="12.1.5" />
-    <PackageReference Include="ReactiveUI.Fody" Version="12.1.5" />
+    <PackageReference Include="ReactiveUI.Fody" Version="13.0.1" />
     <PackageReference Include="ReactiveUI.WPF" Version="12.1.5" />
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
     <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
