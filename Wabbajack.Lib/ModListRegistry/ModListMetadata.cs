@@ -37,6 +37,9 @@ namespace Wabbajack.Lib.ModListRegistry
         
         [JsonProperty("utility_list")]
         public bool UtilityList { get; set; }
+        
+        [JsonProperty("image_contains_title")]
+        public bool ImageContainsTitle { get; set; }
 
         [JsonProperty("force_down")]
         public bool ForceDown { get; set; }
