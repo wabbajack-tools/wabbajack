@@ -68,6 +68,16 @@ namespace Wabbajack.Lib.Downloaders
                     IsAttachment = true
                 };
             }
+            
+            
+            if (url.PathAndQuery.StartsWith("/files/download/") && long.TryParse(url.PathAndQuery.Split("/").Last(), out var fileId))
+            {
+                return new TState
+                {
+                    FullURL = url.ToString(),
+                    IsAttachment = true
+                };
+            }
            
             if (!url.PathAndQuery.StartsWith("/files/file/"))
             {
@@ -75,6 +85,7 @@ namespace Wabbajack.Lib.Downloaders
                 if (!url.Query.Substring(1).StartsWith("/files/file/")) return null;
                 absolute = false;
             }
+
 
             var id = HttpUtility.ParseQueryString(url.Query)["r"];
             var file = absolute
