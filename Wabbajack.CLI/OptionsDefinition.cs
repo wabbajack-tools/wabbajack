@@ -34,7 +34,8 @@ namespace Wabbajack.CLI
             typeof(ExportServerGameFiles),
             typeof(HashGamefiles),
             typeof(Backup),
-            typeof(Restore)
+            typeof(Restore),
+            typeof(PurgeArchive)
         };
     }
 }

@@ -95,7 +95,7 @@ namespace Wabbajack.Common
         public ValueTask<FileStream> OpenWrite()
         {
             var path = _path;
-            return CircuitBreaker.WithAutoRetryAsync<FileStream, IOException>(async () => File.OpenWrite(path));
+            return CircuitBreaker.WithAutoRetryAsync<FileStream, IOException>(async () => File.Open(path, FileMode.OpenOrCreate, FileAccess.ReadWrite));
         }
 
         public async Task WriteAllTextAsync(string text)
