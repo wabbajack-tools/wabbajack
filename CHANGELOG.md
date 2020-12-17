@@ -1,5 +1,11 @@
 ### Changelog
 
+#### Version - 2.3.5.0 - 12/16/2020
+* Fix tesall.ru download support
+* Implement MechWarrior 5 support as a native compiler game
+* Make the title in the WJ gallery (in app) optional for games that want the title to be in the splash screen
+* Worked a few kinks out of the native game compiler
+
 #### Version - 2.3.4.3 - 12/6/2020
 * Disable the back button during install/compilation
 
