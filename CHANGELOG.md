@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.3.5.1 - 12/23/2020
+* HOTFIX : Recover from errors in the EGS location detector
+
 #### Version - 2.3.5.0 - 12/16/2020
 * Fix tesall.ru download support
 * Implement MechWarrior 5 support as a native compiler game

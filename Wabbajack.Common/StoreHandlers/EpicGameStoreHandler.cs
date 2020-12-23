@@ -16,38 +16,44 @@ namespace Wabbajack.Common.StoreHandlers
 
         public override bool LoadAllGames()
         {
-            using var eosKey = Registry.CurrentUser.OpenSubKey(BaseRegKey);
-            if (eosKey == null)
+            try
             {
-                Utils.Log("Epic Game Store is not installed");
-                return false;
-            }
-
-            var name = eosKey.GetValue("ModSdkMetadataDir");
-            if (name == null)
-            {
-                Utils.Log("Registry key entry does not exist for Epic Game store");
-                return false;
-            }
-
-            var byID = GameRegistry.Games.SelectMany(g => g.Value.EpicGameStoreIDs
-                    .Select(id => (id, g.Value.Game)))
-                .GroupBy(t => t.id)
-                .ToDictionary(t => t.Key, t => t.First().Game);
-
-            foreach (var itm in ((AbsolutePath)(string)(name!)).EnumerateFiles(false, "*.item"))
-            {
-                var item = itm.FromJson<EpicGameItem>();
-                Console.WriteLine($"Found Epic Game Store Game: {item.DisplayName} at {item.InstallLocation}");
-
-                if (byID.TryGetValue(item.CatalogItemId, out var game))
+                using var eosKey = Registry.CurrentUser.OpenSubKey(BaseRegKey);
+                if (eosKey == null)
                 {
-                    Games.Add(new EpicStoreGame(game, item));
+                    Utils.Log("Epic Game Store is not installed");
+                    return false;
                 }
 
-            }
-            
+                var name = eosKey.GetValue("ModSdkMetadataDir");
+                if (name == null)
+                {
+                    Utils.Log("Registry key entry does not exist for Epic Game store");
+                    return false;
+                }
 
+                var byID = GameRegistry.Games.SelectMany(g => g.Value.EpicGameStoreIDs
+                        .Select(id => (id, g.Value.Game)))
+                    .GroupBy(t => t.id)
+                    .ToDictionary(t => t.Key, t => t.First().Game);
+
+                foreach (var itm in ((AbsolutePath)(string)(name!)).EnumerateFiles(false, "*.item"))
+                {
+                    var item = itm.FromJson<EpicGameItem>();
+                    Utils.Log($"Found Epic Game Store Game: {item.DisplayName} at {item.InstallLocation}");
+
+                    if (byID.TryGetValue(item.CatalogItemId, out var game))
+                    {
+                        Games.Add(new EpicStoreGame(game, item));
+                    }
+
+                }
+            }
+            catch (NullReferenceException ex)
+            {
+                Utils.Log("Epic Game Store is does not appear to be installed");
+                return false;
+            }
 
             return true;
         }
