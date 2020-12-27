@@ -448,12 +448,13 @@ namespace Wabbajack.Common
                     NexusGameId = 804,
                     SteamIDs = new List<int> {262060},
                     GOGIDs = new List<int>{1450711444},
+                    EpicGameStoreIDs = new List<string> {"b4eecf70e3fe4e928b78df7855a3fc2d"},
                     IsGenericMO2Plugin = true,
                     RequiredFiles = new List<string>
                     {
-                        "_windows\\Darkest.exe"
+                        "_windowsnosteam\\Darkest.exe"
                     },
-                    MainExecutable = "_windows\\Darkest.exe"
+                    MainExecutable = "_windowsnosteam\\Darkest.exe"
                 }
             },
             {
