@@ -95,7 +95,7 @@ namespace Wabbajack.Common
         public ValueTask<FileStream> OpenWrite()
         {
             var path = _path;
-            return CircuitBreaker.WithAutoRetryAsync<FileStream, IOException>(async () => File.OpenWrite(path));
+            return CircuitBreaker.WithAutoRetryAsync<FileStream, IOException>(async () => File.Open(path, FileMode.OpenOrCreate, FileAccess.ReadWrite));
         }
 
         public async Task WriteAllTextAsync(string text)
@@ -275,7 +275,7 @@ namespace Wabbajack.Common
 
         public bool InFolder(AbsolutePath folder)
         {
-            return _path.StartsWith(folder._path + Path.DirectorySeparator);
+            return _path.StartsWith(folder._path + Path.DirectorySeparator, StringComparison.OrdinalIgnoreCase);
         }
 
         public async Task<byte[]> ReadAllBytesAsync()
@@ -386,7 +386,7 @@ namespace Wabbajack.Common
 
         public int CompareTo(AbsolutePath other)
         {
-            return string.Compare(_path, other._path, StringComparison.Ordinal);
+            return string.Compare(_path, other._path, StringComparison.OrdinalIgnoreCase);
         }
 
         public string ReadAllText()

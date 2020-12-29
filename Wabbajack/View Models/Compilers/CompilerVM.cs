@@ -10,6 +10,7 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Wabbajack.Common;
@@ -18,15 +19,12 @@ using Wabbajack.Lib;
 
 namespace Wabbajack
 {
-    public class CompilerVM : ViewModel, IBackNavigatingVM, ICpuStatusVM
+    public class CompilerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     {
         public MainWindowVM MWVM { get; }
 
         private readonly ObservableAsPropertyHelper<BitmapImage> _image;
         public BitmapImage Image => _image.Value;
-
-        [Reactive]
-        public ViewModel NavigateBackTarget { get; set; }
 
         [Reactive]
         public ModManager SelectedCompilerType { get; set; }
@@ -69,7 +67,7 @@ namespace Wabbajack
         private readonly ObservableAsPropertyHelper<(int CurrentCPUs, int DesiredCPUs)> _CurrentCpuCount;
         public (int CurrentCPUs, int DesiredCPUs) CurrentCpuCount => _CurrentCpuCount.Value;
 
-        public CompilerVM(MainWindowVM mainWindowVM)
+        public CompilerVM(MainWindowVM mainWindowVM) : base(mainWindowVM)
         {
             MWVM = mainWindowVM;
 
@@ -178,6 +176,7 @@ namespace Wabbajack
                 {
                     try
                     {
+                        IsBackEnabledSubject.OnNext(false);
                         var modList = await this.Compiler.Compile();
                         Completed = ErrorResponse.Create(modList.Succeeded);
                     }
@@ -186,6 +185,10 @@ namespace Wabbajack
                         Completed = ErrorResponse.Fail(ex);
                         while (ex.InnerException != null) ex = ex.InnerException;
                         Utils.Error(ex, $"Compiler error");
+                    }
+                    finally
+                    {
+                        IsBackEnabledSubject.OnNext(true);
                     }
                 });
 

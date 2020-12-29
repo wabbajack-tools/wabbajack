@@ -1,5 +1,37 @@
 ### Changelog
 
+#### Version - 2.3.5.1 - 12/23/2020
+* HOTFIX : Recover from errors in the EGS location detector
+
+#### Version - 2.3.5.0 - 12/16/2020
+* Fix tesall.ru download support
+* Implement MechWarrior 5 support as a native compiler game
+* Make the title in the WJ gallery (in app) optional for games that want the title to be in the splash screen
+* Worked a few kinks out of the native game compiler
+
+#### Version - 2.3.4.3 - 12/6/2020
+* Disable the back button during install/compilation
+
+#### Version - 2.3.4.2 - 11/24/2020
+* Add Support for Kingdom Come : Deliverance (via MO2)
+* Several other small bug fixes and deps updates
+
+#### Version - 2.3.4.1 - 11/15/2020
+* Tell the mod updater to use the existing Nexus Client instead of creating a new one
+
+#### Version - 2.3.4.0 - 11/15/2020
+* Removed the internal Manifest Viewer, you can still view the Manifest of any Modlist on the website
+* Improved Nexus warnings about being low on API calls
+* Added marker for "utility modlists" we will expand on this feature further in later releases
+
+#### Version - 2.3.3.0 - 11/5/2020
+* Game file hashes are now stored on Github instead of on the build server
+* Added CLI Verb to produce these hash files for the Github repo
+* When a user runs out of Nexus API calls we no longer bombard the Nexus with download attempts
+* Check API limits before attempting a modlist download
+* Logger is less chatty about recoverable download errors
+* Display integer progress values during install so users know how far along in the process they are #issue-1156
+
 #### Version - 2.3.2.0 - 11/2/2020
 * 7Zip errors now re-hash the extracted file to check for file corruption issues. Should provide
 better feedback in cases that a file is modified after being downloaded (perhaps by a disk failure)

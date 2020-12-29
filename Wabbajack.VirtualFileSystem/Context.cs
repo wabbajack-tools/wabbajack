@@ -209,7 +209,7 @@ namespace Wabbajack.VirtualFileSystem
         /// <param name="files"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
-        public async Task Extract(WorkQueue queue, HashSet<VirtualFile> files, Func<VirtualFile, IExtractedFile, ValueTask> callback, AbsolutePath? tempFolder = null)
+        public async Task Extract(WorkQueue queue, HashSet<VirtualFile> files, Func<VirtualFile, IExtractedFile, ValueTask> callback, AbsolutePath? tempFolder = null, StatusUpdateTracker updateTracker = null)
         {
             var top = new VirtualFile();
             var filesByParent = files.SelectMany(f => f.FilesInFullPath)
@@ -238,7 +238,7 @@ namespace Wabbajack.VirtualFileSystem
                             tempFolder: tempFolder,
                             onlyFiles: fileNames.Keys.ToHashSet());
                     }
-                    catch (_7zipReturnError ex)
+                    catch (_7zipReturnError)
                     {
                         await using var stream = await sfn.GetStream();
                         var hash = await stream.xxHashAsync();
@@ -251,7 +251,8 @@ namespace Wabbajack.VirtualFileSystem
                 }
 
             }
-            await filesByParent[top].PMap(queue, async file => await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false}));
+            updateTracker ??= new StatusUpdateTracker(1);
+            await filesByParent[top].PMap(queue, updateTracker, async file => await HandleFile(file, new ExtractedNativeFile(file.AbsoluteName) {CanMove = false}));
         }
 
         #region KnownFiles

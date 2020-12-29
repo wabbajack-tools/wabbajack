@@ -192,12 +192,13 @@ Example structure for a good README:
 Some Modlists that host all their stuff on GitHub:
 
 - the OG GitHub Modlist: [Lotus](https://github.com/erri120/lotus)
+- [Keizaal](https://github.com/PierreDespereaux/Keizaal)
 - [Living Skyrim](https://github.com/ForgottenGlory/Living-Skyrim-2)
 - [Eldersouls](https://github.com/jdsmith2816/eldersouls)
 - [Total Visual Overhaul](https://github.com/NotTotal/Total-Visual-Overhaul)
 - [Serenity](https://github.com/ixanza/serenity)
 - [MOISE](https://github.com/ForgottenGlory/MOISE)
-- [Cupid](https://github.com/ForgottenGlory/MOISE)
+- [Dungeons & Deviousness](https://github.com/ForgottenGlory/Dungeons-Deviousness)
 
 ### Meta Files
 

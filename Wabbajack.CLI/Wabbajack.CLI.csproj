@@ -6,8 +6,8 @@
         <AssemblyName>wabbajack-cli</AssemblyName>
         <Company>Wabbajack</Company>
         <Platforms>x64</Platforms>
-        <AssemblyVersion>2.3.2.0</AssemblyVersion>
-        <FileVersion>2.3.2.0</FileVersion>
+        <AssemblyVersion>2.3.5.1</AssemblyVersion>
+        <FileVersion>2.3.5.1</FileVersion>
         <Copyright>Copyright © 2019-2020</Copyright>
         <Description>An automated ModList installer</Description>
         <PublishReadyToRun>true</PublishReadyToRun>        
@@ -19,9 +19,9 @@
     <ItemGroup>
       <PackageReference Include="CommandLineParser" Version="2.9.0-preview1" />
       <PackageReference Include="F23.StringSimilarity" Version="3.1.0" />
-      <PackageReference Include="Markdig" Version="0.22.0" />
-      <PackageReference Include="System.Reactive" Version="4.4.1" />
-      <PackageReference Include="System.Reactive.Linq" Version="4.4.1" />
+      <PackageReference Include="Markdig" Version="0.22.1" />
+      <PackageReference Include="System.Reactive" Version="5.0.0" />
+      <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
     </ItemGroup>
 
     <ItemGroup>

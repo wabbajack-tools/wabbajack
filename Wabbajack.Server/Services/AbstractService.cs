@@ -10,13 +10,26 @@ namespace Wabbajack.Server.Services
     {
         public void Start();
     }
+
+    public interface IReportingService
+    {
+        public TimeSpan Delay { get; }
+        public DateTime LastStart { get; }
+        public DateTime LastEnd { get; }
+
+        
+    }
     
-    public abstract class AbstractService<TP, TR> : IStartable
+    public abstract class AbstractService<TP, TR> : IStartable, IReportingService
     {
         protected AppSettings _settings;
         private TimeSpan _delay;
         protected ILogger<TP> _logger;
         protected QuickSync _quickSync;
+
+        public TimeSpan Delay => _delay;
+        public DateTime LastStart { get; private set; }
+        public DateTime LastEnd { get; private set; }
 
         public AbstractService(ILogger<TP> logger, AppSettings settings, QuickSync quickSync, TimeSpan delay)
         {
@@ -40,7 +53,7 @@ namespace Wabbajack.Server.Services
                 Task.Run(async () =>
                 {
                     await Setup();
-
+                    await _quickSync.Register(this);
                     
                     while (true)
                     {
@@ -48,7 +61,9 @@ namespace Wabbajack.Server.Services
                         try
                         {
                             _logger.LogInformation($"Running: {GetType().Name}");
+                            LastStart = DateTime.UtcNow;
                             await Execute();
+                            LastEnd = DateTime.UtcNow;
                         }
                         catch (Exception ex)
                         {

@@ -83,7 +83,7 @@ namespace Wabbajack
             });
             DownloadSizeText = "Download size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfArchives);
             InstallSizeText = "Installation size : " + UIUtils.FormatBytes(Metadata.DownloadMetadata.SizeOfInstalledFiles);
-            IsBroken = metadata.ValidationSummary.HasFailures;
+            IsBroken = metadata.ValidationSummary.HasFailures || metadata.ForceDown;
             //https://www.wabbajack.org/#/modlists/info?machineURL=eldersouls
             OpenWebsiteCommand = ReactiveCommand.Create(() => Utils.OpenWebsite(new Uri($"https://www.wabbajack.org/#/modlists/info?machineURL={Metadata.Links.MachineURL}")));
             ExecuteCommand = ReactiveCommand.CreateFromObservable<Unit, Unit>(

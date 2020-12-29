@@ -407,13 +407,12 @@ namespace Wabbajack.Test
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
         }
         
-        /* Site is down
         [Fact]
         public async Task TESAllDownloader()
         {
             await DownloadDispatcher.GetInstance<TESAllDownloader>().Prepare();
             const string ini = "[General]\n" +
-                               "directURL=https://tesall.ru/files/getdownload/594545-wabbajack-test-file/";
+                               "directURL=https://tesall.ru/files/download/594545";
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
 
@@ -431,7 +430,6 @@ namespace Wabbajack.Test
 
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
         }
-        */
 
         /* WAITING FOR APPROVAL BY MODERATOR
          [Fact]

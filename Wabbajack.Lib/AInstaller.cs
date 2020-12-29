@@ -181,7 +181,7 @@ namespace Wabbajack.Lib
                         await file.To.RelativeTo(OutputFolder).Compact(FileCompaction.Algorithm.XPRESS16K);
                     }
                 }
-            }, tempFolder: OutputFolder);
+            }, tempFolder: OutputFolder, updateTracker: UpdateTracker);
         }
 
         public async Task DownloadArchives()
@@ -195,6 +195,12 @@ namespace Wabbajack.Lib
 
             await Task.WhenAll(dispatchers.Select(d => d.Prepare()));
 
+            var nexusDownloader = dispatchers.OfType<NexusDownloader>().FirstOrDefault();
+            if (nexusDownloader != null && !await nexusDownloader.HaveEnoughAPICalls(missing))
+            {
+                throw new Exception($"Not enough Nexus API calls to download this list, please try again after midnight GMT when your API limits reset");
+            }
+
             await DownloadMissingArchives(missing);
         }
 
@@ -202,6 +208,7 @@ namespace Wabbajack.Lib
         {
             if (download)
             {
+                var result = SendDownloadMetrics(missing);
                 foreach (var a in missing.Where(a => a.State.GetType() == typeof(ManualDownloader.State)))
                 {
                     var outputPath = DownloadFolder.Combine(a.Name);
@@ -210,8 +217,9 @@ namespace Wabbajack.Lib
             }
 
             DesiredThreads.OnNext(DownloadThreads);
+
             await missing.Where(a => a.State.GetType() != typeof(ManualDownloader.State))
-                .PMap(Queue, async archive =>
+                .PMap(Queue, UpdateTracker, async archive =>
                 {
                     Info($"Downloading {archive.Name}");
                     var outputPath = DownloadFolder.Combine(archive.Name);
@@ -233,6 +241,15 @@ namespace Wabbajack.Lib
             
             DesiredThreads.OnNext(DiskThreads);
 
+        }
+
+        private async Task SendDownloadMetrics(List<Archive> missing)
+        {
+            var grouped = missing.GroupBy(m => m.State.GetType());
+            foreach (var group in grouped)
+            {
+                await Metrics.Send($"downloading_{group.Key.FullName!.Split(".").Last().Split("+").First()}", group.Sum(g => g.Size).ToString());
+            }
         }
 
         public async Task<bool> DownloadArchive(Archive archive, bool download, AbsolutePath? destination = null)
@@ -268,7 +285,7 @@ namespace Wabbajack.Lib
             
             var hashResults = await 
                 toHash
-                .PMap(Queue, async e => (await e.FileHashCachedAsync(), e)); 
+                .PMap(Queue, UpdateTracker,async e => (await e.FileHashCachedAsync(), e)); 
             
             HashedArchives.SetTo(hashResults
                 .OrderByDescending(e => e.Item2.LastModified)
@@ -385,9 +402,6 @@ namespace Wabbajack.Lib
                 var path = OutputFolder.Combine(d.To);
                 if (!existingfiles.Contains(path)) return null;
 
-                if (path.Size != d.Size) return null;
-                Status($"Optimizing {d.To}");
-                
                 return await path.FileHashCachedAsync() == d.Hash ? d : null;
             }))
               .Do(d =>

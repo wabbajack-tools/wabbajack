@@ -19,13 +19,14 @@ using DynamicData.Binding;
 using Wabbajack.Common.StatusFeed;
 using System.Reactive;
 using System.Collections.Generic;
+using System.Reactive.Subjects;
 using System.Windows.Input;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Wabbajack.Common.IO;
 
 namespace Wabbajack
 {
-    public class InstallerVM : ViewModel, IBackNavigatingVM, ICpuStatusVM
+    public class InstallerVM : BackNavigatingVM, IBackNavigatingVM, ICpuStatusVM
     {
         public SlideShow Slideshow { get; }
 
@@ -35,9 +36,6 @@ namespace Wabbajack
         public ModListVM ModList => _modList.Value;
 
         public FilePickerVM ModListLocation { get; }
-
-        [Reactive]
-        public ViewModel NavigateBackTarget { get; set; }
 
         private readonly ObservableAsPropertyHelper<ISubInstallerVM> _installer;
         public ISubInstallerVM Installer => _installer.Value;
@@ -95,12 +93,15 @@ namespace Wabbajack
         public ReactiveCommand<Unit, Unit> OpenReadmeCommand { get; }
         public ReactiveCommand<Unit, Unit> VisitModListWebsiteCommand { get; }
         public ReactiveCommand<Unit, Unit> BackCommand { get; }
+        
+        
         public ReactiveCommand<Unit, Unit> CloseWhenCompleteCommand { get; }
         public ReactiveCommand<Unit, Unit> GoToInstallCommand { get; }
         public ReactiveCommand<Unit, Unit> BeginCommand { get; }
 
-        public InstallerVM(MainWindowVM mainWindowVM)
+        public InstallerVM(MainWindowVM mainWindowVM) : base(mainWindowVM)
         {
+           
             if (Path.GetDirectoryName(Assembly.GetEntryAssembly().Location.ToLower()) == KnownFolders.Downloads.Path.ToLower())
             {
                 Utils.Error(new CriticalFailureIntervention(
@@ -306,11 +307,14 @@ namespace Wabbajack
                         if (err) return "Corrupted Modlist";
                         return name;
                     })
+                .Merge(this.WhenAny(x => x.Installer.ActiveInstallation)
+                    .Where(c => c != null)
+                    .SelectMany(c => c.TextStatus))
                 .ToGuiProperty(this, nameof(ModListName));
 
             ShowManifestCommand = ReactiveCommand.Create(() =>
             {
-                new ManifestWindow(ModList.SourceModList).Show();
+                Utils.OpenWebsite(new Uri("https://www.wabbajack.org/#/modlists/manifest"));
             }, this.WhenAny(x => x.ModList)
                     .Select(x => x?.SourceModList != null)
                 .ObserveOnGuiThread());
@@ -366,6 +370,7 @@ namespace Wabbajack
                     try
                     {
                         Utils.Log($"Starting to install {ModList.Name}");
+                        IsBackEnabledSubject.OnNext(false);
                         var success = await this.Installer.Install();
                         Completed = ErrorResponse.Create(success);
                         try
@@ -378,10 +383,14 @@ namespace Wabbajack
                         }
                     }
                     catch (Exception ex)
-                    { 
+                    {
                         Utils.Error(ex, $"Encountered error, can't continue");
                         while (ex.InnerException != null) ex = ex.InnerException;
                         Completed = ErrorResponse.Fail(ex);
+                    }
+                    finally
+                    {
+                        IsBackEnabledSubject.OnNext(true);
                     }
                 });
 

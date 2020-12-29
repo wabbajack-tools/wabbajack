@@ -866,7 +866,7 @@ namespace Wabbajack.Common
 
         public static bool IsInPath(this string path, string parent)
         {
-            return path.ToLower().TrimEnd('\\').StartsWith(parent.ToLower().TrimEnd('\\') + "\\");
+            return path.ToLower().TrimEnd('\\').StartsWith(parent.ToLower().TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase);
         }
         
         public static async Task CopyToLimitAsync(this Stream frm, Stream tw, long limit)

@@ -30,7 +30,7 @@ namespace Wabbajack.Common
                 }
 
                 if (DateTime.Now - startTime > timeout || token.IsCancellationRequested || isDisposed)
-                    return (false, default);
+                    return (false, default)!;
                 await Task.Delay(100);
             }
         }

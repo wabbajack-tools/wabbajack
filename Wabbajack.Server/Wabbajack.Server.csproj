@@ -3,8 +3,8 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <AssemblyVersion>2.3.2.0</AssemblyVersion>
-        <FileVersion>2.3.2.0</FileVersion>
+        <AssemblyVersion>2.3.5.1</AssemblyVersion>
+        <FileVersion>2.3.5.1</FileVersion>
         <Copyright>Copyright © 2019-2020</Copyright>
         <Description>Wabbajack Server</Description>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -14,8 +14,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CsvHelper" Version="15.0.8" />
         <PackageReference Include="Dapper" Version="2.0.35" />
+        <PackageReference Include="Discord.Net.WebSocket" Version="2.2.0" />
         <PackageReference Include="FluentFTP" Version="33.0.2" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.Core" Version="2.2.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.9" />

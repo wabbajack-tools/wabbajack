@@ -15,8 +15,6 @@ namespace Wabbajack.Lib
 {
     public class MO2Compiler : ACompiler
     {
-        private AbsolutePath _mo2DownloadsFolder;
-        
         public MO2Compiler(AbsolutePath sourcePath, AbsolutePath downloadsPath, string mo2Profile, AbsolutePath outputFile)
             : base(21, mo2Profile, sourcePath, downloadsPath, outputFile)
         {
@@ -202,7 +200,7 @@ namespace Wabbajack.Lib
             // Find all Downloads
             IndexedArchives = (await DownloadsPath.EnumerateFiles()
                 .Where(f => f.WithExtension(Consts.MetaFileExtension).Exists)
-                .PMap(Queue,
+                .PMap(Queue, UpdateTracker,
                     async f => new IndexedArchive(VFS.Index.ByRootPath[f])
                     {
                         Name = (string)f.FileName,

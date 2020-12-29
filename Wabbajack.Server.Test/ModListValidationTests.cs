@@ -189,6 +189,9 @@ namespace Wabbajack.BuildServer.Test
             
             var statusRss = await _client.GetHtmlAsync(MakeURL("lists/status/test_list/broken.rss"));
             Assert.Equal(failed, statusRss.DocumentNode.SelectNodes("//item")?.Count ?? 0);
+
+            var heartBeat = await _client.GetHtmlAsync(MakeURL("heartbeat/report"));
+            Assert.Contains(heartBeat.DocumentNode.Descendants(), c => c.InnerText.StartsWith("test_list"));
         }
 
         

@@ -224,11 +224,11 @@ namespace Wabbajack.VirtualFileSystem
 
                 self.Children = list.Values.ToImmutableList();
             }
-            catch (EndOfStreamException ex)
+            catch (EndOfStreamException)
             {
                 return self;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Utils.Log($"Error while examining the contents of {relPath.FileName}");
                 throw;

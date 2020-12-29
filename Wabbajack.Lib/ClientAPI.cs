@@ -157,9 +157,7 @@ using Wabbajack.Lib.Downloaders;
                 return new Archive[0];
             var client = await GetClient();
             var metaData = game.MetaData();
-            var results =
-                await client.GetJsonAsync<Archive[]>(
-                    $"{Consts.WabbajackBuildServerUri}game_files/{game}/{metaData.InstalledVersion}");
+            var results = await GetGameFilesFromGithub(game, metaData.InstalledVersion);
 
             return (await results.PMap(queue, async file => (await file.State.Verify(file), file))).Where(f => f.Item1)
                 .Select(f =>
@@ -168,6 +166,22 @@ using Wabbajack.Lib.Downloaders;
                     return f.file;
                 })
                 .ToArray();
+        }
+        
+        public static async Task<Archive[]> GetGameFilesFromGithub(Game game, string version)
+        {
+            var url =
+                $"https://raw.githubusercontent.com/wabbajack-tools/indexed-game-files/master/{game}/{version}.json";
+            Utils.Log($"Loading game file definition from {url}");
+            var client = await GetClient();
+            return await client.GetJsonAsync<Archive[]>(url);
+        }
+
+        public static async Task<Archive[]> GetGameFilesFromServer(Game game, string version)
+        {
+            var client = await GetClient();
+            return await client.GetJsonAsync<Archive[]>(
+                $"{Consts.WabbajackBuildServerUri}game_files/{game}/{version}");
         }
 
         public static async Task<AbstractDownloadState?> InferDownloadState(Hash hash)
@@ -250,7 +264,7 @@ using Wabbajack.Lib.Downloaders;
                     await client.GetStringAsync($"{Consts.WabbajackBuildServerUri}mirror/{archiveHash.ToHex()}");
                 return new Uri(result);
             }
-            catch (HttpException ex)
+            catch (HttpException)
             {
                 return null;
             }
@@ -261,6 +275,15 @@ using Wabbajack.Lib.Downloaders;
             var client = await GetClient();
             return await client.GetJsonAsync<Helpers.Cookie[]>(
                 $"{Consts.WabbajackBuildServerUri}site-integration/auth-info/{key}");
+        }
+
+        public static async Task<IEnumerable<(Game, string)>> GetServerGamesAndVersions()
+        {
+            var client = await GetClient();
+            var results =
+                await client.GetJsonAsync<(Game, string)[]>(
+                    $"{Consts.WabbajackBuildServerUri}game_files");
+            return results;
         }
     }
 }

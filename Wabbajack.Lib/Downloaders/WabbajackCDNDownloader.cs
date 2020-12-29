@@ -21,7 +21,7 @@ namespace Wabbajack.Lib.Downloaders
         {
             {"wabbajack.b-cdn.net", "authored-files.wabbajack.org"},
             {"wabbajack-mirror.b-cdn.net", "mirror.wabbajack.org"},
-            {"wabbajack-patches.b-cdn-net", "patches.wabbajack.org"},
+            {"wabbajack-patches.b-cdn.net", "patches.wabbajack.org"},
             {"wabbajacktest.b-cdn.net", "test-files.wabbajack.org"}
         };
 

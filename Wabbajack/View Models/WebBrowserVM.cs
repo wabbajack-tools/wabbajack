@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
 using CefSharp;
@@ -28,8 +30,12 @@ namespace Wabbajack
         [Reactive]
         public ReactiveCommand<Unit, Unit> BackCommand { get; set; }
 
+        public Subject<bool> IsBackEnabledSubject { get; } = new Subject<bool>();
+        public IObservable<bool> IsBackEnabled { get; }
+
         private WebBrowserVM(string url = "http://www.wabbajack.org")
         {
+            IsBackEnabled = IsBackEnabledSubject.StartWith(true);
             Instructions = "Wabbajack Web Browser";
         }
 

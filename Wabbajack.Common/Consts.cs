@@ -84,6 +84,7 @@ namespace Wabbajack.Common
 
         public static string ServerWhitelistURL = "https://raw.githubusercontent.com/wabbajack-tools/opt-out-lists/master/ServerWhitelist.yml";
         public static string ModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/modlists.json";
+        public static string UtilityModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/utility_modlists.json";
         public static string UnlistedModlistMetadataURL = "https://raw.githubusercontent.com/wabbajack-tools/mod-lists/master/unlisted_modlists.json";
         public static string ModlistSummaryURL = "http://build.wabbajack.org/lists/status.json";
         public static string UserAgent

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reactive;
@@ -142,6 +143,16 @@ namespace Wabbajack.Lib.Downloaders
             }
         }
 
+        public async Task<bool> HaveEnoughAPICalls(IEnumerable<Archive> archives)
+        {
+            if (await Client!.IsPremium())
+                return true;
+            
+            var count = archives.Select(a => a.State).OfType<State>().Count();
+
+            return count < Client!.RemainingAPICalls;
+        }
+
         [JsonName("NexusDownloader")]
         public class State : AbstractDownloadState, IMetaState, IUpgradingState
         {
@@ -189,13 +200,15 @@ namespace Wabbajack.Lib.Downloaders
                     var client = await NexusApiClient.Get();
                     url = await client.GetNexusDownloadLink(this);
                 }
-                catch (Exception ex)
+                catch (NexusAPIQuotaExceeded ex)
                 {
-                    Utils.Log($"{a.Name} - Error getting Nexus download URL - {ex.Message}");
+                    Utils.Log(ex.ExtendedDescription);
+                    throw;
+                }
+                catch (Exception)
+                {
                     return false;
                 }
-
-                Utils.Log($"Downloading Nexus Archive - {a.Name} - {Game} - {ModID} - {FileID}");
 
                 return await new HTTPDownloader.State(url).Download(a, destination);
             }
@@ -239,7 +252,11 @@ namespace Wabbajack.Lib.Downloaders
 
             public override async Task<(Archive? Archive, TempFile NewFile)> FindUpgrade(Archive a, Func<Archive, Task<AbsolutePath>> downloadResolver)
             {
-                var client = await NexusApiClient.Get();
+                var client = DownloadDispatcher.GetInstance<NexusDownloader>().Client ?? await NexusApiClient.Get();
+                await client.IsPremium();
+                
+                if (client.RemainingAPICalls <= 0)
+                    throw new NexusAPIQuotaExceeded();
 
                 var mod = await client.GetModInfo(Game, ModID);
                 if (!mod.available) 
@@ -274,12 +291,15 @@ namespace Wabbajack.Lib.Downloaders
                     return (newArchive, new TempFile());
                 }
 
+                Utils.Log($"Downloading possible upgrade {newArchive.State.PrimaryKeyString}");
                 var tempFile = new TempFile();
                  
                 await newArchive.State.Download(newArchive, tempFile.Path);
 
                 newArchive.Size = tempFile.Path.Size;
                 newArchive.Hash = await tempFile.Path.FileHashAsync();
+
+                Utils.Log($"Possible upgrade {newArchive.State.PrimaryKeyString} downloaded");
 
                 return (newArchive, tempFile);
             }

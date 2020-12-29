@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Wabbajack.Common.StoreHandlers;
@@ -37,7 +38,9 @@ namespace Wabbajack.Common
         Dishonored,
         Witcher3,
         [Description("Stardew Valley")]
-        StardewValley
+        StardewValley,
+        KingdomComeDeliverance,
+        MechWarrior5Mercenaries
     }
 
     public static class GameExtensions
@@ -66,6 +69,8 @@ namespace Wabbajack.Common
 
         // to get gog ids: https://www.gogdb.org
         public List<int>? GOGIDs { get; internal set; }
+        
+        public List<string> EpicGameStoreIDs { get; internal set; } = new List<string>();
 
         // to get BethNet IDs: check the registry
         public int BethNetID { get; internal set; }
@@ -98,7 +103,16 @@ namespace Wabbajack.Common
                 if (MainExecutable == null)
                     throw new NotImplementedException();
 
-                return FileVersionInfo.GetVersionInfo((string)gameLoc.Combine(MainExecutable)).ProductVersion;
+                var info = FileVersionInfo.GetVersionInfo((string)gameLoc.Combine(MainExecutable));
+                var version =  info.ProductVersion;
+                if (string.IsNullOrWhiteSpace(version))
+                {
+                    version =
+                        $"{info.ProductMajorPart}.{info.ProductMinorPart}.{info.ProductBuildPart}.{info.ProductPrivatePart}";
+                    return version;
+                }
+
+                return version;
             }
         }
 
@@ -489,6 +503,40 @@ namespace Wabbajack.Common
                         "Stardew Valley.exe"	
                     },
                     MainExecutable = "Stardew Valley.exe"
+                }
+            },
+            {
+                Game.KingdomComeDeliverance, new GameMetaData
+                {
+                    Game = Game.KingdomComeDeliverance,
+                    NexusName = "kingdomcomedeliverance",
+                    MO2Name = "Kingdom Come: Deliverance",
+                    MO2ArchiveName = "kingdomcomedeliverance",
+                    NexusGameId = 2298,
+                    SteamIDs = new List<int>{379430},
+                    IsGenericMO2Plugin = true,
+                    RequiredFiles = new List<string>
+                    {
+                        @"bin\Win64\KingdomCome.exe"
+                    },
+                    MainExecutable = @"bin\Win64\KingdomCome.exe"
+                }
+            },
+            {
+                Game.MechWarrior5Mercenaries, new GameMetaData
+                {
+                    Game = Game.MechWarrior5Mercenaries,
+                    NexusName = "mechwarrior5mercenaries",
+                    MO2Name = "Mechwarrior 5: Mercenaries",
+                    MO2ArchiveName = "mechwarrior5mercenaries",
+                    NexusGameId = 3099,
+                    EpicGameStoreIDs = new List<string> {"9fd39d8ac72946a2a10a887ce86e6c35"},
+                    IsGenericMO2Plugin = true,
+                    RequiredFiles = new List<string>
+                    {
+                        @"MW5Mercs\Binaries\Win64\MechWarrior-Win64-Shipping.exe"
+                    },
+                    MainExecutable = @"MW5Mercs\Binaries\Win64\MechWarrior-Win64-Shipping.exe"
                 }
             }
         };

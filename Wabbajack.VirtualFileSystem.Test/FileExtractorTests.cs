@@ -90,7 +90,7 @@ namespace Wabbajack.VirtualFileSystem.Test
                     return await s.xxHashAsync();
                 });
             
-            Assert.Equal(1, results.Count);
+            Assert.Single(results);
             foreach (var (path, hash) in results)
             {
                 Assert.Equal(await temp.Dir.Combine(path).FileHashAsync(), hash);
