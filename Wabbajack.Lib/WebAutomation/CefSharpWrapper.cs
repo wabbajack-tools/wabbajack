@@ -42,6 +42,24 @@ namespace Wabbajack.Lib.WebAutomation
             return tcs.Task;
         }
 
+        public async Task<long> NavigateToAndDownload(Uri uri, AbsolutePath dest, bool quickMode = false)
+        {
+            var oldCB = _browser.DownloadHandler;
+
+            var handler = new ReroutingDownloadHandler(this, dest, quickMode: quickMode);
+            _browser.DownloadHandler = handler;
+
+            try
+            {
+                await NavigateTo(uri);
+                return await handler.Task;
+            }
+            finally {
+                _browser.DownloadHandler = oldCB;
+           
+            }
+        }
+
         public async Task<string> EvaluateJavaScript(string text)
         {
             var result = await _browser.EvaluateScriptAsync(text);
@@ -96,6 +114,44 @@ namespace Wabbajack.Lib.WebAutomation
 
         public void OnBeforeClose(IWebBrowser chromiumWebBrowser, IBrowser browser)
         {
+        }
+    }
+
+    public class ReroutingDownloadHandler : IDownloadHandler
+    {
+        private CefSharpWrapper _wrapper;
+        private AbsolutePath _path;
+        public TaskCompletionSource<long> _tcs = new TaskCompletionSource<long>();
+        private bool _quickMode;
+        public Task<long> Task => _tcs.Task;
+
+        public ReroutingDownloadHandler(CefSharpWrapper wrapper, AbsolutePath path, bool quickMode)
+        {
+            _wrapper = wrapper;
+            _path = path;
+            _quickMode = quickMode;
+        }
+
+        public void OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
+            IBeforeDownloadCallback callback)
+        {
+            if (_quickMode) return;
+            callback.Continue(_path.ToString(), false);
+        }
+
+        public void OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
+            IDownloadItemCallback callback)
+        {
+            if (_quickMode)
+            {
+                callback.Cancel();
+                _tcs.SetResult(downloadItem.TotalBytes);
+                return;
+            }
+            
+            if (downloadItem.IsComplete)
+                _tcs.SetResult(downloadItem.TotalBytes);
+            callback.Resume();
         }
     }
 

@@ -11,9 +11,11 @@ using Wabbajack.Common;
 using Wabbajack.Common.StatusFeed;
 using Wabbajack.Lib;
 using Wabbajack.Lib.Downloaders;
+using Wabbajack.Lib.Http;
 using Wabbajack.Lib.LibCefHelpers;
 using Wabbajack.Lib.NexusApi;
 using Wabbajack.Lib.Validation;
+using Wabbajack.Lib.WebAutomation;
 using Xunit;
 using Xunit.Abstractions;
 using Directory = System.IO.Directory;
@@ -282,6 +284,8 @@ namespace Wabbajack.Test
         [Fact]
         public async Task LoversLabDownload()
         {
+
+            
             await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
             var ini = @"[General]
                         directURL=https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1";

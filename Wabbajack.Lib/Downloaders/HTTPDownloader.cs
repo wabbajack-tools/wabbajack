@@ -95,7 +95,7 @@ namespace Wabbajack.Lib.Downloaders
                     }
 
                     long totalRead = 0;
-                    var bufferSize = 1024 * 32;
+                    var bufferSize = 1024 * 32 * 8;
 
                     Utils.Status($"Starting Download {a.Name ?? Url}", Percent.Zero);
                     var response = await client.GetAsync(Url, errorsAsExceptions:false, retry:false);

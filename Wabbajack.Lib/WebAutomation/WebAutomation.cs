@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using CefSharp;
 using CefSharp.OffScreen;
+using Wabbajack.Common;
 using Wabbajack.Lib.LibCefHelpers;
 
 namespace Wabbajack.Lib.WebAutomation
@@ -33,6 +34,11 @@ namespace Wabbajack.Lib.WebAutomation
             return await GetLocation();
         }
 
+        public async Task<long> NavigateToAndDownload(Uri uri, AbsolutePath absolutePath, bool quickMode = false)
+        {
+            return await _driver.NavigateToAndDownload(uri, absolutePath, quickMode: quickMode);
+        }
+
         public async ValueTask<Uri?> GetLocation()
         {
             try
@@ -43,6 +49,11 @@ namespace Wabbajack.Lib.WebAutomation
             {
                 return null;
             }
+        }
+
+        public async ValueTask<string> GetSourceAsync()
+        {
+            return await _browser.GetSourceAsync();
         }
         
         public Action<Uri?> DownloadHandler { 
