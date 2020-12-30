@@ -282,6 +282,21 @@ namespace Wabbajack.Test
         }
 
         [Fact]
+        public async Task CanFindOtherLLMods()
+        {
+            await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
+           
+            var ini = @"[General]
+                    directURL=https://www.loverslab.com/files/file/1382-milk-mod-economy/?do=download&r=913360&confirm=1&t=1&csrfKey=7984faa4d27f6b638125daf38ae5f1191";
+
+            var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            var otherfiles = await ((LoversLabDownloader.State)state).GetFilesInGroup();
+            
+
+            
+        }
+
+        [Fact]
         public async Task LoversLabDownload()
         {
 
@@ -316,6 +331,8 @@ namespace Wabbajack.Test
             Assert.Equal("Cheese for Everyone!", await filename.Path.ReadAllTextAsync());
 
             var files = await ((LoversLabDownloader.State)converted).GetFilesInGroup();
+
+
             
             Assert.NotEmpty(files);
             Assert.Equal("WABBAJACK_TEST_FILE.zip", files.First().Name);
