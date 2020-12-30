@@ -175,16 +175,26 @@ namespace Wabbajack.Lib.Downloaders
                     
                     var csrfKey = matches.Where(m => m.Length == 32).Select(m => m.ToString()).FirstOrDefault();
 
-                    if (csrfKey == null)
+                    if (!Downloader.IsCloudFlareProtected && csrfKey == null)
                     {
                         Utils.Log($"Returning null from IPS4 Downloader because no csrfKey was found");
                         return false;
                     }
 
                     var sep = Site.EndsWith("?") ? "&" : "?";
-                    url = FileID == null
-                        ? $"{Site}/files/file/{FileName}/{sep}do=download&confirm=1&t=1&csrfKey={csrfKey}"
-                        : $"{Site}/files/file/{FileName}/{sep}do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
+                    if (!Downloader.IsCloudFlareProtected)
+                    {
+
+                        url = FileID == null
+                            ? $"{Site}/files/file/{FileName}/{sep}do=download&confirm=1&t=1&csrfKey={csrfKey}"
+                            : $"{Site}/files/file/{FileName}/{sep}do=download&r={FileID}&confirm=1&t=1&csrfKey={csrfKey}";
+                    }
+                    else
+                    {
+                        url = FileID == null
+                            ? $"{Site}/files/file/{FileName}/{sep}do=download&confirm=1&t=1"
+                            : $"{Site}/files/file/{FileName}/{sep}do=download&r={FileID}&confirm=1&t=1";                        
+                    }
                 }
                 
                 if (Downloader.IsCloudFlareProtected)
