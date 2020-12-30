@@ -83,7 +83,7 @@ namespace Wabbajack.Launcher
             var wc = new WebClient();
             wc.DownloadProgressChanged += UpdateProgress;
             Status = $"Downloading {_version.Tag} ...";
-            var data = await wc.DownloadDataTaskAsync(asset.BrowserDownloadUrl);
+            var data = await wc.DownloadDataTaskAsync(asset.BrowserDownloadUrlFast);
             
             using (var zip = new ZipArchive(new MemoryStream(data), ZipArchiveMode.Read))
             {
@@ -142,12 +142,27 @@ namespace Wabbajack.Launcher
             
             [JsonProperty("assets")]
             public Asset[] Assets { get; set; }
+           
         }
 
         class Asset
         {
             [JsonProperty("browser_download_url")]
             public Uri BrowserDownloadUrl { get; set; }
+            
+            [JsonIgnore]
+            public Uri BrowserDownloadUrlFast {
+                get
+                {
+                    if (BrowserDownloadUrl.ToString()
+                        .StartsWith("https://github.com/wabbajack-tools/wabbajack/releases/"))
+                        return new Uri(BrowserDownloadUrl.ToString()
+                            .Replace("https://github.com/wabbajack-tools/wabbajack/releases/",
+                                "https://releases.wabbajack.org/"));
+                    return BrowserDownloadUrl;
+                }
+            }
+            
             
             [JsonProperty("name")]
             public string Name { get; set; }

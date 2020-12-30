@@ -1,5 +1,9 @@
 ### Changelog
 
+#### Version - 2.3.6.0 - ???
+* Move the LoversLab downloader to a CEF based backed making it interact with CloudFlare a bit better
+
+
 #### Version - 2.3.5.1 - 12/23/2020
 * HOTFIX : Recover from errors in the EGS location detector
 
