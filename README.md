@@ -26,7 +26,7 @@ If you own a game on this list on the Epic Games Store please get in touch on [D
 | Fallout 4                 | Steam                 |           |       |
 | Skyrim VR                 | Steam                 |           |       |
 | Fallout 4 VR              | Steam                 |           |       |
-| Darkest Dungeon           | Steam, GOG            |           | Experimental |
+| Darkest Dungeon           | Steam, GOG, Epic Games Store |    | Experimental |
 | The Witcher 3             | Steam, GOG            | Normal and GotY | Experimental |
 | Stardew Valley            | Steam, GOG            |           | Experimental |
 | Kingdom Come: Deliverance | Steam, GOG            |           | Experimental |
