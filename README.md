@@ -12,6 +12,8 @@ Wabbajack is an automated Modlist Installer that can reproduce an entire modding
 
 ## Supported Games and Mod Manager
 
+If you own a game on this list on the Epic Games Store please get in touch on [Discord](https://discord.gg/wabbajack), so you can help us make Wabbajack support those games as well.
+
 | Game                      | Platform              | Versions  | Notes |
 |---------------------------|-----------------------|-----------|-------|
 | Morrowind                 | Steam, GOG, BethNet   |           |       |
