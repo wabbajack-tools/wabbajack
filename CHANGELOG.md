@@ -1,8 +1,8 @@
 ### Changelog
 
-#### Version - 2.3.6.0 - ???
+#### Version - 2.3.6.0 - 12/29/2020
 * Move the LoversLab downloader to a CEF based backed making it interact with CloudFlare a bit better
-
+* Add support for No Man's Sky
 
 #### Version - 2.3.5.1 - 12/23/2020
 * HOTFIX : Recover from errors in the EGS location detector
