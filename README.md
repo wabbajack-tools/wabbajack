@@ -12,6 +12,8 @@ Wabbajack is an automated Modlist Installer that can reproduce an entire modding
 
 ## Supported Games and Mod Manager
 
+If you own a game on this list on the Epic Games Store please get in touch on [Discord](https://discord.gg/wabbajack), so you can help us make Wabbajack support those games as well.
+
 | Game                      | Platform              | Versions  | Notes |
 |---------------------------|-----------------------|-----------|-------|
 | Morrowind                 | Steam, GOG, BethNet   |           |       |
@@ -24,13 +26,18 @@ Wabbajack is an automated Modlist Installer that can reproduce an entire modding
 | Fallout 4                 | Steam                 |           |       |
 | Skyrim VR                 | Steam                 |           |       |
 | Fallout 4 VR              | Steam                 |           |       |
-| Darkest Dungeon           | Steam, GOG            |           | Experimental |
+| Darkest Dungeon           | Steam, GOG, Epic Games Store |    | Experimental |
 | The Witcher 3             | Steam, GOG            | Normal and GotY | Experimental |
 | Stardew Valley            | Steam, GOG            |           | Experimental |
+| Kingdom Come: Deliverance | Steam, GOG            |           | Experimental |
+| Mechwarrior 5: Mercenaries| Epic Games Store      |           | Experimental |
+| No Man's Sky              | Steam, GOG            |           | Experimental |
 
 **Note about games marked with experiment support**:
 
-A new MO2 plugin called [Simple Games Plugin](https://github.com/ModOrganizer2/modorganizer-basic_games) enables the easy creation of new game plugins for non BGS games. This is still very experimental in both MO2 and Wabbajack.
+A new MO2 plugin called [Basic Games Plugin](https://github.com/ModOrganizer2/modorganizer-basic_games) enables the easy creation of new game plugins for non BGS games. This is still very experimental in both MO2 and Wabbajack.
+
+Some like Mechwarrior 5 use a complete new method of creating a list, for more info on that best join the [Discord](https://discord.gg/wabbajack) for guidance.
 
 ## Installing a Modlist
 
