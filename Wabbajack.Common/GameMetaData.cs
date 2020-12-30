@@ -516,6 +516,7 @@ namespace Wabbajack.Common
                     MO2ArchiveName = "kingdomcomedeliverance",
                     NexusGameId = 2298,
                     SteamIDs = new List<int>{379430},
+                    GOGIDs = new List<int>{1719198803},
                     IsGenericMO2Plugin = true,
                     RequiredFiles = new List<string>
                     {
