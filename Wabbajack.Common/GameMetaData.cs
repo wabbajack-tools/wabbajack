@@ -40,7 +40,8 @@ namespace Wabbajack.Common
         [Description("Stardew Valley")]
         StardewValley,
         KingdomComeDeliverance,
-        MechWarrior5Mercenaries
+        MechWarrior5Mercenaries,
+        NoMansSky
     }
 
     public static class GameExtensions
@@ -537,6 +538,22 @@ namespace Wabbajack.Common
                         @"MW5Mercs\Binaries\Win64\MechWarrior-Win64-Shipping.exe"
                     },
                     MainExecutable = @"MW5Mercs\Binaries\Win64\MechWarrior-Win64-Shipping.exe"
+                }
+            },
+            {	
+                Game.NoMansSky, new GameMetaData	
+                {	
+                    Game = Game.NoMansSky,	
+                    NexusName = "nomanssky",	
+                    NexusGameId = 1634,
+                    MO2Name = "Mo Man's Sky",
+                    SteamIDs = new List<int>{275850},
+                    GOGIDs = new List<int>{1446213994},
+                    RequiredFiles = new List<string>	
+                    {	
+                        @"Binaries\NMS.exe"	
+                    },
+                    MainExecutable = @"Binaries\NMS.exe"	
                 }
             }
         };
