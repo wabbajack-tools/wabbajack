@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.3.6.2 - 12/31/2020
+* HOTFIX: Also apply the IPS4 changes to LL Meta lookups
+
 #### Version - 2.3.6.1 - 12/31/2020
 * When IPS4 (e.g. LL) sites based on CEF fail to validate, they no longer hang the app
 * If a IPS4 CEF site throws a 503, or 400 error, retry

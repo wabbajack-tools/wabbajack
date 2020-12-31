@@ -321,6 +321,18 @@ namespace Wabbajack.Test
         }
 
         [Fact]
+        public async Task CanGetLLMetadata()
+        {
+            await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
+            var ini = @"[General]
+                        directURL=https://www.loverslab.com/files/file/11116-test-file-for-wabbajack-integration/?do=download&r=737123&confirm=1&t=1";
+
+            var state = (LoversLabDownloader.State)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            Assert.True(await state.LoadMetaData());
+            Assert.Equal("halgari", state.Author);
+        }
+
+        [Fact]
         public async Task LoversLabDownload()
         {
 

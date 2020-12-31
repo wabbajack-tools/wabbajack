@@ -388,6 +388,7 @@ namespace Wabbajack.Lib.Downloaders
 
                 
                 using var driver = await Downloader.GetAuthedDriver();
+                await ((IWaitForWindowDownloader)Downloader).WaitForNextRequestWindow();
                 await DeleteOldDownloadCookies(driver);
 
                 //var drivercookies = await Helpers.GetCookies("loverslab.com");
