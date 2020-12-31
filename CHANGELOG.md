@@ -1,5 +1,8 @@
 ### Changelog
 
+#### Version - 2.3.6.2 - 12/31/2020
+* HOTFIX: Also apply the IPS4 changes to LL Meta lookups
+
 #### Version - 2.3.6.1 - 12/31/2020
 * When IPS4 (e.g. LL) sites based on CEF fail to validate, they no longer hang the app
 * If a IPS4 CEF site throws a 503, or 400 error, retry
@@ -8,6 +11,7 @@
 * If a site *does* timeout, throw a log of the CEF state into `CEFStates` for easier debugging by the WJ team
 * Wrote a new CLI utility to stress test the Verification routines.
 * Ignore files that have `\Edit Scripts\Export\` in their path
+* Added info/support for GoG's version of Kingdom Come : Deliverance
 
 #### Version - 2.3.6.0 - 12/29/2020
 * Move the LoversLab downloader to a CEF based backed making it interact with CloudFlare a bit better
