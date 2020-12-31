@@ -8,6 +8,7 @@
 * If a site *does* timeout, throw a log of the CEF state into `CEFStates` for easier debugging by the WJ team
 * Wrote a new CLI utility to stress test the Verification routines.
 * Ignore files that have `\Edit Scripts\Export\` in their path
+* Added info/support for GoG's version of Kingdom Come : Deliverance
 
 #### Version - 2.3.6.0 - 12/29/2020
 * Move the LoversLab downloader to a CEF based backed making it interact with CloudFlare a bit better
