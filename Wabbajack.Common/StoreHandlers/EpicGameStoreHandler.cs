@@ -49,7 +49,7 @@ namespace Wabbajack.Common.StoreHandlers
 
                 }
             }
-            catch (NullReferenceException ex)
+            catch (NullReferenceException)
             {
                 Utils.Log("Epic Game Store is does not appear to be installed");
                 return false;

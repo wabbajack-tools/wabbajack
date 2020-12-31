@@ -186,18 +186,18 @@ namespace Wabbajack.Common
 
     public class GameRegistry
     {
-        public static GameMetaData GetByMO2ArchiveName(string gameName)
+        public static GameMetaData? GetByMO2ArchiveName(string gameName)
         {
             gameName = gameName.ToLower();
             return Games.Values.FirstOrDefault(g => g.MO2ArchiveName?.ToLower() == gameName);
         }
 
-        public static GameMetaData GetByNexusName(string gameName)
+        public static GameMetaData? GetByNexusName(string gameName)
         {
             return Games.Values.FirstOrDefault(g => g.NexusName == gameName.ToLower());
         }
 
-        public static GameMetaData GetBySteamID(int id)
+        public static GameMetaData? GetBySteamID(int id)
         {
             return Games.Values
                 .FirstOrDefault(g => g.SteamIDs != null && g.SteamIDs.Count > 0 && g.SteamIDs.Any(i => i == id));

@@ -87,11 +87,11 @@ namespace Wabbajack.Common.StoreHandlers
                 {
                     var files = d.EnumerateFiles();
                     var game = GameRegistry.Games.Values
-                        .FirstOrDefault(g => g.RequiredFiles.All(f =>
+                        .FirstOrDefault(g => g.RequiredFiles?.All(f =>
                         {
                             var absPath = new RelativePath(f).RelativeTo(d);
                             return files.Contains(absPath);
-                        }));
+                        }) ?? true);
 
                     if (game != null)
                     {

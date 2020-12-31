@@ -34,7 +34,7 @@ namespace Wabbajack.Common
         public TempFile(FileInfo file, bool deleteAfter = true, bool createFolder = true)
         {
             this.File = file;
-            if (createFolder && !file.Directory.Exists)
+            if (createFolder && file.Directory != null && !file.Directory!.Exists)
             {
                 file.Directory.Create();
             }
