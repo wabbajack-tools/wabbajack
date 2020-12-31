@@ -62,6 +62,7 @@ namespace Wabbajack.Server.Services
                 var listArchives = await _sql.ModListArchives(metadata.Links.MachineURL);
                 var archives = await listArchives.PMap(queue, async archive =>
                 {
+                    ReportStarting(archive.State.PrimaryKeyString);
                     if (timer.Elapsed > Delay)
                     {
                         return (archive, ArchiveStatus.InValid);
@@ -77,13 +78,17 @@ namespace Wabbajack.Server.Services
                             return await TryToHeal(data, archive, metadata);
                         }
 
-                        
+
                         return (archive, result);
                     }
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, $"During Validation of {archive.Hash} {archive.State.PrimaryKeyString}");
                         return (archive, ArchiveStatus.InValid);
+                    }
+                    finally
+                    {
+                        ReportEnding(archive.State.PrimaryKeyString);
                     }
                 });
 

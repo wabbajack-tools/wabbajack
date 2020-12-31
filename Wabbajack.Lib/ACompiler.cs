@@ -8,7 +8,9 @@ using System.Linq;
 using System.Reactive.Subjects;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Org.BouncyCastle.Asn1.Cms;
 using Wabbajack.Common;
 using Wabbajack.Lib.CompilationSteps;
 using Wabbajack.Lib.Downloaders;
@@ -511,7 +513,9 @@ namespace Wabbajack.Lib
 
             await result.State!.GetDownloader().Prepare();
 
-            if (result.State != null && !await result.State.Verify(result))
+            var token = new CancellationTokenSource();
+            token.CancelAfter(Consts.MaxVerifyTime);
+            if (result.State != null && !await result.State.Verify(result, token.Token))
                 Error(
                     $"Unable to resolve link for {archive.Name}. If this is hosted on the Nexus the file may have been removed.");
 

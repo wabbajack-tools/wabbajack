@@ -291,9 +291,33 @@ namespace Wabbajack.Test
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
             var otherfiles = await ((LoversLabDownloader.State)state).GetFilesInGroup();
-            
+        }
 
-            
+        [Fact]
+        public async Task CanCancelLLValidation()
+        {
+            await using var filename = new TempFile();
+            await DownloadDispatcher.GetInstance<LoversLabDownloader>().Prepare();
+
+            var state = new LoversLabDownloader.State
+            {
+                FileName = "14424-books-of-dibella-se-alternate-start-plugin", FileID = "870820",
+            };
+
+            using var queue = new WorkQueue();
+            var tcs = new CancellationTokenSource();
+            tcs.CancelAfter(2);
+            await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+            {
+                await Enumerable.Range(0, 2).PMap(queue,
+                    async x =>
+                    {
+                        Assert.True(await state.Verify(new Archive(state: null!) {Size = 252269}, tcs.Token));
+                    });
+            });
+
+
+
         }
 
         [Fact]

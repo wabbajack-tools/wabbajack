@@ -2,6 +2,7 @@
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Security;
+using System.Threading;
 using System.Threading.Tasks;
 using CG.Web.MegaApiClient;
 using Newtonsoft.Json;
@@ -178,7 +179,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Verify(Archive a)
+            public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
                 await MegaLogin();
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Common;
@@ -89,7 +90,7 @@ namespace Wabbajack.Lib.Downloaders
         /// Returns true if this link is still valid
         /// </summary>
         /// <returns></returns>
-        public abstract Task<bool> Verify(Archive archive);
+        public abstract Task<bool> Verify(Archive archive, CancellationToken? token = null);
 
         public abstract IDownloader GetDownloader();
 

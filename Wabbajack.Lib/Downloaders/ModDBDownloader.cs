@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
@@ -71,12 +72,12 @@ namespace Wabbajack.Lib.Downloaders
                 return false;
             }
 
-            private async Task<string[]> GetDownloadUrls()
+            private async Task<string[]> GetDownloadUrls(CancellationToken? token = null)
             {
                 var uri = new Uri(Url);
                 var modId = uri.AbsolutePath.Split('/').Reverse().First(f => int.TryParse(f, out int _));
                 var mirrorUrl = $"https://www.moddb.com/downloads/start/{modId}/all";
-                var doc = await new HtmlWeb().LoadFromWebAsync($"https://www.moddb.com/downloads/start/{modId}/all");
+                var doc = await new HtmlWeb().LoadFromWebAsync($"https://www.moddb.com/downloads/start/{modId}/all", token ?? CancellationToken.None);
                 var mirrors = doc.DocumentNode.Descendants().Where(d => d.NodeType == HtmlNodeType.Element && d.HasClass("row"))
                     .Select(d => new
                     {
@@ -98,9 +99,9 @@ namespace Wabbajack.Lib.Downloaders
                 return mirrors.Select(d => d.Link).ToArray();
             }
 
-            public override async Task<bool> Verify(Archive a)
+            public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
-                await GetDownloadUrls();
+                await GetDownloadUrls(token);
                 return true;
             }
 

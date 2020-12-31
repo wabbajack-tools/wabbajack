@@ -63,23 +63,30 @@ namespace Wabbajack.Server.Services
                 try
                 {
                     _logger.Log(LogLevel.Information, $"Downloading {nextDownload.Archive.State.PrimaryKeyString}");
-                    if (!(nextDownload.Archive.State is GameFileSourceDownloader.State)) 
-                        await _discord.Send(Channel.Spam, new DiscordMessage {Content = $"Downloading {nextDownload.Archive.State.PrimaryKeyString}"});
+                    ReportStarting(nextDownload.Archive.State.PrimaryKeyString);
+                    if (!(nextDownload.Archive.State is GameFileSourceDownloader.State))
+                        await _discord.Send(Channel.Spam,
+                            new DiscordMessage
+                            {
+                                Content = $"Downloading {nextDownload.Archive.State.PrimaryKeyString}"
+                            });
                     await DownloadDispatcher.PrepareAll(new[] {nextDownload.Archive.State});
 
                     await using var tempPath = new TempFile();
                     if (!await nextDownload.Archive.State.Download(nextDownload.Archive, tempPath.Path))
                     {
-                        _logger.LogError($"Downloader returned false for {nextDownload.Archive.State.PrimaryKeyString}");
+                        _logger.LogError(
+                            $"Downloader returned false for {nextDownload.Archive.State.PrimaryKeyString}");
                         await nextDownload.Fail(_sql, "Downloader returned false");
                         continue;
                     }
 
                     var hash = await tempPath.Path.FileHashAsync();
-                    
+
                     if (nextDownload.Archive.Hash != default && hash != nextDownload.Archive.Hash)
                     {
-                        _logger.Log(LogLevel.Warning, $"Downloaded archive hashes don't match for {nextDownload.Archive.State.PrimaryKeyString} {nextDownload.Archive.Hash} {nextDownload.Archive.Size} vs {hash} {tempPath.Path.Size}");
+                        _logger.Log(LogLevel.Warning,
+                            $"Downloaded archive hashes don't match for {nextDownload.Archive.State.PrimaryKeyString} {nextDownload.Archive.Hash} {nextDownload.Archive.Size} vs {hash} {tempPath.Path.Size}");
                         await nextDownload.Fail(_sql, "Invalid Hash");
                         continue;
                     }
@@ -90,17 +97,23 @@ namespace Wabbajack.Server.Services
                         await nextDownload.Fail(_sql, "Invalid Size");
                         continue;
                     }
+
                     nextDownload.Archive.Hash = hash;
                     nextDownload.Archive.Size = tempPath.Path.Size;
 
                     _logger.Log(LogLevel.Information, $"Archiving {nextDownload.Archive.State.PrimaryKeyString}");
                     await _archiveMaintainer.Ingest(tempPath.Path);
 
-                    _logger.Log(LogLevel.Information, $"Finished Archiving {nextDownload.Archive.State.PrimaryKeyString}");
+                    _logger.Log(LogLevel.Information,
+                        $"Finished Archiving {nextDownload.Archive.State.PrimaryKeyString}");
                     await nextDownload.Finish(_sql);
-                    
-                    if (!(nextDownload.Archive.State is GameFileSourceDownloader.State)) 
-                        await _discord.Send(Channel.Spam, new DiscordMessage {Content = $"Finished downloading {nextDownload.Archive.State.PrimaryKeyString}"});
+
+                    if (!(nextDownload.Archive.State is GameFileSourceDownloader.State))
+                        await _discord.Send(Channel.Spam,
+                            new DiscordMessage
+                            {
+                                Content = $"Finished downloading {nextDownload.Archive.State.PrimaryKeyString}"
+                            });
 
 
                 }
@@ -108,7 +121,15 @@ namespace Wabbajack.Server.Services
                 {
                     _logger.Log(LogLevel.Warning, $"Error downloading {nextDownload.Archive.State.PrimaryKeyString}");
                     await nextDownload.Fail(_sql, ex.ToString());
-                    await _discord.Send(Channel.Spam, new DiscordMessage {Content = $"Error downloading {nextDownload.Archive.State.PrimaryKeyString}"});
+                    await _discord.Send(Channel.Spam,
+                        new DiscordMessage
+                        {
+                            Content = $"Error downloading {nextDownload.Archive.State.PrimaryKeyString}"
+                        });
+                }
+                finally
+                {
+                    ReportEnding(nextDownload.Archive.State.PrimaryKeyString);
                 }
                 
                 count++;

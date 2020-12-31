@@ -1,5 +1,14 @@
 ### Changelog
 
+#### Version - 2.3.6.1 - 12/31/2020
+* When IPS4 (e.g. LL) sites based on CEF fail to validate, they no longer hang the app
+* If a IPS4 CEF site throws a 503, or 400 error, retry
+* Clean out the cookies during IPS4 CEF downloads so that they don't cause 400 errors
+* Limit the number of connections to IPS4 sites to 20 per minute (one per 6 seconds)
+* If a site *does* timeout, throw a log of the CEF state into `CEFStates` for easier debugging by the WJ team
+* Wrote a new CLI utility to stress test the Verification routines.
+* Ignore files that have `\Edit Scripts\Export\` in their path
+
 #### Version - 2.3.6.0 - 12/29/2020
 * Move the LoversLab downloader to a CEF based backed making it interact with CloudFlare a bit better
 * Add support for No Man's Sky

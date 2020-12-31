@@ -21,11 +21,11 @@ namespace Wabbajack.Server.Services
             _logger = logger;
         }
 
-        public async Task<Dictionary<Type, (TimeSpan Delay, TimeSpan LastRunTime)>> Report()
+        public async Task<Dictionary<Type, (TimeSpan Delay, TimeSpan LastRunTime, (String, DateTime)[] ActiveWork)>> Report()
         {
             using var _ = await _lock.WaitAsync();
             return _services.ToDictionary(s => s.Key,
-                s => (s.Value.Delay, DateTime.UtcNow - s.Value.LastEnd));
+                s => (s.Value.Delay, DateTime.UtcNow - s.Value.LastEnd, s.Value.ActiveWorkStatus));
         }
 
         public async Task Register<T>(T service)

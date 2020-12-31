@@ -108,9 +108,9 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Verify(Archive archive)
+            public override async Task<bool> Verify(Archive archive, CancellationToken? token)
             {
-                var definition = await GetDefinition();
+                var definition = await GetDefinition(token);
                 return true;
             }
 
@@ -151,13 +151,13 @@ namespace Wabbajack.Lib.Downloaders
                 return builder.ToString();
             }
             
-            private async Task<CDNFileDefinition> GetDefinition()
+            private async Task<CDNFileDefinition> GetDefinition(CancellationToken? token = null)
             {
                 var client = new Wabbajack.Lib.Http.Client();
                 if (DomainRemaps.TryGetValue(Url.Host, out var remap))
                 {
                     var builder = new UriBuilder(Url) {Host = remap};
-                    using var data = await client.GetAsync(builder + "/definition.json.gz");
+                    using var data = await client.GetAsync(builder + "/definition.json.gz", token: token);
                     await using var gz = new GZipStream(await data.Content.ReadAsStreamAsync(),
                         CompressionMode.Decompress);
                     return gz.FromJson<CDNFileDefinition>();

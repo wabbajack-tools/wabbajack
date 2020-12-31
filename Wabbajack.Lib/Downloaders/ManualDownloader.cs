@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
 using System.Reactive.Subjects;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Common;
@@ -93,7 +94,7 @@ namespace Wabbajack.Lib.Downloaders
                 return await state.Download(a, destination);
             }
 
-            public override async Task<bool> Verify(Archive a)
+            public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
                 return true;
             }

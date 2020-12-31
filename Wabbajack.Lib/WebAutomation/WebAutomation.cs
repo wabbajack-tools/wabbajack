@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -28,15 +29,41 @@ namespace Wabbajack.Lib.WebAutomation
             return driver;
         }
 
-        public async Task<Uri?> NavigateTo(Uri uri)
+        public async Task<Uri?> NavigateTo(Uri uri, CancellationToken? token = null)
         {
-            await _driver.NavigateTo(uri);
-            return await GetLocation();
+            try
+            {
+                await _driver.NavigateTo(uri, token);
+                return await GetLocation();
+            }
+            catch (TaskCanceledException ex)
+            {
+                await DumpState(uri, ex);
+                throw;
+            }
         }
 
-        public async Task<long> NavigateToAndDownload(Uri uri, AbsolutePath absolutePath, bool quickMode = false)
+        private async Task DumpState(Uri uri, Exception ex)
         {
-            return await _driver.NavigateToAndDownload(uri, absolutePath, quickMode: quickMode);
+            var file = AbsolutePath.EntryPoint.Combine("CEFStates", DateTime.UtcNow.ToFileTimeUtc().ToString())
+                .WithExtension(new Extension(".html"));
+            file.Parent.CreateDirectory();
+            var source = await GetSourceAsync();
+            var cookies = await Helpers.GetCookies();
+            var cookiesString = string.Join('\n', cookies.Select(c => c.Name + " - " + c.Value));
+            await file.WriteAllTextAsync(uri + "\n " + source + "\n" + ex + "\n" + cookiesString);
+        }
+
+        public async Task<long> NavigateToAndDownload(Uri uri, AbsolutePath absolutePath, bool quickMode = false, CancellationToken? token = null)
+        {
+            try
+            {
+                return await _driver.NavigateToAndDownload(uri, absolutePath, quickMode: quickMode, token: token);
+            }
+            catch (TaskCanceledException ex) {
+                await DumpState(uri, ex);
+                throw;
+            }
         }
 
         public async ValueTask<Uri?> GetLocation()
@@ -78,6 +105,11 @@ namespace Wabbajack.Lib.WebAutomation
         public static void ClearCache()
         {
             Helpers.ClearCookies();
+        }
+
+        public async Task DeleteCookiesWhere(Func<Helpers.Cookie, bool> filter)
+        {
+            await Helpers.DeleteCookiesWhere(filter);
         }
     }
 }

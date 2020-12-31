@@ -103,17 +103,43 @@ namespace Wabbajack.Lib.LibCefHelpers
             var visitor = new CookieDeleter();
             manager.VisitAllCookies(visitor);
         }
+
+        public static async Task DeleteCookiesWhere(Func<Cookie,bool> filter)
+        {
+            var manager = Cef.GetGlobalCookieManager();
+            var visitor = new CookieDeleter(filter);
+            manager.VisitAllCookies(visitor);
+        }
     }
 
     class CookieDeleter : ICookieVisitor
     {
+        private Func<Helpers.Cookie, bool>? _filter;
+
+        public CookieDeleter(Func<Helpers.Cookie, bool>? filter = null)
+        {
+            _filter = filter;
+        }
         public void Dispose()
         {
         }
 
         public bool Visit(Cookie cookie, int count, int total, ref bool deleteCookie)
         {
-            deleteCookie = true;
+            if (_filter == null)
+            {
+                deleteCookie = true;
+            }
+            else
+            {
+                var conv = new Helpers.Cookie
+                {
+                    Name = cookie.Name, Domain = cookie.Domain, Value = cookie.Value, Path = cookie.Path
+                };
+                if (_filter(conv))
+                    deleteCookie = true;
+            }
+
             return true;
         }
     }

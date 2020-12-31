@@ -210,6 +210,15 @@ using Wabbajack.Lib.Downloaders;
             return null;
         }
 
+        public static async Task<Archive[]> InferAllDownloadStates(Hash hash)
+        {
+            var client = await GetClient();
+
+            var results = await client.GetJsonAsync<Archive[]>(
+                $"{Consts.WabbajackBuildServerUri}mod_files/by_hash/{hash.ToHex()}");
+            return results;
+        }
+
         public static async Task<Archive[]> GetModUpgrades(Hash src)
         {
             var client = await GetClient();

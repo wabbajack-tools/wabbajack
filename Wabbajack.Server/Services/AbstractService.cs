@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,8 @@ namespace Wabbajack.Server.Services
         public TimeSpan Delay { get; }
         public DateTime LastStart { get; }
         public DateTime LastEnd { get; }
+        
+        public (String, DateTime)[] ActiveWorkStatus { get; }
 
         
     }
@@ -30,6 +33,7 @@ namespace Wabbajack.Server.Services
         public TimeSpan Delay => _delay;
         public DateTime LastStart { get; private set; }
         public DateTime LastEnd { get; private set; }
+        public (String, DateTime)[] ActiveWorkStatus { get; private set; }= { };
 
         public AbstractService(ILogger<TP> logger, AppSettings settings, QuickSync quickSync, TimeSpan delay)
         {
@@ -85,6 +89,22 @@ namespace Wabbajack.Server.Services
         }
 
         public abstract Task<TR> Execute();
+        
+        protected void ReportStarting(string value)
+        {
+            lock (this)
+            {
+                ActiveWorkStatus = ActiveWorkStatus.Cons((value, DateTime.UtcNow)).ToArray();
+            }
+        }
+
+        protected void ReportEnding(string value)
+        {
+            lock (this)
+            {
+                ActiveWorkStatus = ActiveWorkStatus.Where(x => x.Item1 != value).ToArray();
+            }
+        }
     }
     
     public static class AbstractServiceExtensions 
@@ -96,4 +116,6 @@ namespace Wabbajack.Server.Services
         }
     
     }
+    
+    
 }

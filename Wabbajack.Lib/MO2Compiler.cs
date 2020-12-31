@@ -474,6 +474,7 @@ namespace Wabbajack.Lib
                 new IncludeAllConfigs(this),
                 new zEditIntegration.IncludeZEditPatches(this),
                 new IncludeTaggedMods(this, Consts.WABBAJACK_NOMATCH_INCLUDE),
+                new IgnorePathContains(this,@"\Edit Scripts\Export\"),
                 new DropAll(this)
             };
         }

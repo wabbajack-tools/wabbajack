@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using F23.StringSimilarity;
 using Newtonsoft.Json;
@@ -213,7 +214,7 @@ namespace Wabbajack.Lib.Downloaders
                 return await new HTTPDownloader.State(url).Download(a, destination);
             }
 
-            public override async Task<bool> Verify(Archive a)
+            public override async Task<bool> Verify(Archive a, CancellationToken? token = null)
             {
                 try
                 {

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
@@ -79,7 +80,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Verify(Archive a)
+            public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
                 return SourcePath.Exists && await SourcePath.FileHashCachedAsync() == Hash;
             }

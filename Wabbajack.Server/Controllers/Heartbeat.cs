@@ -71,9 +71,9 @@ namespace Wabbajack.BuildServer.Controllers
                 <ul>
                 {{each $.services }}
                 {{if $.IsLate}}
-                <li><b>{{$.Name}} - {{$.Time}} - {{$.MaxTime}}</b></li>
+                <li><a href='/heartbeat/report/services/{{$.Name}}.html'><b>{{$.Name}} - {{$.Time}} - {{$.MaxTime}}</b></a></li>
                 {{else}}
-                <li>{{$.Name}} - {{$.Time}} - {{$.MaxTime}}</li>
+                <li><a href='/heartbeat/report/services/{{$.Name}}.html'>{{$.Name}} - {{$.Time}} - {{$.MaxTime}}</a></li>
                 {{/if}}
                 {{/each}}
                 </ul>
@@ -109,8 +109,45 @@ namespace Wabbajack.BuildServer.Controllers
             };
             
         }
+        
+        private static readonly Func<object, string> HandleGetServiceReport = NettleEngine.GetCompiler().Compile(@"
+            <html><body>
+                <h2>Service Status: {{Name}} {{TimeSinceLastRun}}</h2>
 
+                <h3>Service Overview ({{ActiveWorkQueue.Length}}):</h3>
+                <ul>
+                {{each $.ActiveWorkQueue }}
+                <li>{{$.Name}} {{$.Time}}</li>
+                {{/each}}
+                </ul>
 
+            </body></html>
+        ");
 
+        [HttpGet("report/services/{serviceName}.html")]
+        public async Task<ContentResult> ReportServiceStatus(string serviceName)
+        {
+            var services = await _quickSync.Report();
+            var info = services.First(kvp => kvp.Key.Name == serviceName);
+
+            var response = HandleGetServiceReport(new
+            {
+                Name = info.Key.Name,
+                TimeSinceLastRun = DateTime.UtcNow - info.Value.LastRunTime,
+                ActiveWorkQueue = info.Value.ActiveWork.Select(p => new
+                {
+                    Name = p.Item1,
+                    Time = DateTime.UtcNow - p.Item2
+                }).OrderByDescending(kp => kp.Time)
+                    .ToArray()
+                
+            });
+            return new ContentResult
+            {
+                ContentType = "text/html",
+                StatusCode = (int) HttpStatusCode.OK,
+                Content = response
+            };
+        }
     }
 }

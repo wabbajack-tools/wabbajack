@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
@@ -43,15 +44,15 @@ namespace Wabbajack.Lib.Downloaders
                 return await result.Download(a, destination);
             }
 
-            public override async Task<bool> Verify(Archive a)
+            public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
-                return await Resolve() != null;
+                return await Resolve(token) != null;
             }
 
-            private async Task<HTTPDownloader.State?> Resolve()
+            private async Task<HTTPDownloader.State?> Resolve(CancellationToken? token = null)
             {
                 var client = new Http.Client();
-                var result = await client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead);
+                var result = await client.GetAsync(Url, HttpCompletionOption.ResponseHeadersRead, token:token);
                 if (!result.IsSuccessStatusCode)
                     return null;
 

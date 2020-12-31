@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Extensions.Logging;
@@ -33,18 +34,22 @@ namespace Wabbajack.Server.Services
             {
                 try
                 {
+                    var token = new CancellationTokenSource();
+                    token.CancelAfter(TimeSpan.FromMinutes(10));
+                    
+                    ReportStarting(archive.State.PrimaryKeyString);
                     bool isValid = false;
                     switch (archive.State)
                     {
                         case WabbajackCDNDownloader.State _:
                         case GoogleDriveDownloader.State _:
                         case ManualDownloader.State _:
-                        case ModDBDownloader.State _:    
+                        case ModDBDownloader.State _:
                         case HTTPDownloader.State h when h.Url.StartsWith("https://wabbajack"):
                             isValid = true;
                             break;
                         default:
-                            isValid = await archive.State.Verify(archive);
+                            isValid = await archive.State.Verify(archive, token.Token);
                             break;
                     }
                     return (Archive: archive, IsValid: isValid);
@@ -53,6 +58,10 @@ namespace Wabbajack.Server.Services
                 {
                     _logger.Log(LogLevel.Warning, $"Error for {archive.Name} {archive.State.PrimaryKeyString} {ex}");
                     return (Archive: archive, IsValid: false);
+                }
+                finally
+                {
+                    ReportEnding(archive.State.PrimaryKeyString);
                 }
 
             });

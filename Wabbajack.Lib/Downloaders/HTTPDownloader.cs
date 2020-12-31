@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Common;
@@ -74,7 +75,7 @@ namespace Wabbajack.Lib.Downloaders
                 return DoDownload(a, destination, true);
             }
 
-            public async Task<bool> DoDownload(Archive a, AbsolutePath destination, bool download)
+            public async Task<bool> DoDownload(Archive a, AbsolutePath destination, bool download, CancellationToken? token = null)
             {
                 if (download)
                 {
@@ -98,7 +99,7 @@ namespace Wabbajack.Lib.Downloaders
                     var bufferSize = 1024 * 32 * 8;
 
                     Utils.Status($"Starting Download {a.Name ?? Url}", Percent.Zero);
-                    var response = await client.GetAsync(Url, errorsAsExceptions:false, retry:false);
+                    var response = await client.GetAsync(Url, errorsAsExceptions:false, retry:false, token:token);
 TOP:
 
                     if (!response.IsSuccessStatusCode) 
@@ -143,7 +144,7 @@ TOP:
                         var buffer = new byte[bufferSize];
                         int readThisCycle = 0;
 
-                        while (true)
+                        while (!(token ?? CancellationToken.None).IsCancellationRequested)
                         {
                             int read = 0;
                             try
@@ -188,9 +189,9 @@ TOP:
                 }
             }
 
-            public override async Task<bool> Verify(Archive a)
+            public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
-                return await DoDownload(a, ((RelativePath)"").RelativeToEntryPoint(), false);
+                return await DoDownload(a, ((RelativePath)"").RelativeToEntryPoint(), false, token: token);
             }
 
             public override IDownloader GetDownloader()

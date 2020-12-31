@@ -87,7 +87,7 @@ namespace Wabbajack.Lib.Downloaders
                 return true;
             }
 
-            public override async Task<bool> Verify(Archive a)
+            public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
                 //TODO: find a way to verify steam workshop items
                 throw new NotImplementedException();

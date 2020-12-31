@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Wabbajack.Common;
@@ -70,10 +71,10 @@ namespace Wabbajack.Lib.Downloaders
                 return httpState;
             }
 
-            public override async Task<bool> Verify(Archive a)
+            public override async Task<bool> Verify(Archive a, CancellationToken? token)
             {
                 var state = await ToHttpState();
-                return await state.Verify(a);
+                return await state.Verify(a, token);
             }
 
             public override IDownloader GetDownloader()

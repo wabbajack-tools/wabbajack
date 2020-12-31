@@ -35,7 +35,9 @@ namespace Wabbajack.CLI
             typeof(HashGamefiles),
             typeof(Backup),
             typeof(Restore),
-            typeof(PurgeArchive)
+            typeof(PurgeArchive),
+            typeof(AllKnownDownloadStates),
+            typeof(VerifyAllDownloads)
         };
     }
 }

@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CefSharp;
 using Wabbajack.Common;
+using Wabbajack.Common.Exceptions;
 using Wabbajack.Lib.LibCefHelpers;
 
 namespace Wabbajack.Lib.WebAutomation
@@ -23,36 +26,78 @@ namespace Wabbajack.Lib.WebAutomation
             _browser.LifeSpanHandler = new PopupBlocker(this);
         }
 
-        public Task NavigateTo(Uri uri)
+        public Task NavigateTo(Uri uri, CancellationToken? token = null)
         {
             var tcs = new TaskCompletionSource<bool>();
 
             EventHandler<LoadingStateChangedEventArgs>? handler = null;
             handler = (sender, e) =>
             {
-                if (!e.IsLoading)
-                {
-                    _browser.LoadingStateChanged -= handler;
-                    tcs.SetResult(true);
-                }
+                if (e.IsLoading) return;
+
+                _browser.LoadingStateChanged -= handler;
+                tcs.SetResult(true);
             };
             _browser.LoadingStateChanged += handler;
             _browser.Load(uri.ToString());
-
+            token?.Register(() => tcs.TrySetCanceled());
+            
             return tcs.Task;
         }
 
-        public async Task<long> NavigateToAndDownload(Uri uri, AbsolutePath dest, bool quickMode = false)
+        private readonly string[] KnownServerLoadStrings =
+        {
+            "<h1>Temporarily Unavailable</h1>",
+            "<center>Request Header Or Cookie Too Large</center>",
+            //"<html><head></head><body></body></html>"
+        };
+        private readonly (string, int)[] KnownErrorStrings =
+        {
+            ("<h1>400 Bad Request</h1>", 400),
+            ("We could not locate the item you are trying to view.", 404)
+        };
+        private static readonly Random RetryRandom = new Random();
+
+        public async Task<long> NavigateToAndDownload(Uri uri, AbsolutePath dest, bool quickMode = false, CancellationToken? token = null)
         {
             var oldCB = _browser.DownloadHandler;
 
-            var handler = new ReroutingDownloadHandler(this, dest, quickMode: quickMode);
+            var handler = new ReroutingDownloadHandler(this, dest, quickMode: quickMode, token);
             _browser.DownloadHandler = handler;
 
             try
             {
-                await NavigateTo(uri);
-                return await handler.Task;
+                int retryCount = 0;
+                RETRY:
+                await NavigateTo(uri, token);
+                var source = await _browser.GetSourceAsync();
+                foreach (var err in KnownServerLoadStrings)
+                {
+                    if (!source.Contains(err))
+                        continue;
+
+                    if ((token?.IsCancellationRequested) == true)
+                    {
+                        throw new TimeoutException();
+                    }
+                    else
+                    {
+                        retryCount += 1;
+                        var retry = RetryRandom.Next(retryCount * 5000, retryCount * 5000 * 2);
+                        Utils.Log($"Got server load error from {uri} retying in {retry}ms [{err}]");
+                        await Task.Delay(TimeSpan.FromMilliseconds(retry));
+                        goto RETRY;
+                    }
+                }
+
+                foreach (var (err, httpCode) in KnownErrorStrings)
+                {
+                    if (source.Contains(err))
+                        throw new HttpException(httpCode,$"Web driver failed: {err}");
+                }
+
+                Utils.Log($"Loaded page {uri} starting download...");
+                return await handler.TaskResult;
             }
             finally {
                 _browser.DownloadHandler = oldCB;
@@ -83,6 +128,7 @@ namespace Wabbajack.Lib.WebAutomation
         }
 
         public string Location => _browser.Address;
+
     }
 
     public class PopupBlocker : ILifeSpanHandler
@@ -123,19 +169,24 @@ namespace Wabbajack.Lib.WebAutomation
         private AbsolutePath _path;
         public TaskCompletionSource<long> _tcs = new TaskCompletionSource<long>();
         private bool _quickMode;
-        public Task<long> Task => _tcs.Task;
+        private CancellationToken? _cancelationToken;
+        private TimeSpan _downloadTimeout;
+        public Task<long> TaskResult => _tcs.Task;
 
-        public ReroutingDownloadHandler(CefSharpWrapper wrapper, AbsolutePath path, bool quickMode)
+        public ReroutingDownloadHandler(CefSharpWrapper wrapper, AbsolutePath path, bool quickMode, CancellationToken? token)
         {
             _wrapper = wrapper;
             _path = path;
             _quickMode = quickMode;
+            _cancelationToken = token;
+            token?.Register(() => _tcs.TrySetCanceled());
         }
 
         public void OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem,
             IBeforeDownloadCallback callback)
         {
             if (_quickMode) return;
+            
             callback.Continue(_path.ToString(), false);
         }
 
@@ -145,12 +196,12 @@ namespace Wabbajack.Lib.WebAutomation
             if (_quickMode)
             {
                 callback.Cancel();
-                _tcs.SetResult(downloadItem.TotalBytes);
+                _tcs.TrySetResult(downloadItem.TotalBytes);
                 return;
             }
             
             if (downloadItem.IsComplete)
-                _tcs.SetResult(downloadItem.TotalBytes);
+                _tcs.TrySetResult(downloadItem.TotalBytes);
             callback.Resume();
         }
     }
