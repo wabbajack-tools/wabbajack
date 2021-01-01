@@ -19,7 +19,7 @@ namespace Wabbajack.Lib.CompilationSteps
         {
             var mo2Compiler = (MO2Compiler)compiler;
             _isGenericGame = mo2Compiler.CompilingGame.IsGenericMO2Plugin;
-            _game = (SteamGame)StoreHandler.Instance.SteamHandler.Games.FirstOrDefault(x =>
+            _game = (SteamGame?)StoreHandler.Instance.SteamHandler.Games.FirstOrDefault(x =>
                 mo2Compiler.CompilingGame.SteamIDs!.Contains(x.ID));
         }
 

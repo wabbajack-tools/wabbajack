@@ -109,7 +109,7 @@ namespace Wabbajack.Lib.Downloaders
                 {
                     "[General]", 
                     $"itemID={Item.ItemID}", 
-                    $"steamID={Item.Game.Game.MetaData().SteamIDs.First()}",
+                    $"steamID={Item.Game.Game.MetaData().SteamIDs!.First()}",
                     $"itemSize={Item.Size}"
                 };
             }

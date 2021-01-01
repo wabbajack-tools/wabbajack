@@ -49,7 +49,7 @@ namespace Wabbajack.Lib.Downloaders
                 _fileEvents.OnNext(new FileEvent
                 {
                     Size = new FileInfo(e.FullPath).Length,
-                    Name = e.Name,
+                    Name = e.Name!,
                     FullPath = e.FullPath
                 });
             }

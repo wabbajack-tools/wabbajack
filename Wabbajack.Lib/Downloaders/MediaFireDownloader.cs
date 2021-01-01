@@ -56,7 +56,7 @@ namespace Wabbajack.Lib.Downloaders
                 if (!result.IsSuccessStatusCode)
                     return null;
 
-                if (result.Content.Headers.ContentType.MediaType.StartsWith("text/html",
+                if (result.Content.Headers.ContentType!.MediaType!.StartsWith("text/html",
                     StringComparison.OrdinalIgnoreCase))
                 {
                     var body = await client.GetHtmlAsync(Url);
