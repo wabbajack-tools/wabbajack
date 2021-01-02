@@ -33,7 +33,7 @@ namespace Wabbajack.Lib.CompilationSteps
                             .OrderBy(f => GetFilePriority(_compiler, f))
                             .ThenBy(f => f.NestingFactor)
                             .FirstOrDefault()
-                        ?? found.OrderBy(f => f.NestingFactor).FirstOrDefault();
+                        ?? found.OrderBy(f => f.NestingFactor).First();
 
             result.ArchiveHashPath = match.MakeRelativePaths();
 

@@ -267,7 +267,7 @@ namespace Wabbajack.Lib.Downloaders
                 var oldFile = files.files.FirstOrDefault(f => f.file_id == FileID);
                 var nl = new Levenshtein();
                 var newFile = files.files.Where(f => f.category_name != null)
-                    .OrderBy(f => nl.Distance(oldFile.name.ToLowerInvariant(), f.name.ToLowerInvariant())).FirstOrDefault();
+                    .OrderBy(f => nl.Distance(oldFile!.name.ToLowerInvariant(), f.name.ToLowerInvariant())).FirstOrDefault();
 
                 if (!mod.available || oldFile == default || newFile == default)
                 {

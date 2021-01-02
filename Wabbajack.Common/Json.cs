@@ -265,7 +265,7 @@ namespace Wabbajack.Common
         {
             public override void WriteJson(JsonWriter writer, [AllowNull] IPath value, JsonSerializer serializer)
             {
-                writer.WriteValue(Enum.GetName(typeof(Game), value));
+                writer.WriteValue(value == null ? "" : value.ToString());
             }
 
             public override IPath ReadJson(JsonReader reader, Type objectType, [AllowNull] IPath existingValue, bool hasExistingValue, JsonSerializer serializer)

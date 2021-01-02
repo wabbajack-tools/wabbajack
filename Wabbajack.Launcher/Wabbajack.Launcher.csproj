@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>net5.0-windows</TargetFramework>
         <UseWPF>true</UseWPF>
         <AssemblyVersion>2.3.6.2</AssemblyVersion>
         <FileVersion>2.3.6.2</FileVersion>
@@ -13,7 +13,8 @@
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <AssemblyName>Wabbajack</AssemblyName>
         <RootNamespace>Wabbajack</RootNamespace>
-        <IncludeSymbolsInSingleFile>true</IncludeSymbolsInSingleFile>
+        <IncludeSymbolsInSingleFile>false</IncludeSymbolsInSingleFile>
+        <TrimMode>CopyUsed</TrimMode>
     </PropertyGroup>
 
     <PropertyGroup>

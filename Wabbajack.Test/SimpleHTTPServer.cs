@@ -49,7 +49,6 @@ namespace Wabbajack.Test
         /// </summary>
         public void Stop()
         {
-            _serverThread.Abort();
             _listener.Stop();
         }
 
@@ -79,6 +78,7 @@ namespace Wabbajack.Test
             _port = port;
             _serverThread = new Thread(this.Listen);
             _serverThread.Start();
+            _serverThread.IsBackground = true;
         }
         
         public void Dispose()

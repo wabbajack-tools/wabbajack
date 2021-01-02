@@ -85,11 +85,11 @@ namespace Wabbajack.Lib.Downloaders
             {
                 var id2 = HttpUtility.ParseQueryString(url.Query)["r"];
                 var parsed = HttpUtility.ParseQueryString(url.Query);
-                var name = parsed[null].Split("/", StringSplitOptions.RemoveEmptyEntries).Last();
+                var name = parsed[null]!.Split("/", StringSplitOptions.RemoveEmptyEntries).Last();
                 return new TState
                 {
                     FullURL = url.AbsolutePath,
-                    FileID = id2,
+                    FileID = id2!,
                     FileName = name
                 };
             }
@@ -129,7 +129,7 @@ namespace Wabbajack.Lib.Downloaders
             return new TState
             {
                 FullURL = url.AbsolutePath,
-                FileID = id,
+                FileID = id!,
                 FileName = file
             };
         }
@@ -240,7 +240,7 @@ namespace Wabbajack.Lib.Downloaders
 
                 var contentType = streamResult.Content.Headers.ContentType;
 
-                if (contentType.MediaType != "application/json")
+                if (contentType!.MediaType != "application/json")
                 {
                     var headerVar = a.Size == 0 ? "1" : a.Size.ToString();
                     long headerContentSize = 0;

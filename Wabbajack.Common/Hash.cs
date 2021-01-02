@@ -146,7 +146,7 @@ namespace Wabbajack.Common
                 using var i = new MemoryStream(Encoding.UTF8.GetBytes(s));
                 i.CopyTo(o);
             }
-            return sha.Hash.ToHex();
+            return sha.Hash!.ToHex();
         }
 
         public static Hash xxHash(this byte[] data)

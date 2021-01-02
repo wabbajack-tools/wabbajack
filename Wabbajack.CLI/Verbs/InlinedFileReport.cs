@@ -28,14 +28,14 @@ namespace Wabbajack.CLI.Verbs
                         case CleanedESM esm:
                         {
                             var entry = arch.GetEntry(esm.SourceDataID.ToString());
-                            return (entry.Length, d);
+                            return (entry!.Length, d);
                         }
                         case InlineFile inlined:
                             return (inlined.Size, d);
                         case PatchedFromArchive pfa:
                         {
                             var entry = arch.GetEntry(pfa.PatchID.ToString());
-                            return (entry.Length, d);
+                            return (entry!.Length, d);
                         }
                         default:
                             return (0, d);

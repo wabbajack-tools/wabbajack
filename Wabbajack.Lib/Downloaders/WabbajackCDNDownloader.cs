@@ -91,7 +91,7 @@ namespace Wabbajack.Lib.Downloaders
                         var builder = new UriBuilder(Url) {Host = remap};
                         using var response = await client.GetAsync($"{builder}/parts/{part.Index}");
                         if (!response.IsSuccessStatusCode)
-                            throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
+                            throw new HttpException((int)response.StatusCode, response.ReasonPhrase ?? "Unknown");
                         await response.Content.CopyToAsync(ostream);
                         
                     }
@@ -99,7 +99,7 @@ namespace Wabbajack.Lib.Downloaders
                     {
                         using var response = await GetWithMirroredRetry(client, $"{Url}/parts/{part.Index}");
                         if (!response.IsSuccessStatusCode)
-                            throw new HttpException((int)response.StatusCode, response.ReasonPhrase);
+                            throw new HttpException((int)response.StatusCode, response.ReasonPhrase ?? "Unknown");
                         await response.Content.CopyToAsync(ostream);
 
                     }

@@ -84,8 +84,10 @@ namespace Wabbajack.Lib
             if (entry == null)
             {
                 entry = ar.GetEntry("modlist.json");
-                using (var e = entry.Open())
-                    return e.FromJson<ModList>();
+                if (entry == null)
+                    throw new Exception("Invalid Wabbajack Installer");
+                using var e = entry.Open();
+                return e.FromJson<ModList>();
             }
             using (var e = entry.Open())
                 return e.FromJson<ModList>();

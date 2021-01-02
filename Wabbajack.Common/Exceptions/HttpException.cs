@@ -20,7 +20,7 @@ namespace Wabbajack.Common.Exceptions
             $"Http Error {response.StatusCode} - {response.ReasonPhrase}")
         {
             Code = (int)response.StatusCode;
-            Reason = response.ReasonPhrase;
+            Reason = response.ReasonPhrase ?? "Unknown";
         }
     }
 }
