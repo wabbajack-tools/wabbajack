@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -13,17 +12,16 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Alphaleonis.Win32.Filesystem;
 using ICSharpCode.SharpZipLib.BZip2;
 using IniParser;
 using IniParser.Model.Configuration;
 using IniParser.Parser;
+#if WINDOWS
 using Microsoft.Win32;
+#endif
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
-using Directory = System.IO.Directory;
 using File = Alphaleonis.Win32.Filesystem.File;
-using FileInfo = Alphaleonis.Win32.Filesystem.FileInfo;
 using Path = Alphaleonis.Win32.Filesystem.Path;
 
 namespace Wabbajack.Common
@@ -785,7 +783,7 @@ namespace Wabbajack.Common
             try
             {
                 var bytes = Encoding.UTF8.GetBytes(data.ToJson());
-                await bytes.ToEcryptedData(key);
+                await bytes.ToEncryptedData(key);
             }
             catch (Exception ex)
             {
@@ -801,17 +799,30 @@ namespace Wabbajack.Common
         }
 
         
-        public static async ValueTask ToEcryptedData(this byte[] bytes, string key)
+        public static async ValueTask ToEncryptedData(this byte[] bytes, string key)
         {
+            //DPAPI is Windows only (https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.protecteddata?view=dotnet-plat-ext-5.0#remarks)
+#if WINDOWS
             var encoded = ProtectedData.Protect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
+#endif
+#if LINUX
+            var encoded = bytes;
+#endif
             Consts.LocalAppDataPath.CreateDirectory();
-            
             await Consts.LocalAppDataPath.Combine(key).WriteAllBytesAsync(encoded);
         }
+        
         public static async Task<byte[]> FromEncryptedData(string key)
         {
             var bytes = await Consts.LocalAppDataPath.Combine(key).ReadAllBytesAsync();
+            
+            //DPAPI is Windows only (https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.protecteddata?view=dotnet-plat-ext-5.0#remarks)
+#if WINDOWS
             return ProtectedData.Unprotect(bytes, Encoding.UTF8.GetBytes(key), DataProtectionScope.LocalMachine);
+#endif
+#if LINUX
+            return bytes;
+#endif
         }
 
         public static bool HaveEncryptedJson(string key)
@@ -819,18 +830,19 @@ namespace Wabbajack.Common
             return Consts.LocalAppDataPath.Combine(key).IsFile;
         }
 
-        public static bool HaveRegKey()
-        {
-            return Registry.CurrentUser.OpenSubKey(@"Software\Wabbajack") != null;
-        }
-
         public static bool HaveRegKeyMetricsKey()
         {
-            if (HaveRegKey())
+#if WINDOWS
+            if (Registry.CurrentUser.OpenSubKey(@"Software\Wabbajack") != null)
             {
                 return Registry.CurrentUser.OpenSubKey(@"Software\Wabbajack")!.GetValueNames().Contains(Consts.MetricsKeyHeader);
             }
             return false;
+#endif
+#if LINUX
+            //TODO: find solution on linux
+            return true;
+#endif
         }
 
         public static IObservable<bool> HaveEncryptedJsonObservable(string key)
