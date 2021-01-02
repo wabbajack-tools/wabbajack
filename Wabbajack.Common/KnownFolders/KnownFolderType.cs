@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Reflection;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable CommentTypo
+// ReSharper disable InconsistentNaming
 #nullable disable
 
 namespace Wabbajack.Common.IO

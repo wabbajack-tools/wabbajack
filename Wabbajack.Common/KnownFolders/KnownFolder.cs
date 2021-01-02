@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Security.Principal;
 #nullable disable
 
 namespace Wabbajack.Common.IO
@@ -10,48 +9,34 @@ namespace Wabbajack.Common.IO
     /// </summary>
     public sealed class KnownFolder
     {
-        // ---- CONSTRUCTORS & DESTRUCTOR ------------------------------------------------------------------------------
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="KnownFolder"/> class for the folder of the given type. It
-        /// provides the values for the current user.
-        /// </summary>
-        /// <param name="type">The <see cref="KnownFolderType"/> of the known folder to represent.</param>
-        public KnownFolder(KnownFolderType type) : this(type, WindowsIdentity.GetCurrent()) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="KnownFolder"/> class for the folder of the given type. It
-        /// provides the values for the given impersonated user.
-        /// </summary>
-        /// <param name="type">The <see cref="KnownFolderType"/> of the known folder to represent.</param>
-        /// <param name="identity">The <see cref="WindowsIdentity"/> of the impersonated user which values will be
-        /// provided.</param>
-        public KnownFolder(KnownFolderType type, WindowsIdentity identity)
-        {
-            Type = type;
-            Identity = identity;
-        }
-
-        // ---- PROPERTIES ---------------------------------------------------------------------------------------------
-
         /// <summary>
         /// Gets the type of the known folder which is represented.
         /// </summary>
         public KnownFolderType Type { get; }
 
+#if LINUX
+        public string Path { get; set; } = string.Empty;
+#endif
+
+        // ---- CONSTRUCTORS & DESTRUCTOR ------------------------------------------------------------------------------
+#if WINDOWS
         /// <summary>
-        /// Gets the <see cref="WindowsIdentity"/> of the user whose folder values are provided.
+        /// Initializes a new instance of the <see cref="KnownFolder"/> class for the folder of the given type. It
+        /// provides the values for the given impersonated user.
         /// </summary>
-        public WindowsIdentity Identity { get; }
+        /// <param name="type">The <see cref="KnownFolderType"/> of the known folder to represent.</param>
+        /// <param name="identity">The <see cref="System.Security.Principal.WindowsIdentity"/> of the impersonated user which values will be
+        /// provided.</param>
+        public KnownFolder(KnownFolderType type, System.Security.Principal.WindowsIdentity identity)
+        {
+            Type = type;
+            Identity = identity;
+        }
 
         /// <summary>
-        /// Gets the default path of the folder. This does not require the folder to be existent.
+        /// Gets the <see cref="System.Security.Principal.WindowsIdentity"/> of the user whose folder values are provided.
         /// </summary>
-        /// <exception cref="ExternalException">The known folder could not be retrieved.</exception>
-        public string DefaultPath
-        {
-            get => GetPath(KnownFolderFlags.DontVerify | KnownFolderFlags.DefaultPath);
-        }
+        public System.Security.Principal.WindowsIdentity Identity { get; }
 
         /// <summary>
         /// Gets or sets the path as currently configured. This does not require the folder to be existent.
@@ -63,44 +48,21 @@ namespace Wabbajack.Common.IO
             set => SetPath(KnownFolderFlags.None, value);
         }
 
-        /// <summary>
-        /// Gets or sets the path as currently configured, with all environment variables expanded.
-        /// This does not require the folder to be existent.
-        /// </summary>
-        /// <exception cref="ExternalException">The known folder could not be retrieved.</exception>
-        public string ExpandedPath
-        {
-            get => GetPath(KnownFolderFlags.DontVerify | KnownFolderFlags.NoAlias);
-            set => SetPath(KnownFolderFlags.DontUnexpand, value);
-        }
-
-        // ---- METHODS (PUBLIC) ---------------------------------------------------------------------------------------
-
-        /// <summary>
-        /// Creates the folder using its Desktop.ini settings.
-        /// </summary>
-        /// <exception cref="ExternalException">The known folder could not be retrieved.</exception>
-        public void Create()
-        {
-            GetPath(KnownFolderFlags.Init | KnownFolderFlags.Create);
-        }
-
         // ---- METHODS (PRIVATE) --------------------------------------------------------------------------------------
 
         private string GetPath(KnownFolderFlags flags)
         {
             int result = SHGetKnownFolderPath(Type.GetGuid(), (uint)flags, Identity.Token, out IntPtr outPath);
-            if (result >= 0)
-            {
-                string path = Marshal.PtrToStringUni(outPath);
-                Marshal.FreeCoTaskMem(outPath);
-                return path;
-            }
-            else
+            if (result < 0)
             {
                 throw new ExternalException("Cannot get the known folder path. It may not be available on this system.",
                     result);
             }
+
+            string path = Marshal.PtrToStringUni(outPath);
+            Marshal.FreeCoTaskMem(outPath);
+            return path;
+
         }
 
         private void SetPath(KnownFolderFlags flags, string path)
@@ -165,5 +127,6 @@ namespace Wabbajack.Common.IO
             NoAppcontainerRedirection = 0x00010000,
             AliasOnly = 0x80000000
         }
+#endif
     }
 }
