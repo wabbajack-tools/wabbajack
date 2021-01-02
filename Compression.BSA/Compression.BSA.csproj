@@ -1,10 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-      <TargetFramework>net5.0-windows</TargetFramework>
+      <TargetFramework>net5.0</TargetFramework>
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
       <Platforms>x64</Platforms>
-      <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
       <Version>3.0</Version>
       <Nullable>enable</Nullable>
       <WarningsAsErrors>nullable</WarningsAsErrors>
@@ -15,6 +14,21 @@
       <AssemblyVersion>2.2.1.2</AssemblyVersion>
       <FileVersion>2.2.1.2</FileVersion>
     </PropertyGroup>
+    <Choose>
+        <When Condition="'$(OS)'=='Windows_NT'">
+            <PropertyGroup>
+                <TargetFramework>net5.0-windows</TargetFramework>
+                <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+                <DefineConstants>WINDOWS</DefineConstants>
+            </PropertyGroup>
+        </When>
+        <Otherwise>
+            <PropertyGroup>
+                <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+                <DefineConstants>LINUX</DefineConstants>
+            </PropertyGroup>
+        </Otherwise>
+    </Choose>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       <DocumentationFile>Compression.BSA.xml</DocumentationFile>
     </PropertyGroup>
