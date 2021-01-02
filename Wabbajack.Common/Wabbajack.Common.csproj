@@ -1,9 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net5.0-windows</TargetFramework>
+        <TargetFramework>net5.0</TargetFramework>
         <Platforms>x64</Platforms>
-        <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Title>Wabbajack Common Lib</Title>
@@ -20,9 +19,23 @@
         <FileVersion>2.2.1.2</FileVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
+    <Choose>
+        <When Condition="'$(OS)'=='Windows_NT'">
+            <PropertyGroup>
+                <TargetFramework>net5.0-windows</TargetFramework>
+                <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+                <DefineConstants>WINDOWS</DefineConstants>
+            </PropertyGroup>
+        </When>
+        <Otherwise>
+            <PropertyGroup>
+                <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+                <DefineConstants>LINUX</DefineConstants>
+            </PropertyGroup>
+        </Otherwise>
+    </Choose>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
       <DocumentationFile>Wabbajack.Common.xml</DocumentationFile>
-      <NoWarn></NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <None Remove="7z.dll.gz" />
