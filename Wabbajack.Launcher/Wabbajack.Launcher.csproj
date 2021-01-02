@@ -14,6 +14,7 @@
         <AssemblyName>Wabbajack</AssemblyName>
         <RootNamespace>Wabbajack</RootNamespace>
         <IncludeSymbolsInSingleFile>false</IncludeSymbolsInSingleFile>
+        <TrimMode>CopyUsed</TrimMode>
     </PropertyGroup>
 
     <PropertyGroup>
