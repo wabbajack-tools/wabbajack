@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security;
+#if WINDOWS
 using Microsoft.Win32;
+#endif
 #nullable enable
 
 namespace Wabbajack.Common.StoreHandlers
@@ -43,6 +45,7 @@ namespace Wabbajack.Common.StoreHandlers
 
         public override bool Init()
         {
+#if WINDOWS
             try
             {
                 var steamKey = Registry.CurrentUser.OpenSubKey(SteamRegKey);
@@ -86,6 +89,18 @@ namespace Wabbajack.Common.StoreHandlers
             }
 
             return false;
+#endif
+#if LINUX
+            var home = LinuxUtils.GetHomeFolder();
+            var hiddenSteamFolder = home.Combine(".steam");
+            
+            if (!hiddenSteamFolder.Exists) return false;
+            var steamFolder = hiddenSteamFolder.Combine("steam");
+            if (!steamFolder.Exists) return false;
+
+            SteamPath = steamFolder;
+            return true;
+#endif
         }
 
         private List<AbsolutePath> LoadUniverses()

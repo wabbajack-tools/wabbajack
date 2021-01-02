@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security;
+#if WINDOWS
 using Microsoft.Win32;
+#endif
 
 #nullable enable
 
@@ -29,6 +31,7 @@ namespace Wabbajack.Common.StoreHandlers
 
         public override bool Init()
         {
+#if WINDOWS
             try
             {
                 var key = Registry.LocalMachine.OpenSubKey(RegKey);
@@ -71,11 +74,17 @@ namespace Wabbajack.Common.StoreHandlers
             }
 
             return false;
+#endif
+#if LINUX
+            Utils.Log("Wabbajack does not support BethNet on Linux at the moment!");
+            return false;
+#endif
         }
 
         public override bool LoadAllGames()
         {
-            List<BethNetGame> possibleGames = new List<BethNetGame>();
+#if WINDOWS
+            List<BethNetGame> possibleGames = new();
             // games folder
 
             if (!GamesFolder.Exists)
@@ -198,6 +207,10 @@ namespace Wabbajack.Common.StoreHandlers
             Utils.Log($"Total number of BethNet Games found: {Games.Count}");
 
             return Games.Count != 0;
+#endif
+#if LINUX
+            return false;
+#endif
         }
 
         private static string FixRegistryValue(string value)

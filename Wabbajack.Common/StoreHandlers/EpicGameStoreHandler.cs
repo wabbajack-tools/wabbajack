@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+#if WINDOWS
 using Microsoft.Win32;
+#endif
 
 namespace Wabbajack.Common.StoreHandlers
 {
@@ -16,6 +18,7 @@ namespace Wabbajack.Common.StoreHandlers
 
         public override bool LoadAllGames()
         {
+#if WINDOWS
             try
             {
                 using var eosKey = Registry.CurrentUser.OpenSubKey(BaseRegKey);
@@ -56,6 +59,11 @@ namespace Wabbajack.Common.StoreHandlers
             }
 
             return true;
+#endif
+#if LINUX
+            Utils.Error("Wabbajack does not support EGS on Linux at the moment!");
+            return false;
+#endif
         }
 
         public class EpicStoreGame : AStoreGame

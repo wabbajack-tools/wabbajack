@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Security;
+#if WINDOWS
 using Microsoft.Win32;
+#endif
 
 namespace Wabbajack.Common.StoreHandlers
 {
@@ -15,13 +17,16 @@ namespace Wabbajack.Common.StoreHandlers
     {
         public override StoreType Type { get; internal set; }
 
+#if WINDOWS
         private const string GOGRegKey = @"Software\GOG.com\Games";
         private const string GOG64RegKey = @"Software\WOW6432Node\GOG.com\Games";
-
+        
         private RegistryKey? GOGKey { get; set; }
+#endif
 
         public override bool Init()
         {
+#if WINDOWS
             try
             {
                 var gogKey = Registry.LocalMachine.OpenSubKey(GOGRegKey) ??
@@ -45,11 +50,17 @@ namespace Wabbajack.Common.StoreHandlers
                 Utils.Error(uae, "GOGHandler could not read from registry!");
             }
 
+            return false;            
+#endif
+#if LINUX
+            Utils.Error("Wabbajack does support GOG on Linux at the moment!");
             return false;
+#endif
         }
 
         public override bool LoadAllGames()
         {
+#if WINDOWS
             if (GOGKey == null)
             {
                 Utils.Error("GOGHandler could not read from registry!");
@@ -131,6 +142,10 @@ namespace Wabbajack.Common.StoreHandlers
             Utils.Log($"Total number of GOG Games found: {Games.Count}");
 
             return true;
+#endif
+#if LINUX
+            return false;
+#endif
         }
     }
 }
