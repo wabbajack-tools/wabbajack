@@ -83,7 +83,7 @@ namespace Wabbajack.CLI.Verbs
 
                 if (encrypted)
                 {
-                    await data.ToEcryptedData(name);
+                    await data.ToEncryptedData(name);
                 }
                 else
                 {
