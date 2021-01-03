@@ -20,19 +20,19 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build --no-restore --runtime win10-x64 --configuration Release /p:Platform=x64
     - name: Test Wabbajack.Common.Test
-      run: dotnet test --no-build --verbosity normal Wabbajack.Common.Test
+      run: dotnet test --no-build --verbosity normal --runtime win10-x64 --configuration Release /p:Platform=x64 Wabbajack.Common.Test
     - name: Test Compression.BSA.Test
-      run: dotnet test --no-build --verbosity normal Compression.BSA.Test
+      run: dotnet test --no-build --verbosity normal --runtime win10-x64 --configuration Release /p:Platform=x64 Compression.BSA.Test
     - name: Test Wabbajack.VirtualFileSystem.Test
-      run: dotnet test --no-build --verbosity normal Wabbajack.VirtualFileSystem.Test
+      run: dotnet test --no-build --verbosity normal --runtime win10-x64 --configuration Release /p:Platform=x64 Wabbajack.VirtualFileSystem.Test
     - name: Test Wabbajack.Test
-      run: dotnet test --no-build --verbosity normal Wabbajack.Test
+      run: dotnet test --no-build --verbosity normal --runtime win10-x64 --configuration Release /p:Platform=x64 Wabbajack.Test
     - name: Test Wabbajack.App.Test
-      run: dotnet test --no-build --verbosity normal  Wabbajack.App.Test
+      run: dotnet test --no-build --verbosity normal --runtime win10-x64 --configuration Release /p:Platform=x64 Wabbajack.App.Test
     - name: Test Wabbajack.Server.Test
-      run: dotnet test --no-build --verbosity normal Wabbajack.Server.Test
+      run: dotnet test --no-build --verbosity normal --runtime win10-x64 --configuration Release /p:Platform=x64 Wabbajack.Server.Test
     - name: Publish App
       run: dotnet publish Wabbajack\Wabbajack.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o c:\tmp\PublishApp --self-contained
     - name: Publish Launcher
