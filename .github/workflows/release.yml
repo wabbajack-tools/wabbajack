@@ -25,3 +25,14 @@ jobs:
       run: dotnet publish Wabbajack\Wabbajack.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o c:\tmp\PublishApp --self-contained
     - name: Publish Launcher
       run: dotnet publish Wabbajack.Launcher\Wabbajack.Launcher.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o c:\tmp\PublishLauncher --self-contained
+    - name: Sign App
+      uses: DanaBear/code-sign-action@v4
+      with:
+        certificate: ${{ secrets.CODE_CERT }}
+        folder: c:\tmp\PublishApp
+    - name: Sign Launcher
+      uses: DanaBear/code-sign-action@v4
+      with:
+        certificate: ${{ secrets.CODE_CERT }}
+        folder: c:\tmp\PublishLauncher
+
