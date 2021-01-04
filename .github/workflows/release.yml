@@ -1,0 +1,27 @@
+name: .NET
+
+on:
+  workflow_dispatch:
+    inputs:
+      description: 'Release Version'
+      required: true
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Publish App
+      run: dotnet publish Wabbajack\Wabbajack.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o c:\tmp\PublishApp --self-contained
+    - name: Publish Launcher
+      run: dotnet publish Wabbajack.Launcher\Wabbajack.Launcher.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o c:\tmp\PublishLauncher --self-contained
