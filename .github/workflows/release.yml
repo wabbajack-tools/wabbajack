@@ -2,8 +2,9 @@ name: Create Release
 on:
   workflow_dispatch:
     inputs:
-      description: 'Release Version'
-      required: true
+      version:
+        description: 'Release Version'
+        required: true
 
 jobs:
   build:
