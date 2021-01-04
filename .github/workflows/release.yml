@@ -44,7 +44,7 @@ jobs:
     - name: Create Release Folder
       run: mkdir c:\wabbajack_releases\${{ github.event.inputs.version }}
     - name: Copy Launcher
-      run: copy c:\tmp\PublishLauncher\Wabbajack c:\wabbajack_releases\${{ github.event.inputs.version }}\Wabbajack.exe
+      run: copy c:\tmp\PublishLauncher\Wabbajack.exe c:\wabbajack_releases\${{ github.event.inputs.version }}\Wabbajack.exe
     - name: Zip Release
       uses: vimtor/action-zip@v1
       with:
