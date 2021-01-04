@@ -36,19 +36,9 @@ jobs:
     - name: Publish Launcher
       run: dotnet publish Wabbajack.Launcher\Wabbajack.Launcher.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o c:\tmp\PublishLauncher --self-contained
     - name: Sign App
-      uses: DanaBear/code-sign-action@v4
-      with:
-        certificate: ${{ secrets.CODE_CERT }}
-        password: ${{ secrets.CERT_PASSWORD }}
-        certificatesha1: ${{ secrets.CERT_THUMBPRINT }} 
-        folder: c:\tmp\PublishApp
+      run: \"C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe\" sign /sm c:\tmp\PublishApp\Wabbajack.exe
     - name: Sign Launcher
-      uses: DanaBear/code-sign-action@v4
-      with:
-        certificate: ${{ secrets.CODE_CERT }}
-        password: ${{ secrets.CERT_PASSWORD }}
-        certificatesha1: ${{ secrets.CERT_THUMBPRINT }} 
-        folder: c:\tmp\PublishLauncher
+      run: \"C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\x86\signtool.exe\" sign /sm c:\tmp\PublishLauncher\Wabbajack.exe
     - name: Copy Launcher
       uses: canastro/copy-action@0.0.2
       with:
