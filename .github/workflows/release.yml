@@ -34,5 +34,6 @@ jobs:
       uses: DanaBear/code-sign-action@v4
       with:
         certificate: ${{ secrets.CODE_CERT }}
+        password: ${{ secrets.CERT_PASSWORD }}
         folder: c:\tmp\PublishLauncher
 
