@@ -41,11 +41,10 @@ jobs:
     - name: Sign Launcher
       run: C:\"Program Files (x86)"\"Windows Kits"\10\bin\10.0.17763.0\x86\signtool.exe sign /sm c:\tmp\PublishLauncher\Wabbajack.exe
       shell: cmd
+    - name: Create Release Folder
+      run: mkdir c:\wabbajack_releases\${{ github.event.inputs.version }}
     - name: Copy Launcher
-      uses: canastro/copy-action@0.0.2
-      with:
-        source: c:\tmp\PublishLauncher\Wabbajack.exe
-        destination: c:\wabbajack_releases\${{ github.event.inputs.version }}\Wabbajack.exe
+      run: copy c:\tmp\PublishLauncher\Wabbajack c:\wabbajack_releases\${{ github.event.inputs.version }}\Wabbajack.exe
     - name: Zip Release
       uses: vimtor/action-zip@v1
       with:
