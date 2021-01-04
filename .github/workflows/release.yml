@@ -46,5 +46,5 @@ jobs:
     - name: Copy Launcher
       run: copy c:\tmp\PublishLauncher\Wabbajack.exe c:\wabbajack_releases\${{ github.event.inputs.version }}\Wabbajack.exe
     - name: Zip Release
-      run: Compress-Archive c:\tmp\PublishApp c:\wabbajack_releases\${{ github.event.inputs.version }}\${{ github.event.inputs.version }}.zip
+      run: Compress-Archive -Path c:\tmp\PublishApp\* -DestinationPath c:\wabbajack_releases\${{ github.event.inputs.version }}\${{ github.event.inputs.version }}.zip
 
