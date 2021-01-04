@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>WinExe</OutputType>
+        <OutputType>Exe</OutputType>
         <TargetFramework>net5.0-windows</TargetFramework>
         <UseWPF>true</UseWPF>
         <AssemblyVersion>2.3.6.2</AssemblyVersion>
@@ -14,7 +14,8 @@
         <AssemblyName>Wabbajack</AssemblyName>
         <RootNamespace>Wabbajack</RootNamespace>
         <IncludeSymbolsInSingleFile>false</IncludeSymbolsInSingleFile>
-        <TrimMode>CopyUsed</TrimMode>
+        <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+        <TrimMode>Link</TrimMode>
     </PropertyGroup>
 
     <PropertyGroup>
