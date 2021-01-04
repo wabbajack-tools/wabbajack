@@ -21,11 +21,11 @@ jobs:
       run: dotnet restore
       
     - name: Remove Previous App
-      uses: JesseTG/rm@v.1.0.0
+      uses: JesseTG/rm@v1.0.0
       with:
         path: c:\tmp\PublishApp    
     - name: Remove Previous Launcher
-      uses: JesseTG/rm@v.1.0.0
+      uses: JesseTG/rm@v1.0.0
       with:
         path: c:\tmp\PublishLauncher    
 
