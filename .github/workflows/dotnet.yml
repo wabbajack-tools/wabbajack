@@ -33,9 +33,3 @@ jobs:
       run: dotnet test --verbosity normal --configuration Release /p:Platform=x64 Wabbajack.App.Test
     - name: Test Wabbajack.Server.Test
       run: dotnet test --verbosity normal --configuration Release /p:Platform=x64 Wabbajack.Server.Test
-    - name: Publish App
-      run: dotnet publish Wabbajack\Wabbajack.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o c:\tmp\PublishApp --self-contained
-    - name: Publish Launcher
-      run: dotnet publish Wabbajack\Wabbajack.Launcher.csproj --runtime win10-x64 --configuration Release /p:Platform=x64 -o c:\tmp\PublishLauncher --self-contained
-      
-      
