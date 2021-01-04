@@ -19,6 +19,16 @@ jobs:
         dotnet-version: 5.0.101
     - name: Restore dependencies
       run: dotnet restore
+      
+    - name: Remove Previous App
+      uses: JesseTG/rm@v.1.0.0
+      with:
+        path: c:\tmp\PublishApp    
+    - name: Remove Previous Launcher
+      uses: JesseTG/rm@v.1.0.0
+      with:
+        path: c:\tmp\PublishLauncher    
+
     - name: Build
       run: dotnet build --no-restore
     - name: Publish App
@@ -36,4 +46,14 @@ jobs:
         certificate: ${{ secrets.CODE_CERT }}
         password: ${{ secrets.CERT_PASSWORD }}
         folder: c:\tmp\PublishLauncher
+    - name: Copy Launcher
+      uses: canastro/copy-action@0.0.2
+      with:
+        source: c:\tmp\PublishLauncher\Wabbajack.exe
+        destination: c:\wabbajack_releases\${{ github.event.inputs.version }}\Wabbajack.exe
+    - name: Zip Release
+      uses: vimtor/action-zip@v1
+      with:
+        files: c:\tmp\PublishApp
+        dest: c:\wabbajack_releases\${{ github.event.inputs.version }}\${{ github.event.inputs.version }}.zip
 
