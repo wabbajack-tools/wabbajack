@@ -39,12 +39,15 @@ jobs:
       uses: DanaBear/code-sign-action@v4
       with:
         certificate: ${{ secrets.CODE_CERT }}
+        password: ${{ secrets.CERT_PASSWORD }}
+        certificatesha1: ${{ secrets.CERT_THUMBPRINT }} 
         folder: c:\tmp\PublishApp
     - name: Sign Launcher
       uses: DanaBear/code-sign-action@v4
       with:
         certificate: ${{ secrets.CODE_CERT }}
         password: ${{ secrets.CERT_PASSWORD }}
+        certificatesha1: ${{ secrets.CERT_THUMBPRINT }} 
         folder: c:\tmp\PublishLauncher
     - name: Copy Launcher
       uses: canastro/copy-action@0.0.2
