@@ -4,6 +4,7 @@
 * Wabbajack is now based on .NET 5.0 (does not require a runtime download by users)
 * Origin is now supported as a game source
 * Basic (mostly untested) support for Dragon Age : Origins
+* Replace RocksDB with SQLite should result in less process contention when running the UI and the CLI at the same time
 
 #### Version - 2.3.6.2 - 12/31/2020
 * HOTFIX: Also apply the IPS4 changes to LL Meta lookups

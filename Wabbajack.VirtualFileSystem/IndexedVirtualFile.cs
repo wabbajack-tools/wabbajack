@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Wabbajack.Common;
 using Wabbajack.Common.Serialization.Json;
@@ -30,7 +31,7 @@ namespace Wabbajack.VirtualFileSystem
 
         public void Write(Stream s)
         {
-            using var bw = new BinaryWriter(s);
+            using var bw = new BinaryWriter(s, Encoding.UTF8, true);
             bw.Write(Size);
             bw.Write(Children.Count);
             foreach (var file in Children)
