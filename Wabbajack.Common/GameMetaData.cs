@@ -41,7 +41,8 @@ namespace Wabbajack.Common
         StardewValley,
         KingdomComeDeliverance,
         MechWarrior5Mercenaries,
-        NoMansSky
+        NoMansSky,
+        DragonAgeOrigins
     }
 
     public static class GameExtensions
@@ -70,6 +71,11 @@ namespace Wabbajack.Common
 
         // to get gog ids: https://www.gogdb.org
         public List<int>? GOGIDs { get; internal set; }
+
+        // to get these ids, split the numbers from the letters in file names found in
+        // C:\ProgramData\Origin\LocalContent\{game name)\*.mfst
+        // So for DA:O this is "DR208591800.mfst" -> "DR:208591800"
+        public List<string> OriginIDs { get; set; } = new();
         
         public List<string> EpicGameStoreIDs { get; internal set; } = new List<string>();
 
@@ -548,7 +554,7 @@ namespace Wabbajack.Common
                     Game = Game.NoMansSky,	
                     NexusName = "nomanssky",	
                     NexusGameId = 1634,
-                    MO2Name = "Mo Man's Sky",
+                    MO2Name = "No Man's Sky",
                     SteamIDs = new List<int>{275850},
                     GOGIDs = new List<int>{1446213994},
                     RequiredFiles = new List<string>	
@@ -556,6 +562,22 @@ namespace Wabbajack.Common
                         @"Binaries\NMS.exe"	
                     },
                     MainExecutable = @"Binaries\NMS.exe"	
+                }
+            },
+            {	
+                Game.DragonAgeOrigins, new GameMetaData	
+                {	
+                    Game = Game.DragonAgeOrigins,
+                    NexusName = "dragonage",	
+                    NexusGameId = 140,
+                    MO2Name = "Dragon Age: Origins", // Probably wrong
+                    SteamIDs = new List<int>{17450},
+                    OriginIDs = new List<string>{"DR:208591800"},
+                    RequiredFiles = new List<string>	
+                    {	
+                        @"bin_ship\daorigins.exe"	
+                    },
+                    MainExecutable = @"bin_ship\daorigins.exe"	
                 }
             }
         };

@@ -12,6 +12,9 @@ namespace Wabbajack.Common.StoreHandlers
     {
         public override Game Game { get; internal set; }
         public override StoreType Type { get; internal set; } = StoreType.BethNet;
+
+        public AbsolutePath InstallPath;
+        
     }
 
     public class BethNetHandler : AStoreHandler
