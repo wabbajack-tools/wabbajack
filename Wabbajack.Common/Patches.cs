@@ -52,9 +52,15 @@ namespace Wabbajack.Common
 
             cmd.Parameters.AddWithValue("@patchSize", patch.Length);
             cmd.Parameters.AddWithValue("@patch", patch.ToArray());
-            await cmd.ExecuteNonQueryAsync();
-
-
+            try
+            {
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (SQLiteException ex)
+            {
+                if (!ex.Message.StartsWith("constraint exception"))
+                    throw;
+            }
             await patch.CopyToAsync(output);
         }
 
@@ -78,7 +84,16 @@ namespace Wabbajack.Common
 
             cmd.Parameters.AddWithValue("@patchSize", patchStream.Length);
             cmd.Parameters.AddWithValue("@patch", patchStream.ToArray());
-            await cmd.ExecuteNonQueryAsync();
+            try
+            {
+                await cmd.ExecuteNonQueryAsync();
+            }
+            catch (SQLiteException ex)
+            {
+                if (!ex.Message.StartsWith("constraint exception"))
+                    throw;
+
+            }
 
             if (patchOutStream == null) return patchStream.Position;
 
