@@ -1,5 +1,10 @@
 ### Changelog
 
+#### Version - 2.4.0.0 - ???
+* Wabbajack is now based on .NET 5.0 (does not require a runtime download by users)
+* Origin is now supported as a game source
+* Basic (mostly untested) support for Dragon Age : Origins
+
 #### Version - 2.3.6.2 - 12/31/2020
 * HOTFIX: Also apply the IPS4 changes to LL Meta lookups
 
