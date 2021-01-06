@@ -228,8 +228,10 @@ namespace Wabbajack.VirtualFileSystem.Test
 
         private static async Task<AbsolutePath> DownloadMod(Game game, int mod)
         {
-            using var client = await NexusApiClient.Get();
-            var results = await client.GetModFiles(game, mod);
+            var client = DownloadDispatcher.GetInstance<NexusDownloader>();
+            await client.Prepare();
+
+            var results = await client.Client!.GetModFiles(game, mod);
             var file = results.files.FirstOrDefault(f => f.is_primary) ??
                        results.files.OrderByDescending(f => f.uploaded_timestamp).First();
             return await DownloadNexusFile(game, mod, file);
@@ -253,8 +255,10 @@ namespace Wabbajack.VirtualFileSystem.Test
 
         public static async Task<AbsolutePath> DownloadMod(Game game, int mod, int fileId)
         {
-            using var client = await NexusApiClient.Get();
-            var results = await client.GetModFiles(game, mod);
+            var client = DownloadDispatcher.GetInstance<NexusDownloader>();
+            await client.Prepare();
+
+            var results = await client.Client!.GetModFiles(game, mod);
             var file = results.files.FirstOrDefault(f => f.file_id == fileId);
             return await DownloadNexusFile(game, mod, file);
 
