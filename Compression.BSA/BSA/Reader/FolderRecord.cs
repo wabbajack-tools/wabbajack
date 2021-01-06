@@ -2,10 +2,7 @@
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
-using NativeImport;
 using Wabbajack.Common;
-using File = Alphaleonis.Win32.Filesystem.File;
 
 namespace Compression.BSA
 {
