@@ -50,8 +50,9 @@ namespace Compression.BSA.Test
 
         private static async Task<AbsolutePath> DownloadMod(Game game, int mod)
         {
-            using var client = await NexusApiClient.Get();
-            var results = await client.GetModFiles(game, mod);
+            var client = DownloadDispatcher.GetInstance<NexusDownloader>();
+            await client.Prepare();
+            var results = await client.Client!.GetModFiles(game, mod);
             var file = results.files.FirstOrDefault(f => f.is_primary) ??
                        results.files.OrderByDescending(f => f.uploaded_timestamp).First();
             var src = _stagingFolder.Combine(file.file_name);
