@@ -1,6 +1,6 @@
 ﻿# Wabbajack
 
-[![Build Status](https://dev.azure.com/tbaldridge/tbaldridge/_apis/build/status/wabbajack-tools.wabbajack?branchName=master)](https://dev.azure.com/tbaldridge/tbaldridge/_build/latest?definitionId=3&branchName=master)
+![CI Tests](https://github.com/wabbajack-tools/wabbajack/workflows/CI%20Tests/badge.svg)
 
 Wabbajack is an automated Modlist Installer that can reproduce an entire modding setup on another machine without bundling any assets or re-distributing any mods.
 
