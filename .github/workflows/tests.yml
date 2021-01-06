@@ -33,3 +33,9 @@ jobs:
       run: dotnet test --verbosity normal --configuration Release /p:Platform=x64 Wabbajack.App.Test
     - name: Test Wabbajack.Server.Test
       run: dotnet test --verbosity normal --configuration Release /p:Platform=x64 Wabbajack.Server.Test
+    - name: Publish Unit Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v1.6
+      if: always()
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        files: test-results/**/*.xml      
