@@ -15,7 +15,7 @@ namespace Wabbajack.Common
 
         static PatchCache()
         {
-            _connectionString = String.Intern($"URI=file:{DBLocation};Pooling=True;Max Pool Size=100;");
+            _connectionString = String.Intern($"URI=file:{DBLocation};Pooling=True;Max Pool Size=100; Journal Mode=Memory;");
             _conn = new SQLiteConnection(_connectionString);
             _conn.Open();
 
@@ -25,7 +25,8 @@ namespace Wabbajack.Common
             ToHash BIGINT,
             PatchSize BLOB,
             Patch BLOB,
-            PRIMARY KEY (FromHash, ToHash))";
+            PRIMARY KEY (FromHash, ToHash))
+            WITHOUT ROWID";
             cmd.ExecuteNonQuery();
 
         }
@@ -142,6 +143,15 @@ namespace Wabbajack.Common
 
 
 
+        }
+
+        public static void VacuumDatabase()
+        {
+            using var cmd = new SQLiteCommand(_conn);
+            cmd.CommandText = @"VACUUM";
+            cmd.PrepareAsync();
+
+            cmd.ExecuteNonQuery();
         }
 
         public static void ApplyPatch(Stream input, Func<Stream> openPatchStream, Stream output)

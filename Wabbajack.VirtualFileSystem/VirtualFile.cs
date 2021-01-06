@@ -22,14 +22,15 @@ namespace Wabbajack.VirtualFileSystem
 
         static VirtualFile()
         {
-            _connectionString = String.Intern($"URI=file:{DBLocation};Pooling=True;Max Pool Size=100;");
+            _connectionString = String.Intern($"URI=file:{DBLocation};Pooling=True;Max Pool Size=100; Journal Mode=Memory;");
             _conn = new SQLiteConnection(_connectionString);
             _conn.Open();
 
             using var cmd = new SQLiteCommand(_conn);
             cmd.CommandText = @"CREATE TABLE IF NOT EXISTS VFSCache (
-            Hash BIGINT PRIMARY KEY ,
-            Contents BLOB)";
+            Hash BIGINT PRIMARY KEY,
+            Contents BLOB)
+            WITHOUT ROWID";
             cmd.ExecuteNonQuery();
 
         }
@@ -272,6 +273,14 @@ namespace Wabbajack.VirtualFileSystem
                     return;
                 throw;
             }
+        }
+        public static void VacuumDatabase()
+        {
+            using var cmd = new SQLiteCommand(_conn);
+            cmd.CommandText = @"VACUUM";
+            cmd.PrepareAsync();
+
+            cmd.ExecuteNonQuery();
         }
 
         internal void FillFullPath()

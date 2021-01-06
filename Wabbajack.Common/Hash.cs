@@ -127,7 +127,7 @@ namespace Wabbajack.Common
 
         static HashCache()
         {
-            _connectionString = String.Intern($"URI=file:{DBLocation};Pooling=True;Max Pool Size=100;");
+            _connectionString = String.Intern($"URI=file:{DBLocation};Pooling=True;Max Pool Size=100; Journal Mode=Memory;");
             _conn = new SQLiteConnection(_connectionString);
             _conn.Open();
 
@@ -135,7 +135,8 @@ namespace Wabbajack.Common
             cmd.CommandText = @"CREATE TABLE IF NOT EXISTS HashCache (
             Path TEXT PRIMARY KEY,
             LastModified BIGINT,
-            Hash BIGINT)";
+            Hash BIGINT)
+            WITHOUT ROWID";
             cmd.ExecuteNonQuery();
 
 
@@ -179,6 +180,15 @@ namespace Wabbajack.Common
             cmd.Parameters.AddWithValue("@hash", (long)hash);
             cmd.PrepareAsync();
             
+            cmd.ExecuteNonQuery();
+        }
+
+        public static void VacuumDatabase()
+        {
+            using var cmd = new SQLiteCommand(_conn);
+            cmd.CommandText = @"VACUUM";
+            cmd.PrepareAsync();
+
             cmd.ExecuteNonQuery();
         }
 
