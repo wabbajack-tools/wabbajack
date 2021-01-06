@@ -237,6 +237,7 @@ namespace Wabbajack.Test
                         fileID=35407";
 
             var state = (AbstractDownloadState)await DownloadDispatcher.ResolveArchive(ini.LoadIniString());
+            await DownloadDispatcher.PrepareAll(new[] {state});
 
             Assert.NotNull(state);
 
