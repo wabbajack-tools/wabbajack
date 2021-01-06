@@ -92,7 +92,7 @@ namespace Wabbajack.Lib.Downloaders
         public async Task<Http.Client> GetAuthedClient()
         {
             Helpers.Cookie[] cookies;
-            if (Consts.IsServer)
+            if (Consts.IsServer || IsCloudFlareProtected)
             {
                 try
                 {

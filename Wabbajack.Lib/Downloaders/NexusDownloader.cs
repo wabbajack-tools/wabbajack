@@ -66,7 +66,7 @@ namespace Wabbajack.Lib.Downloaders
                     };
                 }
 
-                var client = await NexusApiClient.Get();
+                var client = DownloadDispatcher.GetInstance<NexusDownloader>().Client ?? await NexusApiClient.Get();
                 ModInfo info;
                 try
                 {
@@ -198,8 +198,7 @@ namespace Wabbajack.Lib.Downloaders
                 string url;
                 try
                 {
-                    var client = await NexusApiClient.Get();
-                    url = await client.GetNexusDownloadLink(this);
+                    url = await DownloadDispatcher.GetInstance<NexusDownloader>().Client!.GetNexusDownloadLink(this);
                 }
                 catch (NexusAPIQuotaExceeded ex)
                 {
@@ -218,7 +217,7 @@ namespace Wabbajack.Lib.Downloaders
             {
                 try
                 {
-                    var client = await NexusApiClient.Get();
+                    var client = DownloadDispatcher.GetInstance<NexusDownloader>().Client!;
                     var modInfo = await client.GetModInfo(Game, ModID);
                     if (!modInfo.available) return false;
                     var modFiles = await client.GetModFiles(Game, ModID);

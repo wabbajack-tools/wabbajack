@@ -34,9 +34,7 @@ namespace Wabbajack.Lib.NexusApi
         {
             get
             {
-                if (_userStatus == null)
-                    _userStatus = GetUserStatus();
-                return _userStatus;
+                return _userStatus ??= GetUserStatus();
             }
         }
 
