@@ -11,14 +11,15 @@ namespace Wabbajack.Common
     {
         private static AbsolutePath DBLocation = Consts.LocalAppDataPath.Combine("GlobalPatchCache.sqlite");
         private static string _connectionString;
+        private static SQLiteConnection _conn;
 
         static PatchCache()
         {
             _connectionString = String.Intern($"URI=file:{DBLocation};Pooling=True;Max Pool Size=100;");
-            using var conn = new SQLiteConnection(_connectionString);
-            conn.Open();
+            _conn = new SQLiteConnection(_connectionString);
+            _conn.Open();
 
-            using var cmd = new SQLiteCommand(conn);
+            using var cmd = new SQLiteCommand(_conn);
             cmd.CommandText = @"CREATE TABLE IF NOT EXISTS PatchCache (
             FromHash BIGINT,
             ToHash BIGINT,
@@ -31,10 +32,7 @@ namespace Wabbajack.Common
 
         public static async Task CreatePatchCached(byte[] a, byte[] b, Stream output)
         {
-            await using var conn = new SQLiteConnection(_connectionString);
-            await conn.OpenAsync();
-
-            await using var cmd = new SQLiteCommand(conn);
+            await using var cmd = new SQLiteCommand(_conn);
             cmd.CommandText = @"INSERT INTO PatchCache (FromHash, ToHash, PatchSize, Patch) 
                   VALUES (@fromHash, @toHash, @patchSize, @patch)";
 
@@ -67,10 +65,30 @@ namespace Wabbajack.Common
         public static async Task<long> CreatePatchCached(Stream srcStream, Hash srcHash, Stream destStream, Hash destHash,
             Stream? patchOutStream = null)
         {
-            await using var conn = new SQLiteConnection(_connectionString);
-            await conn.OpenAsync();
+            if (patchOutStream == null)
+            {
+                await using var rcmd = new SQLiteCommand(_conn);
+                rcmd.CommandText = "SELECT PatchSize FROM PatchCache WHERE FromHash = @fromHash AND ToHash = @toHash";
+                rcmd.Parameters.AddWithValue("@fromHash", (long)srcHash);
+                rcmd.Parameters.AddWithValue("@toHash", (long)destHash);
 
-            await using var cmd = new SQLiteCommand(conn);
+                await using var rdr = await rcmd.ExecuteReaderAsync();
+                while (await rdr.ReadAsync())
+                {
+                    return rdr.GetInt64(0);
+                }
+            }
+            else
+            {
+
+                if (TryGetPatch(srcHash, destHash, out var array))
+                {
+                    await patchOutStream!.WriteAsync(array);
+                    return array.Length;
+                }
+            }
+
+            await using var cmd = new SQLiteCommand(_conn);
             cmd.CommandText = @"INSERT INTO PatchCache (FromHash, ToHash, PatchSize, Patch) 
                   VALUES (@fromHash, @toHash, @patchSize, @patch)";
 
@@ -105,10 +123,7 @@ namespace Wabbajack.Common
 
         public static bool TryGetPatch(Hash fromHash, Hash toHash, [MaybeNullWhen(false)] out byte[] array)
         {
-            using var conn = new SQLiteConnection(_connectionString);
-            conn.Open();
-
-            using var cmd = new SQLiteCommand(conn);
+            using var cmd = new SQLiteCommand(_conn);
             cmd.CommandText = @"SELECT PatchSize, Patch FROM PatchCache WHERE FromHash = @fromHash AND ToHash = @toHash";
             cmd.Parameters.AddWithValue("@fromHash", (long)fromHash);
             cmd.Parameters.AddWithValue("@toHash", (long)toHash);
