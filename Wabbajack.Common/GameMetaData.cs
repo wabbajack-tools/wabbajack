@@ -571,7 +571,7 @@ namespace Wabbajack.Common
                     NexusName = "dragonage",	
                     NexusGameId = 140,
                     MO2Name = "Dragon Age: Origins", // Probably wrong
-                    SteamIDs = new List<int>{17450},
+                    SteamIDs = new List<int>{47810},
                     OriginIDs = new List<string>{"DR:208591800"},
                     RequiredFiles = new List<string>	
                     {	
