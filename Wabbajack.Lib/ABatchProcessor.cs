@@ -177,6 +177,11 @@ namespace Wabbajack.Lib
                 }
                 finally
                 {
+                    Utils.Log("Vacuuming databases");
+                    HashCache.VacuumDatabase();
+                    PatchCache.VacuumDatabase();
+                    VirtualFile.VacuumDatabase();
+                    Utils.Log("Vacuuming completed");
                     _isRunning.OnNext(false);
                 }
             });
