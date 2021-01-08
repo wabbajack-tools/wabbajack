@@ -42,7 +42,9 @@ namespace Wabbajack.Common
         KingdomComeDeliverance,
         MechWarrior5Mercenaries,
         NoMansSky,
-        DragonAgeOrigins
+        DragonAgeOrigins,
+        DragonAge2,
+        DragonAgeInquisition
     }
 
     public static class GameExtensions
@@ -578,6 +580,38 @@ namespace Wabbajack.Common
                         @"bin_ship\daorigins.exe"	
                     },
                     MainExecutable = @"bin_ship\daorigins.exe"	
+                }
+            },
+            {	
+                Game.DragonAge2, new GameMetaData	
+                {	
+                    Game = Game.DragonAge2,
+                    NexusName = "dragonage2",	
+                    NexusGameId = 141,
+                    MO2Name = "Dragon Age 2", // Probably wrong
+                    SteamIDs = new List<int>{1238040},
+                    OriginIDs = new List<string>{"OFB-EAST:59474"},
+                    RequiredFiles = new List<string>	
+                    {	
+                        @"bin_ship\DragonAge2.exe"	
+                    },
+                    MainExecutable = @"bin_ship\DragonAge2.exe"	
+                }
+            },
+            {	
+                Game.DragonAgeInquisition, new GameMetaData	
+                {	
+                    Game = Game.DragonAgeInquisition,
+                    NexusName = "dragonageinquisition",	
+                    NexusGameId = 728,
+                    MO2Name = "Dragon Age: Inquisition", // Probably wrong
+                    SteamIDs = new List<int>{1222690},
+                    OriginIDs = new List<string>{"OFB-EAST:51937"},
+                    RequiredFiles = new List<string>	
+                    {	
+                        @"DragonAgeInquisition.exe"	
+                    },
+                    MainExecutable = @"DragonAgeInquisition.exe"	
                 }
             }
         };
