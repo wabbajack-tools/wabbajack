@@ -3,7 +3,7 @@
 #### Version - 2.4.0.0 - ???
 * Wabbajack is now based on .NET 5.0 (does not require a runtime download by users)
 * Origin is now supported as a game source
-* Basic (mostly untested) support for Dragon Age : Origins
+* Basic (mostly untested) support for Dragon Age : Origins, Dragon Age 2, and Dragon Age: Inquisition 
 * Replace RocksDB with SQLite should result in less process contention when running the UI and the CLI at the same time
 * Fixed Regression with CloudFront IPS4 sites not requesting logins before installation
 * Fixed regression that caused us to spam the Nexus with verify calls

@@ -14,6 +14,8 @@ namespace Wabbajack.Common.StoreHandlers
         private HashSet<string> KnownMFSTs = new();
 
         public override StoreType Type { get; internal set; } = StoreType.Origin;
+
+        private static Regex SplitRegex = new Regex("[0-9]+");
         public override bool Init()
         {
             try
@@ -24,7 +26,34 @@ namespace Wabbajack.Common.StoreHandlers
                 KnownMFSTs = OriginDataPath.EnumerateFiles()
                     .Where(f => f.Extension == MFSTExtension)
                     .Select(f => f.FileNameWithoutExtension.ToString())
+                    .Select(f =>
+                    {
+                        var result = SplitRegex.Match(f);
+                        if (result == null) return default;
+                        var a = f.Substring(0, result.Index);
+                        var b = f.Substring(result.Index);
+                        return a + ":" + b;
+                    })
+                    .Where(t => t != default)
+                    .Select(t => t!)
+                    .Where(t => !t.Contains("."))
                     .ToHashSet();
+
+                foreach (var known in KnownMFSTs)
+                {
+                    try
+                    {
+                        var resp = OriginGame.GetAndCacheManifestResponse(known)
+                            .FromJsonString<OriginGame.GameLocalDataResponse>();
+                        Utils.Log($"Found Origin Content {resp.localizableAttributes!.displayName} ({known})");
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.Log($"Origin got {ex.Message} when loading info for {known}");
+                        continue;
+                    }
+
+                }
 
                 Utils.Log($"Found MFSTs from Origin: {string.Join(", ", KnownMFSTs)}");
 
@@ -41,6 +70,8 @@ namespace Wabbajack.Common.StoreHandlers
         {
             try
             {
+                
+                
                 foreach (var game in GameRegistry.Games)
                 {
                     var mfst = game.Value.OriginIDs.FirstOrDefault(g => KnownMFSTs.Contains(g.Replace(":", "")));
@@ -48,7 +79,6 @@ namespace Wabbajack.Common.StoreHandlers
                         continue;
 
                     var ogame = new OriginGame(mfst, game.Key, game.Value);
-                    ogame.GetAndCacheManifestResponse();
                     Games.Add(ogame);
                 }
 
@@ -91,7 +121,7 @@ namespace Wabbajack.Common.StoreHandlers
 
         private AbsolutePath GetGamePath()
         {
-            var manifestData = GetAndCacheManifestResponse().FromJsonString<GameLocalDataResponse>();
+            var manifestData = GetAndCacheManifestResponse(this._mfst).FromJsonString<GameLocalDataResponse>();
             var platform = manifestData!.publishing!.softwareList!.software!.FirstOrDefault(a => a.softwarePlatform == "PCWIN");
             
             var installPath = GetPathFromPlatformPath(platform!.fulfillmentAttributes!.installCheckOverride!);
@@ -151,21 +181,22 @@ namespace Wabbajack.Common.StoreHandlers
             return resultPath;
         }
 
-        private AbsolutePath ManifestCacheLocation =>
-            Consts.LocalAppDataPath.Combine("OriginManifestCache", _mfst.Replace(":", ""));
+        private static AbsolutePath ManifestCacheLocation(string mfst) =>
+            Consts.LocalAppDataPath.Combine("OriginManifestCache", mfst.Replace(":", ""));
 
-        internal string GetAndCacheManifestResponse()
+        internal static string GetAndCacheManifestResponse(string mfst)
         {
-            if (ManifestCacheLocation.Exists)
+            var location = ManifestCacheLocation(mfst);
+            if (location.Exists)
             {
-                return ManifestCacheLocation.ReadAllText();
+                return location.ReadAllText();
             }
 
-            Utils.Log($"Getting Origin Manifest info for {_mfst}");
+            Utils.Log($"Getting Origin Manifest info for {mfst}");
             var client = new HttpClient();
-            var data = client.GetStringAsync($"https://api1.origin.com/ecommerce2/public/{_mfst}/en_US").Result;
-            ManifestCacheLocation.Parent.CreateDirectory();
-            ManifestCacheLocation.WriteAllTextAsync(data).Wait();
+            var data = client.GetStringAsync($"https://api1.origin.com/ecommerce2/public/{mfst}/en_US").Result;
+            location.Parent.CreateDirectory();
+            location.WriteAllTextAsync(data).Wait();
             return data;
         }
 
