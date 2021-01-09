@@ -133,7 +133,7 @@ namespace Wabbajack.CLI.Verbs
                 
                 using var queue = new WorkQueue();
 
-                CLIUtils.Log($"Hashing Downloads (this may take some time)");
+                CLIUtils.Log("Hashing Downloads (this may take some time)");
                 var hashes = (await Input.EnumerateFiles().PMap(queue, async f =>
                     {
                         CLIUtils.Log($"Hashing {f}");

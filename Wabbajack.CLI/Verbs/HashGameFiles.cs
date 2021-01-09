@@ -36,19 +36,24 @@ namespace Wabbajack.CLI.Verbs
                 .PMap(queue, async f =>
                 {
                     var hash = await f.FileHashCachedAsync();
-                    return new Archive(new GameFileSourceDownloader.State
+                    if (hash.IsValid)
                     {
-                        Game = _game, 
-                        GameFile = f.RelativeTo(gameLocation), 
-                        Hash = hash, 
-                        GameVersion = version
-                    })
-                    {
-                        Name = f.FileName.ToString(),
-                        Hash = hash,
-                        Size = f.Size
-                    };
+                        return new Archive(new GameFileSourceDownloader.State
+                        {
+                            Game = _game,
+                            GameFile = f.RelativeTo(gameLocation),
+                            Hash = hash,
+                            GameVersion = version
+                        })
+                        {
+                            Name = f.FileName.ToString(),
+                            Hash = hash, 
+                            Size = f.Size
+                        };
+                    }
 
+                    Utils.Error($"Unable to hash file {f}!");
+                    return null;
                 });
 
             Utils.Log($"Found and hashed {indexed.Length} files");

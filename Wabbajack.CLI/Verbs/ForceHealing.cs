@@ -28,6 +28,18 @@ namespace Wabbajack.CLI.Verbs
             var oldHash = await Old.FileHashCachedAsync();
             var newHash = await New.FileHashCachedAsync();
 
+            if (!oldHash.IsValid)
+            {
+                Utils.Error("Old Hash is not valid!");
+                return ExitCode.Error;
+            }
+
+            if (!newHash.IsValid)
+            {
+                Utils.Error("New Hash is not valid!");
+                return ExitCode.Error;
+            }
+            
             var oldArchive = new Archive(oldState) {Hash = oldHash, Size = Old.Size};
             var newArchive = new Archive(newState) {Hash = newHash, Size = New.Size};
 

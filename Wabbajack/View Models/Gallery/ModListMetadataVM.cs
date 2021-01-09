@@ -197,7 +197,12 @@ namespace Wabbajack
                         Utils.Log($"Done downloading {Metadata.Links.MachineURL}");
 
                         // Want to rehash to current file, even if failed?
-                        await Location.FileHashCachedAsync();
+                        var hash = await Location.FileHashCachedAsync();
+                        if (!hash.IsValid)
+                        {
+                            Utils.Error($"Unable to hash file {Location}");
+                            tcs.SetException(new Exception($"Unable to hash file {Location}"));
+                        }
                         Utils.Log($"Done hashing {Metadata.Links.MachineURL}");
                         tcs.SetResult(result);
                     }

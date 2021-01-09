@@ -288,11 +288,12 @@ namespace Wabbajack.Lib
 
             var toHash = ModList.Archives.Where(a => hashDict.ContainsKey(a.Size)).SelectMany(a => hashDict[a.Size]).ToList();
             
-            Utils.Log($"Found {allFiles.Count} total files, {toHash.Count} matching filesize");
+            Utils.Log($"Found {allFiles.Count} total files, {toHash.Count} matching file size");
             
             var hashResults = await 
                 toHash
-                .PMap(Queue, UpdateTracker,async e => (await e.FileHashCachedAsync(), e)); 
+                .PMap(Queue, UpdateTracker,async e => (await e.FileHashCachedAsync(), e));
+            hashResults = hashResults.Where(x => x.Item1 != Hash.Empty).ToArray();
             
             HashedArchives.SetTo(hashResults
                 .OrderByDescending(e => e.Item2.LastModified)
