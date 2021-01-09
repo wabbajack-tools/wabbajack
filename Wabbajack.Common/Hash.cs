@@ -294,10 +294,10 @@ namespace Wabbajack.Common
                 var value = await xxHashFactory.Instance.Create(config).ComputeHashAsync(hs);
                 return new Hash(BitConverter.ToUInt64(value.Hash));
             }
-            catch (IOException)
+            catch (IOException e)
             {
                 if (nullOnIOError) return Hash.Empty;
-                throw;
+                throw new Exception($"Unable to hash {file}", e);
             }
         }
     }
