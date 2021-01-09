@@ -50,11 +50,13 @@ namespace Wabbajack.Lib.WebAutomation
             "<h1>Temporarily Unavailable</h1>",
             "<center>Request Header Or Cookie Too Large</center>",
             //"<html><head></head><body></body></html>"
+            "<span class=\"cf-error-code\">525</span>",
+            "<span class=\"cf-error-code\">522</span>",
         };
         private readonly (string, int)[] KnownErrorStrings =
         {
             ("<h1>400 Bad Request</h1>", 400),
-            ("We could not locate the item you are trying to view.", 404)
+            ("We could not locate the item you are trying to view.", 404),
         };
         private static readonly Random RetryRandom = new Random();
 
