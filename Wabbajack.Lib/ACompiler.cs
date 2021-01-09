@@ -308,7 +308,7 @@ namespace Wabbajack.Lib
                 ModList.ToJson(of);
 
             await ModListOutputFolder.Combine("sig")
-                .WriteAllBytesAsync((await ModListOutputFolder.Combine("modlist").FileHashAsync()).ToArray());
+                .WriteAllBytesAsync(((await ModListOutputFolder.Combine("modlist").FileHashAsync()) ?? Hash.Empty).ToArray());
 
             await ClientAPI.SendModListDefinition(ModList);
 
