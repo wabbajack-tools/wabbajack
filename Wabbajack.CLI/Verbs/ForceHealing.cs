@@ -28,8 +28,14 @@ namespace Wabbajack.CLI.Verbs
             var oldHash = await Old.FileHashCachedAsync();
             var newHash = await New.FileHashCachedAsync();
 
-            var oldArchive = new Archive(oldState) {Hash = oldHash, Size = Old.Size};
-            var newArchive = new Archive(newState) {Hash = newHash, Size = New.Size};
+            if (oldHash == null)
+                return ExitCode.Error;
+
+            if (newHash == null)
+                return ExitCode.Error;
+            
+            var oldArchive = new Archive(oldState) {Hash = oldHash!.Value, Size = Old.Size};
+            var newArchive = new Archive(newState) {Hash = newHash!.Value, Size = New.Size};
 
             Utils.Log($"Contacting Server to request patch ({oldHash} -> {newHash}");
             Utils.Log($"Response: {await ClientAPI.GetModUpgrade(oldArchive, newArchive, useAuthor: true)}");
