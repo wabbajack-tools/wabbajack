@@ -79,6 +79,7 @@ namespace Wabbajack.Server.Services
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, $"During Validation of {archive.Hash} {archive.State.PrimaryKeyString}");
+                        Utils.Log($"Exception in validation of {archive.Hash} {archive.State.PrimaryKeyString} " + ex);
                         return (archive, ArchiveStatus.InValid);
                     }
                     finally
@@ -316,6 +317,8 @@ namespace Wabbajack.Server.Services
                     return (archive, ArchiveStatus.Valid);
                 case ModDBDownloader.State _:
                     return (archive, ArchiveStatus.Valid);
+                case GameFileSourceDownloader.State _:
+                    return (archive, ArchiveStatus.Valid);
                 case MediaFireDownloader.State _:
                     return (archive, ArchiveStatus.Valid);
                 default:
@@ -363,8 +366,9 @@ namespace Wabbajack.Server.Services
                             {
                                 mod = await nexusClient.GetModInfo(ns.Game, ns.ModID, false);
                             }
-                            catch
+                            catch (Exception ex)
                             {
+                                Utils.Log("Exception in Nexus Validation " + ex);
                                 mod = new ModInfo
                                 {
                                     mod_id = ns.ModID.ToString(),

@@ -217,7 +217,10 @@ namespace Wabbajack.Lib.Downloaders
             {
                 try
                 {
-                    var client = DownloadDispatcher.GetInstance<NexusDownloader>().Client!;
+                    var nclient = DownloadDispatcher.GetInstance<NexusDownloader>();
+                    await nclient.Prepare();
+                    var client = nclient.Client!;
+
                     var modInfo = await client.GetModInfo(Game, ModID);
                     if (!modInfo.available) return false;
                     var modFiles = await client.GetModFiles(Game, ModID);

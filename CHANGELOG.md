@@ -8,6 +8,7 @@
 * Fixed Regression with CloudFront IPS4 sites not requesting logins before installation
 * Fixed regression that caused us to spam the Nexus with verify calls
 * Further fixes for IPS4 sites
+* Optimized download folder hashing by only hashing files that match a specific size (thanks Unnoen!)
 
 #### Version - 2.3.6.2 - 12/31/2020
 * HOTFIX: Also apply the IPS4 changes to LL Meta lookups
