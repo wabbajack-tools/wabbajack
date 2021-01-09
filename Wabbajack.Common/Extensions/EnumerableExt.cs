@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Wabbajack
 {
@@ -37,13 +38,20 @@ namespace Wabbajack
         /// <summary>
         /// Converts and filters a nullable enumerable to a non-nullable enumerable
         /// </summary>
-        public static IEnumerable<T> NotNull<T>(this IEnumerable<T?> e)
+        public static IEnumerable<T> NotNull<T>(this IEnumerable<T?> enumerable)
             where T : class
         {
             // Filter out nulls
-            return e.Where(e => e != null)
+            return enumerable.Where(e => e != null)
                 // Cast to non nullable type
                 .Select(e => e!);
+        }
+        
+        public static IEnumerable<T> NotNull<T>(this IEnumerable<T?> enumerable) where T : struct
+        {
+            return enumerable
+                .Where(x => x.HasValue)
+                .Select(x => x!.Value);
         }
 
         /// <summary>
