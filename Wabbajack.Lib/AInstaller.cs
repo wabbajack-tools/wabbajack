@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -279,11 +279,16 @@ namespace Wabbajack.Lib
         public async Task HashArchives()
         {
             Utils.Log("Looking for files to hash");
-            var toHash = DownloadFolder.EnumerateFiles()
+
+            var allFiles = DownloadFolder.EnumerateFiles()
                 .Concat(Game.GameLocation().EnumerateFiles())
                 .ToList();
+
+            var hashDict = allFiles.GroupBy(f => f.Size).ToDictionary(g => g.Key);
+
+            var toHash = ModList.Archives.Where(a => hashDict.ContainsKey(a.Size)).SelectMany(a => hashDict[a.Size]).ToList();
             
-            Utils.Log($"Found {toHash.Count} files to hash");
+            Utils.Log($"Found {allFiles.Count} total files, {toHash.Count} matching filesize");
             
             var hashResults = await 
                 toHash
