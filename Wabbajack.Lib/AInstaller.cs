@@ -279,12 +279,41 @@ namespace Wabbajack.Lib
         public async Task HashArchives()
         {
             Utils.Log("Looking for files to hash");
-            var toHash = DownloadFolder.EnumerateFiles()
+            // Enumerate all files.
+            var allFiles = DownloadFolder.EnumerateFiles()
                 .Concat(Game.GameLocation().EnumerateFiles())
                 .ToList();
+
+            // Create a Dictionary with filesize as the key.
+            var hashDict = new Dictionary<long, List<AbsolutePath>>();
+
+            // Populate the Dictionary with all files we found, using a list for the paths to allow for duplicated filesizes.
+            allFiles.ForEach(o =>
+            {
+                if (hashDict.ContainsKey(o.Size))
+                {
+                    hashDict[o.Size].Add(o);
+                }
+                else
+                {
+                    hashDict.Add(o.Size, new List<AbsolutePath> { o });
+                }
+            });
+
+            // Create a list for the files we filter.
+            var toHash = new List<AbsolutePath>();
+
+            // Iterate through required archives, adding any files we have that match filesize.
+            ModList.Archives.ForEach(o => {
+                if (hashDict.ContainsKey(o.Size))
+                {
+                    hashDict[o.Size].ForEach(o => toHash.Add(o));
+                }
+            });
             
-            Utils.Log($"Found {toHash.Count} files to hash");
+            Utils.Log($"Found {allFiles.Count} total files, {toHash.Count} matching filesize");
             
+            // Hash all the files we added.
             var hashResults = await 
                 toHash
                 .PMap(Queue, UpdateTracker,async e => (await e.FileHashCachedAsync(), e)); 
