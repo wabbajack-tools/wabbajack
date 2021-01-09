@@ -294,7 +294,7 @@ namespace Wabbajack.Lib
                 var hash = await gameFile.FileHashAsync();
                 if (hash != esm.SourceESMHash)
                 {
-                    Utils.ErrorThrow(new InvalidGameESMError(esm, hash, gameFile));
+                    Utils.ErrorThrow(new InvalidGameESMError(esm, hash ?? Hash.Empty, gameFile));
                 }
             }
         }

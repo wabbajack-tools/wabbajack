@@ -338,11 +338,18 @@ namespace Wabbajack.Lib
                 }
             }
 
-            Utils.Log("Exporting ModList metadata");
+            Utils.Log("Exporting Modlist metadata");
+            var outputFileHash = await ModListOutputFile.FileHashAsync();
+            if (outputFileHash == null)
+            {
+                Utils.Error("Unable to hash Modlist Output File");
+                return;
+            }
+            
             var metadata = new DownloadMetadata
             {
                 Size = ModListOutputFile.Size,
-                Hash = await ModListOutputFile.FileHashAsync(),
+                Hash = outputFileHash.Value,
                 NumberOfArchives = ModList.Archives.Count,
                 SizeOfArchives = ModList.Archives.Sum(a => a.Size),
                 NumberOfInstalledFiles = ModList.Directives.Count,

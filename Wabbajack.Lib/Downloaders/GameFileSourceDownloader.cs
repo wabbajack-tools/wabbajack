@@ -28,12 +28,13 @@ namespace Wabbajack.Lib.Downloaders
 
             var fp = filePath.Value;
             var hash = await fp.FileHashCachedAsync();
+            if (hash == null) return null;
 
             return new State(game.InstalledVersion)
             {
                 Game = game.Game, 
                 GameFile = (RelativePath)gameFile,
-                Hash = hash
+                Hash = hash.Value
             };
         }
 

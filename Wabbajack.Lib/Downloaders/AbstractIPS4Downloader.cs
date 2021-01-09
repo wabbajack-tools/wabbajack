@@ -334,14 +334,15 @@ namespace Wabbajack.Lib.Downloaders
                     if (await newFile.State.Download(newFile, tmp.Path))
                     {
                         newFile.Size = tmp.Path.Size;
-                        newFile.Hash = await tmp.Path.FileHashAsync();
+                        var tmpHash = await tmp.Path.FileHashAsync();
+                        if (tmpHash == null) return default;
+                        newFile.Hash = tmpHash.Value;
                         return (newFile, tmp);
                     }
 
                     await tmp.DisposeAsync();
                 }
                 return default;
-
             }
 
             public override async Task<bool> ValidateUpgrade(Hash srcHash, AbstractDownloadState newArchiveState)
